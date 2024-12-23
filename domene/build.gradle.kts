@@ -1,4 +1,4 @@
-val kotlinxCoroutinesVersion = "1.10.0"
+val kotlinxCoroutinesVersion = "1.10.1"
 val kotestVersion = "5.9.1"
 val felleslibVersion = "0.0.319"
 val mockkVersion = "1.13.13"
@@ -41,5 +41,5 @@ dependencies {
     testApi("com.github.navikt.tiltakspenger-libs:test-common:$felleslibVersion")
     testImplementation("com.github.navikt.tiltakspenger-libs:common:$felleslibVersion")
     testImplementation("com.github.navikt.tiltakspenger-libs:persistering-domene:$felleslibVersion")
-    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.0")
+    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
 }
