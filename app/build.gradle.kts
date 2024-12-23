@@ -1,6 +1,6 @@
 val kotlinxCoroutinesVersion = "1.10.0"
 val kotestVersion = "5.9.1"
-val felleslibVersion = "0.0.309"
+val felleslibVersion = "0.0.319"
 val mockkVersion = "1.13.13"
 val ktorVersion = "3.0.3"
 val testContainersVersion = "1.20.4"
