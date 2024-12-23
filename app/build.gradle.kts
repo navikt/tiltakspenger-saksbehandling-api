@@ -1,4 +1,4 @@
-val kotlinxCoroutinesVersion = "1.10.0"
+val kotlinxCoroutinesVersion = "1.10.1"
 val kotestVersion = "5.9.1"
 val felleslibVersion = "0.0.309"
 val mockkVersion = "1.13.13"
@@ -111,7 +111,7 @@ dependencies {
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("io.mockk:mockk-dsl-jvm:$mockkVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
     testImplementation("io.kotest:kotest-extensions:$kotestVersion")
