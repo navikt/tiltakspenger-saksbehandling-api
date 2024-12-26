@@ -119,7 +119,7 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
             override val journalførMeldekortGateway = journalførFakeMeldekortGateway
             override val journalførVedtaksbrevGateway = journalførFakeVedtaksbrevGateway
             override val genererUtbetalingsvedtakGateway = genererFakeUtbetalingsvedtakGateway
-            override val genererVedtaksbrevGateway = genererFakeVedtaksbrevGateway
+            override val genererInnvilgelsesvedtaksbrevGateway = genererFakeVedtaksbrevGateway
         }
     }
 
@@ -157,7 +157,6 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
         object : FørstegangsbehandlingContext(
             sessionFactory = sessionFactory,
             meldekortRepo = meldekortContext.meldekortRepo,
-            sakRepo = sakContext.sakRepo,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             gitHash = "fake-git-hash",

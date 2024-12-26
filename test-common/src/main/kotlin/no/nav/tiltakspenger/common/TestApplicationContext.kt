@@ -72,7 +72,7 @@ class TestApplicationContext(
     private val personGatewayFake = PersonFakeGateway()
     private val tilgangsstyringFakeGateway = TilgangsstyringFakeGateway()
     private val genererFakeMeldekortPdfGateway = GenererFakeUtbetalingsvedtakGateway()
-    private val genererFakeVedtaksbrevGateway = GenererFakeVedtaksbrevGateway()
+    private val genererFakeInnvilgelsesvedtaksbrevGateway = GenererFakeVedtaksbrevGateway()
     private val journalførFakeMeldekortGateway = JournalførFakeMeldekortGateway(journalpostIdGenerator)
     private val journalførFakeVedtaksbrevGateway = JournalførFakeVedtaksbrevGateway(journalpostIdGenerator)
     private val dokdistFakeGateway = DokdistFakeGateway(distribusjonIdGenerator)
@@ -133,7 +133,7 @@ class TestApplicationContext(
             override val journalførMeldekortGateway = journalførFakeMeldekortGateway
             override val journalførVedtaksbrevGateway = journalførFakeVedtaksbrevGateway
             override val genererUtbetalingsvedtakGateway = genererFakeMeldekortPdfGateway
-            override val genererVedtaksbrevGateway = genererFakeVedtaksbrevGateway
+            override val genererInnvilgelsesvedtaksbrevGateway = genererFakeInnvilgelsesvedtaksbrevGateway
         }
     }
 
@@ -191,12 +191,11 @@ class TestApplicationContext(
         object : FørstegangsbehandlingContext(
             sessionFactory = sessionFactory,
             meldekortRepo = meldekortFakeRepo,
-            sakRepo = sakFakeRepo,
             statistikkSakRepo = statistikkSakFakeRepo,
             statistikkStønadRepo = statistikkStønadFakeRepo,
             gitHash = "fake-git-hash",
             journalførVedtaksbrevGateway = journalførFakeVedtaksbrevGateway,
-            genererVedtaksbrevGateway = genererFakeVedtaksbrevGateway,
+            genererVedtaksbrevGateway = genererFakeInnvilgelsesvedtaksbrevGateway,
             personService = personContext.personService,
             tilgangsstyringService = tilgangsstyringFakeGateway,
             dokdistGateway = dokdistFakeGateway,

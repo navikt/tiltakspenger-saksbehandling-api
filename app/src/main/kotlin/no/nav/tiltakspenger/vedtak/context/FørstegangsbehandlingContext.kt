@@ -7,10 +7,9 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.ports.GenererVedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.ports.JournalførVedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.ports.RammevedtakRepo
-import no.nav.tiltakspenger.saksbehandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingService
@@ -25,20 +24,17 @@ import no.nav.tiltakspenger.saksbehandling.service.journalføring.JournalførVed
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.service.sak.StartRevurderingService
-import no.nav.tiltakspenger.saksbehandling.service.vedtak.RammevedtakService
-import no.nav.tiltakspenger.saksbehandling.service.vedtak.RammevedtakServiceImpl
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.vedtak.RammevedtakPostgresRepo
 
 open class FørstegangsbehandlingContext(
     sessionFactory: SessionFactory,
     meldekortRepo: MeldekortRepo,
-    sakRepo: SakRepo,
     statistikkSakRepo: StatistikkSakRepo,
     statistikkStønadRepo: StatistikkStønadRepo,
     gitHash: String,
     journalførVedtaksbrevGateway: JournalførVedtaksbrevGateway,
-    genererVedtaksbrevGateway: GenererVedtaksbrevGateway,
+    genererVedtaksbrevGateway: GenererInnvilgelsesvedtaksbrevGateway,
     tilgangsstyringService: TilgangsstyringService,
     personService: PersonService,
     dokdistGateway: DokdistGateway,
@@ -79,7 +75,6 @@ open class FørstegangsbehandlingContext(
             behandlingRepo = behandlingRepo,
         )
     }
-    val rammevedtakService: RammevedtakService by lazy { RammevedtakServiceImpl(rammevedtakRepo) }
     val startRevurderingService: StartRevurderingService by lazy {
         StartRevurderingService(
             sakService = sakService,

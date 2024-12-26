@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.distribusjon.ports.DokdistGateway
 import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
 import no.nav.tiltakspenger.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.meldekort.ports.JournalførMeldekortGateway
-import no.nav.tiltakspenger.saksbehandling.ports.GenererVedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.ports.JournalførVedtaksbrevGateway
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.clients.dokdist.DokdistHttpClient
@@ -32,5 +32,5 @@ open class DokumentContext(
         PdfgenHttpClient(Configuration.pdfgenUrl)
     }
     open val genererUtbetalingsvedtakGateway: GenererUtbetalingsvedtakGateway by lazy { pdfgen }
-    open val genererVedtaksbrevGateway: GenererVedtaksbrevGateway by lazy { pdfgen }
+    open val genererInnvilgelsesvedtaksbrevGateway: GenererInnvilgelsesvedtaksbrevGateway by lazy { pdfgen }
 }

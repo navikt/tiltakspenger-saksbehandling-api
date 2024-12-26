@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.felles.NavIdentClient
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.saksbehandling.ports.GenererVedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.ports.JournalførVedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
@@ -16,7 +16,7 @@ import java.time.LocalDate
 class JournalførVedtaksbrevService(
     private val journalførVedtaksbrevGateway: JournalførVedtaksbrevGateway,
     private val rammevedtakRepo: RammevedtakRepo,
-    private val genererVedtaksbrevGateway: GenererVedtaksbrevGateway,
+    private val genererVedtaksbrevGateway: GenererInnvilgelsesvedtaksbrevGateway,
     private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
 ) {
@@ -34,7 +34,7 @@ class JournalførVedtaksbrevService(
                 log.info { "Journalfører vedtaksbrev for vedtak ${vedtak.id}" }
                 Either.catch {
                     val vedtaksdato = LocalDate.now()
-                    val pdfOgJson = genererVedtaksbrevGateway.genererVedtaksbrev(
+                    val pdfOgJson = genererVedtaksbrevGateway.genererInnvilgelsesvedtaksbrev(
                         vedtaksdato = vedtaksdato,
                         vedtak = vedtak,
                         hentBrukersNavn = personService::hentNavn,

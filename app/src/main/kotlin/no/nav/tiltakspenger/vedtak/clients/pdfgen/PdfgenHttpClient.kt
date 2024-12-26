@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
+import no.nav.tiltakspenger.felles.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.felles.PdfA
 import no.nav.tiltakspenger.felles.journalføring.PdfOgJson
 import no.nav.tiltakspenger.felles.sikkerlogg
@@ -13,10 +14,11 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.Navn
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.ports.GenererVedtaksbrevGateway
-import no.nav.tiltakspenger.saksbehandling.ports.KunneIkkeGenererePdf
+import no.nav.tiltakspenger.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.ports.GenererStansvedtaksbrevGateway
 import no.nav.tiltakspenger.utbetaling.domene.Utbetalingsvedtak
 import java.net.URI
+import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.LocalDate
@@ -33,46 +35,34 @@ internal class PdfgenHttpClient(
     baseUrl: String,
     connectTimeout: Duration = 1.seconds,
     private val timeout: Duration = 6.seconds,
-) : GenererVedtaksbrevGateway, GenererUtbetalingsvedtakGateway {
+) : GenererInnvilgelsesvedtaksbrevGateway, GenererUtbetalingsvedtakGateway, GenererStansvedtaksbrevGateway {
 
     private val log = KotlinLogging.logger {}
 
     private val client =
-        java.net.http.HttpClient
+        HttpClient
             .newBuilder()
             .connectTimeout(connectTimeout.toJavaDuration())
-            .followRedirects(java.net.http.HttpClient.Redirect.NEVER)
+            .followRedirects(HttpClient.Redirect.NEVER)
             .build()
 
     private val vedtakInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakInnvilgelse")
     private val utbetalingsvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/utbetalingsvedtak")
+    private val stansvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingsvedtak")
 
-    override suspend fun genererVedtaksbrev(
+    override suspend fun genererInnvilgelsesvedtaksbrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return withContext(Dispatchers.IO) {
-            val jsonPayload = vedtak.tobrevDTO(hentBrukersNavn, hentSaksbehandlersNavn, vedtaksdato)
-            Either.catch {
-                val request = createPdfgenRequest(jsonPayload, vedtakInnvilgelseUri)
-                val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray()).await()
-                val jsonResponse = httpResponse.body()
-                val status = httpResponse.statusCode()
-                if (status != 200) {
-                    log.error { "Feil ved kall til pdfgen. Vedtak ${vedtak.id}, saksnummer ${vedtak.saksnummer}, sakId: ${vedtak.sakId}. Status: $status. uri: $vedtakInnvilgelseUri. Se sikkerlogg for detaljer." }
-                    sikkerlogg.error { "Feil ved kall til pdfgen. Vedtak ${vedtak.id}, saksnummer ${vedtak.saksnummer}, sakId: ${vedtak.sakId}. uri: $vedtakInnvilgelseUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
-                    return@withContext KunneIkkeGenererePdf.left()
-                }
-                PdfOgJson(PdfA(jsonResponse), jsonPayload)
-            }.mapLeft {
-                // Either.catch slipper igjennom CancellationException som er ønskelig.
-                log.error(it) { "Feil ved kall til pdfgen. Vedtak ${vedtak.id}, saksnummer ${vedtak.saksnummer}, sakId: ${vedtak.sakId}. Se sikkerlogg for detaljer." }
-                sikkerlogg.error(it) { "Feil ved kall til pdfgen. Vedtak ${vedtak.id}, saksnummer ${vedtak.saksnummer}, sakId: ${vedtak.sakId}. jsonPayload: $jsonPayload, uri: $vedtakInnvilgelseUri" }
-                KunneIkkeGenererePdf
-            }
-        }
+        return pdfgenRequest(
+            jsonPayload = {
+                vedtak.tobrevDTO(hentBrukersNavn, hentSaksbehandlersNavn, vedtaksdato)
+            },
+            errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
+            uri = vedtakInnvilgelseUri,
+        )
     }
 
     override suspend fun genererUtbetalingsvedtak(
@@ -82,23 +72,54 @@ internal class PdfgenHttpClient(
         eksternDeltagelseId: String,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return pdfgenRequest(
+            jsonPayload = {
+                utbetalingsvedtak.toJsonRequest(
+                    hentSaksbehandlersNavn,
+                    tiltaksnavn,
+                    eksternGjennomføringId,
+                    eksternDeltagelseId,
+                )
+            },
+            errorContext = "SakId: ${utbetalingsvedtak.sakId}, saksnummer: ${utbetalingsvedtak.saksnummer}, vedtakId: ${utbetalingsvedtak.id}",
+            uri = utbetalingsvedtakUri,
+        )
+    }
+
+    override suspend fun genererStansvedtak(
+        vedtak: Rammevedtak,
+        vedtaksdato: LocalDate,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return pdfgenRequest(
+            jsonPayload = { vedtak.tobrevDTO(hentBrukersNavn, hentSaksbehandlersNavn, vedtaksdato) },
+            errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
+            uri = stansvedtakUri,
+        )
+    }
+
+    private suspend fun pdfgenRequest(
+        jsonPayload: suspend () -> String,
+        errorContext: String,
+        uri: URI,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return withContext(Dispatchers.IO) {
-            val jsonPayload = utbetalingsvedtak.toJsonRequest(hentSaksbehandlersNavn, tiltaksnavn, eksternGjennomføringId, eksternDeltagelseId)
             Either.catch {
-                val request = createPdfgenRequest(jsonPayload, utbetalingsvedtakUri)
+                val request = createPdfgenRequest(jsonPayload(), uri)
                 val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray()).await()
                 val jsonResponse = httpResponse.body()
                 val status = httpResponse.statusCode()
                 if (status != 200) {
-                    log.error { "Feil ved kall til pdfgen. Utbetalingsvedtak ${utbetalingsvedtak.id}, saksnummer ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}. Status: $status. uri: $vedtakInnvilgelseUri. Se sikkerlogg for detaljer." }
-                    sikkerlogg.error { "Feil ved kall til pdfgen. Utbetalingsvedtak ${utbetalingsvedtak.id}, saksnummer ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}. uri: $vedtakInnvilgelseUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
+                    log.error { "Feil ved kall til pdfgen. $errorContext. Status: $status. uri: $uri. Se sikkerlogg for detaljer." }
+                    sikkerlogg.error { "Feil ved kall til pdfgen. $errorContext. uri: $uri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
                     return@withContext KunneIkkeGenererePdf.left()
                 }
-                PdfOgJson(PdfA(jsonResponse), jsonPayload)
+                PdfOgJson(PdfA(jsonResponse), jsonPayload())
             }.mapLeft {
                 // Either.catch slipper igjennom CancellationException som er ønskelig.
-                log.error(it) { "Feil ved kall til pdfgen. Utbetalingsvedtak ${utbetalingsvedtak.id}, saksnummer ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}. Se sikkerlogg for detaljer." }
-                sikkerlogg.error(it) { "Feil ved kall til pdfgen. Utbetalingsvedtak ${utbetalingsvedtak.id}, saksnummer ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}. jsonPayload: $jsonPayload, uri: $vedtakInnvilgelseUri" }
+                log.error(it) { "Feil ved kall til pdfgen. $errorContext. Se sikkerlogg for detaljer." }
+                sikkerlogg.error(it) { "Feil ved kall til pdfgen. $errorContext. jsonPayload: $jsonPayload, uri: $uri" }
                 KunneIkkeGenererePdf
             }
         }
@@ -107,8 +128,8 @@ internal class PdfgenHttpClient(
     private fun createPdfgenRequest(
         jsonPayload: String,
         uri: URI,
-    ): HttpRequest? =
-        HttpRequest
+    ): HttpRequest? {
+        return HttpRequest
             .newBuilder()
             .uri(uri)
             .timeout(timeout.toJavaDuration())
@@ -116,4 +137,5 @@ internal class PdfgenHttpClient(
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
             .build()
+    }
 }

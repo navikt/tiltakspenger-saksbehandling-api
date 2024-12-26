@@ -98,12 +98,11 @@ open class ApplicationContext(
         FørstegangsbehandlingContext(
             sessionFactory = sessionFactory,
             meldekortRepo = meldekortContext.meldekortRepo,
-            sakRepo = sakContext.sakRepo,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             gitHash = gitHash,
             journalførVedtaksbrevGateway = dokumentContext.journalførVedtaksbrevGateway,
-            genererVedtaksbrevGateway = dokumentContext.genererVedtaksbrevGateway,
+            genererVedtaksbrevGateway = dokumentContext.genererInnvilgelsesvedtaksbrevGateway,
             tilgangsstyringService = personContext.tilgangsstyringService,
             dokdistGateway = dokumentContext.dokdistGateway,
             personService = personContext.personService,
