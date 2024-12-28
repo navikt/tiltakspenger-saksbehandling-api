@@ -103,6 +103,7 @@ open class ApplicationContext(
             gitHash = gitHash,
             journalførVedtaksbrevGateway = dokumentContext.journalførVedtaksbrevGateway,
             genererVedtaksbrevGateway = dokumentContext.genererInnvilgelsesvedtaksbrevGateway,
+            genererStansvedtaksbrevGateway = dokumentContext.genererStansvedtaksbrevGateway,
             tilgangsstyringService = personContext.tilgangsstyringService,
             dokdistGateway = dokumentContext.dokdistGateway,
             personService = personContext.personService,
