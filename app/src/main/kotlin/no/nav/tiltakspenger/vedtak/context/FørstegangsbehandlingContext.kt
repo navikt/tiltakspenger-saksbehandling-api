@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.ports.GenererStansvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.ports.JournalførVedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkSakRepo
@@ -20,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.livsopphol
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.livsopphold.LivsoppholdVilkårServiceImpl
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.tiltaksdeltagelse.TiltaksdeltagelseVilkårService
 import no.nav.tiltakspenger.saksbehandling.service.distribuering.DistribuerVedtaksbrevService
-import no.nav.tiltakspenger.saksbehandling.service.journalføring.JournalførVedtaksbrevService
+import no.nav.tiltakspenger.saksbehandling.service.journalføring.JournalførRammevedtakService
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.service.sak.StartRevurderingService
@@ -35,6 +36,7 @@ open class FørstegangsbehandlingContext(
     gitHash: String,
     journalførVedtaksbrevGateway: JournalførVedtaksbrevGateway,
     genererVedtaksbrevGateway: GenererInnvilgelsesvedtaksbrevGateway,
+    genererStansvedtaksbrevGateway: GenererStansvedtaksbrevGateway,
     tilgangsstyringService: TilgangsstyringService,
     personService: PersonService,
     dokdistGateway: DokdistGateway,
@@ -84,12 +86,13 @@ open class FørstegangsbehandlingContext(
     }
 
     val journalførVedtaksbrevService by lazy {
-        JournalførVedtaksbrevService(
+        JournalførRammevedtakService(
             journalførVedtaksbrevGateway = journalførVedtaksbrevGateway,
             rammevedtakRepo = rammevedtakRepo,
-            genererVedtaksbrevGateway = genererVedtaksbrevGateway,
+            genererInnvilgelsesvedtaksbrevGateway = genererVedtaksbrevGateway,
             personService = personService,
             navIdentClient = navIdentClient,
+            genererStansvedtaksbrevGateway = genererStansvedtaksbrevGateway,
         )
     }
 

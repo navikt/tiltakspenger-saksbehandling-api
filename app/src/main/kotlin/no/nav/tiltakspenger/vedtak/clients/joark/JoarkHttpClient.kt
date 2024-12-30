@@ -48,7 +48,7 @@ internal class JoarkHttpClient(
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
     ): JournalpostId {
-        val jsonBody = vedtak.toJournalpostRequest(pdfOgJson)
+        val jsonBody = vedtak.utgåendeJournalpostRequest(pdfOgJson)
         return opprettJournalpost(jsonBody, correlationId)
     }
 

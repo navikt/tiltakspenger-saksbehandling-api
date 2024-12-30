@@ -6,21 +6,53 @@ import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.vedtak.clients.joark.JoarkRequest.JournalpostDokument.DokumentVariant.ArkivPDF
 import no.nav.tiltakspenger.vedtak.clients.joark.JoarkRequest.JournalpostDokument.DokumentVariant.OriginalJson
 
-internal fun Rammevedtak.toJournalpostRequest(
+internal fun Rammevedtak.utgåendeJournalpostRequest(
     pdfOgJson: PdfOgJson,
+): String {
+    return toJournalpostRequest(
+        pdfOgJson = pdfOgJson,
+        journalPostType = JoarkRequest.JournalPostType.UTGAAENDE,
+        // Utsendingskanal. Forsendelsen er distribuert digitalt til brukers meldingsboks i nav.no.
+        // TODO jah: Dobbeltsjekk denne med #team-dokumentløsninger. Vi sender vanligvis ikke med adresse til distribusjonen, så vi vet ikke om den går via sentral print eller sendes digitalt.
+        kanal = "NAV_NO",
+        avsenderMottaker = JoarkRequest.AvsenderMottaker(this.fnr.verdi),
+    )
+}
+
+/**
+ * TODO jah: Ikke sikkert vi får bruk for notat av rammevedtak.
+ */
+internal fun Rammevedtak.notatJournalpostRequest(
+    pdfOgJson: PdfOgJson,
+): String {
+    return toJournalpostRequest(
+        pdfOgJson = pdfOgJson,
+        journalPostType = JoarkRequest.JournalPostType.NOTAT,
+        // Fra doccen: "Kanal skal ikke settes for notater."
+        kanal = null,
+        // Fra doccen: "avsenderMottaker skal ikke settes for journalposttype NOTAT."
+        avsenderMottaker = null,
+    )
+}
+
+private fun Rammevedtak.toJournalpostRequest(
+    pdfOgJson: PdfOgJson,
+    journalPostType: JoarkRequest.JournalPostType,
+    kanal: String?,
+    avsenderMottaker: JoarkRequest.AvsenderMottaker?,
 ): String {
     val tittel = "Vedtak om tiltakspenger"
     return JoarkRequest(
         tittel = tittel,
-        journalpostType = JoarkRequest.JournalPostType.UTGAAENDE,
-        // Utsendingskanal. Forsendelsen er distribuert digitalt til brukers meldingsboks i nav.no.
-        kanal = "NAV_NO",
-        avsenderMottaker = JoarkRequest.AvsenderMottaker(this.fnr.verdi),
+        journalpostType = journalPostType,
+        kanal = kanal,
+        avsenderMottaker = avsenderMottaker,
         bruker = JoarkRequest.Bruker(this.fnr.verdi),
         sak = JoarkRequest.Sak.Fagsak(this.saksnummer.toString()),
         dokumenter = listOf(
             JoarkRequest.JournalpostDokument(
                 tittel = tittel,
+                // TODO jah: Denne bør komme fra PdfOgJson
                 brevkode = "MELDEKORT-TILTAKSPENGER",
                 dokumentvarianter = listOf(
                     ArkivPDF(

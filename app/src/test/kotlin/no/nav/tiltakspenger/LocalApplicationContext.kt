@@ -162,6 +162,7 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
             gitHash = "fake-git-hash",
             journalførVedtaksbrevGateway = journalførFakeVedtaksbrevGateway,
             genererVedtaksbrevGateway = genererFakeVedtaksbrevGateway,
+            genererStansvedtaksbrevGateway = genererFakeVedtaksbrevGateway,
             personService = personContext.personService,
             tilgangsstyringService = personContext.tilgangsstyringService,
             dokdistGateway = dokdistFakeGateway,

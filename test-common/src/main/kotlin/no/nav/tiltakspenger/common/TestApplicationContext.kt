@@ -72,7 +72,7 @@ class TestApplicationContext(
     private val personGatewayFake = PersonFakeGateway()
     private val tilgangsstyringFakeGateway = TilgangsstyringFakeGateway()
     private val genererFakeMeldekortPdfGateway = GenererFakeUtbetalingsvedtakGateway()
-    private val genererFakeInnvilgelsesvedtaksbrevGateway = GenererFakeVedtaksbrevGateway()
+    private val genererFakeVedtaksbrevGateway = GenererFakeVedtaksbrevGateway()
     private val journalførFakeMeldekortGateway = JournalførFakeMeldekortGateway(journalpostIdGenerator)
     private val journalførFakeVedtaksbrevGateway = JournalførFakeVedtaksbrevGateway(journalpostIdGenerator)
     private val dokdistFakeGateway = DokdistFakeGateway(distribusjonIdGenerator)
@@ -133,7 +133,7 @@ class TestApplicationContext(
             override val journalførMeldekortGateway = journalførFakeMeldekortGateway
             override val journalførVedtaksbrevGateway = journalførFakeVedtaksbrevGateway
             override val genererUtbetalingsvedtakGateway = genererFakeMeldekortPdfGateway
-            override val genererInnvilgelsesvedtaksbrevGateway = genererFakeInnvilgelsesvedtaksbrevGateway
+            override val genererInnvilgelsesvedtaksbrevGateway = genererFakeVedtaksbrevGateway
         }
     }
 
@@ -195,7 +195,8 @@ class TestApplicationContext(
             statistikkStønadRepo = statistikkStønadFakeRepo,
             gitHash = "fake-git-hash",
             journalførVedtaksbrevGateway = journalførFakeVedtaksbrevGateway,
-            genererVedtaksbrevGateway = genererFakeInnvilgelsesvedtaksbrevGateway,
+            genererVedtaksbrevGateway = genererFakeVedtaksbrevGateway,
+            genererStansvedtaksbrevGateway = genererFakeVedtaksbrevGateway,
             personService = personContext.personService,
             tilgangsstyringService = tilgangsstyringFakeGateway,
             dokdistGateway = dokdistFakeGateway,

@@ -18,7 +18,8 @@ internal fun Meldekort.toJournalpostRequest(
         journalpostType = JoarkRequest.JournalPostType.NOTAT,
         // I følge doccen, skal denne være null for NOTAT.
         kanal = null,
-        avsenderMottaker = JoarkRequest.AvsenderMottaker(this.fnr.verdi),
+        // I følge doccen, skal denne være null for NOTAT.
+        avsenderMottaker = null,
         bruker = JoarkRequest.Bruker(this.fnr.verdi),
         sak = JoarkRequest.Sak.Fagsak(this.saksnummer.toString()),
         dokumenter = listOf(
