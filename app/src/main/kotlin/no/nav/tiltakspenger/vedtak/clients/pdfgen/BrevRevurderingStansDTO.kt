@@ -4,27 +4,24 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.Navn
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
-import no.nav.tiltakspenger.utbetaling.domene.Satser
 import no.nav.tiltakspenger.vedtak.clients.pdfgen.formattering.norskDatoFormatter
 import java.time.LocalDate
 
 @Suppress("unused")
-private class BrevFørstegangsvedtakInnvilgelseDTO(
+private class BrevRevurderingStansDTO(
     val personalia: BrevPersonaliaDTO,
+    val saksnummer: String,
+    val datoForUtsending: String,
     val tiltaksnavn: String,
+    val barnetillegg: Boolean = false,
     val rammevedtakFraDato: String,
     val rammevedtakTilDato: String,
-    val saksnummer: String,
-    val barnetillegg: Boolean,
-    val saksbehandlerNavn: String,
-    val beslutterNavn: String,
     val kontor: String,
-    val datoForUtsending: String,
-    val sats: Int,
-    val satsBarn: Int,
+    val beslutterNavn: String,
+    val saksbehandlerNavn: String,
 )
 
-internal suspend fun Rammevedtak.tobrevDTO(
+internal suspend fun Rammevedtak.toRevurderingStans(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
     vedtaksdato: LocalDate,
@@ -33,7 +30,7 @@ internal suspend fun Rammevedtak.tobrevDTO(
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
     val besluttersNavn = hentSaksbehandlersNavn(beslutterNavIdent)
 
-    return BrevFørstegangsvedtakInnvilgelseDTO(
+    return BrevRevurderingStansDTO(
         personalia = BrevPersonaliaDTO(
             ident = this.fnr.verdi,
             fornavn = brukersNavn.fornavn,
@@ -51,7 +48,5 @@ internal suspend fun Rammevedtak.tobrevDTO(
         kontor = "Nav Tiltak Øst-Viken",
         // Dette er vår dato, det brukes typisk når bruker klager på vedtaksbrev på dato ...
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
-        sats = Satser.sats(periode.fraOgMed).sats,
-        satsBarn = Satser.sats(periode.fraOgMed).satsBarnetillegg,
     ).let { serialize(it) }
 }

@@ -58,7 +58,7 @@ internal class PdfgenHttpClient(
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
-                vedtak.tobrevDTO(hentBrukersNavn, hentSaksbehandlersNavn, vedtaksdato)
+                vedtak.toInnvilgetSøknadsbrev(hentBrukersNavn, hentSaksbehandlersNavn, vedtaksdato)
             },
             errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
             uri = vedtakInnvilgelseUri,
@@ -93,7 +93,7 @@ internal class PdfgenHttpClient(
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
-            jsonPayload = { vedtak.tobrevDTO(hentBrukersNavn, hentSaksbehandlersNavn, vedtaksdato) },
+            jsonPayload = { vedtak.toRevurderingStans(hentBrukersNavn, hentSaksbehandlersNavn, vedtaksdato) },
             errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
             uri = stansvedtakUri,
         )
