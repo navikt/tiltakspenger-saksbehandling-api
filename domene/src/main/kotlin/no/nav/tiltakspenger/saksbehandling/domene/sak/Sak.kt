@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.felles.exceptions.TilgangException
+import no.nav.tiltakspenger.felles.min
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -57,6 +58,13 @@ data class Sak(
     fun hentBehandling(behandlingId: BehandlingId): Behandling? = behandlinger.hentBehandling(behandlingId)
 
     fun sisteUtbetalteMeldekortDag(): LocalDate? = meldeperioder.sisteUtbetalteMeldekortDag
+
+    /**
+     * Vil være innenfor [vedtaksperiode]. Dersom vi ikke har et vedtak, vil den være null.
+     */
+    fun førsteLovligeStansdato(): LocalDate? = sisteUtbetalteMeldekortDag()?.plusDays(1)?.let {
+        min(it, vedtaksperiode!!.tilOgMed)
+    } ?: vedtaksperiode?.fraOgMed
 
     companion object {
         fun lagSak(
