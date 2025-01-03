@@ -22,9 +22,10 @@ data class Behandlinger(
     }
 
     fun leggTilRevurdering(
-        behandling: Behandling,
+        revurdering: Behandling,
     ): Behandlinger {
-        val behandlinger = this.behandlinger + behandling
+        require(revurdering.behandlingstype == Behandlingstype.REVURDERING) { "Må være revurdering." }
+        val behandlinger = this.behandlinger + revurdering
         return this.copy(behandlinger = behandlinger)
     }
 

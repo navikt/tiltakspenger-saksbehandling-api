@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.dto.PeriodeDTO
+import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.ErrorJson
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.ikkeTilgang
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond403Forbidden
 import no.nav.tiltakspenger.vedtak.routes.withBody
@@ -64,6 +65,15 @@ fun Route.startRevurderingRoute(
                                     is KanIkkeStarteRevurdering.HarIkkeTilgang -> {
                                         call.respond403Forbidden(
                                             ikkeTilgang("Krever en av rollene ${it.kreverEnAvRollene} for å starte en behandling."),
+                                        )
+                                    }
+
+                                    is KanIkkeStarteRevurdering.KanIkkeStanseGodkjentMeldeperiode -> {
+                                        call.respond403Forbidden(
+                                            ErrorJson(
+                                                melding = "Kan ikke starte revurdering for periode som har godkjent meldeperiode. Første mulige stansdato er ${it.førsteMuligeStansdato}, ønsket stansdato er ${it.ønsketStansdato}",
+                                                kode = "kan_ikke_stanse_godkjent_meldeperiode",
+                                            ),
                                         )
                                     }
                                 }

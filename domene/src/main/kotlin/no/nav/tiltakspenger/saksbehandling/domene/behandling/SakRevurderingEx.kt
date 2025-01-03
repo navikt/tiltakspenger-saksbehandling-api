@@ -1,46 +1,56 @@
 package no.nav.tiltakspenger.saksbehandling.domene.behandling
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
-import no.nav.tiltakspenger.libs.common.BehandlingId
-import no.nav.tiltakspenger.libs.common.nå
+import mu.KotlinLogging
+import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.krympStønadsdager
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.krympVilkårssett
 import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteRevurdering
 
+private val loggerForStartRevurdering = KotlinLogging.logger { }
+
 fun Sak.startRevurdering(
     kommando: StartRevurderingKommando,
 ): Either<KanIkkeStarteRevurdering, Pair<Sak, Behandling>> {
-    // Merk at vi beholder eventuelle tidspunkt og IDer.
-    val vilkårssett = this.krympVilkårssett(kommando.periode).single()
-    val stønadsdager = this.krympStønadsdager(kommando.periode).single()
-    val opprettet = nå()
-    val behandling = Behandling(
-        id = BehandlingId.random(),
+    val saksbehandler = kommando.saksbehandler
+    val periode = kommando.periode
+
+    if (!kommando.saksbehandler.erSaksbehandler()) {
+        loggerForStartRevurdering.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å starte revurdering på sak ${kommando.sakId}" }
+        return KanIkkeStarteRevurdering.HarIkkeTilgang(
+            kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER),
+            harRollene = saksbehandler.roller,
+        ).left()
+    }
+    this.sisteGodkjenteMeldekortDag()?.let {
+        if (it >= kommando.periode.fraOgMed) {
+            loggerForStartRevurdering.warn { "Kan ikke starte revurdering for periode som har godkjent meldeperiode" }
+            return KanIkkeStarteRevurdering.KanIkkeStanseGodkjentMeldeperiode(
+                førsteMuligeStansdato = it.plusDays(1),
+                ønsketStansdato = kommando.periode.fraOgMed,
+            ).left()
+        }
+    }
+    // Merk at vi beholder eventuelle tidspunkt og IDer når vi krymper.
+    val vilkårssett = this.krympVilkårssett(periode).single().verdi
+    val stønadsdager = this.krympStønadsdager(periode).single().verdi
+    val revurdering = Behandling.opprettRevurdering(
         sakId = this.id,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
-        vurderingsperiode = kommando.periode,
-        søknad = null,
-        saksbehandler = kommando.saksbehandler.navIdent,
-        sendtTilBeslutning = null,
-        beslutter = null,
-        vilkårssett = vilkårssett.verdi,
-        stønadsdager = stønadsdager.verdi,
-        status = Behandlingsstatus.UNDER_BEHANDLING,
-        attesteringer = emptyList(),
-        opprettet = opprettet,
-        iverksattTidspunkt = null,
-        sendtTilDatadeling = null,
-        sistEndret = opprettet,
-        behandlingstype = Behandlingstype.REVURDERING,
+        saksbehandler = saksbehandler,
+        periode = periode,
+        vilkårssett = vilkårssett,
+        stønadsdager = stønadsdager,
     )
-    return Pair(leggTilRevurdering(behandling), behandling).right()
+    return Pair(leggTilRevurdering(revurdering), revurdering).right()
 }
 
 fun Sak.leggTilRevurdering(
-    behandling: Behandling,
+    revurdering: Behandling,
 ): Sak {
-    return copy(behandlinger = behandlinger.leggTilRevurdering(behandling))
+    return copy(behandlinger = behandlinger.leggTilRevurdering(revurdering))
 }

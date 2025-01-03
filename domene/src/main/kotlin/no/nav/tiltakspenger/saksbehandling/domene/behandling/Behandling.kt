@@ -147,6 +147,38 @@ data class Behandling(
                 behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
             ).right()
         }
+
+        fun opprettRevurdering(
+            sakId: SakId,
+            saksnummer: Saksnummer,
+            fnr: Fnr,
+            saksbehandler: Saksbehandler,
+            periode: Periode,
+            vilkårssett: Vilkårssett,
+            stønadsdager: Stønadsdager,
+        ): Behandling {
+            val opprettet = nå()
+            return Behandling(
+                id = BehandlingId.random(),
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                vurderingsperiode = periode,
+                søknad = null,
+                saksbehandler = saksbehandler.navIdent,
+                sendtTilBeslutning = null,
+                beslutter = null,
+                vilkårssett = vilkårssett,
+                stønadsdager = stønadsdager,
+                status = UNDER_BEHANDLING,
+                attesteringer = emptyList(),
+                opprettet = opprettet,
+                iverksattTidspunkt = null,
+                sendtTilDatadeling = null,
+                sistEndret = opprettet,
+                behandlingstype = Behandlingstype.REVURDERING,
+            )
+        }
     }
 
     /**
@@ -272,60 +304,74 @@ data class Behandling(
         require(vilkårssett.vurderingsperiode == vurderingsperiode) {
             "Vilkårssettets periode (${vilkårssett.vurderingsperiode} må være lik vurderingsperioden $vurderingsperiode"
         }
+        require(stønadsdager.vurderingsperiode == vurderingsperiode) {
+            "Stønadsdagers periode (${stønadsdager.vurderingsperiode} må være lik vurderingsperioden $vurderingsperiode"
+        }
         if (beslutter != null && saksbehandler != null) {
             require(beslutter != saksbehandler) { "Saksbehandler og beslutter kan ikke være samme person" }
         }
-        if (erFørstegangsbehandling) {
-            requireNotNull(søknad) { "Søknad må være satt for førstegangsbehandling" }
-            require(søknad.barnetillegg.isEmpty()) {
-                "Barnetillegg er ikke støttet i MVP 1"
+        when (behandlingstype) {
+            Behandlingstype.FØRSTEGANGSBEHANDLING -> {
+                requireNotNull(søknad) { "Søknad må være satt for førstegangsbehandling" }
+                require(søknad.barnetillegg.isEmpty()) {
+                    "Barnetillegg er ikke støttet i MVP 1"
+                }
+            }
+
+            Behandlingstype.REVURDERING -> {
+                require(søknad == null) { "Søknad kan ikke være satt for revurdering" }
             }
         }
 
-        if (status == KLAR_TIL_BEHANDLING) {
-            require(saksbehandler == null) {
-                "Behandlingen kan ikke være tilknyttet en saksbehandler når statusen er KLAR_TIL_BEHANDLING"
+        when (status) {
+            KLAR_TIL_BEHANDLING -> {
+                require(saksbehandler == null) {
+                    "Behandlingen kan ikke være tilknyttet en saksbehandler når statusen er KLAR_TIL_BEHANDLING"
+                }
+                // Selvom beslutter har underkjent, må vi kunne ta hen av behandlingen.
+                require(iverksattTidspunkt == null)
             }
-            // Selvom beslutter har underkjent, må vi kunne ta hen av behandlingen.
-            require(iverksattTidspunkt == null)
-        }
-        if (status == UNDER_BEHANDLING) {
-            requireNotNull(saksbehandler) {
-                "Behandlingen må være tilknyttet en saksbehandler når status er UNDER_BEHANDLING"
-            }
-            // Selvom beslutter har underkjent, må vi kunne ta hen av behandlingen.
-            require(iverksattTidspunkt == null)
-        }
-        if (status == KLAR_TIL_BESLUTNING) {
-            // Vi kan ikke ta saksbehandler av behandlingen før den underkjennes.
-            requireNotNull(saksbehandler) { "Behandlingen må ha saksbehandler når status er KLAR_TIL_BESLUTNING" }
-            require(beslutter == null) {
-                "Behandlingen kan ikke være tilknyttet en beslutter når status er KLAR_TIL_BESLUTNING"
-            }
-            require(vilkårssett.samletUtfall != SamletUtfall.UAVKLART) {
-                "Behandlingen kan ikke være KLAR_TIL_BESLUTNING når samlet utfall er UAVKLART"
-            }
-            require(iverksattTidspunkt == null)
-        }
-        if (status == UNDER_BESLUTNING) {
-            // Vi kan ikke ta saksbehandler av behandlingen før den underkjennes.
-            requireNotNull(saksbehandler) { "Behandlingen må ha saksbehandler når status er UNDER_BESLUTNING" }
-            requireNotNull(beslutter) { "Behandlingen må tilknyttet en beslutter når status er UNDER_BESLUTNING" }
-            require(
-                vilkårssett.samletUtfall != SamletUtfall.UAVKLART,
-            ) { "Behandlingen kan ikke være UNDER_BESLUTNING når samlet utfall er UAVKLART" }
-            require(iverksattTidspunkt == null)
-        }
 
-        if (status == VEDTATT) {
-            // Det er viktig at vi ikke tar saksbehandler og beslutter av behandlingen når status er VEDTATT.
-            requireNotNull(beslutter) { "Behandlingen må ha beslutter når status er VEDTATT" }
-            requireNotNull(saksbehandler) { "Behandlingen må ha saksbehandler når status er VEDTATT" }
-            require(
-                vilkårssett.samletUtfall != SamletUtfall.UAVKLART,
-            ) { "Vi støtter ikke samlet utfall: UAVKLART på dette tidspunktet." }
-            requireNotNull(iverksattTidspunkt)
-            requireNotNull(sendtTilBeslutning)
+            UNDER_BEHANDLING -> {
+                requireNotNull(saksbehandler) {
+                    "Behandlingen må være tilknyttet en saksbehandler når status er UNDER_BEHANDLING"
+                }
+                // Selvom beslutter har underkjent, må vi kunne ta hen av behandlingen.
+                require(iverksattTidspunkt == null)
+            }
+
+            KLAR_TIL_BESLUTNING -> {
+                // Vi kan ikke ta saksbehandler av behandlingen før den underkjennes.
+                requireNotNull(saksbehandler) { "Behandlingen må ha saksbehandler når status er KLAR_TIL_BESLUTNING" }
+                require(beslutter == null) {
+                    "Behandlingen kan ikke være tilknyttet en beslutter når status er KLAR_TIL_BESLUTNING"
+                }
+                require(vilkårssett.samletUtfall != SamletUtfall.UAVKLART) {
+                    "Behandlingen kan ikke være KLAR_TIL_BESLUTNING når samlet utfall er UAVKLART"
+                }
+                require(iverksattTidspunkt == null)
+            }
+
+            UNDER_BESLUTNING -> {
+                // Vi kan ikke ta saksbehandler av behandlingen før den underkjennes.
+                requireNotNull(saksbehandler) { "Behandlingen må ha saksbehandler når status er UNDER_BESLUTNING" }
+                requireNotNull(beslutter) { "Behandlingen må tilknyttet en beslutter når status er UNDER_BESLUTNING" }
+                require(
+                    vilkårssett.samletUtfall != SamletUtfall.UAVKLART,
+                ) { "Behandlingen kan ikke være UNDER_BESLUTNING når samlet utfall er UAVKLART" }
+                require(iverksattTidspunkt == null)
+            }
+
+            VEDTATT -> {
+                // Det er viktig at vi ikke tar saksbehandler og beslutter av behandlingen når status er VEDTATT.
+                requireNotNull(beslutter) { "Behandlingen må ha beslutter når status er VEDTATT" }
+                requireNotNull(saksbehandler) { "Behandlingen må ha saksbehandler når status er VEDTATT" }
+                require(
+                    vilkårssett.samletUtfall != SamletUtfall.UAVKLART,
+                ) { "Vi støtter ikke samlet utfall: UAVKLART på dette tidspunktet." }
+                requireNotNull(iverksattTidspunkt)
+                requireNotNull(sendtTilBeslutning)
+            }
         }
     }
 }

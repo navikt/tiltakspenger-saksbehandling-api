@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.meldekort.domene.Meldekort.IkkeUtfyltMeldekort
 import no.nav.tiltakspenger.meldekort.domene.Meldekort.UtfyltMeldekort
+import java.time.LocalDate
 
 /**
  * Består av ingen, én eller flere [Meldeperiode].
@@ -61,6 +62,10 @@ data class Meldeperioder(
     val utfylteMeldekort: List<UtfyltMeldekort> by lazy { verdi.filterIsInstance<UtfyltMeldekort>() }
 
     val godkjenteMeldekort: List<UtfyltMeldekort> by lazy { utfylteMeldekort.filter { it.status == MeldekortStatus.GODKJENT } }
+
+    val sisteGodkjenteMeldekort: UtfyltMeldekort? by lazy { godkjenteMeldekort.lastOrNull() }
+
+    val sisteGodkjenteMeldekortDag: LocalDate? by lazy { sisteGodkjenteMeldekort?.periode?.tilOgMed }
 
     /** Vil kun returnere hele meldekortperioder som er utfylt. Dersom siste meldekortperiode er delvis utfylt, vil ikke disse komme med. */
     val utfylteDager: List<Meldekortdag.Utfylt> by lazy { utfylteMeldekort.flatMap { it.meldeperiode.dager } }

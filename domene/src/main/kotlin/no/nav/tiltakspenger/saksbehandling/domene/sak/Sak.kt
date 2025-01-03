@@ -56,6 +56,8 @@ data class Sak(
 
     fun hentBehandling(behandlingId: BehandlingId): Behandling? = behandlinger.hentBehandling(behandlingId)
 
+    fun sisteGodkjenteMeldekortDag(): LocalDate? = meldeperioder.godkjenteMeldekort.maxOfOrNull { it.periode.tilOgMed }
+
     companion object {
         fun lagSak(
             sakId: SakId = SakId.random(),

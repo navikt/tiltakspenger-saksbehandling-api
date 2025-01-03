@@ -25,29 +25,26 @@ class StartRevurderingService(
     val tilgangsstyringService: TilgangsstyringService,
 ) {
     val logger = KotlinLogging.logger { }
+
     suspend fun startRevurdering(
         kommando: StartRevurderingKommando,
     ): Either<KanIkkeStarteRevurdering, Pair<Sak, Behandling>> {
         val (sakId, _, correlationId, saksbehandler) = kommando
-        if (!saksbehandler.erSaksbehandlerEllerBeslutter()) {
-            logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å starte revurdering på sak ${kommando.sakId}" }
-            return KanIkkeStarteRevurdering.HarIkkeTilgang(
-                kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER),
-                harRollene = saksbehandler.roller,
-            ).left()
-        }
-        val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId)
-            .getOrElse {
-                logger.warn { "Fant ikke sak for sakId $sakId" }
-                return KanIkkeStarteRevurdering.HarIkkeTilgang(
-                    kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER),
-                    harRollene = saksbehandler.roller,
-                ).left()
+
+        val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId).getOrElse {
+            when (it) {
+                is KunneIkkeHenteSakForSakId.HarIkkeTilgang -> {
+                    logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til sak for sakId $sakId" }
+                    return KanIkkeStarteRevurdering.HarIkkeTilgang(
+                        kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER),
+                        harRollene = saksbehandler.roller,
+                    ).left()
+                }
             }
-        sjekkSaksbehandlersTilgangTilPerson(sak.fnr, sak.id, saksbehandler, correlationId)
-        val (oppdatertSak, behandling) = sak.startRevurdering(kommando).getOrElse {
-            return it.left()
         }
+        sjekkSaksbehandlersTilgangTilPerson(sak.fnr, sak.id, saksbehandler, correlationId)
+
+        val (oppdatertSak, behandling) = sak.startRevurdering(kommando).getOrElse { return it.left() }
         behandlingRepo.lagre(behandling)
         return Pair(oppdatertSak, behandling).right()
     }

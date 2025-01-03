@@ -85,7 +85,7 @@ object Standardfeil {
     )
 
     fun ikkeFunnet(): ErrorJson = ErrorJson(
-        "Fant ikke resursen",
+        "Fant ikke ressursen",
         "ikke_funnet",
     )
 }
