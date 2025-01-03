@@ -67,6 +67,11 @@ data class Meldeperioder(
 
     val sisteGodkjenteMeldekortDag: LocalDate? by lazy { sisteGodkjenteMeldekort?.periode?.tilOgMed }
 
+    /** Merk at denne går helt tilbake til siste godkjente, utbetalte dag. Dette er ikke nødvendigvis den siste godkjente meldeperioden. */
+    val sisteUtbetalteMeldekortDag: LocalDate? by lazy {
+        godkjenteMeldekort.flatMap { it.meldeperiode.dager }.lastOrNull { it.beløp > 0 }?.dato
+    }
+
     /** Vil kun returnere hele meldekortperioder som er utfylt. Dersom siste meldekortperiode er delvis utfylt, vil ikke disse komme med. */
     val utfylteDager: List<Meldekortdag.Utfylt> by lazy { utfylteMeldekort.flatMap { it.meldeperiode.dager } }
 

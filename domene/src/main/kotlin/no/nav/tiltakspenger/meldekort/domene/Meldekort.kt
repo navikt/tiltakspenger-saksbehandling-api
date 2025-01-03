@@ -171,6 +171,11 @@ sealed interface Meldekort {
         }
 
         override val beløpTotal: Int = meldeperiode.beregnTotalbeløp()
+
+        /** Finner den siste dagen i meldekortet som har beløp > 0. */
+        val sisteUtbetalingsdag: LocalDate? by lazy {
+            meldeperiode.dager.filter { it.beløp > 0 }.maxOfOrNull { it.dato }
+        }
     }
 
     data class IkkeUtfyltMeldekort(

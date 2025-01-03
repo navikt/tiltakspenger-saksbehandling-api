@@ -10,7 +10,7 @@ sealed interface KanIkkeStarteRevurdering {
         val harRollene: Set<Saksbehandlerrolle>,
     ) : KanIkkeStarteRevurdering
 
-    data class KanIkkeStanseGodkjentMeldeperiode(
+    data class KanIkkeStanseUtbetaltDag(
         val førsteMuligeStansdato: LocalDate,
         val ønsketStansdato: LocalDate,
     ) : KanIkkeStarteRevurdering

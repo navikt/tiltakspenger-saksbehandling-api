@@ -25,10 +25,10 @@ fun Sak.startRevurdering(
             harRollene = saksbehandler.roller,
         ).left()
     }
-    this.sisteGodkjenteMeldekortDag()?.let {
+    this.sisteUtbetalteMeldekortDag()?.let {
         if (it >= kommando.periode.fraOgMed) {
-            loggerForStartRevurdering.warn { "Kan ikke starte revurdering for periode som har godkjent meldeperiode" }
-            return KanIkkeStarteRevurdering.KanIkkeStanseGodkjentMeldeperiode(
+            loggerForStartRevurdering.warn { "Kan ikke stanse på dag som er utbetalt." }
+            return KanIkkeStarteRevurdering.KanIkkeStanseUtbetaltDag(
                 førsteMuligeStansdato = it.plusDays(1),
                 ønsketStansdato = kommando.periode.fraOgMed,
             ).left()

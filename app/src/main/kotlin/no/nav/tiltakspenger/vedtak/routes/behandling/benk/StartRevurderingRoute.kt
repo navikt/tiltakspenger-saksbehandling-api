@@ -68,11 +68,11 @@ fun Route.startRevurderingRoute(
                                         )
                                     }
 
-                                    is KanIkkeStarteRevurdering.KanIkkeStanseGodkjentMeldeperiode -> {
+                                    is KanIkkeStarteRevurdering.KanIkkeStanseUtbetaltDag -> {
                                         call.respond403Forbidden(
                                             ErrorJson(
-                                                melding = "Kan ikke starte revurdering for periode som har godkjent meldeperiode. Første mulige stansdato er ${it.førsteMuligeStansdato}, ønsket stansdato er ${it.ønsketStansdato}",
-                                                kode = "kan_ikke_stanse_godkjent_meldeperiode",
+                                                melding = "Kan ikke stanse utbetalt dag. Første mulige stansdato er ${it.førsteMuligeStansdato}, ønsket stansdato er ${it.ønsketStansdato}",
+                                                kode = "kan_ikke_stanse_utbetalt_dag",
                                             ),
                                         )
                                     }

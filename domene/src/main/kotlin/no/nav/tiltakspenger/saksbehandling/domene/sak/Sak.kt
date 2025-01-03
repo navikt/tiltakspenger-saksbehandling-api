@@ -56,7 +56,7 @@ data class Sak(
 
     fun hentBehandling(behandlingId: BehandlingId): Behandling? = behandlinger.hentBehandling(behandlingId)
 
-    fun sisteGodkjenteMeldekortDag(): LocalDate? = meldeperioder.godkjenteMeldekort.maxOfOrNull { it.periode.tilOgMed }
+    fun sisteUtbetalteMeldekortDag(): LocalDate? = meldeperioder.sisteUtbetalteMeldekortDag
 
     companion object {
         fun lagSak(
