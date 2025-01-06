@@ -110,7 +110,7 @@ fun Sak.utledVedtakstype(behandling: Behandling): Vedtakstype {
                 throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - hele perioden må være 'ikke oppfylt'")
             }
             val sisteGodkjenteMeldekort = this.sisteGodkjenteMeldekort() ?: return Vedtakstype.STANS
-            if (sisteGodkjenteMeldekort.tilOgMed.isBefore(behandling.vurderingsperiode.fraOgMed)) {
+            if (this.sisteUtbetalteMeldekortDag() == null || this.sisteUtbetalteMeldekortDag()!! < behandling.vurderingsperiode.fraOgMed) {
                 Vedtakstype.STANS
             } else {
                 throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - godkjent meldekort overlapper revurderingsperioden")
