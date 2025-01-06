@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.meldekort.domene.Meldekort
 import no.nav.tiltakspenger.meldekort.domene.Meldekort.IkkeUtfyltMeldekort
 import no.nav.tiltakspenger.meldekort.domene.Meldekort.UtfyltMeldekort
+import no.nav.tiltakspenger.meldekort.domene.MeldekortStatus
 import no.nav.tiltakspenger.meldekort.domene.Meldeperioder
 import no.nav.tiltakspenger.meldekort.domene.tilMeldekortperioder
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
@@ -231,8 +232,8 @@ class MeldekortPostgresRepo(
             val forrigeMeldekortId = row.stringOrNull("forrige_meldekort_id")?.let { MeldekortId.fromString(it) }
             val maksDagerMedTiltakspengerForPeriode = row.int("antall_dager_per_meldeperiode")
             val opprettet = row.localDateTime("opprettet")
-            return when (val status = row.string("status")) {
-                "GODKJENT", "KLAR_TIL_BESLUTNING" -> {
+            return when (val status = row.string("status").toMeldekortStatus()) {
+                MeldekortStatus.GODKJENT, MeldekortStatus.KLAR_TIL_BESLUTNING -> {
                     val meldekortperiode = row.string("meldekortdager").toUtfyltMeldekortperiode(
                         sakId = sakId,
                         meldekortId = id,
@@ -253,21 +254,20 @@ class MeldekortPostgresRepo(
                         beslutter = row.stringOrNull("beslutter"),
                         forrigeMeldekortId = forrigeMeldekortId,
                         tiltakstype = meldekortperiode.tiltakstype,
-                        status = row.string("status").toMeldekortStatus(),
+                        status = status,
                         iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
                         navkontor = navkontor!!,
                         ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt"),
                         sendtTilMeldekortApi = row.localDateTimeOrNull("sendt_til_meldekort_api"),
                     )
                 }
-
-                "KLAR_TIL_UTFYLLING" -> {
-                    val meldekortperiode =
-                        row.string("meldekortdager").toIkkeUtfyltMeldekortperiode(
-                            sakId = sakId,
-                            meldekortId = id,
-                            maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-                        )
+                // TODO jah: Her blander vi sammen behandlingsstatus og om man har rett/ikke-rett. Det er mulig at man har startet en meldekortbehandling også endres statusen til IKKE_RETT_TIL_TILTAKSPENGER. Da vil behandlingen sånn som koden er nå implisitt avsluttes. Det kan hende vi bør endre dette når vi skiller grunnlag, innsending og behandling.
+                MeldekortStatus.IKKE_UTFYLT, MeldekortStatus.IKKE_RETT_TIL_TILTAKSPENGER -> {
+                    val meldekortperiode = row.string("meldekortdager").toIkkeUtfyltMeldekortperiode(
+                        sakId = sakId,
+                        meldekortId = id,
+                        maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
+                    )
                     IkkeUtfyltMeldekort(
                         id = id,
                         meldeperiodeId = meldeperiodeId,
