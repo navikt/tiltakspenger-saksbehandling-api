@@ -45,7 +45,7 @@ fun Sak.opprettFørsteMeldeperiode(): Meldeperiode {
         opprettet = nå(),
         versjon = 1,
         girRett = periode.tilDager().associateWith {
-            (utfallsperioder.hentVerdiForDag(it)!! == AvklartUtfallForPeriode.OPPFYLT)
+            (utfallsperioder.hentVerdiForDag(it) == AvklartUtfallForPeriode.OPPFYLT)
         },
     )
 }
