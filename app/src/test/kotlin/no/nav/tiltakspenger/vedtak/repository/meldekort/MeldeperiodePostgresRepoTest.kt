@@ -4,9 +4,9 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.mars
-import no.nav.tiltakspenger.meldekort.domene.v2.MeldeperiodeKjede
-import no.nav.tiltakspenger.meldekort.domene.v2.MeldeperiodeKjeder
-import no.nav.tiltakspenger.meldekort.domene.v2.opprettFørsteMeldeperiode
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjede
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.vedtak.db.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.vedtak.db.withMigratedDb
 import org.junit.jupiter.api.Test
