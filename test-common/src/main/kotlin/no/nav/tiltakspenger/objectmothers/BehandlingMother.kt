@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.meldekort.domene.IverksettMeldekortKommando
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.objectmothers.ObjectMother.personSøknad
 import no.nav.tiltakspenger.objectmothers.ObjectMother.saksbehandler
@@ -350,7 +350,7 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
         beslutter = beslutter,
     )
     tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-        (sak.meldeperioder.first() as Meldekort.IkkeUtfyltMeldekort).tilSendMeldekortTilBeslutterKommando(saksbehandler),
+        (sak.meldekortBehandlinger.first() as MeldekortBehandling.IkkeUtfyltMeldekort).tilSendMeldekortTilBeslutterKommando(saksbehandler),
     )
     return this.sakContext.sakService.hentForSakId(sak.id, saksbehandler, correlationId = CorrelationId.generate())
         .getOrFail()
@@ -375,7 +375,7 @@ suspend fun TestApplicationContext.meldekortIverksatt(
     )
     tac.meldekortContext.iverksettMeldekortService.iverksettMeldekort(
         IverksettMeldekortKommando(
-            meldekortId = (sak.meldeperioder.first() as Meldekort.UtfyltMeldekort).id,
+            meldekortId = (sak.meldekortBehandlinger.first() as MeldekortBehandling.UtfyltMeldekort).id,
             sakId = sak.id,
             beslutter = beslutter,
             correlationId = CorrelationId.generate(),

@@ -1,15 +1,15 @@
 package no.nav.tiltakspenger.vedtak.routes.meldekort.dto
 
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.IkkeUtfylt
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Deltatt.DeltattMedLønnITiltaket
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Deltatt.DeltattUtenLønnITiltaket
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Fravær.Syk.SykBruker
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Fravær.Syk.SyktBarn
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Fravær.Velferd.VelferdGodkjentAvNav
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Fravær.Velferd.VelferdIkkeGodkjentAvNav
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.IkkeDeltatt
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Sperret
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.IkkeUtfylt
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattMedLønnITiltaket
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SykBruker
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SyktBarn
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdGodkjentAvNav
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdIkkeGodkjentAvNav
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Sperret
 
 enum class MeldekortDagStatusMotFrontendDTO {
     SPERRET,
@@ -36,7 +36,7 @@ enum class MeldekortDagStatusMotFrontendDTO {
         }*/
 }
 
-fun Meldekortdag.toStatusDTO(): MeldekortDagStatusMotFrontendDTO =
+fun MeldeperiodeBeregningDag.toStatusDTO(): MeldekortDagStatusMotFrontendDTO =
     when (this) {
         is IkkeUtfylt -> MeldekortDagStatusMotFrontendDTO.IKKE_UTFYLT
         is DeltattMedLønnITiltaket -> MeldekortDagStatusMotFrontendDTO.DELTATT_MED_LØNN_I_TILTAKET

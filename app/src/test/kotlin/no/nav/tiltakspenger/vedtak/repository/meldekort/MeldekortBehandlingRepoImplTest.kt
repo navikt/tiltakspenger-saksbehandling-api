@@ -7,14 +7,14 @@ import no.nav.tiltakspenger.felles.mars
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.meldekort.domene.Meldeperioder
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
 import no.nav.tiltakspenger.vedtak.db.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.vedtak.db.withMigratedDb
 import org.junit.jupiter.api.Test
 
-class MeldekortRepoImplTest {
+class MeldekortBehandlingRepoImplTest {
 
     @Test
     fun `kan lagre og hente`() {
@@ -41,7 +41,7 @@ class MeldekortRepoImplTest {
             meldekortRepo.lagre(meldekort)
             testDataHelper.sessionFactory.withSession {
                 MeldekortPostgresRepo.hentForMeldekortId(meldekort.id, it)!! shouldBe meldekort
-                MeldekortPostgresRepo.hentForSakId(sak.id, it)!! shouldBe Meldeperioder(
+                MeldekortPostgresRepo.hentForSakId(sak.id, it)!! shouldBe MeldekortBehandlinger(
                     meldekort.tiltakstype,
                     listOf(meldekort),
                 )

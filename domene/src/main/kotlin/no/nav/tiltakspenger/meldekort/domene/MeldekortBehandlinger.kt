@@ -10,20 +10,20 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.meldekort.domene.Meldekort.IkkeUtfyltMeldekort
-import no.nav.tiltakspenger.meldekort.domene.Meldekort.UtfyltMeldekort
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.IkkeUtfyltMeldekort
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.UtfyltMeldekort
 import java.time.LocalDate
 
 /**
- * Består av ingen, én eller flere [Meldeperiode].
+ * Består av ingen, én eller flere [MeldeperiodeBeregning].
  * Vil være tom fram til første innvilgede førstegangsbehandling.
  * Kun den siste vil kunne være ikke-utfylt (åpen).
  * @param tiltakstype I MVP støtter vi kun ett tiltak, men på sikt kan vi ikke garantere at det er én til én mellom meldekortperioder og tiltakstype.
  */
-data class Meldeperioder(
+data class MeldekortBehandlinger(
     val tiltakstype: TiltakstypeSomGirRett,
-    val verdi: List<Meldekort>,
-) : List<Meldekort> by verdi {
+    val verdi: List<MeldekortBehandling>,
+) : List<MeldekortBehandling> by verdi {
 
     /**
      * @throws NullPointerException Dersom det ikke er noen meldekort som kan sendes til beslutter. Eller siste meldekort ikke er i tilstanden 'ikke utfylt'.
@@ -31,20 +31,20 @@ data class Meldeperioder(
      */
     fun sendTilBeslutter(
         kommando: SendMeldekortTilBeslutterKommando,
-    ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<Meldeperioder, UtfyltMeldekort>> {
+    ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<MeldekortBehandlinger, UtfyltMeldekort>> {
         val ikkeUtfyltMeldekort = this.ikkeUtfyltMeldekort!!
 
         require(ikkeUtfyltMeldekort.id == kommando.meldekortId) {
             "MeldekortId i kommando (${kommando.meldekortId}) samsvarer ikke med siste meldekortperiode (${ikkeUtfyltMeldekort.id})"
         }
         val meldekortdager = kommando.beregn(eksisterendeMeldekort = this)
-        val utfyltMeldeperiode = ikkeUtfyltMeldekort.meldeperiode.tilUtfyltMeldeperiode(meldekortdager).getOrElse {
+        val utfyltMeldeperiode = ikkeUtfyltMeldekort.beregning.tilUtfyltMeldeperiode(meldekortdager).getOrElse {
             return it.left()
         }
         return ikkeUtfyltMeldekort.sendTilBeslutter(utfyltMeldeperiode, kommando.saksbehandler, kommando.navkontor)
             .map {
                 Pair(
-                    Meldeperioder(
+                    MeldekortBehandlinger(
                         tiltakstype = tiltakstype,
                         verdi = (verdi.dropLast(1) + it).toNonEmptyListOrNull()!!,
                     ),
@@ -53,7 +53,7 @@ data class Meldeperioder(
             }
     }
 
-    fun hentMeldekort(meldekortId: MeldekortId): Meldekort? {
+    fun hentMeldekort(meldekortId: MeldekortId): MeldekortBehandling? {
         return verdi.find { it.id == meldekortId }
     }
 
@@ -61,7 +61,7 @@ data class Meldeperioder(
 
     val utfylteMeldekort: List<UtfyltMeldekort> by lazy { verdi.filterIsInstance<UtfyltMeldekort>() }
 
-    val godkjenteMeldekort: List<UtfyltMeldekort> by lazy { utfylteMeldekort.filter { it.status == MeldekortStatus.GODKJENT } }
+    val godkjenteMeldekort: List<UtfyltMeldekort> by lazy { utfylteMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
 
     val sisteGodkjenteMeldekort: UtfyltMeldekort? by lazy { godkjenteMeldekort.lastOrNull() }
 
@@ -69,11 +69,11 @@ data class Meldeperioder(
 
     /** Merk at denne går helt tilbake til siste godkjente, utbetalte dag. Dette er ikke nødvendigvis den siste godkjente meldeperioden. */
     val sisteUtbetalteMeldekortDag: LocalDate? by lazy {
-        godkjenteMeldekort.flatMap { it.meldeperiode.dager }.lastOrNull { it.beløp > 0 }?.dato
+        godkjenteMeldekort.flatMap { it.beregning.dager }.lastOrNull { it.beløp > 0 }?.dato
     }
 
     /** Vil kun returnere hele meldekortperioder som er utfylt. Dersom siste meldekortperiode er delvis utfylt, vil ikke disse komme med. */
-    val utfylteDager: List<Meldekortdag.Utfylt> by lazy { utfylteMeldekort.flatMap { it.meldeperiode.dager } }
+    val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy { utfylteMeldekort.flatMap { it.beregning.dager } }
 
     /** Så lenge saken er aktiv, vil det siste meldekortet være i tilstanden ikke utfylt. Vil også være null fram til første innvilgelse. */
     val ikkeUtfyltMeldekort: IkkeUtfyltMeldekort? by lazy {
@@ -118,8 +118,8 @@ data class Meldeperioder(
     }
 
     companion object {
-        fun empty(tiltakstype: TiltakstypeSomGirRett): Meldeperioder {
-            return Meldeperioder(
+        fun empty(tiltakstype: TiltakstypeSomGirRett): MeldekortBehandlinger {
+            return MeldekortBehandlinger(
                 tiltakstype = tiltakstype,
                 verdi = emptyList(),
             )
@@ -127,9 +127,9 @@ data class Meldeperioder(
     }
 }
 
-fun NonEmptyList<Meldekort>.tilMeldekortperioder(): Meldeperioder {
+fun NonEmptyList<MeldekortBehandling>.tilMeldekortperioder(): MeldekortBehandlinger {
     val tiltakstype = first().tiltakstype
-    return Meldeperioder(
+    return MeldekortBehandlinger(
         tiltakstype = tiltakstype,
         verdi = this,
     )

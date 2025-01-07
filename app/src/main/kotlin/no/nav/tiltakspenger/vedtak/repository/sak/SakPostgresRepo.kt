@@ -11,7 +11,8 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.meldekort.domene.Meldeperioder
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.meldekort.domene.v2.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
@@ -205,15 +206,17 @@ internal class SakPostgresRepo(
                 val vedtaksliste: Vedtaksliste = RammevedtakPostgresRepo.hentForSakId(id, session)
                 val meldeperioder = vedtaksliste.førstegangsvedtak?.let {
                     MeldekortPostgresRepo.hentForSakId(id, session)
-                } ?: Meldeperioder.empty(behandlinger.first().tiltakstype)
+                } ?: MeldekortBehandlinger.empty(behandlinger.first().tiltakstype)
                 Sak(
                     id = SakId.fromString(string("id")),
                     saksnummer = Saksnummer(verdi = string("saksnummer")),
                     fnr = Fnr.fromString(string("ident")),
                     behandlinger = behandlinger,
                     vedtaksliste = vedtaksliste,
-                    meldeperioder = meldeperioder,
+                    meldekortBehandlinger = meldeperioder,
                     utbetalinger = UtbetalingsvedtakPostgresRepo.hentForSakId(id, session),
+                    // TODO: hent meldeperioder
+                    meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
                 )
             }
         }

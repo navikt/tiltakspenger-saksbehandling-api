@@ -4,14 +4,14 @@ import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Deltatt.DeltattMedLønnITiltaket
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Deltatt.DeltattUtenLønnITiltaket
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Fravær.Syk.SykBruker
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Fravær.Syk.SyktBarn
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Fravær.Velferd.VelferdGodkjentAvNav
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Fravær.Velferd.VelferdIkkeGodkjentAvNav
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.IkkeDeltatt
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Sperret
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattMedLønnITiltaket
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SykBruker
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SyktBarn
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdGodkjentAvNav
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdIkkeGodkjentAvNav
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Sperret
 import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
 import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon
 import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort
@@ -31,7 +31,7 @@ private const val DAGER_KARANTENE = 16L - 1
 
 private data class MeldekortBeregning(
     val utløsendeMeldekortId: MeldekortId,
-    val utbetalingDager: MutableList<Meldekortdag.Utfylt> = mutableListOf(),
+    val utbetalingDager: MutableList<MeldeperiodeBeregningDag.Utfylt> = mutableListOf(),
     val saksbehandler: String,
 ) {
     private var sykTilstand: SykTilstand = SykTilstand.FullUtbetaling
@@ -46,12 +46,12 @@ private data class MeldekortBeregning(
 
     fun beregn(
         kommando: SendMeldekortTilBeslutterKommando,
-        eksisterendeMeldekortPåSaken: Meldeperioder,
-    ): NonEmptyList<Meldekortdag.Utfylt> {
+        eksisterendeMeldekortPåSaken: MeldekortBehandlinger,
+    ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
         require(eksisterendeMeldekortPåSaken.sakId == kommando.sakId) {
             "SakId på eksisterende meldekortperiode ${eksisterendeMeldekortPåSaken.sakId} er ikke likt sakId på kommando ${kommando.sakId}"
         }
-        val meldekortSomSkalUtfylles: Meldekort.IkkeUtfyltMeldekort =
+        val meldekortSomSkalUtfylles: MeldekortBehandling.IkkeUtfyltMeldekort =
             eksisterendeMeldekortPåSaken.ikkeUtfyltMeldekort?.also {
                 require(it.id == kommando.meldekortId) {
                     "Innsendt meldekort ${kommando.meldekortId} er ikke likt meldekortSomSkalUtfylles ${it.id}"
@@ -433,8 +433,8 @@ private enum class SykTilstand {
 }
 
 fun SendMeldekortTilBeslutterKommando.beregn(
-    eksisterendeMeldekort: Meldeperioder,
-): NonEmptyList<Meldekortdag.Utfylt> {
+    eksisterendeMeldekort: MeldekortBehandlinger,
+): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
     return MeldekortBeregning(
         utløsendeMeldekortId = this.meldekortId,
         saksbehandler = this.saksbehandler.navIdent,

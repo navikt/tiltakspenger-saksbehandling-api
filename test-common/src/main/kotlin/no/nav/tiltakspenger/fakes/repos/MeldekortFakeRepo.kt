@@ -5,29 +5,29 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
-import no.nav.tiltakspenger.meldekort.domene.Meldeperioder
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
 import java.time.LocalDateTime
 
 class MeldekortFakeRepo : MeldekortRepo {
-    private val data = Atomic(mutableMapOf<MeldekortId, Meldekort>())
+    private val data = Atomic(mutableMapOf<MeldekortId, MeldekortBehandling>())
 
     override fun lagre(
-        meldekort: Meldekort,
+        meldekort: MeldekortBehandling,
         transactionContext: TransactionContext?,
     ) {
         data.get()[meldekort.id] = meldekort
     }
 
     override fun oppdater(
-        meldekort: Meldekort,
+        meldekort: MeldekortBehandling,
         transactionContext: TransactionContext?,
     ) {
         lagre(meldekort, transactionContext)
     }
 
-    override fun hentUsendteTilBruker(): List<Meldekort> {
+    override fun hentUsendteTilBruker(): List<MeldekortBehandling> {
         TODO("Not yet implemented")
     }
 
@@ -37,14 +37,14 @@ class MeldekortFakeRepo : MeldekortRepo {
 
     fun hentForSakId(
         sakId: SakId,
-    ): Meldeperioder? =
+    ): MeldekortBehandlinger? =
         data
             .get()
             .values
             .filter { it.sakId == sakId }
             .let { meldekort ->
                 meldekort.firstOrNull()?.let {
-                    Meldeperioder(it.tiltakstype, meldekort)
+                    MeldekortBehandlinger(it.tiltakstype, meldekort)
                 }
             }
 
