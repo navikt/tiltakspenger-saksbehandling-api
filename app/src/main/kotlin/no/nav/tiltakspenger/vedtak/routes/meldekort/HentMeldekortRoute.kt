@@ -8,7 +8,7 @@ import io.ktor.server.routing.get
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.service.sak.KunneIkkeHenteSakForSakId
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
@@ -49,15 +49,15 @@ fun Route.hentMeldekortRoute(
                         call.respond404NotFound(fantIkkeMeldekort())
                         return@withMeldekortId
                     }
-                    if (meldekort is Meldekort.IkkeUtfyltMeldekort && !meldekort.erKlarTilUtfylling()) {
+                    if (meldekort is MeldekortBehandling.IkkeUtfyltMeldekort && !meldekort.erKlarTilUtfylling()) {
                         call.respond400BadRequest(
                             melding = "Meldekortet er ikke klart til utfylling",
                             kode = "meldekortet_er_ikke_klart_til_utfylling",
                         )
                         return@withMeldekortId
                     }
-                    val forrigeMeldekort: Meldekort.UtfyltMeldekort? =
-                        meldekort.forrigeMeldekortId?.let { sak.hentMeldekort(it) as Meldekort.UtfyltMeldekort }
+                    val forrigeMeldekort: MeldekortBehandling.UtfyltMeldekort? =
+                        meldekort.forrigeMeldekortId?.let { sak.hentMeldekort(it) as MeldekortBehandling.UtfyltMeldekort }
                     val forrigeNavkontor = forrigeMeldekort?.navkontor
 
                     auditService.logMedMeldekortId(

@@ -12,7 +12,7 @@ import java.time.LocalDate
  * Vi vet at det på et tidspunkt kommer til å være mulig å fylle ut en meldekortdag for flere enn ett tiltak. Da vil man kunne rename Meldekortdag til MeldekortdagForTiltak og wrappe den i en Meldekortdag(List<MeldekortdagForTiltak>)
  */
 
-sealed interface Meldekortdag {
+sealed interface MeldeperiodeBeregningDag {
     val dato: LocalDate
     val meldekortId: MeldekortId
     val reduksjon: ReduksjonAvYtelsePåGrunnAvFravær?
@@ -29,13 +29,13 @@ sealed interface Meldekortdag {
         override val meldekortId: MeldekortId,
         override val dato: LocalDate,
         override val tiltakstype: TiltakstypeSomGirRett,
-    ) : Meldekortdag {
+    ) : MeldeperiodeBeregningDag {
         override val harDeltattEllerFravær = false
         override val reduksjon = null
         override val beregningsdag = null
     }
 
-    sealed interface Utfylt : Meldekortdag {
+    sealed interface Utfylt : MeldeperiodeBeregningDag {
         override val tiltakstype: TiltakstypeSomGirRett
         override val reduksjon: ReduksjonAvYtelsePåGrunnAvFravær
 

@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.service.statistikk.stønad.StatistikkUtbetalingDTO
 import java.time.LocalDateTime
@@ -22,7 +22,7 @@ data class Utbetalingsvedtak(
     val fnr: Fnr,
     val rammevedtakId: VedtakId,
     val opprettet: LocalDateTime,
-    val meldekort: Meldekort.UtfyltMeldekort,
+    val meldekort: MeldekortBehandling.UtfyltMeldekort,
     val forrigeUtbetalingsvedtakId: VedtakId?,
     val sendtTilUtbetaling: LocalDateTime?,
     val journalpostId: JournalpostId?,
@@ -37,7 +37,7 @@ data class Utbetalingsvedtak(
     val brukerNavkontor: Navkontor = meldekort.navkontor
 }
 
-fun Meldekort.UtfyltMeldekort.opprettUtbetalingsvedtak(
+fun MeldekortBehandling.UtfyltMeldekort.opprettUtbetalingsvedtak(
     saksnummer: Saksnummer,
     fnr: Fnr,
     forrigeUtbetalingsvedtak: VedtakId?,

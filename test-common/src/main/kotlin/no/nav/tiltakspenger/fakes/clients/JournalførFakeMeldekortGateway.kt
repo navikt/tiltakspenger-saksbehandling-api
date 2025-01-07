@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.felles.journalføring.PdfOgJson
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.ports.JournalførMeldekortGateway
 
 class JournalførFakeMeldekortGateway(
@@ -16,7 +16,7 @@ class JournalførFakeMeldekortGateway(
     private val data = Atomic(mutableMapOf<MeldekortId, JournalpostId>())
 
     override suspend fun journalførMeldekort(
-        meldekort: Meldekort,
+        meldekort: MeldekortBehandling,
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
     ): JournalpostId {
