@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.vedtak.repository.meldekort
 import arrow.core.nonEmptyListOf
 import com.fasterxml.jackson.core.type.TypeReference
 import kotliquery.Row
+import kotliquery.Session
 import no.nav.tiltakspenger.felles.HendelseId
 import no.nav.tiltakspenger.felles.Hendelsesversjon
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -71,7 +72,26 @@ internal class MeldeperiodePostgresRepo(
         sessionContext: SessionContext? = null,
     ): MeldeperiodeKjeder {
         return sessionFactory.withSession(sessionContext) { session ->
-            session.run(
+            Companion.hentForSakId(sakId, session)
+        }
+    }
+
+    private fun Map<LocalDate, Boolean>.toDbJson(): String {
+        return entries.joinToString(
+            prefix = "{",
+            postfix = "}",
+            separator = ",",
+        ) { (date, value) ->
+            "\"${date}\": $value"
+        }
+    }
+
+    companion object {
+        internal fun hentForSakId(
+            sakId: SakId,
+            session: Session,
+        ): MeldeperiodeKjeder {
+            return session.run(
                 sqlQuery(
                     """
                     select m.*,s.saksnummer,s.ident as fnr 
@@ -87,38 +107,28 @@ internal class MeldeperiodePostgresRepo(
                 MeldeperiodeKjeder(it)
             }
         }
-    }
 
-    private fun fromRow(row: Row): Meldeperiode {
-        return Meldeperiode(
-            id = MeldeperiodeId(row.string("id")),
-            versjon = Hendelsesversjon(row.int("versjon")),
-            hendelseId = HendelseId.fromString(row.string("hendelse_id")),
-            sakId = SakId.fromString(row.string("sak_id")),
-            saksnummer = Saksnummer(row.string("saksnummer")),
-            fnr = Fnr.fromString(row.string("fnr")),
-            opprettet = row.localDateTime("opprettet"),
-            periode = Periode(
-                fraOgMed = row.localDate("fra_og_med"),
-                tilOgMed = row.localDate("til_og_med"),
-            ),
-            antallDagerForPeriode = row.int("antall_dager_for_periode"),
-            girRett = row.string("gir_rett").fromDbJsonToGirRett(),
-        )
-    }
-
-    private fun Map<LocalDate, Boolean>.toDbJson(): String {
-        return entries.joinToString(
-            prefix = "{",
-            postfix = "}",
-            separator = ",",
-        ) { (date, value) ->
-            "\"${date}\": $value"
+        private fun fromRow(row: Row): Meldeperiode {
+            return Meldeperiode(
+                id = MeldeperiodeId(row.string("id")),
+                versjon = Hendelsesversjon(row.int("versjon")),
+                hendelseId = HendelseId.fromString(row.string("hendelse_id")),
+                sakId = SakId.fromString(row.string("sak_id")),
+                saksnummer = Saksnummer(row.string("saksnummer")),
+                fnr = Fnr.fromString(row.string("fnr")),
+                opprettet = row.localDateTime("opprettet"),
+                periode = Periode(
+                    fraOgMed = row.localDate("fra_og_med"),
+                    tilOgMed = row.localDate("til_og_med"),
+                ),
+                antallDagerForPeriode = row.int("antall_dager_for_periode"),
+                girRett = row.string("gir_rett").fromDbJsonToGirRett(),
+            )
         }
-    }
 
-    private fun String.fromDbJsonToGirRett(): Map<LocalDate, Boolean> {
-        val typeRef = object : TypeReference<Map<LocalDate, Boolean>>() {}
-        return objectMapper.readValue(this, typeRef)
+        private fun String.fromDbJsonToGirRett(): Map<LocalDate, Boolean> {
+            val typeRef = object : TypeReference<Map<LocalDate, Boolean>>() {}
+            return objectMapper.readValue(this, typeRef)
+        }
     }
 }
