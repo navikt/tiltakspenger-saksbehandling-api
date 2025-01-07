@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
-import no.nav.tiltakspenger.meldekort.domene.v2.MeldeperiodeKjeder
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling

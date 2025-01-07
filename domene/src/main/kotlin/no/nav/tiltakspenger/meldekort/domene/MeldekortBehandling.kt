@@ -14,8 +14,6 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.meldekort.domene.v2.BrukersMeldekort
-import no.nav.tiltakspenger.meldekort.domene.v2.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
