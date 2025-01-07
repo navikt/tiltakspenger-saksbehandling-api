@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.meldekort.domene.v2
 
+import no.nav.tiltakspenger.felles.HendelseId
+import no.nav.tiltakspenger.felles.Hendelsesversjon
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
@@ -14,7 +16,8 @@ import java.time.LocalDateTime
 
 data class Meldeperiode(
     val id: MeldeperiodeId,
-    val versjon: Int,
+    val hendelseId: HendelseId,
+    val versjon: Hendelsesversjon,
 
     val sakId: SakId,
     val saksnummer: Saksnummer,
@@ -37,13 +40,14 @@ fun Sak.opprettFørsteMeldeperiode(): Meldeperiode {
 
     return Meldeperiode(
         id = MeldeperiodeId.fraPeriode(periode),
+        hendelseId = HendelseId.random(),
         fnr = this.fnr,
         saksnummer = this.saksnummer,
         sakId = this.id,
         antallDagerForPeriode = this.hentAntallDager()!!,
         periode = periode,
         opprettet = nå(),
-        versjon = 1,
+        versjon = Hendelsesversjon.ny(),
         girRett = periode.tilDager().associateWith {
             (utfallsperioder.hentVerdiForDag(it) == AvklartUtfallForPeriode.OPPFYLT)
         },
