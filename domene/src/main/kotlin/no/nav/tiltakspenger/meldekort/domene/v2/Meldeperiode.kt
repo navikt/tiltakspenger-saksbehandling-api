@@ -35,8 +35,11 @@ data class Meldeperiode(
 )
 
 fun Sak.opprettFørsteMeldeperiode(): Meldeperiode {
-    val periode = finnFørsteMeldekortsperiode(this.vedtaksperiode!!)
-    val utfallsperioder = this.vedtaksliste.førstegangsvedtak!!.utfallsperioder
+    requireNotNull(this.vedtaksliste.førstegangsvedtak) { "Kan ikke opprette meldeperiode uten førstegangsvedtak" }
+    requireNotNull(this.vedtaksperiode) { "Kan ikke opprette meldeperiode uten en vedtaksperiode" }
+
+    val periode = finnFørsteMeldekortsperiode(this.vedtaksperiode)
+    val utfallsperioder = this.vedtaksliste.førstegangsvedtak.utfallsperioder
 
     return Meldeperiode(
         id = MeldeperiodeId.fraPeriode(periode),
