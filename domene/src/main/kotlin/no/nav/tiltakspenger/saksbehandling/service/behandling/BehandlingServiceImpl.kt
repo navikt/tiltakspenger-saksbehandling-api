@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldekortBehandling
-import no.nav.tiltakspenger.meldekort.domene.v2.opprettFørsteMeldeperiode
+import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attestering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attesteringsstatus

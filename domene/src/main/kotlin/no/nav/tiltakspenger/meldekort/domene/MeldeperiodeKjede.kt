@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.meldekort.domene.v2
+package no.nav.tiltakspenger.meldekort.domene
 
 import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.SakId
