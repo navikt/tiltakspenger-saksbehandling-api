@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.meldekort.domene.v2
+package no.nav.tiltakspenger.meldekort.domene
 
 import no.nav.tiltakspenger.felles.HendelseId
 import no.nav.tiltakspenger.felles.Hendelsesversjon
@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.meldekort.domene.finnFørsteMeldekortsperiode
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode

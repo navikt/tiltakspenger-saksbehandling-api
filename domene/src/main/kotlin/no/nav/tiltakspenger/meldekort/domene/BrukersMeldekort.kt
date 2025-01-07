@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.meldekort.domene.v2
+package no.nav.tiltakspenger.meldekort.domene
 
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
