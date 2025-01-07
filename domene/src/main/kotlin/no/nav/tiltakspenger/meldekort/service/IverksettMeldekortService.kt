@@ -12,8 +12,8 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.meldekort.domene.KanIkkeIverksetteMeldekort
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
-import no.nav.tiltakspenger.meldekort.domene.MeldekortStatus
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
@@ -33,7 +33,7 @@ class IverksettMeldekortService(
 ) {
     suspend fun iverksettMeldekort(
         kommando: IverksettMeldekortKommando,
-    ): Either<KanIkkeIverksetteMeldekort, Meldekort.UtfyltMeldekort> {
+    ): Either<KanIkkeIverksetteMeldekort, MeldekortBehandling.UtfyltMeldekort> {
         if (!kommando.beslutter.erBeslutter()) {
             return KanIkkeIverksetteMeldekort.MåVæreBeslutter(kommando.beslutter.roller).left()
         }
@@ -43,10 +43,10 @@ class IverksettMeldekortService(
 
         val sak = sakService.hentForSakId(sakId, kommando.beslutter, kommando.correlationId)
             .getOrElse { return KanIkkeIverksetteMeldekort.KunneIkkeHenteSak(it).left() }
-        val meldekort: Meldekort = sak.hentMeldekort(meldekortId)
+        val meldekort: MeldekortBehandling = sak.hentMeldekort(meldekortId)
             ?: throw IllegalArgumentException("Fant ikke meldekort med id $meldekortId i sak $sakId")
-        meldekort as Meldekort.UtfyltMeldekort
-        require(meldekort.beslutter == null && meldekort.status == MeldekortStatus.KLAR_TIL_BESLUTNING) {
+        meldekort as MeldekortBehandling.UtfyltMeldekort
+        require(meldekort.beslutter == null && meldekort.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING) {
             "Meldekort $meldekortId er allerede iverksatt"
         }
         val rammevedtak = sak.vedtaksliste

@@ -7,7 +7,7 @@ import mu.KotlinLogging
 import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.ports.FeilVedSendingTilMeldekortApi
 import no.nav.tiltakspenger.meldekort.ports.MeldekortApiHttpClientGateway
 import java.net.URI
@@ -27,7 +27,7 @@ class MeldekortApiHttpClient(
 
     private val meldekortApiUri = URI.create("$baseUrl/meldekort")
 
-    override suspend fun sendMeldekort(meldekort: Meldekort): Either<FeilVedSendingTilMeldekortApi, Unit> {
+    override suspend fun sendMeldekort(meldekort: MeldekortBehandling): Either<FeilVedSendingTilMeldekortApi, Unit> {
         return Either.catch {
             val response = client.sendAsync(
                 createRequest(meldekort),
@@ -54,7 +54,7 @@ class MeldekortApiHttpClient(
     }
 
     private suspend fun createRequest(
-        meldekort: Meldekort,
+        meldekort: MeldekortBehandling,
     ): HttpRequest {
         val payload = serialize(meldekort.tilBrukerDTO())
 

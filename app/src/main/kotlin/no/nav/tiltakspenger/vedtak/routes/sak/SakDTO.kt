@@ -21,6 +21,6 @@ fun Sak.toDTO() =
         sakId = id.toString(),
         fnr = fnr.verdi,
         behandlingsoversikt = behandlinger.toSaksoversiktDTO(),
-        meldekortoversikt = meldeperioder.verdi.toMeldekortoversiktDTO(),
+        meldekortoversikt = meldekortBehandlinger.verdi.toMeldekortoversiktDTO(),
         førsteLovligeStansdato = førsteLovligeStansdato(),
     )

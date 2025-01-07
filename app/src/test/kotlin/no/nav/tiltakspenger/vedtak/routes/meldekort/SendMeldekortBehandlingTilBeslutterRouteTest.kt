@@ -29,7 +29,7 @@ import no.nav.tiltakspenger.vedtak.routes.defaultRequest
 import no.nav.tiltakspenger.vedtak.routes.jacksonSerialization
 import org.junit.jupiter.api.Test
 
-internal class SendMeldekortTilBeslutterRouteTest {
+internal class SendMeldekortBehandlingTilBeslutterRouteTest {
 
     @Test
     fun `for mange meldedager`() {

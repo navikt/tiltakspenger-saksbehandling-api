@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
@@ -33,7 +33,7 @@ class SendMeldekortTilBeslutterService(
      */
     suspend fun sendMeldekortTilBeslutter(
         kommando: SendMeldekortTilBeslutterKommando,
-    ): Either<KanIkkeSendeMeldekortTilBeslutter, Meldekort.UtfyltMeldekort> {
+    ): Either<KanIkkeSendeMeldekortTilBeslutter, MeldekortBehandling.UtfyltMeldekort> {
         if (!kommando.saksbehandler.erSaksbehandler()) {
             return KanIkkeSendeMeldekortTilBeslutter.MåVæreSaksbehandler(
                 kommando.saksbehandler.roller,
@@ -43,7 +43,7 @@ class SendMeldekortTilBeslutterService(
         kastHvisIkkeTilgangTilPerson(kommando.saksbehandler, kommando.meldekortId, kommando.correlationId)
         val sak = sakService.hentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
             .getOrElse { return KanIkkeSendeMeldekortTilBeslutter.KunneIkkeHenteSak(it).left() }
-        return sak.meldeperioder
+        return sak.meldekortBehandlinger
             .sendTilBeslutter(kommando)
             .map { it.second }
             .onRight {

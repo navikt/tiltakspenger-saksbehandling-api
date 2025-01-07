@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.utbetaling.domene.Utbetalingsvedtak
 import java.time.LocalDate
@@ -20,7 +20,7 @@ interface UtbetalingsvedtakMother {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(LocalDate.now(), "1001"),
         fnr: Fnr = Fnr.random(),
         rammevedtakId: VedtakId = VedtakId.random(),
-        meldekort: Meldekort.UtfyltMeldekort = ObjectMother.utfyltMeldekort(
+        meldekort: MeldekortBehandling.UtfyltMeldekort = ObjectMother.utfyltMeldekort(
             sakId = sakId,
             rammevedtakId = rammevedtakId,
             fnr = fnr,
