@@ -35,7 +35,9 @@ internal class PdfgenHttpClient(
     baseUrl: String,
     connectTimeout: Duration = 1.seconds,
     private val timeout: Duration = 6.seconds,
-) : GenererInnvilgelsesvedtaksbrevGateway, GenererUtbetalingsvedtakGateway, GenererStansvedtaksbrevGateway {
+) : GenererInnvilgelsesvedtaksbrevGateway,
+    GenererUtbetalingsvedtakGateway,
+    GenererStansvedtaksbrevGateway {
 
     private val log = KotlinLogging.logger {}
 

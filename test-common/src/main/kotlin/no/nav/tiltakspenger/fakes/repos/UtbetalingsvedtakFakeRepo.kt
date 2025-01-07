@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
 import java.time.LocalDateTime
 
-class UtbetalingsvedtakFakeRepo() : UtbetalingsvedtakRepo {
+class UtbetalingsvedtakFakeRepo : UtbetalingsvedtakRepo {
     private val data = Atomic(mutableMapOf<VedtakId, Utbetalingsvedtak>())
 
     override fun lagre(vedtak: Utbetalingsvedtak, context: TransactionContext?) {

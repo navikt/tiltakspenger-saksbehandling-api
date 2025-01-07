@@ -39,7 +39,8 @@ internal class JoarkHttpClient(
     private val baseUrl: String,
     private val client: HttpClient = httpClientWithRetry(timeout = 30L),
     private val getToken: suspend () -> AccessToken,
-) : JournalførVedtaksbrevGateway, JournalførMeldekortGateway {
+) : JournalførVedtaksbrevGateway,
+    JournalførMeldekortGateway {
 
     private val log = KotlinLogging.logger {}
 

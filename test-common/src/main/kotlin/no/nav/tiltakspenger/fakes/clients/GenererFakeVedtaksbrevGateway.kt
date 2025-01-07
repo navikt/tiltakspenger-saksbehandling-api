@@ -12,7 +12,9 @@ import no.nav.tiltakspenger.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevG
 import no.nav.tiltakspenger.saksbehandling.ports.GenererStansvedtaksbrevGateway
 import java.time.LocalDate
 
-class GenererFakeVedtaksbrevGateway : GenererInnvilgelsesvedtaksbrevGateway, GenererStansvedtaksbrevGateway {
+class GenererFakeVedtaksbrevGateway :
+    GenererInnvilgelsesvedtaksbrevGateway,
+    GenererStansvedtaksbrevGateway {
     private val response by lazy { PdfOgJson(PdfA("pdf".toByteArray()), "json").right() }
     override suspend fun genererInnvilgelsesvedtaksbrev(
         vedtak: Rammevedtak,

@@ -36,7 +36,8 @@ data class Rammevedtak(
     val distribusjonstidspunkt: LocalDateTime?,
     val sendtTilDatadeling: LocalDateTime?,
     val brevJson: String?,
-) : Vedtak, Periodiserbar {
+) : Vedtak,
+    Periodiserbar {
 
     val fnr: Fnr = behandling.fnr
     val saksnummer: Saksnummer = behandling.saksnummer
