@@ -80,9 +80,10 @@ enum class Vedtakstype(
 
 fun Sak.opprettVedtak(
     behandling: Behandling,
-): Rammevedtak {
+): Pair<Sak, Rammevedtak> {
     require(behandling.status == Behandlingsstatus.VEDTATT) { "Krever behandlingsstatus VEDTATT når vi skal opprette et vedtak." }
-    return Rammevedtak(
+
+    val vedtak = Rammevedtak(
         id = VedtakId.random(),
         opprettet = nå(),
         sakId = this.id,
@@ -97,6 +98,10 @@ fun Sak.opprettVedtak(
         sendtTilDatadeling = null,
         brevJson = null,
     )
+
+    val oppdatertSak = this.copy(vedtaksliste = this.vedtaksliste.leggTilFørstegangsVedtak(vedtak))
+
+    return oppdatertSak to vedtak
 }
 
 fun Sak.utledVedtakstype(behandling: Behandling): Vedtakstype {

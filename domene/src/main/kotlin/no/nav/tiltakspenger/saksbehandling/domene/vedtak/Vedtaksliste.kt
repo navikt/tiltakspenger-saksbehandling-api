@@ -60,6 +60,14 @@ data class Vedtaksliste(
         }.let { Periodisering(it) }
     }
 
+    fun leggTilFørstegangsVedtak(vedtak: Rammevedtak): Vedtaksliste {
+        when (vedtak.vedtaksType) {
+            Vedtakstype.INNVILGELSE -> require(this.isEmpty()) { "Vedtaksliste must not be empty." }
+            Vedtakstype.STANS -> Unit
+        }
+        return copy(value = listOf(vedtak))
+    }
+
     fun krympUtfallsperioder(nyPeriode: Periode): Periodisering<AvklartUtfallForPeriode> {
         if (nyPeriode == vedtaksperiode) return utfallsperioder
         return utfallsperioder.krymp(nyPeriode)
