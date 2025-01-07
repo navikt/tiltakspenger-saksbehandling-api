@@ -39,7 +39,7 @@ class V18__migrer_meldekort_til_meldeperiode : BaseJavaMigration() {
             )
         }
 
-        val meldekort = sakIder.map { sakId -> meldekortRepo.hentForSakId(sakId, null)!! }
+        val meldekort = sakIder.mapNotNull { sakId -> meldekortRepo.hentForSakId(sakId, null) }
         meldekort.flatten().forEach { meldekortBehandling ->
             val meldeperiode = Meldeperiode(
                 id = MeldeperiodeId.fraPeriode(meldekortBehandling.periode),
@@ -52,7 +52,7 @@ class V18__migrer_meldekort_til_meldeperiode : BaseJavaMigration() {
                 periode = meldekortBehandling.periode,
                 antallDagerForPeriode = 10,
                 girRett = meldekortBehandling.beregning.dager.map {
-                    it.dato to (it is MeldeperiodeBeregningDag.Utfylt.Sperret)
+                    it.dato to (it !is MeldeperiodeBeregningDag.Utfylt.Sperret)
                 }.toMap(),
             )
             meldeperiodeRepo.lagre(meldeperiode)
