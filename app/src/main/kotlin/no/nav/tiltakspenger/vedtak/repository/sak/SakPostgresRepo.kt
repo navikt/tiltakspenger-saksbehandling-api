@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
-import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
@@ -22,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.ports.SakRepo
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortPostgresRepo
+import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.utbetaling.UtbetalingsvedtakPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.vedtak.RammevedtakPostgresRepo
 import org.intellij.lang.annotations.Language
@@ -204,19 +204,20 @@ internal class SakPostgresRepo(
             return sessionContext.withSession { session ->
                 val behandlinger = BehandlingPostgresRepo.hentForSakId(id, session)
                 val vedtaksliste: Vedtaksliste = RammevedtakPostgresRepo.hentForSakId(id, session)
-                val meldeperioder = vedtaksliste.førstegangsvedtak?.let {
+                val meldekortBehandlinger = vedtaksliste.førstegangsvedtak?.let {
                     MeldekortPostgresRepo.hentForSakId(id, session)
                 } ?: MeldekortBehandlinger.empty(behandlinger.first().tiltakstype)
+                val meldeperioder = MeldeperiodePostgresRepo.hentForSakId(id, session)
+
                 Sak(
                     id = SakId.fromString(string("id")),
                     saksnummer = Saksnummer(verdi = string("saksnummer")),
                     fnr = Fnr.fromString(string("ident")),
                     behandlinger = behandlinger,
                     vedtaksliste = vedtaksliste,
-                    meldekortBehandlinger = meldeperioder,
+                    meldekortBehandlinger = meldekortBehandlinger,
                     utbetalinger = UtbetalingsvedtakPostgresRepo.hentForSakId(id, session),
-                    // TODO: hent meldeperioder
-                    meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
+                    meldeperiodeKjeder = meldeperioder,
                 )
             }
         }
