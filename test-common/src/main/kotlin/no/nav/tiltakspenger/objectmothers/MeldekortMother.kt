@@ -23,11 +23,11 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Dager
-import no.nav.tiltakspenger.meldekort.domene.v2.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
 import java.time.LocalDate
