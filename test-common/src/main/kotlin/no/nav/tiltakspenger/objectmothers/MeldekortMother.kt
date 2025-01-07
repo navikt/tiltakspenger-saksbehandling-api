@@ -3,6 +3,8 @@ package no.nav.tiltakspenger.objectmothers
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
+import no.nav.tiltakspenger.felles.HendelseId
+import no.nav.tiltakspenger.felles.Hendelsesversjon
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.felles.erHelg
 import no.nav.tiltakspenger.felles.nå
@@ -25,10 +27,12 @@ import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Dager
+import no.nav.tiltakspenger.meldekort.domene.v2.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlin.math.ceil
 
 interface MeldekortMother {
 
@@ -337,6 +341,44 @@ interface MeldekortMother {
             ),
         ).sendTilBeslutter(kommando).getOrFail().first
     }
+
+    fun meldeperiode(
+        periode: Periode = ObjectMother.vurderingsperiode(),
+        id: MeldeperiodeId = MeldeperiodeId.fraPeriode(periode),
+        hendelseId: HendelseId = HendelseId.random(),
+        sakId: SakId = SakId.random(),
+        versjon: Hendelsesversjon = Hendelsesversjon.ny(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+        fnr: Fnr = Fnr.random(),
+        opprettet: LocalDateTime = nå(),
+        antallDagerForPeriode: Int = 10,
+        girRett: Map<LocalDate, Boolean> = buildMap {
+            val perUke = ceil(antallDagerForPeriode / 2.0).toInt()
+            (0 until perUke).forEach { day ->
+                put(periode.fraOgMed.plusDays(day.toLong()), true)
+            }
+            (perUke until 7).forEach { day ->
+                put(periode.fraOgMed.plusDays(day.toLong()), false)
+            }
+            (8 until antallDagerForPeriode).forEach { day ->
+                put(periode.fraOgMed.plusDays(day.toLong()), true)
+            }
+            (antallDagerForPeriode until 14).forEach { day ->
+                put(periode.fraOgMed.plusDays(day.toLong()), false)
+            }
+        },
+    ): Meldeperiode = Meldeperiode(
+        id = id,
+        hendelseId = hendelseId,
+        versjon = versjon,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        opprettet = opprettet,
+        periode = periode,
+        antallDagerForPeriode = antallDagerForPeriode,
+        girRett = girRett,
+    )
 }
 
 fun MeldekortBehandling.IkkeUtfyltMeldekort.tilSendMeldekortTilBeslutterKommando(
