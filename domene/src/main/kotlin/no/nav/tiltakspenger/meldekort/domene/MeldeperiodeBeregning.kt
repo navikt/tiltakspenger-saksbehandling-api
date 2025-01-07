@@ -20,7 +20,7 @@ import java.time.LocalDate
  *
  * @property maksDagerMedTiltakspengerForPeriode Maks antall dager bruker kan få tiltakspenger i meldeperioden. 100% vil tilsvare 5 dager i uken.
  */
-sealed interface Meldeperiode : List<Meldekortdag> {
+sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
     val fraOgMed: LocalDate get() = this.first().dato
     val tilOgMed: LocalDate get() = this.last().dato
     val periode: Periode get() = Periode(fraOgMed, tilOgMed)
@@ -28,7 +28,7 @@ sealed interface Meldeperiode : List<Meldekortdag> {
     val tiltakstype: TiltakstypeSomGirRett
     val meldekortId: MeldekortId
     val maksDagerMedTiltakspengerForPeriode: Int
-    val dager: NonEmptyList<Meldekortdag>
+    val dager: NonEmptyList<MeldeperiodeBeregningDag>
     val antallDagerMedDeltattEllerFravær: Int get() = dager.count { it.harDeltattEllerFravær }
 
     /**
@@ -37,9 +37,9 @@ sealed interface Meldeperiode : List<Meldekortdag> {
     data class UtfyltMeldeperiode(
         override val sakId: SakId,
         override val maksDagerMedTiltakspengerForPeriode: Int,
-        override val dager: NonEmptyList<Meldekortdag.Utfylt>,
-    ) : Meldeperiode,
-        List<Meldekortdag> by dager {
+        override val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
+    ) : MeldeperiodeBeregning,
+        List<MeldeperiodeBeregningDag> by dager {
         override val tiltakstype: TiltakstypeSomGirRett = dager.first().tiltakstype
         override val meldekortId = dager.first().meldekortId
 
@@ -73,9 +73,9 @@ sealed interface Meldeperiode : List<Meldekortdag> {
     data class IkkeUtfyltMeldeperiode(
         override val sakId: SakId,
         override val maksDagerMedTiltakspengerForPeriode: Int,
-        override val dager: NonEmptyList<Meldekortdag>,
-    ) : Meldeperiode,
-        List<Meldekortdag> by dager {
+        override val dager: NonEmptyList<MeldeperiodeBeregningDag>,
+    ) : MeldeperiodeBeregning,
+        List<MeldeperiodeBeregningDag> by dager {
         override val tiltakstype = dager.first().tiltakstype
 
         override val meldekortId = dager.first().meldekortId
@@ -86,7 +86,7 @@ sealed interface Meldeperiode : List<Meldekortdag> {
             return this.copy(
                 dager = this.dager.map {
                     if (periode.inneholder(it.dato)) {
-                        Meldekortdag.Utfylt.Sperret(
+                        MeldeperiodeBeregningDag.Utfylt.Sperret(
                             dato = it.dato,
                             meldekortId = it.meldekortId,
                             tiltakstype = it.tiltakstype,
@@ -105,7 +105,7 @@ sealed interface Meldeperiode : List<Meldekortdag> {
             return this.copy(
                 maksDagerMedTiltakspengerForPeriode = 0,
                 dager = dager.map {
-                    Meldekortdag.Utfylt.Sperret(
+                    MeldeperiodeBeregningDag.Utfylt.Sperret(
                         dato = it.dato,
                         meldekortId = it.meldekortId,
                         tiltakstype = it.tiltakstype,
@@ -133,20 +133,20 @@ sealed interface Meldeperiode : List<Meldekortdag> {
                 val dager =
                     meldeperiode.tilDager().map { dag ->
                         if (utfallsperioder.hentVerdiForDag(dag) == AvklartUtfallForPeriode.OPPFYLT) {
-                            Meldekortdag.IkkeUtfylt(
+                            MeldeperiodeBeregningDag.IkkeUtfylt(
                                 dato = dag,
                                 meldekortId = meldekortId,
                                 tiltakstype = tiltakstype,
                             )
                         } else {
-                            Meldekortdag.Utfylt.Sperret(
+                            MeldeperiodeBeregningDag.Utfylt.Sperret(
                                 dato = dag,
                                 meldekortId = meldekortId,
                                 tiltakstype = tiltakstype,
                             )
                         }
                     }
-                return if (dager.any { it is Meldekortdag.IkkeUtfylt }) {
+                return if (dager.any { it is MeldeperiodeBeregningDag.IkkeUtfylt }) {
                     IkkeUtfyltMeldeperiode(sakId, maksDagerMedTiltakspengerForPeriode, dager.toNonEmptyListOrNull()!!)
                 } else {
                     throw IllegalStateException("Alle dagene i en meldekortperiode er SPERRET. Dette har vi ikke støtte for i MVP.")
@@ -155,17 +155,17 @@ sealed interface Meldeperiode : List<Meldekortdag> {
         }
 
         fun tilUtfyltMeldeperiode(
-            utfylteDager: NonEmptyList<Meldekortdag.Utfylt>,
+            utfylteDager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
         ): Either<KanIkkeSendeMeldekortTilBeslutter, UtfyltMeldeperiode> {
             if (dager.periode() != utfylteDager.periode()) {
                 return InnsendteDagerMåMatcheMeldeperiode.left()
             }
             this.dager.zip(utfylteDager).forEach { (dagA, dagB) ->
-                if (dagA is Meldekortdag.Utfylt.Sperret && dagB !is Meldekortdag.Utfylt.Sperret) {
+                if (dagA is MeldeperiodeBeregningDag.Utfylt.Sperret && dagB !is MeldeperiodeBeregningDag.Utfylt.Sperret) {
                     log.error { "Kan ikke endre dag fra sperret. Generert base: ${this.dager}. Innsendt: $utfylteDager" }
                     return KanIkkeSendeMeldekortTilBeslutter.KanIkkeEndreDagFraSperret.left()
                 }
-                if (dagA !is Meldekortdag.Utfylt.Sperret && dagB is Meldekortdag.Utfylt.Sperret) {
+                if (dagA !is MeldeperiodeBeregningDag.Utfylt.Sperret && dagB is MeldeperiodeBeregningDag.Utfylt.Sperret) {
                     log.error { "Kan ikke endre dag fra til sperret. Generert base: ${this.dager}. Innsendt: $utfylteDager" }
                     return KanIkkeSendeMeldekortTilBeslutter.KanIkkeEndreDagTilSperret.left()
                 }
@@ -196,14 +196,14 @@ sealed interface Meldeperiode : List<Meldekortdag> {
                 dager.all { it.meldekortId == meldekortId },
             ) { "Alle dager må tilhøre samme meldekort, men var: ${dager.map { it.meldekortId }}" }
             require(
-                dager.all { it is Meldekortdag.IkkeUtfylt || it is Meldekortdag.Utfylt.Sperret },
+                dager.all { it is MeldeperiodeBeregningDag.IkkeUtfylt || it is MeldeperiodeBeregningDag.Utfylt.Sperret },
             ) { "Alle dagene må være av typen Ikke Utfylt eller Sperret." }
         }
     }
 }
 
 /** Denne skal ikke kalles utenfra Meldeperiode */
-private fun Meldeperiode.validerAntallDager(): Either<KanIkkeSendeMeldekortTilBeslutter.ForMangeDagerUtfylt, Unit> {
+private fun MeldeperiodeBeregning.validerAntallDager(): Either<KanIkkeSendeMeldekortTilBeslutter.ForMangeDagerUtfylt, Unit> {
     return if (antallDagerMedDeltattEllerFravær > this.maksDagerMedTiltakspengerForPeriode) {
         return KanIkkeSendeMeldekortTilBeslutter.ForMangeDagerUtfylt(
             maksDagerMedTiltakspengerForPeriode = this.maksDagerMedTiltakspengerForPeriode,
@@ -214,4 +214,4 @@ private fun Meldeperiode.validerAntallDager(): Either<KanIkkeSendeMeldekortTilBe
     }
 }
 
-private fun NonEmptyList<Meldekortdag>.periode() = Periode(this.first().dato, this.last().dato)
+private fun NonEmptyList<MeldeperiodeBeregningDag>.periode() = Periode(this.first().dato, this.last().dato)

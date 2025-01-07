@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.vedtak.repository.meldekort
 
-import no.nav.tiltakspenger.meldekort.domene.MeldekortStatus
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
 
 /**
- * @see MeldekortStatus
+ * @see MeldekortBehandlingStatus
  */
 
 private enum class MeldekortstatusDb {
@@ -14,18 +14,18 @@ private enum class MeldekortstatusDb {
     IKKE_RETT_TIL_TILTAKSPENGER,
 }
 
-fun String.toMeldekortStatus(): MeldekortStatus =
+fun String.toMeldekortStatus(): MeldekortBehandlingStatus =
     when (MeldekortstatusDb.valueOf(this)) {
-        MeldekortstatusDb.KLAR_TIL_UTFYLLING -> MeldekortStatus.IKKE_UTFYLT
-        MeldekortstatusDb.KLAR_TIL_BESLUTNING -> MeldekortStatus.KLAR_TIL_BESLUTNING
-        MeldekortstatusDb.GODKJENT -> MeldekortStatus.GODKJENT
-        MeldekortstatusDb.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortStatus.IKKE_RETT_TIL_TILTAKSPENGER
+        MeldekortstatusDb.KLAR_TIL_UTFYLLING -> MeldekortBehandlingStatus.IKKE_BEHANDLET
+        MeldekortstatusDb.KLAR_TIL_BESLUTNING -> MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
+        MeldekortstatusDb.GODKJENT -> MeldekortBehandlingStatus.GODKJENT
+        MeldekortstatusDb.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
     }
 
-fun MeldekortStatus.toDb(): String =
+fun MeldekortBehandlingStatus.toDb(): String =
     when (this) {
-        MeldekortStatus.IKKE_UTFYLT -> MeldekortstatusDb.KLAR_TIL_UTFYLLING
-        MeldekortStatus.KLAR_TIL_BESLUTNING -> MeldekortstatusDb.KLAR_TIL_BESLUTNING
-        MeldekortStatus.GODKJENT -> MeldekortstatusDb.GODKJENT
-        MeldekortStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortstatusDb.IKKE_RETT_TIL_TILTAKSPENGER
+        MeldekortBehandlingStatus.IKKE_BEHANDLET -> MeldekortstatusDb.KLAR_TIL_UTFYLLING
+        MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldekortstatusDb.KLAR_TIL_BESLUTNING
+        MeldekortBehandlingStatus.GODKJENT -> MeldekortstatusDb.GODKJENT
+        MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortstatusDb.IKKE_RETT_TIL_TILTAKSPENGER
     }.toString()

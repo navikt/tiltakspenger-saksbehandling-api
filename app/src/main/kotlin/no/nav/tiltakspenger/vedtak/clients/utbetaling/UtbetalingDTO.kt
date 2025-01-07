@@ -5,8 +5,8 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.utbetaling.domene.Utbetalingsvedtak
 import no.nav.utsjekk.kontrakter.felles.Personident
@@ -50,11 +50,11 @@ fun Utbetalingsvedtak.toDTO(
     }
 }
 
-private fun Meldekort.UtfyltMeldekort.toUtbetalingDto(
+private fun MeldekortBehandling.UtfyltMeldekort.toUtbetalingDto(
     brukersNavKontor: Navkontor,
 ): List<UtbetalingV2Dto> {
-    return this.meldeperiode.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->
-        meldekortdag as Meldekortdag.Utfylt
+    return this.beregning.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->
+        meldekortdag as MeldeperiodeBeregningDag.Utfylt
         val meldeperiodeId1 = this.meldeperiodeId
         when (val sisteUtbetalingsperiode = acc.lastOrNull()) {
             null -> {
@@ -76,7 +76,7 @@ private fun Meldekort.UtfyltMeldekort.toUtbetalingDto(
     }
 }
 
-private fun Meldekortdag.Utfylt.genererUtbetalingsperiode(
+private fun MeldeperiodeBeregningDag.Utfylt.genererUtbetalingsperiode(
     meldeperiodeId: MeldeperiodeId,
     brukersNavKontor: Navkontor,
 ): UtbetalingV2Dto? {
@@ -101,7 +101,7 @@ private fun Meldekortdag.Utfylt.genererUtbetalingsperiode(
 }
 
 private fun UtbetalingV2Dto.leggTil(
-    meldekortdag: Meldekortdag.Utfylt,
+    meldekortdag: MeldeperiodeBeregningDag.Utfylt,
     meldeperiodeId: MeldeperiodeId,
     brukersNavKontor: Navkontor,
 ): Resultat {

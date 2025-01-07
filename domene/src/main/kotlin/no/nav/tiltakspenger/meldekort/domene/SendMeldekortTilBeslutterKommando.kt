@@ -13,7 +13,7 @@ import java.time.LocalDate
 /**
  * Representerer en saksbehandler som fyller ut hele meldekortet, godkjenner og sender til beslutter.
  * Denne flyten vil bli annerledes for veileder og bruker.
- * Vi gjør ingen validering i denne klassen, det gjøres heller av [no.nav.tiltakspenger.meldekort.domene.Meldekort.UtfyltMeldekort]
+ * Vi gjør ingen validering i denne klassen, det gjøres heller av [no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.UtfyltMeldekort]
  *
  * @param navkontor Brukers NAV-kontor. Videresendes til økonomi for riktig kontering.
  */
