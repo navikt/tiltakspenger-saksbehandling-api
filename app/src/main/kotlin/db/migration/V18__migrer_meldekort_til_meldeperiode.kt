@@ -10,8 +10,8 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
+import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.meldekort.domene.v2.Meldeperiode
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldeperiodePostgresRepo
 import org.flywaydb.core.api.migration.BaseJavaMigration
