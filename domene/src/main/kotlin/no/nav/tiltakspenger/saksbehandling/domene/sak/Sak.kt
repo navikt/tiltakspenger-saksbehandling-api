@@ -12,8 +12,9 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
-import no.nav.tiltakspenger.meldekort.domene.Meldeperioder
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.meldekort.domene.v2.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling
@@ -29,7 +30,8 @@ data class Sak(
     val saksnummer: Saksnummer,
     val behandlinger: Behandlinger,
     val vedtaksliste: Vedtaksliste,
-    val meldeperioder: Meldeperioder,
+    val meldekortBehandlinger: MeldekortBehandlinger,
+    val meldeperiodeKjeder: MeldeperiodeKjeder,
     val utbetalinger: Utbetalinger,
 ) {
     /** Dette er sakens totale vedtaksperiode. Per tidspunkt er den sammenhengende, men hvis vi lar en sak gjelde på tvers av tiltak, vil den kunne ha hull. */
@@ -42,11 +44,11 @@ data class Sak(
     val førstegangsbehandling: Behandling = behandlinger.førstegangsbehandling
     val revurderinger = behandlinger.revurderinger
 
-    fun hentMeldekort(meldekortId: MeldekortId): Meldekort? {
-        return meldeperioder.hentMeldekort(meldekortId)
+    fun hentMeldekort(meldekortId: MeldekortId): MeldekortBehandling? {
+        return meldekortBehandlinger.hentMeldekort(meldekortId)
     }
 
-    fun hentIkkeUtfyltMeldekort(): Meldekort? = meldeperioder.ikkeUtfyltMeldekort
+    fun hentIkkeUtfyltMeldekort(): MeldekortBehandling? = meldekortBehandlinger.ikkeUtfyltMeldekort
 
     /** Den er kun trygg inntil vi revurderer antall dager. */
     fun hentAntallDager(): Int? = vedtaksliste.førstegangsvedtak?.behandling?.maksDagerMedTiltakspengerForPeriode
@@ -57,7 +59,7 @@ data class Sak(
 
     fun hentBehandling(behandlingId: BehandlingId): Behandling? = behandlinger.hentBehandling(behandlingId)
 
-    fun sisteUtbetalteMeldekortDag(): LocalDate? = meldeperioder.sisteUtbetalteMeldekortDag
+    fun sisteUtbetalteMeldekortDag(): LocalDate? = meldekortBehandlinger.sisteUtbetalteMeldekortDag
 
     /**
      * Vil være innenfor [vedtaksperiode]. Dersom vi ikke har et vedtak, vil den være null.
@@ -95,8 +97,9 @@ data class Sak(
                 saksnummer = saksnummer,
                 behandlinger = Behandlinger(førstegangsbehandling),
                 vedtaksliste = Vedtaksliste.empty(),
-                meldeperioder = Meldeperioder.empty(førstegangsbehandling.tiltakstype),
+                meldekortBehandlinger = MeldekortBehandlinger.empty(førstegangsbehandling.tiltakstype),
                 utbetalinger = Utbetalinger(emptyList()),
+                meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             ).right()
         }
     }

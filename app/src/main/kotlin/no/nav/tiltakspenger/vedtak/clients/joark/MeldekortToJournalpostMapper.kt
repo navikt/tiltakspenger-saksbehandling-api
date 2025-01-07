@@ -3,13 +3,13 @@ package no.nav.tiltakspenger.vedtak.clients.joark
 import no.nav.tiltakspenger.felles.journalføring.PdfOgJson
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.vedtak.clients.joark.JoarkRequest.JournalpostDokument.DokumentVariant.ArkivPDF
 import no.nav.tiltakspenger.vedtak.clients.joark.JoarkRequest.JournalpostDokument.DokumentVariant.OriginalJson
 import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
 
-internal fun Meldekort.toJournalpostRequest(
+internal fun MeldekortBehandling.toJournalpostRequest(
     pdfOgJson: PdfOgJson,
 ): String {
     val tittel = lagMeldekortTittel(this.periode)

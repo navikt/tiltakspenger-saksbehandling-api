@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.vedtak.routes.meldekort.dto
 
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.vedtak.routes.dto.PeriodeDTO
 import no.nav.tiltakspenger.vedtak.routes.dto.toDTO
 
@@ -23,7 +23,7 @@ data class MeldekortDTO(
     val forrigeNavkontor: String?,
 )
 
-fun Meldekort.toDTO(
+fun MeldekortBehandling.toDTO(
     vedtaksPeriode: Periode,
     tiltaksnavn: String,
     antallDager: Int,
@@ -38,7 +38,7 @@ fun Meldekort.toDTO(
         beslutter = beslutter,
         tiltaksnavn = tiltaksnavn,
         status = this.toMeldekortstatusDTO(),
-        meldekortDager = meldeperiode.toDTO(),
+        meldekortDager = beregning.toDTO(),
         totalbeløpTilUtbetaling = this.beløpTotal,
         vedtaksPeriode = vedtaksPeriode.toDTO(),
         antallDager = antallDager,

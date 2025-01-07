@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.vedtak.routes.meldekort.dto
 
-import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregning
 import java.time.LocalDate
 
 data class MeldekortDagDTO(
@@ -10,7 +10,7 @@ data class MeldekortDagDTO(
     val beregningsdag: BeregningsdagDTO?,
 )
 
-fun Meldeperiode.toDTO(): List<MeldekortDagDTO> =
+fun MeldeperiodeBeregning.toDTO(): List<MeldekortDagDTO> =
     this.map {
         MeldekortDagDTO(
             dato = it.dato,
