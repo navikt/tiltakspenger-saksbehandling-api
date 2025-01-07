@@ -157,7 +157,7 @@ class BehandlingServiceImpl(
         )
         val iverksattBehandling = behandling.iverksett(beslutter, attestering)
 
-        val vedtak = sak.opprettVedtak(iverksattBehandling)
+        val (oppdatertSak, vedtak) = sak.opprettVedtak(iverksattBehandling)
 
         val fnr = personService.hentFnrForBehandlingId(behandlingId)
         val adressebeskyttelseGradering: List<AdressebeskyttelseGradering>? =
@@ -179,7 +179,7 @@ class BehandlingServiceImpl(
         when (behandling.behandlingstype) {
             Behandlingstype.FØRSTEGANGSBEHANDLING -> iverksettFørstegangsbehandling(
                 vedtak = vedtak,
-                sak = sak,
+                sak = oppdatertSak,
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk,
             )

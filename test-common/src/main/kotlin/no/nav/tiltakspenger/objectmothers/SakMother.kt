@@ -136,7 +136,7 @@ interface SakMother {
             val iverksattBehandling = it.førstegangsbehandling.iverksett(beslutter, godkjentAttestering())
             it.copy(
                 behandlinger = Behandlinger(iverksattBehandling),
-                vedtaksliste = Vedtaksliste(it.opprettVedtak(iverksattBehandling)),
+                vedtaksliste = Vedtaksliste(it.opprettVedtak(iverksattBehandling).second),
             )
         }
     }
