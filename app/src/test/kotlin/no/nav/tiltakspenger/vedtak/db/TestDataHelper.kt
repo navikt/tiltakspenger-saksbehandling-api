@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.benk.SaksoversiktPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortPostgresRepo
+import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.person.PersonPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.sak.SakPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.statistikk.sak.StatistikkSakRepoImpl
@@ -32,6 +33,7 @@ internal class TestDataHelper(
     val statistikkSakRepo = StatistikkSakRepoImpl(sessionFactory)
     val statistikkStønadRepo = StatistikkStønadPostgresRepo(sessionFactory)
     val meldekortRepo = MeldekortPostgresRepo(sessionFactory)
+    val meldeperiodeRepo = MeldeperiodePostgresRepo(sessionFactory)
     val utbetalingsvedtakRepo: UtbetalingsvedtakRepo = UtbetalingsvedtakPostgresRepo(sessionFactory)
     val personRepo = PersonPostgresRepo(sessionFactory)
 }
