@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.felles
 
 @Suppress("MemberVisibilityCanBePrivate")
 @JvmInline
-value class Hendelsesversjon(val value: Long) : Comparable<Hendelsesversjon> {
+value class Hendelsesversjon(val value: Int) : Comparable<Hendelsesversjon> {
 
     init {
         require(value > 0L) { "Versjonen må være større enn 0L" }
