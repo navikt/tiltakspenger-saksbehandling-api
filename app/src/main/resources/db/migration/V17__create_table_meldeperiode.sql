@@ -9,7 +9,7 @@ CREATE TABLE meldeperiode (
     antall_dager_for_periode INTEGER NOT NULL,
     gir_rett JSONB NOT NULL,
 
-    CONSTRAINT unique_opprettet_sak_id UNIQUE (opprettet, sak_id),
+    CONSTRAINT unique_id_opprettet_sak_id UNIQUE (id, sak_id, opprettet),
     CONSTRAINT unique_id_versjon_sak_id UNIQUE (id, versjon, sak_id)
 );
 CREATE INDEX idx_meldeperiode_sak_id ON meldeperiode(sak_id);
