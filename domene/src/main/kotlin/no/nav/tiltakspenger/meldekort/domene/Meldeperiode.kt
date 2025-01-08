@@ -30,6 +30,8 @@ data class Meldeperiode(
 
     val girRett: Map<LocalDate, Boolean>,
 
+    val sendtTilMeldekortApi: LocalDateTime?,
+
 //    fun settIkkeRettTilTiltakspenger(periode: Periode, tidspunkt: LocalDateTime): Meldeperiode
 )
 
@@ -53,5 +55,6 @@ fun Sak.opprettFørsteMeldeperiode(): Meldeperiode {
         girRett = periode.tilDager().associateWith {
             (utfallsperioder.hentVerdiForDag(it) == AvklartUtfallForPeriode.OPPFYLT)
         },
+        sendtTilMeldekortApi = null,
     )
 }

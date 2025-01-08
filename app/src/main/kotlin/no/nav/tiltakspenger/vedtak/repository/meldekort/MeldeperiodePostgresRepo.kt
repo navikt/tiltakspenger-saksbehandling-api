@@ -17,15 +17,17 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjede
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 internal class MeldeperiodePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
-) {
-    fun lagre(
+) : MeldeperiodeRepo {
+    override fun lagre(
         meldeperiode: Meldeperiode,
-        sessionContext: SessionContext? = null,
+        sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->
             session.run(
@@ -76,6 +78,37 @@ internal class MeldeperiodePostgresRepo(
         }
     }
 
+    override fun hentUsendteTilBruker(): List<Meldeperiode> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select m.*,s.saksnummer,s.ident as fnr 
+                    from meldeperiode m 
+                    join sak s on s.id = m.sak_id 
+                    where m.sendt_til_meldekort_api is null
+                    """,
+                ).map { fromRow(it) }.asList,
+            )
+        }
+    }
+
+    override fun markerSomSendtTilBruker(hendelseId: HendelseId, tidspunkt: LocalDateTime) {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    update meldeperiode set
+                        sendt_til_meldekort_api = :tidspunkt
+                    where hendelse_id = :id                                    
+                    """,
+                    "id" to hendelseId.toString(),
+                    "tidspunkt" to tidspunkt,
+                ).asUpdate,
+            )
+        }
+    }
+
     private fun Map<LocalDate, Boolean>.toDbJson(): String {
         return entries.joinToString(
             prefix = "{",
@@ -123,6 +156,7 @@ internal class MeldeperiodePostgresRepo(
                 ),
                 antallDagerForPeriode = row.int("antall_dager_for_periode"),
                 girRett = row.string("gir_rett").fromDbJsonToGirRett(),
+                sendtTilMeldekortApi = row.localDateTimeOrNull("sendt_til_meldekort_api"),
             )
         }
 

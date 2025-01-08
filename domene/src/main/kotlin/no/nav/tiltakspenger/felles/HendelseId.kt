@@ -15,7 +15,7 @@ data class HendelseId private constructor(
         fun random() = HendelseId(ulid = UlidBase("${PREFIX}_${ULID.randomULID()}"))
 
         fun fromString(stringValue: String): HendelseId {
-            require(stringValue.startsWith(PREFIX)) { "Prefix må starte med $PREFIX. Dette er nok ikke en BehandlingId ($stringValue)" }
+            require(stringValue.startsWith(PREFIX)) { "Prefix må starte med $PREFIX. Dette er nok ikke en HendelseId ($stringValue)" }
             return HendelseId(ulid = UlidBase(stringValue))
         }
 

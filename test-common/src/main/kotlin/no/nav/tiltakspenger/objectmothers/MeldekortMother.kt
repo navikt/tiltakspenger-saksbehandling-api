@@ -116,7 +116,6 @@ interface MeldekortMother {
             iverksattTidspunkt = iverksattTidspunkt,
             navkontor = navkontor,
             ikkeRettTilTiltakspengerTidspunkt = null,
-            sendtTilMeldekortApi = null,
             meldeperiode = null,
             brukersMeldekort = null,
         )
@@ -378,6 +377,7 @@ interface MeldekortMother {
         periode = periode,
         antallDagerForPeriode = antallDagerForPeriode,
         girRett = girRett,
+        sendtTilMeldekortApi = null,
     )
 }
 
