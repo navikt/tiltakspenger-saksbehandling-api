@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakServiceImpl
 import no.nav.tiltakspenger.vedtak.Profile
-import no.nav.tiltakspenger.vedtak.repository.benk.SaksoversiktPostgresRepo
+import no.nav.tiltakspenger.vedtak.repository.benk.BenkOversiktPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.sak.SakPostgresRepo
 
 open class SakContext(
@@ -56,7 +56,7 @@ open class SakContext(
         )
     }
     open val saksoversiktRepo: SaksoversiktRepo by lazy {
-        SaksoversiktPostgresRepo(
+        BenkOversiktPostgresRepo(
             sessionFactory = sessionFactory as PostgresSessionFactory,
         )
     }

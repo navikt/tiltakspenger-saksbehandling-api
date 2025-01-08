@@ -48,7 +48,7 @@ fun Route.behandlingBenkRoutes(
     get(BEHANDLINGER_PATH) {
         logger.debug("Mottatt get-request på $BEHANDLINGER_PATH for å hente alle behandlinger på benken")
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
-            sakService.hentSaksoversikt(
+            sakService.hentBenkOversikt(
                 saksbehandler = saksbehandler,
                 correlationId = call.correlationId(),
             ).fold(

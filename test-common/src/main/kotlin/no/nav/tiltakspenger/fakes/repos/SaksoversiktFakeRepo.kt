@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.fakes.repos
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
 import no.nav.tiltakspenger.saksbehandling.domene.benk.BenkBehandlingstype
-import no.nav.tiltakspenger.saksbehandling.domene.benk.Saksoversikt
+import no.nav.tiltakspenger.saksbehandling.domene.benk.toBenkBehandlingstype
 import no.nav.tiltakspenger.saksbehandling.ports.SaksoversiktRepo
 
 class SaksoversiktFakeRepo(
@@ -11,35 +11,42 @@ class SaksoversiktFakeRepo(
     private val behandlingFakeRepo: BehandlingFakeRepo,
 ) : SaksoversiktRepo {
 
-    override fun hentAlle(sessionContext: SessionContext?): Saksoversikt {
-        val behandlinger =
-            behandlingFakeRepo.alle.filter { it.erFørstegangsbehandling }
-                .associateBy { behandling ->
-                    behandling.søknad!!.id
-                }
-        return søknadFakeRepo.alle.map { søknad ->
-            val førstegangsbehandling = behandlinger[søknad.id]
-            val erFørstegangsbehandling = førstegangsbehandling != null
-            val status = if (erFørstegangsbehandling) {
-                BehandlingEllerSøknadForSaksoversikt.Status.Behandling(førstegangsbehandling!!.status)
-            } else {
-                BehandlingEllerSøknadForSaksoversikt.Status.Søknad
-            }
+    override fun hentAlleBehandlinger(sessionContext: SessionContext?): List<BehandlingEllerSøknadForSaksoversikt> {
+        return behandlingFakeRepo.alle.map { behandling ->
+            val status = BehandlingEllerSøknadForSaksoversikt.Status.Behandling(behandling.status)
+
             BehandlingEllerSøknadForSaksoversikt(
-                periode = førstegangsbehandling?.vurderingsperiode,
+                periode = behandling.vurderingsperiode,
                 status = status,
-                underkjent = førstegangsbehandling?.attesteringer
-                    ?.any { attestering -> attestering.isUnderkjent() }
-                    ?: false,
-                kravtidspunkt = søknad.opprettet,
-                behandlingstype = if (erFørstegangsbehandling) BenkBehandlingstype.FØRSTEGANGSBEHANDLING else BenkBehandlingstype.SØKNAD,
-                fnr = søknad.fnr,
-                saksnummer = førstegangsbehandling?.saksnummer,
-                id = førstegangsbehandling?.id ?: søknad.id,
-                saksbehandler = førstegangsbehandling?.saksbehandler,
-                beslutter = førstegangsbehandling?.beslutter,
-                sakId = førstegangsbehandling?.sakId,
+                underkjent = behandling.attesteringer.any { it.isUnderkjent() },
+                kravtidspunkt = behandling.vilkårssett.kravfristVilkår.avklartSaksopplysning.kravdato,
+                behandlingstype = behandling.behandlingstype.toBenkBehandlingstype(),
+                fnr = behandling.fnr,
+                saksnummer = behandling.saksnummer,
+                id = behandling.id,
+                saksbehandler = behandling.saksbehandler,
+                beslutter = behandling.beslutter,
+                sakId = behandling.sakId,
             )
-        }.let { Saksoversikt(it) }
+        }
+    }
+
+    override fun hentAlleSøknader(sessionContext: SessionContext?): List<BehandlingEllerSøknadForSaksoversikt> {
+        return søknadFakeRepo.alle.map { søknad ->
+            val status = BehandlingEllerSøknadForSaksoversikt.Status.Søknad
+            BehandlingEllerSøknadForSaksoversikt(
+                periode = null,
+                status = status,
+                underkjent = false,
+                kravtidspunkt = søknad.opprettet,
+                behandlingstype = BenkBehandlingstype.SØKNAD,
+                fnr = søknad.fnr,
+                saksnummer = null,
+                id = søknad.id,
+                saksbehandler = null,
+                beslutter = null,
+                sakId = null,
+            )
+        }
     }
 }

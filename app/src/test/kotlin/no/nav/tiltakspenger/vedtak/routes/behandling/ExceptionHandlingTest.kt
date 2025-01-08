@@ -37,7 +37,7 @@ class ExceptionHandlingTest {
         val mockAuditService = mockk<AuditService>()
         runTest {
             coEvery { tokenServiceMock.validerOgHentBruker(any()) } returns ObjectMother.beslutter().right()
-            coEvery { sakService.hentSaksoversikt(any(), any()) } throws IllegalStateException("Wuzza")
+            coEvery { sakService.hentBenkOversikt(any(), any()) } throws IllegalStateException("Wuzza")
 
             val exceptedStatusCode = HttpStatusCode.InternalServerError
             val expectedBody =
