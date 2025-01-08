@@ -52,7 +52,6 @@ internal class MeldekortberegningKaranteneTest {
         DagMedForventning(21.februar(2024), FRAVÆR_SYK, YtelsenFallerBort),
         DagMedForventning(22.februar(2024), FRAVÆR_SYK, YtelsenFallerBort),
         // Fremdeles 16 dager karantene. Trekker kun fra ikke-sykedager.
-        // TODO post-mvp jah: Få en bekreftelse fra Sølvi at for brukere som vet om dette, bør optimalisere for ikke å føre sykedager i karanteneperioden.
         DagMedForventning(23.februar(2024), IKKE_DELTATT, YtelsenFallerBort),
         DagMedForventning(24.februar(2024), IKKE_DELTATT, YtelsenFallerBort),
         DagMedForventning(25.februar(2024), IKKE_DELTATT, YtelsenFallerBort),

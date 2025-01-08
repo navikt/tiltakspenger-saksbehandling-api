@@ -108,7 +108,6 @@ internal class MeldekortberegningManuellTest {
             meldeperioder = nonEmptyListOf(meldekort1, meldekort2, meldekort3, meldekort4, meldekort5),
         )
         for (dag in meldekortBeregning) {
-            // TODO post-mvp jah: Vurder og legge til en prettyprint på denne hvis det er nødvendig. Hør med Richard om vi har noe fra før.
             println(dag)
         }
     }

@@ -91,7 +91,7 @@ private fun Meldekortdag.Utfylt.genererUtbetalingsperiode(
                 stønadsdata =
                 StønadsdataTiltakspengerV2Dto(
                     stønadstype = this.tiltakstype.mapStønadstype(),
-                    // TODO post-mvp: Legg til barnetillegg
+                    // TODO barnetillegg: Legg til støtte for barnetillegg
                     barnetillegg = false,
                     brukersNavKontor = brukersNavKontor.kontornummer,
                     meldekortId = meldeperiodeId.verdi,

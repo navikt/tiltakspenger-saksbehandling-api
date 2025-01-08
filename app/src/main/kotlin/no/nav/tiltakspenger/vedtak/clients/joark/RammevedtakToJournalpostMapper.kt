@@ -20,7 +20,7 @@ internal fun Rammevedtak.utgåendeJournalpostRequest(
 }
 
 /**
- * TODO jah: Ikke sikkert vi får bruk for notat av rammevedtak.
+ * Kommentar jah: Ikke sikkert vi får bruk for notat av rammevedtak. Kan i så fall bare slettes.
  */
 internal fun Rammevedtak.notatJournalpostRequest(
     pdfOgJson: PdfOgJson,
@@ -52,7 +52,7 @@ private fun Rammevedtak.toJournalpostRequest(
         dokumenter = listOf(
             JoarkRequest.JournalpostDokument(
                 tittel = tittel,
-                // TODO jah: Denne bør komme fra PdfOgJson
+                // TODO jah:brevkode bør være bakt inn i PdfOgJson og settes samtidig som vi mottar PDFen.
                 brevkode = "MELDEKORT-TILTAKSPENGER",
                 dokumentvarianter = listOf(
                     ArkivPDF(

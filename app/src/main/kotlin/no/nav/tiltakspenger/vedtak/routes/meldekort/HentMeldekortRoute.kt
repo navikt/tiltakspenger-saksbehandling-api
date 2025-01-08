@@ -67,7 +67,7 @@ fun Route.hentMeldekortRoute(
                         contextMessage = "Henter meldekort",
                         correlationId = correlationId,
                     )
-                    // TODO post-mvp jah: Saksbehandlerne reagerte på ordet saksperiode og ønsket seg "vedtaksperiode". Gitt at man har en forlengelse vil man har et førstegangsvedtak+forlengelsesvedtak. Vil de ikke ha se den totale meldeperioden for den gitte saken?
+                    // TODO post-mvp jah: Saksbehandlerne reagerte på ordet saksperiode og ønsket seg "vedtaksperiode". Gitt at man har en forlengelse vil man ha et førstegangsvedtak+forlengelsesvedtak. Ønsker de ikke se den totale meldeperioden for den gitte saken?
                     call.respond(
                         status = HttpStatusCode.OK,
                         message = meldekort.toDTO(

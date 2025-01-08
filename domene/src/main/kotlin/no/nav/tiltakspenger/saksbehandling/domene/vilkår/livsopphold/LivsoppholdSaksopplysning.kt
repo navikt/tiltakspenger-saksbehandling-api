@@ -11,7 +11,7 @@ sealed interface LivsoppholdSaksopplysning {
     val harLivsoppholdYtelser: Boolean
     val tidsstempel: LocalDateTime
 
-    // TODO jah: Periodiser denne.
+    // TODO jah: Periodiser denne. Generelt sett bør alle saksopplysninger kunne periodiseres.
     val periode: Periode
 
     val årsakTilEndring: ÅrsakTilEndring?

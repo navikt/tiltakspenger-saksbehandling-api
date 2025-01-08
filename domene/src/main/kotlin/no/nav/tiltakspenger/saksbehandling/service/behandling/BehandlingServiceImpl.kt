@@ -221,7 +221,7 @@ class BehandlingServiceImpl(
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
 
-            // TODO jah: Et stansvedtak kan overlappe utfylte meldekort dersom dagene ikke er utbetalt. Før vi implementerer det, må vi splitte meldekortgrunnlag og meldekortbehandling i to.
+            // TODO jah+abn: Et stansvedtak kan overlappe utfylte meldekort dersom dagene ikke er utbetalt. Før vi implementerer det, må vi splitte meldekortgrunnlag og meldekortbehandling i to.
             ikkeUtfylteMeldekort.forEach {
                 meldekortRepo.oppdater(
                     it.settIkkeRettTilTiltakspenger(

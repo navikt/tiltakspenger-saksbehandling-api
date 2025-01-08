@@ -23,7 +23,7 @@ class PersonHttpklient(
         )
 
     /**
-     * TODO post-mvp jah: Dersom vi ønsker og sende saksbehandler sitt OBO-token, kan vi lage en egen metode for dette.
+     * Kommentar jah: Dersom vi ønsker og sende saksbehandler sitt OBO-token, kan vi lage en egen metode for dette.
      */
     override suspend fun hentPerson(fnr: Fnr): PersonopplysningerSøker {
         return withContext(Dispatchers.IO) {

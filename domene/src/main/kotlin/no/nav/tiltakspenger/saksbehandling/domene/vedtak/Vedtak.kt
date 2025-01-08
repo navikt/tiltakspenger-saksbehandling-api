@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import java.time.LocalDateTime
 
 /**
- * TODO post-mvp jah: Denne vil ikke passe for klagevedtak og tilbakekrevingsvedtak, da må lage et abstraksjonslag til.
+ * TODO post-mvp jah: Denne vil ikke passe for klagevedtak og tilbakekrevingsvedtak, da må vi lage et abstraksjonslag til.
  */
 interface Vedtak {
     val id: VedtakId
