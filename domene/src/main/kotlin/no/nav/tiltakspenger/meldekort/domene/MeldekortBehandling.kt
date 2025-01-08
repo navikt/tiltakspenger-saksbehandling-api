@@ -54,7 +54,6 @@ sealed interface MeldekortBehandling {
     val navkontor: Navkontor?
     val iverksattTidspunkt: LocalDateTime?
     val sendtTilBeslutning: LocalDateTime?
-    val sendtTilMeldekortApi: LocalDateTime?
 
     /** Denne styres kun av vedtakene. Dersom vi har en åpen meldekortbehandling (inkl. til beslutning) kan et nytt vedtak overstyre hele meldeperioden til [MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] */
     val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?
@@ -92,7 +91,6 @@ sealed interface MeldekortBehandling {
         override val iverksattTidspunkt: LocalDateTime?,
         override val navkontor: Navkontor,
         override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
-        override val sendtTilMeldekortApi: LocalDateTime?,
         override val brukersMeldekort: BrukersMeldekort?,
         override val meldeperiode: Meldeperiode?,
     ) : MeldekortBehandling {
@@ -211,7 +209,6 @@ sealed interface MeldekortBehandling {
     ) : MeldekortBehandling {
         override val iverksattTidspunkt = null
         override val sendtTilBeslutning = null
-        override val sendtTilMeldekortApi = null
 
         override val beløpTotal = null
         override val status =
@@ -252,7 +249,6 @@ sealed interface MeldekortBehandling {
                 iverksattTidspunkt = null,
                 navkontor = navkontor,
                 ikkeRettTilTiltakspengerTidspunkt = null,
-                sendtTilMeldekortApi = this.sendtTilMeldekortApi,
                 brukersMeldekort = brukersMeldekort,
                 meldeperiode = meldeperiode,
             ).right()

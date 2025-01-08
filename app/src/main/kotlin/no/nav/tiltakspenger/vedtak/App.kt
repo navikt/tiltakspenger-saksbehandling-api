@@ -70,7 +70,7 @@ internal fun start(
             applicationContext.sendTilDatadelingService.send(Configuration.isNais())
 
             if (applicationProfile() != Profile.PROD) {
-                applicationContext.meldekortContext.sendMeldekortTilBrukerService.send()
+                applicationContext.meldekortContext.sendMeldeperiodeTilBrukerService.send()
             }
         },
     )

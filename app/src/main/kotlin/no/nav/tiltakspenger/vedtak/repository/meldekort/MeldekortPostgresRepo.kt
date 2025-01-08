@@ -21,7 +21,6 @@ import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.meldekort.domene.tilMeldekortperioder
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
-import java.time.LocalDateTime
 
 class MeldekortPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -49,8 +48,7 @@ class MeldekortPostgresRepo(
                         status,
                         navkontor,
                         iverksatt_tidspunkt,
-                        sendt_til_beslutning,
-                        sendt_til_meldekort_api
+                        sendt_til_beslutning
                     ) values (
                         :id,
                         :forrige_meldekort_id,
@@ -66,8 +64,7 @@ class MeldekortPostgresRepo(
                         :status,
                         :navkontor,
                         :iverksatt_tidspunkt,
-                        :sendt_til_beslutning,                        
-                        :sendt_til_meldekort_api
+                        :sendt_til_beslutning                        
                     )
                     """,
                     "id" to meldekort.id.toString(),
@@ -85,7 +82,6 @@ class MeldekortPostgresRepo(
                     "navkontor" to meldekort.navkontor?.kontornummer,
                     "iverksatt_tidspunkt" to meldekort.iverksattTidspunkt,
                     "sendt_til_beslutning" to meldekort.sendtTilBeslutning,
-                    "sendt_til_meldekort_api" to meldekort.sendtTilMeldekortApi,
                 ).asUpdate,
             )
         }
@@ -117,44 +113,6 @@ class MeldekortPostgresRepo(
                     "navkontor" to meldekort.navkontor?.kontornummer,
                     "iverksatt_tidspunkt" to meldekort.iverksattTidspunkt,
                     "sendt_til_beslutning" to meldekort.sendtTilBeslutning,
-                ).asUpdate,
-            )
-        }
-    }
-
-    override fun hentUsendteTilBruker(): List<MeldekortBehandling> {
-        return sessionFactory.withSession { session ->
-            session.run(
-                // TODO abn: vi trenger neppe alle disse dataene til brukers meldekort
-                sqlQuery(
-                    """
-                    select
-                        m.*,
-                        s.ident as fnr,
-                        s.saksnummer,
-                        (b.stønadsdager -> 'registerSaksopplysning' ->> 'antallDager')::int as antall_dager_per_meldeperiode
-                    from meldekort m
-                    join sak s on s.id = m.sak_id
-                    join rammevedtak r on r.id = m.rammevedtak_id
-                    join behandling b on b.id = r.behandling_id
-                    where m.sendt_til_meldekort_api is null
-                    """,
-                ).map { fromRow(it) }.asList,
-            )
-        }
-    }
-
-    override fun markerSomSendtTilBruker(meldekortId: MeldekortId, tidspunkt: LocalDateTime) {
-        return sessionFactory.withSession { session ->
-            session.run(
-                sqlQuery(
-                    """
-                    update meldekort set
-                        sendt_til_meldekort_api = :tidspunkt
-                    where id = :id                                    
-                    """,
-                    "id" to meldekortId.toString(),
-                    "tidspunkt" to tidspunkt,
                 ).asUpdate,
             )
         }
@@ -258,7 +216,6 @@ class MeldekortPostgresRepo(
                         iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
                         navkontor = navkontor!!,
                         ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt"),
-                        sendtTilMeldekortApi = row.localDateTimeOrNull("sendt_til_meldekort_api"),
                         brukersMeldekort = null,
                         meldeperiode = null,
                     )

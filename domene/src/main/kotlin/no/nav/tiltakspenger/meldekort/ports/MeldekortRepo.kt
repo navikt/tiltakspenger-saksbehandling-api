@@ -1,9 +1,7 @@
 package no.nav.tiltakspenger.meldekort.ports
 
-import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
-import java.time.LocalDateTime
 
 interface MeldekortRepo {
 
@@ -19,8 +17,4 @@ interface MeldekortRepo {
         meldekort: MeldekortBehandling,
         transactionContext: TransactionContext? = null,
     )
-
-    fun hentUsendteTilBruker(): List<MeldekortBehandling>
-
-    fun markerSomSendtTilBruker(meldekortId: MeldekortId, tidspunkt: LocalDateTime)
 }

@@ -5,29 +5,29 @@ import mu.KotlinLogging
 import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.meldekort.ports.MeldekortApiHttpClientGateway
-import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
+import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 
 /**
  * Sender meldekort som er klare for utfylling til meldekort-api, som serverer videre til bruker
  */
-class SendMeldekortTilBrukerService(
-    private val meldekortRepo: MeldekortRepo,
+class SendMeldeperiodeTilBrukerService(
+    private val meldeperiodeRepo: MeldeperiodeRepo,
     private val meldekortApiHttpClient: MeldekortApiHttpClientGateway,
 ) {
     private val logger = KotlinLogging.logger { }
 
     suspend fun send() {
         Either.catch {
-            val meldekortTilBruker = meldekortRepo.hentUsendteTilBruker()
+            val usendteMeldeperioder = meldeperiodeRepo.hentUsendteTilBruker()
 
-            logger.debug("Fant ${meldekortTilBruker.count()} meldekort for sending til meldekort-api")
+            logger.debug("Fant ${usendteMeldeperioder.count()} meldekort for sending til meldekort-api")
 
-            meldekortTilBruker.forEach { meldekort ->
-                meldekortApiHttpClient.sendMeldekort(meldekort).onRight {
-                    logger.info { "Sendte meldekort til meldekort-api med id ${meldekort.id}" }
-                    meldekortRepo.markerSomSendtTilBruker(meldekort.id, nå())
+            usendteMeldeperioder.forEach { meldeperiode ->
+                meldekortApiHttpClient.sendMeldeperiode(meldeperiode).onRight {
+                    logger.info { "Sendte meldekort til meldekort-api med id ${meldeperiode.hendelseId}" }
+                    meldeperiodeRepo.markerSomSendtTilBruker(meldeperiode.hendelseId, nå())
                 }.onLeft {
-                    logger.error { "Kunne ikke sende meldekort til meldekort-api med id ${meldekort.id}" }
+                    logger.error { "Kunne ikke sende meldekort til meldekort-api med id ${meldeperiode.hendelseId}" }
                 }
             }
         }.onLeft {
