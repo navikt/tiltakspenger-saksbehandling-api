@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingPostgresRepo
-import no.nav.tiltakspenger.vedtak.repository.benk.SaksoversiktPostgresRepo
+import no.nav.tiltakspenger.vedtak.repository.benk.BenkOversiktPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.person.PersonPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.sak.SakPostgresRepo
@@ -28,7 +28,7 @@ internal class TestDataHelper(
     val behandlingRepo = BehandlingPostgresRepo(sessionFactory)
     val vedtakRepo = RammevedtakPostgresRepo(sessionFactory)
     val sakRepo = SakPostgresRepo(sessionFactory, saksnummerGenerator)
-    val saksoversiktRepo = SaksoversiktPostgresRepo(sessionFactory)
+    val saksoversiktRepo = BenkOversiktPostgresRepo(sessionFactory)
     val statistikkSakRepo = StatistikkSakRepoImpl(sessionFactory)
     val statistikkStønadRepo = StatistikkStønadPostgresRepo(sessionFactory)
     val meldekortRepo = MeldekortPostgresRepo(sessionFactory)

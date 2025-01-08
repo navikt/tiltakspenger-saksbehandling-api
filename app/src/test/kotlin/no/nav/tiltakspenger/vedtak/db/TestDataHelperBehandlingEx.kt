@@ -145,8 +145,8 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
 internal fun TestDataHelper.persisterOpprettetRevurdering(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
-    deltakelseFom: LocalDate = 1.januar(2023),
-    deltakelseTom: LocalDate = 31.mars(2023),
+    deltakelseFom: LocalDate = ObjectMother.vurderingsperiode().fraOgMed,
+    deltakelseTom: LocalDate = ObjectMother.vurderingsperiode().tilOgMed,
     journalpostId: String = random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
@@ -168,7 +168,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
             ),
             barnetillegg = listOf(),
         ),
-    revurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom.plusMonths(1), tilOgMed = deltakelseTom),
+    revurderingsperiode: Periode = ObjectMother.revurderingsperiode(),
 ): Pair<Sak, Behandling> {
     val (sak, _) = persisterIverksattFørstegangsbehandling(
         sakId = sakId,

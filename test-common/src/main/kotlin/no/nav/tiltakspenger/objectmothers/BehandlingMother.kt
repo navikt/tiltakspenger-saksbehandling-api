@@ -40,6 +40,7 @@ import java.time.LocalDateTime
 interface BehandlingMother {
     /** Felles default vurderingsperiode for testdatatypene */
     fun vurderingsperiode() = Periode(1.januar(2023), 31.mars(2023))
+    fun revurderingsperiode() = Periode(2.januar(2023), 31.mars(2023))
 
     /**
      * Dette er kun det første steget i en behandlingsprosess. Bruk andre helper-funksjoner for å starte i en senere tilstand.

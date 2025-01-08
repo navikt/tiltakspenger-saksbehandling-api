@@ -176,7 +176,7 @@ class SakServiceImpl(
         return sakRepo.hentForSakId(sakId)!!.right()
     }
 
-    override suspend fun hentSaksoversikt(
+    override suspend fun hentBenkOversikt(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): Either<KanIkkeHenteSaksoversikt, Saksoversikt> {
@@ -187,14 +187,17 @@ class SakServiceImpl(
                 harRollene = saksbehandler.roller,
             ).left()
         }
-        val saksoversikt: Saksoversikt = saksoversiktRepo.hentAlle()
-        if (saksoversikt.isEmpty()) return saksoversikt.right()
+        val behandlinger = saksoversiktRepo.hentAlleBehandlinger()
+        val søknader = saksoversiktRepo.hentAlleSøknader()
+        val benkOversikt = Saksoversikt(behandlinger + søknader)
+
+        if (benkOversikt.isEmpty()) return benkOversikt.right()
         val tilganger = tilgangsstyringService.harTilgangTilPersoner(
-            fnrListe = saksoversikt.map { it.fnr }.toNonEmptyListOrNull()!!,
+            fnrListe = benkOversikt.map { it.fnr }.toNonEmptyListOrNull()!!,
             roller = saksbehandler.roller,
             correlationId = correlationId,
         ).getOrElse { throw IllegalStateException("Feil ved henting av tilganger") }
-        return saksoversikt.filter {
+        return benkOversikt.filter {
             val harTilgang = tilganger[it.fnr]
             if (harTilgang == null) {
                 logger.debug { "tilgangsstyring: Filtrerte vekk bruker fra benk for saksbehandler $saksbehandler. Kunne ikke avgjøre om hen har tilgang. Se sikkerlogg for mer kontekst." }

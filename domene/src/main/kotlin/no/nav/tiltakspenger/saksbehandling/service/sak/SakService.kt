@@ -40,7 +40,7 @@ interface SakService {
         correlationId: CorrelationId,
     ): Either<KunneIkkeHenteSakForSakId, Sak>
 
-    suspend fun hentSaksoversikt(
+    suspend fun hentBenkOversikt(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): Either<KanIkkeHenteSaksoversikt, Saksoversikt>
