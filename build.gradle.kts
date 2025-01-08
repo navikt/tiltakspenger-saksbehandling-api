@@ -6,7 +6,7 @@ val jvmVersion = JvmTarget.JVM_21
 
 plugins {
     kotlin("jvm") version "2.1.0"
-    id("com.diffplug.spotless") version "7.0.0"
+    id("com.diffplug.spotless") version "7.0.1"
 }
 
 allprojects {
