@@ -12,9 +12,8 @@ internal fun Rammevedtak.utgåendeJournalpostRequest(
     return toJournalpostRequest(
         pdfOgJson = pdfOgJson,
         journalPostType = JoarkRequest.JournalPostType.UTGAAENDE,
-        // Utsendingskanal. Forsendelsen er distribuert digitalt til brukers meldingsboks i nav.no.
-        // TODO jah: Dobbeltsjekk denne med #team-dokumentløsninger. Vi sender vanligvis ikke med adresse til distribusjonen, så vi vet ikke om den går via sentral print eller sendes digitalt.
-        kanal = "NAV_NO",
+        // Når vi distribuerer en utgående journalpost skal kanal være null. https://nav-it.slack.com/archives/C6W9E5GPJ/p1736327853663619 Hvis vi skal distribuere den selv, må vi se på dette igjen.
+        kanal = null,
         avsenderMottaker = JoarkRequest.AvsenderMottaker(this.fnr.verdi),
     )
 }
