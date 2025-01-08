@@ -7,7 +7,7 @@ import mu.KotlinLogging
 import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.meldekort.ports.FeilVedSendingTilMeldekortApi
 import no.nav.tiltakspenger.meldekort.ports.MeldekortApiHttpClientGateway
 import java.net.URI
@@ -27,10 +27,10 @@ class MeldekortApiHttpClient(
 
     private val meldekortApiUri = URI.create("$baseUrl/meldekort")
 
-    override suspend fun sendMeldekort(meldekort: MeldekortBehandling): Either<FeilVedSendingTilMeldekortApi, Unit> {
+    override suspend fun sendMeldeperiode(meldeperiode: Meldeperiode): Either<FeilVedSendingTilMeldekortApi, Unit> {
         return Either.catch {
             val response = client.sendAsync(
-                createRequest(meldekort),
+                createRequest(meldeperiode),
                 HttpResponse.BodyHandlers.ofString(),
             ).await()
 
@@ -38,14 +38,14 @@ class MeldekortApiHttpClient(
 
             if (status !in 200..299) {
                 val body: String = response.body()
-                with("Feilrespons ved sending av ${meldekort.id} til meldekort-api - status: $status") {
+                with("Feilrespons ved sending av ${meldeperiode.id} til meldekort-api - status: $status") {
                     logger.error(this)
                     sikkerlogg.error { "$this - Response body: $body" }
                 }
                 return FeilVedSendingTilMeldekortApi.left()
             }
         }.mapLeft {
-            with("Feil ved sending av ${meldekort.id} til meldekort-api") {
+            with("Feil ved sending av ${meldeperiode.id} til meldekort-api") {
                 logger.error { this }
                 sikkerlogg.error(it) { this }
             }
@@ -54,9 +54,9 @@ class MeldekortApiHttpClient(
     }
 
     private suspend fun createRequest(
-        meldekort: MeldekortBehandling,
+        meldeperiode: Meldeperiode,
     ): HttpRequest {
-        val payload = serialize(meldekort.tilBrukerDTO())
+        val payload = serialize(meldeperiode.tilBrukerDTO())
 
         return HttpRequest
             .newBuilder()

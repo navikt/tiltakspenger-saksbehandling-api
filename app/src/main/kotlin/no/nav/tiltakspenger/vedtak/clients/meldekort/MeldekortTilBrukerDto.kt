@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.vedtak.clients.meldekort
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.IkkeUtfylt
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattMedLønnITiltaket
@@ -15,8 +16,8 @@ import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Ikk
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Sperret
 import java.time.LocalDate
 
-// TODO abn: Dette er veldig work in progress
-// Bør inn i felles libs når vi får landet en modell, brukes også i meldekort-api
+// TODO abn: Dette er fortsatt work in progress
+// Bør inn i felles libs asap, brukes også i meldekort-api
 
 enum class MeldekortStatusTilBrukerDTO {
     KAN_UTFYLLES,
@@ -53,6 +54,19 @@ data class MeldekortTilBrukerDTO(
     val meldekortDager: List<MeldekortDagTilBrukerDTO>,
 )
 
+fun Meldeperiode.tilBrukerDTO(): MeldekortTilBrukerDTO {
+    return MeldekortTilBrukerDTO(
+        id = this.hendelseId.toString(),
+        fnr = this.fnr.verdi,
+        fraOgMed = this.periode.fraOgMed,
+        tilOgMed = this.periode.tilOgMed,
+        // TODO: Placeholder-verdier, fiks asap!
+        tiltakstype = TiltakstypeSomGirRett.JOBBKLUBB,
+        status = MeldekortStatusTilBrukerDTO.KAN_UTFYLLES,
+        meldekortDager = emptyList(),
+    )
+}
+
 fun MeldekortBehandling.tilBrukerDTO(): MeldekortTilBrukerDTO {
     return MeldekortTilBrukerDTO(
         id = this.id.toString(),
@@ -70,7 +84,7 @@ fun MeldekortBehandling.tilBrukerDTO(): MeldekortTilBrukerDTO {
     )
 }
 
-fun MeldekortBehandling.tilBrukerStatusDTO(): MeldekortStatusTilBrukerDTO =
+private fun MeldekortBehandling.tilBrukerStatusDTO(): MeldekortStatusTilBrukerDTO =
     when (this) {
         is MeldekortBehandling.IkkeUtfyltMeldekort -> if (this.erKlarTilUtfylling()) MeldekortStatusTilBrukerDTO.KAN_UTFYLLES else MeldekortStatusTilBrukerDTO.KAN_IKKE_UTFYLLES
         is MeldekortBehandling.UtfyltMeldekort -> when (this.status) {
@@ -79,7 +93,7 @@ fun MeldekortBehandling.tilBrukerStatusDTO(): MeldekortStatusTilBrukerDTO =
         }
     }
 
-fun MeldeperiodeBeregningDag.tilBrukerStatusDTO(): MeldekortDagStatusTilBrukerDTO =
+private fun MeldeperiodeBeregningDag.tilBrukerStatusDTO(): MeldekortDagStatusTilBrukerDTO =
     when (this) {
         is DeltattMedLønnITiltaket -> MeldekortDagStatusTilBrukerDTO.DELTATT_MED_LØNN
         is DeltattUtenLønnITiltaket -> MeldekortDagStatusTilBrukerDTO.DELTATT_UTEN_LØNN

@@ -5,9 +5,10 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
+import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.meldekort.service.IverksettMeldekortService
 import no.nav.tiltakspenger.meldekort.service.SendMeldekortTilBeslutterService
-import no.nav.tiltakspenger.meldekort.service.SendMeldekortTilBrukerService
+import no.nav.tiltakspenger.meldekort.service.SendMeldeperiodeTilBrukerService
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
@@ -15,6 +16,7 @@ import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.clients.meldekort.MeldekortApiHttpClient
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortPostgresRepo
+import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldeperiodePostgresRepo
 
 /**
  * Åpen så den kan overstyres i test
@@ -54,16 +56,20 @@ open class MeldekortContext(
         )
     }
 
+    private val meldeperiodeRepo: MeldeperiodeRepo by lazy {
+        MeldeperiodePostgresRepo(
+            sessionFactory = sessionFactory as PostgresSessionFactory,
+        )
+    }
     private val meldekortApiHttpClient by lazy {
         MeldekortApiHttpClient(
             baseUrl = Configuration.meldekortApiUrl,
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.meldekortApiScope) },
         )
     }
-
-    val sendMeldekortTilBrukerService by lazy {
-        SendMeldekortTilBrukerService(
-            meldekortRepo = meldekortRepo,
+    val sendMeldeperiodeTilBrukerService by lazy {
+        SendMeldeperiodeTilBrukerService(
+            meldeperiodeRepo = meldeperiodeRepo,
             meldekortApiHttpClient = meldekortApiHttpClient,
         )
     }

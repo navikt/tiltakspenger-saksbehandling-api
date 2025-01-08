@@ -54,6 +54,7 @@ class V18__migrer_meldekort_til_meldeperiode : BaseJavaMigration() {
                 girRett = meldekortBehandling.beregning.dager.map {
                     it.dato to (it !is MeldeperiodeBeregningDag.Utfylt.Sperret)
                 }.toMap(),
+                sendtTilMeldekortApi = null,
             )
             meldeperiodeRepo.lagre(meldeperiode)
         }
