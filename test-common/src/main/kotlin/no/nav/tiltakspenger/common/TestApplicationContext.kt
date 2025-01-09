@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.fakes.clients.TiltakFakeGateway
 import no.nav.tiltakspenger.fakes.clients.UtbetalingFakeGateway
 import no.nav.tiltakspenger.fakes.repos.BehandlingFakeRepo
 import no.nav.tiltakspenger.fakes.repos.MeldekortFakeRepo
+import no.nav.tiltakspenger.fakes.repos.MeldeperiodeFakeRepo
 import no.nav.tiltakspenger.fakes.repos.PersonFakeRepo
 import no.nav.tiltakspenger.fakes.repos.RammevedtakFakeRepo
 import no.nav.tiltakspenger.fakes.repos.SakFakeRepo
@@ -65,6 +66,7 @@ class TestApplicationContext(
     private val statistikkSakFakeRepo = StatistikkSakFakeRepo()
     private val utbetalingGatewayFake = UtbetalingFakeGateway()
     private val meldekortFakeRepo = MeldekortFakeRepo()
+    private val meldeperiodeFakeRepo = MeldeperiodeFakeRepo()
     private val utbetalingsvedtakFakeRepo = UtbetalingsvedtakFakeRepo()
     private val søknadFakeRepo = SøknadFakeRepo()
     private val tiltakGatewayFake = TiltakFakeGateway()
@@ -191,6 +193,7 @@ class TestApplicationContext(
         object : FørstegangsbehandlingContext(
             sessionFactory = sessionFactory,
             meldekortRepo = meldekortFakeRepo,
+            meldeperiodeRepo = meldeperiodeFakeRepo,
             statistikkSakRepo = statistikkSakFakeRepo,
             statistikkStønadRepo = statistikkStønadFakeRepo,
             gitHash = "fake-git-hash",

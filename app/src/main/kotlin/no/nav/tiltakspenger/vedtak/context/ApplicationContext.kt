@@ -98,6 +98,7 @@ open class ApplicationContext(
         FørstegangsbehandlingContext(
             sessionFactory = sessionFactory,
             meldekortRepo = meldekortContext.meldekortRepo,
+            meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             gitHash = gitHash,
