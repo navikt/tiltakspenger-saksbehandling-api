@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.meldekort.domene
 
 import arrow.core.Either
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.felles.nå
@@ -38,7 +37,8 @@ sealed interface MeldekortBehandling {
     val opprettet: LocalDateTime
     val beregning: MeldeperiodeBeregning
 
-    val meldeperioder: MeldeperiodeKjede?
+    // Skal ikke være nullable
+    val meldeperiode: Meldeperiode?
 
     // I tilfeller saksbehandler har startet behandling uten brukers meldekort/rapportering
     // Gjelder spesielt da bruker rapporterte via arena (men manuell kopier av saksbehandler)
@@ -93,7 +93,7 @@ sealed interface MeldekortBehandling {
         override val navkontor: Navkontor,
         override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
         override val brukersMeldekort: BrukersMeldekort?,
-        override val meldeperioder: MeldeperiodeKjede?,
+        override val meldeperiode: Meldeperiode?,
     ) : MeldekortBehandling {
 
         init {
@@ -155,7 +155,7 @@ sealed interface MeldekortBehandling {
                 ),
                 ikkeRettTilTiltakspengerTidspunkt = null,
                 brukersMeldekort = null,
-                meldeperioder = meldeperioder,
+                meldeperiode = meldeperiode,
             ).right()
         }
 
@@ -206,7 +206,7 @@ sealed interface MeldekortBehandling {
         override val navkontor: Navkontor?,
         override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
         override val brukersMeldekort: BrukersMeldekort?,
-        override val meldeperioder: MeldeperiodeKjede?,
+        override val meldeperiode: Meldeperiode?,
     ) : MeldekortBehandling {
         override val iverksattTidspunkt = null
         override val sendtTilBeslutning = null
@@ -251,7 +251,7 @@ sealed interface MeldekortBehandling {
                 navkontor = navkontor,
                 ikkeRettTilTiltakspengerTidspunkt = null,
                 brukersMeldekort = brukersMeldekort,
-                meldeperioder = meldeperioder,
+                meldeperiode = meldeperiode,
             ).right()
         }
 
@@ -317,7 +317,7 @@ fun Rammevedtak.opprettFørsteMeldekortBehandling(sak: Sak): MeldekortBehandling
         ),
         ikkeRettTilTiltakspengerTidspunkt = null,
         brukersMeldekort = null,
-        meldeperioder = MeldeperiodeKjede(nonEmptyListOf(førsteMeldeperiode)),
+        meldeperiode = førsteMeldeperiode,
     )
 }
 

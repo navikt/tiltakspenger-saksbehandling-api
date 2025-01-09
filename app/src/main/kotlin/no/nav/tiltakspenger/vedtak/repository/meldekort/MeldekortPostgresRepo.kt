@@ -218,7 +218,7 @@ class MeldekortPostgresRepo(
                         navkontor = navkontor!!,
                         ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt"),
                         brukersMeldekort = null,
-                        meldeperioder = null,
+                        meldeperiode = null,
                     )
                 }
                 // TODO jah: Her blander vi sammen behandlingsstatus og om man har rett/ikke-rett. Det er mulig at man har startet en meldekortbehandling også endres statusen til IKKE_RETT_TIL_TILTAKSPENGER. Da vil behandlingen sånn som koden er nå implisitt avsluttes. Det kan hende vi bør endre dette når vi skiller grunnlag, innsending og behandling.
@@ -242,7 +242,7 @@ class MeldekortPostgresRepo(
                         navkontor = navkontor,
                         ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt"),
                         brukersMeldekort = null,
-                        meldeperioder = null,
+                        meldeperiode = null,
                     )
                 }
 

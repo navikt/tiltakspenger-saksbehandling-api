@@ -70,7 +70,7 @@ interface MeldekortMother {
             tiltakstype = tiltakstype,
             navkontor = navkontor,
             ikkeRettTilTiltakspengerTidspunkt = null,
-            meldeperioder = null,
+            meldeperiode = null,
             brukersMeldekort = null,
         )
     }
@@ -116,7 +116,7 @@ interface MeldekortMother {
             iverksattTidspunkt = iverksattTidspunkt,
             navkontor = navkontor,
             ikkeRettTilTiltakspengerTidspunkt = null,
-            meldeperioder = null,
+            meldeperiode = null,
             brukersMeldekort = null,
         )
     }
@@ -289,7 +289,7 @@ interface MeldekortMother {
                         maksDagerMedTiltakspengerForPeriode = kommando.dager.size,
                     ),
                     ikkeRettTilTiltakspengerTidspunkt = null,
-                    meldeperioder = null,
+                    meldeperiode = null,
                     brukersMeldekort = null,
                 ),
             ),
@@ -335,7 +335,7 @@ interface MeldekortMother {
                     maksDagerMedTiltakspengerForPeriode = kommando.dager.size,
                 ),
                 ikkeRettTilTiltakspengerTidspunkt = null,
-                meldeperioder = null,
+                meldeperiode = null,
                 brukersMeldekort = null,
             ),
         ).sendTilBeslutter(kommando).getOrFail().first
