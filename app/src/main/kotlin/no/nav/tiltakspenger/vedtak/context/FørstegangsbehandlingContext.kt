@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
+import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.ports.GenererStansvedtaksbrevGateway
@@ -31,6 +32,7 @@ import no.nav.tiltakspenger.vedtak.repository.vedtak.RammevedtakPostgresRepo
 open class FørstegangsbehandlingContext(
     sessionFactory: SessionFactory,
     meldekortRepo: MeldekortRepo,
+    meldeperiodeRepo: MeldeperiodeRepo,
     statistikkSakRepo: StatistikkSakRepo,
     statistikkStønadRepo: StatistikkStønadRepo,
     gitHash: String,
@@ -50,6 +52,7 @@ open class FørstegangsbehandlingContext(
             behandlingRepo = behandlingRepo,
             rammevedtakRepo = rammevedtakRepo,
             meldekortRepo = meldekortRepo,
+            meldeperiodeRepo = meldeperiodeRepo,
             sessionFactory = sessionFactory,
             statistikkSakRepo = statistikkSakRepo,
             statistikkStønadRepo = statistikkStønadRepo,

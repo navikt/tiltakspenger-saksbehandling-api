@@ -157,6 +157,7 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
         object : FørstegangsbehandlingContext(
             sessionFactory = sessionFactory,
             meldekortRepo = meldekortContext.meldekortRepo,
+            meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             gitHash = "fake-git-hash",

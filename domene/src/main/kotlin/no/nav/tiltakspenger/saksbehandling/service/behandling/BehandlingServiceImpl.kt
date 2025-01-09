@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
+import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attestering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
@@ -49,6 +50,7 @@ class BehandlingServiceImpl(
     private val behandlingRepo: BehandlingRepo,
     private val rammevedtakRepo: RammevedtakRepo,
     private val meldekortRepo: MeldekortRepo,
+    private val meldeperiodeRepo: MeldeperiodeRepo,
     private val sessionFactory: SessionFactory,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
@@ -212,6 +214,7 @@ class BehandlingServiceImpl(
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
             meldekortRepo.lagre(førsteMeldekortBehandling, tx)
+            meldeperiodeRepo.lagre(førsteMeldeperiode, tx)
         }
     }
 

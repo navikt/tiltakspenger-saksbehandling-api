@@ -56,7 +56,7 @@ open class MeldekortContext(
         )
     }
 
-    private val meldeperiodeRepo: MeldeperiodeRepo by lazy {
+    val meldeperiodeRepo: MeldeperiodeRepo by lazy {
         MeldeperiodePostgresRepo(
             sessionFactory = sessionFactory as PostgresSessionFactory,
         )
