@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.vedtak.repository.meldekort
 
 import arrow.core.nonEmptyListOf
+import arrow.core.toNonEmptyListOrNull
 import com.fasterxml.jackson.core.type.TypeReference
 import kotliquery.Row
 import kotliquery.Session
@@ -72,9 +73,19 @@ internal class MeldeperiodePostgresRepo(
     fun hentForSakId(
         sakId: SakId,
         sessionContext: SessionContext? = null,
-    ): MeldeperiodeKjeder {
+    ): MeldeperiodeKjeder? {
         return sessionFactory.withSession(sessionContext) { session ->
             Companion.hentForSakId(sakId, session)
+        }
+    }
+
+    fun hentKjedeForPeriode(
+        meldeperiodeId: MeldeperiodeId,
+        sakId: SakId,
+        sessionContext: SessionContext? = null,
+    ): MeldeperiodeKjede? {
+        return sessionFactory.withSession(sessionContext) { session ->
+            hentKjedeForPeriode(sakId, meldeperiodeId, session)
         }
     }
 
@@ -138,6 +149,28 @@ internal class MeldeperiodePostgresRepo(
                 MeldeperiodeKjede(nonEmptyListOf(it))
             }.let {
                 MeldeperiodeKjeder(it)
+            }
+        }
+
+        internal fun hentKjedeForPeriode(
+            sakId: SakId,
+            meldeperiodeId: MeldeperiodeId,
+            session: Session,
+        ): MeldeperiodeKjede? {
+            return session.run(
+                sqlQuery(
+                    """
+                    select m.*,s.saksnummer,s.ident as fnr 
+                    from meldeperiode m 
+                    join sak s on s.id = m.sak_id 
+                    where m.sak_id = :sak_id and m.id = :meldeperiode_id
+                    """,
+                    "sak_id" to sakId.toString(),
+                    "meldeperiode_id" to meldeperiodeId.toString(),
+                ).map { row -> fromRow(row) }.asList,
+            ).let {
+                val kjede = it.toNonEmptyListOrNull() ?: return null
+                MeldeperiodeKjede(kjede)
             }
         }
 
