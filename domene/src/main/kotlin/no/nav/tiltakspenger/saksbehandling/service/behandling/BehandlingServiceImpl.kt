@@ -212,7 +212,7 @@ class BehandlingServiceImpl(
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
             meldekortRepo.lagre(førsteMeldekortBehandling, tx)
-            meldeperiodeRepo.lagre(førsteMeldekortBehandling.meldeperioder!!.first(), tx)
+            meldeperiodeRepo.lagre(førsteMeldekortBehandling.meldeperiode!!, tx)
         }
     }
 

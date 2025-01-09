@@ -18,12 +18,12 @@ data class Meldeperiode(
     val hendelseId: HendelseId,
     val versjon: Hendelsesversjon,
 
+    val periode: Periode,
+    val opprettet: LocalDateTime,
+
     val sakId: SakId,
     val saksnummer: Saksnummer,
     val fnr: Fnr,
-    val opprettet: LocalDateTime,
-
-    val periode: Periode,
 
     // Dette gjelder hele perioden
     val antallDagerForPeriode: Int,
