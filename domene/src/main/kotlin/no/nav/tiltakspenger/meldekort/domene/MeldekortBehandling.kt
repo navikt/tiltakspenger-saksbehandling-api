@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.meldekort.domene
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.felles.nå
@@ -14,6 +15,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
@@ -287,10 +289,11 @@ sealed interface MeldekortBehandling {
     }
 }
 
-fun Rammevedtak.opprettFørsteMeldekortBehandling(førsteMeldeperiode: Meldeperiode): MeldekortBehandling {
+fun Rammevedtak.opprettFørsteMeldekortBehandling(sak: Sak): MeldekortBehandling {
     val periode = finnFørsteMeldekortsperiode(this.periode)
     val meldekortId = MeldekortId.random()
     val tiltakstype = this.behandling.vilkårssett.tiltakDeltagelseVilkår.registerSaksopplysning.tiltakstype
+    val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
 
     return MeldekortBehandling.IkkeUtfyltMeldekort(
         id = meldekortId,
@@ -314,7 +317,7 @@ fun Rammevedtak.opprettFørsteMeldekortBehandling(førsteMeldeperiode: Meldeperi
         ),
         ikkeRettTilTiltakspengerTidspunkt = null,
         brukersMeldekort = null,
-        meldeperioder = null,
+        meldeperioder = MeldeperiodeKjede(nonEmptyListOf(førsteMeldeperiode)),
     )
 }
 
