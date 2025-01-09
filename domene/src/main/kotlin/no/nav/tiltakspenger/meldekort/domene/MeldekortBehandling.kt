@@ -36,8 +36,7 @@ sealed interface MeldekortBehandling {
     val opprettet: LocalDateTime
     val beregning: MeldeperiodeBeregning
 
-    // Skal ikke være nullable
-    val meldeperiode: Meldeperiode?
+    val meldeperioder: MeldeperiodeKjede?
 
     // I tilfeller saksbehandler har startet behandling uten brukers meldekort/rapportering
     // Gjelder spesielt da bruker rapporterte via arena (men manuell kopier av saksbehandler)
@@ -92,7 +91,7 @@ sealed interface MeldekortBehandling {
         override val navkontor: Navkontor,
         override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
         override val brukersMeldekort: BrukersMeldekort?,
-        override val meldeperiode: Meldeperiode?,
+        override val meldeperioder: MeldeperiodeKjede?,
     ) : MeldekortBehandling {
 
         init {
@@ -154,7 +153,7 @@ sealed interface MeldekortBehandling {
                 ),
                 ikkeRettTilTiltakspengerTidspunkt = null,
                 brukersMeldekort = null,
-                meldeperiode = meldeperiode,
+                meldeperioder = meldeperioder,
             ).right()
         }
 
@@ -205,7 +204,7 @@ sealed interface MeldekortBehandling {
         override val navkontor: Navkontor?,
         override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
         override val brukersMeldekort: BrukersMeldekort?,
-        override val meldeperiode: Meldeperiode?,
+        override val meldeperioder: MeldeperiodeKjede?,
     ) : MeldekortBehandling {
         override val iverksattTidspunkt = null
         override val sendtTilBeslutning = null
@@ -250,7 +249,7 @@ sealed interface MeldekortBehandling {
                 navkontor = navkontor,
                 ikkeRettTilTiltakspengerTidspunkt = null,
                 brukersMeldekort = brukersMeldekort,
-                meldeperiode = meldeperiode,
+                meldeperioder = meldeperioder,
             ).right()
         }
 
@@ -315,7 +314,7 @@ fun Rammevedtak.opprettFørsteMeldekortBehandling(førsteMeldeperiode: Meldeperi
         ),
         ikkeRettTilTiltakspengerTidspunkt = null,
         brukersMeldekort = null,
-        meldeperiode = førsteMeldeperiode,
+        meldeperioder = null,
     )
 }
 
