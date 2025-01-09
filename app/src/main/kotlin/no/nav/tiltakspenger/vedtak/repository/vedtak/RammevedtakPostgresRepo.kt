@@ -51,6 +51,7 @@ class RammevedtakPostgresRepo(
                             join sak s
                               on s.id = v.sak_id 
                             where s.ident = :ident
+                            order by v.opprettet
                         """.trimIndent(),
                         mapOf(
                             "ident" to fnr.verdi,
@@ -72,6 +73,7 @@ class RammevedtakPostgresRepo(
                     select *
                     from rammevedtak
                     where journalpost_id is null
+                    order by v.opprettet
                     limit :limit
                     """.trimIndent(),
                     mapOf(
@@ -95,6 +97,7 @@ class RammevedtakPostgresRepo(
                     and v.journalføringstidspunkt is not null
                     and v.distribusjonstidspunkt is null
                     and v.distribusjon_id is null
+                    order by v.opprettet
                     limit :limit
                     """.trimIndent(),
                     mapOf(
@@ -182,6 +185,7 @@ class RammevedtakPostgresRepo(
                     select *
                     from rammevedtak
                     where sendt_til_datadeling is null
+                    order by v.opprettet
                     limit $limit
                     """.trimIndent(),
                 ).map { row ->
