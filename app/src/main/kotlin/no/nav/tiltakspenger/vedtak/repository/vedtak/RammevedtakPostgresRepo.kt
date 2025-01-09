@@ -73,7 +73,7 @@ class RammevedtakPostgresRepo(
                     select *
                     from rammevedtak
                     where journalpost_id is null
-                    order by v.opprettet
+                    order by opprettet
                     limit :limit
                     """.trimIndent(),
                     mapOf(
@@ -185,7 +185,7 @@ class RammevedtakPostgresRepo(
                     select *
                     from rammevedtak
                     where sendt_til_datadeling is null
-                    order by v.opprettet
+                    order by opprettet
                     limit $limit
                     """.trimIndent(),
                 ).map { row ->
@@ -211,7 +211,7 @@ class RammevedtakPostgresRepo(
         ): Vedtaksliste {
             return session.run(
                 queryOf(
-                    "select * from rammevedtak where sak_id = :sak_id",
+                    "select * from rammevedtak where sak_id = :sak_id order by opprettet",
                     mapOf(
                         "sak_id" to sakId.toString(),
                     ),
