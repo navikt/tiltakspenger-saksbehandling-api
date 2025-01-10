@@ -161,8 +161,7 @@ internal class StartRevurderingTest {
                   },
                   "status": "HarSluttet"
                 }
-               ],
-               "årsakTilEndring": "ENDRING_ETTER_SØKNADSTIDSPUNKT"
+               ]
                }
                 """.trimIndent(),
             )

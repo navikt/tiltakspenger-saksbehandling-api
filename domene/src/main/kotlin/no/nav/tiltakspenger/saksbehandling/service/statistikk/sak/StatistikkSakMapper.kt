@@ -83,7 +83,7 @@ fun genererSaksstatistikkForRammevedtak(
             Vedtakstype.INNVILGELSE -> BehandlingResultat.INNVILGET
             Vedtakstype.STANS -> BehandlingResultat.STANS
         },
-        // TODO jah: Denne bør ikke være null. Vilkårsettet sine saksopplysninger vil ha 'årsakTilEndring'.
+        // TODO jah: Denne bør ikke være null.
         resultatBegrunnelse = null,
         behandlingMetode = BehandlingMetode.MANUELL.name,
 

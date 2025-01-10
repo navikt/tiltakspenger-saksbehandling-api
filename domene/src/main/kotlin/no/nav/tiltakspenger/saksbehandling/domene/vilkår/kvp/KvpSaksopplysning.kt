@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.domene.vilkår.kvp
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.felles.Deltagelse
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.felles.ÅrsakTilEndring
 import java.time.LocalDateTime
 
 sealed interface KvpSaksopplysning {
@@ -13,14 +12,12 @@ sealed interface KvpSaksopplysning {
     val tidsstempel: LocalDateTime
     val totalePeriode: Periode
 
-    val årsakTilEndring: ÅrsakTilEndring?
     val navIdent: String?
 
     data class Søknad(
         override val deltar: Periodisering<Deltagelse>,
         override val tidsstempel: LocalDateTime,
     ) : KvpSaksopplysning {
-        override val årsakTilEndring = null
         override val navIdent = null
 
         init {
@@ -37,7 +34,6 @@ sealed interface KvpSaksopplysning {
 
     data class Saksbehandler(
         override val deltar: Periodisering<Deltagelse>,
-        override val årsakTilEndring: ÅrsakTilEndring,
         override val tidsstempel: LocalDateTime,
         override val navIdent: String,
     ) : KvpSaksopplysning {

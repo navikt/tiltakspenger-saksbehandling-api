@@ -79,7 +79,6 @@ data class TiltaksdeltagelseVilkår private constructor(
                 kilde = avklartSaksopplysning.kilde,
                 tiltakstype = avklartSaksopplysning.tiltakstype,
                 navIdent = kommando.saksbehandler.navIdent,
-                årsakTilEndring = kommando.årsakTilEndring,
             )
         return this
             .copy(

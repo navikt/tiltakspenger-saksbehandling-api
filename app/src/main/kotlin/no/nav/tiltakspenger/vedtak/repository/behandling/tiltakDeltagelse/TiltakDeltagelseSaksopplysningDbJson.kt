@@ -1,8 +1,6 @@
 package no.nav.tiltakspenger.vedtak.repository.behandling.tiltakDeltagelse
 
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.tiltaksdeltagelse.TiltaksdeltagelseSaksopplysning
-import no.nav.tiltakspenger.vedtak.repository.behandling.felles.toDbType
-import no.nav.tiltakspenger.vedtak.repository.behandling.felles.ÅrsakTilEndringDbType
 import no.nav.tiltakspenger.vedtak.repository.felles.PeriodeDbJson
 import no.nav.tiltakspenger.vedtak.repository.felles.toDbJson
 import no.nav.tiltakspenger.vedtak.repository.tiltak.toDb
@@ -20,7 +18,6 @@ internal data class TiltakDeltagelseSaksopplysningDbJson(
     val kilde: String,
     val tiltakstype: String,
     val navIdent: String?,
-    val årsakTilEndring: ÅrsakTilEndringDbType?,
 ) {
     fun toDomain(): TiltaksdeltagelseSaksopplysning {
         return if (navIdent == null) {
@@ -47,7 +44,6 @@ internal data class TiltakDeltagelseSaksopplysningDbJson(
                 kilde = kilde.toTiltakskilde(),
                 tiltakstype = tiltakstype.toTiltakstypeSomGirRett(),
                 navIdent = navIdent,
-                årsakTilEndring = årsakTilEndring?.toDomain(),
             )
         }
     }
@@ -65,5 +61,4 @@ internal fun TiltaksdeltagelseSaksopplysning.toDbJson(): TiltakDeltagelseSaksopp
         kilde = kilde.toDb(),
         tiltakstype = tiltakstype.toDb(),
         navIdent = navIdent,
-        årsakTilEndring = årsakTilEndring?.toDbType(),
     )

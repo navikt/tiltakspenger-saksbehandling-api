@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.UtfallForPeriode
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.felles.ÅrsakTilEndring
 import java.time.LocalDateTime
 
 sealed interface TiltaksdeltagelseSaksopplysning {
@@ -21,7 +20,6 @@ sealed interface TiltaksdeltagelseSaksopplysning {
     val status: TiltakDeltakerstatus
     val tidsstempel: LocalDateTime
     val tiltakstype: TiltakstypeSomGirRett
-    val årsakTilEndring: ÅrsakTilEndring?
     val navIdent: String?
 
     fun oppdaterPeriode(periode: Periode): TiltaksdeltagelseSaksopplysning
@@ -37,7 +35,6 @@ sealed interface TiltaksdeltagelseSaksopplysning {
         override val kilde: Tiltakskilde,
         override val tiltakstype: TiltakstypeSomGirRett,
     ) : TiltaksdeltagelseSaksopplysning {
-        override val årsakTilEndring = null
         override val navIdent = null
 
         /** Støtter i førsteomgang kun å krympe perioden. Dersom man skulle utvidet den, måtte man gjort en ny vurdering og ville derfor hatt en ny saksopplysning. */
@@ -60,7 +57,6 @@ sealed interface TiltaksdeltagelseSaksopplysning {
         override val kilde: Tiltakskilde,
         override val tiltakstype: TiltakstypeSomGirRett,
         override val navIdent: String,
-        override val årsakTilEndring: ÅrsakTilEndring?,
     ) : TiltaksdeltagelseSaksopplysning {
 
         // TODO jah: Per tidspunkt tvinger vi denne til å være HarSluttet dersom saksbehandler skal endre status. På sikt må vi ha samme logikk på tvers av opplysningstypene.

@@ -135,8 +135,7 @@ class KvpRoutesTest {
                   },
                   "deltar": $deltarString
                 }
-              ],
-              "årsakTilEndring": "FEIL_I_INNHENTET_DATA"
+              ]
             }
         """.trimIndent()
     }

@@ -126,7 +126,6 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
                         periode = førstegangsbehandling.vurderingsperiode,
                         harYtelse = false,
                     ),
-                    årsakTilEndring = null,
                     correlationId = CorrelationId.generate(),
                 ),
             ).getOrNull()!!

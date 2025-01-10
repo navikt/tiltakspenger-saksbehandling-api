@@ -51,7 +51,6 @@ fun Route.oppdaterLivsoppholdRoute(
                     periode = this.ytelseForPeriode.periode.toDomain(),
                     harYtelse = this.ytelseForPeriode.harYtelse,
                 ),
-                årsakTilEndring = null,
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,

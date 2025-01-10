@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.domene.vilkår.tiltaksdeltagelse.Legg
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.tiltaksdeltagelse.TiltaksdeltagelseVilkårService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
-import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.felles.ÅrsakTilEndringDTO
 import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.dto.PeriodeDTO
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.måVæreSaksbehandlerEllerBeslutter
@@ -30,7 +29,6 @@ import no.nav.tiltakspenger.vedtak.routes.withBody
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 private data class Body(
     val statusForPeriode: List<StatusForPeriode>,
-    val årsakTilEndring: ÅrsakTilEndringDTO? = null,
 ) {
     data class StatusForPeriode(
         val periode: PeriodeDTO,
@@ -63,7 +61,6 @@ private data class Body(
                     },
                 )
             }.toNonEmptyListOrNull()!!,
-            årsakTilEndring = this.årsakTilEndring?.toDomain(),
             sakId = sakId,
         )
     }

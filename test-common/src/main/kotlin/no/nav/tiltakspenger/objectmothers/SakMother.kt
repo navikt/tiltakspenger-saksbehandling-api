@@ -79,7 +79,6 @@ interface SakMother {
                         periode = it.førstegangsbehandling.vurderingsperiode,
                         harYtelse = false,
                     ),
-                    årsakTilEndring = null,
                     correlationId = correlationId,
 
                 ),

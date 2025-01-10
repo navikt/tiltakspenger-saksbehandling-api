@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Vilkårssett
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.alder.AlderSaksopplysning
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.alder.AlderVilkår
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.felles.Deltagelse
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.felles.ÅrsakTilEndring
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.institusjonsopphold.InstitusjonsoppholdSaksopplysning
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.institusjonsopphold.InstitusjonsoppholdVilkår
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.institusjonsopphold.Opphold
@@ -133,13 +132,11 @@ interface VilkårMother {
                     ),
                 ),
             ),
-        årsakTilEndring: ÅrsakTilEndring = ÅrsakTilEndring.FEIL_I_INNHENTET_DATA,
         tidsstempel: LocalDateTime = vurderingsperiode.fraOgMed.atStartOfDay(),
         navIdent: String = ObjectMother.saksbehandler().navIdent,
     ): InstitusjonsoppholdSaksopplysning.Saksbehandler =
         InstitusjonsoppholdSaksopplysning.Saksbehandler(
             opphold = opphold,
-            årsakTilEndring = årsakTilEndring,
             tidsstempel = tidsstempel,
             navIdent = navIdent,
         )
@@ -304,7 +301,6 @@ interface VilkårMother {
         fødselsdato: LocalDate = ObjectMother.fødselsdato(),
         tidsstempel: LocalDateTime = vurderingsperiode.fraOgMed.atStartOfDay(),
         harLivsoppholdYtelser: Boolean = false,
-        årsakTilEndring: ÅrsakTilEndring = ÅrsakTilEndring.FEIL_I_INNHENTET_DATA,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         behandlingId: BehandlingId = BehandlingId.random(),
         correlationId: CorrelationId = CorrelationId.generate(),
@@ -324,7 +320,6 @@ interface VilkårMother {
                     periode = vurderingsperiode,
                     harYtelse = harLivsoppholdYtelser,
                 ),
-                årsakTilEndring = årsakTilEndring,
                 correlationId = correlationId,
             ),
     ): LivsoppholdVilkår =
@@ -357,13 +352,11 @@ interface VilkårMother {
         fødselsdato: LocalDate = ObjectMother.fødselsdato(),
         tidsstempel: LocalDateTime = vurderingsperiode.fraOgMed.atStartOfDay(),
         harLivsoppholdYtelser: Boolean = false,
-        årsakTilEndring: ÅrsakTilEndring = ÅrsakTilEndring.FEIL_I_INNHENTET_DATA,
         navIdent: String = ObjectMother.saksbehandler().navIdent,
     ): LivsoppholdSaksopplysning.Saksbehandler =
         LivsoppholdSaksopplysning.Saksbehandler(
             tidsstempel = tidsstempel,
             harLivsoppholdYtelser = harLivsoppholdYtelser,
-            årsakTilEndring = årsakTilEndring,
             periode = vurderingsperiode,
             navIdent = navIdent,
         )

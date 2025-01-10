@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.domene.vilkår.livsopphold
 
 import no.nav.tiltakspenger.felles.exceptions.IkkeImplementertException
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.felles.ÅrsakTilEndring
 import java.time.LocalDateTime
 
 sealed interface LivsoppholdSaksopplysning {
@@ -14,7 +13,6 @@ sealed interface LivsoppholdSaksopplysning {
     // TODO jah: Periodiser denne. Generelt sett bør alle saksopplysninger kunne periodiseres.
     val periode: Periode
 
-    val årsakTilEndring: ÅrsakTilEndring?
     val navIdent: String?
 
     data class Søknad(
@@ -23,7 +21,6 @@ sealed interface LivsoppholdSaksopplysning {
         override val periode: Periode,
     ) : LivsoppholdSaksopplysning {
         override val navIdent = null
-        override val årsakTilEndring = null
 
         /** Støtter i førsteomgang kun å krympe perioden. Dersom man skulle utvidet den, måtte man gjort en ny vurdering og ville derfor hatt en ny saksopplysning. */
         override fun oppdaterPeriode(periode: Periode): Søknad {
@@ -33,7 +30,6 @@ sealed interface LivsoppholdSaksopplysning {
 
     data class Saksbehandler(
         override val harLivsoppholdYtelser: Boolean,
-        override val årsakTilEndring: ÅrsakTilEndring?,
         override val tidsstempel: LocalDateTime,
         override val navIdent: String,
         override val periode: Periode,

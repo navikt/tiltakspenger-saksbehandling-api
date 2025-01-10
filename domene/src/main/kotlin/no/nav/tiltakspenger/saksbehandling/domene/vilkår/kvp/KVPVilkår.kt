@@ -66,7 +66,6 @@ data class KVPVilkår private constructor(
                 Periodisering(
                     command.deltakelseForPeriode.map { PeriodeMedVerdi(it.tilDeltagelse(), it.periode) },
                 ).utvid(Deltagelse.DELTAR_IKKE, vurderingsperiode),
-                årsakTilEndring = command.årsakTilEndring,
                 navIdent = command.saksbehandler.navIdent,
                 tidsstempel = nå(),
             )

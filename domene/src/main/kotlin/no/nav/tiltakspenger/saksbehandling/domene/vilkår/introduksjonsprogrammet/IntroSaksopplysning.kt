@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.domene.vilkår.introduksjonsprogramm
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.felles.Deltagelse
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.felles.ÅrsakTilEndring
 import java.time.LocalDateTime
 
 sealed interface IntroSaksopplysning {
@@ -11,7 +10,6 @@ sealed interface IntroSaksopplysning {
     val tidsstempel: LocalDateTime
     val totalePeriode: Periode
 
-    val årsakTilEndring: ÅrsakTilEndring?
     val navIdent: String?
 
     fun oppdaterPeriode(periode: Periode): IntroSaksopplysning
@@ -20,7 +18,6 @@ sealed interface IntroSaksopplysning {
         override val deltar: Periodisering<Deltagelse>,
         override val tidsstempel: LocalDateTime,
     ) : IntroSaksopplysning {
-        override val årsakTilEndring = null
         override val navIdent = null
 
         init {
@@ -37,7 +34,6 @@ sealed interface IntroSaksopplysning {
 
     data class Saksbehandler(
         override val deltar: Periodisering<Deltagelse>,
-        override val årsakTilEndring: ÅrsakTilEndring,
         override val tidsstempel: LocalDateTime,
         override val navIdent: String,
     ) : IntroSaksopplysning {

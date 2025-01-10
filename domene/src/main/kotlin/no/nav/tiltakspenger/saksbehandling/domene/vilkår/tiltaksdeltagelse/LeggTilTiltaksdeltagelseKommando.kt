@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.tilstøter
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.felles.ÅrsakTilEndring
 
 /**
  * Vi støtter ikke å krympe inn tiltaksdeltagelse vilkåret. Man må sette en status for hele den originale perioden.
@@ -19,7 +18,6 @@ data class LeggTilTiltaksdeltagelseKommando(
     val saksbehandler: Saksbehandler,
     val behandlingId: BehandlingId,
     val statusForPeriode: NonEmptyList<StatusForPeriode>,
-    val årsakTilEndring: ÅrsakTilEndring?,
 ) {
     val perioder: List<Periode> = statusForPeriode.map { it.periode }
 

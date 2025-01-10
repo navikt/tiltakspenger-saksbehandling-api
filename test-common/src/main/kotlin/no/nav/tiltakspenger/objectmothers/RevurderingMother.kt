@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.felles.ÅrsakTilEndring
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.tiltaksdeltagelse.LeggTilTiltaksdeltagelseKommando
 
 object RevurderingMother {
@@ -57,7 +56,6 @@ object RevurderingMother {
                             TiltakDeltakerstatus.HarSluttet,
                         ),
                     ),
-                    årsakTilEndring = ÅrsakTilEndring.ENDRING_ETTER_SØKNADSTIDSPUNKT,
                 ),
             ).getOrFail()
             tac.behandlingContext.behandlingService.sendTilBeslutter(

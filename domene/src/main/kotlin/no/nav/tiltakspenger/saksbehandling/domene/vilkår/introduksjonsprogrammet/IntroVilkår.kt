@@ -53,7 +53,6 @@ data class IntroVilkår private constructor(
                 Periodisering(
                     command.deltakelseForPeriode.map { PeriodeMedVerdi(it.tilDeltagelse(), it.periode) },
                 ).utvid(DELTAR_IKKE, vurderingsperiode),
-                årsakTilEndring = command.årsakTilEndring,
                 navIdent = command.saksbehandler.navIdent,
                 tidsstempel = nå(),
             )

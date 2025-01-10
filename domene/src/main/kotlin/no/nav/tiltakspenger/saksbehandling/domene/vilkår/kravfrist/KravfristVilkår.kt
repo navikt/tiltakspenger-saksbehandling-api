@@ -59,7 +59,6 @@ data class KravfristVilkår private constructor(
         val kravfristSaksopplysning =
             KravfristSaksopplysning.Saksbehandler(
                 kravdato = command.kravdato,
-                årsakTilEndring = command.årsakTilEndring,
                 navIdent = command.saksbehandler.navIdent,
                 tidsstempel = nå(),
             )

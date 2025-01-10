@@ -49,7 +49,6 @@ data class AlderVilkår private constructor(
         val introSaksopplysning =
             AlderSaksopplysning.Saksbehandler(
                 fødselsdato = command.fødselsdato,
-                årsakTilEndring = command.årsakTilEndring,
                 navIdent = command.saksbehandler.navIdent,
                 tidsstempel = nå(),
             )

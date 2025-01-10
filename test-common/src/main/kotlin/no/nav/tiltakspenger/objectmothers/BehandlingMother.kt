@@ -21,7 +21,6 @@ import no.nav.tiltakspenger.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.objectmothers.ObjectMother.personSøknad
 import no.nav.tiltakspenger.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.objectmothers.ObjectMother.saksbehandler123
-import no.nav.tiltakspenger.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attestering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
@@ -31,7 +30,6 @@ import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.Personopply
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.felles.ÅrsakTilEndring
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.livsopphold.LeggTilLivsoppholdSaksopplysningCommand
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.livsopphold.leggTilLivsoppholdSaksopplysning
 import java.time.LocalDate
@@ -69,7 +67,6 @@ interface BehandlingMother {
         sakId: SakId = SakId.random(),
         søknad: Søknad = ObjectMother.nySøknad(periode = vurderingsperiode),
         saksbehandler: Saksbehandler = saksbehandler(),
-        årsakTilEndring: ÅrsakTilEndring = ÅrsakTilEndring.ENDRING_ETTER_SØKNADSTIDSPUNKT,
         correlationId: CorrelationId = CorrelationId.generate(),
         behandling: Behandling = behandlingUnderBehandlingUavklart(
             periode = vurderingsperiode,
@@ -84,7 +81,6 @@ interface BehandlingMother {
                 periode = vurderingsperiode,
                 harYtelse = false,
             ),
-            årsakTilEndring = årsakTilEndring,
             correlationId = correlationId,
         ),
     ): Behandling = behandlingUnderBehandlingUavklart(
@@ -114,7 +110,6 @@ interface BehandlingMother {
             LeggTilLivsoppholdSaksopplysningCommand(
                 behandlingId = behandling.id,
                 saksbehandler = saksbehandler,
-                årsakTilEndring = null,
                 harYtelseForPeriode = LeggTilLivsoppholdSaksopplysningCommand.HarYtelseForPeriode(
                     periode = behandling.vurderingsperiode,
                     harYtelse = true,
@@ -256,7 +251,6 @@ suspend fun TestApplicationContext.førstegangsbehandlingVilkårsvurdert(
                 periode = periode,
                 harYtelse = false,
             ),
-            årsakTilEndring = ÅrsakTilEndring.ENDRING_ETTER_SØKNADSTIDSPUNKT,
             correlationId = correlationId,
         ),
     )
