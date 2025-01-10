@@ -70,7 +70,7 @@ interface MeldekortMother {
             tiltakstype = tiltakstype,
             navkontor = navkontor,
             ikkeRettTilTiltakspengerTidspunkt = null,
-            meldeperiode = null,
+            meldeperiode = meldeperiode(),
             brukersMeldekort = null,
         )
     }
@@ -116,7 +116,7 @@ interface MeldekortMother {
             iverksattTidspunkt = iverksattTidspunkt,
             navkontor = navkontor,
             ikkeRettTilTiltakspengerTidspunkt = null,
-            meldeperiode = null,
+            meldeperiode = meldeperiode(),
             brukersMeldekort = null,
         )
     }
@@ -156,7 +156,7 @@ interface MeldekortMother {
         return MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
             sakId = sakId,
             maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-            meldeperiode = meldeperiode,
+            meldeperiode = meldeperiode(),
             utfallsperioder = utfallsperioder,
             tiltakstype = tiltakstype,
             meldekortId = meldekortId,
@@ -266,6 +266,8 @@ interface MeldekortMother {
         utfallsperioder: Periodisering<AvklartUtfallForPeriode>,
         navkontor: Navkontor = ObjectMother.navkontor(),
     ): Pair<MeldekortBehandlinger, MeldekortBehandling.UtfyltMeldekort> {
+        val meldeperiode = meldeperiode()
+
         return MeldekortBehandlinger(
             tiltakstype = tiltakstype,
             verdi = nonEmptyListOf(
@@ -282,14 +284,14 @@ interface MeldekortMother {
                     navkontor = navkontor,
                     beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
                         sakId = sakId,
-                        meldeperiode = kommando.periode,
+                        meldeperiode = meldeperiode,
                         utfallsperioder = utfallsperioder,
                         tiltakstype = tiltakstype,
                         meldekortId = meldekortId,
                         maksDagerMedTiltakspengerForPeriode = kommando.dager.size,
                     ),
                     ikkeRettTilTiltakspengerTidspunkt = null,
-                    meldeperiode = null,
+                    meldeperiode = meldeperiode,
                     brukersMeldekort = null,
                 ),
             ),
@@ -313,6 +315,8 @@ interface MeldekortMother {
             initiellVerdi = AvklartUtfallForPeriode.OPPFYLT,
             totalePeriode = vurderingsperiode,
         )
+        val meldeperiode = meldeperiode()
+
         return MeldekortBehandlinger(
             tiltakstype = tiltakstype,
             verdi = this.verdi + MeldekortBehandling.IkkeUtfyltMeldekort(
@@ -328,14 +332,14 @@ interface MeldekortMother {
                 navkontor = navkontor,
                 beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
                     sakId = sakId,
-                    meldeperiode = kommando.periode,
+                    meldeperiode = meldeperiode,
                     utfallsperioder = utfallsperioder,
                     tiltakstype = tiltakstype,
                     meldekortId = meldekortId,
                     maksDagerMedTiltakspengerForPeriode = kommando.dager.size,
                 ),
                 ikkeRettTilTiltakspengerTidspunkt = null,
-                meldeperiode = null,
+                meldeperiode = meldeperiode,
                 brukersMeldekort = null,
             ),
         ).sendTilBeslutter(kommando).getOrFail().first
