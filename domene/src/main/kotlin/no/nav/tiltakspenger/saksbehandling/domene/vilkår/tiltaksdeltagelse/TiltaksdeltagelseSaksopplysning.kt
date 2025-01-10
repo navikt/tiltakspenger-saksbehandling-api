@@ -48,14 +48,17 @@ sealed interface TiltaksdeltagelseSaksopplysning {
                     TiltakDeltakerstatus.Avbrutt,
                     TiltakDeltakerstatus.Fullført,
                     TiltakDeltakerstatus.HarSluttet,
-                    TiltakDeltakerstatus.Deltar -> UtfallForPeriode.OPPFYLT
+                    TiltakDeltakerstatus.Deltar,
+                    -> UtfallForPeriode.OPPFYLT
                     TiltakDeltakerstatus.IkkeAktuell,
-                    TiltakDeltakerstatus.Feilregistrert -> UtfallForPeriode.IKKE_OPPFYLT
+                    TiltakDeltakerstatus.Feilregistrert,
+                    -> UtfallForPeriode.IKKE_OPPFYLT
                     TiltakDeltakerstatus.VenterPåOppstart,
                     TiltakDeltakerstatus.PåbegyntRegistrering,
                     TiltakDeltakerstatus.SøktInn,
                     TiltakDeltakerstatus.Venteliste,
-                    TiltakDeltakerstatus.Vurderes -> UtfallForPeriode.UAVKLART
+                    TiltakDeltakerstatus.Vurderes,
+                    -> UtfallForPeriode.UAVKLART
                 }
             Periodisering(utfall, deltagelsePeriode)
         }
