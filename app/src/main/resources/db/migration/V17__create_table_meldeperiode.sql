@@ -18,3 +18,4 @@ CREATE INDEX idx_meldeperiode_id ON meldeperiode(id);
 CREATE INDEX idx_meldeperiode_id_versjon ON meldeperiode(id, versjon);
 CREATE INDEX idx_meldeperiode_periode ON meldeperiode(fra_og_med, til_og_med);
 ALTER TABLE meldekort DROP COLUMN IF EXISTS sendt_til_meldekort_api;
+ALTER TABLE meldekort ADD COLUMN IF NOT EXISTS meldeperiode_hendelse_id varchar NOT NULL default 'defaultid';

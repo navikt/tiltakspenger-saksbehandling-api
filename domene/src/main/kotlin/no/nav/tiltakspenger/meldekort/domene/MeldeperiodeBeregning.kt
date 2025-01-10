@@ -123,7 +123,7 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
              * @throws IllegalStateException Dersom alle dagene i en meldekortperiode er SPERRET er den per definisjon utfylt. Dette har vi ikke støtte for i MVP.
              */
             fun fraPeriode(
-                meldeperiode: Periode,
+                meldeperiode: Meldeperiode,
                 utfallsperioder: Periodisering<AvklartUtfallForPeriode>,
                 tiltakstype: TiltakstypeSomGirRett,
                 meldekortId: MeldekortId,
@@ -131,7 +131,7 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
                 maksDagerMedTiltakspengerForPeriode: Int,
             ): IkkeUtfyltMeldeperiode {
                 val dager =
-                    meldeperiode.tilDager().map { dag ->
+                    meldeperiode.periode.tilDager().map { dag ->
                         if (utfallsperioder.hentVerdiForDag(dag) == AvklartUtfallForPeriode.OPPFYLT) {
                             MeldeperiodeBeregningDag.IkkeUtfylt(
                                 dato = dag,

@@ -174,7 +174,7 @@ internal class MeldeperiodePostgresRepo(
             }
         }
 
-        private fun fromRow(row: Row): Meldeperiode {
+        fun fromRow(row: Row): Meldeperiode {
             return Meldeperiode(
                 id = MeldeperiodeId(row.string("id")),
                 versjon = Hendelsesversjon(row.int("versjon")),
