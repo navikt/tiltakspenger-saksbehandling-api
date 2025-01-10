@@ -60,7 +60,7 @@ sealed interface TiltaksdeltagelseSaksopplysning {
         override val kilde: Tiltakskilde,
         override val tiltakstype: TiltakstypeSomGirRett,
         override val navIdent: String,
-        override val årsakTilEndring: ÅrsakTilEndring,
+        override val årsakTilEndring: ÅrsakTilEndring?,
     ) : TiltaksdeltagelseSaksopplysning {
 
         // TODO jah: Per tidspunkt tvinger vi denne til å være HarSluttet dersom saksbehandler skal endre status. På sikt må vi ha samme logikk på tvers av opplysningstypene.

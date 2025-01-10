@@ -30,7 +30,7 @@ import no.nav.tiltakspenger.vedtak.routes.withBody
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 private data class Body(
     val statusForPeriode: List<StatusForPeriode>,
-    val årsakTilEndring: ÅrsakTilEndringDTO,
+    val årsakTilEndring: ÅrsakTilEndringDTO? = null,
 ) {
     data class StatusForPeriode(
         val periode: PeriodeDTO,
@@ -63,7 +63,7 @@ private data class Body(
                     },
                 )
             }.toNonEmptyListOrNull()!!,
-            årsakTilEndring = this.årsakTilEndring.toDomain(),
+            årsakTilEndring = this.årsakTilEndring?.toDomain(),
             sakId = sakId,
         )
     }

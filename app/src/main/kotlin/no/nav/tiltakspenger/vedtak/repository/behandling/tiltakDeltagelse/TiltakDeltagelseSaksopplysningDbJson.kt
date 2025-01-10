@@ -47,7 +47,7 @@ internal data class TiltakDeltagelseSaksopplysningDbJson(
                 kilde = kilde.toTiltakskilde(),
                 tiltakstype = tiltakstype.toTiltakstypeSomGirRett(),
                 navIdent = navIdent,
-                årsakTilEndring = årsakTilEndring!!.toDomain(),
+                årsakTilEndring = årsakTilEndring?.toDomain(),
             )
         }
     }

@@ -19,7 +19,7 @@ data class LeggTilTiltaksdeltagelseKommando(
     val saksbehandler: Saksbehandler,
     val behandlingId: BehandlingId,
     val statusForPeriode: NonEmptyList<StatusForPeriode>,
-    val årsakTilEndring: ÅrsakTilEndring,
+    val årsakTilEndring: ÅrsakTilEndring?,
 ) {
     val perioder: List<Periode> = statusForPeriode.map { it.periode }
 
