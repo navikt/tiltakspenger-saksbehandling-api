@@ -10,8 +10,10 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.TemporalAdjusters
 
 data class Meldeperiode(
     val id: MeldeperiodeId,
@@ -57,4 +59,11 @@ fun Sak.opprettFørsteMeldeperiode(): Meldeperiode {
         },
         sendtTilMeldekortApi = null,
     )
+}
+
+private fun finnFørsteMeldekortsperiode(periode: Periode): Periode {
+    val førsteMandagIMeldekortsperiode = periode.fraOgMed.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+    val sisteSøndagIMeldekortsperiode = førsteMandagIMeldekortsperiode.plusDays(13)
+
+    return Periode(førsteMandagIMeldekortsperiode, sisteSøndagIMeldekortsperiode)
 }

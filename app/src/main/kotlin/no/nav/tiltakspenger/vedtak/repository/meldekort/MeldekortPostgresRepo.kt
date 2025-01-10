@@ -37,6 +37,7 @@ class MeldekortPostgresRepo(
                         id,
                         forrige_meldekort_id,
                         meldeperiode_id,
+                        meldeperiode_hendelse_id,
                         sak_id,
                         rammevedtak_id,
                         opprettet,
@@ -53,6 +54,7 @@ class MeldekortPostgresRepo(
                         :id,
                         :forrige_meldekort_id,
                         :meldeperiode_id,
+                        :meldeperiode_hendelse_id,
                         :sak_id,
                         :rammevedtak_id,
                         :opprettet,
@@ -70,6 +72,7 @@ class MeldekortPostgresRepo(
                     "id" to meldekort.id.toString(),
                     "forrige_meldekort_id" to meldekort.forrigeMeldekortId?.toString(),
                     "meldeperiode_id" to meldekort.meldeperiodeId.toString(),
+                    "meldeperiode_hendelse_id" to meldekort.meldeperiode.hendelseId.toString(),
                     "sak_id" to meldekort.sakId.toString(),
                     "rammevedtak_id" to meldekort.rammevedtakId.toString(),
                     "opprettet" to meldekort.opprettet,
@@ -102,7 +105,8 @@ class MeldekortPostgresRepo(
                         status = :status,
                         navkontor = :navkontor,
                         iverksatt_tidspunkt = :iverksatt_tidspunkt,
-                        sendt_til_beslutning = :sendt_til_beslutning
+                        sendt_til_beslutning = :sendt_til_beslutning,
+                        meldeperiode_hendelse_id = :meldeperiode_hendelse_id
                     where id = :id
                     """,
                     "id" to meldekort.id.toString(),
@@ -113,6 +117,7 @@ class MeldekortPostgresRepo(
                     "navkontor" to meldekort.navkontor?.kontornummer,
                     "iverksatt_tidspunkt" to meldekort.iverksattTidspunkt,
                     "sendt_til_beslutning" to meldekort.sendtTilBeslutning,
+                    "meldeperiode_hendelse_id" to meldekort.meldeperiode.hendelseId,
                 ).asUpdate,
             )
         }
@@ -137,6 +142,7 @@ class MeldekortPostgresRepo(
                     """
                     select
                       m.*,
+                      mp.*,
                       s.ident as fnr,
                       s.saksnummer,
                       (b.stønadsdager -> 'registerSaksopplysning' ->> 'antallDager')::int as antall_dager_per_meldeperiode
@@ -144,6 +150,7 @@ class MeldekortPostgresRepo(
                     join sak s on s.id = m.sak_id
                     join rammevedtak r on r.id = m.rammevedtak_id
                     join behandling b on b.id = r.behandling_id
+                    join meldeperiode mp on m.meldeperiode_hendelse_id = mp.hendelse_id
                     where m.id = :id
                     """,
                     "id" to meldekortId.toString(),
@@ -162,6 +169,7 @@ class MeldekortPostgresRepo(
                     """
                     select
                       m.*,
+                      mp.*,
                       s.ident as fnr,
                       s.saksnummer,
                       (b.stønadsdager -> 'registerSaksopplysning' ->> 'antallDager')::int as antall_dager_per_meldeperiode
@@ -169,6 +177,7 @@ class MeldekortPostgresRepo(
                     join sak s on s.id = m.sak_id
                     join rammevedtak r on r.id = m.rammevedtak_id
                     join behandling b on b.id = r.behandling_id
+                    join meldeperiode mp on m.meldeperiode_hendelse_id = mp.hendelse_id
                     where s.id = :sakId
                     order by m.fra_og_med
                     """,
@@ -190,10 +199,11 @@ class MeldekortPostgresRepo(
             val forrigeMeldekortId = row.stringOrNull("forrige_meldekort_id")?.let { MeldekortId.fromString(it) }
             val maksDagerMedTiltakspengerForPeriode = row.int("antall_dager_per_meldeperiode")
             val opprettet = row.localDateTime("opprettet")
+            val meldeperiode = MeldeperiodePostgresRepo.fromRow(row)
 
             return when (val status = row.string("status").toMeldekortStatus()) {
                 MeldekortBehandlingStatus.GODKJENT, MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> {
-                    val meldekortperiode = row.string("meldekortdager").toUtfyltMeldekortperiode(
+                    val meldeperiodeBeregning = row.string("meldekortdager").toUtfyltMeldekortperiode(
                         sakId = sakId,
                         meldekortId = id,
                         maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
@@ -207,23 +217,23 @@ class MeldekortPostgresRepo(
                         fnr = fnr,
                         rammevedtakId = rammevedtakId,
                         opprettet = opprettet,
-                        beregning = meldekortperiode,
+                        beregning = meldeperiodeBeregning,
                         saksbehandler = row.string("saksbehandler"),
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
                         beslutter = row.stringOrNull("beslutter"),
                         forrigeMeldekortId = forrigeMeldekortId,
-                        tiltakstype = meldekortperiode.tiltakstype,
+                        tiltakstype = meldeperiodeBeregning.tiltakstype,
                         status = status,
                         iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
                         navkontor = navkontor!!,
                         ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt"),
                         brukersMeldekort = null,
-                        meldeperiode = null,
+                        meldeperiode = meldeperiode,
                     )
                 }
                 // TODO jah: Her blander vi sammen behandlingsstatus og om man har rett/ikke-rett. Det er mulig at man har startet en meldekortbehandling også endres statusen til IKKE_RETT_TIL_TILTAKSPENGER. Da vil behandlingen sånn som koden er nå implisitt avsluttes. Det kan hende vi bør endre dette når vi skiller grunnlag, innsending og behandling.
                 MeldekortBehandlingStatus.IKKE_BEHANDLET, MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> {
-                    val meldekortperiode = row.string("meldekortdager").toIkkeUtfyltMeldekortperiode(
+                    val meldeperiodeBeregning = row.string("meldekortdager").toIkkeUtfyltMeldekortperiode(
                         sakId = sakId,
                         meldekortId = id,
                         maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
@@ -236,13 +246,13 @@ class MeldekortPostgresRepo(
                         fnr = fnr,
                         rammevedtakId = rammevedtakId,
                         opprettet = opprettet,
-                        beregning = meldekortperiode,
+                        beregning = meldeperiodeBeregning,
                         forrigeMeldekortId = forrigeMeldekortId,
-                        tiltakstype = meldekortperiode.tiltakstype,
+                        tiltakstype = meldeperiodeBeregning.tiltakstype,
                         navkontor = navkontor,
                         ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt"),
                         brukersMeldekort = null,
-                        meldeperiode = null,
+                        meldeperiode = meldeperiode,
                     )
                 }
 

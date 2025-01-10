@@ -18,10 +18,8 @@ import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.temporal.TemporalAdjusters
 
 sealed interface MeldekortBehandling {
     val id: MeldekortId
@@ -34,11 +32,11 @@ sealed interface MeldekortBehandling {
 
     // TODO: slette?
     val forrigeMeldekortId: MeldekortId?
+
     val opprettet: LocalDateTime
     val beregning: MeldeperiodeBeregning
 
-    // Skal ikke være nullable
-    val meldeperiode: Meldeperiode?
+    val meldeperiode: Meldeperiode
 
     // I tilfeller saksbehandler har startet behandling uten brukers meldekort/rapportering
     // Gjelder spesielt da bruker rapporterte via arena (men manuell kopier av saksbehandler)
@@ -62,7 +60,7 @@ sealed interface MeldekortBehandling {
     /** Totalsummen for meldeperioden */
     val beløpTotal: Int?
 
-    val meldeperiodeId: MeldeperiodeId get() = MeldeperiodeId.fraPeriode(periode)
+    val meldeperiodeId: MeldeperiodeId get() = meldeperiode.id
 
     fun settIkkeRettTilTiltakspenger(periode: Periode, tidspunkt: LocalDateTime): MeldekortBehandling
 
@@ -93,7 +91,7 @@ sealed interface MeldekortBehandling {
         override val navkontor: Navkontor,
         override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
         override val brukersMeldekort: BrukersMeldekort?,
-        override val meldeperiode: Meldeperiode?,
+        override val meldeperiode: Meldeperiode,
     ) : MeldekortBehandling {
 
         init {
@@ -136,7 +134,7 @@ sealed interface MeldekortBehandling {
             val meldekortId = MeldekortId.random()
             return IkkeUtfyltMeldekort(
                 id = meldekortId,
-                meldeperiodeId = MeldeperiodeId.fraPeriode(periode),
+                meldeperiodeId = meldeperiode.id,
                 sakId = this.sakId,
                 saksnummer = this.saksnummer,
                 fnr = this.fnr,
@@ -146,7 +144,7 @@ sealed interface MeldekortBehandling {
                 tiltakstype = this.tiltakstype,
                 navkontor = this.navkontor,
                 beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
-                    meldeperiode = periode,
+                    meldeperiode = meldeperiode,
                     tiltakstype = this.tiltakstype,
                     meldekortId = meldekortId,
                     sakId = this.sakId,
@@ -206,7 +204,7 @@ sealed interface MeldekortBehandling {
         override val navkontor: Navkontor?,
         override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
         override val brukersMeldekort: BrukersMeldekort?,
-        override val meldeperiode: Meldeperiode?,
+        override val meldeperiode: Meldeperiode,
     ) : MeldekortBehandling {
         override val iverksattTidspunkt = null
         override val sendtTilBeslutning = null
@@ -290,14 +288,13 @@ sealed interface MeldekortBehandling {
 }
 
 fun Rammevedtak.opprettFørsteMeldekortBehandling(sak: Sak): MeldekortBehandling {
-    val periode = finnFørsteMeldekortsperiode(this.periode)
     val meldekortId = MeldekortId.random()
     val tiltakstype = this.behandling.vilkårssett.tiltakDeltagelseVilkår.registerSaksopplysning.tiltakstype
-    val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
+    val meldeperiode = sak.opprettFørsteMeldeperiode()
 
     return MeldekortBehandling.IkkeUtfyltMeldekort(
         id = meldekortId,
-        meldeperiodeId = MeldeperiodeId.fraPeriode(periode),
+        meldeperiodeId = meldeperiode.id,
         sakId = this.sakId,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
@@ -308,7 +305,7 @@ fun Rammevedtak.opprettFørsteMeldekortBehandling(sak: Sak): MeldekortBehandling
         // TODO post-mvp: Her har vi mulighet til å hente verdien fra brukers geografiske tilhørighet + norg2.
         navkontor = null,
         beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
-            meldeperiode = periode,
+            meldeperiode = meldeperiode,
             utfallsperioder = this.utfallsperioder,
             tiltakstype = tiltakstype,
             meldekortId = meldekortId,
@@ -317,13 +314,6 @@ fun Rammevedtak.opprettFørsteMeldekortBehandling(sak: Sak): MeldekortBehandling
         ),
         ikkeRettTilTiltakspengerTidspunkt = null,
         brukersMeldekort = null,
-        meldeperiode = førsteMeldeperiode,
+        meldeperiode = meldeperiode,
     )
-}
-
-fun finnFørsteMeldekortsperiode(periode: Periode): Periode {
-    val førsteMandagIMeldekortsperiode = periode.fraOgMed.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-    val sisteSøndagIMeldekortsperiode = førsteMandagIMeldekortsperiode.plusDays(13)
-
-    return Periode(førsteMandagIMeldekortsperiode, sisteSøndagIMeldekortsperiode)
 }
