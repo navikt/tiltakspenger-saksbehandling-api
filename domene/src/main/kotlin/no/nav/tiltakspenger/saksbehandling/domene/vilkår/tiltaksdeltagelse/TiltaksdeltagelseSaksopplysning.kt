@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.domene.vilkår.tiltaksdeltagelse
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
@@ -13,12 +14,9 @@ sealed interface TiltaksdeltagelseSaksopplysning {
     val eksternDeltagelseId: String
     val gjennomføringId: String?
     val kilde: Tiltakskilde
-    val utfallForPeriode: UtfallForPeriode
-
-    // TODO jah: Bør endres til en periodisering som de andre saksopplysningene på de andre vilkårene. Man kan gjenbruke den periodiserte datatypen på tvers av saksopplysningene.
-    val deltagelsePeriode: Periode
-    val girRett: Boolean
+    val utfallForPeriode: Periodisering<UtfallForPeriode>
     val status: TiltakDeltakerstatus
+    val deltagelsePeriode: Periode
     val tidsstempel: LocalDateTime
     val tiltakstype: TiltakstypeSomGirRett
     val årsakTilEndring: ÅrsakTilEndring?
@@ -31,9 +29,8 @@ sealed interface TiltaksdeltagelseSaksopplysning {
         override val eksternDeltagelseId: String,
         override val gjennomføringId: String?,
         override val tidsstempel: LocalDateTime,
-        override val deltagelsePeriode: Periode,
-        override val girRett: Boolean,
         override val status: TiltakDeltakerstatus,
+        override val deltagelsePeriode: Periode,
         override val kilde: Tiltakskilde,
         override val tiltakstype: TiltakstypeSomGirRett,
     ) : TiltaksdeltagelseSaksopplysning {
@@ -45,8 +42,23 @@ sealed interface TiltaksdeltagelseSaksopplysning {
             return copy(deltagelsePeriode = periode)
         }
 
-        // TODO jah: Vi beholder bare dagens logikk her, men vi må endre på denne når vi skal støtte periodisering ved førstegangsbehandling eller registersaksopplysning ved revurdering.
-        override val utfallForPeriode = UtfallForPeriode.OPPFYLT
+        override val utfallForPeriode: Periodisering<UtfallForPeriode> = run {
+            val utfall =
+                when (status) {
+                    TiltakDeltakerstatus.Avbrutt,
+                    TiltakDeltakerstatus.Fullført,
+                    TiltakDeltakerstatus.HarSluttet,
+                    TiltakDeltakerstatus.Deltar -> UtfallForPeriode.OPPFYLT
+                    TiltakDeltakerstatus.IkkeAktuell,
+                    TiltakDeltakerstatus.Feilregistrert -> UtfallForPeriode.IKKE_OPPFYLT
+                    TiltakDeltakerstatus.VenterPåOppstart,
+                    TiltakDeltakerstatus.PåbegyntRegistrering,
+                    TiltakDeltakerstatus.SøktInn,
+                    TiltakDeltakerstatus.Venteliste,
+                    TiltakDeltakerstatus.Vurderes -> UtfallForPeriode.UAVKLART
+                }
+            Periodisering(utfall, deltagelsePeriode)
+        }
     }
 
     data class Saksbehandler(
@@ -54,9 +66,8 @@ sealed interface TiltaksdeltagelseSaksopplysning {
         override val eksternDeltagelseId: String,
         override val gjennomføringId: String?,
         override val tidsstempel: LocalDateTime,
-        override val deltagelsePeriode: Periode,
-        override val girRett: Boolean,
         override val status: TiltakDeltakerstatus,
+        override val deltagelsePeriode: Periode,
         override val kilde: Tiltakskilde,
         override val tiltakstype: TiltakstypeSomGirRett,
         override val navIdent: String,
@@ -64,7 +75,7 @@ sealed interface TiltaksdeltagelseSaksopplysning {
     ) : TiltaksdeltagelseSaksopplysning {
 
         // TODO jah: Per tidspunkt tvinger vi denne til å være HarSluttet dersom saksbehandler skal endre status. På sikt må vi ha samme logikk på tvers av opplysningstypene.
-        override val utfallForPeriode: UtfallForPeriode = UtfallForPeriode.IKKE_OPPFYLT
+        override val utfallForPeriode: Periodisering<UtfallForPeriode> = Periodisering(UtfallForPeriode.IKKE_OPPFYLT, deltagelsePeriode)
 
         override fun oppdaterPeriode(periode: Periode): Saksbehandler {
             return copy(deltagelsePeriode = periode)

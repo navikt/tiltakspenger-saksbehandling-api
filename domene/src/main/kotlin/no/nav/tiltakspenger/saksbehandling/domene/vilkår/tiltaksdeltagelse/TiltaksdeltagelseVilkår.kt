@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import mu.KotlinLogging
-import no.nav.tiltakspenger.felles.exceptions.StøtterIkkeUtfallException
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -31,20 +30,7 @@ data class TiltaksdeltagelseVilkår private constructor(
         check(vurderingsperiode == registerSaksopplysning.deltagelsePeriode) { "Vurderingsperioden ($vurderingsperiode) må være lik deltagelsesperioden (${registerSaksopplysning.deltagelsePeriode})" }
     }
 
-    override val utfall: Periodisering<UtfallForPeriode> = run {
-        val rettTilTiltakspenger = avklartSaksopplysning.girRett
-        val deltagelsePeriode = avklartSaksopplysning.deltagelsePeriode
-        val status = avklartSaksopplysning.status
-        val rettTilÅSøke = status.rettTilÅSøke
-
-        if (!rettTilÅSøke || !rettTilTiltakspenger) {
-            // TODO post-mvp jah: Vi utleder girRett i tiltakspenger-tiltak. Her kan vi heller bruke en felles algoritme i libs, istedet for å sende den over nettverk.
-            throw StøtterIkkeUtfallException(
-                "Per dags dato får brukere kun søke dersom vi har whitelistet tiltakets status og klassekode. Dette tiltaket fører til avslag. RettTilÅSøke: $rettTilÅSøke og RettTilTiltakspenger: $rettTilTiltakspenger",
-            )
-        }
-        Periodisering(avklartSaksopplysning.utfallForPeriode, deltagelsePeriode)
-    }
+    override val utfall: Periodisering<UtfallForPeriode> = avklartSaksopplysning.utfallForPeriode.utvid(UtfallForPeriode.IKKE_OPPFYLT, vurderingsperiode)
 
     override fun krymp(nyPeriode: Periode): TiltaksdeltagelseVilkår {
         if (vurderingsperiode == nyPeriode) return this
@@ -73,7 +59,6 @@ data class TiltaksdeltagelseVilkår private constructor(
                 eksternDeltagelseId = avklartSaksopplysning.eksternDeltagelseId,
                 gjennomføringId = avklartSaksopplysning.gjennomføringId,
                 deltagelsePeriode = avklartSaksopplysning.deltagelsePeriode,
-                girRett = avklartSaksopplysning.girRett,
                 // Kommentar jah: Vi støtter kun 1 periode i førsteomgang. Vi må endre på hele datamodellen når vi skal støtter periodisering.
                 status = kommando.statusForPeriode.single().status,
                 kilde = avklartSaksopplysning.kilde,
