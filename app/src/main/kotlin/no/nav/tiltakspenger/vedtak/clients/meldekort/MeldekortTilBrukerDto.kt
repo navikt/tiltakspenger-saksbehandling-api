@@ -42,6 +42,7 @@ enum class MeldekortDagStatusTilBrukerDTO {
 data class MeldekortDagTilBrukerDTO(
     val dag: LocalDate,
     val status: MeldekortDagStatusTilBrukerDTO,
+    val tiltakstype: TiltakstypeSomGirRett,
 )
 
 data class MeldekortTilBrukerDTO(
@@ -49,7 +50,6 @@ data class MeldekortTilBrukerDTO(
     val fnr: String,
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
-    val tiltakstype: TiltakstypeSomGirRett,
     val status: MeldekortStatusTilBrukerDTO,
     val meldekortDager: List<MeldekortDagTilBrukerDTO>,
 )
@@ -60,10 +60,17 @@ fun Meldeperiode.tilBrukerDTO(): MeldekortTilBrukerDTO {
         fnr = this.fnr.verdi,
         fraOgMed = this.periode.fraOgMed,
         tilOgMed = this.periode.tilOgMed,
-        // TODO: Placeholder-verdier, fiks asap!
-        tiltakstype = TiltakstypeSomGirRett.JOBBKLUBB,
         status = MeldekortStatusTilBrukerDTO.KAN_UTFYLLES,
-        meldekortDager = emptyList(),
+        meldekortDager = this.girRett.map {
+            val status: MeldekortDagStatusTilBrukerDTO =
+                if (it.value) MeldekortDagStatusTilBrukerDTO.IKKE_REGISTRERT else MeldekortDagStatusTilBrukerDTO.IKKE_REGISTRERT
+
+            MeldekortDagTilBrukerDTO(
+                dag = it.key,
+                status = status,
+                tiltakstype = TiltakstypeSomGirRett.JOBBKLUBB,
+            )
+        },
     )
 }
 
@@ -73,12 +80,12 @@ fun MeldekortBehandling.tilBrukerDTO(): MeldekortTilBrukerDTO {
         fnr = this.fnr.verdi,
         fraOgMed = this.fraOgMed,
         tilOgMed = this.tilOgMed,
-        tiltakstype = this.tiltakstype,
         status = this.tilBrukerStatusDTO(),
         meldekortDager = this.beregning.dager.map {
             MeldekortDagTilBrukerDTO(
                 dag = it.dato,
                 status = it.tilBrukerStatusDTO(),
+                tiltakstype = this.tiltakstype,
             )
         },
     )
