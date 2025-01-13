@@ -4,9 +4,9 @@ import arrow.core.nonEmptyListOf
 import com.fasterxml.jackson.core.type.TypeReference
 import kotliquery.Row
 import kotliquery.Session
-import no.nav.tiltakspenger.felles.HendelseId
-import no.nav.tiltakspenger.felles.Hendelsesversjon
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.HendelseId
+import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.json.objectMapper
@@ -162,7 +162,7 @@ internal class MeldeperiodePostgresRepo(
         private fun fromRow(row: Row): Meldeperiode {
             return Meldeperiode(
                 id = MeldeperiodeId(row.string("id")),
-                versjon = Hendelsesversjon(row.int("versjon")),
+                versjon = HendelseVersjon(row.int("versjon")),
                 hendelseId = HendelseId.fromString(row.string("hendelse_id")),
                 sakId = SakId.fromString(row.string("sak_id")),
                 saksnummer = Saksnummer(row.string("saksnummer")),

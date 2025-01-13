@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.vedtak.repository.meldekort
 import arrow.core.toNonEmptyListOrNull
 import kotliquery.Row
 import kotliquery.Session
-import no.nav.tiltakspenger.felles.HendelseId
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId

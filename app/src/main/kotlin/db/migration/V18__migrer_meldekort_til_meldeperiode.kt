@@ -4,8 +4,8 @@ package db.migration
 
 import kotliquery.Row
 import mu.KotlinLogging
-import no.nav.tiltakspenger.felles.HendelseId
-import no.nav.tiltakspenger.felles.Hendelsesversjon
+import no.nav.tiltakspenger.libs.common.HendelseId
+import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -116,7 +116,7 @@ class V18__migrer_meldekort_til_meldeperiode : BaseJavaMigration() {
                         )
                     """,
                         "id" to meldeperiodeId.toString(),
-                        "versjon" to Hendelsesversjon.ny().value,
+                        "versjon" to HendelseVersjon.ny().value,
                         "hendelse_id" to hendelseId,
                         "sak_id" to sakId.toString(),
                         "opprettet" to opprettet,

@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.meldekort.ports
 
-import no.nav.tiltakspenger.felles.HendelseId
+import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.meldekort.domene.Meldeperiode

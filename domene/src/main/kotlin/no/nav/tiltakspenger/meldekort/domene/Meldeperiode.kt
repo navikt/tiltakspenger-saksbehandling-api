@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.meldekort.domene
 
-import no.nav.tiltakspenger.felles.HendelseId
-import no.nav.tiltakspenger.felles.Hendelsesversjon
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.HendelseId
+import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -19,7 +19,7 @@ import java.time.temporal.TemporalAdjusters
 data class Meldeperiode(
     val id: MeldeperiodeId,
     val hendelseId: HendelseId,
-    val versjon: Hendelsesversjon,
+    val versjon: HendelseVersjon,
 
     val periode: Periode,
     val opprettet: LocalDateTime,
@@ -73,7 +73,7 @@ private fun Sak.opprettMeldeperiode(periode: Periode, utfallsperioder: Periodise
         antallDagerForPeriode = this.hentAntallDager()!!,
         periode = periode,
         opprettet = nå(),
-        versjon = Hendelsesversjon.ny(),
+        versjon = HendelseVersjon.ny(),
         girRett = periode.tilDager().associateWith {
             (utfallsperioder?.hentVerdiForDag(it) == AvklartUtfallForPeriode.OPPFYLT)
         },

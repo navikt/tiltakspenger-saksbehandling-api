@@ -3,13 +3,13 @@ package no.nav.tiltakspenger.objectmothers
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
-import no.nav.tiltakspenger.felles.HendelseId
-import no.nav.tiltakspenger.felles.Hendelsesversjon
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.felles.erHelg
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.HendelseId
+import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -387,7 +387,7 @@ interface MeldekortMother {
         id: MeldeperiodeId = MeldeperiodeId.fraPeriode(periode),
         hendelseId: HendelseId = HendelseId.random(),
         sakId: SakId = SakId.random(),
-        versjon: Hendelsesversjon = Hendelsesversjon.ny(),
+        versjon: HendelseVersjon = HendelseVersjon.ny(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         fnr: Fnr = Fnr.random(),
         opprettet: LocalDateTime = nå(),
