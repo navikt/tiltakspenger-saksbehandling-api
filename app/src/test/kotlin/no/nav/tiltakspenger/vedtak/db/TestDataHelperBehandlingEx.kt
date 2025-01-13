@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingKommando
@@ -133,7 +133,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
             .taBehandling(beslutter)
             .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter))
     behandlingRepo.lagre(oppdatertFørstegangsbehandling)
-    val vedtak = sak.opprettVedtak(oppdatertFørstegangsbehandling)
+    val vedtak = sak.opprettVedtak(oppdatertFørstegangsbehandling).second
     vedtakRepo.lagre(vedtak)
     return sakRepo.hentForSakId(sakId)!! to vedtak
 }
@@ -219,7 +219,7 @@ internal fun TestDataHelper.persisterRammevedtakMedUtfyltMeldekort(
             ),
             barnetillegg = listOf(),
         ),
-): Pair<Sak, Meldekort.UtfyltMeldekort> {
+): Pair<Sak, MeldekortBehandling.UtfyltMeldekort> {
     val (sak, vedtak) = persisterIverksattFørstegangsbehandling(
         sakId = sakId,
         fnr = fnr,
@@ -240,5 +240,6 @@ internal fun TestDataHelper.persisterRammevedtakMedUtfyltMeldekort(
             saksnummer = sak.saksnummer,
         )
     meldekortRepo.lagre(utfyltMeldekort)
+    meldeperiodeRepo.lagre(utfyltMeldekort.meldeperiode)
     return Pair(sakRepo.hentForSakId(sakId)!!, utfyltMeldekort)
 }

@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.meldekort.domene.Meldeperioder
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
@@ -19,6 +19,7 @@ class SakFakeRepo(
     private val behandlingRepo: BehandlingFakeRepo,
     private val rammevedtakRepo: RammevedtakFakeRepo,
     private val meldekortRepo: MeldekortFakeRepo,
+    private val meldeperiodeRepo: MeldeperiodeFakeRepo,
     private val utbetalingsvedtakRepo: UtbetalingsvedtakFakeRepo,
 ) : SakRepo {
     val data = Atomic(mutableMapOf<SakId, Sak>())
@@ -51,11 +52,15 @@ class SakFakeRepo(
         sakId: SakId,
     ): Sak? {
         val behandlinger = behandlingRepo.hentBehandlingerForSakId(sakId)
+        val meldekortBehandlinger =
+            meldekortRepo.hentForSakId(sakId) ?: MeldekortBehandlinger.empty(behandlinger.first().tiltakstype)
+
         return data.get()[sakId]?.copy(
             behandlinger = behandlinger,
             vedtaksliste = rammevedtakRepo.hentForSakId(sakId),
-            meldeperioder = meldekortRepo.hentForSakId(sakId) ?: Meldeperioder.empty(behandlinger.first().tiltakstype),
+            meldekortBehandlinger = meldekortBehandlinger,
             utbetalinger = utbetalingsvedtakRepo.hentForSakId(sakId),
+            meldeperiodeKjeder = meldeperiodeRepo.hentForSakId(sakId),
         )
     }
 

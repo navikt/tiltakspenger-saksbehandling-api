@@ -1,22 +1,23 @@
 package no.nav.tiltakspenger.vedtak.clients.meldekort
 
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
-import no.nav.tiltakspenger.meldekort.domene.MeldekortStatus
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.IkkeUtfylt
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Deltatt.DeltattMedLønnITiltaket
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Deltatt.DeltattUtenLønnITiltaket
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Fravær.Syk.SykBruker
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Fravær.Syk.SyktBarn
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Fravær.Velferd.VelferdGodkjentAvNav
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Fravær.Velferd.VelferdIkkeGodkjentAvNav
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.IkkeDeltatt
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag.Utfylt.Sperret
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.IkkeUtfylt
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattMedLønnITiltaket
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SykBruker
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SyktBarn
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdGodkjentAvNav
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdIkkeGodkjentAvNav
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Sperret
 import java.time.LocalDate
 
-// TODO abn: Dette er veldig work in progress
-// Bør inn i felles libs når vi får landet en modell, brukes også i meldekort-api
+// TODO abn: Dette er fortsatt work in progress
+// Bør inn i felles libs asap, brukes også i meldekort-api
 
 enum class MeldekortStatusTilBrukerDTO {
     KAN_UTFYLLES,
@@ -41,6 +42,7 @@ enum class MeldekortDagStatusTilBrukerDTO {
 data class MeldekortDagTilBrukerDTO(
     val dag: LocalDate,
     val status: MeldekortDagStatusTilBrukerDTO,
+    val tiltakstype: TiltakstypeSomGirRett,
 )
 
 data class MeldekortTilBrukerDTO(
@@ -48,38 +50,57 @@ data class MeldekortTilBrukerDTO(
     val fnr: String,
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
-    val tiltakstype: TiltakstypeSomGirRett,
     val status: MeldekortStatusTilBrukerDTO,
     val meldekortDager: List<MeldekortDagTilBrukerDTO>,
 )
 
-fun Meldekort.tilBrukerDTO(): MeldekortTilBrukerDTO {
+fun Meldeperiode.tilBrukerDTO(): MeldekortTilBrukerDTO {
     return MeldekortTilBrukerDTO(
-        id = this.id.toString(),
+        id = this.hendelseId.toString(),
         fnr = this.fnr.verdi,
-        fraOgMed = this.fraOgMed,
-        tilOgMed = this.tilOgMed,
-        tiltakstype = this.tiltakstype,
-        status = this.tilBrukerStatusDTO(),
-        meldekortDager = this.meldeperiode.dager.map {
+        fraOgMed = this.periode.fraOgMed,
+        tilOgMed = this.periode.tilOgMed,
+        status = MeldekortStatusTilBrukerDTO.KAN_UTFYLLES,
+        meldekortDager = this.girRett.map {
+            val status: MeldekortDagStatusTilBrukerDTO =
+                if (it.value) MeldekortDagStatusTilBrukerDTO.IKKE_REGISTRERT else MeldekortDagStatusTilBrukerDTO.IKKE_REGISTRERT
+
             MeldekortDagTilBrukerDTO(
-                dag = it.dato,
-                status = it.tilBrukerStatusDTO(),
+                dag = it.key,
+                status = status,
+                tiltakstype = TiltakstypeSomGirRett.JOBBKLUBB,
             )
         },
     )
 }
 
-fun Meldekort.tilBrukerStatusDTO(): MeldekortStatusTilBrukerDTO =
+fun MeldekortBehandling.tilBrukerDTO(): MeldekortTilBrukerDTO {
+    return MeldekortTilBrukerDTO(
+        id = this.id.toString(),
+        fnr = this.fnr.verdi,
+        fraOgMed = this.fraOgMed,
+        tilOgMed = this.tilOgMed,
+        status = this.tilBrukerStatusDTO(),
+        meldekortDager = this.beregning.dager.map {
+            MeldekortDagTilBrukerDTO(
+                dag = it.dato,
+                status = it.tilBrukerStatusDTO(),
+                tiltakstype = this.tiltakstype,
+            )
+        },
+    )
+}
+
+private fun MeldekortBehandling.tilBrukerStatusDTO(): MeldekortStatusTilBrukerDTO =
     when (this) {
-        is Meldekort.IkkeUtfyltMeldekort -> if (this.erKlarTilUtfylling()) MeldekortStatusTilBrukerDTO.KAN_UTFYLLES else MeldekortStatusTilBrukerDTO.KAN_IKKE_UTFYLLES
-        is Meldekort.UtfyltMeldekort -> when (this.status) {
-            MeldekortStatus.GODKJENT -> MeldekortStatusTilBrukerDTO.GODKJENT
+        is MeldekortBehandling.IkkeUtfyltMeldekort -> if (this.erKlarTilUtfylling()) MeldekortStatusTilBrukerDTO.KAN_UTFYLLES else MeldekortStatusTilBrukerDTO.KAN_IKKE_UTFYLLES
+        is MeldekortBehandling.UtfyltMeldekort -> when (this.status) {
+            MeldekortBehandlingStatus.GODKJENT -> MeldekortStatusTilBrukerDTO.GODKJENT
             else -> MeldekortStatusTilBrukerDTO.KAN_IKKE_UTFYLLES
         }
     }
 
-fun Meldekortdag.tilBrukerStatusDTO(): MeldekortDagStatusTilBrukerDTO =
+private fun MeldeperiodeBeregningDag.tilBrukerStatusDTO(): MeldekortDagStatusTilBrukerDTO =
     when (this) {
         is DeltattMedLønnITiltaket -> MeldekortDagStatusTilBrukerDTO.DELTATT_MED_LØNN
         is DeltattUtenLønnITiltaket -> MeldekortDagStatusTilBrukerDTO.DELTATT_UTEN_LØNN

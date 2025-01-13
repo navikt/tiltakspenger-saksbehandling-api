@@ -17,9 +17,11 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
-import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldekortForEnSak
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldekortBehandling
+import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
+import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attestering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
@@ -29,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeIverksetteBe
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeUnderkjenne
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
@@ -47,6 +50,7 @@ class BehandlingServiceImpl(
     private val behandlingRepo: BehandlingRepo,
     private val rammevedtakRepo: RammevedtakRepo,
     private val meldekortRepo: MeldekortRepo,
+    private val meldeperiodeRepo: MeldeperiodeRepo,
     private val sessionFactory: SessionFactory,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
@@ -155,7 +159,7 @@ class BehandlingServiceImpl(
         )
         val iverksattBehandling = behandling.iverksett(beslutter, attestering)
 
-        val vedtak = sak.opprettVedtak(iverksattBehandling)
+        val (oppdatertSak, vedtak) = sak.opprettVedtak(iverksattBehandling)
 
         val fnr = personService.hentFnrForBehandlingId(behandlingId)
         val adressebeskyttelseGradering: List<AdressebeskyttelseGradering>? =
@@ -173,9 +177,11 @@ class BehandlingServiceImpl(
             versjon = gitHash,
         )
         val stønadStatistikk = genererStønadsstatistikkForRammevedtak(vedtak)
+
         when (behandling.behandlingstype) {
             Behandlingstype.FØRSTEGANGSBEHANDLING -> iverksettFørstegangsbehandling(
                 vedtak = vedtak,
+                sak = oppdatertSak,
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk,
             )
@@ -185,18 +191,21 @@ class BehandlingServiceImpl(
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk,
                 // Kommentar jah: Antar vi åpner for mer enn 1 samtidig ikke-utfylt meldekort i fremtiden.
-                ikkeUtfylteMeldekort = listOfNotNull(sak.meldeperioder.ikkeUtfyltMeldekort),
+                ikkeUtfylteMeldekort = listOfNotNull(sak.meldekortBehandlinger.ikkeUtfyltMeldekort),
             )
         }
+
         return iverksattBehandling.right()
     }
 
     private fun iverksettFørstegangsbehandling(
         vedtak: Rammevedtak,
+        sak: Sak,
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ) {
-        val førsteMeldekort = vedtak.opprettFørsteMeldekortForEnSak()
+        val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
+        val førsteMeldekortBehandling = vedtak.opprettFørsteMeldekortBehandling(førsteMeldeperiode)
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
@@ -204,7 +213,8 @@ class BehandlingServiceImpl(
             rammevedtakRepo.lagre(vedtak, tx)
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
-            meldekortRepo.lagre(førsteMeldekort, tx)
+            meldekortRepo.lagre(førsteMeldekortBehandling, tx)
+            meldeperiodeRepo.lagre(førsteMeldeperiode, tx)
         }
     }
 
@@ -212,7 +222,7 @@ class BehandlingServiceImpl(
         vedtak: Rammevedtak,
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
-        ikkeUtfylteMeldekort: List<Meldekort.IkkeUtfyltMeldekort>,
+        ikkeUtfylteMeldekort: List<MeldekortBehandling.IkkeUtfyltMeldekort>,
     ) {
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->

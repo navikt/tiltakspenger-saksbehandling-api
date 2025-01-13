@@ -3,6 +3,8 @@ package no.nav.tiltakspenger.objectmothers
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
+import no.nav.tiltakspenger.felles.HendelseId
+import no.nav.tiltakspenger.felles.Hendelsesversjon
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.felles.erHelg
 import no.nav.tiltakspenger.felles.nå
@@ -18,17 +20,19 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
-import no.nav.tiltakspenger.meldekort.domene.MeldekortStatus
-import no.nav.tiltakspenger.meldekort.domene.Meldekortdag
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.meldekort.domene.Meldeperioder
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregning
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Dager
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlin.math.ceil
 
 interface MeldekortMother {
 
@@ -39,21 +43,30 @@ interface MeldekortMother {
         fnr: Fnr = Fnr.random(),
         rammevedtakId: VedtakId = VedtakId.random(),
         periode: Periode,
-        meldekortperiode: Meldeperiode.IkkeUtfyltMeldeperiode = ikkeUtfyltMeldekortperiode(
+        meldekortperiode: MeldeperiodeBeregning.IkkeUtfyltMeldeperiode = ikkeUtfyltMeldekortperiode(
             meldekortId = id,
             sakId = sakId,
-            meldeperiode = periode,
+            periode = periode,
         ),
         meldeperiodeId: MeldeperiodeId = MeldeperiodeId.fraPeriode(meldekortperiode.periode),
         saksbehandler: String = "saksbehandler",
         beslutter: String = "beslutter",
         forrigeMeldekortId: MeldekortId? = null,
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
-        status: MeldekortStatus = MeldekortStatus.GODKJENT,
+        status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT,
         navkontor: Navkontor? = null,
         opprettet: LocalDateTime = nå(),
-    ): Meldekort.IkkeUtfyltMeldekort {
-        return Meldekort.IkkeUtfyltMeldekort(
+    ): MeldekortBehandling.IkkeUtfyltMeldekort {
+        val meldeperiode = meldeperiode(
+            periode = periode,
+            id = meldeperiodeId,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+        )
+
+        return MeldekortBehandling.IkkeUtfyltMeldekort(
             id = id,
             meldeperiodeId = meldeperiodeId,
             sakId = sakId,
@@ -61,11 +74,13 @@ interface MeldekortMother {
             fnr = fnr,
             rammevedtakId = rammevedtakId,
             opprettet = opprettet,
-            meldeperiode = meldekortperiode,
+            beregning = meldekortperiode,
             forrigeMeldekortId = forrigeMeldekortId,
             tiltakstype = tiltakstype,
             navkontor = navkontor,
             ikkeRettTilTiltakspengerTidspunkt = null,
+            meldeperiode = meldeperiode,
+            brukersMeldekort = null,
         )
     }
 
@@ -75,24 +90,33 @@ interface MeldekortMother {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         fnr: Fnr = Fnr.random(),
         rammevedtakId: VedtakId = VedtakId.random(),
-        meldekortperiode: Meldeperiode.UtfyltMeldeperiode =
+        meldekortperiodeBeregning: MeldeperiodeBeregning.UtfyltMeldeperiode =
             utfyltMeldekortperiode(
                 meldekortId = id,
                 sakId = sakId,
             ),
-        meldeperiodeId: MeldeperiodeId = MeldeperiodeId.fraPeriode(meldekortperiode.periode),
+        meldeperiodeId: MeldeperiodeId = MeldeperiodeId.fraPeriode(meldekortperiodeBeregning.periode),
         saksbehandler: String = "saksbehandler",
         beslutter: String = "beslutter",
         forrigeMeldekortId: MeldekortId? = null,
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
-        status: MeldekortStatus = MeldekortStatus.GODKJENT,
+        status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT,
         iverksattTidspunkt: LocalDateTime? = nå(),
         navkontor: Navkontor = ObjectMother.navkontor(),
         antallDagerForMeldeperiode: Int = 10,
         opprettet: LocalDateTime = nå(),
         sendtTilBeslutning: LocalDateTime = nå(),
-    ): Meldekort.UtfyltMeldekort {
-        return Meldekort.UtfyltMeldekort(
+        meldeperiode: Meldeperiode = meldeperiode(
+            periode = meldekortperiodeBeregning.periode,
+            id = meldeperiodeId,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+        ),
+
+    ): MeldekortBehandling.UtfyltMeldekort {
+        return MeldekortBehandling.UtfyltMeldekort(
             id = id,
             meldeperiodeId = meldeperiodeId,
             sakId = sakId,
@@ -100,7 +124,7 @@ interface MeldekortMother {
             fnr = fnr,
             rammevedtakId = rammevedtakId,
             opprettet = opprettet,
-            meldeperiode = meldekortperiode,
+            beregning = meldekortperiodeBeregning,
             saksbehandler = saksbehandler,
             sendtTilBeslutning = sendtTilBeslutning,
             beslutter = beslutter,
@@ -110,7 +134,8 @@ interface MeldekortMother {
             iverksattTidspunkt = iverksattTidspunkt,
             navkontor = navkontor,
             ikkeRettTilTiltakspengerTidspunkt = null,
-            sendtTilMeldekortApi = null,
+            meldeperiode = meldeperiode,
+            brukersMeldekort = null,
         )
     }
 
@@ -123,8 +148,8 @@ interface MeldekortMother {
         meldekortId: MeldekortId = MeldekortId.random(),
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         maksDagerMedTiltakspengerForPeriode: Int = 10,
-    ): Meldeperiode.UtfyltMeldeperiode {
-        return Meldeperiode.UtfyltMeldeperiode(
+    ): MeldeperiodeBeregning.UtfyltMeldeperiode {
+        return MeldeperiodeBeregning.UtfyltMeldeperiode(
             sakId = sakId,
             maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
             dager = maksAntallDeltattTiltaksdagerIMeldekortperiode(startDato, meldekortId, tiltakstype),
@@ -136,17 +161,22 @@ interface MeldekortMother {
      */
     fun ikkeUtfyltMeldekortperiode(
         sakId: SakId = SakId.random(),
-        meldeperiode: Periode,
+        periode: Periode,
         startDato: LocalDate = LocalDate.of(2023, 1, 2),
         meldekortId: MeldekortId = MeldekortId.random(),
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         maksDagerMedTiltakspengerForPeriode: Int = 10,
         utfallsperioder: Periodisering<AvklartUtfallForPeriode> = Periodisering(
             initiellVerdi = AvklartUtfallForPeriode.OPPFYLT,
-            totalePeriode = meldeperiode,
+            totalePeriode = periode,
         ),
-    ): Meldeperiode.IkkeUtfyltMeldeperiode {
-        return Meldeperiode.IkkeUtfyltMeldeperiode.fraPeriode(
+    ): MeldeperiodeBeregning.IkkeUtfyltMeldeperiode {
+        val meldeperiode = meldeperiode(
+            periode = periode,
+            sakId = sakId,
+        )
+
+        return MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
             sakId = sakId,
             maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
             meldeperiode = meldeperiode,
@@ -161,7 +191,7 @@ interface MeldekortMother {
         startDato: LocalDate,
         meldekortId: MeldekortId,
         tiltakstype: TiltakstypeSomGirRett,
-    ): NonEmptyList<Meldekortdag.Utfylt> {
+    ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
         return (
             tiltaksdager(startDato, meldekortId, tiltakstype) +
                 ikkeTiltaksdager(startDato.plusDays(5), meldekortId, 2, tiltakstype) +
@@ -175,12 +205,12 @@ interface MeldekortMother {
         meldekortId: MeldekortId = MeldekortId.random(),
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         antallDager: Int = 5,
-    ): NonEmptyList<Meldekortdag.Utfylt.Deltatt.DeltattUtenLønnITiltaket> {
+    ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket> {
         require(antallDager in 1..5) {
             "Antall sammenhengende dager vil aldri være mer mindre enn 1 eller mer enn 5, men var $antallDager"
         }
         return List(antallDager) { index ->
-            Meldekortdag.Utfylt.Deltatt.DeltattUtenLønnITiltaket.create(
+            MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket.create(
                 dato = startDato.plusDays(index.toLong()),
                 meldekortId = meldekortId,
                 tiltakstype = tiltakstype,
@@ -193,12 +223,12 @@ interface MeldekortMother {
         meldekortId: MeldekortId = MeldekortId.random(),
         antallDager: Int = 2,
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
-    ): NonEmptyList<Meldekortdag.Utfylt.IkkeDeltatt> {
+    ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt> {
         require(antallDager in 1..5) {
             "Antall sammenhengende dager vil aldri være mer mindre enn 1 eller mer enn 5, men var $antallDager"
         }
         return List(antallDager) { index ->
-            Meldekortdag.Utfylt.IkkeDeltatt.create(
+            MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt.create(
                 dato = startDato.plusDays(index.toLong()),
                 meldekortId = meldekortId,
                 tiltakstype = tiltakstype,
@@ -219,7 +249,7 @@ interface MeldekortMother {
             totalePeriode = vurderingsperiode,
         ),
         navkontor: Navkontor = ObjectMother.navkontor(),
-    ): Meldeperioder {
+    ): MeldekortBehandlinger {
         val kommandoer = meldeperioder.map { meldeperiode ->
             SendMeldekortTilBeslutterKommando(
                 sakId = sakId,
@@ -258,11 +288,20 @@ interface MeldekortMother {
         meldeperiodeId: MeldeperiodeId = MeldeperiodeId.fraPeriode(kommando.periode),
         utfallsperioder: Periodisering<AvklartUtfallForPeriode>,
         navkontor: Navkontor = ObjectMother.navkontor(),
-    ): Pair<Meldeperioder, Meldekort.UtfyltMeldekort> {
-        return Meldeperioder(
+    ): Pair<MeldekortBehandlinger, MeldekortBehandling.UtfyltMeldekort> {
+        val meldeperiode = meldeperiode(
+            periode = kommando.periode,
+            id = meldeperiodeId,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+        )
+
+        return MeldekortBehandlinger(
             tiltakstype = tiltakstype,
             verdi = nonEmptyListOf(
-                Meldekort.IkkeUtfyltMeldekort(
+                MeldekortBehandling.IkkeUtfyltMeldekort(
                     id = meldekortId,
                     meldeperiodeId = meldeperiodeId,
                     sakId = sakId,
@@ -273,21 +312,23 @@ interface MeldekortMother {
                     opprettet = opprettet,
                     tiltakstype = tiltakstype,
                     navkontor = navkontor,
-                    meldeperiode = Meldeperiode.IkkeUtfyltMeldeperiode.fraPeriode(
+                    beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
                         sakId = sakId,
-                        meldeperiode = kommando.periode,
+                        meldeperiode = meldeperiode,
                         utfallsperioder = utfallsperioder,
                         tiltakstype = tiltakstype,
                         meldekortId = meldekortId,
                         maksDagerMedTiltakspengerForPeriode = kommando.dager.size,
                     ),
                     ikkeRettTilTiltakspengerTidspunkt = null,
+                    meldeperiode = meldeperiode,
+                    brukersMeldekort = null,
                 ),
             ),
         ).sendTilBeslutter(kommando).getOrFail()
     }
 
-    fun Meldeperioder.beregnNesteMeldekort(
+    fun MeldekortBehandlinger.beregnNesteMeldekort(
         vurderingsperiode: Periode,
         kommando: SendMeldekortTilBeslutterKommando,
         fnr: Fnr,
@@ -295,7 +336,7 @@ interface MeldekortMother {
         meldeperiodeId: MeldeperiodeId = MeldeperiodeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
         opprettet: LocalDateTime = nå(),
-    ): Meldeperioder {
+    ): MeldekortBehandlinger {
         val meldekortId = kommando.meldekortId
         val sakId = kommando.sakId
         val rammevedtakId = VedtakId.random()
@@ -304,9 +345,18 @@ interface MeldekortMother {
             initiellVerdi = AvklartUtfallForPeriode.OPPFYLT,
             totalePeriode = vurderingsperiode,
         )
-        return Meldeperioder(
+        val meldeperiode = meldeperiode(
+            periode = kommando.periode,
+            id = meldeperiodeId,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+        )
+
+        return MeldekortBehandlinger(
             tiltakstype = tiltakstype,
-            verdi = this.verdi + Meldekort.IkkeUtfyltMeldekort(
+            verdi = this.verdi + MeldekortBehandling.IkkeUtfyltMeldekort(
                 id = meldekortId,
                 meldeperiodeId = meldeperiodeId,
                 sakId = sakId,
@@ -317,43 +367,84 @@ interface MeldekortMother {
                 opprettet = opprettet,
                 tiltakstype = tiltakstype,
                 navkontor = navkontor,
-                meldeperiode = Meldeperiode.IkkeUtfyltMeldeperiode.fraPeriode(
+                beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
                     sakId = sakId,
-                    meldeperiode = kommando.periode,
+                    meldeperiode = meldeperiode,
                     utfallsperioder = utfallsperioder,
                     tiltakstype = tiltakstype,
                     meldekortId = meldekortId,
                     maksDagerMedTiltakspengerForPeriode = kommando.dager.size,
                 ),
                 ikkeRettTilTiltakspengerTidspunkt = null,
+                meldeperiode = meldeperiode,
+                brukersMeldekort = null,
             ),
         ).sendTilBeslutter(kommando).getOrFail().first
     }
+
+    fun meldeperiode(
+        periode: Periode = ObjectMother.vurderingsperiode(),
+        id: MeldeperiodeId = MeldeperiodeId.fraPeriode(periode),
+        hendelseId: HendelseId = HendelseId.random(),
+        sakId: SakId = SakId.random(),
+        versjon: Hendelsesversjon = Hendelsesversjon.ny(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+        fnr: Fnr = Fnr.random(),
+        opprettet: LocalDateTime = nå(),
+        antallDagerForPeriode: Int = 10,
+        girRett: Map<LocalDate, Boolean> = buildMap {
+            val perUke = ceil(antallDagerForPeriode / 2.0).toInt()
+            (0 until perUke).forEach { day ->
+                put(periode.fraOgMed.plusDays(day.toLong()), true)
+            }
+            (perUke until 7).forEach { day ->
+                put(periode.fraOgMed.plusDays(day.toLong()), false)
+            }
+            (8 until antallDagerForPeriode).forEach { day ->
+                put(periode.fraOgMed.plusDays(day.toLong()), true)
+            }
+            (antallDagerForPeriode until 14).forEach { day ->
+                put(periode.fraOgMed.plusDays(day.toLong()), false)
+            }
+        },
+    ): Meldeperiode = Meldeperiode(
+        id = id,
+        hendelseId = hendelseId,
+        versjon = versjon,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        opprettet = opprettet,
+        periode = periode,
+        antallDagerForPeriode = antallDagerForPeriode,
+        girRett = girRett,
+        sendtTilMeldekortApi = null,
+    )
 }
 
-fun Meldekort.IkkeUtfyltMeldekort.tilSendMeldekortTilBeslutterKommando(
+fun MeldekortBehandling.IkkeUtfyltMeldekort.tilSendMeldekortTilBeslutterKommando(
     saksbehandler: Saksbehandler,
     navkontor: Navkontor = this.navkontor ?: ObjectMother.navkontor(),
 ): SendMeldekortTilBeslutterKommando {
-    val dager = meldeperiode.map { dag ->
+    val dager = beregning.map { dag ->
         Dager.Dag(
             dag = dag.dato,
             status = when (dag) {
-                is Meldekortdag.IkkeUtfylt -> if (dag.dato.erHelg()) {
+                is MeldeperiodeBeregningDag.IkkeUtfylt -> if (dag.dato.erHelg()) {
                     SendMeldekortTilBeslutterKommando.Status.IKKE_DELTATT
                 } else {
                     SendMeldekortTilBeslutterKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
                 }
 
-                is Meldekortdag.Utfylt -> when (dag) {
-                    is Meldekortdag.Utfylt.Deltatt.DeltattMedLønnITiltaket -> SendMeldekortTilBeslutterKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
-                    is Meldekortdag.Utfylt.Deltatt.DeltattUtenLønnITiltaket -> SendMeldekortTilBeslutterKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
-                    is Meldekortdag.Utfylt.Fravær.Syk.SykBruker -> SendMeldekortTilBeslutterKommando.Status.FRAVÆR_SYK
-                    is Meldekortdag.Utfylt.Fravær.Syk.SyktBarn -> SendMeldekortTilBeslutterKommando.Status.FRAVÆR_SYKT_BARN
-                    is Meldekortdag.Utfylt.Fravær.Velferd.VelferdGodkjentAvNav -> SendMeldekortTilBeslutterKommando.Status.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-                    is Meldekortdag.Utfylt.Fravær.Velferd.VelferdIkkeGodkjentAvNav -> SendMeldekortTilBeslutterKommando.Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-                    is Meldekortdag.Utfylt.IkkeDeltatt -> SendMeldekortTilBeslutterKommando.Status.IKKE_DELTATT
-                    is Meldekortdag.Utfylt.Sperret -> SendMeldekortTilBeslutterKommando.Status.SPERRET
+                is MeldeperiodeBeregningDag.Utfylt -> when (dag) {
+                    is MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattMedLønnITiltaket -> SendMeldekortTilBeslutterKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
+                    is MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket -> SendMeldekortTilBeslutterKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
+                    is MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SykBruker -> SendMeldekortTilBeslutterKommando.Status.FRAVÆR_SYK
+                    is MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SyktBarn -> SendMeldekortTilBeslutterKommando.Status.FRAVÆR_SYKT_BARN
+                    is MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdGodkjentAvNav -> SendMeldekortTilBeslutterKommando.Status.FRAVÆR_VELFERD_GODKJENT_AV_NAV
+                    is MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdIkkeGodkjentAvNav -> SendMeldekortTilBeslutterKommando.Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
+                    is MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt -> SendMeldekortTilBeslutterKommando.Status.IKKE_DELTATT
+                    is MeldeperiodeBeregningDag.Utfylt.Sperret -> SendMeldekortTilBeslutterKommando.Status.SPERRET
                 }
             },
         )

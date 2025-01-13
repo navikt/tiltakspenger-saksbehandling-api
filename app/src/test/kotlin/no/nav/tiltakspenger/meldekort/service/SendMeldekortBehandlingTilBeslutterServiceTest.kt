@@ -21,7 +21,7 @@ import no.nav.tiltakspenger.objectmothers.førstegangsbehandlingIverksatt
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-internal class SendMeldekortTilBeslutterServiceTest {
+internal class SendMeldekortBehandlingTilBeslutterServiceTest {
 
     @Test
     fun `En meldeperiode kan ikke være 1 dag`() {
@@ -30,7 +30,7 @@ internal class SendMeldekortTilBeslutterServiceTest {
             with(TestApplicationContext()) {
                 val tac = this
                 val sak = this.førstegangsbehandlingIverksatt(correlationId = correlationId)
-                val ikkeUtfyltMeldekort = sak.meldeperioder.ikkeUtfyltMeldekort!!
+                val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.ikkeUtfyltMeldekort!!
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
                     SendMeldekortTilBeslutterKommando(
                         sakId = sak.id,
@@ -62,7 +62,7 @@ internal class SendMeldekortTilBeslutterServiceTest {
                     periode = Periode(3.januar(2023), 31.januar(2023)),
                     correlationId = correlationId,
                 )
-                val ikkeUtfyltMeldekort = sak.meldeperioder.ikkeUtfyltMeldekort!!
+                val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.ikkeUtfyltMeldekort!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed.minusDays(1)
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
                     SendMeldekortTilBeslutterKommando(
@@ -107,7 +107,7 @@ internal class SendMeldekortTilBeslutterServiceTest {
                     periode = Periode(3.januar(2023), 31.januar(2023)),
                     correlationId = correlationId,
                 )
-                val ikkeUtfyltMeldekort = sak.meldeperioder.ikkeUtfyltMeldekort!!
+                val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.ikkeUtfyltMeldekort!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
                     SendMeldekortTilBeslutterKommando(
@@ -152,7 +152,7 @@ internal class SendMeldekortTilBeslutterServiceTest {
                     periode = Periode(3.januar(2023), 31.januar(2023)),
                     correlationId = correlationId,
                 )
-                val ikkeUtfyltMeldekort = sak.meldeperioder.ikkeUtfyltMeldekort!!
+                val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.ikkeUtfyltMeldekort!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
                     SendMeldekortTilBeslutterKommando(
@@ -196,7 +196,7 @@ internal class SendMeldekortTilBeslutterServiceTest {
                     periode = Periode(3.januar(2023), 31.januar(2023)),
                     correlationId = correlationId,
                 )
-                val ikkeUtfyltMeldekort = sak.meldeperioder.ikkeUtfyltMeldekort!!
+                val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.ikkeUtfyltMeldekort!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
                     SendMeldekortTilBeslutterKommando(
@@ -240,7 +240,7 @@ internal class SendMeldekortTilBeslutterServiceTest {
                     periode = Periode(3.januar(2023), 31.januar(2023)),
                     correlationId = correlationId,
                 )
-                val ikkeUtfyltMeldekort = sak.meldeperioder.ikkeUtfyltMeldekort!!
+                val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.ikkeUtfyltMeldekort!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
                     SendMeldekortTilBeslutterKommando(

@@ -1,14 +1,12 @@
 package no.nav.tiltakspenger.meldekort.ports
 
-import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.meldekort.domene.Meldekort
-import java.time.LocalDateTime
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 
 interface MeldekortRepo {
 
     fun lagre(
-        meldekort: Meldekort,
+        meldekort: MeldekortBehandling,
         transactionContext: TransactionContext? = null,
     )
 
@@ -16,11 +14,7 @@ interface MeldekortRepo {
      * TODO jah: Slå sammen lagre og oppdater til en metode.
      */
     fun oppdater(
-        meldekort: Meldekort,
+        meldekort: MeldekortBehandling,
         transactionContext: TransactionContext? = null,
     )
-
-    fun hentUsendteTilBruker(): List<Meldekort>
-
-    fun markerSomSendtTilBruker(meldekortId: MeldekortId, tidspunkt: LocalDateTime)
 }
