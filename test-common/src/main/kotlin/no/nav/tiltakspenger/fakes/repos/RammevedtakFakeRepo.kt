@@ -28,10 +28,10 @@ class RammevedtakFakeRepo : RammevedtakRepo {
         data.get()[vedtak.id] = vedtak
     }
 
-    override fun hentForFnr(fnr: Fnr): List<Rammevedtak> = data.get().values.filter { it.behandling.fnr == fnr }
+    override fun hentForFnr(fnr: Fnr): List<Rammevedtak> = data.get().values.filter { it.behandling.fnr == fnr }.sortedBy { it.opprettet }
 
     override fun hentRammevedtakSomSkalJournalføres(limit: Int): List<Rammevedtak> {
-        return data.get().values.filter { it.journalpostId == null }.take(limit)
+        return data.get().values.filter { it.journalpostId == null }.sortedBy { it.opprettet }.take(limit)
     }
 
     override fun markerJournalført(
@@ -55,14 +55,14 @@ class RammevedtakFakeRepo : RammevedtakRepo {
     }
 
     override fun hentRammevedtakTilDatadeling(limit: Int): List<Rammevedtak> {
-        return data.get().values.filter { it.sendtTilDatadeling == null }.take(limit)
+        return data.get().values.filter { it.sendtTilDatadeling == null }.sortedBy { it.opprettet }.take(limit)
     }
 
     override fun markerSendtTilDatadeling(id: VedtakId, tidspunkt: LocalDateTime) {
         data.get()[id] = data.get()[id]!!.copy(sendtTilDatadeling = tidspunkt)
     }
 
-    fun hentForSakId(sakId: SakId): Vedtaksliste = data.get().values.filter { it.behandling.sakId == sakId }.let {
+    fun hentForSakId(sakId: SakId): Vedtaksliste = data.get().values.filter { it.behandling.sakId == sakId }.sortedBy { it.opprettet }.let {
         Vedtaksliste(it)
     }
 

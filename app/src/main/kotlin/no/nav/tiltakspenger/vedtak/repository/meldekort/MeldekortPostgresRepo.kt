@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.vedtak.repository.meldekort
 import arrow.core.toNonEmptyListOrNull
 import kotliquery.Row
 import kotliquery.Session
+import no.nav.tiltakspenger.felles.HendelseId
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -117,7 +118,7 @@ class MeldekortPostgresRepo(
                     "navkontor" to meldekort.navkontor?.kontornummer,
                     "iverksatt_tidspunkt" to meldekort.iverksattTidspunkt,
                     "sendt_til_beslutning" to meldekort.sendtTilBeslutning,
-                    "meldeperiode_hendelse_id" to meldekort.meldeperiode.hendelseId,
+                    "meldeperiode_hendelse_id" to meldekort.meldeperiode.hendelseId.toString(),
                 ).asUpdate,
             )
         }
@@ -142,7 +143,6 @@ class MeldekortPostgresRepo(
                     """
                     select
                       m.*,
-                      mp.*,
                       s.ident as fnr,
                       s.saksnummer,
                       (b.stønadsdager -> 'registerSaksopplysning' ->> 'antallDager')::int as antall_dager_per_meldeperiode
@@ -150,13 +150,10 @@ class MeldekortPostgresRepo(
                     join sak s on s.id = m.sak_id
                     join rammevedtak r on r.id = m.rammevedtak_id
                     join behandling b on b.id = r.behandling_id
-                    join meldeperiode mp on m.meldeperiode_hendelse_id = mp.hendelse_id
                     where m.id = :id
                     """,
                     "id" to meldekortId.toString(),
-                ).map { row ->
-                    fromRow(row)
-                }.asSingle,
+                ).map { fromRow(it, session) }.asSingle,
             )
         }
 
@@ -169,7 +166,6 @@ class MeldekortPostgresRepo(
                     """
                     select
                       m.*,
-                      mp.*,
                       s.ident as fnr,
                       s.saksnummer,
                       (b.stønadsdager -> 'registerSaksopplysning' ->> 'antallDager')::int as antall_dager_per_meldeperiode
@@ -177,17 +173,17 @@ class MeldekortPostgresRepo(
                     join sak s on s.id = m.sak_id
                     join rammevedtak r on r.id = m.rammevedtak_id
                     join behandling b on b.id = r.behandling_id
-                    join meldeperiode mp on m.meldeperiode_hendelse_id = mp.hendelse_id
                     where s.id = :sakId
                     order by m.fra_og_med
                     """,
                     "sakId" to sakId.toString(),
-                ).map { fromRow(it) }.asList,
+                ).map { fromRow(it, session) }.asList,
             ).let { it.toNonEmptyListOrNull()?.tilMeldekortperioder() }
         }
 
         private fun fromRow(
             row: Row,
+            session: Session,
         ): MeldekortBehandling {
             val id = MeldekortId.fromString(row.string("id"))
             val sakId = SakId.fromString(row.string("sak_id"))
@@ -199,7 +195,11 @@ class MeldekortPostgresRepo(
             val forrigeMeldekortId = row.stringOrNull("forrige_meldekort_id")?.let { MeldekortId.fromString(it) }
             val maksDagerMedTiltakspengerForPeriode = row.int("antall_dager_per_meldeperiode")
             val opprettet = row.localDateTime("opprettet")
-            val meldeperiode = MeldeperiodePostgresRepo.fromRow(row)
+
+            val hendelseId = HendelseId.fromString(row.string("meldeperiode_hendelse_id"))
+            val meldeperiode = MeldeperiodePostgresRepo.hentForHendelseId(hendelseId, session)
+
+            requireNotNull(meldeperiode) { "Fant ingen meldeperiode for $hendelseId tilknyttet meldekortbehandling $id" }
 
             return when (val status = row.string("status").toMeldekortStatus()) {
                 MeldekortBehandlingStatus.GODKJENT, MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> {

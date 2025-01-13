@@ -14,7 +14,9 @@ import no.nav.tiltakspenger.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.meldekort.domene.KanIkkeIverksetteMeldekort
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.meldekort.domene.opprettNesteMeldeperiode
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
+import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
@@ -25,6 +27,7 @@ import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
 class IverksettMeldekortService(
     val sakService: SakService,
     val meldekortRepo: MeldekortRepo,
+    val meldeperiodeRepo: MeldeperiodeRepo,
     val sessionFactory: SessionFactory,
     private val tilgangsstyringService: TilgangsstyringService,
     private val personService: PersonService,
@@ -49,11 +52,11 @@ class IverksettMeldekortService(
         require(meldekort.beslutter == null && meldekort.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING) {
             "Meldekort $meldekortId er allerede iverksatt"
         }
-        val rammevedtak = sak.vedtaksliste
-            ?: throw IllegalArgumentException("Fant ikke rammevedtak for sak $sakId")
+
+        val nesteMeldeperiode = sak.opprettNesteMeldeperiode() ?: throw IllegalArgumentException("Kunne ikke opprette ny meldeperiode for sak $sakId")
 
         return meldekort.iverksettMeldekort(kommando.beslutter).onRight { iverksattMeldekort ->
-            val nesteMeldekort = iverksattMeldekort.opprettNesteMeldekort(rammevedtak.utfallsperioder)
+            val nesteMeldekort = iverksattMeldekort.opprettNesteMeldekortBehandling(sak.vedtaksliste.utfallsperioder, nesteMeldeperiode)
             val eksisterendeUtbetalingsvedtak = sak.utbetalinger
             val utbetalingsvedtak = iverksattMeldekort.opprettUtbetalingsvedtak(
                 saksnummer = sak.saksnummer,
@@ -61,9 +64,13 @@ class IverksettMeldekortService(
                 eksisterendeUtbetalingsvedtak.lastOrNull()?.id,
             )
             val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()
+
             sessionFactory.withTransactionContext { tx ->
                 meldekortRepo.oppdater(iverksattMeldekort, tx)
-                nesteMeldekort.onRight { meldekortRepo.lagre(it, tx) }
+                nesteMeldekort.onRight {
+                    meldekortRepo.lagre(it, tx)
+                    meldeperiodeRepo.lagre(it.meldeperiode)
+                }
                 utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
                 statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             }

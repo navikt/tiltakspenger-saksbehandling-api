@@ -36,9 +36,16 @@ open class MeldekortContext(
             sessionFactory = sessionFactory as PostgresSessionFactory,
         )
     }
+    val meldeperiodeRepo: MeldeperiodeRepo by lazy {
+        MeldeperiodePostgresRepo(
+            sessionFactory = sessionFactory as PostgresSessionFactory,
+        )
+    }
+
     val iverksettMeldekortService by lazy {
         IverksettMeldekortService(
             meldekortRepo = meldekortRepo,
+            meldeperiodeRepo = meldeperiodeRepo,
             sessionFactory = sessionFactory,
             sakService = sakService,
             utbetalingsvedtakRepo = utbetalingsvedtakRepo,
@@ -56,11 +63,6 @@ open class MeldekortContext(
         )
     }
 
-    val meldeperiodeRepo: MeldeperiodeRepo by lazy {
-        MeldeperiodePostgresRepo(
-            sessionFactory = sessionFactory as PostgresSessionFactory,
-        )
-    }
     private val meldekortApiHttpClient by lazy {
         MeldekortApiHttpClient(
             baseUrl = Configuration.meldekortApiUrl,

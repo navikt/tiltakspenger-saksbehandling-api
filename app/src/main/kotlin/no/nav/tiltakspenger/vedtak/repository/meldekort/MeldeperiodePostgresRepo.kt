@@ -131,6 +131,23 @@ internal class MeldeperiodePostgresRepo(
     }
 
     companion object {
+        internal fun hentForHendelseId(
+            hendelseId: HendelseId,
+            session: Session,
+        ): Meldeperiode? {
+            return session.run(
+                sqlQuery(
+                    """
+                    select m.*,s.saksnummer,s.ident as fnr 
+                    from meldeperiode m 
+                    join sak s on s.id = m.sak_id 
+                    where m.hendelse_id = :hendelse_id
+                    """,
+                    "hendelse_id" to hendelseId.toString(),
+                ).map { row -> fromRow(row) }.asSingle,
+            )
+        }
+
         internal fun hentForSakId(
             sakId: SakId,
             session: Session,
@@ -174,7 +191,7 @@ internal class MeldeperiodePostgresRepo(
             }
         }
 
-        fun fromRow(row: Row): Meldeperiode {
+        private fun fromRow(row: Row): Meldeperiode {
             return Meldeperiode(
                 id = MeldeperiodeId(row.string("id")),
                 versjon = Hendelsesversjon(row.int("versjon")),
