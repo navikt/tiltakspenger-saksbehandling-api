@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
@@ -124,17 +123,15 @@ sealed interface MeldekortBehandling {
          * TODO post-mvp jah: Ved revurderinger av rammevedtaket, så må vi basere oss på både forrige meldekort og revurderingsvedtaket. Dette løser vi å flytte mer logikk til Sak.kt.
          * TODO post-mvp jah: Når vi implementerer delvis innvilgelse vil hele meldekortperioder kunne bli SPERRET.
          */
-        fun opprettNesteMeldekort(
+        fun opprettNesteMeldekortBehandling(
             utfallsperioder: Periodisering<AvklartUtfallForPeriode>,
+            nesteMeldeperiode: Meldeperiode,
         ): Either<SisteMeldekortErUtfylt, IkkeUtfyltMeldekort> {
-            val periode = Periode(fraOgMed.plusDays(14), tilOgMed.plusDays(14))
-            if (periode.tilOgMed.isAfter(utfallsperioder.totalePeriode.tilOgMed)) {
-                return SisteMeldekortErUtfylt.left()
-            }
             val meldekortId = MeldekortId.random()
+
             return IkkeUtfyltMeldekort(
                 id = meldekortId,
-                meldeperiodeId = meldeperiode.id,
+                meldeperiodeId = nesteMeldeperiode.id,
                 sakId = this.sakId,
                 saksnummer = this.saksnummer,
                 fnr = this.fnr,
@@ -144,7 +141,7 @@ sealed interface MeldekortBehandling {
                 tiltakstype = this.tiltakstype,
                 navkontor = this.navkontor,
                 beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
-                    meldeperiode = meldeperiode,
+                    meldeperiode = nesteMeldeperiode,
                     tiltakstype = this.tiltakstype,
                     meldekortId = meldekortId,
                     sakId = this.sakId,
@@ -153,7 +150,7 @@ sealed interface MeldekortBehandling {
                 ),
                 ikkeRettTilTiltakspengerTidspunkt = null,
                 brukersMeldekort = null,
-                meldeperiode = meldeperiode,
+                meldeperiode = nesteMeldeperiode,
             ).right()
         }
 
@@ -287,10 +284,9 @@ sealed interface MeldekortBehandling {
     }
 }
 
-fun Rammevedtak.opprettFørsteMeldekortBehandling(sak: Sak): MeldekortBehandling {
+fun Rammevedtak.opprettFørsteMeldekortBehandling(meldeperiode: Meldeperiode): MeldekortBehandling.IkkeUtfyltMeldekort {
     val meldekortId = MeldekortId.random()
     val tiltakstype = this.behandling.vilkårssett.tiltakDeltagelseVilkår.registerSaksopplysning.tiltakstype
-    val meldeperiode = sak.opprettFørsteMeldeperiode()
 
     return MeldekortBehandling.IkkeUtfyltMeldekort(
         id = meldekortId,
