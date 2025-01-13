@@ -69,7 +69,7 @@ class IverksettMeldekortService(
                 meldekortRepo.oppdater(iverksattMeldekort, tx)
                 nesteMeldekort.onRight {
                     meldekortRepo.lagre(it, tx)
-                    meldeperiodeRepo.lagre(it.meldeperiode)
+                    meldeperiodeRepo.lagre(it.meldeperiode, tx)
                 }
                 utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
                 statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
