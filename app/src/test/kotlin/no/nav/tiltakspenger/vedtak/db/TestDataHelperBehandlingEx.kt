@@ -241,5 +241,6 @@ internal fun TestDataHelper.persisterRammevedtakMedUtfyltMeldekort(
             saksnummer = sak.saksnummer,
         )
     meldekortRepo.lagre(utfyltMeldekort)
+    meldeperiodeRepo.lagre(utfyltMeldekort.meldeperiode)
     return Pair(sakRepo.hentForSakId(sakId)!!, utfyltMeldekort)
 }
