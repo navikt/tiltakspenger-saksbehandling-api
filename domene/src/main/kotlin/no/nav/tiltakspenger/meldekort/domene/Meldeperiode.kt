@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
@@ -38,13 +39,32 @@ data class Meldeperiode(
 )
 
 fun Sak.opprettFørsteMeldeperiode(): Meldeperiode {
-    requireNotNull(this.vedtaksliste.førstegangsvedtak) { "Kan ikke opprette meldeperiode uten førstegangsvedtak" }
-    requireNotNull(this.vedtaksperiode) { "Kan ikke opprette meldeperiode uten en vedtaksperiode" }
+    requireNotNull(this.vedtaksliste.førstegangsvedtak) { "Kan ikke opprette første meldeperiode uten førstegangsvedtak" }
+    requireNotNull(this.vedtaksperiode) { "Kan ikke opprette første meldeperiode uten en vedtaksperiode" }
 
     val periode = finnFørsteMeldekortsperiode(this.vedtaksperiode)
     val utfallsperioder = this.vedtaksliste.førstegangsvedtak.utfallsperioder
 
-    return Meldeperiode(
+    return this.opprettMeldeperiode(periode, utfallsperioder)
+}
+
+fun Sak.opprettNesteMeldeperiode(): Meldeperiode? {
+    require(this.vedtaksliste.isNotEmpty()) { "Vedtaksliste kan ikke være tom" }
+
+    val siste = this.meldeperiodeKjeder.hentSisteMeldeperiod()
+    // TODO: sjekk at det finnes en gyldig neste periode
+    val nestePeriode = Periode(siste.periode.fraOgMed.plusDays(14), siste.periode.tilOgMed.plusDays(14))
+
+    val utfallsperioder = this.vedtaksliste.utfallsperioder
+    if (nestePeriode.tilOgMed.isAfter(utfallsperioder.totalePeriode.tilOgMed)) {
+        return null
+    }
+
+    return this.opprettMeldeperiode(nestePeriode, utfallsperioder)
+}
+
+private fun Sak.opprettMeldeperiode(periode: Periode, utfallsperioder: Periodisering<AvklartUtfallForPeriode>?): Meldeperiode {
+    val meldeperiode = Meldeperiode(
         id = MeldeperiodeId.fraPeriode(periode),
         hendelseId = HendelseId.random(),
         fnr = this.fnr,
@@ -55,10 +75,12 @@ fun Sak.opprettFørsteMeldeperiode(): Meldeperiode {
         opprettet = nå(),
         versjon = Hendelsesversjon.ny(),
         girRett = periode.tilDager().associateWith {
-            (utfallsperioder.hentVerdiForDag(it) == AvklartUtfallForPeriode.OPPFYLT)
+            (utfallsperioder?.hentVerdiForDag(it) == AvklartUtfallForPeriode.OPPFYLT)
         },
         sendtTilMeldekortApi = null,
     )
+
+    return meldeperiode
 }
 
 private fun finnFørsteMeldekortsperiode(periode: Periode): Periode {

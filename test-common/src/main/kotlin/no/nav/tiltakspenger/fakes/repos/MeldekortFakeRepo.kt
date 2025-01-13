@@ -33,6 +33,7 @@ class MeldekortFakeRepo : MeldekortRepo {
             .get()
             .values
             .filter { it.sakId == sakId }
+            .sortedBy { it.opprettet }
             .let { meldekort ->
                 meldekort.firstOrNull()?.let {
                     MeldekortBehandlinger(it.tiltakstype, meldekort)
