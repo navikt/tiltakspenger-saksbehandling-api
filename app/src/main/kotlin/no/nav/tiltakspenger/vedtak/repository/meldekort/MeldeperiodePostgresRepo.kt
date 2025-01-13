@@ -70,9 +70,9 @@ internal class MeldeperiodePostgresRepo(
         }
     }
 
-    fun hentForSakId(
+    override fun hentForSakId(
         sakId: SakId,
-        sessionContext: SessionContext? = null,
+        sessionContext: SessionContext?,
     ): MeldeperiodeKjeder {
         return sessionFactory.withSession(sessionContext) { session ->
             Companion.hentForSakId(sakId, session)

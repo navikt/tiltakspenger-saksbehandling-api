@@ -118,6 +118,7 @@ class TestApplicationContext(
             behandlingRepo = behandlingFakeRepo,
             rammevedtakRepo = rammevedtakFakeRepo,
             meldekortRepo = meldekortFakeRepo,
+            meldeperiodeRepo = meldeperiodeFakeRepo,
             utbetalingsvedtakRepo = utbetalingsvedtakFakeRepo,
         )
 
@@ -186,6 +187,7 @@ class TestApplicationContext(
                 entraIdSystemtokenClient = entraIdSystemtokenClient,
             ) {
             override val meldekortRepo = meldekortFakeRepo
+            override val meldeperiodeRepo = meldeperiodeFakeRepo
         }
     }
 
