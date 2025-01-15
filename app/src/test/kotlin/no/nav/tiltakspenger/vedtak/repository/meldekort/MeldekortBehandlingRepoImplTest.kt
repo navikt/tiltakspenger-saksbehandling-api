@@ -51,16 +51,6 @@ class MeldekortBehandlingRepoImplTest {
 
             val nesteMeldeperiode = oppdatertSak.opprettNesteMeldeperiode()!!
             val nesteMeldekort = oppdatertSak.opprettMeldekortBehandling(nesteMeldeperiode)
-//                meldekort.opprettNesteMeldekortBehandling(
-//                    Periodisering(
-//                        AvklartUtfallForPeriode.OPPFYLT,
-//                        Periode(
-//                            fraOgMed = meldekort.periode.fraOgMed.plusWeeks(2),
-//                            tilOgMed = meldekort.periode.tilOgMed.plusWeeks(2),
-//                        ),
-//                    ),
-//                    nesteMeldeperiode,
-//                ).getOrFail()
 
             meldeperiodeRepo.lagre(nesteMeldeperiode)
             meldekortRepo.lagre(nesteMeldekort)
@@ -79,7 +69,7 @@ class MeldekortBehandlingRepoImplTest {
     @Test
     fun `kan oppdatere`() {
         withMigratedDb { testDataHelper ->
-            val (sak, vedtak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sak, _) = testDataHelper.persisterIverksattFørstegangsbehandling(
                 deltakelseFom = 1.januar(2024),
                 deltakelseTom = 31.mars(2024),
             )

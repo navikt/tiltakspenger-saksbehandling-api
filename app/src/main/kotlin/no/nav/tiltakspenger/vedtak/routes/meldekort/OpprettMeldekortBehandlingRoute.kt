@@ -8,6 +8,7 @@ import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.meldekort.service.OpprettMeldekortBehandlingService
+import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.withMeldeperiodeHendelseId
@@ -36,7 +37,13 @@ fun Route.opprettMeldekortBehandlingRoute(
                         correlationId = correlationId,
                     )
 
-                    auditService.logMedMeldeperiodeHendelseId()
+                    auditService.logMedSakId(
+                        sakId = sakId,
+                        navIdent = saksbehandler.navIdent,
+                        action = AuditLogEvent.Action.CREATE,
+                        contextMessage = "Oppretter meldekort-behandling",
+                        correlationId = correlationId,
+                    )
 
                     call.respond(status = HttpStatusCode.OK, message = "Ok!")
                 }

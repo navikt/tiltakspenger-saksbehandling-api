@@ -40,7 +40,7 @@ class OpprettMeldekortBehandlingService(
         val meldekortBehandling = sak.opprettMeldekortBehandling(meldeperiode)
 
         sessionFactory.withTransactionContext { tx ->
-            meldekortRepo.lagre(meldekortBehandling)
+            meldekortRepo.lagre(meldekortBehandling, tx)
         }
     }
 }
