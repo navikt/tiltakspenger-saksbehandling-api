@@ -23,7 +23,9 @@ class MeldeperiodePostgresRepoTest {
             val meldeperiodeRepo = testDataHelper.meldeperiodeRepo
             meldeperiodeRepo.lagre(meldeperiode)
 
-            meldeperiodeRepo.hentForSakId(meldeperiode.sakId) shouldBe MeldeperiodeKjeder(
+            val meldeperioder = meldeperiodeRepo.hentForSakId(meldeperiode.sakId)
+
+            meldeperioder shouldBe MeldeperiodeKjeder(
                 listOf(MeldeperiodeKjede(nonEmptyListOf(meldeperiode))),
             )
         }

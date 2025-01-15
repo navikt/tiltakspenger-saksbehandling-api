@@ -322,6 +322,8 @@ fun Sak.opprettMeldekortBehandling(meldeperiode: Meldeperiode): MeldekortBehandl
     val vedtak = this.vedtaksliste.førstegangsvedtak
     requireNotNull(vedtak) { "Kan ikke opprette meldekortbehandling uten et førstegangsvedtak" }
 
+    val forrigeMeldekortBehandling = this.meldekortBehandlinger.sisteGodkjenteMeldekort
+
     return MeldekortBehandling.IkkeUtfyltMeldekort(
         id = meldekortId,
         sakId = this.id,
@@ -329,11 +331,11 @@ fun Sak.opprettMeldekortBehandling(meldeperiode: Meldeperiode): MeldekortBehandl
         rammevedtakId = vedtak.id,
         fnr = this.fnr,
         opprettet = nå(),
-        // Trenger vi denne? Hvis så kan den ikke alltid være null!
-        // Den brukes kun til å hente ut nav-kontor fra forrige behandling tror jeg
-        forrigeMeldekortId = null,
+        // Trenger vi denne?  Den brukes kun til å hente ut nav-kontor fra forrige behandling tror jeg, kanskje det kan løses på en annen måte?
+        // (Dette blir vel uansett feil dersom meldekort noen gang behandles i "feil" rekkefølge)
+        forrigeMeldekortId = forrigeMeldekortBehandling?.id,
         // Hent denne fra pdl/norg2 når funksjonaliteten for det er på plass
-        navkontor = null,
+        navkontor = forrigeMeldekortBehandling?.navkontor,
         ikkeRettTilTiltakspengerTidspunkt = null,
         brukersMeldekort = null,
         meldeperiode = meldeperiode,
