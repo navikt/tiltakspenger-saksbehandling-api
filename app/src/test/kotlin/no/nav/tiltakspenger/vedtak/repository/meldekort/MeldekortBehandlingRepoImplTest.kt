@@ -5,14 +5,11 @@ import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.mars
 import no.nav.tiltakspenger.libs.common.getOrFail
-import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
-import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
+import no.nav.tiltakspenger.meldekort.domene.opprettMeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.opprettNesteMeldeperiode
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
 import no.nav.tiltakspenger.vedtak.db.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.vedtak.db.withMigratedDb
 import org.junit.jupiter.api.Test
@@ -53,17 +50,17 @@ class MeldekortBehandlingRepoImplTest {
             val oppdatertSak = sakRepo.hentForSakId(sak.id)!!
 
             val nesteMeldeperiode = oppdatertSak.opprettNesteMeldeperiode()!!
-            val nesteMeldekort =
-                meldekort.opprettNesteMeldekortBehandling(
-                    Periodisering(
-                        AvklartUtfallForPeriode.OPPFYLT,
-                        Periode(
-                            fraOgMed = meldekort.periode.fraOgMed.plusWeeks(2),
-                            tilOgMed = meldekort.periode.tilOgMed.plusWeeks(2),
-                        ),
-                    ),
-                    nesteMeldeperiode,
-                ).getOrFail()
+            val nesteMeldekort = oppdatertSak.opprettMeldekortBehandling(nesteMeldeperiode)
+//                meldekort.opprettNesteMeldekortBehandling(
+//                    Periodisering(
+//                        AvklartUtfallForPeriode.OPPFYLT,
+//                        Periode(
+//                            fraOgMed = meldekort.periode.fraOgMed.plusWeeks(2),
+//                            tilOgMed = meldekort.periode.tilOgMed.plusWeeks(2),
+//                        ),
+//                    ),
+//                    nesteMeldeperiode,
+//                ).getOrFail()
 
             meldeperiodeRepo.lagre(nesteMeldeperiode)
             meldekortRepo.lagre(nesteMeldekort)
@@ -87,7 +84,7 @@ class MeldekortBehandlingRepoImplTest {
                 deltakelseTom = 31.mars(2024),
             )
             val meldeperiode = sak.opprettFørsteMeldeperiode()
-            val meldekortBehandling = vedtak.opprettFørsteMeldekortBehandling(meldeperiode)
+            val meldekortBehandling = sak.opprettMeldekortBehandling(meldeperiode)
 
             val meldekortRepo = testDataHelper.meldekortRepo
             val meldeperiodeRepo = testDataHelper.meldeperiodeRepo

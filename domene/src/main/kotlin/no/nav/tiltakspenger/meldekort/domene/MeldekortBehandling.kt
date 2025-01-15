@@ -74,7 +74,6 @@ sealed interface MeldekortBehandling {
      */
     data class UtfyltMeldekort(
         override val id: MeldekortId,
-        override val meldeperiodeId: MeldeperiodeId,
         override val sakId: SakId,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
@@ -132,7 +131,6 @@ sealed interface MeldekortBehandling {
 
             return IkkeUtfyltMeldekort(
                 id = meldekortId,
-                meldeperiodeId = nesteMeldeperiode.id,
                 sakId = this.sakId,
                 saksnummer = this.saksnummer,
                 fnr = this.fnr,
@@ -190,7 +188,6 @@ sealed interface MeldekortBehandling {
 
     data class IkkeUtfyltMeldekort(
         override val id: MeldekortId,
-        override val meldeperiodeId: MeldeperiodeId,
         override val sakId: SakId,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
@@ -230,7 +227,6 @@ sealed interface MeldekortBehandling {
             }
             return UtfyltMeldekort(
                 id = this.id,
-                meldeperiodeId = this.meldeperiodeId,
                 sakId = this.sakId,
                 saksnummer = this.saksnummer,
                 fnr = this.fnr,
@@ -291,7 +287,6 @@ fun Rammevedtak.opprettFørsteMeldekortBehandling(meldeperiode: Meldeperiode): M
 
     return MeldekortBehandling.IkkeUtfyltMeldekort(
         id = meldekortId,
-        meldeperiodeId = meldeperiode.id,
         sakId = this.sakId,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
@@ -315,16 +310,20 @@ fun Rammevedtak.opprettFørsteMeldekortBehandling(meldeperiode: Meldeperiode): M
     )
 }
 
+/**
+ * (TODO'er fra tidligere implementasjon!)
+ * TODO post-mvp jah: Ved revurderinger av rammevedtaket, så må vi basere oss på både forrige meldekort og revurderingsvedtaket. Dette løser vi å flytte mer logikk til Sak.kt.
+ * TODO post-mvp jah: Når vi implementerer delvis innvilgelse vil hele meldekortperioder kunne bli SPERRET.
+ */
 fun Sak.opprettMeldekortBehandling(meldeperiode: Meldeperiode): MeldekortBehandling.IkkeUtfyltMeldekort {
     val meldekortId = MeldekortId.random()
 
-    // Kan vi alltid bruke førstegangsvedtaket?
+    // Kan vi alltid bruke førstegangsvedtaket? (antagelig ikke på sikt i hvertfall!)
     val vedtak = this.vedtaksliste.førstegangsvedtak
     requireNotNull(vedtak) { "Kan ikke opprette meldekortbehandling uten et førstegangsvedtak" }
 
     return MeldekortBehandling.IkkeUtfyltMeldekort(
         id = meldekortId,
-        meldeperiodeId = meldeperiode.id,
         sakId = this.id,
         saksnummer = this.saksnummer,
         rammevedtakId = vedtak.id,
@@ -333,7 +332,7 @@ fun Sak.opprettMeldekortBehandling(meldeperiode: Meldeperiode): MeldekortBehandl
         // Trenger vi denne? Hvis så kan den ikke alltid være null!
         // Den brukes kun til å hente ut nav-kontor fra forrige behandling tror jeg
         forrigeMeldekortId = null,
-        // Hent denne fra pdl/norg2 når funksjonaliten for det er på plass
+        // Hent denne fra pdl/norg2 når funksjonaliteten for det er på plass
         navkontor = null,
         ikkeRettTilTiltakspengerTidspunkt = null,
         brukersMeldekort = null,
@@ -344,7 +343,7 @@ fun Sak.opprettMeldekortBehandling(meldeperiode: Meldeperiode): MeldekortBehandl
             tiltakstype = vedtak.behandling.tiltakstype,
             meldekortId = meldekortId,
             sakId = this.id,
-            utfallsperioder = vedtak.utfallsperioder,
+            utfallsperioder = this.vedtaksliste.utfallsperioder,
             maksDagerMedTiltakspengerForPeriode = vedtak.behandling.maksDagerMedTiltakspengerForPeriode,
         ),
     )
