@@ -8,6 +8,6 @@ data class MeldeperiodeKjeder(val meldeperiodeKjeder: List<MeldeperiodeKjede>) :
     }
 
     fun hentMeldeperiode(id: HendelseId): Meldeperiode? {
-        return this.find { it.hentMeldeperiode(id) != null }?.find { it.hendelseId == id }
+        return this.asSequence().flatten().find { it.hendelseId == id }
     }
 }
