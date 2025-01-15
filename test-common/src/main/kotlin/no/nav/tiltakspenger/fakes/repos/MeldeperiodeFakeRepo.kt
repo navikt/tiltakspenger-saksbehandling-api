@@ -40,4 +40,8 @@ class MeldeperiodeFakeRepo : MeldeperiodeRepo {
             MeldeperiodeKjeder(it)
         }
     }
+
+    override fun hentForHendelseId(hendelseId: HendelseId, sessionContext: SessionContext?): Meldeperiode? {
+        TODO("Not yet implemented")
+    }
 }

@@ -43,7 +43,7 @@ fun Route.hentMeldekortRoute(
                         }
                         return@withMeldekortId
                     }
-                    val meldekort = sak.hentMeldekort(meldekortId)
+                    val meldekort = sak.hentMeldekortBehandling(meldekortId)
 
                     if (meldekort == null) {
                         call.respond404NotFound(fantIkkeMeldekort())
@@ -57,7 +57,7 @@ fun Route.hentMeldekortRoute(
                         return@withMeldekortId
                     }
                     val forrigeMeldekort: MeldekortBehandling.UtfyltMeldekort? =
-                        meldekort.forrigeMeldekortId?.let { sak.hentMeldekort(it) as MeldekortBehandling.UtfyltMeldekort }
+                        meldekort.forrigeMeldekortId?.let { sak.hentMeldekortBehandling(it) as MeldekortBehandling.UtfyltMeldekort }
                     val forrigeNavkontor = forrigeMeldekort?.navkontor
 
                     auditService.logMedMeldekortId(

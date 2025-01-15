@@ -255,6 +255,10 @@ class AuditService(
         }.onLeft { logg.error { "Det oppstod en feil ved auditlogging" } }
     }
 
+    fun logMedMeldeperiodeHendelseId() {
+        // TODO: auditlogging goes here!
+    }
+
     fun logMedSakId(
         sakId: SakId,
         navIdent: String,

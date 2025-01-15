@@ -78,6 +78,12 @@ internal class MeldeperiodePostgresRepo(
         }
     }
 
+    override fun hentForHendelseId(hendelseId: HendelseId, sessionContext: SessionContext?): Meldeperiode? {
+        return sessionFactory.withSession(sessionContext) { session ->
+            Companion.hentForHendelseId(hendelseId, session)
+        }
+    }
+
     override fun hentUsendteTilBruker(): List<Meldeperiode> {
         return sessionFactory.withSession { session ->
             session.run(
@@ -128,7 +134,10 @@ internal class MeldeperiodePostgresRepo(
             return session.run(
                 sqlQuery(
                     """
-                    select m.*,s.saksnummer,s.ident as fnr 
+                    select 
+                        m.*,
+                        s.saksnummer,
+                        s.ident as fnr 
                     from meldeperiode m 
                     join sak s on s.id = m.sak_id 
                     where m.hendelse_id = :hendelse_id
@@ -145,14 +154,20 @@ internal class MeldeperiodePostgresRepo(
             return session.run(
                 sqlQuery(
                     """
-                    select m.*,s.saksnummer,s.ident as fnr 
+                    select
+                        m.*,
+                        s.saksnummer,
+                        s.ident as fnr,
+                        mk.id as meldekort_behandling_id
                     from meldeperiode m 
-                    join sak s on s.id = m.sak_id 
+                    join sak s on s.id = m.sak_id
+                    join meldekort mk on m.hendelse_id = mk.meldeperiode_hendelse_id
                     where m.sak_id = :sak_id
                     """,
                     "sak_id" to sakId.toString(),
                 ).map { row -> fromRow(row) }.asList,
             ).map {
+                // TODO: må kunne hente flere versjoner av samme meldeperiode?
                 MeldeperiodeKjede(nonEmptyListOf(it))
             }.let {
                 MeldeperiodeKjeder(it)

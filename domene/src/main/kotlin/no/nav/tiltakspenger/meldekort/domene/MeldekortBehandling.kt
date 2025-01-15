@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
@@ -302,14 +303,49 @@ fun Rammevedtak.opprettFørsteMeldekortBehandling(meldeperiode: Meldeperiode): M
         navkontor = null,
         beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
             meldeperiode = meldeperiode,
-            utfallsperioder = this.utfallsperioder,
             tiltakstype = tiltakstype,
             meldekortId = meldekortId,
             sakId = this.sakId,
+            utfallsperioder = this.utfallsperioder,
             maksDagerMedTiltakspengerForPeriode = this.behandling.maksDagerMedTiltakspengerForPeriode,
         ),
         ikkeRettTilTiltakspengerTidspunkt = null,
         brukersMeldekort = null,
         meldeperiode = meldeperiode,
+    )
+}
+
+fun Sak.opprettMeldekortBehandling(meldeperiode: Meldeperiode): MeldekortBehandling.IkkeUtfyltMeldekort {
+    val meldekortId = MeldekortId.random()
+
+    // Kan vi alltid bruke førstegangsvedtaket?
+    val vedtak = this.vedtaksliste.førstegangsvedtak
+    requireNotNull(vedtak) { "Kan ikke opprette meldekortbehandling uten et førstegangsvedtak" }
+
+    return MeldekortBehandling.IkkeUtfyltMeldekort(
+        id = meldekortId,
+        meldeperiodeId = meldeperiode.id,
+        sakId = this.id,
+        saksnummer = this.saksnummer,
+        rammevedtakId = vedtak.id,
+        fnr = this.fnr,
+        opprettet = nå(),
+        // Trenger vi denne? Hvis så kan den ikke alltid være null!
+        // Den brukes kun til å hente ut nav-kontor fra forrige behandling tror jeg
+        forrigeMeldekortId = null,
+        // Hent denne fra pdl/norg2 når funksjonaliten for det er på plass
+        navkontor = null,
+        ikkeRettTilTiltakspengerTidspunkt = null,
+        brukersMeldekort = null,
+        meldeperiode = meldeperiode,
+        tiltakstype = vedtak.behandling.tiltakstype,
+        beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
+            meldeperiode = meldeperiode,
+            tiltakstype = vedtak.behandling.tiltakstype,
+            meldekortId = meldekortId,
+            sakId = this.id,
+            utfallsperioder = vedtak.utfallsperioder,
+            maksDagerMedTiltakspengerForPeriode = vedtak.behandling.maksDagerMedTiltakspengerForPeriode,
+        ),
     )
 }

@@ -73,6 +73,7 @@ internal fun Application.vedtakApi(
         meldekortRoutes(
             iverksettMeldekortService = applicationContext.meldekortContext.iverksettMeldekortService,
             sendMeldekortTilBeslutterService = applicationContext.meldekortContext.sendMeldekortTilBeslutterService,
+            opprettMeldekortBehandlingService = applicationContext.meldekortContext.opprettMeldekortBehandlingService,
             auditService = applicationContext.personContext.auditService,
             sakService = applicationContext.sakContext.sakService,
             tokenService = applicationContext.tokenService,

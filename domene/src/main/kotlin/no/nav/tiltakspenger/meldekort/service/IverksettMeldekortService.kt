@@ -46,7 +46,7 @@ class IverksettMeldekortService(
 
         val sak = sakService.hentForSakId(sakId, kommando.beslutter, kommando.correlationId)
             .getOrElse { return KanIkkeIverksetteMeldekort.KunneIkkeHenteSak(it).left() }
-        val meldekort: MeldekortBehandling = sak.hentMeldekort(meldekortId)
+        val meldekort: MeldekortBehandling = sak.hentMeldekortBehandling(meldekortId)
             ?: throw IllegalArgumentException("Fant ikke meldekort med id $meldekortId i sak $sakId")
         meldekort as MeldekortBehandling.UtfyltMeldekort
         require(meldekort.beslutter == null && meldekort.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING) {

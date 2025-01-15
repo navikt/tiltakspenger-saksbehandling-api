@@ -124,12 +124,18 @@ class MeldekortPostgresRepo(
         }
     }
 
-    fun hentForSakId(
+    override fun hentForSakId(
         sakId: SakId,
         sessionContext: SessionContext?,
     ): MeldekortBehandlinger? {
         return sessionFactory.withSession(sessionContext) { session ->
             hentForSakId(sakId, session)
+        }
+    }
+
+    override fun hentForMeldekortId(meldekortId: MeldekortId, sessionContext: SessionContext?): MeldekortBehandling? {
+        return sessionFactory.withSession(sessionContext) { session ->
+            Companion.hentForMeldekortId(meldekortId, session)
         }
     }
 

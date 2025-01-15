@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
 import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
@@ -205,7 +204,7 @@ class BehandlingServiceImpl(
         stønadStatistikk: StatistikkStønadDTO,
     ) {
         val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
-        val førsteMeldekortBehandling = vedtak.opprettFørsteMeldekortBehandling(førsteMeldeperiode)
+//        val førsteMeldekortBehandling = vedtak.opprettFørsteMeldekortBehandling(førsteMeldeperiode)
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
@@ -213,7 +212,7 @@ class BehandlingServiceImpl(
             rammevedtakRepo.lagre(vedtak, tx)
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
-            meldekortRepo.lagre(førsteMeldekortBehandling, tx)
+//            meldekortRepo.lagre(førsteMeldekortBehandling, tx)
             meldeperiodeRepo.lagre(førsteMeldeperiode, tx)
         }
     }
