@@ -204,7 +204,6 @@ class BehandlingServiceImpl(
         stønadStatistikk: StatistikkStønadDTO,
     ) {
         val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
-//        val førsteMeldekortBehandling = vedtak.opprettFørsteMeldekortBehandling(førsteMeldeperiode)
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
@@ -212,7 +211,6 @@ class BehandlingServiceImpl(
             rammevedtakRepo.lagre(vedtak, tx)
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
-//            meldekortRepo.lagre(førsteMeldekortBehandling, tx)
             meldeperiodeRepo.lagre(førsteMeldeperiode, tx)
         }
     }
