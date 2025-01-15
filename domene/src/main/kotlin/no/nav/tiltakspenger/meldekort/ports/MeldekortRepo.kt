@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.meldekort.ports
 
-import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
@@ -26,9 +25,4 @@ interface MeldekortRepo {
         sakId: SakId,
         sessionContext: SessionContext? = null,
     ): MeldekortBehandlinger?
-
-    fun hentForMeldekortId(
-        meldekortId: MeldekortId,
-        sessionContext: SessionContext? = null,
-    ): MeldekortBehandling?
 }

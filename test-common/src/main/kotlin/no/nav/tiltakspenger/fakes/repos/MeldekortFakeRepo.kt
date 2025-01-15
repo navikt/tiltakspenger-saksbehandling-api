@@ -27,10 +27,6 @@ class MeldekortFakeRepo : MeldekortRepo {
         lagre(meldekort, transactionContext)
     }
 
-    override fun hentForMeldekortId(meldekortId: MeldekortId, sessionContext: SessionContext?): MeldekortBehandling? {
-        return data.get()[meldekortId]
-    }
-
     override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): MeldekortBehandlinger? =
         data
             .get()

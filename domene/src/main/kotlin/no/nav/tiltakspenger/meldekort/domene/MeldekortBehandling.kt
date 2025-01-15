@@ -119,10 +119,6 @@ sealed interface MeldekortBehandling {
             }
         }
 
-        /**
-         * TODO post-mvp jah: Ved revurderinger av rammevedtaket, så må vi basere oss på både forrige meldekort og revurderingsvedtaket. Dette løser vi å flytte mer logikk til Sak.kt.
-         * TODO post-mvp jah: Når vi implementerer delvis innvilgelse vil hele meldekortperioder kunne bli SPERRET.
-         */
         fun opprettNesteMeldekortBehandling(
             utfallsperioder: Periodisering<AvklartUtfallForPeriode>,
             nesteMeldeperiode: Meldeperiode,
@@ -294,7 +290,6 @@ fun Rammevedtak.opprettFørsteMeldekortBehandling(meldeperiode: Meldeperiode): M
         forrigeMeldekortId = null,
         opprettet = nå(),
         tiltakstype = tiltakstype,
-        // TODO post-mvp: Her har vi mulighet til å hente verdien fra brukers geografiske tilhørighet + norg2.
         navkontor = null,
         beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
             meldeperiode = meldeperiode,
@@ -318,9 +313,8 @@ fun Rammevedtak.opprettFørsteMeldekortBehandling(meldeperiode: Meldeperiode): M
 fun Sak.opprettMeldekortBehandling(meldeperiode: Meldeperiode): MeldekortBehandling.IkkeUtfyltMeldekort {
     val meldekortId = MeldekortId.random()
 
-    // Kan vi alltid bruke førstegangsvedtaket? (antagelig ikke på sikt i hvertfall!)
-    val vedtak = this.vedtaksliste.førstegangsvedtak
-    requireNotNull(vedtak) { "Kan ikke opprette meldekortbehandling uten et førstegangsvedtak" }
+    // TODO: håndtere flere vedtak
+    val vedtak = this.vedtaksliste.single() as Rammevedtak
 
     // Dette blir vel feil dersom meldekort noen gang behandles i "feil" rekkefølge
     val forrigeMeldekortBehandling = this.meldekortBehandlinger.sisteGodkjenteMeldekort
@@ -334,7 +328,7 @@ fun Sak.opprettMeldekortBehandling(meldeperiode: Meldeperiode): MeldekortBehandl
         opprettet = nå(),
         // Trenger vi denne?  Den brukes kun til å hente ut nav-kontor fra forrige behandling tror jeg, kanskje det kan løses på en annen måte?
         forrigeMeldekortId = forrigeMeldekortBehandling?.id,
-        // Hent denne fra pdl/norg2 når funksjonaliteten for det er på plass
+        // TODO: Hent denne fra pdl/norg2 når funksjonaliteten for det er på plass
         navkontor = forrigeMeldekortBehandling?.navkontor,
         ikkeRettTilTiltakspengerTidspunkt = null,
         brukersMeldekort = null,

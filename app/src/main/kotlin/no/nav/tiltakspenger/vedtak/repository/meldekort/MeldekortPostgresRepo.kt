@@ -132,12 +132,6 @@ class MeldekortPostgresRepo(
         }
     }
 
-    override fun hentForMeldekortId(meldekortId: MeldekortId, sessionContext: SessionContext?): MeldekortBehandling? {
-        return sessionFactory.withSession(sessionContext) { session ->
-            Companion.hentForMeldekortId(meldekortId, session)
-        }
-    }
-
     companion object {
         internal fun hentForMeldekortId(
             meldekortId: MeldekortId,
