@@ -27,9 +27,13 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeHenteBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeIverksetteBehandling
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppdatereTilleggstekstBrev
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppdatereVurderingsperiode
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeUnderkjenne
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.OppdaterTilleggstekstBrevKommando
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.OppdaterVurderingsperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.opprettVedtak
@@ -84,7 +88,7 @@ class BehandlingServiceImpl(
         correlationId: CorrelationId,
         sessionContext: SessionContext?,
     ): Either<KanIkkeHenteBehandling, Behandling> {
-        if (!saksbehandler.erSaksbehandler()) {
+        if (!saksbehandler.erSaksbehandlerEllerBeslutter()) {
             logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å hente behandling" }
             return KanIkkeHenteBehandling.MåVæreSaksbehandlerEllerBeslutter.left()
         }
@@ -92,6 +96,22 @@ class BehandlingServiceImpl(
 
         val behandling = hentBehandlingForSystem(behandlingId, sessionContext)
         return behandling.right()
+    }
+
+    override suspend fun oppdaterVurderingsPeriodeForBehandling(kommando: OppdaterVurderingsperiodeKommando): Either<KanIkkeOppdatereVurderingsperiode, Behandling> {
+        val (behandlingId, periode, correlationId, saksbehandler) = kommando
+        return hentBehandling(behandlingId, saksbehandler, correlationId)
+            .oppdaterVurderingsPeriode(behandlingId, periode, saksbehandler)
+            .onLeft { return it.left() }
+            .onRight { behandlingRepo.lagre(it) }
+    }
+
+    override suspend fun oppdaterTilleggstekstBrevPåBehandling(kommando: OppdaterTilleggstekstBrevKommando): Either<KanIkkeOppdatereTilleggstekstBrev, Behandling> {
+        val (behandlingId, correlationId, saksbehandler, subsumsjon) = kommando
+        return hentBehandling(behandlingId, saksbehandler, correlationId)
+            .oppdaterTilleggstekstBrev(behandlingId, saksbehandler, subsumsjon)
+            .onLeft { return it.left() }
+            .onRight { behandlingRepo.lagre(it) }
     }
 
     override suspend fun sendTilBeslutter(

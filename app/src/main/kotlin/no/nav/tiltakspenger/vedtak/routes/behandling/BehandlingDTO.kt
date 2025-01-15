@@ -21,6 +21,8 @@ internal data class BehandlingDTO(
     val vilkårssett: VilkårssettDTO,
     val stønadsdager: StønadsdagerDTO,
     val attesteringer: List<AttesteringDTO>,
+    val tilleggstekstBrev: TilleggstekstBrevDTO?,
+    val kreverBegrunnelse: Boolean,
 )
 
 internal fun Behandling.toDTO() =
@@ -36,4 +38,6 @@ internal fun Behandling.toDTO() =
         vilkårssett = this.vilkårssett.toDTO(),
         stønadsdager = this.stønadsdager.toDTO(),
         behandlingstype = behandlingstype,
+        tilleggstekstBrev = this.tilleggstekstBrev?.toDTO(),
+        kreverBegrunnelse = this.erBegrunnelsePåkrevd,
     )

@@ -175,6 +175,7 @@ class BehandlingPostgresRepo(
                             "sendt_til_beslutning" to behandling.sendtTilBeslutning,
                             "sendt_til_datadeling" to behandling.sendtTilDatadeling,
                             "behandlingstype" to behandling.behandlingstype.toDbValue(),
+                            "tilleggstekst_brev" to behandling.tilleggstekstBrev?.toDbJson(),
                         ),
                     ).asUpdate,
                 )
@@ -209,6 +210,7 @@ class BehandlingPostgresRepo(
                         "sendt_til_datadeling" to behandling.sendtTilDatadeling,
                         "sist_endret" to behandling.sistEndret,
                         "behandlingstype" to behandling.behandlingstype.toDbValue(),
+                        "tilleggstekst_brev" to behandling.tilleggstekstBrev?.toDbJson(),
                     ),
                 ).asUpdate,
             )
@@ -247,6 +249,7 @@ class BehandlingPostgresRepo(
             val opprettet = localDateTime("opprettet")
             val iverksattTidspunkt = localDateTimeOrNull("iverksatt_tidspunkt")
             val sistEndret = localDateTime("sist_endret")
+            val tilleggstekstBrev = stringOrNull("tilleggstekst_brev")?.toTilleggstekstBrev()
             return Behandling(
                 id = id,
                 sakId = sakId,
@@ -266,6 +269,7 @@ class BehandlingPostgresRepo(
                 sendtTilDatadeling = localDateTimeOrNull("sendt_til_datadeling"),
                 sistEndret = sistEndret,
                 behandlingstype = string("behandlingstype").toBehandlingstype(),
+                tilleggstekstBrev = tilleggstekstBrev,
             )
         }
 
@@ -288,7 +292,8 @@ class BehandlingPostgresRepo(
                 iverksatt_tidspunkt,
                 sendt_til_beslutning,
                 sendt_til_datadeling,
-                behandlingstype
+                behandlingstype,
+                tilleggstekst_brev
             ) values (
                 :id,
                 :sak_id,
@@ -305,7 +310,8 @@ class BehandlingPostgresRepo(
                 :iverksatt_tidspunkt,
                 :sendt_til_beslutning,
                 :sendt_til_datadeling,
-                :behandlingstype
+                :behandlingstype,
+                to_jsonb(:tilleggstekst_brev::jsonb)
             )
             """.trimIndent()
 
@@ -326,7 +332,8 @@ class BehandlingPostgresRepo(
                 iverksatt_tidspunkt = :iverksatt_tidspunkt,
                 sendt_til_beslutning = :sendt_til_beslutning,
                 sendt_til_datadeling = :sendt_til_datadeling,
-                behandlingstype = :behandlingstype
+                behandlingstype = :behandlingstype,
+                tilleggstekst_brev = to_jsonb(:tilleggstekst_brev::jsonb)
             where id = :id
               and sist_endret = :sist_endret_old
             """.trimIndent()

@@ -32,6 +32,16 @@ object Standardfeil {
         "må_være_beslutter_eller_saksbehandler",
     )
 
+    fun nyPeriodeMåVæreInnenforVurderingsperiode(melding: String = "Ny periode må være innenfor opprinnelig vurderingsperiode"): ErrorJson = ErrorJson(
+        melding,
+        "ny_periode_må_være_innenfor_vurderingsperiode",
+    )
+
+    fun behandlingKanIkkeVæreSendtTilBeslutterEllerVedtatt(): ErrorJson = ErrorJson(
+        "Behandlingen kan ikke være sendt til beslutter eller vedtatt.",
+        "behandling_kan_ikke_være_til_beslutning_eller_vedtatt",
+    )
+
     fun saksopplysningsperiodeMåVæreLik(): ErrorJson = ErrorJson(
         "Perioden til saksopplysningen er forskjellig fra vurderingsperioden",
         "saksopplysningsperiode_må_være_lik",

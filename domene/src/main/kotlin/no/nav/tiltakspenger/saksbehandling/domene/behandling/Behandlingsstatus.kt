@@ -19,4 +19,10 @@ enum class Behandlingsstatus {
 
     /** En avsluttet, besluttet behandling. Brukes litt om hverandre med IVERKSATT. En alternativ avsluttet status vil være avbrutt og vil komme på et senere tidspunkt. */
     VEDTATT,
+
+    ;
+
+    fun erUnderBeslutningEllerKonkludert(): Boolean {
+        return listOf(UNDER_BESLUTNING, VEDTATT).any { it == this }
+    }
 }

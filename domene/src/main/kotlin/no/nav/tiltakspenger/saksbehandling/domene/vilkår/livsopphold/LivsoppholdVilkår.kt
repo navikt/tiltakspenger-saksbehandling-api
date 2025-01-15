@@ -60,7 +60,7 @@ data class LivsoppholdVilkår private constructor(
             vurderingsperiode = nyPeriode,
             søknadssaksopplysning = nySøknadSaksopplysning,
             saksbehandlerSaksopplysning = nySaksbehandlerSaksopplysning,
-            avklartSaksopplysning = nySaksbehandlerSaksopplysning ?: nySøknadSaksopplysning,
+            avklartSaksopplysning = nySaksbehandlerSaksopplysning,
         )
     }
 

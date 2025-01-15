@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -60,6 +61,7 @@ data class Behandling(
     val sendtTilDatadeling: LocalDateTime?,
     val sistEndret: LocalDateTime,
     val behandlingstype: Behandlingstype,
+    val tilleggstekstBrev: TilleggstekstBrev? = null,
 ) {
     val erVedtatt: Boolean = status == VEDTATT
     val maksDagerMedTiltakspengerForPeriode: Int = stønadsdager.registerSaksopplysning.antallDager
@@ -77,6 +79,8 @@ data class Behandling(
     val erRevurdering: Boolean = behandlingstype == Behandlingstype.REVURDERING
 
     val erHelePeriodenIkkeOppfylt: Boolean = samletUtfall == SamletUtfall.IKKE_OPPFYLT
+    val erBegrunnelsePåkrevd: Boolean =
+        vurderingsperiode != søknad?.let { Periode(it.tiltak.deltakelseFom, it.tiltak.deltakelseTom) }
 
     companion object {
         private val logger = mu.KotlinLogging.logger { }
@@ -212,6 +216,65 @@ data class Behandling(
                 )
             }
         }
+
+    fun oppdaterVurderingsPeriode(
+        behandlingId: BehandlingId,
+        vurderingsperiode: Periode,
+        saksbehandler: Saksbehandler,
+    ): Either<KanIkkeOppdatereVurderingsperiode, Behandling> {
+        if (!saksbehandler.erSaksbehandler()) {
+            logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å endre vurderingsperiode på behandling $behandlingId" }
+            return KanIkkeOppdatereVurderingsperiode.HarIkkeTilgang(
+                kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER),
+                harRollene = saksbehandler.roller,
+            ).left()
+        }
+
+        if (status.erUnderBeslutningEllerKonkludert()) {
+            logger.warn { "Kan ikke oppdatere vurderingsperiode når behandlingen er i status $status" }
+            return KanIkkeOppdatereVurderingsperiode.BehandlingErSendtTilBeslutterEllerVedtatt(status).left()
+        }
+
+        if (!this.vurderingsperiode.inneholderHele(periode = vurderingsperiode)) {
+            logger.warn { "Kan ikke oppdatere vurderingsperiode fordi innsendt periode er utenfor nåværende vurderingsperiode for behandlingId $behandlingId" }
+            return KanIkkeOppdatereVurderingsperiode.KanKunKrympe(this.vurderingsperiode).left()
+        }
+
+        val vilkårssett = this.vilkårssett.krymp(vurderingsperiode)
+        val stønadsdager = this.stønadsdager.krymp(vurderingsperiode)
+        return this.copy(
+            vurderingsperiode = vurderingsperiode,
+            vilkårssett = vilkårssett,
+            stønadsdager = stønadsdager,
+        ).right()
+    }
+
+    fun oppdaterTilleggstekstBrev(
+        behandlingId: BehandlingId,
+        saksbehandler: Saksbehandler,
+        subsumsjon: TilleggstekstBrev.Subsumsjon,
+    ): Either<KanIkkeOppdatereTilleggstekstBrev, Behandling> {
+        if (!saksbehandler.erSaksbehandler()) {
+            logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å oppdatere tilleggstekst til brev på behandling $behandlingId" }
+            return KanIkkeOppdatereTilleggstekstBrev.HarIkkeTilgang(
+                kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER),
+                harRollene = saksbehandler.roller,
+            ).left()
+        }
+
+        if (status.erUnderBeslutningEllerKonkludert()) {
+            logger.warn { "Kan ikke oppdatere utløsende vilkår når behandlingen er i status $status" }
+            return KanIkkeOppdatereTilleggstekstBrev.BehandlingErSendtTilBeslutterEllerVedtatt(status).left()
+        }
+
+        val tekst = TilleggstekstBrev.hentStandardTekstForBegrunnelse(
+            vurderingsperiode = vurderingsperiode,
+            søknadsperiode = søknad!!.vurderingsperiode(),
+            subsumsjon = subsumsjon,
+        )
+
+        return this.copy(tilleggstekstBrev = TilleggstekstBrev(subsumsjon = subsumsjon, tekst = tekst)).right()
+    }
 
     fun tilBeslutning(saksbehandler: Saksbehandler): Behandling {
         if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING && vilkårssett.samletUtfall != SamletUtfall.OPPFYLT) {

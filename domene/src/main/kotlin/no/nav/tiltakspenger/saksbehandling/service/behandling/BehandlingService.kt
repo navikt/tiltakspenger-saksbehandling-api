@@ -9,9 +9,13 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeHenteBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeIverksetteBehandling
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppdatereTilleggstekstBrev
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppdatereVurderingsperiode
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeUnderkjenne
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.OppdaterTilleggstekstBrevKommando
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.OppdaterVurderingsperiodeKommando
 
 interface BehandlingService {
     /**
@@ -48,6 +52,14 @@ interface BehandlingService {
         correlationId: CorrelationId,
         sessionContext: SessionContext? = null,
     ): Either<KanIkkeHenteBehandling, Behandling>
+
+    suspend fun oppdaterVurderingsPeriodeForBehandling(
+        kommando: OppdaterVurderingsperiodeKommando,
+    ): Either<KanIkkeOppdatereVurderingsperiode, Behandling>
+
+    suspend fun oppdaterTilleggstekstBrevPåBehandling(
+        kommando: OppdaterTilleggstekstBrevKommando,
+    ): Either<KanIkkeOppdatereTilleggstekstBrev, Behandling>
 
     suspend fun sendTilBeslutter(
         behandlingId: BehandlingId,
