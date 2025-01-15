@@ -87,7 +87,7 @@ internal class TestDatabaseManager {
                   statistikk_stønad,
                   statistikk_sak,
                   statistikk_sak_vilkår,
-                  meldekort,
+                  meldekortbehandling,
                   rammevedtak,
                   behandling,
                   sak,

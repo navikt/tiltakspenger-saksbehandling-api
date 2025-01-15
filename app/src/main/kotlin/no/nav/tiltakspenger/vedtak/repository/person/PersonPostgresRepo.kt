@@ -78,7 +78,7 @@ class PersonPostgresRepo(
             session.run(
                 queryOf(
                     """
-                        select sak.ident from meldekort m
+                        select sak.ident from meldekortbehandling m
                         join public.sak sak on sak.id = m.sak_id
                         where m.id = :meldekort_id
                     """.trimMargin(),

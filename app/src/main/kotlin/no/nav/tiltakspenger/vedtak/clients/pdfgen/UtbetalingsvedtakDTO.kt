@@ -58,7 +58,7 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
             fom = periode.fraOgMed.format(norskDatoFormatter),
             tom = periode.tilOgMed.format(norskDatoFormatter),
         ),
-        meldekortDager = meldekort.beregning.dager.map { dag ->
+        meldekortDager = meldekortbehandling.beregning.dager.map { dag ->
             UtbetalingsvedtakDTO.MeldekortDagDTO(
                 dato = dag.dato.format(norskDatoFormatter),
                 tiltakType = dag.tiltakstype.toString(),
@@ -69,7 +69,7 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
             )
         },
         eksternGjennomføringId = eksternGjennomføringId,
-        tiltakstype = meldekort.tiltakstype.name,
+        tiltakstype = meldekortbehandling.tiltakstype.name,
         tiltaksnavn = tiltaksnavn,
         eksternDeltagelseId = eksternDeltagelseId,
         iverksattTidspunkt = opprettet.format(norskTidspunktFormatter),

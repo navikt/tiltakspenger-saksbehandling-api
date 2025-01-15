@@ -22,19 +22,19 @@ data class Utbetalingsvedtak(
     val fnr: Fnr,
     val rammevedtakId: VedtakId,
     val opprettet: LocalDateTime,
-    val meldekort: MeldekortBehandling.UtfyltMeldekort,
+    val meldekortbehandling: MeldekortBehandling.UtfyltMeldekort,
     val forrigeUtbetalingsvedtakId: VedtakId?,
     val sendtTilUtbetaling: LocalDateTime?,
     val journalpostId: JournalpostId?,
     val journalføringstidspunkt: LocalDateTime?,
 ) {
-    val periode = meldekort.periode
-    val beløpTotal = meldekort.beløpTotal
-    val meldekortId = meldekort.id
-    val meldeperiodeId = meldekort.meldeperiodeId
-    val saksbehandler: String = meldekort.saksbehandler
-    val beslutter: String = meldekort.beslutter!!
-    val brukerNavkontor: Navkontor = meldekort.navkontor
+    val periode = meldekortbehandling.periode
+    val beløpTotal = meldekortbehandling.beløpTotal
+    val meldekortId = meldekortbehandling.id
+    val meldeperiodeId = meldekortbehandling.meldeperiodeId
+    val saksbehandler: String = meldekortbehandling.saksbehandler
+    val beslutter: String = meldekortbehandling.beslutter!!
+    val brukerNavkontor: Navkontor = meldekortbehandling.navkontor
 }
 
 fun MeldekortBehandling.UtfyltMeldekort.opprettUtbetalingsvedtak(
@@ -49,7 +49,7 @@ fun MeldekortBehandling.UtfyltMeldekort.opprettUtbetalingsvedtak(
         saksnummer = saksnummer,
         fnr = fnr,
         rammevedtakId = this.rammevedtakId,
-        meldekort = this,
+        meldekortbehandling = this,
         forrigeUtbetalingsvedtakId = forrigeUtbetalingsvedtak,
         sendtTilUtbetaling = null,
         journalpostId = null,

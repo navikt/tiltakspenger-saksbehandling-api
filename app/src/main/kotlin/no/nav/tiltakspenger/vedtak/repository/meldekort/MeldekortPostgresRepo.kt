@@ -34,7 +34,7 @@ class MeldekortPostgresRepo(
             tx.run(
                 sqlQuery(
                     """
-                    insert into meldekort (
+                    insert into meldekortbehandling (
                         id,
                         forrige_meldekort_id,
                         meldeperiode_id,
@@ -99,7 +99,7 @@ class MeldekortPostgresRepo(
             tx.run(
                 sqlQuery(
                     """
-                    update meldekort set 
+                    update meldekortbehandling set
                         meldekortdager = to_jsonb(:meldekortdager::jsonb),
                         saksbehandler = :saksbehandler,
                         beslutter = :beslutter,
@@ -146,7 +146,7 @@ class MeldekortPostgresRepo(
                       s.ident as fnr,
                       s.saksnummer,
                       (b.stønadsdager -> 'registerSaksopplysning' ->> 'antallDager')::int as antall_dager_per_meldeperiode
-                    from meldekort m
+                    from meldekortbehandling m
                     join sak s on s.id = m.sak_id
                     join rammevedtak r on r.id = m.rammevedtak_id
                     join behandling b on b.id = r.behandling_id
@@ -169,7 +169,7 @@ class MeldekortPostgresRepo(
                       s.ident as fnr,
                       s.saksnummer,
                       (b.stønadsdager -> 'registerSaksopplysning' ->> 'antallDager')::int as antall_dager_per_meldeperiode
-                    from meldekort m
+                    from meldekortbehandling m
                     join sak s on s.id = m.sak_id
                     join rammevedtak r on r.id = m.rammevedtak_id
                     join behandling b on b.id = r.behandling_id
@@ -256,7 +256,7 @@ class MeldekortPostgresRepo(
                     )
                 }
 
-                else -> throw IllegalStateException("Ukjent meldekortstatus $status for meldekort $id")
+                else -> throw IllegalStateException("Ukjent meldekortstatus $status for meldekortbehandling $id")
             }
         }
     }
