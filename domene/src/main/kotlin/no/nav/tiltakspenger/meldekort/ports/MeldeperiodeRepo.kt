@@ -22,4 +22,9 @@ interface MeldeperiodeRepo {
         sakId: SakId,
         sessionContext: SessionContext? = null,
     ): MeldeperiodeKjeder
+
+    fun hentForHendelseId(
+        hendelseId: HendelseId,
+        sessionContext: SessionContext? = null,
+    ): Meldeperiode?
 }

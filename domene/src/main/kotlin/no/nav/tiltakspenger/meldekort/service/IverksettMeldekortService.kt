@@ -46,17 +46,14 @@ class IverksettMeldekortService(
 
         val sak = sakService.hentForSakId(sakId, kommando.beslutter, kommando.correlationId)
             .getOrElse { return KanIkkeIverksetteMeldekort.KunneIkkeHenteSak(it).left() }
-        val meldekort: MeldekortBehandling = sak.hentMeldekort(meldekortId)
+        val meldekort: MeldekortBehandling = sak.hentMeldekortBehandling(meldekortId)
             ?: throw IllegalArgumentException("Fant ikke meldekort med id $meldekortId i sak $sakId")
         meldekort as MeldekortBehandling.UtfyltMeldekort
         require(meldekort.beslutter == null && meldekort.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING) {
             "Meldekort $meldekortId er allerede iverksatt"
         }
 
-        val nesteMeldeperiode = sak.opprettNesteMeldeperiode() ?: throw IllegalArgumentException("Kunne ikke opprette ny meldeperiode for sak $sakId")
-
         return meldekort.iverksettMeldekort(kommando.beslutter).onRight { iverksattMeldekort ->
-            val nesteMeldekort = iverksattMeldekort.opprettNesteMeldekortBehandling(sak.vedtaksliste.utfallsperioder, nesteMeldeperiode)
             val eksisterendeUtbetalingsvedtak = sak.utbetalinger
             val utbetalingsvedtak = iverksattMeldekort.opprettUtbetalingsvedtak(
                 saksnummer = sak.saksnummer,
@@ -67,9 +64,9 @@ class IverksettMeldekortService(
 
             sessionFactory.withTransactionContext { tx ->
                 meldekortRepo.oppdater(iverksattMeldekort, tx)
-                nesteMeldekort.onRight {
-                    meldekortRepo.lagre(it, tx)
-                    meldeperiodeRepo.lagre(it.meldeperiode, tx)
+                // Kanskje vi burde opprette alle meldeperioder for en vedtaksperiode fra starten av?
+                sak.opprettNesteMeldeperiode()?.let {
+                    meldeperiodeRepo.lagre(it, tx)
                 }
                 utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
                 statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)

@@ -19,6 +19,8 @@ import java.time.temporal.TemporalAdjusters
 data class Meldeperiode(
     val id: MeldeperiodeId,
     val hendelseId: HendelseId,
+
+    // Hva bruker vi egentlig denne til?
     val versjon: HendelseVersjon,
 
     val periode: Periode,
@@ -51,7 +53,7 @@ fun Sak.opprettFørsteMeldeperiode(): Meldeperiode {
 fun Sak.opprettNesteMeldeperiode(): Meldeperiode? {
     require(this.vedtaksliste.isNotEmpty()) { "Vedtaksliste kan ikke være tom" }
 
-    val siste = this.meldeperiodeKjeder.hentSisteMeldeperiod()
+    val siste = this.meldeperiodeKjeder.hentSisteMeldeperiode()
     // TODO: sjekk at det finnes en gyldig neste periode
     val nestePeriode = Periode(siste.periode.fraOgMed.plusDays(14), siste.periode.tilOgMed.plusDays(14))
 

@@ -8,6 +8,7 @@ import mu.KotlinLogging
 import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
@@ -51,6 +52,18 @@ internal suspend inline fun ApplicationCall.withMeldekortId(
         parse = MeldekortId::fromString,
         errorMessage = "Ugyldig meldekort id",
         errorCode = "ugyldig_meldekort_id",
+        onSuccess = onRight,
+    )
+}
+
+internal suspend inline fun ApplicationCall.withMeldeperiodeHendelseId(
+    crossinline onRight: suspend (HendelseId) -> Unit,
+) {
+    withValidParam(
+        paramName = "hendelseId",
+        parse = HendelseId::fromString,
+        errorMessage = "Ugyldig hendelse id",
+        errorCode = "ugyldig_hendelse_id",
         onSuccess = onRight,
     )
 }

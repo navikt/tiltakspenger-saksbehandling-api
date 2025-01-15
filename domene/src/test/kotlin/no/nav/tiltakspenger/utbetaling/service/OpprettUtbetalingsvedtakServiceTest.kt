@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.objectmothers.meldekortIverksatt
+import no.nav.tiltakspenger.objectmothers.andreMeldekortIverksatt
 import no.nav.tiltakspenger.objectmothers.tilSendMeldekortTilBeslutterKommando
 import kotlin.test.Test
 
@@ -17,7 +17,7 @@ internal class OpprettUtbetalingsvedtakServiceTest {
     @Test
     fun `neste utbetalingsvedtak peker på forrige`() = runTest {
         with(TestApplicationContext()) {
-            val sak = this.meldekortIverksatt()
+            val sak = this.andreMeldekortIverksatt()
             val sakId = sak.id
             meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
                 (sak.meldekortBehandlinger[1] as MeldekortBehandling.IkkeUtfyltMeldekort).tilSendMeldekortTilBeslutterKommando(ObjectMother.saksbehandler()),
