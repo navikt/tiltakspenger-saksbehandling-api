@@ -157,11 +157,9 @@ internal class MeldeperiodePostgresRepo(
                     select
                         m.*,
                         s.saksnummer,
-                        s.ident as fnr,
-                        mk.id as meldekort_behandling_id
+                        s.ident as fnr
                     from meldeperiode m 
                     join sak s on s.id = m.sak_id
-                    join meldekort mk on m.hendelse_id = mk.meldeperiode_hendelse_id
                     where m.sak_id = :sak_id
                     """,
                     "sak_id" to sakId.toString(),
