@@ -7,6 +7,7 @@ import io.ktor.server.routing.post
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
+import no.nav.tiltakspenger.meldekort.service.KanIkkeOppretteMeldekortBehandling
 import no.nav.tiltakspenger.meldekort.service.OpprettMeldekortBehandlingService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
@@ -35,17 +36,26 @@ fun Route.opprettMeldekortBehandlingRoute(
                         sakId = sakId,
                         saksbehandler = saksbehandler,
                         correlationId = correlationId,
-                    )
+                    ).fold(
+                        {
+                            when (it) {
+                                is KanIkkeOppretteMeldekortBehandling.IkkeTilgangTilSak -> call.respond(HttpStatusCode.Forbidden)
+                                is KanIkkeOppretteMeldekortBehandling.BehandlingFinnes -> call.respond(HttpStatusCode.Conflict)
+                                is KanIkkeOppretteMeldekortBehandling.IngenMeldeperiode -> call.respond(HttpStatusCode.BadRequest)
+                            }
+                        },
+                        {
+                            auditService.logMedSakId(
+                                sakId = sakId,
+                                navIdent = saksbehandler.navIdent,
+                                action = AuditLogEvent.Action.CREATE,
+                                contextMessage = "Oppretter meldekort-behandling",
+                                correlationId = correlationId,
+                            )
 
-                    auditService.logMedSakId(
-                        sakId = sakId,
-                        navIdent = saksbehandler.navIdent,
-                        action = AuditLogEvent.Action.CREATE,
-                        contextMessage = "Oppretter meldekort-behandling",
-                        correlationId = correlationId,
+                            call.respond(status = HttpStatusCode.OK, message = "Ok!")
+                        },
                     )
-
-                    call.respond(status = HttpStatusCode.OK, message = "Ok!")
                 }
             }
         }

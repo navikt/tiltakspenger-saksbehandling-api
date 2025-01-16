@@ -1,6 +1,9 @@
 package no.nav.tiltakspenger.meldekort.service
 
+import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.HendelseId
@@ -23,27 +26,39 @@ class OpprettMeldekortBehandlingService(
         sakId: SakId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ) {
-        logger.info { "Oppretter behandling av $hendelseId på sak $sakId" }
-
+    ): Either<KanIkkeOppretteMeldekortBehandling, Unit> {
         val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId).getOrElse {
-            throw IllegalArgumentException("Kunne ikke hente sak med id $sakId")
+            logger.error { "Kunne ikke hente sak med id $sakId" }
+            return KanIkkeOppretteMeldekortBehandling.IkkeTilgangTilSak.left()
         }.also {
             if (it.hentMeldekortBehandling(hendelseId) != null) {
-                throw IllegalStateException("Det finnes allerede en behandling av $hendelseId: ${it.id}")
+                logger.error { "Det finnes allerede en behandling av $hendelseId: ${it.id}" }
+                return KanIkkeOppretteMeldekortBehandling.BehandlingFinnes.left()
             }
         }
 
         val meldeperiode = sak.hentMeldeperiode(hendelseId = hendelseId)
-            ?: throw IllegalArgumentException("Fant ingen meldeperiode med id $hendelseId for sak $sakId")
+        if (meldeperiode == null) {
+            logger.error { "Fant ingen meldeperiode med id $hendelseId for sak $sakId" }
+            return KanIkkeOppretteMeldekortBehandling.IngenMeldeperiode.left()
+        }
 
         // TODO: Hent denne fra pdl/norg2 når funksjonaliteten for det er på plass
         val navkontor = sak.meldekortBehandlinger.sisteGodkjenteMeldekort?.navkontor
-
         val meldekortBehandling = sak.opprettMeldekortBehandling(meldeperiode, navkontor)
 
         sessionFactory.withTransactionContext { tx ->
             meldekortRepo.lagre(meldekortBehandling, tx)
         }
+
+        logger.info { "Opprettet behandling av meldeperiode $hendelseId for sak $sakId" }
+
+        return Unit.right()
     }
+}
+
+sealed interface KanIkkeOppretteMeldekortBehandling {
+    data object IkkeTilgangTilSak : KanIkkeOppretteMeldekortBehandling
+    data object BehandlingFinnes : KanIkkeOppretteMeldekortBehandling
+    data object IngenMeldeperiode : KanIkkeOppretteMeldekortBehandling
 }
