@@ -126,6 +126,7 @@ sealed interface MeldekortBehandling {
         fun opprettNesteMeldekortBehandling(
             utfallsperioder: Periodisering<AvklartUtfallForPeriode>,
             nesteMeldeperiode: Meldeperiode,
+            oppfolgingsenhet: Navkontor,
         ): Either<SisteMeldekortErUtfylt, IkkeUtfyltMeldekort> {
             val meldekortId = MeldekortId.random()
 
@@ -139,7 +140,7 @@ sealed interface MeldekortBehandling {
                 forrigeMeldekortId = this.id,
                 opprettet = nå(),
                 tiltakstype = this.tiltakstype,
-                navkontor = this.navkontor,
+                navkontor = oppfolgingsenhet,
                 beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
                     meldeperiode = nesteMeldeperiode,
                     tiltakstype = this.tiltakstype,
@@ -213,7 +214,6 @@ sealed interface MeldekortBehandling {
         fun sendTilBeslutter(
             utfyltMeldeperiode: MeldeperiodeBeregning.UtfyltMeldeperiode,
             saksbehandler: Saksbehandler,
-            navkontor: Navkontor,
         ): Either<KanIkkeSendeMeldekortTilBeslutter, UtfyltMeldekort> {
             require(utfyltMeldeperiode.periode == this.periode) {
                 "Når man fyller ut et meldekort må meldekortperioden være den samme som den som er opprettet. Opprettet periode: ${this.beregning.periode}, utfylt periode: ${utfyltMeldeperiode.periode}"
@@ -243,7 +243,7 @@ sealed interface MeldekortBehandling {
                 beslutter = this.beslutter,
                 status = MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING,
                 iverksattTidspunkt = null,
-                navkontor = navkontor,
+                navkontor = this.navkontor!!,
                 ikkeRettTilTiltakspengerTidspunkt = null,
                 brukersMeldekort = brukersMeldekort,
                 meldeperiode = meldeperiode,
@@ -284,7 +284,10 @@ sealed interface MeldekortBehandling {
     }
 }
 
-fun Rammevedtak.opprettFørsteMeldekortBehandling(meldeperiode: Meldeperiode): MeldekortBehandling.IkkeUtfyltMeldekort {
+fun Rammevedtak.opprettFørsteMeldekortBehandling(
+    meldeperiode: Meldeperiode,
+    oppfolgingsenhet: Navkontor,
+): MeldekortBehandling.IkkeUtfyltMeldekort {
     val meldekortId = MeldekortId.random()
     val tiltakstype = this.behandling.vilkårssett.tiltakDeltagelseVilkår.registerSaksopplysning.tiltakstype
 
@@ -298,8 +301,7 @@ fun Rammevedtak.opprettFørsteMeldekortBehandling(meldeperiode: Meldeperiode): M
         forrigeMeldekortId = null,
         opprettet = nå(),
         tiltakstype = tiltakstype,
-        // TODO post-mvp: Her har vi mulighet til å hente verdien fra brukers geografiske tilhørighet + norg2.
-        navkontor = null,
+        navkontor = oppfolgingsenhet,
         beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
             meldeperiode = meldeperiode,
             utfallsperioder = this.utfallsperioder,
