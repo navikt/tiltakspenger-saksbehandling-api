@@ -20,6 +20,9 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
+import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
+import no.nav.tiltakspenger.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
@@ -416,6 +419,36 @@ interface MeldekortMother {
         girRett = girRett,
         sendtTilMeldekortApi = null,
     )
+
+    /**
+     * @param meldeperiode Hvis denne sendes inn, bør [sakId] og [mottatt] også sendes inn.
+     */
+    fun brukersMeldekort(
+        id: MeldekortId = MeldekortId.random(),
+        mottatt: LocalDateTime = LocalDateTime.now(),
+        sakId: SakId = SakId.random(),
+        meldeperiode: Meldeperiode = meldeperiode(
+            sakId = sakId,
+            // Meldeperioden kommer før innsendingen.
+            opprettet = mottatt.minus(1, java.time.temporal.ChronoUnit.MILLIS),
+        ),
+        dager: List<BrukersMeldekortDag> = buildList {
+            val dager = meldeperiode.periode.tilDager()
+            require(dager.size == 14)
+            addAll(dager.take(5).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT, it) })
+            addAll(dager.subList(5, 7).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
+            addAll(dager.subList(7, 12).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT, it) })
+            addAll(dager.subList(12, 14).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
+        },
+    ): BrukersMeldekort {
+        return BrukersMeldekort(
+            id = id,
+            mottatt = mottatt,
+            meldeperiode = meldeperiode,
+            sakId = sakId,
+            dager = dager,
+        )
+    }
 }
 
 fun MeldekortBehandling.IkkeUtfyltMeldekort.tilSendMeldekortTilBeslutterKommando(

@@ -38,7 +38,7 @@ interface UtbetalingsvedtakMother {
             saksnummer = saksnummer,
             fnr = fnr,
             rammevedtakId = rammevedtakId,
-            meldekort = meldekort,
+            meldekortbehandling = meldekort,
             forrigeUtbetalingsvedtakId = forrigeUtbetalingsvedtakId,
             sendtTilUtbetaling = sendtTilUtbetaling,
             journalpostId = journalpostId,

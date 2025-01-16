@@ -43,7 +43,7 @@ class JournalførUtbetalingsvedtakService(
                         ).getOrElse { return@forEach }
                     log.info { "Pdf generert for utbetalingsvedtak. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
                     val journalpostId = journalførMeldekortGateway.journalførMeldekort(
-                        meldekort = utbetalingsvedtak.meldekort,
+                        meldekort = utbetalingsvedtak.meldekortbehandling,
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
                     )

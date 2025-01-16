@@ -74,7 +74,7 @@ internal class MeldeperiodePostgresRepo(
         sessionContext: SessionContext?,
     ): MeldeperiodeKjeder {
         return sessionFactory.withSession(sessionContext) { session ->
-            Companion.hentForSakId(sakId, session)
+            hentForSakId(sakId, session)
         }
     }
 
