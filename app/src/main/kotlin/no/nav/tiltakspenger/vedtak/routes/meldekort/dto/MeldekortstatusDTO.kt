@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
 enum class MeldekortstatusDTO {
     IKKE_KLAR_TIL_UTFYLLING,
     KLAR_TIL_UTFYLLING,
+    UTFYLT,
     KLAR_TIL_BESLUTNING,
     GODKJENT,
     IKKE_RETT_TIL_TILTAKSPENGER,

@@ -33,4 +33,7 @@ data class MeldeperiodeKjeder(private val meldeperiodeKjeder: List<MeldeperiodeK
                 .let { MeldeperiodeKjeder(it) }
         }
     }
+
+    /** Siste versjon av meldeperiodene */
+    val meldeperioder: List<Meldeperiode> get() = this.map { it.last() }
 }

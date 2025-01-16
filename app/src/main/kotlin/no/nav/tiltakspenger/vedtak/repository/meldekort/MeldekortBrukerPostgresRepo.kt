@@ -57,7 +57,16 @@ class MeldekortBrukerPostgresRepo(
         sessionContext: SessionContext?,
     ): List<BrukersMeldekort> {
         return sessionFactory.withSession(sessionContext) { session ->
-            session.run(
+            Companion.hentForSakId(sakId, session)
+        }
+    }
+
+    companion object {
+        fun hentForSakId(
+            sakId: SakId,
+            session: Session,
+        ): List<BrukersMeldekort> {
+            return session.run(
                 sqlQuery(
                     """
                     select m.*
@@ -68,9 +77,7 @@ class MeldekortBrukerPostgresRepo(
                 ).map { row -> fromRow(row, session) }.asList,
             )
         }
-    }
 
-    companion object {
         private fun fromRow(
             row: Row,
             session: Session,

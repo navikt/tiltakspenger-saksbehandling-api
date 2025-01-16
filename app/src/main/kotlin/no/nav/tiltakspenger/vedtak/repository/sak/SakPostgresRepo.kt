@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.sak.TynnSak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.ports.SakRepo
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingPostgresRepo
+import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortBrukerPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.utbetaling.UtbetalingsvedtakPostgresRepo
@@ -208,7 +209,6 @@ internal class SakPostgresRepo(
                     MeldekortPostgresRepo.hentForSakId(id, session)
                 } ?: MeldekortBehandlinger.empty(behandlinger.first().tiltakstype)
                 val meldeperioder = MeldeperiodePostgresRepo.hentForSakId(id, session)
-
                 Sak(
                     id = SakId.fromString(string("id")),
                     saksnummer = Saksnummer(verdi = string("saksnummer")),
@@ -218,6 +218,7 @@ internal class SakPostgresRepo(
                     meldekortBehandlinger = meldekortBehandlinger,
                     utbetalinger = UtbetalingsvedtakPostgresRepo.hentForSakId(id, session),
                     meldeperiodeKjeder = meldeperioder,
+                    brukersMeldekort = MeldekortBrukerPostgresRepo.hentForSakId(id, session),
                 )
             }
         }

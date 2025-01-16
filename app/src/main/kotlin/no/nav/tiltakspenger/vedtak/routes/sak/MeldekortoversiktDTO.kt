@@ -1,6 +1,9 @@
 package no.nav.tiltakspenger.vedtak.routes.sak
 
+import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.vedtak.routes.dto.PeriodeDTO
 import no.nav.tiltakspenger.vedtak.routes.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.MeldekortstatusDTO
@@ -14,8 +17,14 @@ data class MeldekortoversiktDTO(
     val beslutter: String?,
 )
 
-fun List<MeldekortBehandling>.toMeldekortoversiktDTO(): List<MeldekortoversiktDTO> =
-    this.map { it.toOversiktDTO() }
+fun Sak.toMeldekortoversiktDTO(): List<MeldekortoversiktDTO> {
+    return this.meldeperiodeKjeder.meldeperioder
+        .map { meldeperiode ->
+            this.meldekortBehandlinger.hentMeldekortForKjedeId(meldeperiode.id)?.let { return@map it.toOversiktDTO() }
+            this.brukersMeldekort.find { it.meldeperiodeId == meldeperiode.id }?.let { return@map it.toOversiktDTO() }
+            meldeperiode.toOversiktDTO()
+        }
+}
 
 fun MeldekortBehandling.toOversiktDTO(): MeldekortoversiktDTO {
     return MeldekortoversiktDTO(
@@ -24,5 +33,26 @@ fun MeldekortBehandling.toOversiktDTO(): MeldekortoversiktDTO {
         status = this.toMeldekortstatusDTO(),
         saksbehandler = saksbehandler,
         beslutter = beslutter,
+    )
+}
+
+fun BrukersMeldekort.toOversiktDTO(): MeldekortoversiktDTO {
+    return MeldekortoversiktDTO(
+        meldekortId = id.toString(),
+        periode = periode.toDTO(),
+        status = MeldekortstatusDTO.UTFYLT,
+        saksbehandler = null,
+        beslutter = null,
+    )
+}
+
+fun Meldeperiode.toOversiktDTO(): MeldekortoversiktDTO {
+    return MeldekortoversiktDTO(
+        meldekortId = id.toString(),
+        periode = periode.toDTO(),
+        // Kommentar jah: Dersom vi genererer flere meldeperioder enn de som kan utfylles, så må meldeperioden ta stilling til om den kan fylles ut eller ikke.
+        status = MeldekortstatusDTO.KLAR_TIL_UTFYLLING,
+        saksbehandler = null,
+        beslutter = null,
     )
 }

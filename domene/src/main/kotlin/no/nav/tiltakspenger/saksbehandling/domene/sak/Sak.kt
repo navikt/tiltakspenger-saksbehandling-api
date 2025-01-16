@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
@@ -35,6 +36,7 @@ data class Sak(
     val vedtaksliste: Vedtaksliste,
     val meldekortBehandlinger: MeldekortBehandlinger,
     val meldeperiodeKjeder: MeldeperiodeKjeder,
+    val brukersMeldekort: List<BrukersMeldekort>,
     val utbetalinger: Utbetalinger,
 ) {
     /** Dette er sakens totale vedtaksperiode. Per tidspunkt er den sammenhengende, men hvis vi lar en sak gjelde på tvers av tiltak, vil den kunne ha hull. */
@@ -123,6 +125,7 @@ data class Sak(
                 meldekortBehandlinger = MeldekortBehandlinger.empty(førstegangsbehandling.tiltakstype),
                 utbetalinger = Utbetalinger(emptyList()),
                 meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
+                brukersMeldekort = emptyList(),
             ).right()
         }
     }
