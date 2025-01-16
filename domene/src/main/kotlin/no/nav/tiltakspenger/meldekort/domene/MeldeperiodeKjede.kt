@@ -6,8 +6,11 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 
 data class MeldeperiodeKjede(
-    val meldeperioder: NonEmptyList<Meldeperiode>,
+    private val meldeperioder: NonEmptyList<Meldeperiode>,
 ) : List<Meldeperiode> by meldeperioder {
+
+    private val meldeperioderSorted = meldeperioder.sortedBy { it.versjon }
+
     val sakId: SakId = meldeperioder.map { it.sakId }.distinct().single()
     val periode: Periode = meldeperioder.map { it.periode }.distinct().single()
     val id: MeldeperiodeId = meldeperioder.map { it.id }.distinct().single()
@@ -21,6 +24,6 @@ data class MeldeperiodeKjede(
     }
 
     fun hentSisteMeldeperiode(): Meldeperiode {
-        return this.last()
+        return meldeperioderSorted.last()
     }
 }
