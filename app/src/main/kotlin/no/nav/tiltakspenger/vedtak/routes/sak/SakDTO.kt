@@ -27,10 +27,9 @@ fun Sak.toDTO() = SakDTO(
     sakId = id.toString(),
     fnr = fnr.verdi,
     behandlingsoversikt = behandlinger.toSaksoversiktDTO(),
-    meldekortoversikt = meldekortBehandlinger.verdi.toMeldekortoversiktDTO(),
+    meldekortoversikt = toMeldekortoversiktDTO(),
     meldeperioder = meldeperiodeKjeder.toDTO(),
-    // TODO Anders og John: Legg til brukers meldekort i saken
-    brukersMeldekort = emptyList(),
+    brukersMeldekort = brukersMeldekort.map { it.toDTO() },
     meldekortbehandlinger = meldekortBehandlinger.toDTO(
         vedtaksPeriode = this.vedtaksperiode!!,
         tiltaksnavn = this.hentTiltaksnavn()!!,
