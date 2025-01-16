@@ -27,7 +27,7 @@ fun Utbetalingsvedtak.toDTO(
 ): String {
     val forrigeUtbetaling = forrigeUtbetalingJson?.let { deserialize<IverksettV2Dto>(it) }
     val vedtak: Utbetalingsvedtak = this
-    val nyeUtbetalinger = meldekort.toUtbetalingDto(vedtak.brukerNavkontor)
+    val nyeUtbetalinger = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor)
 
     return IverksettV2Dto(
         sakId = vedtak.saksnummer.toString(),

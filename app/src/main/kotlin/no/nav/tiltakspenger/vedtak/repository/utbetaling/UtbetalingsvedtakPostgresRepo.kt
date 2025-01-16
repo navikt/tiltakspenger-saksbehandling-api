@@ -174,7 +174,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                 fnr = Fnr.fromString(string("fnr")),
                 rammevedtakId = VedtakId.fromString(string("rammevedtak_id")),
                 forrigeUtbetalingsvedtakId = stringOrNull("forrige_vedtak_id")?.let { VedtakId.fromString(it) },
-                meldekort =
+                meldekortbehandling =
                 MeldekortPostgresRepo
                     .hentForMeldekortId(
                         MeldekortId.fromString(string("meldekort_id")),

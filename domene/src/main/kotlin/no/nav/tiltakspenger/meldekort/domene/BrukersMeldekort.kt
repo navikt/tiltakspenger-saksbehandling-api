@@ -1,25 +1,42 @@
 package no.nav.tiltakspenger.meldekort.domene
 
+import no.nav.tiltakspenger.libs.common.HendelseVersjon
+import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+/**
+ * @param id Unik identifikator for denne innsendingen
+ * @param meldeperiode En gitt versjon av meldeperioden, slik som den var da bruker sendte inn meldekortet.
+ * @param mottatt Tidspunktet mottatt fra bruker
+ * @param dager Et innslag per dag i meldeperioden. Må være sortert.
+ */
 data class BrukersMeldekort(
-    // Tidspunktet mottatt fra bruker
+    val id: MeldekortId,
     val mottatt: LocalDateTime,
-    val meldeperiodeId: MeldeperiodeId,
-    val versjon: Int,
+    val meldeperiode: Meldeperiode,
     val sakId: SakId,
-
-    val periode: Periode,
     val dager: List<BrukersMeldekortDag>,
 ) {
+    val meldeperiodeId: MeldeperiodeId = meldeperiode.id
+    val meldeperiodeVersjon: HendelseVersjon = meldeperiode.versjon
+    val periode: Periode = meldeperiode.periode
+
     data class BrukersMeldekortDag(
         val status: InnmeldtStatus,
         val dato: LocalDate,
     )
+    init {
+        dager.zipWithNext().forEach { (dag, nesteDag) ->
+            require(dag.dato.isBefore(nesteDag.dato)) { "Dager må være sortert" }
+        }
+        require(dager.first().dato == periode.fraOgMed) { "Første dag i meldekortet må være lik første dag i meldeperioden" }
+        require(dager.last().dato == periode.tilOgMed) { "Siste dag i meldekortet må være lik siste dag i meldeperioden" }
+        require(dager.size.toLong() == periode.antallDager) { "Antall dager i meldekortet må være lik antall dager i meldeperioden" }
+    }
 }
 
 enum class InnmeldtStatus {
