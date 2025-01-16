@@ -37,7 +37,10 @@ class OpprettMeldekortBehandlingService(
         val meldeperiode = sak.hentMeldeperiode(hendelseId = hendelseId)
             ?: throw IllegalArgumentException("Fant ingen meldeperiode med id $hendelseId for sak $sakId")
 
-        val meldekortBehandling = sak.opprettMeldekortBehandling(meldeperiode)
+        // TODO: Hent denne fra pdl/norg2 når funksjonaliteten for det er på plass
+        val navkontor = sak.meldekortBehandlinger.sisteGodkjenteMeldekort?.navkontor
+
+        val meldekortBehandling = sak.opprettMeldekortBehandling(meldeperiode, navkontor)
 
         sessionFactory.withTransactionContext { tx ->
             meldekortRepo.lagre(meldekortBehandling, tx)

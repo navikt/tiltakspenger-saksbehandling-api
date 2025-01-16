@@ -12,12 +12,10 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -117,36 +115,6 @@ sealed interface MeldekortBehandling {
                     // require(sendtTilBeslutning == null)
                 }
             }
-        }
-
-        fun opprettNesteMeldekortBehandling(
-            utfallsperioder: Periodisering<AvklartUtfallForPeriode>,
-            nesteMeldeperiode: Meldeperiode,
-        ): Either<SisteMeldekortErUtfylt, IkkeUtfyltMeldekort> {
-            val meldekortId = MeldekortId.random()
-
-            return IkkeUtfyltMeldekort(
-                id = meldekortId,
-                sakId = this.sakId,
-                saksnummer = this.saksnummer,
-                fnr = this.fnr,
-                rammevedtakId = this.rammevedtakId,
-                forrigeMeldekortId = this.id,
-                opprettet = nå(),
-                tiltakstype = this.tiltakstype,
-                navkontor = this.navkontor,
-                beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
-                    meldeperiode = nesteMeldeperiode,
-                    tiltakstype = this.tiltakstype,
-                    meldekortId = meldekortId,
-                    sakId = this.sakId,
-                    utfallsperioder = utfallsperioder,
-                    maksDagerMedTiltakspengerForPeriode = this.beregning.maksDagerMedTiltakspengerForPeriode,
-                ),
-                ikkeRettTilTiltakspengerTidspunkt = null,
-                brukersMeldekort = null,
-                meldeperiode = nesteMeldeperiode,
-            ).right()
         }
 
         fun iverksettMeldekort(
@@ -277,40 +245,12 @@ sealed interface MeldekortBehandling {
     }
 }
 
-fun Rammevedtak.opprettFørsteMeldekortBehandling(meldeperiode: Meldeperiode): MeldekortBehandling.IkkeUtfyltMeldekort {
-    val meldekortId = MeldekortId.random()
-    val tiltakstype = this.behandling.vilkårssett.tiltakDeltagelseVilkår.registerSaksopplysning.tiltakstype
-
-    return MeldekortBehandling.IkkeUtfyltMeldekort(
-        id = meldekortId,
-        sakId = this.sakId,
-        saksnummer = this.saksnummer,
-        fnr = this.fnr,
-        rammevedtakId = this.id,
-        forrigeMeldekortId = null,
-        opprettet = nå(),
-        tiltakstype = tiltakstype,
-        navkontor = null,
-        beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
-            meldeperiode = meldeperiode,
-            tiltakstype = tiltakstype,
-            meldekortId = meldekortId,
-            sakId = this.sakId,
-            utfallsperioder = this.utfallsperioder,
-            maksDagerMedTiltakspengerForPeriode = this.behandling.maksDagerMedTiltakspengerForPeriode,
-        ),
-        ikkeRettTilTiltakspengerTidspunkt = null,
-        brukersMeldekort = null,
-        meldeperiode = meldeperiode,
-    )
-}
-
 /**
  * (TODO'er fra tidligere implementasjon!)
  * TODO post-mvp jah: Ved revurderinger av rammevedtaket, så må vi basere oss på både forrige meldekort og revurderingsvedtaket. Dette løser vi å flytte mer logikk til Sak.kt.
  * TODO post-mvp jah: Når vi implementerer delvis innvilgelse vil hele meldekortperioder kunne bli SPERRET.
  */
-fun Sak.opprettMeldekortBehandling(meldeperiode: Meldeperiode): MeldekortBehandling.IkkeUtfyltMeldekort {
+fun Sak.opprettMeldekortBehandling(meldeperiode: Meldeperiode, navkontor: Navkontor? = null): MeldekortBehandling.IkkeUtfyltMeldekort {
     val meldekortId = MeldekortId.random()
 
     // TODO: håndtere flere vedtak
@@ -326,10 +266,8 @@ fun Sak.opprettMeldekortBehandling(meldeperiode: Meldeperiode): MeldekortBehandl
         rammevedtakId = vedtak.id,
         fnr = this.fnr,
         opprettet = nå(),
-        // Trenger vi denne?  Den brukes kun til å hente ut nav-kontor fra forrige behandling tror jeg, kanskje det kan løses på en annen måte?
         forrigeMeldekortId = forrigeMeldekortBehandling?.id,
-        // TODO: Hent denne fra pdl/norg2 når funksjonaliteten for det er på plass
-        navkontor = forrigeMeldekortBehandling?.navkontor,
+        navkontor = navkontor,
         ikkeRettTilTiltakspengerTidspunkt = null,
         brukersMeldekort = null,
         meldeperiode = meldeperiode,
