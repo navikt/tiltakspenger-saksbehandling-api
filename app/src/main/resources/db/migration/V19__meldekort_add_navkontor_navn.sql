@@ -1,1 +1,0 @@
-ALTER TABLE meldekort ADD COLUMN IF NOT EXISTS navkontor_navn VARCHAR;
