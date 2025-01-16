@@ -21,6 +21,7 @@ data class MeldekortDTO(
     val antallDager: Int,
     val navkontor: String?,
     val forrigeNavkontor: String?,
+    val meldeperiode: MeldeperiodeDto?,
 )
 
 fun MeldekortBehandling.toDTO(
@@ -44,5 +45,6 @@ fun MeldekortBehandling.toDTO(
         antallDager = antallDager,
         navkontor = navkontor?.kontornummer,
         forrigeNavkontor = forrigeNavkontor?.kontornummer,
+        meldeperiode = meldeperiode.toDTO(),
     )
 }
