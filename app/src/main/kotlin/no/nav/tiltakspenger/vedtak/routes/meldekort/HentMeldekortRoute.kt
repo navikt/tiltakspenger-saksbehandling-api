@@ -31,7 +31,7 @@ fun Route.hentMeldekortRoute(
     val logger = KotlinLogging.logger { }
 
     get("/sak/{sakId}/meldekort/{meldekortId}") {
-        logger.debug { "Motatt get-request på /sak/{sakId}/meldekort/{meldekortId}" }
+        logger.debug { "Mottatt get-request på /sak/{sakId}/meldekort/{meldekortId}" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withMeldekortId { meldekortId ->
@@ -43,22 +43,19 @@ fun Route.hentMeldekortRoute(
                         }
                         return@withMeldekortId
                     }
-                    val meldekort = sak.hentMeldekortBehandling(meldekortId)
+                    val meldekortbehandling = sak.hentMeldekortBehandling(meldekortId)
 
-                    if (meldekort == null) {
+                    if (meldekortbehandling == null) {
                         call.respond404NotFound(fantIkkeMeldekort())
                         return@withMeldekortId
                     }
-                    if (meldekort is MeldekortBehandling.IkkeUtfyltMeldekort && !meldekort.erKlarTilUtfylling()) {
+                    if (meldekortbehandling is MeldekortBehandling.IkkeUtfyltMeldekort && !meldekortbehandling.erKlarTilUtfylling()) {
                         call.respond400BadRequest(
                             melding = "Meldekortet er ikke klart til utfylling",
                             kode = "meldekortet_er_ikke_klart_til_utfylling",
                         )
                         return@withMeldekortId
                     }
-                    val forrigeMeldekort: MeldekortBehandling.UtfyltMeldekort? =
-                        meldekort.forrigeMeldekortId?.let { sak.hentMeldekortBehandling(it) as MeldekortBehandling.UtfyltMeldekort }
-                    val forrigeNavkontor = forrigeMeldekort?.navkontor
 
                     auditService.logMedMeldekortId(
                         meldekortId = meldekortId,
@@ -70,11 +67,11 @@ fun Route.hentMeldekortRoute(
                     // TODO post-mvp jah: Saksbehandlerne reagerte på ordet saksperiode og ønsket seg "vedtaksperiode". Gitt at man har en forlengelse vil man ha et førstegangsvedtak+forlengelsesvedtak. Ønsker de ikke se den totale meldeperioden for den gitte saken?
                     call.respond(
                         status = HttpStatusCode.OK,
-                        message = meldekort.toDTO(
+                        message = meldekortbehandling.toDTO(
                             vedtaksPeriode = sak.vedtaksperiode!!,
                             tiltaksnavn = sak.hentTiltaksnavn()!!,
                             antallDager = sak.hentAntallDager()!!,
-                            forrigeNavkontor = forrigeNavkontor,
+                            forrigeNavkontor = sak.forrigeNavkontor(meldekortId),
                         ),
                     )
                 }
