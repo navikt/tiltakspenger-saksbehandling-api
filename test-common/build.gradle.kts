@@ -27,6 +27,6 @@ dependencies {
     api("org.wiremock:wiremock:3.10.0")
     api("com.marcinziolo:kotlin-wiremock:2.1.1")
     api("io.kotest.extensions:kotest-extensions-wiremock:3.1.0")
-    api("io.kotest.extensions:kotest-assertions-arrow:1.4.0")
+    api("io.kotest.extensions:kotest-assertions-arrow:2.0.0")
     api("io.github.serpro69:kotlin-faker:1.16.0")
 }
