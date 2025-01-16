@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.vedtak.repository.meldekort
 
-import arrow.core.nonEmptyListOf
 import com.fasterxml.jackson.core.type.TypeReference
 import kotliquery.Row
 import kotliquery.Session
@@ -15,7 +14,6 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjede
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
@@ -89,7 +87,10 @@ internal class MeldeperiodePostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                    select m.*,s.saksnummer,s.ident as fnr 
+                    select
+                        m.*,
+                        s.saksnummer,
+                        s.ident as fnr 
                     from meldeperiode m 
                     join sak s on s.id = m.sak_id 
                     where m.sendt_til_meldekort_api is null
@@ -164,11 +165,8 @@ internal class MeldeperiodePostgresRepo(
                     """,
                     "sak_id" to sakId.toString(),
                 ).map { row -> fromRow(row) }.asList,
-            ).map {
-                // TODO: må kunne hente flere versjoner av samme meldeperiode?
-                MeldeperiodeKjede(nonEmptyListOf(it))
-            }.let {
-                MeldeperiodeKjeder(it)
+            ).let {
+                MeldeperiodeKjeder.fraMeldeperioder(it)
             }
         }
 
