@@ -31,9 +31,9 @@ fun Sak.toDTO() = SakDTO(
     meldeperioder = meldeperiodeKjeder.toDTO(),
     brukersMeldekort = brukersMeldekort.map { it.toDTO() },
     meldekortbehandlinger = meldekortBehandlinger.toDTO(
-        vedtaksPeriode = this.vedtaksperiode!!,
-        tiltaksnavn = this.hentTiltaksnavn()!!,
-        antallDager = this.hentAntallDager()!!,
+        vedtaksPeriode = this.vedtaksperiode,
+        tiltaksnavn = this.hentTiltaksnavn(),
+        antallDager = this.hentAntallDager(),
         forrigeNavkontor = { this.forrigeNavkontor(it) },
     ),
     førsteLovligeStansdato = førsteLovligeStansdato(),

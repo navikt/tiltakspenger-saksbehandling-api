@@ -14,22 +14,22 @@ data class MeldekortBehandlingDTO(
     val saksnummer: String,
     val periode: PeriodeDTO,
     val meldekortDager: List<MeldekortDagDTO>,
-    val tiltaksnavn: String,
+    val tiltaksnavn: String?,
     val saksbehandler: String?,
     val beslutter: String?,
     val status: MeldekortstatusDTO,
     val totalbeløpTilUtbetaling: Int?,
-    val vedtaksPeriode: PeriodeDTO,
-    val antallDager: Int,
+    val vedtaksPeriode: PeriodeDTO?,
+    val antallDager: Int?,
     val navkontor: String?,
     val forrigeNavkontor: String?,
     val meldeperiode: MeldeperiodeDto?,
 )
 
 fun MeldekortBehandlinger.toDTO(
-    vedtaksPeriode: Periode,
-    tiltaksnavn: String,
-    antallDager: Int,
+    vedtaksPeriode: Periode?,
+    tiltaksnavn: String?,
+    antallDager: Int?,
     forrigeNavkontor: (MeldekortId) -> Navkontor?,
 ): List<MeldekortBehandlingDTO> {
     return this.map {
@@ -43,9 +43,9 @@ fun MeldekortBehandlinger.toDTO(
 }
 
 fun MeldekortBehandling.toDTO(
-    vedtaksPeriode: Periode,
-    tiltaksnavn: String,
-    antallDager: Int,
+    vedtaksPeriode: Periode?,
+    tiltaksnavn: String?,
+    antallDager: Int?,
     forrigeNavkontor: Navkontor?,
 ): MeldekortBehandlingDTO {
     return MeldekortBehandlingDTO(
@@ -59,7 +59,7 @@ fun MeldekortBehandling.toDTO(
         status = this.toMeldekortstatusDTO(),
         meldekortDager = beregning.toDTO(),
         totalbeløpTilUtbetaling = this.beløpTotal,
-        vedtaksPeriode = vedtaksPeriode.toDTO(),
+        vedtaksPeriode = vedtaksPeriode?.toDTO(),
         antallDager = antallDager,
         navkontor = navkontor?.kontornummer,
         forrigeNavkontor = forrigeNavkontor?.kontornummer,

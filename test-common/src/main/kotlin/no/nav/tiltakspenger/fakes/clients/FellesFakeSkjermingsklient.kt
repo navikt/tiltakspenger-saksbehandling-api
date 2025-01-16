@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesSkjermingError
 import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
-import java.lang.IllegalStateException
 
 class FellesFakeSkjermingsklient : FellesSkjermingsklient {
     private val data = Atomic(mutableMapOf<Fnr, Boolean>())
@@ -17,7 +16,7 @@ class FellesFakeSkjermingsklient : FellesSkjermingsklient {
         fnr: Fnr,
         correlationId: CorrelationId,
     ): Either<FellesSkjermingError, Boolean> {
-        return data.get()[fnr]!!.right()
+        return (data.get()[fnr] ?: false).right()
     }
 
     override suspend fun erSkjermetPersoner(
@@ -27,7 +26,7 @@ class FellesFakeSkjermingsklient : FellesSkjermingsklient {
         return fnrListe.map { fnr ->
             fnr to (
                 data.get()[fnr]
-                    ?: throw IllegalStateException("FellesFakeSkjermingsklient: Prøvde slå opp skjerming for ukjent fnr: ${fnr.verdi}. datagrunnlag i fake: ${data.get().keys.map { it.verdi }}")
+                    ?: false
                 )
         }.toMap().right()
     }

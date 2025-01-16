@@ -71,7 +71,6 @@ interface MeldekortMother {
 
         return MeldekortBehandling.IkkeUtfyltMeldekort(
             id = id,
-            meldeperiodeId = meldeperiodeId,
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -121,7 +120,6 @@ interface MeldekortMother {
     ): MeldekortBehandling.UtfyltMeldekort {
         return MeldekortBehandling.UtfyltMeldekort(
             id = id,
-            meldeperiodeId = meldeperiodeId,
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -306,7 +304,6 @@ interface MeldekortMother {
             verdi = nonEmptyListOf(
                 MeldekortBehandling.IkkeUtfyltMeldekort(
                     id = meldekortId,
-                    meldeperiodeId = meldeperiodeId,
                     sakId = sakId,
                     saksnummer = saksnummer,
                     fnr = fnr,
@@ -361,7 +358,6 @@ interface MeldekortMother {
             tiltakstype = tiltakstype,
             verdi = this.verdi + MeldekortBehandling.IkkeUtfyltMeldekort(
                 id = meldekortId,
-                meldeperiodeId = meldeperiodeId,
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,

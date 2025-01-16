@@ -73,7 +73,6 @@ sealed interface MeldekortBehandling {
      */
     data class UtfyltMeldekort(
         override val id: MeldekortId,
-        override val meldeperiodeId: MeldeperiodeId,
         override val sakId: SakId,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
@@ -131,7 +130,6 @@ sealed interface MeldekortBehandling {
 
             return IkkeUtfyltMeldekort(
                 id = meldekortId,
-                meldeperiodeId = nesteMeldeperiode.id,
                 sakId = this.sakId,
                 saksnummer = this.saksnummer,
                 fnr = this.fnr,
@@ -189,7 +187,6 @@ sealed interface MeldekortBehandling {
 
     data class IkkeUtfyltMeldekort(
         override val id: MeldekortId,
-        override val meldeperiodeId: MeldeperiodeId,
         override val sakId: SakId,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
@@ -229,7 +226,6 @@ sealed interface MeldekortBehandling {
             }
             return UtfyltMeldekort(
                 id = this.id,
-                meldeperiodeId = this.meldeperiodeId,
                 sakId = this.sakId,
                 saksnummer = this.saksnummer,
                 fnr = this.fnr,
@@ -290,7 +286,6 @@ fun Rammevedtak.opprettFørsteMeldekortBehandling(meldeperiode: Meldeperiode): M
 
     return MeldekortBehandling.IkkeUtfyltMeldekort(
         id = meldekortId,
-        meldeperiodeId = meldeperiode.id,
         sakId = this.sakId,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
