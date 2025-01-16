@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.felles.min
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -43,6 +44,18 @@ data class Sak(
      */
     val førstegangsbehandling: Behandling = behandlinger.førstegangsbehandling
     val revurderinger = behandlinger.revurderinger
+
+    /** Henter fra siste godkjente meldekort */
+    val sisteNavkontor: Navkontor? by lazy {
+        meldekortBehandlinger.sisteGodkjenteMeldekort?.navkontor
+    }
+
+    /** Dette er sannsynligvis første meldekort dersom den er null */
+    fun forrigeNavkontor(meldekortId: MeldekortId): Navkontor? {
+        // TODO Tia, Anders og John: Slett denne når vi setter oppfølgingsenhet når vi oppretter behandlingen
+        val forrigeMeldekortId = hentMeldekort(meldekortId)!!.forrigeMeldekortId ?: return null
+        return (hentMeldekort(forrigeMeldekortId) as MeldekortBehandling.UtfyltMeldekort).navkontor
+    }
 
     fun hentMeldekort(meldekortId: MeldekortId): MeldekortBehandling? {
         return meldekortBehandlinger.hentMeldekort(meldekortId)
