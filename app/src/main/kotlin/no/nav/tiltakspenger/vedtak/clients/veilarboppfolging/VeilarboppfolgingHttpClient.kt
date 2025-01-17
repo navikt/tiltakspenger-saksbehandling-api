@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.vedtak.clients.veilarboppfolging
 import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.libs.common.AccessToken
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.ports.VeilarboppfolgingGateway
@@ -27,8 +28,8 @@ class VeilarboppfolgingHttpClient(
 
     private val uri = URI.create("$baseUrl/veilarboppfolging/api/v2/person/system/hent-oppfolgingsstatus")
 
-    override suspend fun hentOppfolgingsenhet(fnr: String): Navkontor {
-        val request = createRequest(serialize(Request(fnr)), getToken().token)
+    override suspend fun hentOppfolgingsenhet(fnr: Fnr): Navkontor {
+        val request = createRequest(serialize(Request(fnr.verdi)), getToken().token)
         val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
         val status = httpResponse.statusCode()
         if (status != 200) {

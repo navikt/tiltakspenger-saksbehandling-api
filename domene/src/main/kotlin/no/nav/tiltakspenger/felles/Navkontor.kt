@@ -8,14 +8,4 @@ package no.nav.tiltakspenger.felles
 data class Navkontor(
     val kontornummer: String,
     val kontornavn: String?,
-) {
-    init {
-        require(erGyldig(kontornummer)) { "Forventet at enhetsnummer/kontornummer er 4 siffer, men var: $kontornummer" }
-    }
-
-    companion object {
-        private fun erGyldig(input: String): Boolean {
-            return input.matches(Regex("^\\d{4}$"))
-        }
-    }
-}
+)

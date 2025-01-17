@@ -8,6 +8,6 @@ class NavkontorService(
     private val veilarboppfolgingGateway: VeilarboppfolgingGateway,
 ) {
     suspend fun hentOppfolgingsenhet(fnr: Fnr): Navkontor {
-        return veilarboppfolgingGateway.hentOppfolgingsenhet(fnr.verdi)
+        return veilarboppfolgingGateway.hentOppfolgingsenhet(fnr)
     }
 }
