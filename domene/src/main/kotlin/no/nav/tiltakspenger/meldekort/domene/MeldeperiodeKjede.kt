@@ -1,16 +1,14 @@
 package no.nav.tiltakspenger.meldekort.domene
 
 import arrow.core.NonEmptyList
-import no.nav.tiltakspenger.felles.nonDistinctBy
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.periodisering.Periode
 
 data class MeldeperiodeKjede(
     private val meldeperioder: NonEmptyList<Meldeperiode>,
 ) : List<Meldeperiode> by meldeperioder {
-
-    private val meldeperioderSorted = meldeperioder.sortedBy { it.versjon }
 
     val sakId: SakId = meldeperioder.map { it.sakId }.distinct().single()
     val periode: Periode = meldeperioder.map { it.periode }.distinct().single()
@@ -22,9 +20,15 @@ data class MeldeperiodeKjede(
                 "Meldeperiodekjeden $id har duplikate meldeperioder - $it"
             }
         }
+
+        meldeperioder.zipWithNext { a, b ->
+            require(a.versjon < b.versjon) {
+                "Meldeperiodene må være sortert på versjon - ${a.hendelseId} og ${b.hendelseId} var i feil rekkefølge"
+            }
+        }
     }
 
     fun hentSisteMeldeperiode(): Meldeperiode {
-        return meldeperioderSorted.last()
+        return meldeperioder.last()
     }
 }

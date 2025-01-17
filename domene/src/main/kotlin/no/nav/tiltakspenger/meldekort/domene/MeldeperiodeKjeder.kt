@@ -1,12 +1,12 @@
 package no.nav.tiltakspenger.meldekort.domene
 
 import arrow.core.toNonEmptyListOrNull
-import no.nav.tiltakspenger.felles.nonDistinctBy
 import no.nav.tiltakspenger.libs.common.HendelseId
+import no.nav.tiltakspenger.libs.common.nonDistinctBy
 
-data class MeldeperiodeKjeder(private val meldeperiodeKjeder: List<MeldeperiodeKjede>) : List<MeldeperiodeKjede> by meldeperiodeKjeder {
-
-    private val meldeperiodeKjederSorted = meldeperiodeKjeder.sortedBy { it.periode.fraOgMed }
+data class MeldeperiodeKjeder(
+    private val meldeperiodeKjeder: List<MeldeperiodeKjede>,
+) : List<MeldeperiodeKjede> by meldeperiodeKjeder {
 
     init {
         meldeperiodeKjeder.flatten().nonDistinctBy { it.hendelseId }.also {
@@ -14,10 +14,19 @@ data class MeldeperiodeKjeder(private val meldeperiodeKjeder: List<MeldeperiodeK
                 "Meldeperiodekjedene har duplikate meldeperioder - $it"
             }
         }
+
+        meldeperiodeKjeder.zipWithNext { a, b ->
+            require(a.periode.fraOgMed <= b.periode.fraOgMed) {
+                "Meldeperiodekjedene må være sortert på periode - ${a.id} og ${b.id} var i feil rekkefølge (sak ${a.sakId})"
+            }
+        }
     }
 
+    /** Siste versjon av meldeperiodene */
+    val meldeperioder: List<Meldeperiode> get() = this.map { it.last() }
+
     fun hentSisteMeldeperiode(): Meldeperiode {
-        return meldeperiodeKjederSorted.last().hentSisteMeldeperiode()
+        return meldeperiodeKjeder.last().hentSisteMeldeperiode()
     }
 
     fun hentMeldeperiode(id: HendelseId): Meldeperiode? {
@@ -30,13 +39,12 @@ data class MeldeperiodeKjeder(private val meldeperiodeKjeder: List<MeldeperiodeK
                 .groupBy { it.id }
                 .values.mapNotNull { meldeperioderForKjede ->
                     meldeperioderForKjede
+                        .sortedBy { it.versjon }
                         .toNonEmptyListOrNull()
                         ?.let { MeldeperiodeKjede(it) }
                 }
+                .sortedBy { it.periode.fraOgMed }
                 .let { MeldeperiodeKjeder(it) }
         }
     }
-
-    /** Siste versjon av meldeperiodene */
-    val meldeperioder: List<Meldeperiode> get() = this.map { it.last() }
 }
