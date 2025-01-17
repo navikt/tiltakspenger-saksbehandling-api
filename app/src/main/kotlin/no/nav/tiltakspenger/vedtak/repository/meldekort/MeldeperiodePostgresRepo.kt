@@ -83,7 +83,10 @@ internal class MeldeperiodePostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                    select m.*,s.saksnummer,s.ident as fnr 
+                    select
+                        m.*,
+                        s.saksnummer,
+                        s.ident as fnr 
                     from meldeperiode m 
                     join sak s on s.id = m.sak_id 
                     where m.sendt_til_meldekort_api is null
@@ -128,9 +131,12 @@ internal class MeldeperiodePostgresRepo(
             return session.run(
                 sqlQuery(
                     """
-                    select m.*,s.saksnummer,s.ident as fnr 
+                    select
+                        m.*,
+                        s.saksnummer,
+                        s.ident as fnr 
                     from meldeperiode m 
-                    join sak s on s.id = m.sak_id 
+                    join sak s on s.id = m.sak_id
                     where m.hendelse_id = :hendelse_id
                     """,
                     "hendelse_id" to hendelseId.toString(),
@@ -145,7 +151,10 @@ internal class MeldeperiodePostgresRepo(
             return session.run(
                 sqlQuery(
                     """
-                    select m.*,s.saksnummer,s.ident as fnr 
+                    select
+                        m.*,
+                        s.saksnummer,
+                        s.ident as fnr 
                     from meldeperiode m 
                     join sak s on s.id = m.sak_id 
                     where m.sak_id = :sak_id

@@ -1,6 +1,10 @@
 package no.nav.tiltakspenger.vedtak.routes.sak
 
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.BrukersMeldekortDTO
+import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.MeldekortBehandlingDTO
+import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.MeldeperiodeDto
+import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.toDTO
 import java.time.LocalDate
 
 /**
@@ -12,15 +16,25 @@ data class SakDTO(
     val fnr: String,
     val behandlingsoversikt: List<SaksoversiktDTO>,
     val meldekortoversikt: List<MeldekortoversiktDTO>,
+    val meldeperioder: List<MeldeperiodeDto>,
+    val brukersMeldekort: List<BrukersMeldekortDTO>,
+    val meldekortbehandlinger: List<MeldekortBehandlingDTO>,
     val førsteLovligeStansdato: LocalDate?,
 )
 
-fun Sak.toDTO() =
-    SakDTO(
-        saksnummer = saksnummer.verdi,
-        sakId = id.toString(),
-        fnr = fnr.verdi,
-        behandlingsoversikt = behandlinger.toSaksoversiktDTO(),
-        meldekortoversikt = meldekortBehandlinger.verdi.toMeldekortoversiktDTO(),
-        førsteLovligeStansdato = førsteLovligeStansdato(),
-    )
+fun Sak.toDTO() = SakDTO(
+    saksnummer = saksnummer.verdi,
+    sakId = id.toString(),
+    fnr = fnr.verdi,
+    behandlingsoversikt = behandlinger.toSaksoversiktDTO(),
+    meldekortoversikt = toMeldekortoversiktDTO(),
+    meldeperioder = meldeperiodeKjeder.toDTO(),
+    brukersMeldekort = brukersMeldekort.map { it.toDTO() },
+    meldekortbehandlinger = meldekortBehandlinger.toDTO(
+        vedtaksPeriode = this.vedtaksperiode,
+        tiltaksnavn = this.hentTiltaksnavn(),
+        antallDager = this.hentAntallDager(),
+        forrigeNavkontor = { this.forrigeNavkontor(it) },
+    ),
+    førsteLovligeStansdato = førsteLovligeStansdato(),
+)

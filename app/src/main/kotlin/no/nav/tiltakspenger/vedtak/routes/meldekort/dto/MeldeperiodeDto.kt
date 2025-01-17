@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.vedtak.routes.meldekort.dto
 
 import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.vedtak.routes.dto.PeriodeDTO
 import no.nav.tiltakspenger.vedtak.routes.dto.toDTO
 import java.time.LocalDate
@@ -15,6 +16,11 @@ data class MeldeperiodeDto(
     val antallDagerForPeriode: Int,
     val girRett: Map<LocalDate, Boolean>,
 )
+
+fun MeldeperiodeKjeder.toDTO(): List<MeldeperiodeDto> =
+    this.map {
+        it.last().toDTO()
+    }
 
 fun Meldeperiode.toDTO(): MeldeperiodeDto {
     return MeldeperiodeDto(

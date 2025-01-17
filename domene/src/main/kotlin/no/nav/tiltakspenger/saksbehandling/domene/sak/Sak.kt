@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.felles.min
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -12,6 +13,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjeder
@@ -32,6 +34,7 @@ data class Sak(
     val vedtaksliste: Vedtaksliste,
     val meldekortBehandlinger: MeldekortBehandlinger,
     val meldeperiodeKjeder: MeldeperiodeKjeder,
+    val brukersMeldekort: List<BrukersMeldekort>,
     val utbetalinger: Utbetalinger,
 ) {
     /** Dette er sakens totale vedtaksperiode. Per tidspunkt er den sammenhengende, men hvis vi lar en sak gjelde på tvers av tiltak, vil den kunne ha hull. */
@@ -44,8 +47,20 @@ data class Sak(
     val førstegangsbehandling: Behandling = behandlinger.førstegangsbehandling
     val revurderinger = behandlinger.revurderinger
 
+    /** Henter fra siste godkjente meldekort */
+    val sisteNavkontor: Navkontor? by lazy {
+        meldekortBehandlinger.sisteGodkjenteMeldekort?.navkontor
+    }
+
+    /** Dette er sannsynligvis første meldekort dersom den er null */
+    fun forrigeNavkontor(meldekortId: MeldekortId): Navkontor? {
+        // TODO Tia, Anders og John: Slett denne når vi setter oppfølgingsenhet når vi oppretter behandlingen
+        val forrigeMeldekortId = hentMeldekort(meldekortId)!!.forrigeMeldekortId ?: return null
+        return (hentMeldekort(forrigeMeldekortId) as MeldekortBehandling.UtfyltMeldekort).navkontor
+    }
+
     fun hentMeldekort(meldekortId: MeldekortId): MeldekortBehandling? {
-        return meldekortBehandlinger.hentMeldekort(meldekortId)
+        return meldekortBehandlinger.hentMeldekortForId(meldekortId)
     }
 
     fun hentIkkeUtfyltMeldekort(): MeldekortBehandling? = meldekortBehandlinger.ikkeUtfyltMeldekort
@@ -100,6 +115,7 @@ data class Sak(
                 meldekortBehandlinger = MeldekortBehandlinger.empty(førstegangsbehandling.tiltakstype),
                 utbetalinger = Utbetalinger(emptyList()),
                 meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
+                brukersMeldekort = emptyList(),
             ).right()
         }
     }

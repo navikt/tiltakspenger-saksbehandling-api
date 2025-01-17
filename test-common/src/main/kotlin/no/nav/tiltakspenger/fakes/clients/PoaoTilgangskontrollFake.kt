@@ -17,6 +17,6 @@ class PoaoTilgangskontrollFake : PoaoTilgangGateway {
     }
 
     override suspend fun erSkjermet(fnr: Fnr, correlationId: CorrelationId): Boolean {
-        return data.get()[fnr]!!
+        return data.get()[fnr] ?: false
     }
 }

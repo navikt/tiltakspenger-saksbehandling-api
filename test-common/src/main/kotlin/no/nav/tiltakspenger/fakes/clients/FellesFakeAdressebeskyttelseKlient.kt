@@ -12,10 +12,10 @@ class FellesFakeAdressebeskyttelseKlient : FellesAdressebeskyttelseKlient {
     private val data = Atomic(mutableMapOf<Fnr, List<AdressebeskyttelseGradering>>())
 
     override suspend fun enkel(fnr: Fnr): Either<FellesAdressebeskyttelseError, List<AdressebeskyttelseGradering>?> =
-        data.get()[fnr].right()
+        (data.get()[fnr] ?: listOf(AdressebeskyttelseGradering.UGRADERT)).right()
 
     override suspend fun bolk(fnrListe: List<Fnr>): Either<FellesAdressebeskyttelseError, Map<Fnr, List<AdressebeskyttelseGradering>?>> =
-        fnrListe.associateWith { data.get()[it] }.right()
+        fnrListe.associateWith { data.get()[it] ?: listOf(AdressebeskyttelseGradering.UGRADERT) }.right()
 
     fun leggTil(
         fnr: Fnr,

@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.fakes.clients
 
 import arrow.atomic.Atomic
+import io.github.serpro69.kfaker.faker
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.ports.PersonGateway
@@ -13,9 +15,10 @@ class PersonFakeGateway : PersonGateway {
     val antallKall: Int get() = kall.get().size
     val alleKall: List<Fnr> get() = kall.get().toList()
 
-    override suspend fun hentPerson(fnr: Fnr): PersonopplysningerSøker = data.get()[fnr]!!
+    override suspend fun hentPerson(fnr: Fnr): PersonopplysningerSøker =
+        data.get()[fnr] ?: personopplysningerSøkerFake(fnr)
 
-    override suspend fun hentEnkelPerson(fnr: Fnr): EnkelPerson = data.get()[fnr]!!.let {
+    override suspend fun hentEnkelPerson(fnr: Fnr): EnkelPerson = data.get()[fnr]?.let {
         EnkelPerson(
             fnr = fnr,
             fornavn = it.fornavn,
@@ -25,7 +28,7 @@ class PersonFakeGateway : PersonGateway {
             strengtFortrolig = it.strengtFortrolig,
             strengtFortroligUtland = it.strengtFortroligUtland,
         )
-    }
+    } ?: enkelPersonFake(fnr)
 
     /**
      * Denne bør kalles av testoppsettet før vi lager en søknad.
@@ -36,5 +39,39 @@ class PersonFakeGateway : PersonGateway {
         personopplysninger: PersonopplysningerSøker,
     ) {
         data.get()[fnr] = personopplysninger
+    }
+
+    private fun enkelPersonFake(fnr: Fnr): EnkelPerson {
+        val faker = faker {
+            fakerConfig {
+                randomSeed = fnr.verdi.toLong()
+                locale = "nb-NO"
+            }
+        }
+
+        return EnkelPerson(
+            fnr = fnr,
+            fornavn = faker.name.firstName(),
+            mellomnavn = null,
+            etternavn = faker.name.lastName(),
+            fortrolig = false,
+            strengtFortrolig = false,
+            strengtFortroligUtland = false,
+        )
+    }
+
+    private fun personopplysningerSøkerFake(fnr: Fnr): PersonopplysningerSøker {
+        val person = enkelPersonFake(fnr)
+
+        return PersonopplysningerSøker(
+            fnr = fnr,
+            fødselsdato = nå().toLocalDate().minusYears(20),
+            fornavn = person.fornavn,
+            mellomnavn = person.mellomnavn,
+            etternavn = person.etternavn,
+            fortrolig = person.fortrolig,
+            strengtFortrolig = person.strengtFortrolig,
+            strengtFortroligUtland = person.strengtFortroligUtland,
+        )
     }
 }

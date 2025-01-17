@@ -43,22 +43,19 @@ fun Route.hentMeldekortRoute(
                         }
                         return@withMeldekortId
                     }
-                    val meldekort = sak.hentMeldekort(meldekortId)
+                    val meldekortbehandling = sak.hentMeldekort(meldekortId)
 
-                    if (meldekort == null) {
+                    if (meldekortbehandling == null) {
                         call.respond404NotFound(fantIkkeMeldekort())
                         return@withMeldekortId
                     }
-                    if (meldekort is MeldekortBehandling.IkkeUtfyltMeldekort && !meldekort.erKlarTilUtfylling()) {
+                    if (meldekortbehandling is MeldekortBehandling.IkkeUtfyltMeldekort && !meldekortbehandling.erKlarTilUtfylling()) {
                         call.respond400BadRequest(
                             melding = "Meldekortet er ikke klart til utfylling",
                             kode = "meldekortet_er_ikke_klart_til_utfylling",
                         )
                         return@withMeldekortId
                     }
-                    val forrigeMeldekort: MeldekortBehandling.UtfyltMeldekort? =
-                        meldekort.forrigeMeldekortId?.let { sak.hentMeldekort(it) as MeldekortBehandling.UtfyltMeldekort }
-                    val forrigeNavkontor = forrigeMeldekort?.navkontor
 
                     auditService.logMedMeldekortId(
                         meldekortId = meldekortId,
@@ -70,11 +67,11 @@ fun Route.hentMeldekortRoute(
                     // TODO post-mvp jah: Saksbehandlerne reagerte på ordet saksperiode og ønsket seg "vedtaksperiode". Gitt at man har en forlengelse vil man ha et førstegangsvedtak+forlengelsesvedtak. Ønsker de ikke se den totale meldeperioden for den gitte saken?
                     call.respond(
                         status = HttpStatusCode.OK,
-                        message = meldekort.toDTO(
+                        message = meldekortbehandling.toDTO(
                             vedtaksPeriode = sak.vedtaksperiode!!,
                             tiltaksnavn = sak.hentTiltaksnavn()!!,
                             antallDager = sak.hentAntallDager()!!,
-                            forrigeNavkontor = forrigeNavkontor,
+                            forrigeNavkontor = sak.forrigeNavkontor(meldekortId),
                         ),
                     )
                 }

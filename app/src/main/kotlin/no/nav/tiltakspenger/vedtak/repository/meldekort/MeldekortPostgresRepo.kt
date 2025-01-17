@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
@@ -191,7 +190,6 @@ class MeldekortPostgresRepo(
             val id = MeldekortId.fromString(row.string("id"))
             val sakId = SakId.fromString(row.string("sak_id"))
             val saksnummer = Saksnummer(row.string("saksnummer"))
-            val meldeperiodeId = MeldeperiodeId(row.string("meldeperiode_id"))
             val navkontorEnhetsnummer = row.stringOrNull("navkontor")
             val navkontorNavn = row.stringOrNull("navkontor_navn")
             val navkontor = navkontorEnhetsnummer?.let { Navkontor(kontornummer = it, kontornavn = navkontorNavn) }
@@ -216,7 +214,6 @@ class MeldekortPostgresRepo(
 
                     UtfyltMeldekort(
                         id = id,
-                        meldeperiodeId = meldeperiodeId,
                         sakId = sakId,
                         saksnummer = saksnummer,
                         fnr = fnr,
@@ -245,7 +242,6 @@ class MeldekortPostgresRepo(
                     )
                     IkkeUtfyltMeldekort(
                         id = id,
-                        meldeperiodeId = meldeperiodeId,
                         sakId = sakId,
                         saksnummer = saksnummer,
                         fnr = fnr,
