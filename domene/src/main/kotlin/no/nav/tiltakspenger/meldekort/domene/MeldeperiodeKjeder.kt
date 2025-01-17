@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.meldekort.domene
 
 import arrow.core.toNonEmptyListOrNull
+import no.nav.tiltakspenger.felles.nonDistinctBy
 import no.nav.tiltakspenger.libs.common.HendelseId
 
 data class MeldeperiodeKjeder(private val meldeperiodeKjeder: List<MeldeperiodeKjede>) : List<MeldeperiodeKjede> by meldeperiodeKjeder {
@@ -8,8 +9,10 @@ data class MeldeperiodeKjeder(private val meldeperiodeKjeder: List<MeldeperiodeK
     private val meldeperiodeKjederSorted = meldeperiodeKjeder.sortedBy { it.periode.fraOgMed }
 
     init {
-        require(meldeperiodeKjeder.flatten().distinctBy { it.hendelseId }.size == meldeperiodeKjeder.size) {
-            "Meldeperiodekjedene har duplikater!"
+        meldeperiodeKjeder.flatten().nonDistinctBy { it.hendelseId }.also {
+            require(it.isEmpty()) {
+                "Meldeperiodekjedene har duplikate meldeperioder - $it"
+            }
         }
     }
 
