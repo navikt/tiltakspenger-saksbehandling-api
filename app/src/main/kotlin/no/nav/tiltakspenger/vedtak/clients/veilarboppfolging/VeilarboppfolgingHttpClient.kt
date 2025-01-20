@@ -20,7 +20,7 @@ class VeilarboppfolgingHttpClient(
     connectTimeout: kotlin.time.Duration = 1.seconds,
     private val timeout: kotlin.time.Duration = 1.seconds,
 ) : VeilarboppfolgingGateway {
-    private val log = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger {}
     private val client =
         java.net.http.HttpClient
             .newBuilder()
@@ -36,22 +36,22 @@ class VeilarboppfolgingHttpClient(
         val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
         val status = httpResponse.statusCode()
         if (status != 200) {
-            log.error("Kunne ikke hente oppfølgingsenhet fra veilarboppfølging, statuskode $status")
+            logger.error { "Kunne ikke hente oppfølgingsenhet fra veilarboppfølging, statuskode $status" }
             error("Kunne ikke hente oppfølgingsenhet fra veilarboppfølging, statuskode $status")
         }
         val jsonResponse = httpResponse.body()
-        log.info("Respons fra veilarboppfølging: $jsonResponse") // kun for debug i dev, skal fjernes
+        logger.info { "Respons fra veilarboppfølging: $jsonResponse" } // kun for debug i dev, skal fjernes
         val response = objectMapper.readValue<HentOppfolgingsenhetResponse>(jsonResponse)
         if (response.errors.isNotEmpty()) {
-            response.errors.forEach { log.warn(it) }
+            response.errors.forEach { logger.warn(it) }
         }
         if (response.data == null) {
-            log.error("Respons fra veilarboppfølging mangler data")
+            logger.error { "Respons fra veilarboppfølging mangler data" }
             error("Respons fra veilarboppfølging mangler data")
         }
         val oppfolgingsenhet = response.data.oppfolgingsEnhet.enhet
         if (oppfolgingsenhet == null) {
-            log.error("Fant ikke oppfølgingsenhet")
+            logger.error { "Fant ikke oppfølgingsenhet" }
         }
         return oppfolgingsenhet?.toNavkontor() ?: error("Fant ikke oppfølgingsenhet")
     }
