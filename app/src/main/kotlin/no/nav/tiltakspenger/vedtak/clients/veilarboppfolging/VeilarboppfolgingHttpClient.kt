@@ -49,6 +49,9 @@ class VeilarboppfolgingHttpClient(
             error("Respons fra veilarboppfølging mangler data")
         }
         val oppfolgingsenhet = response.data.oppfolgingsEnhet.enhet
+        if (oppfolgingsenhet == null) {
+            log.error("Fant ikke oppfølgingsenhet")
+        }
         return oppfolgingsenhet?.toNavkontor() ?: error("Fant ikke oppfølgingsenhet")
     }
 
