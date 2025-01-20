@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 data class BrukersMeldekortDTO(
     val id: String,
     val mottatt: LocalDateTime,
-    val meldeperiode: MeldeperiodeDto,
+    val meldeperiode: MeldeperiodeDTO,
     val sakId: String,
     val dager: List<DagDTO>,
 ) {

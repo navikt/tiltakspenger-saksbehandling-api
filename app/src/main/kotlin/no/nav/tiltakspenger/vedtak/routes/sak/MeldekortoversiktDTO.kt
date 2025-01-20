@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.vedtak.routes.sak
 
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.vedtak.routes.dto.PeriodeDTO
@@ -16,6 +18,56 @@ data class MeldekortoversiktDTO(
     val saksbehandler: String?,
     val beslutter: String?,
 )
+
+enum class MeldeperiodeStatusDTO {
+    IKKE_RETT_TIL_TILTAKSPENGER,
+    IKKE_KLAR_TIL_UTFYLLING,
+    VENTER_PÅ_UTFYLLING,
+    KLAR_TIL_BEHANDLING,
+    KLAR_TIL_BESLUTNING,
+    GODKJENT,
+}
+
+data class MeldeperiodeOversiktDTO(
+    val meldeperiodeId: String,
+    val hendelseId: String,
+    val hendelseVersjon: Int,
+    val periode: PeriodeDTO,
+    val saksbehandler: String?,
+    val beslutter: String?,
+    val status: MeldeperiodeStatusDTO,
+)
+
+fun Sak.toMeldeperiodeoversiktDTO(): List<MeldeperiodeOversiktDTO> {
+    return this.meldeperiodeKjeder.meldeperioder.map { meldeperiode ->
+        val meldekortBehandling = this.meldekortBehandlinger.find { meldekortBehandling ->
+            meldekortBehandling.meldeperiode.hendelseId == meldeperiode.hendelseId
+        }
+        val brukersMeldekort = this.brukersMeldekort.findLast { brukersMeldekort ->
+            brukersMeldekort.meldeperiode.hendelseId == meldeperiode.hendelseId
+        }
+
+        MeldeperiodeOversiktDTO(
+            meldeperiodeId = meldeperiode.id.toString(),
+            hendelseId = meldeperiode.hendelseId.toString(),
+            hendelseVersjon = meldeperiode.versjon.value,
+            periode = meldeperiode.periode.toDTO(),
+            saksbehandler = meldekortBehandling?.saksbehandler,
+            beslutter = meldekortBehandling?.beslutter,
+            status = when (meldekortBehandling?.status) {
+                MeldekortBehandlingStatus.GODKJENT -> MeldeperiodeStatusDTO.GODKJENT
+                MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldeperiodeStatusDTO.KLAR_TIL_BESLUTNING
+                MeldekortBehandlingStatus.IKKE_BEHANDLET -> MeldeperiodeStatusDTO.KLAR_TIL_BEHANDLING
+                MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldeperiodeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
+                null -> when {
+                    meldeperiode.periode.fraOgMed > nå().toLocalDate() -> MeldeperiodeStatusDTO.IKKE_KLAR_TIL_UTFYLLING
+                    brukersMeldekort == null -> MeldeperiodeStatusDTO.VENTER_PÅ_UTFYLLING
+                    else -> throw IllegalStateException()
+                }
+            },
+        )
+    }
+}
 
 fun Sak.toMeldekortoversiktDTO(): List<MeldekortoversiktDTO> {
     return this.meldeperiodeKjeder.meldeperioder

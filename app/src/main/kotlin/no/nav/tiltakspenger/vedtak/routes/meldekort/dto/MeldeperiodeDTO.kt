@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.vedtak.routes.dto.toDTO
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class MeldeperiodeDto(
+data class MeldeperiodeDTO(
     val id: String,
     val hendelseId: String,
     val versjon: String,
@@ -17,13 +17,13 @@ data class MeldeperiodeDto(
     val girRett: Map<LocalDate, Boolean>,
 )
 
-fun MeldeperiodeKjeder.toDTO(): List<MeldeperiodeDto> =
-    this.map {
-        it.last().toDTO()
+fun MeldeperiodeKjeder.toDTO(): List<MeldeperiodeDTO> =
+    this.meldeperioder.map {
+        it.toDTO()
     }
 
-fun Meldeperiode.toDTO(): MeldeperiodeDto {
-    return MeldeperiodeDto(
+fun Meldeperiode.toDTO(): MeldeperiodeDTO {
+    return MeldeperiodeDTO(
         id = this.id.toString(),
         hendelseId = this.hendelseId.toString(),
         versjon = this.versjon.toString(),
