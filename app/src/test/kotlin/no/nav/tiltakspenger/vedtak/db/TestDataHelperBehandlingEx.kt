@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingKommando
@@ -232,13 +233,16 @@ internal fun TestDataHelper.persisterRammevedtakMedUtfyltMeldekort(
         søknad = søknad,
         beslutter = beslutter,
     )
-    val utfyltMeldekort =
-        ObjectMother.utfyltMeldekort(
-            sakId = sak.id,
-            rammevedtakId = vedtak.id,
-            fnr = sak.fnr,
-            saksnummer = sak.saksnummer,
-        )
+    val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
+    val utfyltMeldekort = ObjectMother.utfyltMeldekort(
+        sakId = sak.id,
+        rammevedtakId = vedtak.id,
+        fnr = sak.fnr,
+        saksnummer = sak.saksnummer,
+        antallDagerForMeldeperiode = vedtak.antallDagerPerMeldeperiode,
+        meldeperiode = førsteMeldeperiode,
+        periode = førsteMeldeperiode.periode,
+    )
     meldekortRepo.lagre(utfyltMeldekort)
     meldeperiodeRepo.lagre(utfyltMeldekort.meldeperiode)
     return Pair(sakRepo.hentForSakId(sakId)!!, utfyltMeldekort)

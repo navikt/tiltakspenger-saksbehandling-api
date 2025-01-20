@@ -92,12 +92,24 @@ interface MeldekortMother {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         fnr: Fnr = Fnr.random(),
         rammevedtakId: VedtakId = VedtakId.random(),
+        periode: Periode,
+        meldeperiodeId: MeldeperiodeId = MeldeperiodeId.fraPeriode(periode),
+        opprettet: LocalDateTime = nå(),
+        meldeperiode: Meldeperiode = meldeperiode(
+            periode = periode,
+            id = meldeperiodeId,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+        ),
         meldekortperiodeBeregning: MeldeperiodeBeregning.UtfyltMeldeperiode =
             utfyltMeldekortperiode(
                 meldekortId = id,
                 sakId = sakId,
+                startDato = meldeperiode.periode.fraOgMed,
             ),
-        meldeperiodeId: MeldeperiodeId = MeldeperiodeId.fraPeriode(meldekortperiodeBeregning.periode),
+
         saksbehandler: String = "saksbehandler",
         beslutter: String = "beslutter",
         forrigeMeldekortId: MeldekortId? = null,
@@ -106,16 +118,8 @@ interface MeldekortMother {
         iverksattTidspunkt: LocalDateTime? = nå(),
         navkontor: Navkontor = ObjectMother.navkontor(),
         antallDagerForMeldeperiode: Int = 10,
-        opprettet: LocalDateTime = nå(),
+
         sendtTilBeslutning: LocalDateTime = nå(),
-        meldeperiode: Meldeperiode = meldeperiode(
-            periode = meldekortperiodeBeregning.periode,
-            id = meldeperiodeId,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            fnr = fnr,
-            opprettet = opprettet,
-        ),
 
     ): MeldekortBehandling.UtfyltMeldekort {
         return MeldekortBehandling.UtfyltMeldekort(
