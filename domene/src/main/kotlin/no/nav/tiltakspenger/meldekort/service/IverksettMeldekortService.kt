@@ -53,7 +53,11 @@ class IverksettMeldekortService(
             "Meldekort $meldekortId er allerede iverksatt"
         }
 
+        // TODO John og Anders: Vi må støtte at dette er siste meldeperiode.
         val nesteMeldeperiode = sak.opprettNesteMeldeperiode() ?: throw IllegalArgumentException("Kunne ikke opprette ny meldeperiode for sak $sakId")
+        require(meldekort.periode.tilOgMed.plusDays(1) == nesteMeldeperiode.periode.fraOgMed) {
+            "Forventet at neste meldekort starter dagen etter nåværende meldekort. saksnummer: ${sak.saksnummer}, sakId: $sakId, meldekortId: $meldekortId, meldeperiodeId: ${meldekort.meldeperiode.id}"
+        }
 
         return meldekort.iverksettMeldekort(kommando.beslutter).onRight { iverksattMeldekort ->
             val nesteMeldekort = iverksattMeldekort.opprettNesteMeldekortBehandling(sak.vedtaksliste.utfallsperioder, nesteMeldeperiode)

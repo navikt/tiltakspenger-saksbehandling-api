@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.vedtak.repository.meldekort
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.felles.Navkontor
+import no.nav.tiltakspenger.felles.april
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.mars
 import no.nav.tiltakspenger.libs.common.getOrFail
@@ -22,18 +23,21 @@ class MeldekortBehandlingRepoImplTest {
     @Test
     fun `kan lagre og hente`() {
         withMigratedDb { testDataHelper ->
-            val (sak, vedtak) = testDataHelper.persisterIverksattFørstegangsbehandling()
+            val (sak, vedtak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+                deltakelseFom = 2.januar(2023),
+                deltakelseTom = 2.april(2023),
+            )
 
             val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
-            val meldekort =
-                ObjectMother.utfyltMeldekort(
-                    sakId = sak.id,
-                    rammevedtakId = vedtak.id,
-                    fnr = sak.fnr,
-                    saksnummer = sak.saksnummer,
-                    antallDagerForMeldeperiode = vedtak.antallDagerPerMeldeperiode,
-                    meldeperiode = førsteMeldeperiode,
-                )
+            val meldekort = ObjectMother.utfyltMeldekort(
+                sakId = sak.id,
+                rammevedtakId = vedtak.id,
+                fnr = sak.fnr,
+                saksnummer = sak.saksnummer,
+                antallDagerForMeldeperiode = vedtak.antallDagerPerMeldeperiode,
+                meldeperiode = førsteMeldeperiode,
+                periode = førsteMeldeperiode.periode,
+            )
 
             val meldekortRepo = testDataHelper.meldekortRepo
             val meldeperiodeRepo = testDataHelper.meldeperiodeRepo
