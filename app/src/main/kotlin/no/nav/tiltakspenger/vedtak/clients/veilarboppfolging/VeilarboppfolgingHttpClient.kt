@@ -40,6 +40,7 @@ class VeilarboppfolgingHttpClient(
             error("Kunne ikke hente oppfølgingsenhet fra veilarboppfølging, statuskode $status")
         }
         val jsonResponse = httpResponse.body()
+        log.info("Respons fra veilarboppfølging: $jsonResponse") // kun for debug i dev, skal fjernes
         val response = objectMapper.readValue<HentOppfolgingsenhetResponse>(jsonResponse)
         if (response.errors.isNotEmpty()) {
             response.errors.forEach { log.warn(it) }
