@@ -28,7 +28,7 @@ enum class MeldeperiodeStatusDTO {
     GODKJENT,
 }
 
-data class MeldeperiodeOversiktDTO(
+data class MeldeperiodeSammendragDTO(
     val meldeperiodeId: String,
     val hendelseId: String,
     val hendelseVersjon: Int,
@@ -38,7 +38,7 @@ data class MeldeperiodeOversiktDTO(
     val status: MeldeperiodeStatusDTO,
 )
 
-fun Sak.toMeldeperiodeoversiktDTO(): List<MeldeperiodeOversiktDTO> {
+fun Sak.toMeldeperiodeoversiktDTO(): List<MeldeperiodeSammendragDTO> {
     return this.meldeperiodeKjeder.meldeperioder.map { meldeperiode ->
         val meldekortBehandling = this.meldekortBehandlinger.find { meldekortBehandling ->
             meldekortBehandling.meldeperiode.hendelseId == meldeperiode.hendelseId
@@ -47,7 +47,7 @@ fun Sak.toMeldeperiodeoversiktDTO(): List<MeldeperiodeOversiktDTO> {
             brukersMeldekort.meldeperiode.hendelseId == meldeperiode.hendelseId
         }
 
-        MeldeperiodeOversiktDTO(
+        MeldeperiodeSammendragDTO(
             meldeperiodeId = meldeperiode.id.toString(),
             hendelseId = meldeperiode.hendelseId.toString(),
             hendelseVersjon = meldeperiode.versjon.value,
@@ -62,7 +62,7 @@ fun Sak.toMeldeperiodeoversiktDTO(): List<MeldeperiodeOversiktDTO> {
                 null -> when {
                     meldeperiode.periode.fraOgMed > nå().toLocalDate() -> MeldeperiodeStatusDTO.IKKE_KLAR_TIL_UTFYLLING
                     brukersMeldekort == null -> MeldeperiodeStatusDTO.VENTER_PÅ_UTFYLLING
-                    else -> throw IllegalStateException()
+                    else -> MeldeperiodeStatusDTO.KLAR_TIL_BEHANDLING
                 }
             },
         )

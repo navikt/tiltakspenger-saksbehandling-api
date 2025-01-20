@@ -16,7 +16,7 @@ data class SakDTO(
     val fnr: String,
     val behandlingsoversikt: List<SaksoversiktDTO>,
     val meldekortoversikt: List<MeldekortoversiktDTO>,
-    val meldeperiodeoversikt: List<MeldeperiodeOversiktDTO>,
+    val meldeperiodeoversikt: List<MeldeperiodeSammendragDTO>,
     val meldeperioder: List<MeldeperiodeDTO>,
     val brukersMeldekort: List<BrukersMeldekortDTO>,
     val meldekortbehandlinger: List<MeldekortBehandlingDTO>,
