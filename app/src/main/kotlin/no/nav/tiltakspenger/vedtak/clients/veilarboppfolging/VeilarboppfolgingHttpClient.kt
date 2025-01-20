@@ -28,10 +28,10 @@ class VeilarboppfolgingHttpClient(
             .followRedirects(java.net.http.HttpClient.Redirect.NEVER)
             .build()
 
-    private val uri = URI.create("$baseUrl/veilarboppfolging/graphql")
+    private val uri = URI.create("$baseUrl/veilarboppfolging/api/v2/person/system/hent-oppfolgingsstatus")
 
     override suspend fun hentOppfolgingsenhet(fnr: Fnr): Navkontor {
-        val jsonPayload = objectMapper.writeValueAsString(hentOppfolgingsenhetQuery(fnr))
+        val jsonPayload = objectMapper.writeValueAsString(Request(fnr.verdi))
         val request = createRequest(jsonPayload, getToken().token)
         val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
         val status = httpResponse.statusCode()
@@ -40,16 +40,7 @@ class VeilarboppfolgingHttpClient(
             error("Kunne ikke hente oppfølgingsenhet fra veilarboppfølging, statuskode $status")
         }
         val jsonResponse = httpResponse.body()
-        logger.info { "Respons fra veilarboppfølging: $jsonResponse" } // kun for debug i dev, skal fjernes
-        val response = objectMapper.readValue<HentOppfolgingsenhetResponse>(jsonResponse)
-        if (response.errors.isNotEmpty()) {
-            response.errors.forEach { logger.warn(it) }
-        }
-        if (response.data == null) {
-            logger.error { "Respons fra veilarboppfølging mangler data" }
-            error("Respons fra veilarboppfølging mangler data")
-        }
-        val oppfolgingsenhet = response.data.oppfolgingsEnhet.enhet
+        val oppfolgingsenhet = objectMapper.readValue<Response>(jsonResponse).oppfolgingsenhet
         if (oppfolgingsenhet == null) {
             logger.error { "Fant ikke oppfølgingsenhet" }
         }
@@ -71,4 +62,23 @@ class VeilarboppfolgingHttpClient(
             .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
             .build()
     }
+}
+
+private data class Request(
+    val fnr: String,
+)
+
+private data class Response(
+    val oppfolgingsenhet: Oppfolgingsenhet?,
+)
+
+private data class Oppfolgingsenhet(
+    val navn: String,
+    val enhetId: String,
+) {
+    fun toNavkontor(): Navkontor =
+        Navkontor(
+            kontornummer = enhetId,
+            kontornavn = navn,
+        )
 }
