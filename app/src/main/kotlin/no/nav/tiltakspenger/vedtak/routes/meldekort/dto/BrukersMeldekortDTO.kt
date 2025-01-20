@@ -8,8 +8,6 @@ import java.time.LocalDateTime
 data class BrukersMeldekortDTO(
     val id: String,
     val mottatt: LocalDateTime,
-    val meldeperiode: MeldeperiodeDTO,
-    val sakId: String,
     val dager: List<DagDTO>,
 ) {
     data class DagDTO(
@@ -22,8 +20,6 @@ fun BrukersMeldekort.toDTO(): BrukersMeldekortDTO {
     return BrukersMeldekortDTO(
         id = id.toString(),
         mottatt = mottatt,
-        meldeperiode = meldeperiode.toDTO(),
-        sakId = sakId.toString(),
         dager = dager.map {
             BrukersMeldekortDTO.DagDTO(
                 status = when (it.status) {
