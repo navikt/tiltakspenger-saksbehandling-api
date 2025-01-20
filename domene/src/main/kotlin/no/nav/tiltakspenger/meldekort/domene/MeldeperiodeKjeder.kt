@@ -1,12 +1,20 @@
 package no.nav.tiltakspenger.meldekort.domene
 
 import arrow.core.toNonEmptyListOrNull
+import no.nav.tiltakspenger.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseId
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 
 data class MeldeperiodeKjeder(
     private val meldeperiodeKjeder: List<MeldeperiodeKjede>,
 ) : List<MeldeperiodeKjede> by meldeperiodeKjeder {
+
+    val sakId: SakId? = meldeperiodeKjeder.map { it.sakId }.distinct().singleOrNullOrThrow()
+    val saksnummer: Saksnummer? = meldeperiodeKjeder.map { it.saksnummer }.distinct().singleOrNullOrThrow()
+    val fnr: Fnr? = meldeperiodeKjeder.map { it.fnr }.distinct().singleOrNullOrThrow()
 
     init {
         meldeperiodeKjeder.flatten().nonDistinctBy { it.hendelseId }.also {

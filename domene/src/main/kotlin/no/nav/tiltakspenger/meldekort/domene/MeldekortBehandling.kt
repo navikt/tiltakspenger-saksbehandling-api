@@ -92,6 +92,8 @@ sealed interface MeldekortBehandling {
     ) : MeldekortBehandling {
 
         init {
+            require(meldeperiode.periode == periode)
+            require(beregning.periode == periode)
             when (status) {
                 MeldekortBehandlingStatus.IKKE_BEHANDLET -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status IKKE_UTFYLT")
                 MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> {

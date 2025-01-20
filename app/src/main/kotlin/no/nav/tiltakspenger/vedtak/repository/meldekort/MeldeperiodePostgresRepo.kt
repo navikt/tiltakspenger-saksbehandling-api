@@ -162,7 +162,7 @@ internal class MeldeperiodePostgresRepo(
                     from meldeperiode m 
                     join sak s on s.id = m.sak_id
                     where m.sak_id = :sak_id
-                    order by fra_og_med, versjon
+                    order by m.fra_og_med, m.versjon
                     """,
                     "sak_id" to sakId.toString(),
                 ).map { row -> fromRow(row) }.asList,

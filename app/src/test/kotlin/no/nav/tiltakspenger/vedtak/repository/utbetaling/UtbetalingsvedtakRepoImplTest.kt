@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.vedtak.repository.utbetaling
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.felles.april
+import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.saksbehandling.ports.SendtUtbetaling
@@ -16,7 +18,10 @@ class UtbetalingsvedtakRepoImplTest {
         val tidspunkt = nå()
         withMigratedDb(runIsolated = true) { testDataHelper ->
 
-            val (sak, meldekort) = testDataHelper.persisterRammevedtakMedUtfyltMeldekort()
+            val (sak, meldekort) = testDataHelper.persisterRammevedtakMedUtfyltMeldekort(
+                deltakelseFom = 2.januar(2023),
+                deltakelseTom = 2.april(2023),
+            )
             val utbetalingsvedtakRepo = testDataHelper.utbetalingsvedtakRepo as UtbetalingsvedtakPostgresRepo
             val utbetalingsvedtak = meldekort.opprettUtbetalingsvedtak(sak.saksnummer, sak.fnr, null)
             utbetalingsvedtakRepo.lagre(utbetalingsvedtak)
