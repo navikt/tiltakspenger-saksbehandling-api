@@ -19,8 +19,6 @@ data class MeldeperiodeKjede(
     val fnr: Fnr = meldeperioder.map { it.fnr }.distinct().single()
     val id: MeldeperiodeId = meldeperioder.map { it.id }.distinct().single()
 
-    val sisteVersjon: Meldeperiode = last()
-
     init {
         meldeperioder.nonDistinctBy { it.hendelseId }.also {
             require(it.isEmpty()) {

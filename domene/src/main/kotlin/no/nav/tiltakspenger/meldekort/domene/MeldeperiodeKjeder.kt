@@ -27,6 +27,9 @@ data class MeldeperiodeKjeder(
             require(a.periode.fraOgMed <= b.periode.fraOgMed) {
                 "Meldeperiodekjedene må være sortert på periode - ${a.id} og ${b.id} var i feil rekkefølge (sak ${a.sakId})"
             }
+            require(a.periode.tilOgMed.plusDays(1) == b.periode.fraOgMed) {
+                "Meldeperiodekjedene må være sammenhengende - feilet for ${a.id} og ${b.id} (sak ${a.sakId})"
+            }
         }
     }
 
