@@ -1,6 +1,6 @@
 val kotlinxCoroutinesVersion = "1.10.1"
 val kotestVersion = "5.9.1"
-val felleslibVersion = "0.0.336"
+val felleslibVersion = "0.0.338"
 val mockkVersion = "1.13.16"
 val ktorVersion = "3.0.3"
 val testContainersVersion = "1.20.4"
@@ -86,7 +86,7 @@ dependencies {
     api("com.auth0:jwks-rsa:0.22.1")
 
     // DB
-    implementation("org.flywaydb:flyway-database-postgresql:11.1.1")
+    implementation("org.flywaydb:flyway-database-postgresql:11.2.0")
     implementation("com.zaxxer:HikariCP:6.2.1")
     implementation("org.postgresql:postgresql:42.7.5")
     implementation("com.github.seratch:kotliquery:1.9.1")
@@ -102,7 +102,7 @@ dependencies {
     implementation("io.arrow-kt:arrow-core:1.2.4")
 
     // Caffeine
-    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")
 
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
