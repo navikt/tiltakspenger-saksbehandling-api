@@ -89,22 +89,27 @@ data class Vedtaksliste(
     }
 
     /**
-     * @throws NoSuchElementException eller [IllegalArgumentException] hvis flere enn 1 vedtak er gjeldende for perioden.
+     * @return null dersom vi ikke har noen rammevedtak, eller vi ikke har vedtak som overlapper med [periode].
+     * @throws NoSuchElementException eller [IllegalArgumentException] dersom mer enn 1 tiltak er gjeldende for perioden.
      */
     fun hentTiltaksdataForPeriode(periode: Periode): TiltaksdataForJournalføring? {
         if (value.isEmpty()) return null
-        return value.toTidslinje().perioderMedVerdi.map {
-            PeriodeMedVerdi(
-                it.verdi.krymp(it.periode).behandling,
-                it.periode,
-            )
-        }.let { Periodisering(it) }.krymp(periode).single().verdi.let {
+        val tidslinje = Periodisering(
+            value.toTidslinje().perioderMedVerdi.map {
+                PeriodeMedVerdi(
+                    it.verdi.krymp(it.periode).behandling,
+                    it.periode,
+                )
+            },
+        )
+        val overlappendePeriode = periode.overlappendePeriode(tidslinje.totalePeriode) ?: return null
+        return tidslinje.krymp(overlappendePeriode).map {
             TiltaksdataForJournalføring(
                 tiltaksnavn = it.tiltaksnavn,
                 eksternGjennomføringId = it.gjennomføringId,
                 eksternDeltagelseId = it.tiltaksid,
             )
-        }
+        }.single().verdi
     }
 
     init {
