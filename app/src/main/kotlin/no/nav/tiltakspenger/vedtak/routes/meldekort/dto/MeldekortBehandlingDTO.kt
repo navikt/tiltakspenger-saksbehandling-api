@@ -21,10 +21,9 @@ data class MeldekortBehandlingDTO(
     val totalbeløpTilUtbetaling: Int?,
     val vedtaksPeriode: PeriodeDTO?,
     val antallDager: Int?,
-    val navkontor: String?,
-    val forrigeNavkontor: String?,
+    val navkontor: Navkontor?,
+    val forrigeNavkontor: Navkontor?,
     val meldeperiode: MeldeperiodeDto?,
-    val forrigeNavkontorNavn: String?,
 )
 
 fun MeldekortBehandlinger.toDTO(
@@ -62,9 +61,8 @@ fun MeldekortBehandling.toDTO(
         totalbeløpTilUtbetaling = this.beløpTotal,
         vedtaksPeriode = vedtaksPeriode?.toDTO(),
         antallDager = antallDager,
-        navkontor = navkontor?.kontornummer,
-        forrigeNavkontor = forrigeNavkontor?.kontornummer,
+        navkontor = navkontor,
+        forrigeNavkontor = forrigeNavkontor,
         meldeperiode = meldeperiode.toDTO(),
-        forrigeNavkontorNavn = forrigeNavkontor?.kontornavn,
     )
 }
