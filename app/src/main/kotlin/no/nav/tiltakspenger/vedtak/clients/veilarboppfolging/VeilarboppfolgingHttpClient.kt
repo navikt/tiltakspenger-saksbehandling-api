@@ -36,6 +36,7 @@ class VeilarboppfolgingHttpClient(
         val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
         val status = httpResponse.statusCode()
         if (status != 200) {
+            log.error("Kunne ikke hente oppfølgingsenhet fra veilarboppfølging, statuskode $status")
             error("Kunne ikke hente oppfølgingsenhet fra veilarboppfølging, statuskode $status")
         }
         val jsonResponse = httpResponse.body()
@@ -44,6 +45,7 @@ class VeilarboppfolgingHttpClient(
             response.errors.forEach { log.warn(it) }
         }
         if (response.data == null) {
+            log.error("Respons fra veilarboppfølging mangler data")
             error("Respons fra veilarboppfølging mangler data")
         }
         val oppfolgingsenhet = response.data.oppfolgingsEnhet.enhet
