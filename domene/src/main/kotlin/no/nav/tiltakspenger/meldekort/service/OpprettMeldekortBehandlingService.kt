@@ -62,7 +62,7 @@ class OpprettMeldekortBehandlingService(
             meldekortRepo.lagre(meldekortBehandling, tx)
         }
 
-        logger.info { "Opprettet behandling av meldeperiode $hendelseId for sak $sakId" }
+        logger.info { "Opprettet behandling ${meldekortBehandling.id} av meldeperiode hendelse $hendelseId for sak $sakId" }
 
         return Unit.right()
     }
