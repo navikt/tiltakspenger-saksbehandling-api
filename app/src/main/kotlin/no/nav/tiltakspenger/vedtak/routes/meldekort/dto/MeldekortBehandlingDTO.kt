@@ -29,7 +29,7 @@ fun MeldekortBehandling.toDTO(forrigeNavkontor: Navkontor?): MeldekortBehandling
         id = id.toString(),
         saksbehandler = saksbehandler,
         beslutter = beslutter,
-        status = this.toMeldekortstatusDTO(),
+        status = this.toStatusDTO(),
         totalbeløpTilUtbetaling = this.beløpTotal,
         navkontor = navkontor?.kontornummer,
         forrigeNavkontor = forrigeNavkontor?.kontornummer,

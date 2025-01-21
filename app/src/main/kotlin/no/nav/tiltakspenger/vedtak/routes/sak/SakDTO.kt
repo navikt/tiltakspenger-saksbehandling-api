@@ -11,7 +11,6 @@ data class SakDTO(
     val sakId: String,
     val fnr: String,
     val behandlingsoversikt: List<SaksoversiktDTO>,
-    val meldekortoversikt: List<MeldekortoversiktDTO>,
     val meldeperiodeoversikt: List<MeldeperiodeSammendragDTO>,
     val førsteLovligeStansdato: LocalDate?,
 )
@@ -21,7 +20,6 @@ fun Sak.toDTO() = SakDTO(
     sakId = id.toString(),
     fnr = fnr.verdi,
     behandlingsoversikt = behandlinger.toSaksoversiktDTO(),
-    meldekortoversikt = toMeldekortoversiktDTO(),
     meldeperiodeoversikt = toMeldeperiodeoversiktDTO(),
     førsteLovligeStansdato = førsteLovligeStansdato(),
 )
