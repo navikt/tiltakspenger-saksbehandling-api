@@ -12,7 +12,9 @@ data class MeldekortBehandlingDTO(
     val status: MeldekortBehandlingStatusDTO,
     val totalbeløpTilUtbetaling: Int?,
     val navkontor: String?,
+    val navkontorNavn: String?,
     val forrigeNavkontor: String?,
+    val forrigeNavkontorNavn: String?,
     val dager: List<MeldekortDagDTO>,
 )
 
@@ -32,7 +34,9 @@ fun MeldekortBehandling.toDTO(forrigeNavkontor: Navkontor?): MeldekortBehandling
         status = this.toStatusDTO(),
         totalbeløpTilUtbetaling = this.beløpTotal,
         navkontor = navkontor?.kontornummer,
+        navkontorNavn = navkontor?.kontornavn,
         forrigeNavkontor = forrigeNavkontor?.kontornummer,
+        forrigeNavkontorNavn = forrigeNavkontor?.kontornavn,
         dager = beregning.toDTO(),
     )
 }
