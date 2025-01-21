@@ -68,6 +68,8 @@ spec:
           namespace: helved
         - application: poao-tilgang
           namespace: poao
+        - application: veilarboppfolging
+          namespace: poao
       external:
         - host: {{ urlPdl }}
         - host: {{ urlPdlPip }}

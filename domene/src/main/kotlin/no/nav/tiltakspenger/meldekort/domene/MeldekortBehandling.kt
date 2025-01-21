@@ -177,7 +177,6 @@ sealed interface MeldekortBehandling {
         fun sendTilBeslutter(
             utfyltMeldeperiode: MeldeperiodeBeregning.UtfyltMeldeperiode,
             saksbehandler: Saksbehandler,
-            navkontor: Navkontor,
         ): Either<KanIkkeSendeMeldekortTilBeslutter, UtfyltMeldekort> {
             require(utfyltMeldeperiode.periode == this.periode) {
                 "Når man fyller ut et meldekort må meldekortperioden være den samme som den som er opprettet. Opprettet periode: ${this.beregning.periode}, utfylt periode: ${utfyltMeldeperiode.periode}"
@@ -206,7 +205,7 @@ sealed interface MeldekortBehandling {
                 beslutter = this.beslutter,
                 status = MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING,
                 iverksattTidspunkt = null,
-                navkontor = navkontor,
+                navkontor = this.navkontor!!,
                 ikkeRettTilTiltakspengerTidspunkt = null,
                 brukersMeldekort = brukersMeldekort,
                 meldeperiode = meldeperiode,
@@ -252,7 +251,7 @@ sealed interface MeldekortBehandling {
  * TODO post-mvp jah: Ved revurderinger av rammevedtaket, så må vi basere oss på både forrige meldekort og revurderingsvedtaket. Dette løser vi å flytte mer logikk til Sak.kt.
  * TODO post-mvp jah: Når vi implementerer delvis innvilgelse vil hele meldekortperioder kunne bli SPERRET.
  */
-fun Sak.opprettMeldekortBehandling(meldeperiode: Meldeperiode, navkontor: Navkontor? = null): MeldekortBehandling.IkkeUtfyltMeldekort {
+fun Sak.opprettMeldekortBehandling(meldeperiode: Meldeperiode, navkontor: Navkontor): MeldekortBehandling.IkkeUtfyltMeldekort {
     val meldekortId = MeldekortId.random()
 
     // TODO: håndtere flere vedtak

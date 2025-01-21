@@ -42,6 +42,10 @@ fun Route.opprettMeldekortBehandlingRoute(
                                 is KanIkkeOppretteMeldekortBehandling.IkkeTilgangTilSak -> call.respond(HttpStatusCode.Forbidden)
                                 is KanIkkeOppretteMeldekortBehandling.BehandlingFinnes -> call.respond(HttpStatusCode.Conflict)
                                 is KanIkkeOppretteMeldekortBehandling.IngenMeldeperiode -> call.respond(HttpStatusCode.BadRequest)
+                                is KanIkkeOppretteMeldekortBehandling.HenteNavkontorFeilet -> call.respond(
+                                    status = HttpStatusCode.InternalServerError,
+                                    message = "Kunne ikke hente Nav-kontor for utbetaling",
+                                )
                             }
                         },
                         {

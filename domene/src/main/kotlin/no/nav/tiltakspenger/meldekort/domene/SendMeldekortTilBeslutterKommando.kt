@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.meldekort.domene
 
 import arrow.core.NonEmptyList
-import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -15,7 +14,6 @@ import java.time.LocalDate
  * Denne flyten vil bli annerledes for veileder og bruker.
  * Vi gjør ingen validering i denne klassen, det gjøres heller av [no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.UtfyltMeldekort]
  *
- * @param navkontor Brukers NAV-kontor. Videresendes til økonomi for riktig kontering.
  */
 class SendMeldekortTilBeslutterKommando(
     val sakId: SakId,
@@ -23,8 +21,6 @@ class SendMeldekortTilBeslutterKommando(
     val saksbehandler: Saksbehandler,
     val dager: Dager,
     val correlationId: CorrelationId,
-    // TODO post-mvp: Gjør denne privat og lag en funksjon som tar inn en valideringsfunksjon (vi må verifisere denne mot /norg2/api/v1/enhet/simple, helst med cache)
-    val navkontor: Navkontor,
 ) {
     val periode: Periode = Periode(dager.first().dag, dager.last().dag)
 

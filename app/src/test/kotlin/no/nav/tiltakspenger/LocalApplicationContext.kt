@@ -25,7 +25,11 @@ import no.nav.tiltakspenger.objectmothers.toSøknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.ports.VeilarboppfolgingGateway
+import no.nav.tiltakspenger.utbetaling.service.NavkontorService
+import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.Profile
+import no.nav.tiltakspenger.vedtak.clients.veilarboppfolging.VeilarboppfolgingHttpClient
 import no.nav.tiltakspenger.vedtak.context.ApplicationContext
 import no.nav.tiltakspenger.vedtak.context.DokumentContext
 import no.nav.tiltakspenger.vedtak.context.FørstegangsbehandlingContext
@@ -105,6 +109,14 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
 
     override val entraIdSystemtokenClient = EntraIdSystemtokenFakeClient()
 
+    override val veilarboppfolgingGateway: VeilarboppfolgingGateway by lazy {
+        VeilarboppfolgingHttpClient(
+            baseUrl = Configuration.veilarboppfolgingUrl,
+            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.veilarboppfolgingScope) },
+        )
+    }
+    override val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingGateway) }
+
     override val personContext =
         object : PersonContext(sessionFactory, entraIdSystemtokenClient) {
             override val personGateway = personGatewayFake
@@ -151,6 +163,7 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             personService = personContext.personService,
             entraIdSystemtokenClient = entraIdSystemtokenClient,
+            navkontorService = navkontorService,
         ) {}
     }
     override val behandlingContext by lazy {

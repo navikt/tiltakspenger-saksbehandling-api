@@ -12,9 +12,12 @@ import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
+import no.nav.tiltakspenger.saksbehandling.ports.VeilarboppfolgingGateway
+import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.auth.systembrukerMapper
 import no.nav.tiltakspenger.vedtak.clients.datadeling.DatadelingHttpClient
+import no.nav.tiltakspenger.vedtak.clients.veilarboppfolging.VeilarboppfolgingHttpClient
 import no.nav.tiltakspenger.vedtak.db.DataSourceSetup
 
 /**
@@ -54,6 +57,13 @@ open class ApplicationContext(
             clientSecret = Configuration.clientSecret,
         )
     }
+    open val veilarboppfolgingGateway: VeilarboppfolgingGateway by lazy {
+        VeilarboppfolgingHttpClient(
+            baseUrl = Configuration.veilarboppfolgingUrl,
+            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.veilarboppfolgingScope) },
+        )
+    }
+    open val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingGateway) }
     open val personContext by lazy { PersonContext(sessionFactory, entraIdSystemtokenClient) }
     open val dokumentContext by lazy { DokumentContext(entraIdSystemtokenClient) }
     open val statistikkContext by lazy { StatistikkContext(sessionFactory) }
@@ -92,6 +102,7 @@ open class ApplicationContext(
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             personService = personContext.personService,
             entraIdSystemtokenClient = entraIdSystemtokenClient,
+            navkontorService = navkontorService,
         )
     }
     open val behandlingContext by lazy {

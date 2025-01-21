@@ -15,5 +15,5 @@ object ObjectMother :
     UtbetalingsvedtakMother,
     TiltakMother {
     fun navn() = Navn("Fornavn", "Mellomnavn", "Etternavn")
-    fun navkontor() = Navkontor("0220")
+    fun navkontor() = Navkontor(kontornummer = "0220", kontornavn = "Nav Asker")
 }

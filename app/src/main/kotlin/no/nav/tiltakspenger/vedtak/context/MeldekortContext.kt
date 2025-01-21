@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
+import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.clients.meldekort.MeldekortApiHttpClient
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortPostgresRepo
@@ -31,6 +32,7 @@ open class MeldekortContext(
     utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
     statistikkStønadRepo: StatistikkStønadRepo,
     entraIdSystemtokenClient: EntraIdSystemtokenClient,
+    navkontorService: NavkontorService,
 ) {
     open val meldekortRepo: MeldekortRepo by lazy {
         MeldekortPostgresRepo(
@@ -67,6 +69,7 @@ open class MeldekortContext(
         OpprettMeldekortBehandlingService(
             meldekortRepo = meldekortRepo,
             sakService = sakService,
+            navkontorService = navkontorService,
             sessionFactory = sessionFactory,
         )
     }

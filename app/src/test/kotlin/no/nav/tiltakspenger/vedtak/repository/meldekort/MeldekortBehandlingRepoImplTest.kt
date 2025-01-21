@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.vedtak.repository.meldekort
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.felles.april
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.mars
@@ -54,7 +53,7 @@ class MeldekortBehandlingRepoImplTest {
             val oppdatertSak = sakRepo.hentForSakId(sak.id)!!
 
             val nesteMeldeperiode = oppdatertSak.opprettNesteMeldeperiode()!!
-            val nesteMeldekort = oppdatertSak.opprettMeldekortBehandling(nesteMeldeperiode)
+            val nesteMeldekort = oppdatertSak.opprettMeldekortBehandling(nesteMeldeperiode, ObjectMother.navkontor())
 
             meldeperiodeRepo.lagre(nesteMeldeperiode)
             meldekortRepo.lagre(nesteMeldekort)
@@ -78,7 +77,7 @@ class MeldekortBehandlingRepoImplTest {
                 deltakelseTom = 31.mars(2024),
             )
             val meldeperiode = sak.opprettFørsteMeldeperiode()
-            val meldekortBehandling = sak.opprettMeldekortBehandling(meldeperiode)
+            val meldekortBehandling = sak.opprettMeldekortBehandling(meldeperiode, ObjectMother.navkontor())
 
             val meldekortRepo = testDataHelper.meldekortRepo
             val meldeperiodeRepo = testDataHelper.meldeperiodeRepo
@@ -95,7 +94,6 @@ class MeldekortBehandlingRepoImplTest {
                     maksDagerMedTiltakspengerForPeriode = meldekortBehandling.beregning.maksDagerMedTiltakspengerForPeriode,
                 ),
                 saksbehandler = ObjectMother.saksbehandler(),
-                navkontor = Navkontor("0222"),
             ).getOrFail()
 
             meldekortRepo.oppdater(oppdatertMeldekort)
