@@ -1,17 +1,11 @@
 package no.nav.tiltakspenger.vedtak.routes.meldekort
 
-import arrow.core.Either
-import arrow.core.getOrElse
-import arrow.core.left
-import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import mu.KotlinLogging
-import no.nav.tiltakspenger.felles.Navkontor
-import no.nav.tiltakspenger.felles.UgyldigKontornummer
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -42,7 +36,6 @@ import java.time.LocalDate
 
 private data class Body(
     val dager: List<Dag>,
-    val navkontor: String,
 ) {
     data class Dag(
         val dato: String,
@@ -54,12 +47,11 @@ private data class Body(
         meldekortId: MeldekortId,
         sakId: SakId,
         correlationId: CorrelationId,
-    ): Either<UgyldigKontornummer, SendMeldekortTilBeslutterKommando> {
+    ): SendMeldekortTilBeslutterKommando {
         return SendMeldekortTilBeslutterKommando(
             sakId = sakId,
             saksbehandler = saksbehandler,
             correlationId = correlationId,
-            navkontor = Navkontor.tryCreate(navkontor).getOrElse { return it.left() },
             dager = Dager(
                 this.dager.map { dag ->
                     Dager.Dag(
@@ -80,7 +72,7 @@ private data class Body(
                 }.toNonEmptyListOrNull()!!,
             ),
             meldekortId = meldekortId,
-        ).right()
+        )
     }
 }
 
@@ -102,13 +94,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
                             meldekortId = meldekortId,
                             sakId = sakId,
                             correlationId = correlationId,
-                        ).getOrElse {
-                            call.respond400BadRequest(
-                                melding = "Navkontor (enhetsnummer/kontornummer) er forventet å være 4 siffer.",
-                                kode = "ugyldig_kontornummer",
-                            )
-                            return@withBody
-                        }
+                        )
                         sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(kommando).fold(
                             ifLeft = {
                                 when (it) {

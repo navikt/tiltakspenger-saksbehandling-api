@@ -42,7 +42,7 @@ data class MeldekortBehandlinger(
         val utfyltMeldeperiode = ikkeUtfyltMeldekort.beregning.tilUtfyltMeldeperiode(meldekortdager).getOrElse {
             return it.left()
         }
-        return ikkeUtfyltMeldekort.sendTilBeslutter(utfyltMeldeperiode, kommando.saksbehandler, kommando.navkontor)
+        return ikkeUtfyltMeldekort.sendTilBeslutter(utfyltMeldeperiode, kommando.saksbehandler)
             .map {
                 Pair(
                     MeldekortBehandlinger(

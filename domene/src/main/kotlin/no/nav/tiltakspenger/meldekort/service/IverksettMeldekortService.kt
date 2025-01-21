@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.utbetaling.domene.opprettUtbetalingsvedtak
 import no.nav.tiltakspenger.utbetaling.domene.tilStatistikk
 import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
+import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 
 class IverksettMeldekortService(
     val sakService: SakService,
@@ -33,6 +34,7 @@ class IverksettMeldekortService(
     private val personService: PersonService,
     private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
+    private val navkontorService: NavkontorService,
 ) {
     suspend fun iverksettMeldekort(
         kommando: IverksettMeldekortKommando,
@@ -58,9 +60,10 @@ class IverksettMeldekortService(
         require(meldekort.periode.tilOgMed.plusDays(1) == nesteMeldeperiode.periode.fraOgMed) {
             "Forventet at neste meldekort starter dagen etter nåværende meldekort. saksnummer: ${sak.saksnummer}, sakId: $sakId, meldekortId: $meldekortId, meldeperiodeId: ${meldekort.meldeperiode.id}"
         }
+        val oppfolgingsenhet = navkontorService.hentOppfolgingsenhet(sak.fnr)
 
         return meldekort.iverksettMeldekort(kommando.beslutter).onRight { iverksattMeldekort ->
-            val nesteMeldekort = iverksattMeldekort.opprettNesteMeldekortBehandling(sak.vedtaksliste.utfallsperioder, nesteMeldeperiode)
+            val nesteMeldekort = iverksattMeldekort.opprettNesteMeldekortBehandling(sak.vedtaksliste.utfallsperioder, nesteMeldeperiode, oppfolgingsenhet)
             val eksisterendeUtbetalingsvedtak = sak.utbetalinger
             val utbetalingsvedtak = iverksattMeldekort.opprettUtbetalingsvedtak(
                 saksnummer = sak.saksnummer,

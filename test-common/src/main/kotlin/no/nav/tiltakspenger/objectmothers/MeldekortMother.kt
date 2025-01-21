@@ -262,7 +262,6 @@ interface MeldekortMother {
                 saksbehandler = saksbehandler,
                 dager = Dager(meldeperiode),
                 correlationId = CorrelationId.generate(),
-                navkontor = navkontor,
             )
         }
         return kommandoer.drop(1).fold(
@@ -457,7 +456,6 @@ interface MeldekortMother {
 
 fun MeldekortBehandling.IkkeUtfyltMeldekort.tilSendMeldekortTilBeslutterKommando(
     saksbehandler: Saksbehandler,
-    navkontor: Navkontor = this.navkontor ?: ObjectMother.navkontor(),
 ): SendMeldekortTilBeslutterKommando {
     val dager = beregning.map { dag ->
         Dager.Dag(
@@ -488,6 +486,5 @@ fun MeldekortBehandling.IkkeUtfyltMeldekort.tilSendMeldekortTilBeslutterKommando
         saksbehandler = saksbehandler,
         dager = Dager(dager),
         correlationId = CorrelationId.generate(),
-        navkontor = navkontor,
     )
 }

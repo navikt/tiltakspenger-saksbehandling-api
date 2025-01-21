@@ -37,7 +37,6 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        navkontor = ObjectMother.navkontor(),
                         dager = SendMeldekortTilBeslutterKommando.Dager(
                             dager = nonEmptyListOf(
                                 Dag(
@@ -70,7 +69,6 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        navkontor = ObjectMother.navkontor(),
                         dager = SendMeldekortTilBeslutterKommando.Dager(
                             dager = dager(
                                 førsteDag,
@@ -115,7 +113,6 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        navkontor = ObjectMother.navkontor(),
                         dager = SendMeldekortTilBeslutterKommando.Dager(
                             dager = dager(
                                 førsteDag,
@@ -160,7 +157,6 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        navkontor = ObjectMother.navkontor(),
                         dager = SendMeldekortTilBeslutterKommando.Dager(
                             dager = dager(
                                 førsteDag,
@@ -204,7 +200,6 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        navkontor = ObjectMother.navkontor(),
                         dager = SendMeldekortTilBeslutterKommando.Dager(
                             dager = dager(
                                 førsteDag,
@@ -248,7 +243,6 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        navkontor = ObjectMother.navkontor(),
                         dager = SendMeldekortTilBeslutterKommando.Dager(
                             dager = dager(
                                 førsteDag,

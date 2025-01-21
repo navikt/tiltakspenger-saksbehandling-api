@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.fakes.clients.PersonFakeGateway
 import no.nav.tiltakspenger.fakes.clients.TilgangsstyringFakeGateway
 import no.nav.tiltakspenger.fakes.clients.TiltakFakeGateway
 import no.nav.tiltakspenger.fakes.clients.UtbetalingFakeGateway
+import no.nav.tiltakspenger.fakes.clients.VeilarboppfolgingFakeGateway
 import no.nav.tiltakspenger.fakes.repos.BehandlingFakeRepo
 import no.nav.tiltakspenger.fakes.repos.MeldekortFakeRepo
 import no.nav.tiltakspenger.fakes.repos.MeldeperiodeFakeRepo
@@ -35,6 +36,7 @@ import no.nav.tiltakspenger.libs.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
+import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.Profile
 import no.nav.tiltakspenger.vedtak.auth.systembrukerMapper
 import no.nav.tiltakspenger.vedtak.context.ApplicationContext
@@ -126,6 +128,9 @@ class TestApplicationContext(
 
     override val entraIdSystemtokenClient = EntraIdSystemtokenFakeClient()
 
+    override val veilarboppfolgingGateway = VeilarboppfolgingFakeGateway()
+    override val navkontorService: NavkontorService = NavkontorService(veilarboppfolgingGateway)
+
     override val personContext =
         object : PersonContext(sessionFactory, entraIdSystemtokenClient) {
             override val personGateway = personGatewayFake
@@ -185,6 +190,7 @@ class TestApplicationContext(
                 statistikkStønadRepo = statistikkStønadFakeRepo,
                 personService = personContext.personService,
                 entraIdSystemtokenClient = entraIdSystemtokenClient,
+                navkontorService = navkontorService,
             ) {
             override val meldekortRepo = meldekortFakeRepo
             override val meldeperiodeRepo = meldeperiodeFakeRepo
@@ -207,6 +213,7 @@ class TestApplicationContext(
             dokdistGateway = dokdistFakeGateway,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
+            navkontorService = navkontorService,
         ) {
             override val rammevedtakRepo = rammevedtakFakeRepo
             override val behandlingRepo = behandlingFakeRepo
