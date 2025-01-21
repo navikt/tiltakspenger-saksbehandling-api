@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond400BadRequest
@@ -52,6 +53,18 @@ internal suspend inline fun ApplicationCall.withMeldekortId(
         parse = MeldekortId::fromString,
         errorMessage = "Ugyldig meldekort id",
         errorCode = "ugyldig_meldekort_id",
+        onSuccess = onRight,
+    )
+}
+
+internal suspend inline fun ApplicationCall.withMeldeperiodeId(
+    crossinline onRight: suspend (MeldeperiodeId) -> Unit,
+) {
+    withValidParam(
+        paramName = "meldeperiodeId",
+        parse = { MeldeperiodeId(it) },
+        errorMessage = "Ugyldig meldeperiode id",
+        errorCode = "ugyldig_meldeperiode_id",
         onSuccess = onRight,
     )
 }
