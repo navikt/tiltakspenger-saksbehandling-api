@@ -256,8 +256,14 @@ fun Sak.opprettMeldekortBehandling(
 ): MeldekortBehandling.IkkeUtfyltMeldekort {
     val meldekortId = MeldekortId.random()
 
+    requireNotNull(this.vedtaksliste.vedtaksperiode) { "Må ha en vedtaksperiode for å opprette meldekortbehandling" }
+
+    val overlappendePeriode = meldeperiode.periode.overlappendePeriode(this.vedtaksliste.vedtaksperiode)
+
+    requireNotNull(overlappendePeriode) { "Meldeperioden må overlappe med vedtaksperioden" }
+
     // TODO: håndtere flere vedtak
-    val vedtak = this.vedtaksliste.tidslinjeForPeriode(meldeperiode.periode).single().verdi
+    val vedtak = this.vedtaksliste.tidslinjeForPeriode(overlappendePeriode).single().verdi
 
     // TODO: hent tiltakstype fra gjeldende periode
     val tiltakstype = vedtak.behandling.tiltakstype
