@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.tiltakdeltagelse
 
+import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
+import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde.Arena
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde.Komet
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.tiltaksdeltagelse.TiltaksdeltagelseSaksopplysning
-import no.nav.tiltakspenger.vedtak.routes.dto.PeriodeDTO
-import no.nav.tiltakspenger.vedtak.routes.dto.toDTO
 
 internal data class TiltakDeltagelseSaksopplysningDTO(
     val tiltakNavn: String,

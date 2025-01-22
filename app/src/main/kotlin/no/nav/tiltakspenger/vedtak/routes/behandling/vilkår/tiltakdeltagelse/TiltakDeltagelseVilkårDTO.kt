@@ -1,12 +1,12 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.tiltakdeltagelse
 
+import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
+import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.tiltaksdeltagelse.TiltaksdeltagelseVilkår
 import no.nav.tiltakspenger.vedtak.routes.behandling.LovreferanseDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.toDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.SamletUtfallDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.toDTO
-import no.nav.tiltakspenger.vedtak.routes.dto.PeriodeDTO
-import no.nav.tiltakspenger.vedtak.routes.dto.toDTO
 
 /**
  * Har ansvar for å serialisere Tiltakvilkår til json. Kontrakt mot frontend.

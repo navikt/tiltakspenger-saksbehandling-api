@@ -1,13 +1,13 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling
 
+import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
+import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingstype
 import no.nav.tiltakspenger.vedtak.routes.behandling.stønadsdager.StønadsdagerDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.stønadsdager.toDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.VilkårssettDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.toDTO
-import no.nav.tiltakspenger.vedtak.routes.dto.PeriodeDTO
-import no.nav.tiltakspenger.vedtak.routes.dto.toDTO
 
 internal data class BehandlingDTO(
     val id: String,

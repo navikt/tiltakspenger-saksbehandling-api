@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.institusjonsopphold
 
+import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
+import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.institusjonsopphold.Opphold
-import no.nav.tiltakspenger.vedtak.routes.dto.PeriodeDTO
-import no.nav.tiltakspenger.vedtak.routes.dto.toDTO
 
 data class PeriodeMedOppholdDTO(
     val periode: PeriodeDTO,

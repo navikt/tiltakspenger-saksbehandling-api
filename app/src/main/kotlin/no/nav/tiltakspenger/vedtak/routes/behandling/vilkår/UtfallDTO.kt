@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.vilkår
 
+import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.UtfallForPeriode
-import no.nav.tiltakspenger.vedtak.routes.dto.PeriodeDTO
-import no.nav.tiltakspenger.vedtak.routes.dto.toDTO
 
 internal data class PeriodisertUtfallDTO(
     val utfall: UtfallDTO,
