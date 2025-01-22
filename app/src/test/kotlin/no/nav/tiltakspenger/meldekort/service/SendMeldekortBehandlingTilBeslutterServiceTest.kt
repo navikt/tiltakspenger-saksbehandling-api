@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.S
 import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Status.IKKE_DELTATT
 import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Status.SPERRET
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.objectmothers.førstegangsbehandlingIverksatt
+import no.nav.tiltakspenger.objectmothers.meldekortBehandlingOpprettet
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -29,7 +29,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
         runTest {
             with(TestApplicationContext()) {
                 val tac = this
-                val sak = this.førstegangsbehandlingIverksatt(correlationId = correlationId)
+                val sak = this.meldekortBehandlingOpprettet(correlationId = correlationId)
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.ikkeUtfyltMeldekort!!
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
                     SendMeldekortTilBeslutterKommando(
@@ -57,7 +57,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
         runTest {
             with(TestApplicationContext()) {
                 val tac = this
-                val sak = this.førstegangsbehandlingIverksatt(
+                val sak = this.meldekortBehandlingOpprettet(
                     periode = Periode(3.januar(2023), 31.januar(2023)),
                     correlationId = correlationId,
                 )
@@ -101,7 +101,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
         runTest {
             with(TestApplicationContext()) {
                 val tac = this
-                val sak = this.førstegangsbehandlingIverksatt(
+                val sak = this.meldekortBehandlingOpprettet(
                     periode = Periode(3.januar(2023), 31.januar(2023)),
                     correlationId = correlationId,
                 )
@@ -145,7 +145,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
         runTest {
             with(TestApplicationContext()) {
                 val tac = this
-                val sak = this.førstegangsbehandlingIverksatt(
+                val sak = this.meldekortBehandlingOpprettet(
                     periode = Periode(3.januar(2023), 31.januar(2023)),
                     correlationId = correlationId,
                 )
@@ -188,7 +188,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
         runTest {
             with(TestApplicationContext()) {
                 val tac = this
-                val sak = this.førstegangsbehandlingIverksatt(
+                val sak = this.meldekortBehandlingOpprettet(
                     periode = Periode(3.januar(2023), 31.januar(2023)),
                     correlationId = correlationId,
                 )
@@ -231,7 +231,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
         runTest {
             with(TestApplicationContext()) {
                 val tac = this
-                val sak = this.førstegangsbehandlingIverksatt(
+                val sak = this.meldekortBehandlingOpprettet(
                     periode = Periode(3.januar(2023), 31.januar(2023)),
                     correlationId = correlationId,
                 )

@@ -436,12 +436,12 @@ interface MeldekortMother {
             opprettet = mottatt.minus(1, java.time.temporal.ChronoUnit.MILLIS),
         ),
         dager: List<BrukersMeldekortDag> = buildList {
-            val dager = meldeperiode.periode.tilDager()
-            require(dager.size == 14)
-            addAll(dager.take(5).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT, it) })
-            addAll(dager.subList(5, 7).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
-            addAll(dager.subList(7, 12).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT, it) })
-            addAll(dager.subList(12, 14).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
+            val dagerFraPeriode = meldeperiode.periode.tilDager()
+            require(dagerFraPeriode.size == 14)
+            addAll(dagerFraPeriode.take(5).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT, it) })
+            addAll(dagerFraPeriode.subList(5, 7).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
+            addAll(dagerFraPeriode.subList(7, 12).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT, it) })
+            addAll(dagerFraPeriode.subList(12, 14).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
         },
     ): BrukersMeldekort {
         return BrukersMeldekort(

@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.felles.min
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -16,6 +17,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlinger
@@ -55,12 +57,20 @@ data class Sak(
     /** Dette er sannsynligvis første meldekort dersom den er null */
     fun forrigeNavkontor(meldekortId: MeldekortId): Navkontor? {
         // TODO Tia, Anders og John: Slett denne når vi setter oppfølgingsenhet når vi oppretter behandlingen
-        val forrigeMeldekortId = hentMeldekort(meldekortId)!!.forrigeMeldekortId ?: return null
-        return (hentMeldekort(forrigeMeldekortId) as MeldekortBehandling.UtfyltMeldekort).navkontor
+        val forrigeMeldekortId = hentMeldekortBehandling(meldekortId)!!.forrigeMeldekortId ?: return null
+        return (hentMeldekortBehandling(forrigeMeldekortId) as MeldekortBehandling.UtfyltMeldekort).navkontor
     }
 
-    fun hentMeldekort(meldekortId: MeldekortId): MeldekortBehandling? {
-        return meldekortBehandlinger.hentMeldekortForId(meldekortId)
+    fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
+        return meldekortBehandlinger.hentMeldekortBehandling(meldekortId)
+    }
+
+    fun hentMeldekortBehandling(hendelseId: HendelseId): MeldekortBehandling? {
+        return meldekortBehandlinger.hentMeldekortBehandling(hendelseId)
+    }
+
+    fun hentMeldeperiode(hendelseId: HendelseId): Meldeperiode? {
+        return meldeperiodeKjeder.hentMeldeperiode(hendelseId)
     }
 
     fun hentIkkeUtfyltMeldekort(): MeldekortBehandling? = meldekortBehandlinger.ikkeUtfyltMeldekort

@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.vedtak.repository.meldekort
 
-import arrow.core.nonEmptyListOf
 import com.fasterxml.jackson.core.type.TypeReference
 import kotliquery.Row
 import kotliquery.Session
@@ -15,7 +14,6 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjede
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
@@ -78,6 +76,12 @@ internal class MeldeperiodePostgresRepo(
         }
     }
 
+    override fun hentForHendelseId(hendelseId: HendelseId, sessionContext: SessionContext?): Meldeperiode? {
+        return sessionFactory.withSession(sessionContext) { session ->
+            Companion.hentForHendelseId(hendelseId, session)
+        }
+    }
+
     override fun hentUsendteTilBruker(): List<Meldeperiode> {
         return sessionFactory.withSession { session ->
             session.run(
@@ -131,12 +135,12 @@ internal class MeldeperiodePostgresRepo(
             return session.run(
                 sqlQuery(
                     """
-                    select
+                    select 
                         m.*,
                         s.saksnummer,
                         s.ident as fnr 
                     from meldeperiode m 
-                    join sak s on s.id = m.sak_id
+                    join sak s on s.id = m.sak_id 
                     where m.hendelse_id = :hendelse_id
                     """,
                     "hendelse_id" to hendelseId.toString(),
@@ -154,18 +158,16 @@ internal class MeldeperiodePostgresRepo(
                     select
                         m.*,
                         s.saksnummer,
-                        s.ident as fnr 
+                        s.ident as fnr
                     from meldeperiode m 
-                    join sak s on s.id = m.sak_id 
+                    join sak s on s.id = m.sak_id
                     where m.sak_id = :sak_id
                     order by m.fra_og_med, m.versjon
                     """,
                     "sak_id" to sakId.toString(),
                 ).map { row -> fromRow(row) }.asList,
-            ).map {
-                MeldeperiodeKjede(nonEmptyListOf(it))
-            }.let {
-                MeldeperiodeKjeder(it)
+            ).let {
+                MeldeperiodeKjeder.fraMeldeperioder(it)
             }
         }
 

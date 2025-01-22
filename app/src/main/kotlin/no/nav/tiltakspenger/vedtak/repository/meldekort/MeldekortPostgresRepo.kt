@@ -126,7 +126,7 @@ class MeldekortPostgresRepo(
         }
     }
 
-    fun hentForSakId(
+    override fun hentForSakId(
         sakId: SakId,
         sessionContext: SessionContext?,
     ): MeldekortBehandlinger? {
@@ -192,7 +192,6 @@ class MeldekortPostgresRepo(
             val saksnummer = Saksnummer(row.string("saksnummer"))
             val navkontorEnhetsnummer = row.stringOrNull("navkontor")
             val navkontorNavn = row.stringOrNull("navkontor_navn")
-            val navkontor = navkontorEnhetsnummer?.let { Navkontor(kontornummer = it, kontornavn = navkontorNavn) }
             val rammevedtakId = VedtakId.fromString(row.string("rammevedtak_id"))
             val fnr = Fnr.fromString(row.string("fnr"))
             val forrigeMeldekortId = row.stringOrNull("forrige_meldekort_id")?.let { MeldekortId.fromString(it) }
@@ -201,6 +200,8 @@ class MeldekortPostgresRepo(
 
             val hendelseId = HendelseId.fromString(row.string("meldeperiode_hendelse_id"))
             val meldeperiode = MeldeperiodePostgresRepo.hentForHendelseId(hendelseId, session)
+
+            val navkontor = navkontorEnhetsnummer?.let { Navkontor(kontornummer = it, kontornavn = navkontorNavn) }
 
             requireNotNull(meldeperiode) { "Fant ingen meldeperiode for $hendelseId tilknyttet meldekortbehandling $id" }
 

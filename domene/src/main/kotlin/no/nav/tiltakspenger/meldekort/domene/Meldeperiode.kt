@@ -19,6 +19,7 @@ import java.time.temporal.TemporalAdjusters
 data class Meldeperiode(
     val id: MeldeperiodeId,
     val hendelseId: HendelseId,
+
     val versjon: HendelseVersjon,
 
     val periode: Periode,

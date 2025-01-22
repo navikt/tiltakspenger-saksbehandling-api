@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
 import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
@@ -45,7 +44,6 @@ import no.nav.tiltakspenger.saksbehandling.service.statistikk.sak.StatistikkSakD
 import no.nav.tiltakspenger.saksbehandling.service.statistikk.sak.genererSaksstatistikkForRammevedtak
 import no.nav.tiltakspenger.saksbehandling.service.statistikk.stønad.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.service.statistikk.stønad.genererStønadsstatistikkForRammevedtak
-import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 
 class BehandlingServiceImpl(
     private val behandlingRepo: BehandlingRepo,
@@ -59,7 +57,6 @@ class BehandlingServiceImpl(
     private val personService: PersonService,
     private val sakService: SakService,
     private val gitHash: String,
-    private val navkontorService: NavkontorService,
 ) : BehandlingService {
     val logger = KotlinLogging.logger { }
 
@@ -200,15 +197,13 @@ class BehandlingServiceImpl(
         return iverksattBehandling.right()
     }
 
-    private suspend fun iverksettFørstegangsbehandling(
+    private fun iverksettFørstegangsbehandling(
         vedtak: Rammevedtak,
         sak: Sak,
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ) {
-        val oppfolgingsenhet = navkontorService.hentOppfolgingsenhet(sak.fnr)
         val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
-        val førsteMeldekortBehandling = vedtak.opprettFørsteMeldekortBehandling(førsteMeldeperiode, oppfolgingsenhet)
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
@@ -216,7 +211,6 @@ class BehandlingServiceImpl(
             rammevedtakRepo.lagre(vedtak, tx)
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
-            meldekortRepo.lagre(førsteMeldekortBehandling, tx)
             meldeperiodeRepo.lagre(førsteMeldeperiode, tx)
         }
     }

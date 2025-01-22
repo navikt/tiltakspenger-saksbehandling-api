@@ -26,7 +26,6 @@ import no.nav.tiltakspenger.saksbehandling.service.journalføring.JournalførRam
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.service.sak.StartRevurderingService
-import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.vedtak.RammevedtakPostgresRepo
 
@@ -45,7 +44,6 @@ open class FørstegangsbehandlingContext(
     dokdistGateway: DokdistGateway,
     navIdentClient: NavIdentClient,
     sakService: SakService,
-    navkontorService: NavkontorService,
 ) {
     open val rammevedtakRepo: RammevedtakRepo by lazy { RammevedtakPostgresRepo(sessionFactory as PostgresSessionFactory) }
     open val behandlingRepo: BehandlingRepo by lazy { BehandlingPostgresRepo(sessionFactory as PostgresSessionFactory) }
@@ -62,7 +60,6 @@ open class FørstegangsbehandlingContext(
             personService = personService,
             gitHash = gitHash,
             sakService = sakService,
-            navkontorService = navkontorService,
         )
     }
     val tiltaksdeltagelseVilkårService: TiltaksdeltagelseVilkårService by lazy {

@@ -121,7 +121,6 @@ open class ApplicationContext(
             personService = personContext.personService,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
-            navkontorService = navkontorService,
         )
     }
 

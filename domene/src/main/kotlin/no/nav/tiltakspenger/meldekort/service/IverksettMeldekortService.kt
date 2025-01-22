@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.utbetaling.domene.opprettUtbetalingsvedtak
 import no.nav.tiltakspenger.utbetaling.domene.tilStatistikk
 import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
-import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 
 class IverksettMeldekortService(
     val sakService: SakService,
@@ -34,7 +33,6 @@ class IverksettMeldekortService(
     private val personService: PersonService,
     private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
-    private val navkontorService: NavkontorService,
 ) {
     suspend fun iverksettMeldekort(
         kommando: IverksettMeldekortKommando,
@@ -48,7 +46,7 @@ class IverksettMeldekortService(
 
         val sak = sakService.hentForSakId(sakId, kommando.beslutter, kommando.correlationId)
             .getOrElse { return KanIkkeIverksetteMeldekort.KunneIkkeHenteSak(it).left() }
-        val meldekort: MeldekortBehandling = sak.hentMeldekort(meldekortId)
+        val meldekort: MeldekortBehandling = sak.hentMeldekortBehandling(meldekortId)
             ?: throw IllegalArgumentException("Fant ikke meldekort med id $meldekortId i sak $sakId")
         meldekort as MeldekortBehandling.UtfyltMeldekort
         require(meldekort.beslutter == null && meldekort.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING) {
@@ -60,10 +58,8 @@ class IverksettMeldekortService(
         require(meldekort.periode.tilOgMed.plusDays(1) == nesteMeldeperiode.periode.fraOgMed) {
             "Forventet at neste meldekort starter dagen etter nåværende meldekort. saksnummer: ${sak.saksnummer}, sakId: $sakId, meldekortId: $meldekortId, meldeperiodeId: ${meldekort.meldeperiode.id}"
         }
-        val oppfolgingsenhet = navkontorService.hentOppfolgingsenhet(sak.fnr)
 
         return meldekort.iverksettMeldekort(kommando.beslutter).onRight { iverksattMeldekort ->
-            val nesteMeldekort = iverksattMeldekort.opprettNesteMeldekortBehandling(sak.vedtaksliste.utfallsperioder, nesteMeldeperiode, oppfolgingsenhet)
             val eksisterendeUtbetalingsvedtak = sak.utbetalinger
             val utbetalingsvedtak = iverksattMeldekort.opprettUtbetalingsvedtak(
                 saksnummer = sak.saksnummer,
@@ -74,9 +70,9 @@ class IverksettMeldekortService(
 
             sessionFactory.withTransactionContext { tx ->
                 meldekortRepo.oppdater(iverksattMeldekort, tx)
-                nesteMeldekort.onRight {
-                    meldekortRepo.lagre(it, tx)
-                    meldeperiodeRepo.lagre(it.meldeperiode, tx)
+                // Kanskje vi burde opprette alle meldeperioder for en vedtaksperiode fra starten av?
+                sak.opprettNesteMeldeperiode()?.let {
+                    meldeperiodeRepo.lagre(it, tx)
                 }
                 utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
                 statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)

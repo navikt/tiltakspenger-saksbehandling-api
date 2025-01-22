@@ -2,71 +2,41 @@ package no.nav.tiltakspenger.vedtak.routes.meldekort.dto
 
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
-import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
 
 data class MeldekortBehandlingDTO(
     val id: String,
-    val sakId: String,
-    val saksnummer: String,
-    val periode: PeriodeDTO,
-    val meldekortDager: List<MeldekortDagDTO>,
-    val tiltaksnavn: String?,
     val saksbehandler: String?,
     val beslutter: String?,
-    val status: MeldekortstatusDTO,
+    val status: MeldekortBehandlingStatusDTO,
     val totalbeløpTilUtbetaling: Int?,
-    val vedtaksPeriode: PeriodeDTO?,
-    val antallDager: Int?,
     val navkontor: String?,
     val navkontorNavn: String?,
     val forrigeNavkontor: String?,
     val forrigeNavkontorNavn: String?,
-    val meldeperiode: MeldeperiodeDto?,
+    val dager: List<MeldekortDagDTO>,
 )
 
-fun MeldekortBehandlinger.toDTO(
-    vedtaksPeriode: Periode?,
-    tiltaksnavn: String?,
-    antallDager: Int?,
-    forrigeNavkontor: (MeldekortId) -> Navkontor?,
-): List<MeldekortBehandlingDTO> {
+fun MeldekortBehandlinger.toDTO(forrigeNavkontor: (MeldekortId) -> Navkontor?): List<MeldekortBehandlingDTO> {
     return this.map {
         it.toDTO(
-            vedtaksPeriode = vedtaksPeriode,
-            tiltaksnavn = tiltaksnavn,
-            antallDager = antallDager,
             forrigeNavkontor = forrigeNavkontor(it.id),
         )
     }
 }
 
-fun MeldekortBehandling.toDTO(
-    vedtaksPeriode: Periode?,
-    tiltaksnavn: String?,
-    antallDager: Int?,
-    forrigeNavkontor: Navkontor?,
-): MeldekortBehandlingDTO {
+fun MeldekortBehandling.toDTO(forrigeNavkontor: Navkontor?): MeldekortBehandlingDTO {
     return MeldekortBehandlingDTO(
         id = id.toString(),
-        sakId = sakId.toString(),
-        saksnummer = saksnummer.toString(),
-        periode = periode.toDTO(),
         saksbehandler = saksbehandler,
         beslutter = beslutter,
-        tiltaksnavn = tiltaksnavn,
-        status = this.toMeldekortstatusDTO(),
-        meldekortDager = beregning.toDTO(),
+        status = this.toStatusDTO(),
         totalbeløpTilUtbetaling = this.beløpTotal,
-        vedtaksPeriode = vedtaksPeriode?.toDTO(),
-        antallDager = antallDager,
         navkontor = navkontor?.kontornummer,
         navkontorNavn = navkontor?.kontornavn,
         forrigeNavkontor = forrigeNavkontor?.kontornummer,
         forrigeNavkontorNavn = forrigeNavkontor?.kontornavn,
-        meldeperiode = meldeperiode.toDTO(),
+        dager = beregning.toDTO(),
     )
 }

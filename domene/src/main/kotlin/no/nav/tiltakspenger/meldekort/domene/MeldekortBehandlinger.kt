@@ -6,6 +6,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -54,8 +55,12 @@ data class MeldekortBehandlinger(
             }
     }
 
-    fun hentMeldekortForId(meldekortId: MeldekortId): MeldekortBehandling? {
+    fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
         return verdi.find { it.id == meldekortId }
+    }
+
+    fun hentMeldekortBehandling(hendelseId: HendelseId): MeldekortBehandling? {
+        return this.find { it.meldeperiode.hendelseId == hendelseId }
     }
 
     fun hentMeldekortForKjedeId(meldeperiodeId: MeldeperiodeId): MeldekortBehandling? {

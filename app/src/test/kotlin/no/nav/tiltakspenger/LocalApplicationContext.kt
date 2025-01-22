@@ -182,7 +182,6 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
             dokdistGateway = dokdistFakeGateway,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
-            navkontorService = navkontorService,
         ) {}
     }
     override val utbetalingContext by lazy {

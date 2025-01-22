@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
 import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.meldekort.service.IverksettMeldekortService
+import no.nav.tiltakspenger.meldekort.service.OpprettMeldekortBehandlingService
 import no.nav.tiltakspenger.meldekort.service.SendMeldekortTilBeslutterService
 import no.nav.tiltakspenger.meldekort.service.SendMeldeperiodeTilBrukerService
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
@@ -54,7 +55,6 @@ open class MeldekortContext(
             statistikkStønadRepo = statistikkStønadRepo,
             tilgangsstyringService = tilgangsstyringService,
             personService = personService,
-            navkontorService = navkontorService,
         )
     }
     val sendMeldekortTilBeslutterService by lazy {
@@ -63,6 +63,14 @@ open class MeldekortContext(
             personService = personService,
             meldekortRepo = meldekortRepo,
             sakService = sakService,
+        )
+    }
+    val opprettMeldekortBehandlingService by lazy {
+        OpprettMeldekortBehandlingService(
+            meldekortRepo = meldekortRepo,
+            sakService = sakService,
+            navkontorService = navkontorService,
+            sessionFactory = sessionFactory,
         )
     }
 
