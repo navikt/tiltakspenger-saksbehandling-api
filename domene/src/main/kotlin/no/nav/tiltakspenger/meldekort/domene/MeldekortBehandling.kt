@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -251,11 +250,17 @@ sealed interface MeldekortBehandling {
  * TODO post-mvp jah: Ved revurderinger av rammevedtaket, så må vi basere oss på både forrige meldekort og revurderingsvedtaket. Dette løser vi å flytte mer logikk til Sak.kt.
  * TODO post-mvp jah: Når vi implementerer delvis innvilgelse vil hele meldekortperioder kunne bli SPERRET.
  */
-fun Sak.opprettMeldekortBehandling(meldeperiode: Meldeperiode, navkontor: Navkontor): MeldekortBehandling.IkkeUtfyltMeldekort {
+fun Sak.opprettMeldekortBehandling(
+    meldeperiode: Meldeperiode,
+    navkontor: Navkontor,
+): MeldekortBehandling.IkkeUtfyltMeldekort {
     val meldekortId = MeldekortId.random()
 
     // TODO: håndtere flere vedtak
-    val vedtak = this.vedtaksliste.single() as Rammevedtak
+    val vedtak = this.vedtaksliste.tidslinjeForPeriode(meldeperiode.periode).single().verdi
+
+    // TODO: hent tiltakstype fra gjeldende periode
+    val tiltakstype = vedtak.behandling.tiltakstype
 
     // Dette blir vel feil dersom meldekort noen gang behandles i "feil" rekkefølge
     val forrigeMeldekortBehandling = this.meldekortBehandlinger.sisteGodkjenteMeldekort
@@ -272,10 +277,10 @@ fun Sak.opprettMeldekortBehandling(meldeperiode: Meldeperiode, navkontor: Navkon
         ikkeRettTilTiltakspengerTidspunkt = null,
         brukersMeldekort = null,
         meldeperiode = meldeperiode,
-        tiltakstype = vedtak.behandling.tiltakstype,
+        tiltakstype = tiltakstype,
         beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
             meldeperiode = meldeperiode,
-            tiltakstype = vedtak.behandling.tiltakstype,
+            tiltakstype = tiltakstype,
             meldekortId = meldekortId,
             sakId = this.id,
             utfallsperioder = this.vedtaksliste.utfallsperioder,

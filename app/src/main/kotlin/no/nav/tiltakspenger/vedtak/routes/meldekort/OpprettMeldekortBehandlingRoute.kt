@@ -7,6 +7,10 @@ import io.ktor.server.routing.post
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
+import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
+import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
+import no.nav.tiltakspenger.libs.ktor.common.respond409Conflict
+import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.meldekort.service.KanIkkeOppretteMeldekortBehandling
 import no.nav.tiltakspenger.meldekort.service.OpprettMeldekortBehandlingService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
@@ -39,12 +43,24 @@ fun Route.opprettMeldekortBehandlingRoute(
                     ).fold(
                         {
                             when (it) {
-                                is KanIkkeOppretteMeldekortBehandling.IkkeTilgangTilSak -> call.respond(HttpStatusCode.Forbidden)
-                                is KanIkkeOppretteMeldekortBehandling.BehandlingFinnes -> call.respond(HttpStatusCode.Conflict)
-                                is KanIkkeOppretteMeldekortBehandling.IngenMeldeperiode -> call.respond(HttpStatusCode.BadRequest)
-                                is KanIkkeOppretteMeldekortBehandling.HenteNavkontorFeilet -> call.respond(
-                                    status = HttpStatusCode.InternalServerError,
-                                    message = "Kunne ikke hente Nav-kontor for utbetaling",
+                                is KanIkkeOppretteMeldekortBehandling.IkkeTilgangTilSak -> call.respond403Forbidden(
+                                    melding = "Du har ikke tilgang til sak $sakId",
+                                    kode = "",
+                                )
+
+                                is KanIkkeOppretteMeldekortBehandling.BehandlingFinnes -> call.respond409Conflict(
+                                    melding = "Behandling finnes allerede for hendelseId $hendelseId på sak $sakId",
+                                    kode = "",
+                                )
+
+                                is KanIkkeOppretteMeldekortBehandling.IngenMeldeperiode -> call.respond400BadRequest(
+                                    melding = "Fant ikke meldeperioden med hendelseId $hendelseId på sak $sakId",
+                                    kode = "",
+                                )
+
+                                is KanIkkeOppretteMeldekortBehandling.HenteNavkontorFeilet -> call.respond500InternalServerError(
+                                    melding = "Kunne ikke hente Nav-kontor for brukeren",
+                                    kode = "",
                                 )
                             }
                         },
@@ -57,7 +73,7 @@ fun Route.opprettMeldekortBehandlingRoute(
                                 correlationId = correlationId,
                             )
 
-                            call.respond(status = HttpStatusCode.OK, message = "Ok!")
+                            call.respond(status = HttpStatusCode.OK, message = "{}")
                         },
                     )
                 }

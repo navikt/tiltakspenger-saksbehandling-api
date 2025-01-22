@@ -14,19 +14,29 @@ data class Vedtaksliste(
 ) : List<Vedtak> by value {
     constructor(value: Rammevedtak) : this(listOf(value))
 
+    val tidslinje: Periodisering<Rammevedtak> by lazy { value.toTidslinje() }
+
     val førstegangsvedtak: Rammevedtak? = value.singleOrNullOrThrow { it.erFørstegangsvedtak }
 
     /** Dette er sakens totale vedtaksperiode. Per tidspunkt er den sammenhengende, men hvis vi lar en sak gjelde på tvers av tiltak, vil den kunne ha hull. */
-    val vedtaksperiode: Periode? = value.toTidslinje().ifEmpty { null }?.totalePeriode
+    val vedtaksperiode: Periode? = tidslinje.ifEmpty { null }?.totalePeriode
 
     // TODO pre-revurdering-av-revurdering jah: Det gir egentlig ikke mening og ha periodiserte vilkårssett. Her bør man heller slå sammen vilkårssettene. Men det krever at hvert vilkår kan periodiseres.
     val vilkårssett: Periodisering<Vilkårssett> by lazy {
-        value.toTidslinje().perioderMedVerdi.map {
+        tidslinje.perioderMedVerdi.map {
             PeriodeMedVerdi(
                 it.verdi.krymp(it.periode).behandling.vilkårssett,
                 it.periode,
             )
         }.let { Periodisering(it) }
+    }
+
+    /**
+     * Perioden må være innenfor tidslinjen
+     *
+     * **/
+    fun tidslinjeForPeriode(periode: Periode): Periodisering<Rammevedtak> {
+        return tidslinje.krymp(periode)
     }
 
     fun krympVilkårssett(nyPeriode: Periode): Periodisering<Vilkårssett> {
@@ -48,7 +58,7 @@ data class Vedtaksliste(
      *                   04.01.2021 - 04.01.2021 Ikke Oppfylt (fra vedtak 1)
      */
     val utfallsperioder: Periodisering<AvklartUtfallForPeriode> by lazy {
-        value.toTidslinje().perioderMedVerdi.flatMap { pmvVedtak ->
+        tidslinje.perioderMedVerdi.flatMap { pmvVedtak ->
             pmvVedtak.verdi.utfallsperioder.perioderMedVerdi.mapNotNull {
                 it.periode.overlappendePeriode(pmvVedtak.periode)?.let { overlappendePeriode ->
                     PeriodeMedVerdi(
@@ -75,7 +85,7 @@ data class Vedtaksliste(
 
     // TODO pre-revurdering-av-revurdering jah: Det gir egentlig ikke mening og ha periodiserte stønadsdager. Her bør man heller slå sammen stønadsdagene. Men det krever at Stønadsdager er periodisert på innsiden.
     val stønadsdager: Periodisering<Stønadsdager> by lazy {
-        value.toTidslinje().perioderMedVerdi.map {
+        tidslinje.perioderMedVerdi.map {
             PeriodeMedVerdi(
                 it.verdi.krymp(it.periode).behandling.stønadsdager,
                 it.periode,
@@ -95,7 +105,7 @@ data class Vedtaksliste(
     fun hentTiltaksdataForPeriode(periode: Periode): TiltaksdataForJournalføring? {
         if (value.isEmpty()) return null
         val tidslinje = Periodisering(
-            value.toTidslinje().perioderMedVerdi.map {
+            tidslinje.perioderMedVerdi.map {
                 PeriodeMedVerdi(
                     it.verdi.krymp(it.periode).behandling,
                     it.periode,
