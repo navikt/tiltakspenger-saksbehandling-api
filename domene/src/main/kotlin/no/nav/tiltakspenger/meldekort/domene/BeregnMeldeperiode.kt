@@ -62,7 +62,6 @@ private data class MeldekortBeregning(
             "Innsendt meldekort ${kommando.meldekortId} er ikke likt meldekortSomSkalUtfylles ${meldekortSomSkalUtfylles.id}"
         }
 
-        val sakId = eksisterendeMeldekortPåSaken.sakId
         val meldekortId = kommando.meldekortId
         eksisterendeMeldekortPåSaken.utfylteDager.map { meldekortdag ->
             val tiltakstype = meldekortdag.tiltakstype

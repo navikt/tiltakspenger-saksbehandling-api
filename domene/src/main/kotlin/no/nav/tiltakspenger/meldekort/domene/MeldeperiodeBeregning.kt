@@ -59,7 +59,12 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
             require(
                 dager.all { it.meldekortId == meldekortId },
             ) { "Alle dager må tilhøre samme meldekort, men var: ${dager.map { it.meldekortId }}" }
-            validerAntallDager()
+
+            validerAntallDager().onLeft {
+                throw IllegalArgumentException(
+                    "For mange dager utfylt - ${it.antallDagerUtfylt} var utfylt, maks antall for perioden er ${it.maksDagerMedTiltakspengerForPeriode}",
+                )
+            }
         }
 
         fun beregnTotalbeløp(): Int = dager.sumOf { it.beregningsdag?.beløp ?: 0 }
