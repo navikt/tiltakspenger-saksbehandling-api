@@ -31,6 +31,7 @@ fun Sak.toMeldeperiodeDTO(meldeperiode: Meldeperiode): MeldeperiodeDTO {
         antallDager = meldeperiode.antallDagerForPeriode,
         girRett = meldeperiode.girRett,
         meldekortBehandling = this.meldekortBehandlinger.hentMeldekortForKjedeId(meldeperiode.id)?.toDTO(null),
+        // TODO: hent brukers meldekort!
         brukersMeldekort = null,
     )
 }
