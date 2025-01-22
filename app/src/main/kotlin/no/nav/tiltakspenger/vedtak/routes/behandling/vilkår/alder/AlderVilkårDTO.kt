@@ -1,12 +1,12 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.alder
 
+import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
+import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.alder.AlderVilkår
 import no.nav.tiltakspenger.vedtak.routes.behandling.LovreferanseDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.toDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.SamletUtfallDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.toDTO
-import no.nav.tiltakspenger.vedtak.routes.dto.PeriodeDTO
-import no.nav.tiltakspenger.vedtak.routes.dto.toDTO
 
 /**
  * Har ansvar for å serialisere Aldervilkår til json. Kontrakt mot frontend.

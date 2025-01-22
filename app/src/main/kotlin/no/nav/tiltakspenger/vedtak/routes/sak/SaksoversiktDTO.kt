@@ -1,13 +1,13 @@
 package no.nav.tiltakspenger.vedtak.routes.sak
 
+import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
+import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
 import no.nav.tiltakspenger.saksbehandling.domene.benk.Saksoversikt
 import no.nav.tiltakspenger.saksbehandling.domene.benk.toBenkBehandlingstype
 import no.nav.tiltakspenger.vedtak.routes.behandling.BehandlingstypeDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.toDTO
-import no.nav.tiltakspenger.vedtak.routes.dto.PeriodeDTO
-import no.nav.tiltakspenger.vedtak.routes.dto.toDTO
 
 /**
  * @property periode Null dersom det er en søknad.

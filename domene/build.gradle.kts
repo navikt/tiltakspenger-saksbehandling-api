@@ -1,6 +1,6 @@
 val kotlinxCoroutinesVersion = "1.10.1"
 val kotestVersion = "5.9.1"
-val felleslibVersion = "0.0.338"
+val felleslibVersion = "0.0.341"
 val mockkVersion = "1.13.16"
 val jacksonVersion = "2.18.2"
 

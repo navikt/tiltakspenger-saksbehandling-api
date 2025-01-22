@@ -10,26 +10,21 @@ import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteRevurdering
 import no.nav.tiltakspenger.saksbehandling.service.sak.StartRevurderingService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.correlationId
-import no.nav.tiltakspenger.vedtak.routes.dto.PeriodeDTO
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.ErrorJson
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.ikkeTilgang
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond403Forbidden
 import no.nav.tiltakspenger.vedtak.routes.withBody
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 
-/**
- * TODO post-mvp jah: Vi trenger type bl.a. pga. statisitkk. Feltene kan modnes litt før vi tar en diskusjon med fag.
- * @param type Revurderingstype. Mulige verdier: "OMGJØRING_ETTER_KLAGE", "OMGJØRING_ETTER_EGET_TILTAK"
- */
 private data class StartRevurderingBody(
     val periode: PeriodeDTO,
-    // val type: String,
 ) {
     fun tilKommando(
         sakId: SakId,
