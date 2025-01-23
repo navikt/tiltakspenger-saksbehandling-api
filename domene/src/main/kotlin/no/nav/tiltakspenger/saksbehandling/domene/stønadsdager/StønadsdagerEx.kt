@@ -23,7 +23,7 @@ fun Tiltak.tilStønadsdagerRegisterSaksopplysning(): StønadsdagerSaksopplysning
             eksternDeltagelseId = eksternDeltagelseId,
             gjennomføringId = gjennomføringId,
             // B: Så på tidligere kode som gjorde dette, kan deltakelseprosent være noe annet enn 100?
-            antallDager = if (deltakelseProsent == 100f) 5 else throw IllegalStateException("Forventet 100% deltakelse. Vi støtter ikke lavere prosenter enn dette i MVP."),
+            antallDager = if (deltakelseProsent == 100f) 10 else throw IllegalStateException("Forventet 100% deltakelse. Vi støtter ikke lavere prosenter enn dette i MVP."),
             periode = deltakelsesperiode,
             kilde = kilde,
             tidsstempel = nå(),
