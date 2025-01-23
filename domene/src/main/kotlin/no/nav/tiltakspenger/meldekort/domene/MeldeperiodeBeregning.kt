@@ -207,7 +207,7 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
     }
 }
 
-/** Denne skal ikke kalles utenfra Meldeperiode */
+/** Denne skal ikke kalles utenfra */
 private fun MeldeperiodeBeregning.validerAntallDager(): Either<KanIkkeSendeMeldekortTilBeslutter.ForMangeDagerUtfylt, Unit> {
     return if (antallDagerMedDeltattEllerFravær > this.maksDagerMedTiltakspengerForPeriode) {
         return KanIkkeSendeMeldekortTilBeslutter.ForMangeDagerUtfylt(
