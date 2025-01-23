@@ -10,12 +10,13 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBrukerRepo
+import no.nav.tiltakspenger.meldekort.domene.NyttBrukersMeldekort
 
 class MeldekortBrukerPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : MeldekortBrukerRepo {
     override fun lagre(
-        brukersMeldekort: BrukersMeldekort,
+        brukersMeldekort: NyttBrukersMeldekort,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->
@@ -33,17 +34,15 @@ class MeldekortBrukerPostgresRepo(
                     ) values (
                         :id,
                         :meldeperiode_hendelse_id,
-                        :meldeperiode_id,
-                        :meldeperiode_versjon,
+                        (SELECT id FROM meldeperiode WHERE hendelse_id = :meldeperiode_hendelse_id),
+                        (SELECT versjon FROM meldeperiode WHERE hendelse_id = :meldeperiode_hendelse_id),
                         :sak_id,
                         :mottatt,
                         to_jsonb(:dager::jsonb)
                     )
                     """,
                     "id" to brukersMeldekort.id.toString(),
-                    "meldeperiode_hendelse_id" to brukersMeldekort.meldeperiode.hendelseId.toString(),
-                    "meldeperiode_id" to brukersMeldekort.meldeperiodeKjedeId.toString(),
-                    "meldeperiode_versjon" to brukersMeldekort.meldeperiode.versjon.value,
+                    "meldeperiode_hendelse_id" to brukersMeldekort.meldeperiodeId.toString(),
                     "sak_id" to brukersMeldekort.sakId.toString(),
                     "mottatt" to brukersMeldekort.mottatt,
                     "dager" to brukersMeldekort.toDagerJson(),

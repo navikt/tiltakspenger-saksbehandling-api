@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag
+import no.nav.tiltakspenger.meldekort.domene.NyttBrukersMeldekort
 import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Dager
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
@@ -448,6 +449,30 @@ interface MeldekortMother {
             id = id,
             mottatt = mottatt,
             meldeperiode = meldeperiode,
+            sakId = sakId,
+            dager = dager,
+        )
+    }
+
+    fun nyttBrukersMeldekort(
+        id: MeldekortId = MeldekortId.random(),
+        mottatt: LocalDateTime = LocalDateTime.now(),
+        sakId: SakId = SakId.random(),
+        meldeperiodeId: HendelseId = HendelseId.random(),
+        periode: Periode,
+        dager: List<BrukersMeldekortDag> = buildList {
+            val dagerFraPeriode = periode.tilDager()
+            require(dagerFraPeriode.size == 14)
+            addAll(dagerFraPeriode.take(5).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT, it) })
+            addAll(dagerFraPeriode.subList(5, 7).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
+            addAll(dagerFraPeriode.subList(7, 12).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT, it) })
+            addAll(dagerFraPeriode.subList(12, 14).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
+        },
+    ): NyttBrukersMeldekort {
+        return NyttBrukersMeldekort(
+            id = id,
+            mottatt = mottatt,
+            meldeperiodeId = meldeperiodeId,
             sakId = sakId,
             dager = dager,
         )

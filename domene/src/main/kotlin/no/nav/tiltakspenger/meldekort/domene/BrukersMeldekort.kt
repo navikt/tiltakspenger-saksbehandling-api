@@ -12,7 +12,7 @@ import java.time.LocalDateTime
  * saksbehandling-api er ikke master for brukers meldekort, så i førsteomgang legger vi ikke på begrensninger i [InnmeldtStatus] her, det må ligge i meldekort-api.
  * Hvis vi ønsker en slik sperre, kan vi legge den i [MeldekortBehandling] eller [MeldeperiodeBeregning]
  *
- * @param id Unik identifikator for denne innsendingen
+ * @param id Unik identifikator for denne utfyllingen/innsendingen.
  * @param meldeperiode En gitt versjon av meldeperioden, slik som den var da bruker sendte inn meldekortet.
  * @param mottatt Tidspunktet mottatt fra bruker
  * @param dager Et innslag per dag i meldeperioden. Må være sortert.
@@ -48,4 +48,6 @@ enum class InnmeldtStatus {
     FRAVÆR_SYKT_BARN,
     FRAVÆR_ANNET,
     IKKE_REGISTRERT,
+    IKKE_DELTATT,
+    IKKE_RETT_TIL_TILTAKSPENGER,
 }

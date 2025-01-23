@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.vedtak.repository.meldekort
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.mars
+import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.vedtak.db.persisterIverksattFørstegangsbehandling
@@ -21,14 +22,23 @@ class MeldekortBrukerPostgresRepoTest {
             val meldeperiode = sak.opprettFørsteMeldeperiode()
             testDataHelper.meldeperiodeRepo.lagre(meldeperiode)
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
-            val brukersMeldekort = ObjectMother.brukersMeldekort(
-                meldeperiode = meldeperiode,
+            val nyttBrukersMeldekort = ObjectMother.nyttBrukersMeldekort(
+                meldeperiodeId = meldeperiode.hendelseId,
                 mottatt = meldeperiode.opprettet.plus(1, ChronoUnit.MILLIS),
                 sakId = meldeperiode.sakId,
+                periode = meldeperiode.periode,
             )
-            meldekortBrukerRepo.lagre(brukersMeldekort)
+            meldekortBrukerRepo.lagre(nyttBrukersMeldekort)
 
-            meldekortBrukerRepo.hentForSakId(meldeperiode.sakId) shouldBe listOf(brukersMeldekort)
+            meldekortBrukerRepo.hentForSakId(meldeperiode.sakId) shouldBe listOf(
+                BrukersMeldekort(
+                    id = nyttBrukersMeldekort.id,
+                    mottatt = nyttBrukersMeldekort.mottatt,
+                    meldeperiode = meldeperiode,
+                    sakId = nyttBrukersMeldekort.sakId,
+                    dager = nyttBrukersMeldekort.dager,
+                ),
+            )
         }
     }
 }

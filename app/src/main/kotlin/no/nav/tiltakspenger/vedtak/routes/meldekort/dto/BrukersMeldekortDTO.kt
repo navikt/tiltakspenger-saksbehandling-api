@@ -28,6 +28,8 @@ fun BrukersMeldekort.toDTO(): BrukersMeldekortDTO {
                     InnmeldtStatus.FRAVÆR_SYKT_BARN -> "FRAVÆR_SYKT_BARN"
                     InnmeldtStatus.FRAVÆR_ANNET -> "FRAVÆR_ANNET"
                     InnmeldtStatus.IKKE_REGISTRERT -> "IKKE_REGISTRERT"
+                    InnmeldtStatus.IKKE_DELTATT -> "IKKE_DELTATT"
+                    InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER -> "IKKE_RETT_TIL_TILTAKSPENGER"
                 },
                 dato = it.dato,
             )

@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.meldekort.domene.InnmeldtStatus
+import no.nav.tiltakspenger.meldekort.domene.NyttBrukersMeldekort
 import java.time.LocalDate
 
 data class BrukersMeldekortDagJson(
@@ -11,7 +12,7 @@ data class BrukersMeldekortDagJson(
     val status: String,
 )
 
-fun BrukersMeldekort.toDagerJson(): String {
+fun NyttBrukersMeldekort.toDagerJson(): String {
     return dager.map {
         BrukersMeldekortDagJson(
             dato = it.dato,
@@ -21,6 +22,8 @@ fun BrukersMeldekort.toDagerJson(): String {
                 InnmeldtStatus.FRAVÆR_SYKT_BARN -> "FRAVÆR_SYKT_BARN"
                 InnmeldtStatus.FRAVÆR_ANNET -> "FRAVÆR_ANNET"
                 InnmeldtStatus.IKKE_REGISTRERT -> "IKKE_REGISTRERT"
+                InnmeldtStatus.IKKE_DELTATT -> "IKKE_DELTATT"
+                InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER -> "IKKE_RETT_TIL_TILTAKSPENGER"
             },
         )
     }.let { serialize(it) }
