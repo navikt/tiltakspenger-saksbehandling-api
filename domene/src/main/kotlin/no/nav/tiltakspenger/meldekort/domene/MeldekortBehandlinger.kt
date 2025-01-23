@@ -8,7 +8,7 @@ import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.MeldeperiodeId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -63,8 +63,8 @@ data class MeldekortBehandlinger(
         return this.find { it.meldeperiode.hendelseId == hendelseId }
     }
 
-    fun hentMeldekortForKjedeId(meldeperiodeId: MeldeperiodeId): MeldekortBehandling? {
-        return verdi.find { it.meldeperiodeId == meldeperiodeId }
+    fun hentMeldekortForKjedeId(meldeperiodeKjedeId: MeldeperiodeKjedeId): MeldekortBehandling? {
+        return verdi.find { it.meldeperiodeKjedeId == meldeperiodeKjedeId }
     }
 
     val periode: Periode by lazy { Periode(verdi.first().fraOgMed, verdi.last().tilOgMed) }

@@ -6,7 +6,7 @@ import kotliquery.Session
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
-import no.nav.tiltakspenger.libs.common.MeldeperiodeId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -53,7 +53,7 @@ internal class MeldeperiodePostgresRepo(
                         to_jsonb(:gir_rett::jsonb)
                     )
                     """,
-                    "id" to meldeperiode.id.toString(),
+                    "id" to meldeperiode.meldeperiodeKjedeId.toString(),
                     "versjon" to meldeperiode.versjon.value,
                     "hendelse_id" to meldeperiode.hendelseId.toString(),
                     "sak_id" to meldeperiode.sakId.toString(),
@@ -173,7 +173,7 @@ internal class MeldeperiodePostgresRepo(
 
         private fun fromRow(row: Row): Meldeperiode {
             return Meldeperiode(
-                id = MeldeperiodeId(row.string("id")),
+                meldeperiodeKjedeId = MeldeperiodeKjedeId(row.string("id")),
                 versjon = HendelseVersjon(row.int("versjon")),
                 hendelseId = HendelseId.fromString(row.string("hendelse_id")),
                 sakId = SakId.fromString(row.string("sak_id")),

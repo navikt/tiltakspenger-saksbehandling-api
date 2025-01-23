@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.MeldeperiodeId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -57,7 +57,7 @@ sealed interface MeldekortBehandling {
     /** Totalsummen for meldeperioden */
     val beløpTotal: Int?
 
-    val meldeperiodeId: MeldeperiodeId get() = meldeperiode.id
+    val meldeperiodeKjedeId: MeldeperiodeKjedeId get() = meldeperiode.meldeperiodeKjedeId
 
     fun settIkkeRettTilTiltakspenger(periode: Periode, tidspunkt: LocalDateTime): MeldekortBehandling
 

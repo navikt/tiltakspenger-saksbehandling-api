@@ -7,7 +7,7 @@ import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.MeldeperiodeId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
@@ -58,7 +58,7 @@ class V18__migrer_meldekort_til_meldeperiode : BaseJavaMigration() {
             val sakId = meldekortLiten.sakId
             val meldekortId = meldekortLiten.meldekortId
             val maksDagerMedTiltakspengerForPeriode = meldekortLiten.maksDagerMedTiltakspengerForPeriode
-            val meldeperiodeId = meldekortLiten.meldeperiodeId
+            val meldeperiodeKjedeId = meldekortLiten.meldeperiodeKjedeId
             val fraOgMed = meldekortLiten.fraOgMed
             val tilOgMed = meldekortLiten.tilOgMed
             val opprettet = meldekortLiten.opprettet
@@ -115,7 +115,7 @@ class V18__migrer_meldekort_til_meldeperiode : BaseJavaMigration() {
                             to_jsonb(:gir_rett::jsonb)
                         )
                     """,
-                        "id" to meldeperiodeId.toString(),
+                        "id" to meldeperiodeKjedeId.toString(),
                         "versjon" to HendelseVersjon.ny().value,
                         "hendelse_id" to hendelseId,
                         "sak_id" to sakId.toString(),
@@ -164,7 +164,7 @@ private fun fromRow(row: Row): MeldekortLiten {
     return MeldekortLiten(
         meldekortId = MeldekortId.fromString(row.string("id")),
         sakId = SakId.fromString(row.string("sak_id")),
-        meldeperiodeId = MeldeperiodeId(row.string("meldeperiode_id")),
+        meldeperiodeKjedeId = MeldeperiodeKjedeId(row.string("meldeperiode_id")),
         maksDagerMedTiltakspengerForPeriode = row.int("antall_dager_per_meldeperiode"),
         opprettet = row.localDateTime("opprettet"),
         status = row.string("status").toMeldekortStatus(),
@@ -177,7 +177,7 @@ private fun fromRow(row: Row): MeldekortLiten {
 private data class MeldekortLiten(
     val meldekortId: MeldekortId,
     val sakId: SakId,
-    val meldeperiodeId: MeldeperiodeId,
+    val meldeperiodeKjedeId: MeldeperiodeKjedeId,
     val maksDagerMedTiltakspengerForPeriode: Int,
     val opprettet: LocalDateTime,
     val status: MeldekortBehandlingStatus,

@@ -73,7 +73,7 @@ class MeldekortPostgresRepo(
                     """,
                     "id" to meldekort.id.toString(),
                     "forrige_meldekort_id" to meldekort.forrigeMeldekortId?.toString(),
-                    "meldeperiode_id" to meldekort.meldeperiodeId.toString(),
+                    "meldeperiode_id" to meldekort.meldeperiodeKjedeId.toString(),
                     "meldeperiode_hendelse_id" to meldekort.meldeperiode.hendelseId.toString(),
                     "sak_id" to meldekort.sakId.toString(),
                     "rammevedtak_id" to meldekort.rammevedtakId.toString(),

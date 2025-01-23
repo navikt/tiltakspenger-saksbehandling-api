@@ -22,7 +22,7 @@ data class MeldeperiodeDTO(
 
 fun Sak.toMeldeperiodeDTO(meldeperiode: Meldeperiode): MeldeperiodeDTO {
     return MeldeperiodeDTO(
-        id = meldeperiode.id.toString(),
+        id = meldeperiode.meldeperiodeKjedeId.toString(),
         hendelseId = meldeperiode.hendelseId.toString(),
         versjon = meldeperiode.versjon.value,
         periode = meldeperiode.periode.toDTO(),
@@ -30,7 +30,7 @@ fun Sak.toMeldeperiodeDTO(meldeperiode: Meldeperiode): MeldeperiodeDTO {
         status = this.toMeldeperiodeStatusDTO(meldeperiode),
         antallDager = meldeperiode.antallDagerForPeriode,
         girRett = meldeperiode.girRett,
-        meldekortBehandling = this.meldekortBehandlinger.hentMeldekortForKjedeId(meldeperiode.id)?.toDTO(null),
+        meldekortBehandling = this.meldekortBehandlinger.hentMeldekortForKjedeId(meldeperiode.meldeperiodeKjedeId)?.toDTO(null),
         // TODO: hent brukers meldekort!
         brukersMeldekort = null,
     )

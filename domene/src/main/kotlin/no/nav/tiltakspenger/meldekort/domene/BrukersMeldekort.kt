@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.meldekort.domene
 
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.MeldeperiodeId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import java.time.LocalDate
@@ -24,7 +24,7 @@ data class BrukersMeldekort(
     val sakId: SakId,
     val dager: List<BrukersMeldekortDag>,
 ) {
-    val meldeperiodeId: MeldeperiodeId = meldeperiode.id
+    val meldeperiodeKjedeId: MeldeperiodeKjedeId = meldeperiode.meldeperiodeKjedeId
     val meldeperiodeVersjon: HendelseVersjon = meldeperiode.versjon
     val periode: Periode = meldeperiode.periode
 

@@ -31,7 +31,7 @@ data class Utbetalingsvedtak(
     val periode = meldekortbehandling.periode
     val beløpTotal = meldekortbehandling.beløpTotal
     val meldekortId = meldekortbehandling.id
-    val meldeperiodeId = meldekortbehandling.meldeperiodeId
+    val meldeperiodeKjedeId = meldekortbehandling.meldeperiodeKjedeId
     val saksbehandler: String = meldekortbehandling.saksbehandler
     val beslutter: String = meldekortbehandling.beslutter!!
     val brukerNavkontor: Navkontor = meldekortbehandling.navkontor

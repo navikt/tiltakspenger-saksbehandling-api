@@ -42,7 +42,7 @@ class MeldekortBrukerPostgresRepo(
                     """,
                     "id" to brukersMeldekort.id.toString(),
                     "meldeperiode_hendelse_id" to brukersMeldekort.meldeperiode.hendelseId.toString(),
-                    "meldeperiode_id" to brukersMeldekort.meldeperiodeId.toString(),
+                    "meldeperiode_id" to brukersMeldekort.meldeperiodeKjedeId.toString(),
                     "meldeperiode_versjon" to brukersMeldekort.meldeperiode.versjon.value,
                     "sak_id" to brukersMeldekort.sakId.toString(),
                     "mottatt" to brukersMeldekort.mottatt,

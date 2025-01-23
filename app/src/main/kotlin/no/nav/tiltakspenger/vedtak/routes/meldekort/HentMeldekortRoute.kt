@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.toMeldeperiodeOversiktDT
 import no.nav.tiltakspenger.vedtak.routes.withMeldeperiodeId
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 
+// TODO jah: Rename til meldeperiodeKjedeId?
 private const val PATH = "/sak/{sakId}/meldeperiode/{meldeperiodeId}"
 
 fun Route.hentMeldekortRoute(
@@ -34,7 +35,7 @@ fun Route.hentMeldekortRoute(
         logger.debug { "Mottatt get-request på $PATH" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
-                call.withMeldeperiodeId { meldeperiodeId ->
+                call.withMeldeperiodeId { meldeperiodeKjedeId ->
                     val correlationId = call.correlationId()
 
                     val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId = correlationId).getOrElse {
@@ -49,7 +50,7 @@ fun Route.hentMeldekortRoute(
                     }
 
                     val meldeperiodeKjedeDTO =
-                        sak.toMeldeperiodeOversiktDTO(meldeperiodeId = meldeperiodeId)
+                        sak.toMeldeperiodeOversiktDTO(meldeperiodeKjedeId = meldeperiodeKjedeId)
                             ?: return@withMeldeperiodeId call.respond404NotFound(fantIkkeMeldekort())
 
                     auditService.logMedSakId(

@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
-import no.nav.tiltakspenger.libs.common.MeldeperiodeId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -17,7 +17,7 @@ import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
 
 data class Meldeperiode(
-    val id: MeldeperiodeId,
+    val meldeperiodeKjedeId: MeldeperiodeKjedeId,
     val hendelseId: HendelseId,
 
     val versjon: HendelseVersjon,
@@ -66,7 +66,7 @@ fun Sak.opprettNesteMeldeperiode(): Meldeperiode? {
 
 private fun Sak.opprettMeldeperiode(periode: Periode, utfallsperioder: Periodisering<AvklartUtfallForPeriode>?): Meldeperiode {
     val meldeperiode = Meldeperiode(
-        id = MeldeperiodeId.fraPeriode(periode),
+        meldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
         hendelseId = HendelseId.random(),
         fnr = this.fnr,
         saksnummer = this.saksnummer,

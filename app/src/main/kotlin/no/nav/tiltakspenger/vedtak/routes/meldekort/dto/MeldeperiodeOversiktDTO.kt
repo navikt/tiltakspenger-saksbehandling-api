@@ -1,11 +1,12 @@
 package no.nav.tiltakspenger.vedtak.routes.meldekort.dto
 
-import no.nav.tiltakspenger.libs.common.MeldeperiodeId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 
 data class MeldeperiodeOversiktDTO(
+    // TODO jah: Rename til meldeperiodeKjedeId?
     val meldeperiodeId: String,
     val periode: PeriodeDTO,
     val tiltaksnavn: String?,
@@ -13,11 +14,11 @@ data class MeldeperiodeOversiktDTO(
     val meldeperioder: List<MeldeperiodeDTO>,
 )
 
-fun Sak.toMeldeperiodeOversiktDTO(meldeperiodeId: MeldeperiodeId): MeldeperiodeOversiktDTO? {
-    val meldeperiodeKjede = this.meldeperiodeKjeder.find { it.id == meldeperiodeId } ?: return null
+fun Sak.toMeldeperiodeOversiktDTO(meldeperiodeKjedeId: MeldeperiodeKjedeId): MeldeperiodeOversiktDTO? {
+    val meldeperiodeKjede = this.meldeperiodeKjeder.find { it.id == meldeperiodeKjedeId } ?: return null
 
     return MeldeperiodeOversiktDTO(
-        meldeperiodeId = meldeperiodeId.toString(),
+        meldeperiodeId = meldeperiodeKjedeId.toString(),
         periode = meldeperiodeKjede.periode.toDTO(),
         tiltaksnavn = this.hentTiltaksnavn(),
         vedtaksPeriode = vedtaksperiode?.toDTO(),

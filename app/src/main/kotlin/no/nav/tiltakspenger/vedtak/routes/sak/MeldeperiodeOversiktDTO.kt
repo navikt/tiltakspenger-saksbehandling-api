@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.MeldeperiodeStatusDTO
 import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.toMeldeperiodeStatusDTO
 
 data class MeldeperiodeSammendragDTO(
+    // TODO jah: Rename til meldeperiodeKjedeId?
     val meldeperiodeId: String,
     val hendelseId: String,
     val hendelseVersjon: Int,
@@ -23,7 +24,7 @@ fun Sak.toMeldeperiodeoversiktDTO(): List<MeldeperiodeSammendragDTO> {
         }
 
         MeldeperiodeSammendragDTO(
-            meldeperiodeId = meldeperiode.id.toString(),
+            meldeperiodeId = meldeperiode.meldeperiodeKjedeId.toString(),
             hendelseId = meldeperiode.hendelseId.toString(),
             hendelseVersjon = meldeperiode.versjon.value,
             periode = meldeperiode.periode.toDTO(),

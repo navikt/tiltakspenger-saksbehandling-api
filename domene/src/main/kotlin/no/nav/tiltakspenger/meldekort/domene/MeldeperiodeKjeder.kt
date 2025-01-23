@@ -47,7 +47,7 @@ data class MeldeperiodeKjeder(
     companion object {
         fun fraMeldeperioder(meldeperioder: List<Meldeperiode>): MeldeperiodeKjeder {
             return meldeperioder
-                .groupBy { it.id }
+                .groupBy { it.meldeperiodeKjedeId }
                 .values.mapNotNull { meldeperioderForKjede ->
                     meldeperioderForKjede
                         .sortedBy { it.versjon }

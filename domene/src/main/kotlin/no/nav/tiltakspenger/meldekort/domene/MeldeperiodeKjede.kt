@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.meldekort.domene
 
 import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.MeldeperiodeId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -17,7 +17,7 @@ data class MeldeperiodeKjede(
     val periode: Periode = meldeperioder.map { it.periode }.distinct().single()
     val saksnummer: Saksnummer = meldeperioder.map { it.saksnummer }.distinct().single()
     val fnr: Fnr = meldeperioder.map { it.fnr }.distinct().single()
-    val id: MeldeperiodeId = meldeperioder.map { it.id }.distinct().single()
+    val id: MeldeperiodeKjedeId = meldeperioder.map { it.meldeperiodeKjedeId }.distinct().single()
 
     init {
         meldeperioder.nonDistinctBy { it.hendelseId }.also {
