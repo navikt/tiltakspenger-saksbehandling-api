@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
+import no.nav.tiltakspenger.meldekort.service.MottaBrukerutfyltMeldekortService
 import no.nav.tiltakspenger.saksbehandling.ports.VeilarboppfolgingGateway
 import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.Configuration
@@ -136,6 +137,12 @@ open class ApplicationContext(
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
             behandlingRepo = behandlingContext.behandlingRepo,
             datadelingGateway = datadelingGateway,
+        )
+    }
+
+    val mottaBrukerutfyltMeldekortService by lazy {
+        MottaBrukerutfyltMeldekortService(
+            meldekortBrukerRepo = meldekortContext.meldekortBrukerRepo,
         )
     }
 }

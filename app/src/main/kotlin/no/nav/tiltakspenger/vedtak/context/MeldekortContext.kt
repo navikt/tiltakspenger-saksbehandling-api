@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBrukerRepo
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
 import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.meldekort.service.IverksettMeldekortService
@@ -17,6 +18,7 @@ import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
 import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.clients.meldekort.MeldekortApiHttpClient
+import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortBrukerPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldeperiodePostgresRepo
 
@@ -41,6 +43,11 @@ open class MeldekortContext(
     }
     open val meldeperiodeRepo: MeldeperiodeRepo by lazy {
         MeldeperiodePostgresRepo(
+            sessionFactory = sessionFactory as PostgresSessionFactory,
+        )
+    }
+    open val meldekortBrukerRepo: MeldekortBrukerRepo by lazy {
+        MeldekortBrukerPostgresRepo(
             sessionFactory = sessionFactory as PostgresSessionFactory,
         )
     }

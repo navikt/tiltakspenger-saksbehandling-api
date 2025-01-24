@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.vedtak.routes.meldekort.frameldekortapi
 
+import arrow.core.Either
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -15,17 +16,28 @@ import no.nav.tiltakspenger.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.meldekort.domene.NyttBrukersMeldekort
 import no.nav.tiltakspenger.meldekort.service.MottaBrukerutfyltMeldekortService
 
+private const val PATH = "/meldekort/motta"
+
 fun Route.mottaMeldekortRoutes(
     mottaBrukerutfyltMeldekortService: MottaBrukerutfyltMeldekortService,
 ) {
     val logger = KotlinLogging.logger { }
 
-    post("/meldekort/motta") {
-        logger.debug { "Mottatt post-request på /meldekort/motta" }
+    post(PATH) {
+        logger.debug { "Mottatt post-request på $PATH" }
         call.withBody<BrukerutfyltMeldekortDTO> {
-            mottaBrukerutfyltMeldekortService.mottaBrukerutfyltMeldekort(it.toDomain())
+            logger.info { "Mottatt meldekort fra bruker: ${it.id} - meldeperiode: ${it.meldeperiodeId}" }
+
+            Either.catch {
+                mottaBrukerutfyltMeldekortService.mottaBrukerutfyltMeldekort(it.toDomain())
+                call.respond(HttpStatusCode.OK)
+            }.mapLeft {
+                call.respond(
+                    status = HttpStatusCode.InternalServerError,
+                    message = "Kunne ikke lagre brukers meldekort - ${it.message}",
+                )
+            }
         }
-        call.respond(status = HttpStatusCode.OK, "")
     }
 }
 

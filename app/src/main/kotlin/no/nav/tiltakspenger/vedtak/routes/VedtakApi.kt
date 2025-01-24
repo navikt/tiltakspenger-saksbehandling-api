@@ -77,6 +77,7 @@ internal fun Application.vedtakApi(
             auditService = applicationContext.personContext.auditService,
             sakService = applicationContext.sakContext.sakService,
             tokenService = applicationContext.tokenService,
+            mottaBrukerutfyltMeldekortService = applicationContext.mottaBrukerutfyltMeldekortService,
         )
         søknadRoutes(applicationContext.søknadContext.søknadService, tokenService = applicationContext.tokenService)
         staticResources(
