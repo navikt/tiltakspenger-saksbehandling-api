@@ -47,7 +47,7 @@ sealed interface MeldekortBehandling {
     val saksbehandler: String
     val beslutter: String?
     val status: MeldekortBehandlingStatus
-    val navkontor: Navkontor?
+    val navkontor: Navkontor
     val iverksattTidspunkt: LocalDateTime?
     val sendtTilBeslutning: LocalDateTime?
 
@@ -161,7 +161,7 @@ sealed interface MeldekortBehandling {
         override val opprettet: LocalDateTime,
         override val tiltakstype: TiltakstypeSomGirRett,
         override val beregning: MeldeperiodeBeregning.IkkeUtfyltMeldeperiode,
-        override val navkontor: Navkontor?,
+        override val navkontor: Navkontor,
         override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
         override val brukersMeldekort: BrukersMeldekort?,
         override val meldeperiode: Meldeperiode,
@@ -207,7 +207,7 @@ sealed interface MeldekortBehandling {
                 beslutter = this.beslutter,
                 status = MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING,
                 iverksattTidspunkt = null,
-                navkontor = this.navkontor!!,
+                navkontor = this.navkontor,
                 ikkeRettTilTiltakspengerTidspunkt = null,
                 brukersMeldekort = brukersMeldekort,
                 meldeperiode = meldeperiode,

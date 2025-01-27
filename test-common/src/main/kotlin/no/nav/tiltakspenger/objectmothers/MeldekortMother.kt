@@ -58,7 +58,7 @@ interface MeldekortMother {
         forrigeMeldekortId: MeldekortId? = null,
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT,
-        navkontor: Navkontor? = null,
+        navkontor: Navkontor = ObjectMother.navkontor(),
         opprettet: LocalDateTime = nå(),
     ): MeldekortBehandling.MeldekortUnderBehandling {
         val meldeperiode = meldeperiode(

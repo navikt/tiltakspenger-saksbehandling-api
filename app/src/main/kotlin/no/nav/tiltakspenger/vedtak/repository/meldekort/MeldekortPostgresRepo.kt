@@ -84,10 +84,10 @@ class MeldekortPostgresRepo(
                     "saksbehandler" to meldekort.saksbehandler,
                     "beslutter" to meldekort.beslutter,
                     "status" to meldekort.status.toDb(),
-                    "navkontor" to meldekort.navkontor?.kontornummer,
+                    "navkontor" to meldekort.navkontor.kontornummer,
                     "iverksatt_tidspunkt" to meldekort.iverksattTidspunkt,
                     "sendt_til_beslutning" to meldekort.sendtTilBeslutning,
-                    "navkontor_navn" to meldekort.navkontor?.kontornavn,
+                    "navkontor_navn" to meldekort.navkontor.kontornavn,
                 ).asUpdate,
             )
         }
@@ -117,7 +117,7 @@ class MeldekortPostgresRepo(
                     "saksbehandler" to meldekort.saksbehandler,
                     "beslutter" to meldekort.beslutter,
                     "status" to meldekort.status.toDb(),
-                    "navkontor" to meldekort.navkontor?.kontornummer,
+                    "navkontor" to meldekort.navkontor.kontornummer,
                     "iverksatt_tidspunkt" to meldekort.iverksattTidspunkt,
                     "sendt_til_beslutning" to meldekort.sendtTilBeslutning,
                     "meldeperiode_hendelse_id" to meldekort.meldeperiode.hendelseId.toString(),
@@ -190,7 +190,7 @@ class MeldekortPostgresRepo(
             val id = MeldekortId.fromString(row.string("id"))
             val sakId = SakId.fromString(row.string("sak_id"))
             val saksnummer = Saksnummer(row.string("saksnummer"))
-            val navkontorEnhetsnummer = row.stringOrNull("navkontor")
+            val navkontorEnhetsnummer = row.string("navkontor")
             val navkontorNavn = row.stringOrNull("navkontor_navn")
             val rammevedtakId = VedtakId.fromString(row.string("rammevedtak_id"))
             val fnr = Fnr.fromString(row.string("fnr"))
@@ -201,7 +201,7 @@ class MeldekortPostgresRepo(
             val hendelseId = HendelseId.fromString(row.string("meldeperiode_hendelse_id"))
             val meldeperiode = MeldeperiodePostgresRepo.hentForHendelseId(hendelseId, session)
 
-            val navkontor = navkontorEnhetsnummer?.let { Navkontor(kontornummer = it, kontornavn = navkontorNavn) }
+            val navkontor = Navkontor(kontornummer = navkontorEnhetsnummer, kontornavn = navkontorNavn)
 
             val saksbehandler = row.string("saksbehandler")
 
@@ -230,7 +230,7 @@ class MeldekortPostgresRepo(
                         tiltakstype = meldeperiodeBeregning.tiltakstype,
                         status = status,
                         iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
-                        navkontor = navkontor!!,
+                        navkontor = navkontor,
                         ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt"),
                         brukersMeldekort = null,
                         meldeperiode = meldeperiode,
