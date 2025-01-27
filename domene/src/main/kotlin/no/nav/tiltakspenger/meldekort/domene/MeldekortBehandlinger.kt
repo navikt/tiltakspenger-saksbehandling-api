@@ -12,8 +12,8 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.IkkeUtfyltMeldekort
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.UtfyltMeldekort
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortBehandlet
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortUnderBehandling
 import java.time.LocalDate
 
 /**
@@ -33,7 +33,7 @@ data class MeldekortBehandlinger(
      */
     fun sendTilBeslutter(
         kommando: SendMeldekortTilBeslutterKommando,
-    ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<MeldekortBehandlinger, UtfyltMeldekort>> {
+    ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<MeldekortBehandlinger, MeldekortBehandlet>> {
         val ikkeUtfyltMeldekort = this.ikkeUtfyltMeldekort!!
 
         require(ikkeUtfyltMeldekort.id == kommando.meldekortId) {
@@ -69,11 +69,11 @@ data class MeldekortBehandlinger(
 
     val periode: Periode by lazy { Periode(verdi.first().fraOgMed, verdi.last().tilOgMed) }
 
-    val utfylteMeldekort: List<UtfyltMeldekort> by lazy { verdi.filterIsInstance<UtfyltMeldekort>() }
+    val utfylteMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
 
-    val godkjenteMeldekort: List<UtfyltMeldekort> by lazy { utfylteMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
+    val godkjenteMeldekort: List<MeldekortBehandlet> by lazy { utfylteMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
 
-    val sisteGodkjenteMeldekort: UtfyltMeldekort? by lazy { godkjenteMeldekort.lastOrNull() }
+    val sisteGodkjenteMeldekort: MeldekortBehandlet? by lazy { godkjenteMeldekort.lastOrNull() }
 
     val sisteGodkjenteMeldekortDag: LocalDate? by lazy { sisteGodkjenteMeldekort?.periode?.tilOgMed }
 
@@ -86,8 +86,8 @@ data class MeldekortBehandlinger(
     val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy { utfylteMeldekort.flatMap { it.beregning.dager } }
 
     /** Så lenge saken er aktiv, vil det siste meldekortet være i tilstanden ikke utfylt. Vil også være null fram til første innvilgelse. */
-    val ikkeUtfyltMeldekort: IkkeUtfyltMeldekort? by lazy {
-        verdi.filterIsInstance<IkkeUtfyltMeldekort>().singleOrNullOrThrow()
+    val ikkeUtfyltMeldekort: MeldekortUnderBehandling? by lazy {
+        verdi.filterIsInstance<MeldekortUnderBehandling>().singleOrNullOrThrow()
     }
 
     val sakId: SakId by lazy { verdi.first().sakId }
@@ -114,7 +114,7 @@ data class MeldekortBehandlinger(
                 }
             }"
         }
-        require(verdi.dropLast(1).all { it is UtfyltMeldekort }) {
+        require(verdi.dropLast(1).all { it is MeldekortBehandlet }) {
             "Kun det siste meldekortet kan være i tilstanden 'ikke utfylt', de N første må være 'utfylt'."
         }
         require(verdi.map { it.sakId }.distinct().size <= 1) {

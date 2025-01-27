@@ -14,8 +14,8 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.IkkeUtfyltMeldekort
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.UtfyltMeldekort
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortBehandlet
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.meldekort.domene.tilMeldekortperioder
@@ -203,6 +203,8 @@ class MeldekortPostgresRepo(
 
             val navkontor = navkontorEnhetsnummer?.let { Navkontor(kontornummer = it, kontornavn = navkontorNavn) }
 
+            val saksbehandler = row.string("saksbehandler")
+
             requireNotNull(meldeperiode) { "Fant ingen meldeperiode for $hendelseId tilknyttet meldekortbehandling $id" }
 
             return when (val status = row.string("status").toMeldekortStatus()) {
@@ -213,7 +215,7 @@ class MeldekortPostgresRepo(
                         maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
                     )
 
-                    UtfyltMeldekort(
+                    MeldekortBehandlet(
                         id = id,
                         sakId = sakId,
                         saksnummer = saksnummer,
@@ -221,7 +223,7 @@ class MeldekortPostgresRepo(
                         rammevedtakId = rammevedtakId,
                         opprettet = opprettet,
                         beregning = meldeperiodeBeregning,
-                        saksbehandler = row.string("saksbehandler"),
+                        saksbehandler = saksbehandler,
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
                         beslutter = row.stringOrNull("beslutter"),
                         forrigeMeldekortId = forrigeMeldekortId,
@@ -241,7 +243,7 @@ class MeldekortPostgresRepo(
                         meldekortId = id,
                         maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
                     )
-                    IkkeUtfyltMeldekort(
+                    MeldekortUnderBehandling(
                         id = id,
                         sakId = sakId,
                         saksnummer = saksnummer,
@@ -255,6 +257,7 @@ class MeldekortPostgresRepo(
                         ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt"),
                         brukersMeldekort = null,
                         meldeperiode = meldeperiode,
+                        saksbehandler = saksbehandler,
                     )
                 }
 

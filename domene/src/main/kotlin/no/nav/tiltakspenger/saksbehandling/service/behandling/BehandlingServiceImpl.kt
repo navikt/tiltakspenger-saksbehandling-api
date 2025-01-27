@@ -219,7 +219,7 @@ class BehandlingServiceImpl(
         vedtak: Rammevedtak,
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
-        ikkeUtfylteMeldekort: List<MeldekortBehandling.IkkeUtfyltMeldekort>,
+        ikkeUtfylteMeldekort: List<MeldekortBehandling.MeldekortUnderBehandling>,
     ) {
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->

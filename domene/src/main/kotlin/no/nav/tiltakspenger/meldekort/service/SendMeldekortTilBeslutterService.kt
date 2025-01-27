@@ -33,7 +33,7 @@ class SendMeldekortTilBeslutterService(
      */
     suspend fun sendMeldekortTilBeslutter(
         kommando: SendMeldekortTilBeslutterKommando,
-    ): Either<KanIkkeSendeMeldekortTilBeslutter, MeldekortBehandling.UtfyltMeldekort> {
+    ): Either<KanIkkeSendeMeldekortTilBeslutter, MeldekortBehandling.MeldekortBehandlet> {
         if (!kommando.saksbehandler.erSaksbehandler()) {
             return KanIkkeSendeMeldekortTilBeslutter.MåVæreSaksbehandler(
                 kommando.saksbehandler.roller,

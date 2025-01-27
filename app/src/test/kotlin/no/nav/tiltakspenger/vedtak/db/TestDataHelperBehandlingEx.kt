@@ -220,7 +220,7 @@ internal fun TestDataHelper.persisterRammevedtakMedUtfyltMeldekort(
             ),
             barnetillegg = listOf(),
         ),
-): Pair<Sak, MeldekortBehandling.UtfyltMeldekort> {
+): Pair<Sak, MeldekortBehandling.MeldekortBehandlet> {
     val (sak, vedtak) = persisterIverksattFørstegangsbehandling(
         sakId = sakId,
         fnr = fnr,
@@ -234,7 +234,7 @@ internal fun TestDataHelper.persisterRammevedtakMedUtfyltMeldekort(
         beslutter = beslutter,
     )
     val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
-    val utfyltMeldekort = ObjectMother.utfyltMeldekort(
+    val utfyltMeldekort = ObjectMother.meldekortBehandlet(
         sakId = sak.id,
         rammevedtakId = vedtak.id,
         fnr = sak.fnr,
