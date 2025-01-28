@@ -45,17 +45,11 @@ data class Vedtaksliste(
     }
 
     /**
-     * Vedtak 1: 01.01.2021 - 4.01.2021
-     *           01.01.2021 - 2.01.2021 Oppfylt
-     *           03.01.2021 - 4.01.2021 Ikke Oppfylt
-     * Vedtak 2: 2.01.2021 - 3.01.2021
-     *           02.01.2021 - 02.01.2021 Ikke Oppfylt
-     *           03.01.2021 - 03.01.2021 Oppfylt
-     *
-     *  Utfallsperioder: 01.01.2021 - 01.01.2021 Oppfylt (fra vedtak 1)
-     *                   02.01.2021 - 02.01.2021 Ikke Oppfylt (fra vedtak 2)
-     *                   03.01.2021 - 03.01.2021 Oppfylt (fra vedtak 2)
-     *                   04.01.2021 - 04.01.2021 Ikke Oppfylt (fra vedtak 1)
+     * Innvilget->Stans eksempel:
+     * Vedtak 1: 01.01.2021 - 04.01.2021 (oppfylt/innvilget)
+     * Vedtak 2: 03.01.2021 - 04.01.2021 (ikke oppfylt/stans)
+     * Utfallsperioder: 01.01.2021 - 02.01.2021 Oppfylt (fra vedtak 1)
+     *                  03.01.2021 - 04.01.2021 Ikke Oppfylt (fra vedtak 2)
      */
     val utfallsperioder: Periodisering<AvklartUtfallForPeriode> by lazy {
         tidslinje.perioderMedVerdi.flatMap { pmvVedtak ->

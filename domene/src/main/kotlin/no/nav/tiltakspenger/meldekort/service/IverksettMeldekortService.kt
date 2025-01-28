@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.meldekort.service
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import mu.KotlinLogging
 import no.nav.tiltakspenger.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -14,6 +15,7 @@ import no.nav.tiltakspenger.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.meldekort.domene.KanIkkeIverksetteMeldekort
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.meldekort.domene.opprettNesteMeldeperiode
 import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
 import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
@@ -34,6 +36,8 @@ class IverksettMeldekortService(
     private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
 ) {
+    private val log = KotlinLogging.logger {}
+
     suspend fun iverksettMeldekort(
         kommando: IverksettMeldekortKommando,
     ): Either<KanIkkeIverksetteMeldekort, MeldekortBehandling.MeldekortBehandlet> {
@@ -53,10 +57,13 @@ class IverksettMeldekortService(
             "Meldekort $meldekortId er allerede iverksatt"
         }
 
-        // TODO John og Anders: Vi må støtte at dette er siste meldeperiode.
-        val nesteMeldeperiode = sak.opprettNesteMeldeperiode() ?: throw IllegalArgumentException("Kunne ikke opprette ny meldeperiode for sak $sakId")
-        require(meldekort.periode.tilOgMed.plusDays(1) == nesteMeldeperiode.periode.fraOgMed) {
-            "Forventet at neste meldekort starter dagen etter nåværende meldekort. saksnummer: ${sak.saksnummer}, sakId: $sakId, meldekortId: $meldekortId, meldeperiodeKjedeId: ${meldekort.meldeperiode.meldeperiodeKjedeId}"
+        val nesteMeldeperiode: Meldeperiode? = sak.opprettNesteMeldeperiode()?.let {
+            if (meldekort.periode.tilOgMed.plusDays(1) != it.periode.fraOgMed) {
+                log.info { "Neste meldeperiode (${it.periode}) er ikke sammenhengende med det vedtatte meldekortet sin meldeperiode (${meldekort.periode}). Oppretter ikke ny meldeperiode. behandlingId: ${meldekort.id}, sakId: ${meldekort.sakId}, saksnummer: ${meldekort.saksnummer}" }
+                null
+            } else {
+                it
+            }
         }
 
         return meldekort.iverksettMeldekort(kommando.beslutter).onRight { iverksattMeldekort ->
@@ -70,10 +77,8 @@ class IverksettMeldekortService(
 
             sessionFactory.withTransactionContext { tx ->
                 meldekortRepo.oppdater(iverksattMeldekort, tx)
-                // Kanskje vi burde opprette alle meldeperioder for en vedtaksperiode fra starten av?
-                sak.opprettNesteMeldeperiode()?.let {
-                    meldeperiodeRepo.lagre(it, tx)
-                }
+                // TODO John og Anders: På et tidspunkt bør vi kanskje flytte generering av meldeperioder ut i en jobb?
+                nesteMeldeperiode?.also { meldeperiodeRepo.lagre(it, tx) }
                 utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
                 statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             }
