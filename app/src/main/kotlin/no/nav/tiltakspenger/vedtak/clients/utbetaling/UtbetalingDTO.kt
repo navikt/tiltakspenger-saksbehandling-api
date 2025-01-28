@@ -50,7 +50,7 @@ fun Utbetalingsvedtak.toDTO(
     }
 }
 
-private fun MeldekortBehandling.UtfyltMeldekort.toUtbetalingDto(
+private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
     brukersNavKontor: Navkontor,
 ): List<UtbetalingV2Dto> {
     return this.beregning.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->

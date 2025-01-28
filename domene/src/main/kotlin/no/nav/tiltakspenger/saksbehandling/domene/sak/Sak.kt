@@ -54,13 +54,6 @@ data class Sak(
         meldekortBehandlinger.sisteGodkjenteMeldekort?.navkontor
     }
 
-    /** Dette er sannsynligvis første meldekort dersom den er null */
-    fun forrigeNavkontor(meldekortId: MeldekortId): Navkontor? {
-        // TODO Tia, Anders og John: Slett denne når vi setter oppfølgingsenhet når vi oppretter behandlingen
-        val forrigeMeldekortId = hentMeldekortBehandling(meldekortId)!!.forrigeMeldekortId ?: return null
-        return (hentMeldekortBehandling(forrigeMeldekortId) as MeldekortBehandling.UtfyltMeldekort).navkontor
-    }
-
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
         return meldekortBehandlinger.hentMeldekortBehandling(meldekortId)
     }
@@ -73,7 +66,7 @@ data class Sak(
         return meldeperiodeKjeder.hentMeldeperiode(hendelseId)
     }
 
-    fun hentIkkeUtfyltMeldekort(): MeldekortBehandling? = meldekortBehandlinger.ikkeUtfyltMeldekort
+    fun hentMeldekortUnderBehandling(): MeldekortBehandling? = meldekortBehandlinger.meldekortUnderBehandling
 
     /** Den er kun trygg inntil vi revurderer antall dager. */
     fun hentAntallDager(): Int? = vedtaksliste.førstegangsvedtak?.behandling?.maksDagerMedTiltakspengerForPeriode

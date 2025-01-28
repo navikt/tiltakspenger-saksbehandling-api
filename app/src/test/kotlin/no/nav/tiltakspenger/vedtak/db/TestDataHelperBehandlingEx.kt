@@ -194,7 +194,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
     }
 }
 
-internal fun TestDataHelper.persisterRammevedtakMedUtfyltMeldekort(
+internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
@@ -220,7 +220,7 @@ internal fun TestDataHelper.persisterRammevedtakMedUtfyltMeldekort(
             ),
             barnetillegg = listOf(),
         ),
-): Pair<Sak, MeldekortBehandling.UtfyltMeldekort> {
+): Pair<Sak, MeldekortBehandling.MeldekortBehandlet> {
     val (sak, vedtak) = persisterIverksattFørstegangsbehandling(
         sakId = sakId,
         fnr = fnr,
@@ -234,7 +234,7 @@ internal fun TestDataHelper.persisterRammevedtakMedUtfyltMeldekort(
         beslutter = beslutter,
     )
     val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
-    val utfyltMeldekort = ObjectMother.utfyltMeldekort(
+    val behandletMeldekort = ObjectMother.meldekortBehandlet(
         sakId = sak.id,
         rammevedtakId = vedtak.id,
         fnr = sak.fnr,
@@ -243,7 +243,7 @@ internal fun TestDataHelper.persisterRammevedtakMedUtfyltMeldekort(
         meldeperiode = førsteMeldeperiode,
         periode = førsteMeldeperiode.periode,
     )
-    meldekortRepo.lagre(utfyltMeldekort)
-    meldeperiodeRepo.lagre(utfyltMeldekort.meldeperiode)
-    return Pair(sakRepo.hentForSakId(sakId)!!, utfyltMeldekort)
+    meldekortRepo.lagre(behandletMeldekort)
+    meldeperiodeRepo.lagre(behandletMeldekort.meldeperiode)
+    return Pair(sakRepo.hentForSakId(sakId)!!, behandletMeldekort)
 }

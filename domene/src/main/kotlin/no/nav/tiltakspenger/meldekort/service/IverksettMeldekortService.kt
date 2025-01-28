@@ -36,7 +36,7 @@ class IverksettMeldekortService(
 ) {
     suspend fun iverksettMeldekort(
         kommando: IverksettMeldekortKommando,
-    ): Either<KanIkkeIverksetteMeldekort, MeldekortBehandling.UtfyltMeldekort> {
+    ): Either<KanIkkeIverksetteMeldekort, MeldekortBehandling.MeldekortBehandlet> {
         if (!kommando.beslutter.erBeslutter()) {
             return KanIkkeIverksetteMeldekort.MåVæreBeslutter(kommando.beslutter.roller).left()
         }
@@ -48,7 +48,7 @@ class IverksettMeldekortService(
             .getOrElse { return KanIkkeIverksetteMeldekort.KunneIkkeHenteSak(it).left() }
         val meldekort: MeldekortBehandling = sak.hentMeldekortBehandling(meldekortId)
             ?: throw IllegalArgumentException("Fant ikke meldekort med id $meldekortId i sak $sakId")
-        meldekort as MeldekortBehandling.UtfyltMeldekort
+        meldekort as MeldekortBehandling.MeldekortBehandlet
         require(meldekort.beslutter == null && meldekort.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING) {
             "Meldekort $meldekortId er allerede iverksatt"
         }

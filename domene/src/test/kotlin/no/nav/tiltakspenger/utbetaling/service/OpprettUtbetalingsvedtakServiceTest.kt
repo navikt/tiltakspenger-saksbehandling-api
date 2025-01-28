@@ -20,7 +20,7 @@ internal class OpprettUtbetalingsvedtakServiceTest {
             val sak = this.andreMeldekortIverksatt()
             val sakId = sak.id
             meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                (sak.meldekortBehandlinger[1] as MeldekortBehandling.IkkeUtfyltMeldekort).tilSendMeldekortTilBeslutterKommando(ObjectMother.saksbehandler()),
+                (sak.meldekortBehandlinger[1] as MeldekortBehandling.MeldekortUnderBehandling).tilSendMeldekortTilBeslutterKommando(ObjectMother.saksbehandler()),
             )
             meldekortContext.iverksettMeldekortService.iverksettMeldekort(
                 IverksettMeldekortKommando(

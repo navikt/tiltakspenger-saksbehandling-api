@@ -40,7 +40,7 @@ import kotlin.math.ceil
 
 interface MeldekortMother {
 
-    fun ikkeUtfyltMeldekort(
+    fun meldekortUnderBehandling(
         id: MeldekortId = MeldekortId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
@@ -58,9 +58,9 @@ interface MeldekortMother {
         forrigeMeldekortId: MeldekortId? = null,
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT,
-        navkontor: Navkontor? = null,
+        navkontor: Navkontor = ObjectMother.navkontor(),
         opprettet: LocalDateTime = nå(),
-    ): MeldekortBehandling.IkkeUtfyltMeldekort {
+    ): MeldekortBehandling.MeldekortUnderBehandling {
         val meldeperiode = meldeperiode(
             periode = periode,
             id = meldeperiodeKjedeId,
@@ -70,7 +70,7 @@ interface MeldekortMother {
             opprettet = opprettet,
         )
 
-        return MeldekortBehandling.IkkeUtfyltMeldekort(
+        return MeldekortBehandling.MeldekortUnderBehandling(
             id = id,
             sakId = sakId,
             saksnummer = saksnummer,
@@ -84,10 +84,11 @@ interface MeldekortMother {
             ikkeRettTilTiltakspengerTidspunkt = null,
             meldeperiode = meldeperiode,
             brukersMeldekort = null,
+            saksbehandler = saksbehandler,
         )
     }
 
-    fun utfyltMeldekort(
+    fun meldekortBehandlet(
         id: MeldekortId = MeldekortId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
@@ -122,8 +123,8 @@ interface MeldekortMother {
 
         sendtTilBeslutning: LocalDateTime = nå(),
 
-    ): MeldekortBehandling.UtfyltMeldekort {
-        return MeldekortBehandling.UtfyltMeldekort(
+    ): MeldekortBehandling.MeldekortBehandlet {
+        return MeldekortBehandling.MeldekortBehandlet(
             id = id,
             sakId = sakId,
             saksnummer = saksnummer,
@@ -293,7 +294,7 @@ interface MeldekortMother {
         meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         utfallsperioder: Periodisering<AvklartUtfallForPeriode>,
         navkontor: Navkontor = ObjectMother.navkontor(),
-    ): Pair<MeldekortBehandlinger, MeldekortBehandling.UtfyltMeldekort> {
+    ): Pair<MeldekortBehandlinger, MeldekortBehandling.MeldekortBehandlet> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
             id = meldeperiodeKjedeId,
@@ -306,7 +307,7 @@ interface MeldekortMother {
         return MeldekortBehandlinger(
             tiltakstype = tiltakstype,
             verdi = nonEmptyListOf(
-                MeldekortBehandling.IkkeUtfyltMeldekort(
+                MeldekortBehandling.MeldekortUnderBehandling(
                     id = meldekortId,
                     sakId = sakId,
                     saksnummer = saksnummer,
@@ -327,6 +328,7 @@ interface MeldekortMother {
                     ikkeRettTilTiltakspengerTidspunkt = null,
                     meldeperiode = meldeperiode,
                     brukersMeldekort = null,
+                    saksbehandler = kommando.saksbehandler.navIdent,
                 ),
             ),
         ).sendTilBeslutter(kommando).getOrFail()
@@ -360,7 +362,7 @@ interface MeldekortMother {
 
         return MeldekortBehandlinger(
             tiltakstype = tiltakstype,
-            verdi = this.verdi + MeldekortBehandling.IkkeUtfyltMeldekort(
+            verdi = this.verdi + MeldekortBehandling.MeldekortUnderBehandling(
                 id = meldekortId,
                 sakId = sakId,
                 saksnummer = saksnummer,
@@ -381,6 +383,7 @@ interface MeldekortMother {
                 ikkeRettTilTiltakspengerTidspunkt = null,
                 meldeperiode = meldeperiode,
                 brukersMeldekort = null,
+                saksbehandler = kommando.saksbehandler.navIdent,
             ),
         ).sendTilBeslutter(kommando).getOrFail().first
     }
@@ -479,7 +482,7 @@ interface MeldekortMother {
     }
 }
 
-fun MeldekortBehandling.IkkeUtfyltMeldekort.tilSendMeldekortTilBeslutterKommando(
+fun MeldekortBehandling.MeldekortUnderBehandling.tilSendMeldekortTilBeslutterKommando(
     saksbehandler: Saksbehandler,
 ): SendMeldekortTilBeslutterKommando {
     val dager = beregning.map { dag ->

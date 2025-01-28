@@ -22,7 +22,7 @@ data class Utbetalingsvedtak(
     val fnr: Fnr,
     val rammevedtakId: VedtakId,
     val opprettet: LocalDateTime,
-    val meldekortbehandling: MeldekortBehandling.UtfyltMeldekort,
+    val meldekortbehandling: MeldekortBehandling.MeldekortBehandlet,
     val forrigeUtbetalingsvedtakId: VedtakId?,
     val sendtTilUtbetaling: LocalDateTime?,
     val journalpostId: JournalpostId?,
@@ -37,7 +37,7 @@ data class Utbetalingsvedtak(
     val brukerNavkontor: Navkontor = meldekortbehandling.navkontor
 }
 
-fun MeldekortBehandling.UtfyltMeldekort.opprettUtbetalingsvedtak(
+fun MeldekortBehandling.MeldekortBehandlet.opprettUtbetalingsvedtak(
     saksnummer: Saksnummer,
     fnr: Fnr,
     forrigeUtbetalingsvedtak: VedtakId?,

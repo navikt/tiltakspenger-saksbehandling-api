@@ -25,7 +25,7 @@ class MeldekortBehandlingRepoImplTest {
             )
 
             val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
-            val meldekort = ObjectMother.utfyltMeldekort(
+            val meldekort = ObjectMother.meldekortBehandlet(
                 sakId = sak.id,
                 rammevedtakId = vedtak.id,
                 fnr = sak.fnr,
@@ -53,7 +53,11 @@ class MeldekortBehandlingRepoImplTest {
             val oppdatertSak = sakRepo.hentForSakId(sak.id)!!
 
             val nesteMeldeperiode = oppdatertSak.opprettNesteMeldeperiode()!!
-            val nesteMeldekort = oppdatertSak.opprettMeldekortBehandling(nesteMeldeperiode, ObjectMother.navkontor())
+            val nesteMeldekort = oppdatertSak.opprettMeldekortBehandling(
+                nesteMeldeperiode,
+                ObjectMother.navkontor(),
+                ObjectMother.saksbehandler(),
+            )
 
             meldeperiodeRepo.lagre(nesteMeldeperiode)
             meldekortRepo.lagre(nesteMeldekort)
@@ -77,7 +81,11 @@ class MeldekortBehandlingRepoImplTest {
                 deltakelseTom = 31.mars(2024),
             )
             val meldeperiode = sak.opprettFørsteMeldeperiode()
-            val meldekortBehandling = sak.opprettMeldekortBehandling(meldeperiode, ObjectMother.navkontor())
+            val meldekortBehandling = sak.opprettMeldekortBehandling(
+                meldeperiode,
+                ObjectMother.navkontor(),
+                ObjectMother.saksbehandler(),
+            )
 
             val meldekortRepo = testDataHelper.meldekortRepo
             val meldeperiodeRepo = testDataHelper.meldeperiodeRepo
