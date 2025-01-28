@@ -1,2 +1,2 @@
-ALTER TABLE meldekortbehandling ALTER COLUMN saksbehandler DROP NOT NULL;
-ALTER TABLE meldekortbehandling ALTER COLUMN navkontor DROP NOT NULL;
+ALTER TABLE meldekortbehandling ALTER COLUMN saksbehandler SET NOT NULL;
+ALTER TABLE meldekortbehandling ALTER COLUMN navkontor SET NOT NULL;
