@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.saksbehandling.domene.stønadsdager.Stønadsdager
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Vilkårssett
+import java.time.LocalDate
 
 data class Vedtaksliste(
     val value: List<Rammevedtak>,
@@ -20,6 +21,19 @@ data class Vedtaksliste(
 
     /** Dette er sakens totale vedtaksperiode. Per tidspunkt er den sammenhengende, men hvis vi lar en sak gjelde på tvers av tiltak, vil den kunne ha hull. */
     val vedtaksperiode: Periode? = tidslinje.ifEmpty { null }?.totalePeriode
+
+    val innvilgelsesperioder: List<Periode> by lazy {
+        tidslinje.filter { it.verdi.vedtaksType == Vedtakstype.INNVILGELSE }.map { it.periode }
+    }
+
+    val antallInnvilgelsesperiode: Int by lazy {
+        innvilgelsesperioder.size
+    }
+
+    /** Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
+    val sisteInnvilgetDato: LocalDate? by lazy {
+        tidslinje.filter { it.verdi.vedtaksType == Vedtakstype.INNVILGELSE }.maxOfOrNull { it.periode.tilOgMed }
+    }
 
     // TODO pre-revurdering-av-revurdering jah: Det gir egentlig ikke mening og ha periodiserte vilkårssett. Her bør man heller slå sammen vilkårssettene. Men det krever at hvert vilkår kan periodiseres.
     val vilkårssett: Periodisering<Vilkårssett> by lazy {

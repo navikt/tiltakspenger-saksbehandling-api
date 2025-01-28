@@ -35,7 +35,11 @@ fun Sak.startRevurdering(
             ).left()
         }
     }
-    val revurderingsperiode = Periode(fraOgMed, this.vedtaksperiode!!.tilOgMed)
+    require(this.vedtaksliste.antallInnvilgelsesperiode == 1) {
+        "Kan kun opprette en stansrevurdering dersom vi har en sammenhengende innvilgelsesperiode. sakId=${this.id}"
+    }
+    val tilOgMed = this.sisteInnvilgetDato!!
+    val revurderingsperiode = Periode(fraOgMed, tilOgMed)
     // Merk at vi beholder eventuelle tidspunkt og IDer når vi krymper.
     val vilkårssett = this.krympVilkårssett(revurderingsperiode).single().verdi
     val stønadsdager = this.krympStønadsdager(revurderingsperiode).single().verdi
