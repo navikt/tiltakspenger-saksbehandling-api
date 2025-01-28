@@ -168,7 +168,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
             ),
             barnetillegg = listOf(),
         ),
-    revurderingsperiode: Periode = ObjectMother.revurderingsperiode(),
+    stansFraOgMed: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
 ): Pair<Sak, Behandling> {
     val (sak, _) = persisterIverksattFørstegangsbehandling(
         sakId = sakId,
@@ -185,7 +185,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
     return sak.startRevurdering(
         kommando = StartRevurderingKommando(
             sakId = sakId,
-            periode = revurderingsperiode,
+            fraOgMed = stansFraOgMed,
             correlationId = CorrelationId.generate(),
             saksbehandler = saksbehandler,
         ),

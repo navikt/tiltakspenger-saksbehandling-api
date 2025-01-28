@@ -113,10 +113,7 @@ internal class StartRevurderingTest {
             setBody(
                 """
                 {
-                  "periode": {
-                    "fraOgMed": "${revurderingsperiode.fraOgMed}",
-                    "tilOgMed": "${revurderingsperiode.tilOgMed}"
-                  }
+                    "fraOgMed": "${revurderingsperiode.fraOgMed}"
                 }
                 """.trimIndent(),
             )

@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.objectmothers.RevurderingMother.revurderingIverksatt
+import no.nav.tiltakspenger.objectmothers.RevurderingMother.revurderingStansIverksatt
 import no.nav.tiltakspenger.saksbehandling.domene.stønadsdager.Stønadsdager
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
 import org.junit.jupiter.api.Test
@@ -22,9 +22,9 @@ internal class VedtakslisteTest {
                 val hele = Periode(1.januar(2024), 2.januar(2024))
                 val jan1 = Periode(1.januar(2024), 1.januar(2024))
                 val jan2 = Periode(2.januar(2024), 2.januar(2024))
-                val sak = tac.revurderingIverksatt(
+                val sak = tac.revurderingStansIverksatt(
                     førstegangsbehandlingPeriode = hele,
-                    revurderingPeriode = jan2,
+                    stansFraOgMed = 2.januar(2024),
                 )
                 sak.vedtaksperiode shouldBe hele
                 sak.stønadsdager()[0] shouldBe sak.krympStønadsdager(jan1).single()
@@ -64,9 +64,9 @@ internal class VedtakslisteTest {
                 val hele = Periode(1.januar(2024), 2.januar(2024))
                 val jan1 = Periode(1.januar(2024), 1.januar(2024))
                 val jan2 = Periode(2.januar(2024), 2.januar(2024))
-                val sak = tac.revurderingIverksatt(
+                val sak = tac.revurderingStansIverksatt(
                     førstegangsbehandlingPeriode = hele,
-                    revurderingPeriode = jan2,
+                    stansFraOgMed = 2.januar(2024),
                 )
                 sak.vedtaksperiode shouldBe hele
                 sak.utfallsperioder()[0] shouldBe sak.krympUtfallsperioder(jan1).single()
@@ -95,9 +95,9 @@ internal class VedtakslisteTest {
                 val hele = Periode(1.januar(2024), 2.januar(2024))
                 val jan1 = Periode(1.januar(2024), 1.januar(2024))
                 val jan2 = Periode(2.januar(2024), 2.januar(2024))
-                val sak = tac.revurderingIverksatt(
+                val sak = tac.revurderingStansIverksatt(
                     førstegangsbehandlingPeriode = hele,
-                    revurderingPeriode = jan2,
+                    stansFraOgMed = 2.januar(2024),
                 )
                 sak.vedtaksperiode shouldBe hele
 
