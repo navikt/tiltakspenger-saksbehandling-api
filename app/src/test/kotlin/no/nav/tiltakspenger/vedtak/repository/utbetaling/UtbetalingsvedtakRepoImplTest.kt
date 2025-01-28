@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.saksbehandling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.utbetaling.domene.opprettUtbetalingsvedtak
-import no.nav.tiltakspenger.vedtak.db.persisterRammevedtakMedUtfyltMeldekort
+import no.nav.tiltakspenger.vedtak.db.persisterRammevedtakMedBehandletMeldekort
 import no.nav.tiltakspenger.vedtak.db.withMigratedDb
 import org.junit.jupiter.api.Test
 
@@ -18,7 +18,7 @@ class UtbetalingsvedtakRepoImplTest {
         val tidspunkt = nå()
         withMigratedDb(runIsolated = true) { testDataHelper ->
 
-            val (sak, meldekort) = testDataHelper.persisterRammevedtakMedUtfyltMeldekort(
+            val (sak, meldekort) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
