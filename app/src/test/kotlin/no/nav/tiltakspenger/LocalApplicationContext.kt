@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.fakes.clients.PoaoTilgangskontrollFake
 import no.nav.tiltakspenger.fakes.clients.TiltakFakeGateway
 import no.nav.tiltakspenger.fakes.clients.UtbetalingFakeGateway
 import no.nav.tiltakspenger.felles.TiltakId
+import no.nav.tiltakspenger.libs.auth.test.core.EntraIdSystemtokenFakeClient
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
@@ -106,7 +107,7 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
         poaoTilgangskontrollFake.leggTil(fnr = fnr, skjermet = false)
     }
 
-//    override val entraIdSystemtokenClient = EntraIdSystemtokenFakeClient()
+    override val entraIdSystemtokenClient = EntraIdSystemtokenFakeClient()
 
     override val veilarboppfolgingGateway: VeilarboppfolgingGateway by lazy {
         VeilarboppfolgingHttpClient(
