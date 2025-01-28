@@ -3,8 +3,6 @@ on:
   pull_request:
     branches:
       - main
-    types:
-      - opened
 
 permissions:
   contents: write
@@ -26,7 +24,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Notify Slack on new major version
-        if: steps.metadata.outputs.update-type == 'version-update:semver-major' && steps.metadata.outputs.package-ecosystem != 'github_actions'
+        if: steps.metadata.outputs.update-type == 'version-update:semver-major' && steps.metadata.outputs.package-ecosystem != 'github_actions' && github.event.action != 'synchronize'
         run: |
           curl -X POST --data-urlencode "payload={ \"attachments\": [{ \"pretext\": \"[${{ github.event.repository.name }}] Ny major dependency versjon!\", \"color\": \"info\", \"fields\": [ { \"title\": \"Commit\", \"value\": \"<https://github.com/${{ github.repository }}/commit/$PR_SHA|$PR_SHA>\", \"short\": false }, { \"title\": \"Dependency\", \"value\": \"$DEPENDENCY_NAME $VERSION_CHANGE\", \"short\": false } ] }] }" $WEBHOOK_URL
         env:
@@ -51,7 +49,7 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Notify Slack in case of merge failure
-        if: failure() && steps.metadata.outputs.update-type != 'version-update:semver-major'
+        if: failure() && steps.metadata.outputs.update-type != 'version-update:semver-major' && github.event.action != 'synchronize'
         run: |
           curl -X POST --data-urlencode "payload={ \"attachments\": [{ \"pretext\": \"[${{ github.event.repository.name }}] Dependabot auto-merge feilet :cry:\", \"color\": \"danger\", \"fields\": [ { \"title\": \"Commit\", \"value\": \"<https://github.com/${{ github.repository }}/commit/$PR_SHA|$PR_SHA>\", \"short\": false }, { \"title\": \"Dependency\", \"value\": \"$DEPENDENCY_NAME $VERSION_CHANGE\", \"short\": false } ] }] }" $WEBHOOK_URL
         env:
