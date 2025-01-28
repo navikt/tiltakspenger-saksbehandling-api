@@ -190,7 +190,7 @@ class BehandlingServiceImpl(
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk,
                 // Kommentar jah: Antar vi åpner for mer enn 1 samtidig ikke-utfylt meldekort i fremtiden.
-                meldekortUnderBehandling = listOfNotNull(sak.meldekortBehandlinger.ikkeUtfyltMeldekort),
+                meldekortUnderBehandling = listOfNotNull(sak.meldekortBehandlinger.meldekortUnderBehandling),
             )
         }
 

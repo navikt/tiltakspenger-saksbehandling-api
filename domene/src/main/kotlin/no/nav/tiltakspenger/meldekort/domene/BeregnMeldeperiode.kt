@@ -52,7 +52,7 @@ private data class MeldekortBeregning(
             "SakId på eksisterende meldekortperiode ${eksisterendeMeldekortPåSaken.sakId} er ikke likt sakId på kommando ${kommando.sakId}"
         }
         val meldekortSomSkalUtfylles: MeldekortBehandling.MeldekortUnderBehandling =
-            eksisterendeMeldekortPåSaken.ikkeUtfyltMeldekort?.also {
+            eksisterendeMeldekortPåSaken.meldekortUnderBehandling?.also {
                 require(it.id == kommando.meldekortId) {
                     "Innsendt meldekort ${kommando.meldekortId} er ikke likt meldekortSomSkalUtfylles ${it.id}"
                 }

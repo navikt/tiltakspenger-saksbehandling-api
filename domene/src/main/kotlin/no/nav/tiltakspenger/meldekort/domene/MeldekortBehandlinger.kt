@@ -19,7 +19,7 @@ import java.time.LocalDate
 /**
  * Består av ingen, én eller flere [MeldeperiodeBeregning].
  * Vil være tom fram til første innvilgede førstegangsbehandling.
- * Kun den siste vil kunne være ikke-utfylt (åpen).
+ * Kun den siste vil kunne være under behandling (åpen).
  * @param tiltakstype I MVP støtter vi kun ett tiltak, men på sikt kan vi ikke garantere at det er én til én mellom meldekortperioder og tiltakstype.
  */
 data class MeldekortBehandlinger(
@@ -28,22 +28,22 @@ data class MeldekortBehandlinger(
 ) : List<MeldekortBehandling> by verdi {
 
     /**
-     * @throws NullPointerException Dersom det ikke er noen meldekort som kan sendes til beslutter. Eller siste meldekort ikke er i tilstanden 'ikke utfylt'.
+     * @throws NullPointerException Dersom det ikke er noen meldekort-behandling som kan sendes til beslutter. Eller siste meldekort ikke er i tilstanden 'under behandling'.
      * @throws IllegalArgumentException Dersom innsendt meldekortid ikke samsvarer med siste meldekortperiode.
      */
     fun sendTilBeslutter(
         kommando: SendMeldekortTilBeslutterKommando,
     ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<MeldekortBehandlinger, MeldekortBehandlet>> {
-        val ikkeUtfyltMeldekort = this.ikkeUtfyltMeldekort!!
+        val meldekortUnderBehandling = this.meldekortUnderBehandling!!
 
-        require(ikkeUtfyltMeldekort.id == kommando.meldekortId) {
-            "MeldekortId i kommando (${kommando.meldekortId}) samsvarer ikke med siste meldekortperiode (${ikkeUtfyltMeldekort.id})"
+        require(meldekortUnderBehandling.id == kommando.meldekortId) {
+            "MeldekortId i kommando (${kommando.meldekortId}) samsvarer ikke med siste meldekortperiode (${meldekortUnderBehandling.id})"
         }
         val meldekortdager = kommando.beregn(eksisterendeMeldekort = this)
-        val utfyltMeldeperiode = ikkeUtfyltMeldekort.beregning.tilUtfyltMeldeperiode(meldekortdager).getOrElse {
+        val utfyltMeldeperiode = meldekortUnderBehandling.beregning.tilUtfyltMeldeperiode(meldekortdager).getOrElse {
             return it.left()
         }
-        return ikkeUtfyltMeldekort.sendTilBeslutter(utfyltMeldeperiode, kommando.saksbehandler)
+        return meldekortUnderBehandling.sendTilBeslutter(utfyltMeldeperiode, kommando.saksbehandler)
             .map {
                 Pair(
                     MeldekortBehandlinger(
@@ -69,9 +69,9 @@ data class MeldekortBehandlinger(
 
     val periode: Periode by lazy { Periode(verdi.first().fraOgMed, verdi.last().tilOgMed) }
 
-    val utfylteMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
+    val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
 
-    val godkjenteMeldekort: List<MeldekortBehandlet> by lazy { utfylteMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
+    val godkjenteMeldekort: List<MeldekortBehandlet> by lazy { behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
 
     val sisteGodkjenteMeldekort: MeldekortBehandlet? by lazy { godkjenteMeldekort.lastOrNull() }
 
@@ -83,10 +83,10 @@ data class MeldekortBehandlinger(
     }
 
     /** Vil kun returnere hele meldekortperioder som er utfylt. Dersom siste meldekortperiode er delvis utfylt, vil ikke disse komme med. */
-    val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy { utfylteMeldekort.flatMap { it.beregning.dager } }
+    val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy { behandledeMeldekort.flatMap { it.beregning.dager } }
 
-    /** Så lenge saken er aktiv, vil det siste meldekortet være i tilstanden ikke utfylt. Vil også være null fram til første innvilgelse. */
-    val ikkeUtfyltMeldekort: MeldekortUnderBehandling? by lazy {
+    /** Så lenge saken er aktiv, vil det siste meldekortet være i tilstanden under behandling. Vil også være null fram til første innvilgelse. */
+    val meldekortUnderBehandling: MeldekortUnderBehandling? by lazy {
         verdi.filterIsInstance<MeldekortUnderBehandling>().singleOrNullOrThrow()
     }
 
@@ -115,7 +115,7 @@ data class MeldekortBehandlinger(
             }"
         }
         require(verdi.dropLast(1).all { it is MeldekortBehandlet }) {
-            "Kun det siste meldekortet kan være i tilstanden 'ikke utfylt', de N første må være 'utfylt'."
+            "Kun det siste meldekortet kan være i tilstanden 'under behandling', de N første må være 'behandlet'."
         }
         require(verdi.map { it.sakId }.distinct().size <= 1) {
             "Alle meldekortperioder må tilhøre samme sak."
