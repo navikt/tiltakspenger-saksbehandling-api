@@ -190,7 +190,7 @@ class BehandlingServiceImpl(
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk,
                 // Kommentar jah: Antar vi åpner for mer enn 1 samtidig ikke-utfylt meldekort i fremtiden.
-                ikkeUtfylteMeldekort = listOfNotNull(sak.meldekortBehandlinger.ikkeUtfyltMeldekort),
+                meldekortUnderBehandling = listOfNotNull(sak.meldekortBehandlinger.meldekortUnderBehandling),
             )
         }
 
@@ -219,7 +219,7 @@ class BehandlingServiceImpl(
         vedtak: Rammevedtak,
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
-        ikkeUtfylteMeldekort: List<MeldekortBehandling.IkkeUtfyltMeldekort>,
+        meldekortUnderBehandling: List<MeldekortBehandling.MeldekortUnderBehandling>,
     ) {
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
@@ -229,7 +229,7 @@ class BehandlingServiceImpl(
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
 
             // TODO jah+abn: Et stansvedtak kan overlappe utfylte meldekort dersom dagene ikke er utbetalt. Før vi implementerer det, må vi splitte meldekortgrunnlag og meldekortbehandling i to.
-            ikkeUtfylteMeldekort.forEach {
+            meldekortUnderBehandling.forEach {
                 meldekortRepo.oppdater(
                     it.settIkkeRettTilTiltakspenger(
                         periode = vedtak.periode,

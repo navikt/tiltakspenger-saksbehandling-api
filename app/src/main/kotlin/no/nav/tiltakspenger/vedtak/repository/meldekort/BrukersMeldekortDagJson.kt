@@ -39,6 +39,7 @@ fun String.toMeldekortDager(): List<BrukersMeldekort.BrukersMeldekortDag> {
                 "FRAVÆR_SYKT_BARN" -> InnmeldtStatus.FRAVÆR_SYKT_BARN
                 "FRAVÆR_ANNET" -> InnmeldtStatus.FRAVÆR_ANNET
                 "IKKE_REGISTRERT" -> InnmeldtStatus.IKKE_REGISTRERT
+                "IKKE_DELTATT" -> InnmeldtStatus.IKKE_DELTATT
                 else -> throw IllegalArgumentException("Ukjent status: $it.status")
             },
         )

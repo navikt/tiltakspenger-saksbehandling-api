@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.UtfyltMeldekort
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortBehandlet
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.utbetaling.domene.Utbetalinger
@@ -179,7 +179,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                     .hentForMeldekortId(
                         MeldekortId.fromString(string("meldekort_id")),
                         session,
-                    )!! as UtfyltMeldekort,
+                    )!! as MeldekortBehandlet,
                 sendtTilUtbetaling = localDateTimeOrNull("sendt_til_utbetaling_tidspunkt"),
                 journalpostId = stringOrNull("journalpost_id")?.let { JournalpostId(it) },
                 journalføringstidspunkt = localDateTimeOrNull("journalføringstidspunkt"),

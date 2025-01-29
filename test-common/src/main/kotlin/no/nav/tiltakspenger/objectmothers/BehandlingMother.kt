@@ -377,7 +377,7 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
         beslutter = beslutter,
     )
     tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-        (sak.meldekortBehandlinger.first() as MeldekortBehandling.IkkeUtfyltMeldekort).tilSendMeldekortTilBeslutterKommando(
+        (sak.meldekortBehandlinger.first() as MeldekortBehandling.MeldekortUnderBehandling).tilSendMeldekortTilBeslutterKommando(
             saksbehandler,
         ),
     )
@@ -404,7 +404,7 @@ suspend fun TestApplicationContext.førsteMeldekortIverksatt(
     )
     tac.meldekortContext.iverksettMeldekortService.iverksettMeldekort(
         IverksettMeldekortKommando(
-            meldekortId = (sak.meldekortBehandlinger.first() as MeldekortBehandling.UtfyltMeldekort).id,
+            meldekortId = (sak.meldekortBehandlinger.first() as MeldekortBehandling.MeldekortBehandlet).id,
             sakId = sak.id,
             beslutter = beslutter,
             correlationId = CorrelationId.generate(),

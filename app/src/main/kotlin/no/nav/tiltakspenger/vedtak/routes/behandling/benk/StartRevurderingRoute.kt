@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteRevurdering
 import no.nav.tiltakspenger.saksbehandling.service.sak.StartRevurderingService
@@ -22,9 +21,10 @@ import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.ikkeTil
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond403Forbidden
 import no.nav.tiltakspenger.vedtak.routes.withBody
 import no.nav.tiltakspenger.vedtak.routes.withSakId
+import java.time.LocalDate
 
 private data class StartRevurderingBody(
-    val periode: PeriodeDTO,
+    val fraOgMed: LocalDate,
 ) {
     fun tilKommando(
         sakId: SakId,
@@ -33,7 +33,7 @@ private data class StartRevurderingBody(
     ): StartRevurderingKommando {
         return StartRevurderingKommando(
             sakId = sakId,
-            periode = periode.toDomain(),
+            fraOgMed = fraOgMed,
             correlationId = correlationId,
             saksbehandler = saksbehandler,
         )

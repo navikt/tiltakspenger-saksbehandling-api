@@ -15,16 +15,17 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingKom
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.tiltaksdeltagelse.LeggTilTiltaksdeltagelseKommando
+import java.time.LocalDate
 
 object RevurderingMother {
-    suspend fun TestApplicationContext.revurderingIverksatt(
+    suspend fun TestApplicationContext.revurderingStansIverksatt(
         førstegangsbehandlingPeriode: Periode = ObjectMother.vurderingsperiode(),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
         correlationId: CorrelationId = CorrelationId.generate(),
         eksisterendeSak: Sak? = null,
-        revurderingPeriode: Periode,
+        stansFraOgMed: LocalDate,
     ): Sak {
         val tac = this
         val sak = eksisterendeSak ?: førstegangsbehandlingIverksatt(
@@ -38,7 +39,7 @@ object RevurderingMother {
             val (_, revurdering) = tac.behandlingContext.startRevurderingService.startRevurdering(
                 StartRevurderingKommando(
                     sakId = sakId,
-                    periode = revurderingPeriode,
+                    fraOgMed = stansFraOgMed,
                     saksbehandler = saksbehandler,
                     correlationId = correlationId,
                 ),
@@ -52,7 +53,7 @@ object RevurderingMother {
                     behandlingId = revurderingId,
                     statusForPeriode = nonEmptyListOf(
                         LeggTilTiltaksdeltagelseKommando.StatusForPeriode(
-                            revurderingPeriode,
+                            Periode(stansFraOgMed, førstegangsbehandlingPeriode.tilOgMed),
                             TiltakDeltakerstatus.HarSluttet,
                         ),
                     ),

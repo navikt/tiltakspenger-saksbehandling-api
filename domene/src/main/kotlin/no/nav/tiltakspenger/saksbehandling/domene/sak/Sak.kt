@@ -42,6 +42,8 @@ data class Sak(
     /** Dette er sakens totale vedtaksperiode. Per tidspunkt er den sammenhengende, men hvis vi lar en sak gjelde på tvers av tiltak, vil den kunne ha hull. */
     val vedtaksperiode: Periode? = vedtaksliste.vedtaksperiode
 
+    val sisteInnvilgetDato = vedtaksliste.sisteInnvilgetDato
+
     /**
      * En sak kan kun ha en førstegangsbehandling, dersom perioden til den vedtatte førstegangsbehandlingen skal utvides eller minskes (den må fortsatt være sammenhengende) må vi revurdere/omgjøre, ikke førstegangsbehandle på nytt.
      * Dersom den nye søknaden ikke overlapper eller tilstøter den gamle perioden, må vi opprette en ny sak som får en ny førstegangsbehandling.
@@ -52,13 +54,6 @@ data class Sak(
     /** Henter fra siste godkjente meldekort */
     val sisteNavkontor: Navkontor? by lazy {
         meldekortBehandlinger.sisteGodkjenteMeldekort?.navkontor
-    }
-
-    /** Dette er sannsynligvis første meldekort dersom den er null */
-    fun forrigeNavkontor(meldekortId: MeldekortId): Navkontor? {
-        // TODO Tia, Anders og John: Slett denne når vi setter oppfølgingsenhet når vi oppretter behandlingen
-        val forrigeMeldekortId = hentMeldekortBehandling(meldekortId)!!.forrigeMeldekortId ?: return null
-        return (hentMeldekortBehandling(forrigeMeldekortId) as MeldekortBehandling.UtfyltMeldekort).navkontor
     }
 
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
@@ -73,7 +68,7 @@ data class Sak(
         return meldeperiodeKjeder.hentMeldeperiode(hendelseId)
     }
 
-    fun hentIkkeUtfyltMeldekort(): MeldekortBehandling? = meldekortBehandlinger.ikkeUtfyltMeldekort
+    fun hentMeldekortUnderBehandling(): MeldekortBehandling? = meldekortBehandlinger.meldekortUnderBehandling
 
     /** Den er kun trygg inntil vi revurderer antall dager. */
     fun hentAntallDager(): Int? = vedtaksliste.førstegangsvedtak?.behandling?.maksDagerMedTiltakspengerForPeriode

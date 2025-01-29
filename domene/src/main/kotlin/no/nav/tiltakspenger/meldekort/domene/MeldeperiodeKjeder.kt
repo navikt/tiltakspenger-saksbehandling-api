@@ -36,6 +36,9 @@ data class MeldeperiodeKjeder(
     /** Siste versjon av meldeperiodene */
     val meldeperioder: List<Meldeperiode> get() = this.map { it.last() }
 
+    /**
+     * @throws NoSuchElementException hvis det ikke finnes noen meldeperioder
+     */
     fun hentSisteMeldeperiode(): Meldeperiode {
         return meldeperiodeKjeder.last().hentSisteMeldeperiode()
     }

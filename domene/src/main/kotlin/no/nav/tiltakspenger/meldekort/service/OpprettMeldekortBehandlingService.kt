@@ -56,7 +56,11 @@ class OpprettMeldekortBehandlingService(
             return KanIkkeOppretteMeldekortBehandling.HenteNavkontorFeilet.left()
         }
 
-        val meldekortBehandling = sak.opprettMeldekortBehandling(meldeperiode, navkontor)
+        val meldekortBehandling = sak.opprettMeldekortBehandling(
+            meldeperiode = meldeperiode,
+            navkontor = navkontor,
+            saksbehandler = saksbehandler,
+        )
 
         sessionFactory.withTransactionContext { tx ->
             meldekortRepo.lagre(meldekortBehandling, tx)
