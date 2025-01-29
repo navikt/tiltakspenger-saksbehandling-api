@@ -22,17 +22,19 @@ fun BrukersMeldekort.toDTO(): BrukersMeldekortDTO {
         mottatt = mottatt,
         dager = dager.map {
             BrukersMeldekortDTO.DagDTO(
-                status = when (it.status) {
-                    InnmeldtStatus.DELTATT -> "DELTATT"
-                    InnmeldtStatus.FRAVÆR_SYK -> "FRAVÆR_SYK"
-                    InnmeldtStatus.FRAVÆR_SYKT_BARN -> "FRAVÆR_SYKT_BARN"
-                    InnmeldtStatus.FRAVÆR_ANNET -> "FRAVÆR_ANNET"
-                    InnmeldtStatus.IKKE_REGISTRERT -> "IKKE_REGISTRERT"
-                    InnmeldtStatus.IKKE_DELTATT -> "IKKE_DELTATT"
-                    InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER -> "IKKE_RETT_TIL_TILTAKSPENGER"
-                },
+                status = it.status.toDTO(),
                 dato = it.dato,
             )
         },
     )
+}
+
+fun InnmeldtStatus.toDTO(): String = when (this) {
+    InnmeldtStatus.DELTATT -> "DELTATT"
+    InnmeldtStatus.FRAVÆR_SYK -> "FRAVÆR_SYK"
+    InnmeldtStatus.FRAVÆR_SYKT_BARN -> "FRAVÆR_SYKT_BARN"
+    InnmeldtStatus.FRAVÆR_ANNET -> "FRAVÆR_ANNET"
+    InnmeldtStatus.IKKE_REGISTRERT -> "IKKE_REGISTRERT"
+    InnmeldtStatus.IKKE_DELTATT -> "IKKE_DELTATT"
+    InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER -> "IKKE_RETT_TIL_TILTAKSPENGER"
 }

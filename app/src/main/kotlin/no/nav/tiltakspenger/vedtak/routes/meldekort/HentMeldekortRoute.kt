@@ -17,12 +17,11 @@ import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.fantIkk
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.ikkeTilgang
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond403Forbidden
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond404NotFound
-import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.toMeldeperiodeOversiktDTO
-import no.nav.tiltakspenger.vedtak.routes.withMeldeperiodeId
+import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.toMeldeperiodeKjedeDTO
+import no.nav.tiltakspenger.vedtak.routes.withMeldeperiodeKjedeId
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 
-// TODO jah: Rename til meldeperiodeKjedeId?
-private const val PATH = "/sak/{sakId}/meldeperiode/{meldeperiodeId}"
+private const val PATH = "/sak/{sakId}/meldeperiode/{meldeperiodeKjedeId}"
 
 fun Route.hentMeldekortRoute(
     sakService: SakService,
@@ -35,7 +34,7 @@ fun Route.hentMeldekortRoute(
         logger.debug { "Mottatt get-request på $PATH" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
-                call.withMeldeperiodeId { meldeperiodeKjedeId ->
+                call.withMeldeperiodeKjedeId { meldeperiodeKjedeId ->
                     val correlationId = call.correlationId()
 
                     val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId = correlationId).getOrElse {
@@ -46,12 +45,12 @@ fun Route.hentMeldekortRoute(
                                 ),
                             )
                         }
-                        return@withMeldeperiodeId
+                        return@withMeldeperiodeKjedeId
                     }
 
                     val meldeperiodeKjedeDTO =
-                        sak.toMeldeperiodeOversiktDTO(meldeperiodeKjedeId = meldeperiodeKjedeId)
-                            ?: return@withMeldeperiodeId call.respond404NotFound(fantIkkeMeldekort())
+                        sak.toMeldeperiodeKjedeDTO(meldeperiodeKjedeId = meldeperiodeKjedeId)
+                            ?: return@withMeldeperiodeKjedeId call.respond404NotFound(fantIkkeMeldekort())
 
                     auditService.logMedSakId(
                         sakId = sakId,

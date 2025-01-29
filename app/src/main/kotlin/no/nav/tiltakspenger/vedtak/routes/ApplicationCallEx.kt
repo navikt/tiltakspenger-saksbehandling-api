@@ -57,14 +57,14 @@ internal suspend inline fun ApplicationCall.withMeldekortId(
     )
 }
 
-internal suspend inline fun ApplicationCall.withMeldeperiodeId(
+internal suspend inline fun ApplicationCall.withMeldeperiodeKjedeId(
     crossinline onRight: suspend (MeldeperiodeKjedeId) -> Unit,
 ) {
     withValidParam(
-        paramName = "meldeperiodeId",
+        paramName = "meldeperiodeKjedeId",
         parse = { MeldeperiodeKjedeId(it) },
-        errorMessage = "Ugyldig meldeperiode id",
-        errorCode = "ugyldig_meldeperiode_id",
+        errorMessage = "Ugyldig meldeperiode-kjede id",
+        errorCode = "ugyldig_meldeperiodekjede_id",
         onSuccess = onRight,
     )
 }

@@ -8,7 +8,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class MeldeperiodeDTO(
-    val id: String,
+    val kjedeId: String,
     val hendelseId: String,
     val versjon: Int,
     val periode: PeriodeDTO,
@@ -22,7 +22,7 @@ data class MeldeperiodeDTO(
 
 fun Sak.toMeldeperiodeDTO(meldeperiode: Meldeperiode): MeldeperiodeDTO {
     return MeldeperiodeDTO(
-        id = meldeperiode.meldeperiodeKjedeId.toString(),
+        kjedeId = meldeperiode.meldeperiodeKjedeId.toString(),
         hendelseId = meldeperiode.hendelseId.toString(),
         versjon = meldeperiode.versjon.value,
         periode = meldeperiode.periode.toDTO(),
