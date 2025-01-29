@@ -13,11 +13,13 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.meldekort.service.MottaBrukerutfyltMeldekortService
+import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.ports.VeilarboppfolgingGateway
 import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.auth.systembrukerMapper
 import no.nav.tiltakspenger.vedtak.clients.datadeling.DatadelingHttpClient
+import no.nav.tiltakspenger.vedtak.clients.oppgave.OppgaveHttpClient
 import no.nav.tiltakspenger.vedtak.clients.veilarboppfolging.VeilarboppfolgingHttpClient
 import no.nav.tiltakspenger.vedtak.db.DataSourceSetup
 
@@ -65,6 +67,12 @@ open class ApplicationContext(
         )
     }
     open val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingGateway) }
+    open val oppgaveGateway: OppgaveGateway by lazy {
+        OppgaveHttpClient(
+            baseUrl = Configuration.oppgaveUrl,
+            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.oppgaveScope) },
+        )
+    }
     open val personContext by lazy { PersonContext(sessionFactory, entraIdSystemtokenClient) }
     open val dokumentContext by lazy { DokumentContext(entraIdSystemtokenClient) }
     open val statistikkContext by lazy { StatistikkContext(sessionFactory) }
