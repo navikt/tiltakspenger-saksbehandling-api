@@ -86,6 +86,8 @@ object Configuration {
                 "MELDEKORT_API_URL" to "http://localhost:8083",
                 "VEILARBOPPFOLGING_SCOPE" to "localhost",
                 "VEILARBOPPFOLGING_URL" to "http://host.docker.internal:8091",
+                "OPPGAVE_SCOPE" to "localhost",
+                "OPPGAVE_URL" to "http://host.docker.internal:8091",
             ),
         )
 
@@ -119,6 +121,8 @@ object Configuration {
                 "MELDEKORT_API_URL" to "http://tiltakspenger-meldekort-api",
                 "VEILARBOPPFOLGING_SCOPE" to "api://dev-gcp.poao.veilarboppfolging/.default",
                 "VEILARBOPPFOLGING_URL" to "http://veilarboppfolging.poao",
+                "OPPGAVE_SCOPE" to "api://dev-fss.oppgavehandtering.oppgave/.default",
+                "OPPGAVE_URL" to "https://oppgave.dev-fss-pub.nais.io",
             ),
         )
     private val prodProperties =
@@ -151,6 +155,8 @@ object Configuration {
                 "MELDEKORT_API_URL" to "http://tiltakspenger-meldekort-api",
                 "VEILARBOPPFOLGING_SCOPE" to "api://prod-gcp.poao.veilarboppfolging/.default",
                 "VEILARBOPPFOLGING_URL" to "http://veilarboppfolging.poao",
+                "OPPGAVE_SCOPE" to "api://prod-fss.oppgavehandtering.oppgave/.default",
+                "OPPGAVE_URL" to "https://oppgave.prod-fss-pub.nais.io",
             ),
         )
 
@@ -215,6 +221,7 @@ object Configuration {
     val datadelingScope: String by lazy { config()[Key("DATADELING_SCOPE", stringType)] }
     val meldekortApiScope: String by lazy { config()[Key("MELDEKORT_API_SCOPE", stringType)] }
     val veilarboppfolgingScope: String by lazy { config()[Key("VEILARBOPPFOLGING_SCOPE", stringType)] }
+    val oppgaveScope: String by lazy { config()[Key("OPPGAVE_SCOPE", stringType)] }
 
     val pdlUrl by lazy { config()[Key("PDL_ENDPOINT_URL", stringType)] }
     val pdlPipUrl by lazy { config()[Key("PDL_PIP_ENDPOINT_URL", stringType)] }
@@ -229,6 +236,7 @@ object Configuration {
     val datadelingUrl: String by lazy { config()[Key("DATADELING_URL", stringType)] }
     val meldekortApiUrl: String by lazy { config()[Key("MELDEKORT_API_URL", stringType)] }
     val veilarboppfolgingUrl: String by lazy { config()[Key("VEILARBOPPFOLGING_URL", stringType)] }
+    val oppgaveUrl: String by lazy { config()[Key("OPPGAVE_URL", stringType)] }
 
     fun httpPort() = config()[Key("application.httpPort", intType)]
 

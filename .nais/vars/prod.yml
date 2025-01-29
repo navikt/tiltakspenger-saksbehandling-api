@@ -12,6 +12,7 @@ urlSkjerming: skjermede-personer-pip.intern.nav.no
 urlJoark: dokarkiv.prod-fss-pub.nais.io
 urlDokdist: dokdistfordeling.prod-fss-pub.nais.io
 urlMicrosoftGraphApi: graph.microsoft.com
+urlOppgave: oppgave.prod-fss-pub.nais.io
 azure:
   groups:
     - name: ROLE_SAKSBEHANDLER

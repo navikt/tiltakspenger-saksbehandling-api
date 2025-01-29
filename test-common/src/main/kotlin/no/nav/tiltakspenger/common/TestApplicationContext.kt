@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.fakes.clients.GenererFakeUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.fakes.clients.GenererFakeVedtaksbrevGateway
 import no.nav.tiltakspenger.fakes.clients.JournalførFakeMeldekortGateway
 import no.nav.tiltakspenger.fakes.clients.JournalførFakeVedtaksbrevGateway
+import no.nav.tiltakspenger.fakes.clients.OppgaveFakeGateway
 import no.nav.tiltakspenger.fakes.clients.PersonFakeGateway
 import no.nav.tiltakspenger.fakes.clients.TilgangsstyringFakeGateway
 import no.nav.tiltakspenger.fakes.clients.TiltakFakeGateway
@@ -36,6 +37,7 @@ import no.nav.tiltakspenger.libs.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
+import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.Profile
 import no.nav.tiltakspenger.vedtak.auth.systembrukerMapper
@@ -130,6 +132,8 @@ class TestApplicationContext(
 
     override val veilarboppfolgingGateway = VeilarboppfolgingFakeGateway()
     override val navkontorService: NavkontorService = NavkontorService(veilarboppfolgingGateway)
+
+    override val oppgaveGateway: OppgaveGateway = OppgaveFakeGateway()
 
     override val personContext =
         object : PersonContext(sessionFactory, entraIdSystemtokenClient) {

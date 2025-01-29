@@ -25,10 +25,12 @@ import no.nav.tiltakspenger.objectmothers.toSøknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.ports.VeilarboppfolgingGateway
 import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.Profile
+import no.nav.tiltakspenger.vedtak.clients.oppgave.OppgaveHttpClient
 import no.nav.tiltakspenger.vedtak.clients.veilarboppfolging.VeilarboppfolgingHttpClient
 import no.nav.tiltakspenger.vedtak.context.ApplicationContext
 import no.nav.tiltakspenger.vedtak.context.DokumentContext
@@ -68,6 +70,7 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
         id = tiltakId,
         // Siden Komet eier GRUPPE_AMO, vil dette være en UUID. Hadde det vært Arena som var master ville det vært eksempelvis TA6509186.
         // Kommentar jah: Litt usikker på om Komet sender UUIDen til Arena, eller om de genererer en Arena-ID på formatet TA...
+        // Kommentar Tia: Komet genererer uuid og sender denne til Arena for tiltakstyper de har tatt over. Komet er ikke master for ikke gruppeamo ennå.
         eksternTiltaksdeltagelseId = "fa287e7-ddbb-44a2-9bfa-4da4661f8b6d",
         eksternTiltaksgjennomføringsId = "5667273f-784e-4521-89c3-75b0be8ee250",
         typeKode = TiltakstypeSomGirRett.GRUPPE_AMO,
@@ -116,6 +119,13 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
         )
     }
     override val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingGateway) }
+
+    override val oppgaveGateway: OppgaveGateway by lazy {
+        OppgaveHttpClient(
+            baseUrl = Configuration.oppgaveUrl,
+            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.oppgaveScope) },
+        )
+    }
 
     override val personContext =
         object : PersonContext(sessionFactory, entraIdSystemtokenClient) {
