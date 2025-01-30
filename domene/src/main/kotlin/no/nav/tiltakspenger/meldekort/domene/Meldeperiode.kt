@@ -36,7 +36,7 @@ data class Meldeperiode(
 
     // TODO: når skal vi tillate at meldekortet fylles ut? Siste fredag i perioden?
     fun erKlarTilUtfylling(): Boolean {
-        return periode.fraOgMed > nå().toLocalDate()
+        return periode.fraOgMed <= nå().toLocalDate()
     }
 
 //    fun settIkkeRettTilTiltakspenger(periode: Periode, tidspunkt: LocalDateTime): Meldeperiode
