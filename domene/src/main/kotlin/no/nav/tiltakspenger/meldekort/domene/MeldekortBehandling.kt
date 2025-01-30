@@ -27,9 +27,6 @@ sealed interface MeldekortBehandling {
     // TODO: slette?
     val rammevedtakId: VedtakId
 
-    // TODO: slette?
-    val forrigeMeldekortId: MeldekortId?
-
     val opprettet: LocalDateTime
     val beregning: MeldeperiodeBeregning
 
@@ -67,7 +64,6 @@ sealed interface MeldekortBehandling {
      *
      * @param saksbehandler: Obligatorisk dersom meldekortet er utfylt av saksbehandler.
      * @param beslutter: Obligatorisk dersom meldekortet er godkjent av beslutter.
-     * @param forrigeMeldekortId kan være null dersom det er første meldekort.
      */
     data class MeldekortBehandlet(
         override val id: MeldekortId,
@@ -75,7 +71,6 @@ sealed interface MeldekortBehandling {
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
         override val rammevedtakId: VedtakId,
-        override val forrigeMeldekortId: MeldekortId?,
         override val opprettet: LocalDateTime,
         override val beregning: MeldeperiodeBeregning.UtfyltMeldeperiode,
         override val tiltakstype: TiltakstypeSomGirRett,
@@ -157,7 +152,6 @@ sealed interface MeldekortBehandling {
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
         override val rammevedtakId: VedtakId,
-        override val forrigeMeldekortId: MeldekortId?,
         override val opprettet: LocalDateTime,
         override val tiltakstype: TiltakstypeSomGirRett,
         override val beregning: MeldeperiodeBeregning.IkkeUtfyltMeldeperiode,
@@ -198,7 +192,6 @@ sealed interface MeldekortBehandling {
                 saksnummer = this.saksnummer,
                 fnr = this.fnr,
                 rammevedtakId = this.rammevedtakId,
-                forrigeMeldekortId = this.forrigeMeldekortId,
                 opprettet = this.opprettet,
                 beregning = utfyltMeldeperiode,
                 tiltakstype = this.tiltakstype,
@@ -268,9 +261,6 @@ fun Sak.opprettMeldekortBehandling(
     // TODO: hent tiltakstype fra gjeldende periode
     val tiltakstype = vedtak.behandling.tiltakstype
 
-    // Dette blir vel feil dersom meldekort noen gang behandles i "feil" rekkefølge
-    val forrigeMeldekortBehandling = this.meldekortBehandlinger.sisteGodkjenteMeldekort
-
     return MeldekortBehandling.MeldekortUnderBehandling(
         id = meldekortId,
         sakId = this.id,
@@ -278,7 +268,6 @@ fun Sak.opprettMeldekortBehandling(
         rammevedtakId = vedtak.id,
         fnr = this.fnr,
         opprettet = nå(),
-        forrigeMeldekortId = forrigeMeldekortBehandling?.id,
         navkontor = navkontor,
         ikkeRettTilTiltakspengerTidspunkt = null,
         brukersMeldekort = null,

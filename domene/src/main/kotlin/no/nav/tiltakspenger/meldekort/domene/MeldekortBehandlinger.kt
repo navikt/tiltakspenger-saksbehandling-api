@@ -93,11 +93,6 @@ data class MeldekortBehandlinger(
                 "Meldekortperiodene må være sammenhengende og sortert, men var ${verdi.map { it.periode }}"
             }
         }
-        verdi.zipWithNext { a, b ->
-            require(a.id == b.forrigeMeldekortId) {
-                "Neste meldekort ${b.id} må peke på forrige meldekort ${a.id}, men peker på ${b.forrigeMeldekortId}"
-            }
-        }
         require(verdi.distinctBy { it.tiltakstype }.size <= 1) {
             "Alle meldekortperioder må ha samme tiltakstype. Meldekortperioders tiltakstyper=${
                 verdi.map {

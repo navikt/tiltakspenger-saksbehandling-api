@@ -1,0 +1,1 @@
+ALTER TABLE meldekortbehandling DROP COLUMN IF EXISTS forrige_meldekort_id;

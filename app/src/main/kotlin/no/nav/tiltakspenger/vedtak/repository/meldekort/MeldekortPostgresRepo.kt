@@ -35,7 +35,6 @@ class MeldekortPostgresRepo(
                     """
                     insert into meldekortbehandling (
                         id,
-                        forrige_meldekort_id,
                         meldeperiode_id,
                         meldeperiode_hendelse_id,
                         sak_id,
@@ -53,7 +52,6 @@ class MeldekortPostgresRepo(
                         navkontor_navn
                     ) values (
                         :id,
-                        :forrige_meldekort_id,
                         :meldeperiode_id,
                         :meldeperiode_hendelse_id,
                         :sak_id,
@@ -72,7 +70,6 @@ class MeldekortPostgresRepo(
                     )
                     """,
                     "id" to meldekort.id.toString(),
-                    "forrige_meldekort_id" to meldekort.forrigeMeldekortId?.toString(),
                     "meldeperiode_id" to meldekort.meldeperiodeKjedeId.toString(),
                     "meldeperiode_hendelse_id" to meldekort.meldeperiode.hendelseId.toString(),
                     "sak_id" to meldekort.sakId.toString(),
@@ -194,7 +191,6 @@ class MeldekortPostgresRepo(
             val navkontorNavn = row.stringOrNull("navkontor_navn")
             val rammevedtakId = VedtakId.fromString(row.string("rammevedtak_id"))
             val fnr = Fnr.fromString(row.string("fnr"))
-            val forrigeMeldekortId = row.stringOrNull("forrige_meldekort_id")?.let { MeldekortId.fromString(it) }
             val maksDagerMedTiltakspengerForPeriode = row.int("antall_dager_per_meldeperiode")
             val opprettet = row.localDateTime("opprettet")
 
@@ -226,7 +222,6 @@ class MeldekortPostgresRepo(
                         saksbehandler = saksbehandler,
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
                         beslutter = row.stringOrNull("beslutter"),
-                        forrigeMeldekortId = forrigeMeldekortId,
                         tiltakstype = meldeperiodeBeregning.tiltakstype,
                         status = status,
                         iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
@@ -251,7 +246,6 @@ class MeldekortPostgresRepo(
                         rammevedtakId = rammevedtakId,
                         opprettet = opprettet,
                         beregning = meldeperiodeBeregning,
-                        forrigeMeldekortId = forrigeMeldekortId,
                         tiltakstype = meldeperiodeBeregning.tiltakstype,
                         navkontor = navkontor,
                         ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt"),

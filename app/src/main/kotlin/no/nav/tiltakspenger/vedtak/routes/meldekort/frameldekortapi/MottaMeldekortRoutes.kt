@@ -45,7 +45,7 @@ private fun BrukerutfyltMeldekortDTO.toDomain(): NyttBrukersMeldekort {
     return NyttBrukersMeldekort(
         id = MeldekortId.fromString(this.id),
         mottatt = this.mottatt,
-        meldeperiodeId = HendelseId.fromString(this.meldeperiodeId),
+        meldeperiodeHendelseId = HendelseId.fromString(this.meldeperiodeId),
         sakId = SakId.fromString(this.sakId),
         dager = this.dager.map {
             BrukersMeldekortDag(

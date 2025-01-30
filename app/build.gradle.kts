@@ -83,7 +83,7 @@ dependencies {
     implementation("io.ktor:ktor-http:$ktorVersion")
 
     // Auth
-    api("com.auth0:java-jwt:4.4.0")
+    api("com.auth0:java-jwt:4.5.0")
     api("com.auth0:jwks-rsa:0.22.1")
 
     // DB
@@ -122,7 +122,7 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
     // need quarkus-junit-4-mock because of https://github.com/testcontainers/testcontainers-java/issues/970
-    testImplementation("io.quarkus:quarkus-junit4-mock:3.18.0")
+    testImplementation("io.quarkus:quarkus-junit4-mock:3.18.1")
     testApi(project(":test-common"))
     testApi("com.github.navikt.tiltakspenger-libs:test-common:$felleslibVersion")
     testApi("com.github.navikt.tiltakspenger-libs:common:$felleslibVersion")
