@@ -59,6 +59,7 @@ internal fun Application.vedtakApi(
             sakService = applicationContext.sakContext.sakService,
             auditService = applicationContext.personContext.auditService,
             startRevurderingService = applicationContext.behandlingContext.startRevurderingService,
+            søknadService = applicationContext.søknadContext.søknadService,
         )
         behandlingBeslutterRoutes(
             tokenService = applicationContext.tokenService,
@@ -79,7 +80,7 @@ internal fun Application.vedtakApi(
             tokenService = applicationContext.tokenService,
             mottaBrukerutfyltMeldekortService = applicationContext.mottaBrukerutfyltMeldekortService,
         )
-        søknadRoutes(applicationContext.søknadContext.søknadService, tokenService = applicationContext.tokenService)
+        søknadRoutes(applicationContext.søknadContext.søknadService, applicationContext.sakContext.sakService, tokenService = applicationContext.tokenService)
         staticResources(
             remotePath = "/",
             basePackage = "static",

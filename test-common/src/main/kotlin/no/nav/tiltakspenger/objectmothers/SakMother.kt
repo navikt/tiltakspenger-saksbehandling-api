@@ -5,13 +5,17 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.objectmothers.ObjectMother.godkjentAttestering
 import no.nav.tiltakspenger.objectmothers.ObjectMother.nySøknad
 import no.nav.tiltakspenger.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.objectmothers.ObjectMother.søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
@@ -22,9 +26,27 @@ import no.nav.tiltakspenger.saksbehandling.domene.vedtak.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.livsopphold.LeggTilLivsoppholdSaksopplysningCommand
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.livsopphold.LeggTilLivsoppholdSaksopplysningCommand.HarYtelseForPeriode
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.livsopphold.leggTilLivsoppholdSaksopplysning
+import no.nav.tiltakspenger.utbetaling.domene.Utbetalinger
 import java.time.LocalDate
 
 interface SakMother {
+    fun nySak(
+        sakId: SakId = SakId.random(),
+        fnr: Fnr = Fnr.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+    ): Sak = Sak(
+        id = sakId,
+        fnr = fnr,
+        saksnummer = saksnummer,
+        behandlinger = Behandlinger(emptyList()),
+        vedtaksliste = Vedtaksliste.empty(),
+        meldekortBehandlinger = MeldekortBehandlinger.empty(),
+        utbetalinger = Utbetalinger(emptyList()),
+        meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
+        brukersMeldekort = emptyList(),
+        soknader = emptyList(),
+    )
+
     fun sakMedOpprettetBehandling(
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
@@ -44,14 +66,28 @@ interface SakMother {
             ),
         registrerteTiltak: List<Tiltak> = listOf(søknad.tiltak.toTiltak()),
     ): Sak {
-        return Sak.lagSak(
-            sakId = sakId,
-            søknad = søknad,
+        val førstegangsbehandling =
+            Behandling.opprettFørstegangsbehandling(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                søknad = søknad,
+                fødselsdato = fødselsdato,
+                saksbehandler = saksbehandler,
+                registrerteTiltak = registrerteTiltak,
+            ).getOrFail()
+        return Sak(
+            id = sakId,
+            fnr = fnr,
             saksnummer = saksnummer,
-            fødselsdato = fødselsdato,
-            saksbehandler = saksbehandler,
-            registrerteTiltak = registrerteTiltak,
-        ).getOrNull()!!
+            behandlinger = Behandlinger(førstegangsbehandling),
+            vedtaksliste = Vedtaksliste.empty(),
+            meldekortBehandlinger = MeldekortBehandlinger.empty(),
+            utbetalinger = Utbetalinger(emptyList()),
+            meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
+            brukersMeldekort = emptyList(),
+            soknader = listOf(søknad),
+        )
     }
 
     fun sakMedInnvilgetVilkårssett(
@@ -71,12 +107,12 @@ interface SakMother {
             saksbehandler = saksbehandler,
             vurderingsperiode = vurderingsperiode,
         ).let {
-            val oppdatertFørstegangsbehandling = it.førstegangsbehandling.leggTilLivsoppholdSaksopplysning(
+            val oppdatertFørstegangsbehandling = it.førstegangsbehandling!!.leggTilLivsoppholdSaksopplysning(
                 LeggTilLivsoppholdSaksopplysningCommand(
-                    behandlingId = it.førstegangsbehandling.id,
+                    behandlingId = it.førstegangsbehandling!!.id,
                     saksbehandler = saksbehandler,
                     harYtelseForPeriode = HarYtelseForPeriode(
-                        periode = it.førstegangsbehandling.vurderingsperiode,
+                        periode = it.førstegangsbehandling!!.vurderingsperiode,
                         harYtelse = false,
                     ),
                     correlationId = correlationId,
@@ -108,7 +144,7 @@ interface SakMother {
             require(it.behandlinger.size == 1)
             it.copy(
                 behandlinger = Behandlinger(
-                    it.førstegangsbehandling.tilBeslutning(saksbehandler).taBehandling(beslutter),
+                    it.førstegangsbehandling!!.tilBeslutning(saksbehandler).taBehandling(beslutter),
                 ),
             )
         }
@@ -132,7 +168,7 @@ interface SakMother {
             saksbehandler = saksbehandler,
         ).let {
             require(it.behandlinger.size == 1)
-            val iverksattBehandling = it.førstegangsbehandling.iverksett(beslutter, godkjentAttestering())
+            val iverksattBehandling = it.førstegangsbehandling!!.iverksett(beslutter, godkjentAttestering())
             it.copy(
                 behandlinger = Behandlinger(iverksattBehandling),
                 vedtaksliste = Vedtaksliste(it.opprettVedtak(iverksattBehandling).second),

@@ -15,7 +15,7 @@ internal class BehandlingServiceTest {
     fun `må ha beslutterrolle for å ta behandling som er til beslutning`() = runTest {
         with(TestApplicationContext()) {
             val sak = this.førstegangsbehandlingTilBeslutter()
-            val behandlingId = sak.førstegangsbehandling.id
+            val behandlingId = sak.førstegangsbehandling!!.id
 
             this.behandlingContext.behandlingService.taBehandling(
                 behandlingId,
@@ -38,7 +38,7 @@ internal class BehandlingServiceTest {
     fun `sjekk at man ikke kan sende tilbake uten beslutter rolle`() = runTest {
         with(TestApplicationContext()) {
             val sak = this.førstegangsbehandlingTilBeslutter()
-            val behandlingId = sak.førstegangsbehandling.id
+            val behandlingId = sak.førstegangsbehandling!!.id
             val beslutter = beslutter()
             this.behandlingContext.behandlingService.taBehandling(behandlingId, beslutter, correlationId = CorrelationId.generate())
 

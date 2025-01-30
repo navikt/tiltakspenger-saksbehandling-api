@@ -12,10 +12,10 @@ class PersonPostgresRepoTest {
         withMigratedDb { testDataHelper ->
             val (sak, revurdering) = testDataHelper.persisterOpprettetRevurdering()
             testDataHelper.personRepo.hentFnrForSakId(sak.id) shouldBe sak.fnr
-            testDataHelper.personRepo.hentFnrForBehandlingId(sak.førstegangsbehandling.id) shouldBe sak.fnr
+            testDataHelper.personRepo.hentFnrForBehandlingId(sak.førstegangsbehandling!!.id) shouldBe sak.fnr
             testDataHelper.personRepo.hentFnrForBehandlingId(revurdering.id) shouldBe sak.fnr
             testDataHelper.personRepo.hentFnrForSaksnummer(sak.saksnummer) shouldBe sak.fnr
-            testDataHelper.personRepo.hentFnrForSøknadId(sak.førstegangsbehandling.søknad!!.id) shouldBe sak.fnr
+            testDataHelper.personRepo.hentFnrForSøknadId(sak.førstegangsbehandling!!.søknad!!.id) shouldBe sak.fnr
             // testDataHelper.personRepo.hentFnrForMeldekortId() TODO: Implement
             // testDataHelper.personRepo.hentFnrForVedtakId(sak.rammevedtak!!.id) shouldBe sak.fnr TODO: Fixme
         }

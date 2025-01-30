@@ -4,7 +4,6 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
@@ -16,13 +15,10 @@ interface SakRepo {
     fun hentForSaksnummer(saksnummer: Saksnummer): Sak?
 
     /**
-     * Denne er kun tenkt kalt når man oppretter en sak med en førstegangsbehandling.
+     * Denne er kun tenkt kalt når man mottar en søknad og det ikke finnes noen sak fra før.
      * Senere endringer på saken gjøres via methoder og repoer.
      */
-    fun opprettSakOgFørstegangsbehandling(
-        sak: Sak,
-        transactionContext: TransactionContext? = null,
-    )
+    fun opprettSak(sak: Sak)
 
     fun hentForSakId(sakId: SakId): Sak?
 

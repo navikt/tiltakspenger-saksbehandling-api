@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.tiltakspenger.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.felles.exceptions.TilgangException
@@ -12,6 +13,8 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
+import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
@@ -27,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeHenteBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeIverksetteBehandling
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeUnderkjenne
@@ -37,11 +41,14 @@ import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
+import no.nav.tiltakspenger.saksbehandling.ports.TiltakGateway
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
+import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.service.sak.KunneIkkeHenteSakForSakId
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.service.statistikk.sak.StatistikkSakDTO
 import no.nav.tiltakspenger.saksbehandling.service.statistikk.sak.genererSaksstatistikkForRammevedtak
+import no.nav.tiltakspenger.saksbehandling.service.statistikk.sak.genererStatistikkForNyFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.service.statistikk.stønad.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.service.statistikk.stønad.genererStønadsstatistikkForRammevedtak
 
@@ -57,8 +64,75 @@ class BehandlingServiceImpl(
     private val personService: PersonService,
     private val sakService: SakService,
     private val gitHash: String,
+    private val tiltakGateway: TiltakGateway,
 ) : BehandlingService {
     val logger = KotlinLogging.logger { }
+
+    override suspend fun startFørstegangsbehandling(
+        søknadId: SøknadId,
+        sakId: SakId,
+        saksbehandler: Saksbehandler,
+        correlationId: CorrelationId,
+    ): Either<KanIkkeStarteFørstegangsbehandling, Sak> {
+        if (!saksbehandler.erSaksbehandler()) {
+            logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å opprette behandling for fnr" }
+            return KanIkkeStarteFørstegangsbehandling.HarIkkeTilgang(
+                kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER),
+                harRollene = saksbehandler.roller,
+            ).left()
+        }
+        val fnr = personService.hentFnrForSøknadId(søknadId)
+        // hentForSakId gjør en sjekk på tilgang til sak og til person
+        val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId).getOrElse { throw IllegalStateException("Fant ikke sak") }
+
+        val personopplysninger = personService.hentPersonopplysninger(fnr)
+        val adressebeskyttelseGradering: List<AdressebeskyttelseGradering>? =
+            tilgangsstyringService.adressebeskyttelseEnkel(fnr)
+                .getOrElse {
+                    throw IllegalArgumentException(
+                        "Kunne ikke hente adressebeskyttelsegradering for person. SøknadId: $søknadId",
+                    )
+                }
+        require(adressebeskyttelseGradering != null) { "Fant ikke adressebeskyttelse for person. SøknadId: $søknadId" }
+        val registrerteTiltak = runBlocking {
+            tiltakGateway.hentTiltak(
+                fnr = fnr,
+                maskerTiltaksnavn = adressebeskyttelseGradering.harStrengtFortroligAdresse(),
+                correlationId = correlationId,
+            )
+        }
+        if (registrerteTiltak.isEmpty()) {
+            return KanIkkeStarteFørstegangsbehandling.OppretteBehandling(
+                KanIkkeOppretteBehandling.FantIkkeTiltak,
+            ).left()
+        }
+        val soknad = sak.soknader.single { it.id == søknadId }
+        val førstegangsbehandling =
+            Behandling.opprettFørstegangsbehandling(
+                sakId = sakId,
+                saksnummer = sak.saksnummer,
+                fnr = fnr,
+                søknad = soknad,
+                fødselsdato = personopplysninger.fødselsdato,
+                saksbehandler = saksbehandler,
+                registrerteTiltak = registrerteTiltak,
+            ).getOrElse { return KanIkkeStarteFørstegangsbehandling.OppretteBehandling(it).left() }
+
+        val statistikk =
+            genererStatistikkForNyFørstegangsbehandling(
+                behandling = førstegangsbehandling,
+                gjelderKode6 = adressebeskyttelseGradering.harStrengtFortroligAdresse(),
+                versjon = gitHash,
+            )
+
+        sessionFactory.withTransactionContext { tx ->
+            behandlingRepo.lagre(førstegangsbehandling, tx)
+            statistikkSakRepo.lagre(statistikk, tx)
+        }
+        val oppdatertSak = sakService.hentForSakId(sakId, saksbehandler, correlationId)
+            .getOrElse { throw IllegalStateException("Fant ikke sak med id $sakId som vi nettopp opprettet førstegangsbehandling for") }
+        return oppdatertSak.right()
+    }
 
     override fun hentBehandlingForSystem(
         behandlingId: BehandlingId,

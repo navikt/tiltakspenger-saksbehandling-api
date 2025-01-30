@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.januarDateTime
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.objectmothers.førstegangsbehandlingUavklart
 import no.nav.tiltakspenger.objectmothers.nySøknad
 import no.nav.tiltakspenger.vedtak.routes.behandling.BEHANDLING_PATH
@@ -37,7 +38,7 @@ internal class KravfristRoutesTest {
         with(TestApplicationContext()) {
             val tac = this
             val sak = this.førstegangsbehandlingUavklart()
-            val behandlingId = sak.førstegangsbehandling.id
+            val behandlingId = sak.førstegangsbehandling!!.id
 
             testApplication {
                 application {
@@ -72,9 +73,13 @@ internal class KravfristRoutesTest {
             val tac = this
 
             val vurderingsperiode = Periode(1.januar(2021), 31.januar(2021))
+            val sak = ObjectMother.nySak()
+            tac.sakContext.sakRepo.opprettSak(sak)
             val søknad = this.nySøknad(
+                fnr = sak.fnr,
                 periode = vurderingsperiode,
                 tidsstempelHosOss = 1.januarDateTime(2022),
+                sakId = sak.id,
             )
 
             testApplication {
@@ -87,6 +92,7 @@ internal class KravfristRoutesTest {
                             sakService = tac.sakContext.sakService,
                             auditService = tac.personContext.auditService,
                             startRevurderingService = tac.behandlingContext.startRevurderingService,
+                            søknadService = tac.søknadContext.søknadService,
                         )
                     }
                 }

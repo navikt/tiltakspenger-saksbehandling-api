@@ -7,9 +7,6 @@ import no.nav.tiltakspenger.saksbehandling.domene.sak.SaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.ports.PoaoTilgangGateway
 import no.nav.tiltakspenger.saksbehandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.ports.SaksoversiktRepo
-import no.nav.tiltakspenger.saksbehandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.ports.TiltakGateway
-import no.nav.tiltakspenger.saksbehandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakServiceImpl
@@ -19,27 +16,18 @@ import no.nav.tiltakspenger.vedtak.repository.sak.SakPostgresRepo
 
 open class SakContext(
     sessionFactory: SessionFactory,
-    søknadService: SøknadService,
-    statistikkSakRepo: StatistikkSakRepo,
-    tiltakGateway: TiltakGateway,
     tilgangsstyringService: TilgangsstyringService,
     poaoTilgangGateway: PoaoTilgangGateway,
     personService: PersonService,
-    gitHash: String,
     profile: Profile,
 ) {
     val sakService: SakService by lazy {
         SakServiceImpl(
             sakRepo = sakRepo,
-            søknadService = søknadService,
-            tiltakGateway = tiltakGateway,
-            sessionFactory = sessionFactory,
-            statistikkSakRepo = statistikkSakRepo,
             saksoversiktRepo = saksoversiktRepo,
             tilgangsstyringService = tilgangsstyringService,
             poaoTilgangGateway = poaoTilgangGateway,
             personService = personService,
-            gitHash = gitHash,
         )
     }
     open val saksnummerGenerator: SaksnummerGenerator by lazy {

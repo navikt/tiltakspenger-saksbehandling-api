@@ -305,7 +305,6 @@ interface MeldekortMother {
         )
 
         return MeldekortBehandlinger(
-            tiltakstype = tiltakstype,
             verdi = nonEmptyListOf(
                 MeldekortBehandling.MeldekortUnderBehandling(
                     id = meldekortId,
@@ -361,7 +360,6 @@ interface MeldekortMother {
         )
 
         return MeldekortBehandlinger(
-            tiltakstype = tiltakstype,
             verdi = this.verdi + MeldekortBehandling.MeldekortUnderBehandling(
                 id = meldekortId,
                 sakId = sakId,

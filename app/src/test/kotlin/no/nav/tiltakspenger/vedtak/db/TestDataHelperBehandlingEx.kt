@@ -53,8 +53,13 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
             barnetillegg = listOf(),
         ),
 ): Pair<Sak, Søknad> {
-    this.persisterSøknad(
+    this.persisterSakOgSøknad(
         søknad = søknad,
+        sak = ObjectMother.nySak(
+            sakId = sakId,
+            fnr = fnr,
+            saksnummer = this.saksnummerGenerator.neste(),
+        ),
     )
     val sak =
         ObjectMother.sakMedOpprettetBehandling(
@@ -65,8 +70,7 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
             saksbehandler = saksbehandler,
             sakId = sakId,
         )
-    søknadRepo.lagre(søknad)
-    sakRepo.opprettSakOgFørstegangsbehandling(sak)
+    behandlingRepo.lagre(sak.førstegangsbehandling!!)
 
     return Pair(
         sakRepo.hentForSakId(sakId)!!,
@@ -117,7 +121,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
     )
     val førstegangsbehandling = sak.førstegangsbehandling
     val oppdatertFørstegangsbehandling =
-        førstegangsbehandling
+        førstegangsbehandling!!
             .leggTilLivsoppholdSaksopplysning(
                 LeggTilLivsoppholdSaksopplysningCommand(
                     behandlingId = førstegangsbehandling.id,

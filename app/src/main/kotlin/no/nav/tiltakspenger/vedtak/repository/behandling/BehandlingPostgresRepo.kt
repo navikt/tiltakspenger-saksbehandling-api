@@ -1,9 +1,7 @@
 package no.nav.tiltakspenger.vedtak.repository.behandling
 
-import arrow.core.toNonEmptyListOrNull
 import kotliquery.Row
 import kotliquery.Session
-import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.felles.sikkerlogg
@@ -91,7 +89,15 @@ class BehandlingPostgresRepo(
         transactionContext: TransactionContext?,
     ) {
         sessionFactory.withTransaction(transactionContext) { tx ->
-            lagre(behandling, tx)
+            val sistEndret = hentSistEndret(behandling.id, tx)
+            if (sistEndret == null) {
+                opprettBehandling(behandling, tx)
+                if (behandling.erFørstegangsbehandling && behandling.søknad != null) {
+                    SøknadDAO.knyttSøknadTilBehandling(behandling.id, behandling.søknad!!.id, tx)
+                }
+            } else {
+                oppdaterBehandling(sistEndret, behandling, tx)
+            }
         }
     }
 
@@ -125,27 +131,8 @@ class BehandlingPostgresRepo(
                     ).map { row ->
                         row.toBehandling(session)
                     }.asList,
-                ).toNonEmptyListOrNull()
-                ?.let { Behandlinger(it) }
-                ?: throw IkkeFunnetException("sak med id $sakId ikke funnet")
-
-        /**
-         * Vil ikke overlagre søknad, men kun knytte søknadene til behandlingen.
-         */
-        internal fun lagre(
-            behandling: Behandling,
-            tx: TransactionalSession,
-        ) {
-            val sistEndret = hentSistEndret(behandling.id, tx)
-            if (sistEndret == null) {
-                opprettBehandling(behandling, tx)
-                if (behandling.erFørstegangsbehandling && behandling.søknad != null) {
-                    SøknadDAO.knyttSøknadTilBehandling(behandling.id, behandling.søknad!!.id, behandling.sakId, tx)
-                }
-            } else {
-                oppdaterBehandling(sistEndret, behandling, tx)
-            }
-        }
+                )
+                .let { Behandlinger(it) }
 
         private fun oppdaterBehandling(
             sistEndret: LocalDateTime,

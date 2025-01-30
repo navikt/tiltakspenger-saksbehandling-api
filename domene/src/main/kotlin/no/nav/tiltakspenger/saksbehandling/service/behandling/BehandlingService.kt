@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeHenteBehandling
@@ -12,8 +13,17 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeIverksetteBe
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeUnderkjenne
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteFørstegangsbehandling
 
 interface BehandlingService {
+    suspend fun startFørstegangsbehandling(
+        søknadId: SøknadId,
+        sakId: SakId,
+        saksbehandler: Saksbehandler,
+        correlationId: CorrelationId,
+    ): Either<KanIkkeStarteFørstegangsbehandling, Sak>
+
     /**
      * Tenkt brukt i systemkall der vi ikke skal gjøre tilgangskontroll eller sjekk på skjermet/kode6/kode7
      * Eller der vi allerede har gjort tilgangskontroll.

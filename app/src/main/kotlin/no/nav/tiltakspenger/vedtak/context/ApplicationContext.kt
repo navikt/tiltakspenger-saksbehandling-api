@@ -82,13 +82,9 @@ open class ApplicationContext(
     open val sakContext by lazy {
         SakContext(
             sessionFactory = sessionFactory,
-            søknadService = søknadContext.søknadService,
-            statistikkSakRepo = statistikkContext.statistikkSakRepo,
             tilgangsstyringService = personContext.tilgangsstyringService,
             poaoTilgangGateway = personContext.poaoTilgangGateway,
-            tiltakGateway = tiltakContext.tiltakGateway,
             personService = personContext.personService,
-            gitHash = gitHash,
             profile = profile,
         )
     }
@@ -130,6 +126,7 @@ open class ApplicationContext(
             personService = personContext.personService,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
+            tiltakGateway = tiltakContext.tiltakGateway,
         )
     }
 

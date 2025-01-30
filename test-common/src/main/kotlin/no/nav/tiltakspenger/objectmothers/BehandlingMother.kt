@@ -173,8 +173,9 @@ fun TestApplicationContext.nySøknad(
         kvp = if (deltarPåKvp) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
     ),
     systembruker: Systembruker = ObjectMother.systembrukerLageHendelser(),
+    sakId: SakId,
 ): Søknad {
-    this.søknadContext.søknadService.nySøknad(søknad, systembruker)
+    this.søknadContext.søknadService.nySøknad(søknad, sakId, systembruker)
     this.leggTilPerson(fnr, personopplysningerForBrukerFraPdl, tiltak ?: søknad.tiltak.toTiltak())
     return søknad
 }
@@ -215,6 +216,8 @@ suspend fun TestApplicationContext.førstegangsbehandlingUavklart(
         kvp = if (deltarPåKvp) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
     ),
 ): Sak {
+    val sak = ObjectMother.nySak(fnr = fnr)
+    this.sakContext.sakRepo.opprettSak(sak)
     this.nySøknad(
         periode = periode,
         fnr = fnr,
@@ -224,9 +227,11 @@ suspend fun TestApplicationContext.førstegangsbehandlingUavklart(
         personopplysningerFraSøknad = personopplysningerFraSøknad,
         personopplysningerForBrukerFraPdl = personopplysningerForBrukerFraPdl,
         tiltak = tiltak,
+        sakId = sak.id,
     )
-    return this.sakContext.sakService.startFørstegangsbehandling(
+    return this.behandlingContext.behandlingService.startFørstegangsbehandling(
         søknad.id,
+        sak.id,
         saksbehandler,
         correlationId = CorrelationId.generate(),
     ).getOrFail()
@@ -245,7 +250,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingVilkårsvurdert(
     )
     this.behandlingContext.livsoppholdVilkårService.leggTilSaksopplysning(
         LeggTilLivsoppholdSaksopplysningCommand(
-            behandlingId = uavklart.førstegangsbehandling.id,
+            behandlingId = uavklart.førstegangsbehandling!!.id,
             saksbehandler = saksbehandler,
             harYtelseForPeriode = LeggTilLivsoppholdSaksopplysningCommand.HarYtelseForPeriode(
                 periode = periode,
@@ -273,7 +278,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
     )
 
     this.behandlingContext.behandlingService.sendTilBeslutter(
-        vilkårsvurdert.førstegangsbehandling.id,
+        vilkårsvurdert.førstegangsbehandling!!.id,
         saksbehandler,
         correlationId = CorrelationId.generate(),
     ).getOrFail()
@@ -296,7 +301,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingUnderBeslutning(
         saksbehandler = saksbehandler,
     )
     this.behandlingContext.behandlingService.taBehandling(
-        vilkårsvurdert.førstegangsbehandling.id,
+        vilkårsvurdert.førstegangsbehandling!!.id,
         beslutter,
         correlationId = CorrelationId.generate(),
     )
@@ -323,7 +328,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingIverksatt(
     )
     runBlocking {
         tac.behandlingContext.behandlingService.iverksett(
-            behandlingId = underBeslutning.førstegangsbehandling.id,
+            behandlingId = underBeslutning.førstegangsbehandling!!.id,
             beslutter = beslutter,
             correlationId = correlationId,
             sakId = underBeslutning.id,

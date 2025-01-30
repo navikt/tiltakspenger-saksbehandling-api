@@ -124,6 +124,7 @@ class TestApplicationContext(
             meldekortRepo = meldekortFakeRepo,
             meldeperiodeRepo = meldeperiodeFakeRepo,
             utbetalingsvedtakRepo = utbetalingsvedtakFakeRepo,
+            søknadFakeRepo = søknadFakeRepo,
         )
 
     private val personFakeRepo = PersonFakeRepo(sakFakeRepo, søknadFakeRepo, meldekortFakeRepo, behandlingFakeRepo)
@@ -171,12 +172,8 @@ class TestApplicationContext(
         object : SakContext(
             sessionFactory = sessionFactory,
             personService = personContext.personService,
-            søknadService = søknadContext.søknadService,
-            statistikkSakRepo = statistikkSakFakeRepo,
-            tiltakGateway = tiltakGatewayFake,
             tilgangsstyringService = tilgangsstyringFakeGateway,
             poaoTilgangGateway = personContext.poaoTilgangGateway,
-            gitHash = "fake-git-hash",
             profile = Profile.LOCAL,
         ) {
             override val sakRepo = sakFakeRepo
@@ -217,6 +214,7 @@ class TestApplicationContext(
             dokdistGateway = dokdistFakeGateway,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
+            tiltakGateway = tiltakGatewayFake,
         ) {
             override val rammevedtakRepo = rammevedtakFakeRepo
             override val behandlingRepo = behandlingFakeRepo

@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.soknad.SpmSvarDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadsTiltakDTO
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.vedtak.routes.søknad.SøknadDTOMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -115,6 +116,7 @@ internal class SøknadDTOTest {
         sykepenger: PeriodeSpmDTO = PeriodeSpmDTO(svar = SpmSvarDTO.Nei, fom = null, tom = null),
         trygdOgPensjon: PeriodeSpmDTO = PeriodeSpmDTO(svar = SpmSvarDTO.Nei, fom = null, tom = null),
         vedlegg: Int = 0,
+        saksnummer: Saksnummer = Saksnummer("202410011001"),
     ) = SøknadDTO(
         versjon = versjon,
         søknadId = søknadId,
@@ -136,5 +138,6 @@ internal class SøknadDTOTest {
         trygdOgPensjon = trygdOgPensjon,
         opprettet = opprettet,
         vedlegg = vedlegg,
+        saksnummer = saksnummer.verdi,
     )
 }

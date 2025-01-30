@@ -44,7 +44,7 @@ class LivsoppholdRoutesTest {
             val tac = this
             val saksbehandler = ObjectMother.saksbehandler()
             val sak = this.førstegangsbehandlingUavklart(saksbehandler = saksbehandler)
-            val behandlingId = sak.førstegangsbehandling.id
+            val behandlingId = sak.førstegangsbehandling!!.id
             testApplication {
                 application {
                     jacksonSerialization()
@@ -81,7 +81,7 @@ class LivsoppholdRoutesTest {
                     },
                     jwt = jwt,
                 ) {
-                    setBody(bodyLivsoppholdYtelse(sak.førstegangsbehandling.vurderingsperiode.toDTO(), false))
+                    setBody(bodyLivsoppholdYtelse(sak.førstegangsbehandling!!.vurderingsperiode.toDTO(), false))
                 }.apply {
                     status shouldBe HttpStatusCode.Created
                 }
@@ -108,7 +108,7 @@ class LivsoppholdRoutesTest {
         with(TestApplicationContext()) {
             val tac = this
             val sak = this.førstegangsbehandlingUavklart()
-            val behandlingId = sak.førstegangsbehandling.id
+            val behandlingId = sak.førstegangsbehandling!!.id
 
             testApplication {
                 application {
@@ -133,7 +133,7 @@ class LivsoppholdRoutesTest {
                     },
                     jwt = tac.jwtGenerator.createJwtForSaksbehandler(),
                 ) {
-                    setBody(bodyLivsoppholdYtelse(sak.førstegangsbehandling.vurderingsperiode.toDTO(), true))
+                    setBody(bodyLivsoppholdYtelse(sak.førstegangsbehandling!!.vurderingsperiode.toDTO(), true))
                 }.apply {
                     status shouldBe HttpStatusCode.NotImplemented
                 }
@@ -147,7 +147,7 @@ class LivsoppholdRoutesTest {
             val tac = this
             val saksbehandler = ObjectMother.saksbehandler()
             val sak = tac.førstegangsbehandlingUavklart(saksbehandler = saksbehandler)
-            val behandlingId = sak.førstegangsbehandling.id
+            val behandlingId = sak.førstegangsbehandling!!.id
             testApplication {
                 application {
                     jacksonSerialization()
@@ -186,7 +186,7 @@ class LivsoppholdRoutesTest {
                     },
                     jwt = jwt,
                 ) {
-                    setBody(bodyLivsoppholdYtelse(sak.førstegangsbehandling.vurderingsperiode.toDTO(), false))
+                    setBody(bodyLivsoppholdYtelse(sak.førstegangsbehandling!!.vurderingsperiode.toDTO(), false))
                 }.apply {
                     status shouldBe HttpStatusCode.Created
                 }
@@ -286,7 +286,7 @@ class LivsoppholdRoutesTest {
                 søknad = søknad,
                 fnr = søknad.fnr,
             )
-            val behandlingId = sak.førstegangsbehandling.id
+            val behandlingId = sak.førstegangsbehandling!!.id
             testApplication {
                 application {
                     configureExceptions()

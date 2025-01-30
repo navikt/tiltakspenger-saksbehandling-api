@@ -44,8 +44,8 @@ internal class StartRevurderingTest {
                 val tac = this
                 val sak = this.førstegangsbehandlingIverksatt(saksbehandler = saksbehandler, beslutter = beslutter)
                 val revurderingsperiode = Periode(
-                    sak.førstegangsbehandling.vurderingsperiode.fraOgMed.plusMonths(1),
-                    sak.førstegangsbehandling.vurderingsperiode.tilOgMed,
+                    sak.førstegangsbehandling!!.vurderingsperiode.fraOgMed.plusMonths(1),
+                    sak.førstegangsbehandling!!.vurderingsperiode.tilOgMed,
                 )
                 testApplication {
                     // TODO jah: Vi trenger en generell måte å spinne opp alle routes med fakes på.
@@ -72,6 +72,7 @@ internal class StartRevurderingTest {
                                 sakService = tac.sakContext.sakService,
                                 auditService = tac.personContext.auditService,
                                 startRevurderingService = tac.behandlingContext.startRevurderingService,
+                                søknadService = tac.søknadContext.søknadService,
                             )
                             startRevurderingRoute(
                                 tokenService = tac.tokenService,

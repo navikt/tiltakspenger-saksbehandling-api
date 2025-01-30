@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.vedtak.repository.sak
 
 import kotliquery.Row
+import kotliquery.Session
 import kotliquery.queryOf
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.felles.sikkerlogg
@@ -8,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortBrukerPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldeperiodePostgresRepo
+import no.nav.tiltakspenger.vedtak.repository.søknad.SøknadDAO
 import no.nav.tiltakspenger.vedtak.repository.utbetaling.UtbetalingsvedtakPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.vedtak.RammevedtakPostgresRepo
 import org.intellij.lang.annotations.Language
@@ -124,17 +125,16 @@ internal class SakPostgresRepo(
             )
         }
 
-    override fun opprettSakOgFørstegangsbehandling(
-        sak: Sak,
-        transactionContext: TransactionContext?,
-    ) {
-        sessionFactory.withTransaction(transactionContext) { txSession ->
-            sikkerlogg.info { "Oppretter sak ${sak.id}" }
+    override fun opprettSak(sak: Sak) {
+        sikkerlogg.info { "Oppretter sak ${sak.id}" }
+        val nå = nå()
+        sessionFactory.withSessionContext { sessionContext ->
+            sessionContext.withSession { session ->
+                if (sakFinnes(sak.id, session)) return@withSession
 
-            val nå = nå()
-            txSession.run(
-                queryOf(
-                    """
+                session.run(
+                    queryOf(
+                        """
                     insert into sak (
                         id,
                         ident,
@@ -148,17 +148,17 @@ internal class SakPostgresRepo(
                         :sist_endret,
                         :opprettet
                     )
-                    """.trimIndent(),
-                    mapOf(
-                        "id" to sak.id.toString(),
-                        "ident" to sak.fnr.verdi,
-                        "saksnummer" to sak.saksnummer.verdi,
-                        "sist_endret" to nå,
-                        "opprettet" to nå,
-                    ),
-                ).asUpdate,
-            )
-            BehandlingPostgresRepo.lagre(sak.førstegangsbehandling, txSession)
+                        """.trimIndent(),
+                        mapOf(
+                            "id" to sak.id.toString(),
+                            "ident" to sak.fnr.verdi,
+                            "saksnummer" to sak.saksnummer.verdi,
+                            "sist_endret" to nå,
+                            "opprettet" to nå,
+                        ),
+                    ).asUpdate,
+                )
+            }
         }
     }
 
@@ -198,6 +198,14 @@ internal class SakPostgresRepo(
             }
         }
 
+    private fun sakFinnes(
+        sakId: SakId,
+        session: Session,
+    ): Boolean =
+        session.run(
+            queryOf(sqlFinnes, sakId.toString()).map { row -> row.boolean("exists") }.asSingle,
+        ) ?: throw RuntimeException("Kunne ikke avgjøre om sak finnes")
+
     companion object {
 
         private fun Row.toSak(sessionContext: SessionContext): Sak {
@@ -207,8 +215,9 @@ internal class SakPostgresRepo(
                 val vedtaksliste: Vedtaksliste = RammevedtakPostgresRepo.hentForSakId(id, session)
                 val meldekortBehandlinger = vedtaksliste.førstegangsvedtak?.let {
                     MeldekortPostgresRepo.hentForSakId(id, session)
-                } ?: MeldekortBehandlinger.empty(behandlinger.first().tiltakstype)
+                } ?: MeldekortBehandlinger.empty()
                 val meldeperioder = MeldeperiodePostgresRepo.hentForSakId(id, session)
+                val soknader = SøknadDAO.hentForSakId(id, session)
                 Sak(
                     id = SakId.fromString(string("id")),
                     saksnummer = Saksnummer(verdi = string("saksnummer")),
@@ -219,6 +228,7 @@ internal class SakPostgresRepo(
                     utbetalinger = UtbetalingsvedtakPostgresRepo.hentForSakId(id, session),
                     meldeperiodeKjeder = meldeperioder,
                     brukersMeldekort = MeldekortBrukerPostgresRepo.hentForSakId(id, session),
+                    soknader = soknader,
                 )
             }
         }
@@ -257,5 +267,8 @@ internal class SakPostgresRepo(
             ORDER BY saksnummer DESC 
             LIMIT 1
             """.trimIndent()
+
+        @Language("SQL")
+        private val sqlFinnes = "select exists(select 1 from sak where id = ?)"
     }
 }

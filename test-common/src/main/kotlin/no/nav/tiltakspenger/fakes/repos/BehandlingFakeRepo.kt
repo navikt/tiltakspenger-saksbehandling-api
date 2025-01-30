@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.fakes.repos
 
 import arrow.atomic.Atomic
-import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
@@ -56,7 +55,7 @@ class BehandlingFakeRepo : BehandlingRepo {
 
     fun hentBehandlingerForSakId(sakId: SakId): Behandlinger {
         return Behandlinger(
-            data.get().values.filter { it.sakId == sakId }.toNonEmptyListOrNull()!!,
+            data.get().values.filter { it.sakId == sakId },
         )
     }
 }

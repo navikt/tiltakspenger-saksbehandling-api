@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.benk.Saksoversikt
 import no.nav.tiltakspenger.vedtak.db.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.vedtak.db.persisterOpprettetFørstegangsbehandling
 import no.nav.tiltakspenger.vedtak.db.persisterOpprettetRevurdering
-import no.nav.tiltakspenger.vedtak.db.persisterSøknad
+import no.nav.tiltakspenger.vedtak.db.persisterSakOgSøknad
 import no.nav.tiltakspenger.vedtak.db.withMigratedDb
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -21,7 +21,8 @@ class BenkOversiktPostgresRepoTest {
     fun `Hent alle søknader og behandlinger`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val repo = testDataHelper.saksoversiktRepo
-            val søknad1 = testDataHelper.persisterSøknad()
+            val søknad1 = testDataHelper.persisterSakOgSøknad()
+            val sakId = testDataHelper.søknadRepo.hentSakIdForSoknad(søknad1.id)!!
             val (førstegangsBehandlingSak, førstegangsBehandling) = testDataHelper.persisterOpprettetFørstegangsbehandling()
             val (revurderingSak, revurdering) = testDataHelper.persisterOpprettetRevurdering()
             val behandlinger = repo.hentAlleBehandlinger()
@@ -40,7 +41,7 @@ class BenkOversiktPostgresRepoTest {
                                 saksnummer = null,
                                 saksbehandler = null,
                                 beslutter = null,
-                                sakId = null,
+                                sakId = sakId,
                                 underkjent = false,
                                 kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
                                 id = søknad1.id,
@@ -51,12 +52,12 @@ class BenkOversiktPostgresRepoTest {
                                 behandlingstype = BenkBehandlingstype.FØRSTEGANGSBEHANDLING,
                                 fnr = førstegangsBehandling.fnr,
                                 saksnummer = førstegangsBehandlingSak.saksnummer,
-                                saksbehandler = førstegangsBehandlingSak.førstegangsbehandling.saksbehandler!!,
+                                saksbehandler = førstegangsBehandlingSak.førstegangsbehandling!!.saksbehandler!!,
                                 beslutter = null,
                                 sakId = førstegangsBehandlingSak.id,
                                 underkjent = false,
                                 kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
-                                id = førstegangsBehandlingSak.førstegangsbehandling.id,
+                                id = førstegangsBehandlingSak.førstegangsbehandling!!.id,
                             ),
                             BehandlingEllerSøknadForSaksoversikt(
                                 periode = ObjectMother.revurderingsperiode(),
@@ -64,7 +65,7 @@ class BenkOversiktPostgresRepoTest {
                                 behandlingstype = BenkBehandlingstype.REVURDERING,
                                 fnr = revurdering.fnr,
                                 saksnummer = revurderingSak.saksnummer,
-                                saksbehandler = revurderingSak.førstegangsbehandling.saksbehandler!!,
+                                saksbehandler = revurderingSak.førstegangsbehandling!!.saksbehandler!!,
                                 beslutter = null,
                                 sakId = revurderingSak.id,
                                 underkjent = false,
@@ -96,12 +97,12 @@ class BenkOversiktPostgresRepoTest {
                                 behandlingstype = BenkBehandlingstype.FØRSTEGANGSBEHANDLING,
                                 fnr = søknad.fnr,
                                 saksnummer = sak.saksnummer,
-                                saksbehandler = sak.førstegangsbehandling.saksbehandler!!,
+                                saksbehandler = sak.førstegangsbehandling!!.saksbehandler!!,
                                 beslutter = null,
                                 sakId = sak.id,
                                 underkjent = false,
                                 kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
-                                id = sak.førstegangsbehandling.id,
+                                id = sak.førstegangsbehandling!!.id,
                             ),
                         ),
                     )

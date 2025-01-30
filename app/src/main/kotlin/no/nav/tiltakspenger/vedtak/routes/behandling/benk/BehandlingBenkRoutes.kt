@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling.FantIkkeTiltak
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling.StøtterIkkeBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling.StøtterKunInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeHenteSaksoversikt
 import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteFørstegangsbehandling
@@ -42,6 +43,7 @@ fun Route.behandlingBenkRoutes(
     sakService: SakService,
     auditService: AuditService,
     startRevurderingService: StartRevurderingService,
+    søknadService: SøknadService,
 ) {
     val logger = KotlinLogging.logger {}
 
@@ -73,7 +75,8 @@ fun Route.behandlingBenkRoutes(
             call.withBody<BehandlingIdDTO> { body ->
                 val søknadId = SøknadId.fromString(body.id)
                 val correlationId = call.correlationId()
-                sakService.startFørstegangsbehandling(søknadId, saksbehandler, correlationId = correlationId).fold(
+                val sakId = søknadService.hentSakIdForSoknad(søknadId)
+                behandlingService.startFørstegangsbehandling(søknadId, sakId, saksbehandler, correlationId = correlationId).fold(
                     {
                         when (it) {
                             is KanIkkeStarteFørstegangsbehandling.HarAlleredeStartetBehandlingen -> {
@@ -107,7 +110,7 @@ fun Route.behandlingBenkRoutes(
                             correlationId = correlationId,
                         )
 
-                        call.respond(HttpStatusCode.OK, BehandlingIdDTO(it.førstegangsbehandling.id.toString()))
+                        call.respond(HttpStatusCode.OK, BehandlingIdDTO(it.førstegangsbehandling!!.id.toString()))
                     },
                 )
             }
