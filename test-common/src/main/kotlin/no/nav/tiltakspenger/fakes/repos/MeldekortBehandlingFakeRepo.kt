@@ -8,23 +8,23 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
-import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
+import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
 
-class MeldekortFakeRepo : MeldekortRepo {
+class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
     private val data = Atomic(mutableMapOf<MeldekortId, MeldekortBehandling>())
 
     override fun lagre(
-        meldekort: MeldekortBehandling,
+        meldekortBehandling: MeldekortBehandling,
         transactionContext: TransactionContext?,
     ) {
-        data.get()[meldekort.id] = meldekort
+        data.get()[meldekortBehandling.id] = meldekortBehandling
     }
 
     override fun oppdater(
-        meldekort: MeldekortBehandling,
+        meldekortBehandling: MeldekortBehandling,
         transactionContext: TransactionContext?,
     ) {
-        lagre(meldekort, transactionContext)
+        lagre(meldekortBehandling, transactionContext)
     }
 
     override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): MeldekortBehandlinger? =

@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
-import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortPostgresRepo
+import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortBehandlingPostgresRepo
 import java.time.LocalDateTime
 
 internal class UtbetalingsvedtakPostgresRepo(
@@ -175,7 +175,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                 rammevedtakId = VedtakId.fromString(string("rammevedtak_id")),
                 forrigeUtbetalingsvedtakId = stringOrNull("forrige_vedtak_id")?.let { VedtakId.fromString(it) },
                 meldekortbehandling =
-                MeldekortPostgresRepo
+                MeldekortBehandlingPostgresRepo
                     .hentForMeldekortId(
                         MeldekortId.fromString(string("meldekort_id")),
                         session,

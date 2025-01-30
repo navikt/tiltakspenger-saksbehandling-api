@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBrukerRepo
-import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
+import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.meldekort.service.IverksettMeldekortService
 import no.nav.tiltakspenger.meldekort.service.OpprettMeldekortBehandlingService
@@ -18,8 +18,8 @@ import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
 import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.clients.meldekort.MeldekortApiHttpClient
+import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortBrukerPostgresRepo
-import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldeperiodePostgresRepo
 
 /**
@@ -36,8 +36,8 @@ open class MeldekortContext(
     entraIdSystemtokenClient: EntraIdSystemtokenClient,
     navkontorService: NavkontorService,
 ) {
-    open val meldekortRepo: MeldekortRepo by lazy {
-        MeldekortPostgresRepo(
+    open val meldekortBehandlingRepo: MeldekortBehandlingRepo by lazy {
+        MeldekortBehandlingPostgresRepo(
             sessionFactory = sessionFactory as PostgresSessionFactory,
         )
     }
@@ -54,7 +54,7 @@ open class MeldekortContext(
 
     val iverksettMeldekortService by lazy {
         IverksettMeldekortService(
-            meldekortRepo = meldekortRepo,
+            meldekortBehandlingRepo = meldekortBehandlingRepo,
             meldeperiodeRepo = meldeperiodeRepo,
             sessionFactory = sessionFactory,
             sakService = sakService,
@@ -68,13 +68,13 @@ open class MeldekortContext(
         SendMeldekortTilBeslutterService(
             tilgangsstyringService = tilgangsstyringService,
             personService = personService,
-            meldekortRepo = meldekortRepo,
+            meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakService = sakService,
         )
     }
     val opprettMeldekortBehandlingService by lazy {
         OpprettMeldekortBehandlingService(
-            meldekortRepo = meldekortRepo,
+            meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakService = sakService,
             navkontorService = navkontorService,
             sessionFactory = sessionFactory,

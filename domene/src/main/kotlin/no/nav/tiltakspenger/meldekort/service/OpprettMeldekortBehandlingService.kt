@@ -12,13 +12,13 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.meldekort.domene.opprettMeldekortBehandling
-import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
+import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 
 class OpprettMeldekortBehandlingService(
     val sakService: SakService,
-    val meldekortRepo: MeldekortRepo,
+    val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     val navkontorService: NavkontorService,
     val sessionFactory: SessionFactory,
 ) {
@@ -63,7 +63,7 @@ class OpprettMeldekortBehandlingService(
         )
 
         sessionFactory.withTransactionContext { tx ->
-            meldekortRepo.lagre(meldekortBehandling, tx)
+            meldekortBehandlingRepo.lagre(meldekortBehandling, tx)
         }
 
         logger.info { "Opprettet behandling ${meldekortBehandling.id} av meldeperiode hendelse $id for sak $sakId" }

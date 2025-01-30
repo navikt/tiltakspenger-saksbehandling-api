@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.fakes.clients.TiltakFakeGateway
 import no.nav.tiltakspenger.fakes.clients.UtbetalingFakeGateway
 import no.nav.tiltakspenger.fakes.clients.VeilarboppfolgingFakeGateway
 import no.nav.tiltakspenger.fakes.repos.BehandlingFakeRepo
-import no.nav.tiltakspenger.fakes.repos.MeldekortFakeRepo
+import no.nav.tiltakspenger.fakes.repos.MeldekortBehandlingFakeRepo
 import no.nav.tiltakspenger.fakes.repos.MeldeperiodeFakeRepo
 import no.nav.tiltakspenger.fakes.repos.PersonFakeRepo
 import no.nav.tiltakspenger.fakes.repos.RammevedtakFakeRepo
@@ -69,7 +69,7 @@ class TestApplicationContext(
     private val statistikkStønadFakeRepo = StatistikkStønadFakeRepo()
     private val statistikkSakFakeRepo = StatistikkSakFakeRepo()
     private val utbetalingGatewayFake = UtbetalingFakeGateway()
-    private val meldekortFakeRepo = MeldekortFakeRepo()
+    private val meldekortBehandlingFakeRepo = MeldekortBehandlingFakeRepo()
     private val meldeperiodeFakeRepo = MeldeperiodeFakeRepo()
     private val utbetalingsvedtakFakeRepo = UtbetalingsvedtakFakeRepo()
     private val søknadFakeRepo = SøknadFakeRepo()
@@ -121,12 +121,12 @@ class TestApplicationContext(
         SakFakeRepo(
             behandlingRepo = behandlingFakeRepo,
             rammevedtakRepo = rammevedtakFakeRepo,
-            meldekortRepo = meldekortFakeRepo,
+            meldekortBehandlingRepo = meldekortBehandlingFakeRepo,
             meldeperiodeRepo = meldeperiodeFakeRepo,
             utbetalingsvedtakRepo = utbetalingsvedtakFakeRepo,
         )
 
-    private val personFakeRepo = PersonFakeRepo(sakFakeRepo, søknadFakeRepo, meldekortFakeRepo, behandlingFakeRepo)
+    private val personFakeRepo = PersonFakeRepo(sakFakeRepo, søknadFakeRepo, meldekortBehandlingFakeRepo, behandlingFakeRepo)
 
     override val entraIdSystemtokenClient = EntraIdSystemtokenFakeClient()
 
@@ -196,7 +196,7 @@ class TestApplicationContext(
                 entraIdSystemtokenClient = entraIdSystemtokenClient,
                 navkontorService = navkontorService,
             ) {
-            override val meldekortRepo = meldekortFakeRepo
+            override val meldekortBehandlingRepo = meldekortBehandlingFakeRepo
             override val meldeperiodeRepo = meldeperiodeFakeRepo
         }
     }
@@ -204,7 +204,7 @@ class TestApplicationContext(
     override val behandlingContext by lazy {
         object : FørstegangsbehandlingContext(
             sessionFactory = sessionFactory,
-            meldekortRepo = meldekortFakeRepo,
+            meldekortBehandlingRepo = meldekortBehandlingFakeRepo,
             meldeperiodeRepo = meldeperiodeFakeRepo,
             statistikkSakRepo = statistikkSakFakeRepo,
             statistikkStønadRepo = statistikkStønadFakeRepo,

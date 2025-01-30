@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
-import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
+import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attestering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attesteringsstatus
@@ -48,7 +48,7 @@ import no.nav.tiltakspenger.saksbehandling.service.statistikk.stønad.genererSt�
 class BehandlingServiceImpl(
     private val behandlingRepo: BehandlingRepo,
     private val rammevedtakRepo: RammevedtakRepo,
-    private val meldekortRepo: MeldekortRepo,
+    private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val meldeperiodeRepo: MeldeperiodeRepo,
     private val sessionFactory: SessionFactory,
     private val statistikkSakRepo: StatistikkSakRepo,
@@ -230,7 +230,7 @@ class BehandlingServiceImpl(
 
             // TODO jah+abn: Et stansvedtak kan overlappe utfylte meldekort dersom dagene ikke er utbetalt. Før vi implementerer det, må vi splitte meldekortgrunnlag og meldekortbehandling i to.
             meldekortUnderBehandling.forEach {
-                meldekortRepo.oppdater(
+                meldekortBehandlingRepo.oppdater(
                     it.settIkkeRettTilTiltakspenger(
                         periode = vedtak.periode,
                         tidspunkt = vedtak.opprettet,

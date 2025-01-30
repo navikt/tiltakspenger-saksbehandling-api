@@ -117,7 +117,7 @@ open class ApplicationContext(
     open val behandlingContext by lazy {
         FørstegangsbehandlingContext(
             sessionFactory = sessionFactory,
-            meldekortRepo = meldekortContext.meldekortRepo,
+            meldekortBehandlingRepo = meldekortContext.meldekortBehandlingRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,

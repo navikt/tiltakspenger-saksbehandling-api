@@ -23,7 +23,7 @@ interface UtbetalingsvedtakMother {
         fnr: Fnr = Fnr.random(),
         rammevedtakId: VedtakId = VedtakId.random(),
         periode: Periode = Periode(2.januar(2023), 15.januar(2023)),
-        meldekort: MeldekortBehandling.MeldekortBehandlet = ObjectMother.meldekortBehandlet(
+        meldekortBehandling: MeldekortBehandling.MeldekortBehandlet = ObjectMother.meldekortBehandlet(
             sakId = sakId,
             rammevedtakId = rammevedtakId,
             fnr = fnr,
@@ -42,7 +42,7 @@ interface UtbetalingsvedtakMother {
             saksnummer = saksnummer,
             fnr = fnr,
             rammevedtakId = rammevedtakId,
-            meldekortbehandling = meldekort,
+            meldekortbehandling = meldekortBehandling,
             forrigeUtbetalingsvedtakId = forrigeUtbetalingsvedtakId,
             sendtTilUtbetaling = sendtTilUtbetaling,
             journalpostId = journalpostId,

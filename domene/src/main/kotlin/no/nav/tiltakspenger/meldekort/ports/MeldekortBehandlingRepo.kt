@@ -6,10 +6,10 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
 
-interface MeldekortRepo {
+interface MeldekortBehandlingRepo {
 
     fun lagre(
-        meldekort: MeldekortBehandling,
+        meldekortBehandling: MeldekortBehandling,
         transactionContext: TransactionContext? = null,
     )
 
@@ -17,7 +17,7 @@ interface MeldekortRepo {
      * TODO jah: Slå sammen lagre og oppdater til en metode.
      */
     fun oppdater(
-        meldekort: MeldekortBehandling,
+        meldekortBehandling: MeldekortBehandling,
         transactionContext: TransactionContext? = null,
     )
 
