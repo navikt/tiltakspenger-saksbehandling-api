@@ -14,4 +14,5 @@ fun Route.sakRoutes(
 ) {
     hentSakForFnrRoute(sakService, auditService, tokenService)
     hentSakForSaksnummerRoute(sakService, auditService, tokenService)
+    hentEllerOpprettSakRoute(sakService, tokenService)
 }
