@@ -38,7 +38,7 @@ class MeldekortApiHttpClient(
 
             if (status !in 200..299) {
                 val body: String = response.body()
-                with("Feilrespons ved sending av ${meldeperiode.meldeperiodeKjedeId}/${meldeperiode.hendelseId} til meldekort-api - status: $status") {
+                with("Feilrespons ved sending av ${meldeperiode.meldeperiodeKjedeId}/${meldeperiode.id} til meldekort-api - status: $status") {
                     logger.error(this)
                     sikkerlogg.error { "$this - Response body: $body" }
                 }

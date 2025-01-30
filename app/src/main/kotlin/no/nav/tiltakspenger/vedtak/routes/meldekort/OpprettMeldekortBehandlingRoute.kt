@@ -16,10 +16,10 @@ import no.nav.tiltakspenger.meldekort.service.OpprettMeldekortBehandlingService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.correlationId
-import no.nav.tiltakspenger.vedtak.routes.withMeldeperiodeHendelseId
+import no.nav.tiltakspenger.vedtak.routes.withMeldeperiodeId
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 
-private const val PATH = "sak/{sakId}/meldeperiode/{hendelseId}/opprettBehandling"
+private const val PATH = "sak/{sakId}/meldeperiode/{meldeperiodeId}/opprettBehandling"
 
 fun Route.opprettMeldekortBehandlingRoute(
     opprettMeldekortBehandlingService: OpprettMeldekortBehandlingService,
@@ -32,11 +32,11 @@ fun Route.opprettMeldekortBehandlingRoute(
         logger.debug { "Mottatt post-request på $PATH - oppretter meldekort-behandling" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
-                call.withMeldeperiodeHendelseId { hendelseId ->
+                call.withMeldeperiodeId { meldeperiodeId ->
                     val correlationId = call.correlationId()
 
                     opprettMeldekortBehandlingService.opprettBehandling(
-                        hendelseId = hendelseId,
+                        id = meldeperiodeId,
                         sakId = sakId,
                         saksbehandler = saksbehandler,
                         correlationId = correlationId,
@@ -49,12 +49,12 @@ fun Route.opprettMeldekortBehandlingRoute(
                                 )
 
                                 is KanIkkeOppretteMeldekortBehandling.BehandlingFinnes -> call.respond409Conflict(
-                                    melding = "Behandling finnes allerede for hendelseId $hendelseId på sak $sakId",
+                                    melding = "Behandling finnes allerede for meldeperiode $meldeperiodeId på sak $sakId",
                                     kode = "",
                                 )
 
                                 is KanIkkeOppretteMeldekortBehandling.IngenMeldeperiode -> call.respond400BadRequest(
-                                    melding = "Fant ikke meldeperioden med hendelseId $hendelseId på sak $sakId",
+                                    melding = "Fant ikke meldeperioden med id $meldeperiodeId på sak $sakId",
                                     kode = "",
                                 )
 

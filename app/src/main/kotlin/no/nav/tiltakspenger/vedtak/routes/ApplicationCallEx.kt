@@ -69,14 +69,14 @@ internal suspend inline fun ApplicationCall.withMeldeperiodeKjedeId(
     )
 }
 
-internal suspend inline fun ApplicationCall.withMeldeperiodeHendelseId(
+internal suspend inline fun ApplicationCall.withMeldeperiodeId(
     crossinline onRight: suspend (HendelseId) -> Unit,
 ) {
     withValidParam(
-        paramName = "hendelseId",
+        paramName = "meldeperiodeId",
         parse = HendelseId::fromString,
-        errorMessage = "Ugyldig hendelse id",
-        errorCode = "ugyldig_hendelse_id",
+        errorMessage = "Ugyldig meldeperiode id",
+        errorCode = "ugyldig_meldeperiode_id",
         onSuccess = onRight,
     )
 }

@@ -24,10 +24,10 @@ class SendMeldeperiodeTilBrukerService(
 
             usendteMeldeperioder.forEach { meldeperiode ->
                 meldekortApiHttpClient.sendMeldeperiode(meldeperiode).onRight {
-                    logger.info { "Sendte meldekort til meldekort-api med id ${meldeperiode.hendelseId}" }
-                    meldeperiodeRepo.markerSomSendtTilBruker(meldeperiode.hendelseId, nå())
+                    logger.info { "Sendte meldekort til meldekort-api med id ${meldeperiode.id}" }
+                    meldeperiodeRepo.markerSomSendtTilBruker(meldeperiode.id, nå())
                 }.onLeft {
-                    logger.error { "Kunne ikke sende meldekort til meldekort-api med id ${meldeperiode.hendelseId}" }
+                    logger.error { "Kunne ikke sende meldekort til meldekort-api med id ${meldeperiode.id}" }
                 }
             }
         }.onLeft {

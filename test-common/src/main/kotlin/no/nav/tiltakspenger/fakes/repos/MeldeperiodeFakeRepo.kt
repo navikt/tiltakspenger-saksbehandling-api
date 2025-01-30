@@ -16,14 +16,14 @@ class MeldeperiodeFakeRepo : MeldeperiodeRepo {
         meldeperiode: Meldeperiode,
         sessionContext: SessionContext?,
     ) {
-        data.get()[meldeperiode.hendelseId] = meldeperiode
+        data.get()[meldeperiode.id] = meldeperiode
     }
 
     override fun hentUsendteTilBruker(): List<Meldeperiode> {
         TODO("Not yet implemented")
     }
 
-    override fun markerSomSendtTilBruker(hendelseId: HendelseId, tidspunkt: LocalDateTime) {
+    override fun markerSomSendtTilBruker(id: HendelseId, tidspunkt: LocalDateTime) {
         TODO("Not yet implemented")
     }
 
@@ -35,7 +35,7 @@ class MeldeperiodeFakeRepo : MeldeperiodeRepo {
         }
     }
 
-    override fun hentForHendelseId(hendelseId: HendelseId, sessionContext: SessionContext?): Meldeperiode? {
+    override fun hentForHendelseId(id: HendelseId, sessionContext: SessionContext?): Meldeperiode? {
         TODO("Not yet implemented")
     }
 }

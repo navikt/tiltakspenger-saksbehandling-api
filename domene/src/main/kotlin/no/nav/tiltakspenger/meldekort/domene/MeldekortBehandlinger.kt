@@ -59,8 +59,8 @@ data class MeldekortBehandlinger(
         return verdi.find { it.id == meldekortId }
     }
 
-    fun hentMeldekortBehandling(hendelseId: HendelseId): MeldekortBehandling? {
-        return this.find { it.meldeperiode.hendelseId == hendelseId }
+    fun hentMeldekortBehandling(id: HendelseId): MeldekortBehandling? {
+        return this.find { it.meldeperiode.id == id }
     }
 
     fun hentMeldekortForKjedeId(meldeperiodeKjedeId: MeldeperiodeKjedeId): MeldekortBehandling? {

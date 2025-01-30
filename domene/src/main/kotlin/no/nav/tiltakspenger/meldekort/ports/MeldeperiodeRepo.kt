@@ -16,7 +16,7 @@ interface MeldeperiodeRepo {
 
     fun hentUsendteTilBruker(): List<Meldeperiode>
 
-    fun markerSomSendtTilBruker(hendelseId: HendelseId, tidspunkt: LocalDateTime)
+    fun markerSomSendtTilBruker(id: HendelseId, tidspunkt: LocalDateTime)
 
     fun hentForSakId(
         sakId: SakId,
@@ -24,7 +24,7 @@ interface MeldeperiodeRepo {
     ): MeldeperiodeKjeder
 
     fun hentForHendelseId(
-        hendelseId: HendelseId,
+        id: HendelseId,
         sessionContext: SessionContext? = null,
     ): Meldeperiode?
 }

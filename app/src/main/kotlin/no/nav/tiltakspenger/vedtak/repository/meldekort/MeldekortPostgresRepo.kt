@@ -71,7 +71,7 @@ class MeldekortPostgresRepo(
                     """,
                     "id" to meldekort.id.toString(),
                     "meldeperiode_id" to meldekort.meldeperiodeKjedeId.toString(),
-                    "meldeperiode_hendelse_id" to meldekort.meldeperiode.hendelseId.toString(),
+                    "meldeperiode_hendelse_id" to meldekort.meldeperiode.id.toString(),
                     "sak_id" to meldekort.sakId.toString(),
                     "rammevedtak_id" to meldekort.rammevedtakId.toString(),
                     "opprettet" to meldekort.opprettet,
@@ -117,7 +117,7 @@ class MeldekortPostgresRepo(
                     "navkontor" to meldekort.navkontor.kontornummer,
                     "iverksatt_tidspunkt" to meldekort.iverksattTidspunkt,
                     "sendt_til_beslutning" to meldekort.sendtTilBeslutning,
-                    "meldeperiode_hendelse_id" to meldekort.meldeperiode.hendelseId.toString(),
+                    "meldeperiode_hendelse_id" to meldekort.meldeperiode.id.toString(),
                 ).asUpdate,
             )
         }
@@ -194,14 +194,14 @@ class MeldekortPostgresRepo(
             val maksDagerMedTiltakspengerForPeriode = row.int("antall_dager_per_meldeperiode")
             val opprettet = row.localDateTime("opprettet")
 
-            val hendelseId = HendelseId.fromString(row.string("meldeperiode_hendelse_id"))
-            val meldeperiode = MeldeperiodePostgresRepo.hentForHendelseId(hendelseId, session)
+            val meldeperiodeId = HendelseId.fromString(row.string("meldeperiode_hendelse_id"))
+            val meldeperiode = MeldeperiodePostgresRepo.hentForHendelseId(meldeperiodeId, session)
 
             val navkontor = Navkontor(kontornummer = navkontorEnhetsnummer, kontornavn = navkontorNavn)
 
             val saksbehandler = row.string("saksbehandler")
 
-            requireNotNull(meldeperiode) { "Fant ingen meldeperiode for $hendelseId tilknyttet meldekortbehandling $id" }
+            requireNotNull(meldeperiode) { "Fant ingen meldeperiode for $meldeperiodeId tilknyttet meldekortbehandling $id" }
 
             return when (val status = row.string("status").toMeldekortStatus()) {
                 MeldekortBehandlingStatus.GODKJENT, MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> {

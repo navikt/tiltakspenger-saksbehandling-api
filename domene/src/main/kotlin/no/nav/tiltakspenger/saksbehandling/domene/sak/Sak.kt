@@ -60,12 +60,12 @@ data class Sak(
         return meldekortBehandlinger.hentMeldekortBehandling(meldekortId)
     }
 
-    fun hentMeldekortBehandling(hendelseId: HendelseId): MeldekortBehandling? {
-        return meldekortBehandlinger.hentMeldekortBehandling(hendelseId)
+    fun hentMeldekortBehandling(id: HendelseId): MeldekortBehandling? {
+        return meldekortBehandlinger.hentMeldekortBehandling(id)
     }
 
-    fun hentMeldeperiode(hendelseId: HendelseId): Meldeperiode? {
-        return meldeperiodeKjeder.hentMeldeperiode(hendelseId)
+    fun hentMeldeperiode(id: HendelseId): Meldeperiode? {
+        return meldeperiodeKjeder.hentMeldeperiode(id)
     }
 
     fun hentMeldekortUnderBehandling(): MeldekortBehandling? = meldekortBehandlinger.meldekortUnderBehandling
