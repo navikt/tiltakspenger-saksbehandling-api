@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.vedtak.routes.meldekort.dto
 
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
@@ -28,7 +27,8 @@ fun Sak.toMeldeperiodeStatusDTO(meldeperiode: Meldeperiode): MeldeperiodeStatusD
         MeldekortBehandlingStatus.IKKE_BEHANDLET -> MeldeperiodeStatusDTO.KLAR_TIL_BEHANDLING
         MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldeperiodeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
         null -> when {
-            meldeperiode.periode.fraOgMed > nå().toLocalDate() -> MeldeperiodeStatusDTO.IKKE_KLAR_TIL_UTFYLLING
+            meldeperiode.helePeriodenErSperret() -> MeldeperiodeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
+            !meldeperiode.erKlarTilUtfylling() -> MeldeperiodeStatusDTO.IKKE_KLAR_TIL_UTFYLLING
             brukersMeldekort == null -> MeldeperiodeStatusDTO.VENTER_PÅ_UTFYLLING
             else -> MeldeperiodeStatusDTO.KLAR_TIL_BEHANDLING
         }
