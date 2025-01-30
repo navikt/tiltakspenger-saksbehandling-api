@@ -23,7 +23,7 @@ class MeldekortBrukerPostgresRepoTest {
             testDataHelper.meldeperiodeRepo.lagre(meldeperiode)
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
             val nyttBrukersMeldekort = ObjectMother.nyttBrukersMeldekort(
-                meldeperiodeId = meldeperiode.hendelseId,
+                meldeperiodeId = meldeperiode.id,
                 mottatt = meldeperiode.opprettet.plus(1, ChronoUnit.MILLIS),
                 sakId = meldeperiode.sakId,
                 periode = meldeperiode.periode,

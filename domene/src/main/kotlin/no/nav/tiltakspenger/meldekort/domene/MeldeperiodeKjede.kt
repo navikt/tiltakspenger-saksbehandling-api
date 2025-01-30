@@ -20,7 +20,7 @@ data class MeldeperiodeKjede(
     val id: MeldeperiodeKjedeId = meldeperioder.map { it.meldeperiodeKjedeId }.distinct().single()
 
     init {
-        meldeperioder.nonDistinctBy { it.hendelseId }.also {
+        meldeperioder.nonDistinctBy { it.id }.also {
             require(it.isEmpty()) {
                 "Meldeperiodekjeden $id har duplikate meldeperioder - $it"
             }
@@ -28,9 +28,9 @@ data class MeldeperiodeKjede(
 
         meldeperioder.zipWithNext { a, b ->
             require(a.versjon < b.versjon) {
-                "Meldeperiodene må være sortert på versjon - ${a.hendelseId} og ${b.hendelseId} var i feil rekkefølge"
+                "Meldeperiodene må være sortert på versjon - ${a.id} og ${b.id} var i feil rekkefølge"
             }
-            require(a.hendelseId != b.hendelseId)
+            require(a.id != b.id)
         }
     }
 

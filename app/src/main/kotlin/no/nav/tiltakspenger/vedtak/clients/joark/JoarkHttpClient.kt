@@ -53,12 +53,12 @@ internal class JoarkHttpClient(
         return opprettJournalpost(jsonBody, correlationId)
     }
 
-    override suspend fun journalførMeldekort(
-        meldekort: MeldekortBehandling,
+    override suspend fun journalførMeldekortBehandling(
+        meldekortBehandling: MeldekortBehandling,
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
     ): JournalpostId {
-        val jsonBody = meldekort.toJournalpostRequest(pdfOgJson)
+        val jsonBody = meldekortBehandling.toJournalpostRequest(pdfOgJson)
         return opprettJournalpost(jsonBody, correlationId)
     }
 

@@ -17,7 +17,7 @@ data class MeldeperiodeKjeder(
     val fnr: Fnr? = meldeperiodeKjeder.map { it.fnr }.distinct().singleOrNullOrThrow()
 
     init {
-        meldeperiodeKjeder.flatten().nonDistinctBy { it.hendelseId }.also {
+        meldeperiodeKjeder.flatten().nonDistinctBy { it.id }.also {
             require(it.isEmpty()) {
                 "Meldeperiodekjedene har duplikate meldeperioder - $it"
             }
@@ -44,7 +44,7 @@ data class MeldeperiodeKjeder(
     }
 
     fun hentMeldeperiode(id: HendelseId): Meldeperiode? {
-        return meldeperiodeKjeder.asSequence().flatten().find { it.hendelseId == id }
+        return meldeperiodeKjeder.asSequence().flatten().find { it.id == id }
     }
 
     companion object {

@@ -187,7 +187,7 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
     override val behandlingContext by lazy {
         object : FørstegangsbehandlingContext(
             sessionFactory = sessionFactory,
-            meldekortRepo = meldekortContext.meldekortRepo,
+            meldekortBehandlingRepo = meldekortContext.meldekortBehandlingRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,

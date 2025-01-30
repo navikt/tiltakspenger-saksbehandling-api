@@ -432,10 +432,10 @@ private enum class SykTilstand {
 }
 
 fun SendMeldekortTilBeslutterKommando.beregn(
-    eksisterendeMeldekort: MeldekortBehandlinger,
+    eksisterendeMeldekortBehandlinger: MeldekortBehandlinger,
 ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
     return MeldekortBeregning(
         utløsendeMeldekortId = this.meldekortId,
         saksbehandler = this.saksbehandler.navIdent,
-    ).beregn(this, eksisterendeMeldekort)
+    ).beregn(this, eksisterendeMeldekortBehandlinger)
 }

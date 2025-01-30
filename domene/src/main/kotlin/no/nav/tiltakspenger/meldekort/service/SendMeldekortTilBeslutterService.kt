@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando
-import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
+import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 
@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 class SendMeldekortTilBeslutterService(
     private val tilgangsstyringService: TilgangsstyringService,
     private val personService: PersonService,
-    private val meldekortRepo: MeldekortRepo,
+    private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakService: SakService,
 ) {
     private val logger = KotlinLogging.logger {}
@@ -47,7 +47,7 @@ class SendMeldekortTilBeslutterService(
             .sendTilBeslutter(kommando)
             .map { it.second }
             .onRight {
-                meldekortRepo.oppdater(it)
+                meldekortBehandlingRepo.oppdater(it)
                 logger.info { "Meldekort med id ${it.id} sendt til beslutter. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
             }
     }

@@ -17,8 +17,8 @@ import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
 
 data class Meldeperiode(
+    val id: HendelseId,
     val meldeperiodeKjedeId: MeldeperiodeKjedeId,
-    val hendelseId: HendelseId,
 
     val versjon: HendelseVersjon,
 
@@ -73,7 +73,7 @@ fun Sak.opprettNesteMeldeperiode(): Meldeperiode? {
 private fun Sak.opprettMeldeperiode(periode: Periode, utfallsperioder: Periodisering<AvklartUtfallForPeriode>?): Meldeperiode {
     val meldeperiode = Meldeperiode(
         meldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
-        hendelseId = HendelseId.random(),
+        id = HendelseId.random(),
         fnr = this.fnr,
         saksnummer = this.saksnummer,
         sakId = this.id,

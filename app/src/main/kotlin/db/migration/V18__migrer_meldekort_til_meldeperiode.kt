@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.vedtak.repository.meldekort.toIkkeUtfyltMeldekortperiode
-import no.nav.tiltakspenger.vedtak.repository.meldekort.toMeldekortStatus
+import no.nav.tiltakspenger.vedtak.repository.meldekort.toMeldekortBehandlingStatus
 import no.nav.tiltakspenger.vedtak.repository.meldekort.toUtfyltMeldekortperiode
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
@@ -167,7 +167,7 @@ private fun fromRow(row: Row): MeldekortLiten {
         meldeperiodeKjedeId = MeldeperiodeKjedeId(row.string("meldeperiode_id")),
         maksDagerMedTiltakspengerForPeriode = row.int("antall_dager_per_meldeperiode"),
         opprettet = row.localDateTime("opprettet"),
-        status = row.string("status").toMeldekortStatus(),
+        status = row.string("status").toMeldekortBehandlingStatus(),
         fraOgMed = row.localDate("fra_og_med"),
         tilOgMed = row.localDate("til_og_med"),
         meldekortDager = row.string("meldekortdager"),

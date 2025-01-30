@@ -20,8 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.domene.sak.TynnSak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.ports.SakRepo
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingPostgresRepo
+import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortBrukerPostgresRepo
-import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.søknad.SøknadDAO
 import no.nav.tiltakspenger.vedtak.repository.utbetaling.UtbetalingsvedtakPostgresRepo
@@ -214,7 +214,7 @@ internal class SakPostgresRepo(
                 val behandlinger = BehandlingPostgresRepo.hentForSakId(id, session)
                 val vedtaksliste: Vedtaksliste = RammevedtakPostgresRepo.hentForSakId(id, session)
                 val meldekortBehandlinger = vedtaksliste.førstegangsvedtak?.let {
-                    MeldekortPostgresRepo.hentForSakId(id, session)
+                    MeldekortBehandlingPostgresRepo.hentForSakId(id, session)
                 } ?: MeldekortBehandlinger.empty()
                 val meldeperioder = MeldeperiodePostgresRepo.hentForSakId(id, session)
                 val soknader = SøknadDAO.hentForSakId(id, session)

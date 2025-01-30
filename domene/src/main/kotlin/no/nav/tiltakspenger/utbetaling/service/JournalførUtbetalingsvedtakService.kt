@@ -42,8 +42,8 @@ class JournalførUtbetalingsvedtakService(
                             eksternGjennomføringId = tiltak.eksternGjennomføringId,
                         ).getOrElse { return@forEach }
                     log.info { "Pdf generert for utbetalingsvedtak. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
-                    val journalpostId = journalførMeldekortGateway.journalførMeldekort(
-                        meldekort = utbetalingsvedtak.meldekortbehandling,
+                    val journalpostId = journalførMeldekortGateway.journalførMeldekortBehandling(
+                        meldekortBehandling = utbetalingsvedtak.meldekortbehandling,
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
                     )

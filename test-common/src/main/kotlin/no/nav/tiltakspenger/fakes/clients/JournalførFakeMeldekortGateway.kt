@@ -15,13 +15,13 @@ class JournalførFakeMeldekortGateway(
 
     private val data = Atomic(mutableMapOf<MeldekortId, JournalpostId>())
 
-    override suspend fun journalførMeldekort(
-        meldekort: MeldekortBehandling,
+    override suspend fun journalførMeldekortBehandling(
+        meldekortBehandling: MeldekortBehandling,
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
     ): JournalpostId {
-        return data.get()[meldekort.id] ?: journalpostIdGenerator.neste().also {
-            data.get().putIfAbsent(meldekort.id, it)
+        return data.get()[meldekortBehandling.id] ?: journalpostIdGenerator.neste().also {
+            data.get().putIfAbsent(meldekortBehandling.id, it)
         }
     }
 }

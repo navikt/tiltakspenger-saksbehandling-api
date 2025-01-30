@@ -17,7 +17,7 @@ import java.time.LocalDate
 class SakFakeRepo(
     private val behandlingRepo: BehandlingFakeRepo,
     private val rammevedtakRepo: RammevedtakFakeRepo,
-    private val meldekortRepo: MeldekortFakeRepo,
+    private val meldekortBehandlingRepo: MeldekortBehandlingFakeRepo,
     private val meldeperiodeRepo: MeldeperiodeFakeRepo,
     private val utbetalingsvedtakRepo: UtbetalingsvedtakFakeRepo,
     private val søknadFakeRepo: SøknadFakeRepo,
@@ -49,7 +49,7 @@ class SakFakeRepo(
     ): Sak? {
         val behandlinger = behandlingRepo.hentBehandlingerForSakId(sakId)
         val meldekortBehandlinger =
-            meldekortRepo.hentForSakId(sakId) ?: MeldekortBehandlinger.empty()
+            meldekortBehandlingRepo.hentForSakId(sakId) ?: MeldekortBehandlinger.empty()
         val soknader = søknadFakeRepo.hentForSakId(sakId)
 
         return data.get()[sakId]?.copy(

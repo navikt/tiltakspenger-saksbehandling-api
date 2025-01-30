@@ -35,7 +35,7 @@ data class MeldekortBehandlinger(
         require(meldekortUnderBehandling.id == kommando.meldekortId) {
             "MeldekortId i kommando (${kommando.meldekortId}) samsvarer ikke med siste meldekortperiode (${meldekortUnderBehandling.id})"
         }
-        val meldekortdager = kommando.beregn(eksisterendeMeldekort = this)
+        val meldekortdager = kommando.beregn(eksisterendeMeldekortBehandlinger = this)
         val utfyltMeldeperiode = meldekortUnderBehandling.beregning.tilUtfyltMeldeperiode(meldekortdager).getOrElse {
             return it.left()
         }
@@ -54,8 +54,8 @@ data class MeldekortBehandlinger(
         return verdi.find { it.id == meldekortId }
     }
 
-    fun hentMeldekortBehandling(hendelseId: HendelseId): MeldekortBehandling? {
-        return this.find { it.meldeperiode.hendelseId == hendelseId }
+    fun hentMeldekortBehandling(id: HendelseId): MeldekortBehandling? {
+        return this.find { it.meldeperiode.id == id }
     }
 
     fun hentMeldekortForKjedeId(meldeperiodeKjedeId: MeldeperiodeKjedeId): MeldekortBehandling? {

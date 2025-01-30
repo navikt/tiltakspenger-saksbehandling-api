@@ -19,14 +19,14 @@ import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortUnderB
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.meldekort.domene.tilMeldekortperioder
-import no.nav.tiltakspenger.meldekort.ports.MeldekortRepo
+import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 
-class MeldekortPostgresRepo(
+class MeldekortBehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
-) : MeldekortRepo {
+) : MeldekortBehandlingRepo {
     override fun lagre(
-        meldekort: MeldekortBehandling,
+        meldekortBehandling: MeldekortBehandling,
         transactionContext: TransactionContext?,
     ) {
         sessionFactory.withTransaction(transactionContext) { tx ->
@@ -69,29 +69,29 @@ class MeldekortPostgresRepo(
                         :navkontor_navn
                     )
                     """,
-                    "id" to meldekort.id.toString(),
-                    "meldeperiode_id" to meldekort.meldeperiodeKjedeId.toString(),
-                    "meldeperiode_hendelse_id" to meldekort.meldeperiode.hendelseId.toString(),
-                    "sak_id" to meldekort.sakId.toString(),
-                    "rammevedtak_id" to meldekort.rammevedtakId.toString(),
-                    "opprettet" to meldekort.opprettet,
-                    "fra_og_med" to meldekort.fraOgMed,
-                    "til_og_med" to meldekort.periode.tilOgMed,
-                    "meldekortdager" to meldekort.beregning.toDbJson(),
-                    "saksbehandler" to meldekort.saksbehandler,
-                    "beslutter" to meldekort.beslutter,
-                    "status" to meldekort.status.toDb(),
-                    "navkontor" to meldekort.navkontor.kontornummer,
-                    "iverksatt_tidspunkt" to meldekort.iverksattTidspunkt,
-                    "sendt_til_beslutning" to meldekort.sendtTilBeslutning,
-                    "navkontor_navn" to meldekort.navkontor.kontornavn,
+                    "id" to meldekortBehandling.id.toString(),
+                    "meldeperiode_id" to meldekortBehandling.meldeperiodeKjedeId.toString(),
+                    "meldeperiode_hendelse_id" to meldekortBehandling.meldeperiode.id.toString(),
+                    "sak_id" to meldekortBehandling.sakId.toString(),
+                    "rammevedtak_id" to meldekortBehandling.rammevedtakId.toString(),
+                    "opprettet" to meldekortBehandling.opprettet,
+                    "fra_og_med" to meldekortBehandling.fraOgMed,
+                    "til_og_med" to meldekortBehandling.periode.tilOgMed,
+                    "meldekortdager" to meldekortBehandling.beregning.toDbJson(),
+                    "saksbehandler" to meldekortBehandling.saksbehandler,
+                    "beslutter" to meldekortBehandling.beslutter,
+                    "status" to meldekortBehandling.status.toDb(),
+                    "navkontor" to meldekortBehandling.navkontor.kontornummer,
+                    "iverksatt_tidspunkt" to meldekortBehandling.iverksattTidspunkt,
+                    "sendt_til_beslutning" to meldekortBehandling.sendtTilBeslutning,
+                    "navkontor_navn" to meldekortBehandling.navkontor.kontornavn,
                 ).asUpdate,
             )
         }
     }
 
     override fun oppdater(
-        meldekort: MeldekortBehandling,
+        meldekortBehandling: MeldekortBehandling,
         transactionContext: TransactionContext?,
     ) {
         sessionFactory.withTransaction(transactionContext) { tx ->
@@ -109,15 +109,15 @@ class MeldekortPostgresRepo(
                         meldeperiode_hendelse_id = :meldeperiode_hendelse_id
                     where id = :id
                     """,
-                    "id" to meldekort.id.toString(),
-                    "meldekortdager" to meldekort.beregning.toDbJson(),
-                    "saksbehandler" to meldekort.saksbehandler,
-                    "beslutter" to meldekort.beslutter,
-                    "status" to meldekort.status.toDb(),
-                    "navkontor" to meldekort.navkontor.kontornummer,
-                    "iverksatt_tidspunkt" to meldekort.iverksattTidspunkt,
-                    "sendt_til_beslutning" to meldekort.sendtTilBeslutning,
-                    "meldeperiode_hendelse_id" to meldekort.meldeperiode.hendelseId.toString(),
+                    "id" to meldekortBehandling.id.toString(),
+                    "meldekortdager" to meldekortBehandling.beregning.toDbJson(),
+                    "saksbehandler" to meldekortBehandling.saksbehandler,
+                    "beslutter" to meldekortBehandling.beslutter,
+                    "status" to meldekortBehandling.status.toDb(),
+                    "navkontor" to meldekortBehandling.navkontor.kontornummer,
+                    "iverksatt_tidspunkt" to meldekortBehandling.iverksattTidspunkt,
+                    "sendt_til_beslutning" to meldekortBehandling.sendtTilBeslutning,
+                    "meldeperiode_hendelse_id" to meldekortBehandling.meldeperiode.id.toString(),
                 ).asUpdate,
             )
         }
@@ -194,16 +194,16 @@ class MeldekortPostgresRepo(
             val maksDagerMedTiltakspengerForPeriode = row.int("antall_dager_per_meldeperiode")
             val opprettet = row.localDateTime("opprettet")
 
-            val hendelseId = HendelseId.fromString(row.string("meldeperiode_hendelse_id"))
-            val meldeperiode = MeldeperiodePostgresRepo.hentForHendelseId(hendelseId, session)
+            val meldeperiodeId = HendelseId.fromString(row.string("meldeperiode_hendelse_id"))
+            val meldeperiode = MeldeperiodePostgresRepo.hentForHendelseId(meldeperiodeId, session)
 
             val navkontor = Navkontor(kontornummer = navkontorEnhetsnummer, kontornavn = navkontorNavn)
 
             val saksbehandler = row.string("saksbehandler")
 
-            requireNotNull(meldeperiode) { "Fant ingen meldeperiode for $hendelseId tilknyttet meldekortbehandling $id" }
+            requireNotNull(meldeperiode) { "Fant ingen meldeperiode for $meldeperiodeId tilknyttet meldekortbehandling $id" }
 
-            return when (val status = row.string("status").toMeldekortStatus()) {
+            return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.GODKJENT, MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> {
                     val meldeperiodeBeregning = row.string("meldekortdager").toUtfyltMeldekortperiode(
                         sakId = sakId,

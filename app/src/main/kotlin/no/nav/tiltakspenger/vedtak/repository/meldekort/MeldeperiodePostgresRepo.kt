@@ -55,7 +55,7 @@ internal class MeldeperiodePostgresRepo(
                     """,
                     "id" to meldeperiode.meldeperiodeKjedeId.toString(),
                     "versjon" to meldeperiode.versjon.value,
-                    "hendelse_id" to meldeperiode.hendelseId.toString(),
+                    "hendelse_id" to meldeperiode.id.toString(),
                     "sak_id" to meldeperiode.sakId.toString(),
                     "opprettet" to meldeperiode.opprettet,
                     "fra_og_med" to meldeperiode.periode.fraOgMed,
@@ -76,9 +76,9 @@ internal class MeldeperiodePostgresRepo(
         }
     }
 
-    override fun hentForHendelseId(hendelseId: HendelseId, sessionContext: SessionContext?): Meldeperiode? {
+    override fun hentForHendelseId(id: HendelseId, sessionContext: SessionContext?): Meldeperiode? {
         return sessionFactory.withSession(sessionContext) { session ->
-            Companion.hentForHendelseId(hendelseId, session)
+            Companion.hentForHendelseId(id, session)
         }
     }
 
@@ -101,7 +101,7 @@ internal class MeldeperiodePostgresRepo(
         }
     }
 
-    override fun markerSomSendtTilBruker(hendelseId: HendelseId, tidspunkt: LocalDateTime) {
+    override fun markerSomSendtTilBruker(id: HendelseId, tidspunkt: LocalDateTime) {
         return sessionFactory.withSession { session ->
             session.run(
                 sqlQuery(
@@ -110,7 +110,7 @@ internal class MeldeperiodePostgresRepo(
                         sendt_til_meldekort_api = :tidspunkt
                     where hendelse_id = :id                                    
                     """,
-                    "id" to hendelseId.toString(),
+                    "id" to id.toString(),
                     "tidspunkt" to tidspunkt,
                 ).asUpdate,
             )
@@ -129,7 +129,7 @@ internal class MeldeperiodePostgresRepo(
 
     companion object {
         internal fun hentForHendelseId(
-            hendelseId: HendelseId,
+            id: HendelseId,
             session: Session,
         ): Meldeperiode? {
             return session.run(
@@ -143,7 +143,7 @@ internal class MeldeperiodePostgresRepo(
                     join sak s on s.id = m.sak_id 
                     where m.hendelse_id = :hendelse_id
                     """,
-                    "hendelse_id" to hendelseId.toString(),
+                    "hendelse_id" to id.toString(),
                 ).map { row -> fromRow(row) }.asSingle,
             )
         }
@@ -175,7 +175,7 @@ internal class MeldeperiodePostgresRepo(
             return Meldeperiode(
                 meldeperiodeKjedeId = MeldeperiodeKjedeId(row.string("id")),
                 versjon = HendelseVersjon(row.int("versjon")),
-                hendelseId = HendelseId.fromString(row.string("hendelse_id")),
+                id = HendelseId.fromString(row.string("hendelse_id")),
                 sakId = SakId.fromString(row.string("sak_id")),
                 saksnummer = Saksnummer(row.string("saksnummer")),
                 fnr = Fnr.fromString(row.string("fnr")),

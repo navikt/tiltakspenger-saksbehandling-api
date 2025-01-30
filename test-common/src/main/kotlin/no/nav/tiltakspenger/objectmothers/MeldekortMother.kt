@@ -62,7 +62,7 @@ interface MeldekortMother {
     ): MeldekortBehandling.MeldekortUnderBehandling {
         val meldeperiode = meldeperiode(
             periode = periode,
-            id = meldeperiodeKjedeId,
+            meldeperiodeKjedeId = meldeperiodeKjedeId,
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -97,7 +97,7 @@ interface MeldekortMother {
         opprettet: LocalDateTime = nå(),
         meldeperiode: Meldeperiode = meldeperiode(
             periode = periode,
-            id = meldeperiodeKjedeId,
+            meldeperiodeKjedeId = meldeperiodeKjedeId,
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -293,7 +293,7 @@ interface MeldekortMother {
     ): Pair<MeldekortBehandlinger, MeldekortBehandling.MeldekortBehandlet> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
-            id = meldeperiodeKjedeId,
+            meldeperiodeKjedeId = meldeperiodeKjedeId,
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -347,7 +347,7 @@ interface MeldekortMother {
         )
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
-            id = meldeperiodeKjedeId,
+            meldeperiodeKjedeId = meldeperiodeKjedeId,
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -381,9 +381,9 @@ interface MeldekortMother {
     }
 
     fun meldeperiode(
+        id: HendelseId = HendelseId.random(),
         periode: Periode = ObjectMother.vurderingsperiode(),
-        id: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
-        hendelseId: HendelseId = HendelseId.random(),
+        meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
         sakId: SakId = SakId.random(),
         versjon: HendelseVersjon = HendelseVersjon.ny(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
@@ -406,8 +406,8 @@ interface MeldekortMother {
             }
         },
     ): Meldeperiode = Meldeperiode(
-        meldeperiodeKjedeId = id,
-        hendelseId = hendelseId,
+        meldeperiodeKjedeId = meldeperiodeKjedeId,
+        id = id,
         versjon = versjon,
         sakId = sakId,
         saksnummer = saksnummer,

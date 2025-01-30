@@ -6,8 +6,8 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 
 interface JournalførMeldekortGateway {
-    suspend fun journalførMeldekort(
-        meldekort: MeldekortBehandling,
+    suspend fun journalførMeldekortBehandling(
+        meldekortBehandling: MeldekortBehandling,
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
     ): JournalpostId

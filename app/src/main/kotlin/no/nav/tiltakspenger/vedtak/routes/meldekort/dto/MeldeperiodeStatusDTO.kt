@@ -16,10 +16,10 @@ enum class MeldeperiodeStatusDTO {
 
 fun Sak.toMeldeperiodeStatusDTO(meldeperiode: Meldeperiode): MeldeperiodeStatusDTO {
     val meldekortBehandling = this.meldekortBehandlinger.find { meldekortBehandling ->
-        meldekortBehandling.meldeperiode.hendelseId == meldeperiode.hendelseId
+        meldekortBehandling.meldeperiode.id == meldeperiode.id
     }
     val brukersMeldekort = this.brukersMeldekort.findLast { brukersMeldekort ->
-        brukersMeldekort.meldeperiode.hendelseId == meldeperiode.hendelseId
+        brukersMeldekort.meldeperiode.id == meldeperiode.id
     }
 
     return when (meldekortBehandling?.status) {
