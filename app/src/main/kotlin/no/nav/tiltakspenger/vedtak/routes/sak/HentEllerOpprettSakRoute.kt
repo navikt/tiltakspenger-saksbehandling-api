@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 
-const val SAKSNUMMER_PATH = "saksnummer"
+const val SAKSNUMMER_PATH = "/saksnummer"
 
 fun Route.hentEllerOpprettSakRoute(
     sakService: SakService,
