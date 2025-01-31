@@ -226,7 +226,7 @@ class BehandlingServiceImpl(
             rammevedtakRepo.lagre(vedtak, tx)
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
-            OppdaterteMeldekort.forEach { meldekortBehandlingRepo.lagre(it, tx) }
+            OppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, tx) }
             oppdaterteMeldeperioder.forEach { meldeperiodeRepo.lagre(it, tx) }
         }
         return this.copy(meldeperiodeKjeder = oppdaterteKjeder, meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
