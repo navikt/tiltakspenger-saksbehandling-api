@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
@@ -144,8 +143,8 @@ class BehandlingServiceImpl(
             logger.warn { "Navident ${beslutter.navIdent} med rollene ${beslutter.roller} har ikke tilgang til å iverksette behandlingen" }
             return KanIkkeIverksetteBehandling.MåVæreBeslutter.left()
         }
-        @Suppress("USELESS_IS_CHECK")
         val sak = sakService.hentForSakId(sakId, beslutter, correlationId).getOrElse {
+            @Suppress("USELESS_IS_CHECK")
             when (it) {
                 is KunneIkkeHenteSakForSakId -> return KanIkkeIverksetteBehandling.MåVæreBeslutter.left()
             }
@@ -153,7 +152,7 @@ class BehandlingServiceImpl(
         val behandling = sak.hentBehandling(behandlingId)!!
         val attestering = Attestering(
             status = Attesteringsstatus.GODKJENT,
-            begrunnelse = "",
+            begrunnelse = null,
             beslutter = beslutter.navIdent,
         )
         val iverksattBehandling = behandling.iverksett(beslutter, attestering)
@@ -178,34 +177,31 @@ class BehandlingServiceImpl(
         val stønadStatistikk = genererStønadsstatistikkForRammevedtak(vedtak)
 
         when (behandling.behandlingstype) {
-            Behandlingstype.FØRSTEGANGSBEHANDLING -> iverksettFørstegangsbehandling(
+            Behandlingstype.FØRSTEGANGSBEHANDLING -> oppdatertSak.iverksettFørstegangsbehandling(
                 vedtak = vedtak,
-                sak = oppdatertSak,
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk,
             )
 
-            Behandlingstype.REVURDERING -> iverksettRevurdering(
+            Behandlingstype.REVURDERING -> oppdatertSak.iverksettRevurdering(
                 vedtak = vedtak,
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk,
-                // Kommentar jah: Antar vi åpner for mer enn 1 samtidig ikke-utfylt meldekort i fremtiden.
-                meldekortUnderBehandling = listOfNotNull(sak.meldekortBehandlinger.meldekortUnderBehandling),
             )
         }
 
         return iverksattBehandling.right()
     }
 
-    private fun iverksettFørstegangsbehandling(
+    private fun Sak.iverksettFørstegangsbehandling(
         vedtak: Rammevedtak,
-        sak: Sak,
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ) {
-        val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
+        val førsteMeldeperiode = this.opprettFørsteMeldeperiode()
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
+        // Dersom denne endres til søknadsbehandling og vi kan ha mer enn 1 for en sak og den kan overlappe den eksistrende saksperioden, må den legge til nye versjoner av meldeperiodene her.
         sessionFactory.withTransactionContext { tx ->
             behandlingRepo.lagre(vedtak.behandling, tx)
             rammevedtakRepo.lagre(vedtak, tx)
@@ -215,30 +211,25 @@ class BehandlingServiceImpl(
         }
     }
 
-    private fun iverksettRevurdering(
+    private fun Sak.iverksettRevurdering(
         vedtak: Rammevedtak,
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
-        meldekortUnderBehandling: List<MeldekortBehandling.MeldekortUnderBehandling>,
-    ) {
+    ): Sak {
+        val (oppdaterteKjeder, oppdaterteMeldeperioder) =
+            this.meldeperiodeKjeder.oppdaterMedNyStansperiode(vedtak.periode)
+        val (oppdaterteMeldekortbehandlinger, OppdaterteMeldekort) =
+            this.meldekortBehandlinger.oppdaterMedNyeKjeder(oppdaterteKjeder)
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
             behandlingRepo.lagre(vedtak.behandling, tx)
             rammevedtakRepo.lagre(vedtak, tx)
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
-
-            // TODO jah+abn: Et stansvedtak kan overlappe utfylte meldekort dersom dagene ikke er utbetalt. Før vi implementerer det, må vi splitte meldekortgrunnlag og meldekortbehandling i to.
-            meldekortUnderBehandling.forEach {
-                meldekortBehandlingRepo.oppdater(
-                    it.settIkkeRettTilTiltakspenger(
-                        periode = vedtak.periode,
-                        tidspunkt = vedtak.opprettet,
-                    ),
-                    tx,
-                )
-            }
+            OppdaterteMeldekort.forEach { meldekortBehandlingRepo.lagre(it, tx) }
+            oppdaterteMeldeperioder.forEach { meldeperiodeRepo.lagre(it, tx) }
         }
+        return this.copy(meldeperiodeKjeder = oppdaterteKjeder, meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
     }
 
     override suspend fun taBehandling(

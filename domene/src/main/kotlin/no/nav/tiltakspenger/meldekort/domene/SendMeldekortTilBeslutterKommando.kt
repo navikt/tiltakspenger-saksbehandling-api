@@ -68,5 +68,7 @@ class SendMeldekortTilBeslutterKommando(
                 SPERRET, IKKE_DELTATT -> false
             }
         }
+
+        fun girRett() = SPERRET != this
     }
 }

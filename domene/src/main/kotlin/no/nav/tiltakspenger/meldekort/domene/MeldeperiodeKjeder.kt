@@ -4,8 +4,10 @@ import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 
 data class MeldeperiodeKjeder(
@@ -25,10 +27,10 @@ data class MeldeperiodeKjeder(
 
         meldeperiodeKjeder.zipWithNext { a, b ->
             require(a.periode.fraOgMed <= b.periode.fraOgMed) {
-                "Meldeperiodekjedene må være sortert på periode - ${a.id} og ${b.id} var i feil rekkefølge (sak ${a.sakId})"
+                "Meldeperiodekjedene må være sortert på periode - ${a.kjedeId} og ${b.kjedeId} var i feil rekkefølge (sak ${a.sakId})"
             }
             require(a.periode.tilOgMed.plusDays(1) == b.periode.fraOgMed) {
-                "Meldeperiodekjedene må være sammenhengende - feilet for ${a.id} og ${b.id} (sak ${a.sakId})"
+                "Meldeperiodekjedene må være sammenhengende - feilet for ${a.kjedeId} og ${b.kjedeId} (sak ${a.sakId})"
             }
         }
     }
@@ -45,6 +47,23 @@ data class MeldeperiodeKjeder(
 
     fun hentMeldeperiode(id: HendelseId): Meldeperiode? {
         return meldeperiodeKjeder.asSequence().flatten().find { it.id == id }
+    }
+
+    fun hentSisteMeldeperiodeForKjedeId(kjedeId: MeldeperiodeKjedeId): Meldeperiode {
+        return meldeperiodeKjeder.single { it.kjedeId == kjedeId }.last()
+    }
+
+    fun oppdaterMedNyStansperiode(periode: Periode): Pair<MeldeperiodeKjeder, List<Meldeperiode>> {
+        return meldeperiodeKjeder.associate {
+            it.oppdaterMedNyStansperiode(periode)
+        }.let {
+            MeldeperiodeKjeder(it.keys.toList()) to it.values.toList().filterNotNull()
+        }
+    }
+
+    fun erSisteVersjonAvMeldeperiode(meldeperiode: Meldeperiode): Boolean {
+        val meldeperiodeKjede = meldeperiodeKjeder.single { it.kjedeId == meldeperiode.meldeperiodeKjedeId }
+        return meldeperiode == meldeperiodeKjede.last()
     }
 
     companion object {
