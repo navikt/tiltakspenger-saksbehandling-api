@@ -111,7 +111,7 @@ class BenkOversiktPostgresRepo(
                             id = id,
                             saksbehandler = null,
                             beslutter = null,
-                            sakId = SakId.fromString(row.string("sak_id")),
+                            sakId = row.stringOrNull("sak_id")?.let { SakId.fromString(it) },
                         )
                     }.asList,
                 )
