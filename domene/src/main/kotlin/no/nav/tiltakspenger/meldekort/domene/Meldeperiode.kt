@@ -19,25 +19,28 @@ import java.time.temporal.TemporalAdjusters
 data class Meldeperiode(
     val id: HendelseId,
     val meldeperiodeKjedeId: MeldeperiodeKjedeId,
-
     val versjon: HendelseVersjon,
-
     val periode: Periode,
     val opprettet: LocalDateTime,
-
     val sakId: SakId,
     val saksnummer: Saksnummer,
     val fnr: Fnr,
-
     // Dette gjelder hele perioden
     val antallDagerForPeriode: Int,
-
     val girRett: Map<LocalDate, Boolean>,
-
     val sendtTilMeldekortApi: LocalDateTime?,
+) {
+    fun helePeriodenErSperret(): Boolean {
+        return girRett.values.toList().all { !it }
+    }
+
+    // TODO: når skal vi tillate at meldekortet fylles ut? Siste fredag i perioden?
+    fun erKlarTilUtfylling(): Boolean {
+        return periode.fraOgMed <= nå().toLocalDate()
+    }
 
 //    fun settIkkeRettTilTiltakspenger(periode: Periode, tidspunkt: LocalDateTime): Meldeperiode
-)
+}
 
 fun Sak.opprettFørsteMeldeperiode(): Meldeperiode {
     requireNotNull(this.vedtaksliste.førstegangsvedtak) { "Kan ikke opprette første meldeperiode uten førstegangsvedtak" }
@@ -70,7 +73,10 @@ fun Sak.opprettNesteMeldeperiode(): Meldeperiode? {
     return this.opprettMeldeperiode(nestePeriode, utfallsperioder)
 }
 
-private fun Sak.opprettMeldeperiode(periode: Periode, utfallsperioder: Periodisering<AvklartUtfallForPeriode>?): Meldeperiode {
+private fun Sak.opprettMeldeperiode(
+    periode: Periode,
+    utfallsperioder: Periodisering<AvklartUtfallForPeriode>?,
+): Meldeperiode {
     val meldeperiode = Meldeperiode(
         meldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
         id = HendelseId.random(),
