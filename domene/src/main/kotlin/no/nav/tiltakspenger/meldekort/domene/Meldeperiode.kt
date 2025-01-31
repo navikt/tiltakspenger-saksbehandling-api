@@ -54,6 +54,7 @@ fun Sak.opprettFørsteMeldeperiode(): Meldeperiode {
 
 /**
  * Dersom vi kan opprette en ny meldeperiode, returnerer vi denne. Dersom vi ikke, returnerer vi null.
+ * Hvis ingen av dagene i neste meldeperiode
  * Denne funksjonen tar ikke høyde for om det er "for tidlig" og opprette neste meldeperiode. Dette må håndteres av kaller.
  *
  * @return null dersom vi ikke skal opprette en ny meldeperiode (dvs. at vi har nådd slutten av vedtaksperioden)
@@ -63,6 +64,7 @@ fun Sak.opprettNesteMeldeperiode(): Meldeperiode? {
     check(this.vedtaksliste.isNotEmpty()) { "Vedtaksliste kan ikke være tom når man prøver opprette neste meldeperiode" }
 
     val siste: Meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiode()
+    // Kommentar jah: Dersom vi har hull mellom meldeperiodene, så vil ikke dette være godt nok.
     val nestePeriode = Periode(siste.periode.fraOgMed.plusDays(14), siste.periode.tilOgMed.plusDays(14))
 
     val utfallsperioder = this.vedtaksliste.utfallsperioder
@@ -70,7 +72,9 @@ fun Sak.opprettNesteMeldeperiode(): Meldeperiode? {
         return null
     }
 
-    return this.opprettMeldeperiode(nestePeriode, utfallsperioder)
+    val nesteMeldeperiode = this.opprettMeldeperiode(nestePeriode, utfallsperioder)
+    if (nesteMeldeperiode.ingenDagerGirRett) return null
+    return nesteMeldeperiode
 }
 
 private fun Sak.opprettMeldeperiode(
