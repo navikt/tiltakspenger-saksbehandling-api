@@ -133,7 +133,7 @@ class SakServiceImpl(
         }
         val sak = sakRepo.hentForSaksnummer(saksnummer)
             ?: throw IkkeFunnetException("Fant ikke sak med saksnummer $saksnummer")
-        sjekkTilgangTilSak(sak.id, saksbehandler, correlationId)
+        sjekkTilgangTilPerson(sak.id, saksbehandler, correlationId)
 
         return sak.right()
     }
@@ -155,7 +155,7 @@ class SakServiceImpl(
         if (saker.size > 1) throw IllegalStateException("Vi støtter ikke flere saker per søker i piloten.")
 
         val sak = saker.single()
-        sjekkTilgangTilSak(sak.id, saksbehandler, correlationId)
+        sjekkTilgangTilPerson(sak.id, saksbehandler, correlationId)
 
         return sak.right()
     }
@@ -172,7 +172,7 @@ class SakServiceImpl(
                 harRollene = saksbehandler.roller,
             ).left()
         }
-        sjekkTilgangTilSak(sakId, saksbehandler, correlationId)
+        sjekkTilgangTilPerson(sakId, saksbehandler, correlationId)
         return sakRepo.hentForSakId(sakId)!!.right()
     }
 
@@ -230,7 +230,7 @@ class SakServiceImpl(
         return personMedSkjerming.right()
     }
 
-    private suspend fun sjekkTilgangTilSak(sakId: SakId, saksbehandler: Saksbehandler, correlationId: CorrelationId) {
+    private suspend fun sjekkTilgangTilPerson(sakId: SakId, saksbehandler: Saksbehandler, correlationId: CorrelationId) {
         val fnr = personService.hentFnrForSakId(sakId)
         tilgangsstyringService
             .harTilgangTilPerson(

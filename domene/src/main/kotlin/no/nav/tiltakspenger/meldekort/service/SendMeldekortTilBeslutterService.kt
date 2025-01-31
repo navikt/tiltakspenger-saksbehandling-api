@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
+import java.lang.IllegalStateException
 
 /**
  * Har ansvar for å ta imot et utfylt meldekort og sende det til beslutter.
@@ -43,6 +44,12 @@ class SendMeldekortTilBeslutterService(
         kastHvisIkkeTilgangTilPerson(kommando.saksbehandler, kommando.meldekortId, kommando.correlationId)
         val sak = sakService.hentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
             .getOrElse { return KanIkkeSendeMeldekortTilBeslutter.KunneIkkeHenteSak(it).left() }
+
+        val meldekortbehandling = sak.hentMeldekortBehandling(kommando.meldekortId)!!
+        val meldeperiode = meldekortbehandling.meldeperiode
+        if (!sak.erSisteVersjonAvMeldeperiode(meldeperiode)) {
+            throw IllegalStateException("Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: ${sak.id}, meldekortId: ${meldekortbehandling.id}")
+        }
         return sak.meldekortBehandlinger
             .sendTilBeslutter(kommando)
             .map { it.second }

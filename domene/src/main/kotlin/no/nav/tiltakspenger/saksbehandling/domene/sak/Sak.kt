@@ -88,6 +88,10 @@ data class Sak(
         min(it, vedtaksperiode!!.tilOgMed)
     } ?: vedtaksperiode?.fraOgMed
 
+    fun erSisteVersjonAvMeldeperiode(meldeperiode: Meldeperiode): Boolean {
+        return meldeperiodeKjeder.erSisteVersjonAvMeldeperiode(meldeperiode)
+    }
+
     companion object {
         fun lagSak(
             sakId: SakId = SakId.random(),

@@ -39,7 +39,7 @@ data class Meldeperiode(
         return periode.fraOgMed <= nå().toLocalDate()
     }
 
-//    fun settIkkeRettTilTiltakspenger(periode: Periode, tidspunkt: LocalDateTime): Meldeperiode
+    val ingenDagerGirRett = girRett.values.none { it }
 }
 
 fun Sak.opprettFørsteMeldeperiode(): Meldeperiode {

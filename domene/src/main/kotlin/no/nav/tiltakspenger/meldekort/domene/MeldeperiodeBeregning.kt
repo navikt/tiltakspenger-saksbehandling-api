@@ -8,10 +8,8 @@ import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter.InnsendteDagerMåMatcheMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
 import java.time.DayOfWeek
 import java.time.LocalDate
 
@@ -122,14 +120,11 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
         companion object {
             /**
              * @param meldeperiode Perioden meldekortet skal gjelde for. Må være 14 dager, starte på en mandag og slutte på en søndag.
-             * @param utfallsperioder Knyttet til vedtaket. Hvilke dager/perioder kan bruker få ytelse? Hvis denne ikke overlapper med [meldeperiode] vil alle dagene bli SPERRET.
-             *
              * @return Meldekortperiode som er utfylt.
              * @throws IllegalStateException Dersom alle dagene i en meldekortperiode er SPERRET er den per definisjon utfylt. Dette har vi ikke støtte for i MVP.
              */
             fun fraPeriode(
                 meldeperiode: Meldeperiode,
-                utfallsperioder: Periodisering<AvklartUtfallForPeriode>,
                 tiltakstype: TiltakstypeSomGirRett,
                 meldekortId: MeldekortId,
                 sakId: SakId,
@@ -137,7 +132,7 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
             ): IkkeUtfyltMeldeperiode {
                 val dager =
                     meldeperiode.periode.tilDager().map { dag ->
-                        if (utfallsperioder.hentVerdiForDag(dag) == AvklartUtfallForPeriode.OPPFYLT) {
+                        if (meldeperiode.girRett[dag] == true) {
                             MeldeperiodeBeregningDag.IkkeUtfylt(
                                 dato = dag,
                                 meldekortId = meldekortId,
@@ -171,7 +166,7 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
                     return KanIkkeSendeMeldekortTilBeslutter.KanIkkeEndreDagFraSperret.left()
                 }
                 if (dagA !is MeldeperiodeBeregningDag.Utfylt.Sperret && dagB is MeldeperiodeBeregningDag.Utfylt.Sperret) {
-                    log.error { "Kan ikke endre dag fra til sperret. Generert base: ${this.dager}. Innsendt: $utfylteDager" }
+                    log.error { "Kan ikke endre dag til sperret. Generert base: ${this.dager}. Innsendt: $utfylteDager" }
                     return KanIkkeSendeMeldekortTilBeslutter.KanIkkeEndreDagTilSperret.left()
                 }
             }
