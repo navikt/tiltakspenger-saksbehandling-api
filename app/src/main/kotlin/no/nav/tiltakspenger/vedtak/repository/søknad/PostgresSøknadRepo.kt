@@ -17,11 +17,10 @@ internal class PostgresSøknadRepo(
 
     override fun lagre(
         søknad: Søknad,
-        sakId: SakId,
         txContext: TransactionContext?,
     ) {
         sessionFactory.withTransaction(txContext) {
-            SøknadDAO.lagreHeleSøknaden(søknad, sakId, it)
+            SøknadDAO.lagreHeleSøknaden(søknad, it)
         }
     }
 

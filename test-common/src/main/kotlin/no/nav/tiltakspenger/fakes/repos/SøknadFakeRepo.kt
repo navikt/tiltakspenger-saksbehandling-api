@@ -9,26 +9,21 @@ import no.nav.tiltakspenger.saksbehandling.ports.SøknadRepo
 
 class SøknadFakeRepo : SøknadRepo {
     private val data = Atomic(mutableMapOf<SøknadId, Søknad>())
-    private val soknadSakKobling = Atomic(mutableMapOf<SøknadId, SakId>())
 
     val alle get() = data.get().values.toList()
-    val alleSoknadSakKoblinger get() = soknadSakKobling.get().values.toList()
 
     override fun lagre(
         søknad: Søknad,
-        sakId: SakId,
         txContext: TransactionContext?,
     ) {
         data.get()[søknad.id] = søknad
-        soknadSakKobling.get()[søknad.id] = sakId
     }
 
     override fun hentForSøknadId(søknadId: SøknadId): Søknad = data.get()[søknadId]!!
 
-    override fun hentSakIdForSoknad(søknadId: SøknadId): SakId = soknadSakKobling.get()[søknadId]!!
+    override fun hentSakIdForSoknad(søknadId: SøknadId): SakId = data.get()[søknadId]!!.sakId
 
     fun hentForSakId(sakId: SakId): List<Søknad> {
-        val soknadIder = soknadSakKobling.get().filter { it.value == sakId }.keys
-        return data.get().filter { it.key in soknadIder }.values.toList()
+        return data.get().filter { it.value.sakId == sakId }.values.toList()
     }
 }

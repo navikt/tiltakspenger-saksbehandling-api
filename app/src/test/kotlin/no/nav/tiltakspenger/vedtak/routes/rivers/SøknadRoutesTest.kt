@@ -111,6 +111,8 @@ class SøknadRoutesTest {
                     supplerendeStønadFlyktning = Søknad.PeriodeSpm.Nei,
                     jobbsjansen = Søknad.PeriodeSpm.Nei,
                     trygdOgPensjon = Søknad.PeriodeSpm.Nei,
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
                 )
 
             tac.søknadContext.søknadRepo.hentSakIdForSoknad(søknadId) shouldBe sak.id

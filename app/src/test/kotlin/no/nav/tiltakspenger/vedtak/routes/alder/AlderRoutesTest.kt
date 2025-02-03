@@ -116,7 +116,7 @@ class AlderRoutesTest {
                 fnr = sak.fnr,
                 periode = vurderingsperiode,
                 personopplysningerForBrukerFraPdl = ObjectMother.personopplysningKjedeligFyr(fødselsdato = fødselsdato),
-                sakId = sak.id,
+                sak = sak,
             )
 
             testApplication {

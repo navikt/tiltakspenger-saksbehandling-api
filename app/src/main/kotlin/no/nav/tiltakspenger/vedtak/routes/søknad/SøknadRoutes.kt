@@ -28,14 +28,14 @@ fun Route.søknadRoutes(
         call.withSystembruker(tokenService = tokenService) { systembruker: Systembruker ->
             val søknadDTO = call.receive<SøknadDTO>()
             logger.debug { "Deserialisert søknad OK med id ${søknadDTO.søknadId}" }
-            val sakId = sakService.hentForSaksnummer(Saksnummer(søknadDTO.saksnummer), systembruker).id
+            val sak = sakService.hentForSaksnummer(Saksnummer(søknadDTO.saksnummer), systembruker)
             // Oppretter søknad og lagrer den med kobling til angitt sak
             søknadService.nySøknad(
                 søknad = SøknadDTOMapper.mapSøknad(
                     dto = søknadDTO,
                     innhentet = søknadDTO.opprettet,
+                    sak = sak,
                 ),
-                sakId = sakId,
                 systembruker = systembruker,
             )
             call.respond(message = "OK", status = HttpStatusCode.OK)

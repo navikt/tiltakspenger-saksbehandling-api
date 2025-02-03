@@ -9,9 +9,9 @@ import no.nav.tiltakspenger.saksbehandling.ports.SøknadRepo
 class SøknadServiceImpl(
     private val søknadRepo: SøknadRepo,
 ) : SøknadService {
-    override fun nySøknad(søknad: Søknad, sakId: SakId, systembruker: Systembruker) {
+    override fun nySøknad(søknad: Søknad, systembruker: Systembruker) {
         require(systembruker.roller.harLageHendelser()) { "Systembruker mangler rollen LAGE_HENDELSER. Systembrukers roller: ${systembruker.roller}" }
-        søknadRepo.lagre(søknad, sakId)
+        søknadRepo.lagre(søknad)
     }
 
     override fun hentSøknad(søknadId: SøknadId): Søknad {

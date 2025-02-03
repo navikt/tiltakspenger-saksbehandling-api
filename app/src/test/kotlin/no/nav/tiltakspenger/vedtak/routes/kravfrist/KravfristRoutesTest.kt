@@ -79,7 +79,7 @@ internal class KravfristRoutesTest {
                 fnr = sak.fnr,
                 periode = vurderingsperiode,
                 tidsstempelHosOss = 1.januarDateTime(2022),
-                sakId = sak.id,
+                sak = sak,
             )
 
             testApplication {

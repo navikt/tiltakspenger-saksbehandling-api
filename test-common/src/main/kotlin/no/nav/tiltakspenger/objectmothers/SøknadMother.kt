@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -90,6 +91,7 @@ interface SøknadMother {
         supplerendeStønadAlder: Søknad.PeriodeSpm = periodeNei(),
         supplerendeStønadFlyktning: Søknad.PeriodeSpm = periodeNei(),
         jobbsjansen: Søknad.PeriodeSpm = periodeNei(),
+        sak: Sak = ObjectMother.nySak(fnr = fnr),
     ): Søknad =
         Søknad(
             versjon = versjon,
@@ -112,6 +114,8 @@ interface SøknadMother {
             supplerendeStønadFlyktning = supplerendeStønadFlyktning,
             jobbsjansen = jobbsjansen,
             trygdOgPensjon = trygdOgPensjon,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
         )
 
     fun personSøknad(

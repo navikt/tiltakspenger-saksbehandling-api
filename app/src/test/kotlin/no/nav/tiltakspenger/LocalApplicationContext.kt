@@ -98,7 +98,8 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
             id = søknadId,
             eksternId = tiltakId,
             søknadstiltak = søknadstiltak,
-        ).also { søknadContext.søknadRepo.lagre(it, sak.id) }
+            sak = sak,
+        ).also { søknadContext.søknadRepo.lagre(it) }
         require(søknadstiltak == søknad.tiltak) {
             "Diff mellom søknadstiltak i lokal database og statiske tiltaksdata i LocalApplicationContext. Mulig løsning: Tøm lokal db."
         }

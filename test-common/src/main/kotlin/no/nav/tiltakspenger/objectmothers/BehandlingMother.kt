@@ -161,6 +161,7 @@ fun TestApplicationContext.nySøknad(
     tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
     tiltak: Tiltak? = null,
     søknadstiltak: Søknadstiltak? = tiltak?.toSøknadstiltak(),
+    sak: Sak = ObjectMother.nySak(fnr = fnr),
     søknad: Søknad = ObjectMother.nySøknad(
         fnr = fnr,
         personopplysninger = personopplysningerFraSøknad,
@@ -171,11 +172,11 @@ fun TestApplicationContext.nySøknad(
         ),
         intro = if (deltarPåIntroduksjonsprogram) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
         kvp = if (deltarPåKvp) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
+        sak = sak,
     ),
     systembruker: Systembruker = ObjectMother.systembrukerLageHendelser(),
-    sakId: SakId,
 ): Søknad {
-    this.søknadContext.søknadService.nySøknad(søknad, sakId, systembruker)
+    this.søknadContext.søknadService.nySøknad(søknad, systembruker)
     this.leggTilPerson(fnr, personopplysningerForBrukerFraPdl, tiltak ?: søknad.tiltak.toTiltak())
     return søknad
 }
@@ -204,6 +205,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingUavklart(
     tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
     tiltak: Tiltak? = null,
     søknadstiltak: Søknadstiltak? = tiltak?.toSøknadstiltak(),
+    sak: Sak = ObjectMother.nySak(fnr = fnr),
     søknad: Søknad = ObjectMother.nySøknad(
         fnr = fnr,
         personopplysninger = personopplysningerFraSøknad,
@@ -214,9 +216,9 @@ suspend fun TestApplicationContext.førstegangsbehandlingUavklart(
         ),
         intro = if (deltarPåIntroduksjonsprogram) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
         kvp = if (deltarPåKvp) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
+        sak = sak,
     ),
 ): Sak {
-    val sak = ObjectMother.nySak(fnr = fnr)
     this.sakContext.sakRepo.opprettSak(sak)
     this.nySøknad(
         periode = periode,
@@ -227,7 +229,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingUavklart(
         personopplysningerFraSøknad = personopplysningerFraSøknad,
         personopplysningerForBrukerFraPdl = personopplysningerForBrukerFraPdl,
         tiltak = tiltak,
-        sakId = sak.id,
+        sak = sak,
     )
     return this.behandlingContext.behandlingService.startFørstegangsbehandling(
         søknad.id,

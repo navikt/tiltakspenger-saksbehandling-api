@@ -14,12 +14,10 @@ data class Behandlinger(
 
     constructor(behandling: Behandling) : this(listOf(behandling))
 
-    // val sakId = behandlinger.distinctBy { it.sakId }.single()
     val revurderinger: Revurderinger = Revurderinger(behandlinger.drop(1))
     val førstegangsbehandling: Behandling? = behandlinger.firstOrNull()?.also {
         require(it.erFørstegangsbehandling)
     }
-    // legg til førstegangsbehandling
 
     fun leggTilRevurdering(
         revurdering: Behandling,

@@ -16,6 +16,10 @@ internal fun TestDataHelper.persisterSakOgSøknad(
     deltakelseFom: LocalDate = 1.januar(2023),
     deltakelseTom: LocalDate = 31.mars(2023),
     journalpostId: String = random.nextInt().toString(),
+    sak: Sak = ObjectMother.nySak(
+        fnr = fnr,
+        saksnummer = this.saksnummerGenerator.neste(),
+    ),
     søknad: Søknad =
         ObjectMother.nySøknad(
             journalpostId = journalpostId,
@@ -29,14 +33,11 @@ internal fun TestDataHelper.persisterSakOgSøknad(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
+            sak = sak,
         ),
-    sak: Sak = ObjectMother.nySak(
-        fnr = fnr,
-        saksnummer = this.saksnummerGenerator.neste(),
-    ),
 ): Søknad {
     this.persisterSak(fnr, sak)
-    this.søknadRepo.lagre(søknad, sak.id)
+    this.søknadRepo.lagre(søknad)
     return søknadRepo.hentForSøknadId(søknad.id)!!.also {
         it shouldBe søknad
     }

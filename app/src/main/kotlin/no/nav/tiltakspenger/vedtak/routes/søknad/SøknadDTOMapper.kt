@@ -13,12 +13,14 @@ import no.nav.tiltakspenger.libs.soknad.SøknadsTiltakDTO
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import java.time.LocalDateTime
 
 object SøknadDTOMapper {
     fun mapSøknad(
         dto: SøknadDTO,
         innhentet: LocalDateTime,
+        sak: Sak,
     ): Søknad =
         Søknad(
             id = SøknadId.fromString(dto.søknadId),
@@ -52,6 +54,8 @@ object SøknadDTOMapper {
             supplerendeStønadFlyktning = no.nav.tiltakspenger.vedtak.routes.søknad.SøknadDTOMapper.mapPeriodeSpm(dto.supplerendeStønadFlyktning),
             jobbsjansen = no.nav.tiltakspenger.vedtak.routes.søknad.SøknadDTOMapper.mapPeriodeSpm(dto.jobbsjansen),
             trygdOgPensjon = no.nav.tiltakspenger.vedtak.routes.søknad.SøknadDTOMapper.mapPeriodeSpm(dto.trygdOgPensjon),
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
         )
 
     private fun mapPeriodeSpm(periodeSpmDTO: PeriodeSpmDTO): Søknad.PeriodeSpm =

@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import org.intellij.lang.annotations.Language
 
 private const val KVP_FELT = "kvp"
@@ -69,7 +70,7 @@ internal object SøknadDAO {
         session: Session,
     ): Søknad? =
         session.run(
-            queryOf("select * from søknad where id = ?", søknadId.toString())
+            queryOf(sqlHentIdent, søknadId.toString())
                 .map { row -> row.toSøknad(session) }
                 .asSingle,
         )
@@ -81,7 +82,7 @@ internal object SøknadDAO {
         session
             .run(
                 queryOf(
-                    "select * from søknad where sak_id = :sak_id",
+                    "select * from søknad s join sak on sak.id = s.sak_id where s.sak_id = :sak_id",
                     mapOf(
                         "sak_id" to sakId.toString(),
                     ),
@@ -126,19 +127,17 @@ internal object SøknadDAO {
      */
     fun lagreHeleSøknaden(
         søknad: Søknad,
-        sakId: SakId,
         txSession: TransactionalSession,
     ) {
         if (søknadFinnes(søknad.id, txSession)) return
 
-        lagreSøknad(søknad, sakId, txSession)
+        lagreSøknad(søknad, txSession)
         BarnetilleggDAO.lagre(søknad.id, søknad.barnetillegg, txSession)
         SøknadTiltakDAO.lagre(søknad.id, søknad.tiltak, txSession)
     }
 
     private fun lagreSøknad(
         søknad: Søknad,
-        sakId: SakId,
         session: Session,
     ) {
         val periodeSpmParamMap =
@@ -173,7 +172,7 @@ internal object SøknadDAO {
                     mapOf(
                         "id" to søknad.id.toString(),
                         "versjon" to søknad.versjon,
-                        "sak_id" to sakId.toString(),
+                        "sak_id" to søknad.sakId.toString(),
                         "behandling_id" to null,
                         "fornavn" to søknad.personopplysninger.fornavn,
                         "etternavn" to søknad.personopplysninger.etternavn,
@@ -205,6 +204,8 @@ internal object SøknadDAO {
         val barnetillegg = BarnetilleggDAO.hentBarnetilleggListe(id, session)
         val søknadstiltak = SøknadTiltakDAO.hent(id, session)
         val vedlegg = int("vedlegg")
+        val sakId = SakId.fromString(string("sak_id"))
+        val saksnummer = Saksnummer(string("saksnummer"))
         val kvp = periodeSpm(KVP_FELT)
         val intro = periodeSpm(INTRO_FELT)
         val institusjon = periodeSpm(INSTITUSJON_FELT)
@@ -242,6 +243,8 @@ internal object SøknadDAO {
             supplerendeStønadFlyktning = supplerendeStønadFlyktning,
             jobbsjansen = jobbsjansen,
             trygdOgPensjon = trygdOgPensjon,
+            sakId = sakId,
+            saksnummer = saksnummer,
         )
     }
 
@@ -359,8 +362,8 @@ internal object SøknadDAO {
     private val sqlFinnes = "select exists(select 1 from søknad where id = ?)"
 
     @Language("SQL")
-    private val sqlHent = "select * from søknad where behandling_id = ?"
+    private val sqlHent = "select * from søknad s join sak on sak.id = s.sak_id where s.behandling_id = ?"
 
     @Language("SQL")
-    private val sqlHentIdent = "select * from søknad where id = ?"
+    private val sqlHentIdent = "select * from søknad s join sak on sak.id = s.sak_id where s.id = ?"
 }

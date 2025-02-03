@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 interface SøknadRepo {
     fun lagre(
         søknad: Søknad,
-        sakId: SakId,
         txContext: TransactionContext? = null,
     )
 
