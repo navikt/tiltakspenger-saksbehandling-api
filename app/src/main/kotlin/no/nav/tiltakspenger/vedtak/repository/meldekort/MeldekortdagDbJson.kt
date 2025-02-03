@@ -129,29 +129,29 @@ internal fun MeldeperiodeBeregning.toDbJson(): String =
     }
 
 private fun MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.toDbJson(): String =
-    dager
-        .map { meldekortdag ->
-            MeldekortdagDbJson(
-                tiltakstype = tiltakstype.toDb(),
-                dato = meldekortdag.dato.toString(),
-                status = when (meldekortdag) {
-                    is Sperret -> SPERRET
-                    is IkkeUtfylt -> IKKE_UTFYLT
-                    is DeltattMedLønnITiltaket -> DELTATT_MED_LØNN_I_TILTAKET
-                    is DeltattUtenLønnITiltaket -> DELTATT_UTEN_LØNN_I_TILTAKET
-                    is SykBruker -> FRAVÆR_SYK
-                    is SyktBarn -> FRAVÆR_SYKT_BARN
-                    is VelferdGodkjentAvNav -> FRAVÆR_VELFERD_GODKJENT_AV_NAV
-                    is VelferdIkkeGodkjentAvNav -> FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-                    is IkkeDeltatt -> IKKE_DELTATT
-                },
-                reduksjon = null,
-                beregningsdag = null,
-            )
-        }.let { serialize(it) }
+    dager.toList().map { meldekortdag ->
+        MeldekortdagDbJson(
+            tiltakstype = tiltakstype.toDb(),
+            dato = meldekortdag.dato.toString(),
+            status = when (meldekortdag) {
+                is Sperret -> SPERRET
+                is IkkeUtfylt -> IKKE_UTFYLT
+                is DeltattMedLønnITiltaket -> DELTATT_MED_LØNN_I_TILTAKET
+                is DeltattUtenLønnITiltaket -> DELTATT_UTEN_LØNN_I_TILTAKET
+                is SykBruker -> FRAVÆR_SYK
+                is SyktBarn -> FRAVÆR_SYKT_BARN
+                is VelferdGodkjentAvNav -> FRAVÆR_VELFERD_GODKJENT_AV_NAV
+                is VelferdIkkeGodkjentAvNav -> FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
+                is IkkeDeltatt -> IKKE_DELTATT
+            },
+            reduksjon = null,
+            beregningsdag = null,
+        )
+    }.let { serialize(it) }
 
 private fun MeldeperiodeBeregning.UtfyltMeldeperiode.toDbJson(): String =
     dager
+        .toList()
         .map { meldekortdag ->
             MeldekortdagDbJson(
                 tiltakstype = tiltakstype.toDb(),

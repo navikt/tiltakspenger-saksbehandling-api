@@ -35,6 +35,7 @@ data class MeldekortBehandlinger(
         require(meldekortUnderBehandling.id == kommando.meldekortId) {
             "MeldekortId i kommando (${kommando.meldekortId}) samsvarer ikke med siste meldekortperiode (${meldekortUnderBehandling.id})"
         }
+
         val meldekortdager = kommando.beregn(eksisterendeMeldekortBehandlinger = this)
         val utfyltMeldeperiode = meldekortUnderBehandling.beregning.tilUtfyltMeldeperiode(meldekortdager).getOrElse {
             return it.left()
@@ -62,6 +63,24 @@ data class MeldekortBehandlinger(
         return verdi.find { it.meldeperiodeKjedeId == meldeperiodeKjedeId }
     }
 
+    /**
+     * Løper igjennom alle ikke-avsluttede meldekortbehandlinger (også de som er sendt til beslutter), setter tilstanden til under behandling, oppdaterer meldeperioden og resetter utfyllinga.
+     */
+    fun oppdaterMedNyeKjeder(oppdaterteKjeder: MeldeperiodeKjeder): Pair<MeldekortBehandlinger, List<MeldekortBehandling>> {
+        return verdi.filter { it.erÅpen() }
+            .fold(Pair(this, emptyList())) { acc, meldekortBehandling ->
+                val meldeperiode = oppdaterteKjeder.hentSisteMeldeperiodeForKjedeId(
+                    kjedeId = meldekortBehandling.meldeperiode.meldeperiodeKjedeId,
+                )
+                meldekortBehandling.oppdaterMeldeperiode(meldeperiode)?.let {
+                    Pair(
+                        acc.first.oppdaterMeldekortbehandling(it),
+                        acc.second + it,
+                    )
+                } ?: acc
+            }
+    }
+
     val periode: Periode by lazy { Periode(verdi.first().fraOgMed, verdi.last().tilOgMed) }
 
     val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
@@ -80,12 +99,27 @@ data class MeldekortBehandlinger(
     /** Vil kun returnere hele meldekortperioder som er utfylt. Dersom siste meldekortperiode er delvis utfylt, vil ikke disse komme med. */
     val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy { behandledeMeldekort.flatMap { it.beregning.dager } }
 
-    /** Så lenge saken er aktiv, vil det siste meldekortet være i tilstanden under behandling. Vil også være null fram til første innvilgelse. */
+    /** Under behandling er ikke-avsluttede meldekortbehandlinger som ikke er til beslutning. */
     val meldekortUnderBehandling: MeldekortUnderBehandling? by lazy {
         verdi.filterIsInstance<MeldekortUnderBehandling>().singleOrNullOrThrow()
     }
 
     val sakId: SakId by lazy { verdi.first().sakId }
+
+    /**
+     * Erstatt eksisterende meldekortbehandling med ny meldekortbehandling.
+     */
+    private fun oppdaterMeldekortbehandling(meldekortBehandling: MeldekortBehandling): MeldekortBehandlinger {
+        return MeldekortBehandlinger(
+            verdi = verdi.map {
+                if (it.id == meldekortBehandling.id) {
+                    meldekortBehandling
+                } else {
+                    it
+                }
+            },
+        )
+    }
 
     init {
         verdi.zipWithNext { a, b ->

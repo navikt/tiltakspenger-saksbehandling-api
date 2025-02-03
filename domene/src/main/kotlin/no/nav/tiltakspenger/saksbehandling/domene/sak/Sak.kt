@@ -80,4 +80,8 @@ data class Sak(
     fun førsteLovligeStansdato(): LocalDate? = sisteUtbetalteMeldekortDag()?.plusDays(1)?.let {
         min(it, vedtaksperiode!!.tilOgMed)
     } ?: vedtaksperiode?.fraOgMed
+
+    fun erSisteVersjonAvMeldeperiode(meldeperiode: Meldeperiode): Boolean {
+        return meldeperiodeKjeder.erSisteVersjonAvMeldeperiode(meldeperiode)
+    }
 }

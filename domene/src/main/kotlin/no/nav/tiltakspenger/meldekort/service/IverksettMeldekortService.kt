@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.utbetaling.domene.opprettUtbetalingsvedtak
 import no.nav.tiltakspenger.utbetaling.domene.tilStatistikk
 import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
+import java.lang.IllegalStateException
 
 class IverksettMeldekortService(
     val sakService: SakService,
@@ -55,6 +56,10 @@ class IverksettMeldekortService(
         meldekortBehandling as MeldekortBehandling.MeldekortBehandlet
         require(meldekortBehandling.beslutter == null && meldekortBehandling.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING) {
             "Meldekort $meldekortId er allerede iverksatt"
+        }
+        val meldeperiode = meldekortBehandling.meldeperiode
+        if (!sak.erSisteVersjonAvMeldeperiode(meldeperiode)) {
+            throw IllegalStateException("Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: $sakId, meldekortId: $meldekortId")
         }
 
         val nesteMeldeperiode: Meldeperiode? = sak.opprettNesteMeldeperiode()?.let {
