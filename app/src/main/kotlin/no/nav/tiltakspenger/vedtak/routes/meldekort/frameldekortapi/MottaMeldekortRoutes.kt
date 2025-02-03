@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.ktor.common.withBody
+import no.nav.tiltakspenger.libs.logging.sikkerlogg
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.meldekort.domene.InnmeldtStatus
@@ -25,16 +26,21 @@ fun Route.mottaMeldekortRoutes(
 
     post(PATH) {
         logger.debug { "Mottatt post-request på $PATH" }
-        call.withBody<BrukerutfyltMeldekortDTO> {
-            logger.info { "Mottatt meldekort fra bruker: ${it.id} - meldeperiode: ${it.meldeperiodeId}" }
+        call.withBody<BrukerutfyltMeldekortDTO> { meldekort ->
+            logger.info { "Mottatt meldekort fra bruker: ${meldekort.id} - meldeperiode: ${meldekort.meldeperiodeId}" }
 
             Either.catch {
-                mottaBrukerutfyltMeldekortService.mottaBrukerutfyltMeldekort(it.toDomain())
+                mottaBrukerutfyltMeldekortService.mottaBrukerutfyltMeldekort(meldekort.toDomain())
                 call.respond(HttpStatusCode.OK)
-            }.mapLeft {
+            }.mapLeft { ex ->
+                with("Kunne ikke lagre brukers meldekort ${meldekort.id}") {
+                    logger.error { this }
+                    sikkerlogg.error(ex) { "$this - ${ex.message}" }
+                }
+
                 call.respond(
                     status = HttpStatusCode.InternalServerError,
-                    message = "Kunne ikke lagre brukers meldekort - ${it.message}",
+                    message = "Kunne ikke lagre brukers meldekort",
                 )
             }
         }
