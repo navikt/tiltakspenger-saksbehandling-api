@@ -80,9 +80,9 @@ class BehandlingServiceImpl(
                 harRollene = saksbehandler.roller,
             ).left()
         }
-        val fnr = personService.hentFnrForSøknadId(søknadId)
         // hentForSakId gjør en sjekk på tilgang til sak og til person
         val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId).getOrElse { throw IllegalStateException("Fant ikke sak") }
+        val fnr = sak.fnr
 
         if (sak.førstegangsbehandling != null) {
             return KanIkkeStarteFørstegangsbehandling.HarAlleredeStartetBehandlingen(sak.førstegangsbehandling.id).left()
