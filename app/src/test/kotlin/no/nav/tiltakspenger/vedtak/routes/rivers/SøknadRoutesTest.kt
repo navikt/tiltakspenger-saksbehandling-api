@@ -14,9 +14,11 @@ import no.nav.tiltakspenger.felles.april
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
 import no.nav.tiltakspenger.vedtak.routes.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.søknad.SØKNAD_PATH
@@ -35,6 +37,8 @@ class SøknadRoutesTest {
     fun `søknad route + service`() {
         with(TestApplicationContext()) {
             val tac = this
+            val sak = ObjectMother.nySak(fnr = IDENT)
+            tac.sakContext.sakRepo.opprettSak(sak)
             val søknadId = SøknadId.random()
             testApplication {
                 application {
@@ -43,6 +47,7 @@ class SøknadRoutesTest {
                         søknadRoutes(
                             søknadService = tac.søknadContext.søknadService,
                             tokenService = tac.tokenService,
+                            sakService = tac.sakContext.sakService,
                         )
                     }
                 }
@@ -56,7 +61,7 @@ class SøknadRoutesTest {
                         roles = listOf("lage_hendelser"),
                     ),
                 ) {
-                    setBody(søknadBodyV3(søknadId))
+                    setBody(søknadBodyV3(søknadId, sak.saksnummer))
                 }.apply {
                     status shouldBe HttpStatusCode.OK
                 }
@@ -106,11 +111,15 @@ class SøknadRoutesTest {
                     supplerendeStønadFlyktning = Søknad.PeriodeSpm.Nei,
                     jobbsjansen = Søknad.PeriodeSpm.Nei,
                     trygdOgPensjon = Søknad.PeriodeSpm.Nei,
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
                 )
+
+            tac.søknadContext.søknadRepo.hentSakIdForSoknad(søknadId) shouldBe sak.id
         }
     }
 
-    private fun søknadBodyV3(søknadId: SøknadId) =
+    private fun søknadBodyV3(søknadId: SøknadId, saksnummer: Saksnummer) =
         """
         {
             "versjon": "3",
@@ -194,7 +203,8 @@ class SøknadRoutesTest {
               "fom": null,
               "tom": null
             },
-            "opprettet": "2023-06-14T21:12:08.447993177"
+            "opprettet": "2023-06-14T21:12:08.447993177",
+            "saksnummer": "${saksnummer.verdi}"
         }
         """.trimIndent()
 }

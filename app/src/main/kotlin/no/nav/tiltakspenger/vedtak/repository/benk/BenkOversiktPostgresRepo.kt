@@ -89,7 +89,8 @@ class BenkOversiktPostgresRepo(
                         select søknad.id as søknad_id,
                           søknad.ident,
                           søknad.opprettet,
-                          søknad.behandling_id
+                          søknad.behandling_id,
+                          søknad.sak_id
                         from søknad
                         where søknad.behandling_id is null
                         order by søknad.id
@@ -110,7 +111,7 @@ class BenkOversiktPostgresRepo(
                             id = id,
                             saksbehandler = null,
                             beslutter = null,
-                            sakId = null,
+                            sakId = row.stringOrNull("sak_id")?.let { SakId.fromString(it) },
                         )
                     }.asList,
                 )

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.service
 
 import no.nav.tiltakspenger.felles.Systembruker
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 
@@ -9,4 +10,6 @@ interface SøknadService {
     fun nySøknad(søknad: Søknad, systembruker: Systembruker)
 
     fun hentSøknad(søknadId: SøknadId): Søknad
+
+    fun hentSakIdForSoknad(søknadId: SøknadId): SakId
 }

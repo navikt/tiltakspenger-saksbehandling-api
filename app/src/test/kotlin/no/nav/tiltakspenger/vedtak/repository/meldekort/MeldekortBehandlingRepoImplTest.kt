@@ -45,7 +45,6 @@ class MeldekortBehandlingRepoImplTest {
             testDataHelper.sessionFactory.withSession {
                 MeldekortBehandlingPostgresRepo.hentForMeldekortId(meldekort.id, it)!! shouldBe meldekort
                 MeldekortBehandlingPostgresRepo.hentForSakId(sak.id, it)!! shouldBe MeldekortBehandlinger(
-                    meldekort.tiltakstype,
                     listOf(meldekort),
                 )
             }

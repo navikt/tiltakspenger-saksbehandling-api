@@ -17,6 +17,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingServiceImpl
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
@@ -60,6 +61,7 @@ class ExceptionHandlingTest {
                             sakService = sakService,
                             auditService = mockAuditService,
                             startRevurderingService = mockk(),
+                            søknadService = mockk<SøknadService>(),
                         )
                     }
                 }

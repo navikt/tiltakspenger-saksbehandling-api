@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortBehandlet
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortUnderBehandling
 import java.time.LocalDate
@@ -20,13 +19,10 @@ import java.time.LocalDate
  * Består av ingen, én eller flere [MeldeperiodeBeregning].
  * Vil være tom fram til første innvilgede førstegangsbehandling.
  * Kun den siste vil kunne være under behandling (åpen).
- * @param tiltakstype I MVP støtter vi kun ett tiltak, men på sikt kan vi ikke garantere at det er én til én mellom meldekortperioder og tiltakstype.
  */
 data class MeldekortBehandlinger(
-    val tiltakstype: TiltakstypeSomGirRett,
     val verdi: List<MeldekortBehandling>,
 ) : List<MeldekortBehandling> by verdi {
-
     /**
      * @throws NullPointerException Dersom det ikke er noen meldekort-behandling som kan sendes til beslutter. Eller siste meldekort ikke er i tilstanden 'under behandling'.
      * @throws IllegalArgumentException Dersom innsendt meldekortid ikke samsvarer med siste meldekortperiode.
@@ -48,7 +44,6 @@ data class MeldekortBehandlinger(
             .map {
                 Pair(
                     MeldekortBehandlinger(
-                        tiltakstype = tiltakstype,
                         verdi = (verdi.dropLast(1) + it).toNonEmptyListOrNull()!!,
                     ),
                     it,
@@ -116,7 +111,6 @@ data class MeldekortBehandlinger(
      */
     private fun oppdaterMeldekortbehandling(meldekortBehandling: MeldekortBehandling): MeldekortBehandlinger {
         return MeldekortBehandlinger(
-            tiltakstype = tiltakstype,
             verdi = verdi.map {
                 if (it.id == meldekortBehandling.id) {
                     meldekortBehandling
@@ -133,12 +127,8 @@ data class MeldekortBehandlinger(
                 "Meldekortperiodene må være sammenhengende og sortert, men var ${verdi.map { it.periode }}"
             }
         }
-        require(
-            verdi.all {
-                it.tiltakstype == tiltakstype
-            },
-        ) {
-            "Alle meldekortperioder må ha samme tiltakstype. Meldekortperioder.tiltakstype=$tiltakstype, meldekortperioders tiltakstyper=${
+        require(verdi.distinctBy { it.tiltakstype }.size <= 1) {
+            "Alle meldekortperioder må ha samme tiltakstype. Meldekortperioders tiltakstyper=${
                 verdi.map {
                     it.tiltakstype
                 }
@@ -158,9 +148,8 @@ data class MeldekortBehandlinger(
     }
 
     companion object {
-        fun empty(tiltakstype: TiltakstypeSomGirRett): MeldekortBehandlinger {
+        fun empty(): MeldekortBehandlinger {
             return MeldekortBehandlinger(
-                tiltakstype = tiltakstype,
                 verdi = emptyList(),
             )
         }
@@ -168,9 +157,7 @@ data class MeldekortBehandlinger(
 }
 
 fun NonEmptyList<MeldekortBehandling>.tilMeldekortperioder(): MeldekortBehandlinger {
-    val tiltakstype = first().tiltakstype
     return MeldekortBehandlinger(
-        tiltakstype = tiltakstype,
         verdi = this,
     )
 }

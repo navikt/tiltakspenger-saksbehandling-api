@@ -35,7 +35,7 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
             .sortedBy { it.opprettet }
             .let { meldekort ->
                 meldekort.firstOrNull()?.let {
-                    MeldekortBehandlinger(it.tiltakstype, meldekort)
+                    MeldekortBehandlinger(meldekort)
                 }
             }
 

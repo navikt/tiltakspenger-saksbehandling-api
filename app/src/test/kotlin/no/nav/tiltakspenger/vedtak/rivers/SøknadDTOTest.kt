@@ -11,7 +11,9 @@ import no.nav.tiltakspenger.libs.soknad.PersonopplysningerDTO
 import no.nav.tiltakspenger.libs.soknad.SpmSvarDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadsTiltakDTO
+import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.vedtak.routes.søknad.SøknadDTOMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -22,8 +24,9 @@ import java.time.Month
 internal class SøknadDTOTest {
     @Test
     fun mapBasisFelter() {
-        val søknadDTO = søknadDTO()
-        val søknad = SøknadDTOMapper.mapSøknad(søknadDTO, LocalDateTime.MIN)
+        val sak = ObjectMother.nySak()
+        val søknadDTO = søknadDTO(saksnummer = sak.saksnummer)
+        val søknad = SøknadDTOMapper.mapSøknad(søknadDTO, LocalDateTime.MIN, sak)
 
         assertEquals(søknadDTO.søknadId, søknad.id.toString())
         assertEquals(søknadDTO.journalpostId, søknad.journalpostId)
@@ -44,12 +47,15 @@ internal class SøknadDTOTest {
         assertEquals(søknad.gjenlevendepensjon, Søknad.PeriodeSpm.Nei)
         assertEquals(søknad.trygdOgPensjon, Søknad.PeriodeSpm.Nei)
         assertEquals(søknad.etterlønn, Søknad.JaNeiSpm.Nei)
+        assertEquals(søknad.sakId, sak.id)
+        assertEquals(søknad.saksnummer, sak.saksnummer)
     }
 
     @Test
     fun `ja i alt`() {
         val fra = LocalDate.of(2023, 1, 1)
         val til = LocalDate.of(2023, 12, 31)
+        val sak = ObjectMother.nySak()
         val søknadDTO =
             søknadDTO(
                 kvp = PeriodeSpmDTO(svar = SpmSvarDTO.Ja, fom = fra, tom = til),
@@ -63,8 +69,9 @@ internal class SøknadDTOTest {
                 gjenlevendePensjon = PeriodeSpmDTO(svar = SpmSvarDTO.Ja, fom = fra, tom = til),
                 trygdOgPensjon = PeriodeSpmDTO(svar = SpmSvarDTO.Ja, fom = fra, tom = til),
                 etterlønn = JaNeiSpmDTO(SpmSvarDTO.Ja),
+                saksnummer = sak.saksnummer,
             )
-        val søknad = SøknadDTOMapper.mapSøknad(søknadDTO, LocalDateTime.MIN)
+        val søknad = SøknadDTOMapper.mapSøknad(søknadDTO, LocalDateTime.MIN, sak)
 
         assertEquals(søknad.kvp, Søknad.PeriodeSpm.Ja(Periode(fraOgMed = fra, tilOgMed = til)))
         assertEquals(søknad.intro, Søknad.PeriodeSpm.Ja(Periode(fraOgMed = fra, tilOgMed = til)))
@@ -77,6 +84,8 @@ internal class SøknadDTOTest {
         assertEquals(søknad.gjenlevendepensjon, Søknad.PeriodeSpm.Ja(Periode(fraOgMed = fra, tilOgMed = til)))
         assertEquals(søknad.trygdOgPensjon, Søknad.PeriodeSpm.Ja(Periode(fraOgMed = fra, tilOgMed = til)))
         assertEquals(søknad.etterlønn, Søknad.JaNeiSpm.Ja)
+        assertEquals(søknad.sakId, sak.id)
+        assertEquals(søknad.saksnummer, sak.saksnummer)
     }
 
     private fun søknadDTO(
@@ -115,6 +124,7 @@ internal class SøknadDTOTest {
         sykepenger: PeriodeSpmDTO = PeriodeSpmDTO(svar = SpmSvarDTO.Nei, fom = null, tom = null),
         trygdOgPensjon: PeriodeSpmDTO = PeriodeSpmDTO(svar = SpmSvarDTO.Nei, fom = null, tom = null),
         vedlegg: Int = 0,
+        saksnummer: Saksnummer,
     ) = SøknadDTO(
         versjon = versjon,
         søknadId = søknadId,
@@ -136,5 +146,6 @@ internal class SøknadDTOTest {
         trygdOgPensjon = trygdOgPensjon,
         opprettet = opprettet,
         vedlegg = vedlegg,
+        saksnummer = saksnummer.verdi,
     )
 }

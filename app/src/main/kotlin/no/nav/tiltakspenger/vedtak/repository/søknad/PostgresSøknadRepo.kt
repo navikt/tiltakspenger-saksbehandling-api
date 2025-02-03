@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.vedtak.repository.søknad
 
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -22,4 +23,9 @@ internal class PostgresSøknadRepo(
             SøknadDAO.lagreHeleSøknaden(søknad, it)
         }
     }
+
+    override fun hentSakIdForSoknad(søknadId: SøknadId): SakId? =
+        sessionFactory.withSession {
+            SøknadDAO.finnSakId(søknadId, it)
+        }
 }

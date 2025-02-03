@@ -29,7 +29,7 @@ class IntroRoutesTest {
         with(TestApplicationContext()) {
             val tac = this
             val sak = this.førstegangsbehandlingUavklart()
-            val behandlingId = sak.førstegangsbehandling.id
+            val behandlingId = sak.førstegangsbehandling!!.id
             testApplication {
                 application {
                     jacksonSerialization()
@@ -66,7 +66,7 @@ class IntroRoutesTest {
             val sak = this.førstegangsbehandlingUavklart(
                 deltarPåIntroduksjonsprogram = false,
             )
-            val behandlingId = sak.førstegangsbehandling.id
+            val behandlingId = sak.førstegangsbehandling!!.id
             testApplication {
                 application {
                     jacksonSerialization()

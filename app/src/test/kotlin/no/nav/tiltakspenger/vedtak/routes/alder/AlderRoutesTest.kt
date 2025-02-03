@@ -37,7 +37,7 @@ class AlderRoutesTest {
         with(TestApplicationContext()) {
             val tac = this
             val sak = this.førstegangsbehandlingUavklart()
-            val behandlingId = sak.førstegangsbehandling.id
+            val behandlingId = sak.førstegangsbehandling!!.id
 
             testApplication {
                 application {
@@ -73,7 +73,7 @@ class AlderRoutesTest {
         with(TestApplicationContext()) {
             val tac = this
             val sak = this.førstegangsbehandlingUavklart(fødselsdato = 5.januar(2000))
-            val behandlingId = sak.førstegangsbehandling.id
+            val behandlingId = sak.førstegangsbehandling!!.id
 
             testApplication {
                 application {
@@ -110,9 +110,13 @@ class AlderRoutesTest {
         val fødselsdato = 5.januar(2000)
         with(TestApplicationContext()) {
             val tac = this
+            val sak = ObjectMother.nySak()
+            tac.sakContext.sakRepo.opprettSak(sak)
             val søknad = this.nySøknad(
+                fnr = sak.fnr,
                 periode = vurderingsperiode,
                 personopplysningerForBrukerFraPdl = ObjectMother.personopplysningKjedeligFyr(fødselsdato = fødselsdato),
+                sak = sak,
             )
 
             testApplication {
@@ -125,6 +129,7 @@ class AlderRoutesTest {
                             sakService = tac.sakContext.sakService,
                             auditService = tac.personContext.auditService,
                             startRevurderingService = tac.behandlingContext.startRevurderingService,
+                            søknadService = tac.søknadContext.søknadService,
                         )
                     }
                 }

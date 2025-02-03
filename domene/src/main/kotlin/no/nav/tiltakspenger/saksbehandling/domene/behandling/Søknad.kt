@@ -3,8 +3,10 @@
 package no.nav.tiltakspenger.saksbehandling.domene.behandling
 
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -29,6 +31,8 @@ data class Søknad(
     val jobbsjansen: PeriodeSpm,
     val trygdOgPensjon: PeriodeSpm,
     val vedlegg: Int,
+    val sakId: SakId,
+    val saksnummer: Saksnummer,
 ) {
     val fnr: Fnr = personopplysninger.fnr
 

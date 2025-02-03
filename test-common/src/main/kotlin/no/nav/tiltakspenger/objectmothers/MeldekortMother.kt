@@ -282,7 +282,6 @@ interface MeldekortMother {
         kommando: SendMeldekortTilBeslutterKommando,
         meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
-
     ): Pair<MeldekortBehandlinger, MeldekortBehandling.MeldekortBehandlet> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
@@ -295,7 +294,6 @@ interface MeldekortMother {
         )
 
         val meldekortBehandlinger = MeldekortBehandlinger(
-            tiltakstype = tiltakstype,
             verdi = nonEmptyListOf(
                 MeldekortBehandling.MeldekortUnderBehandling(
                     id = meldekortId,
@@ -346,7 +344,6 @@ interface MeldekortMother {
         )
 
         return MeldekortBehandlinger(
-            tiltakstype = tiltakstype,
             verdi = this.verdi + MeldekortBehandling.MeldekortUnderBehandling(
                 id = meldekortId,
                 sakId = sakId,

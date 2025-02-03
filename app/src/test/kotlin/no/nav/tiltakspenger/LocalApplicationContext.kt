@@ -17,12 +17,14 @@ import no.nav.tiltakspenger.felles.TiltakId
 import no.nav.tiltakspenger.libs.auth.test.core.EntraIdSystemtokenFakeClient
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringServiceImpl
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.objectmothers.toSøknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
+import no.nav.tiltakspenger.saksbehandling.domene.sak.SaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
@@ -40,6 +42,7 @@ import no.nav.tiltakspenger.vedtak.context.PersonContext
 import no.nav.tiltakspenger.vedtak.context.SakContext
 import no.nav.tiltakspenger.vedtak.context.TiltakContext
 import no.nav.tiltakspenger.vedtak.context.UtbetalingContext
+import no.nav.tiltakspenger.vedtak.repository.sak.SakPostgresRepo
 
 /**
  * Oppretter en tom ApplicationContext for bruk i tester.
@@ -82,11 +85,20 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
     private val søknadstiltak = tiltak.toSøknadstiltak()
 
     init {
+        val sakRepo = SakPostgresRepo(
+            sessionFactory = sessionFactory as PostgresSessionFactory,
+            saksnummerGenerator = SaksnummerGenerator.Local,
+        )
+        val sak = sakRepo.hentForFnr(fnr).saker.firstOrNull() ?: ObjectMother.nySak(
+            fnr = fnr,
+            saksnummer = sakRepo.hentNesteSaksnummer(),
+        ).also { sakRepo.opprettSak(it) }
         val søknad = søknadContext.søknadRepo.hentForSøknadId(søknadId) ?: ObjectMother.nySøknad(
             fnr = fnr,
             id = søknadId,
             eksternId = tiltakId,
             søknadstiltak = søknadstiltak,
+            sak = sak,
         ).also { søknadContext.søknadRepo.lagre(it) }
         require(søknadstiltak == søknad.tiltak) {
             "Diff mellom søknadstiltak i lokal database og statiske tiltaksdata i LocalApplicationContext. Mulig løsning: Tøm lokal db."
@@ -151,16 +163,13 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
         }
     }
     override val profile by lazy { Profile.LOCAL }
+
     override val sakContext by lazy {
         object : SakContext(
             sessionFactory = sessionFactory,
             personService = personContext.personService,
-            søknadService = søknadContext.søknadService,
-            statistikkSakRepo = statistikkContext.statistikkSakRepo,
-            tiltakGateway = tiltakGatewayFake,
             tilgangsstyringService = personContext.tilgangsstyringService,
             poaoTilgangGateway = personContext.poaoTilgangGateway,
-            gitHash = gitHash,
             profile = profile,
         ) {}
     }
@@ -192,6 +201,7 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
             dokdistGateway = dokdistFakeGateway,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
+            tiltakGateway = tiltakGatewayFake,
         ) {}
     }
     override val utbetalingContext by lazy {

@@ -26,7 +26,7 @@ class BehandlingBeslutterRoutesTest {
             val beslutter = beslutter()
             val tac = this
             val sak = this.førstegangsbehandlingUnderBeslutning(beslutter = beslutter)
-            val behandlingId = sak.førstegangsbehandling.id
+            val behandlingId = sak.førstegangsbehandling!!.id
             testApplication {
                 application {
                     jacksonSerialization()

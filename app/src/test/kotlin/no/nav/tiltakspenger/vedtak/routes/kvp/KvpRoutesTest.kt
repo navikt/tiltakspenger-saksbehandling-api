@@ -50,7 +50,7 @@ class KvpRoutesTest {
             val sak = this.førstegangsbehandlingUavklart(
                 saksbehandler = saksbehandler,
             )
-            val behandlingId = sak.førstegangsbehandling.id
+            val behandlingId = sak.førstegangsbehandling!!.id
 
             testApplication {
                 application {
@@ -89,7 +89,7 @@ class KvpRoutesTest {
             val sak = this.førstegangsbehandlingUavklart(
                 saksbehandler = saksbehandler,
             )
-            val behandlingId = sak.førstegangsbehandling.id
+            val behandlingId = sak.førstegangsbehandling!!.id
 
             testApplication {
                 application {

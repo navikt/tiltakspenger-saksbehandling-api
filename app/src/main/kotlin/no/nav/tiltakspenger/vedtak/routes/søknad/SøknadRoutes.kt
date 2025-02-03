@@ -10,23 +10,31 @@ import no.nav.tiltakspenger.felles.Systembruker
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSystembruker
 import no.nav.tiltakspenger.libs.soknad.SøknadDTO
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.service.SøknadService
+import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 
 private val logger = KotlinLogging.logger {}
 
 const val SØKNAD_PATH = "/soknad"
 
-fun Route.søknadRoutes(søknadService: SøknadService, tokenService: TokenService) {
+fun Route.søknadRoutes(
+    søknadService: SøknadService,
+    sakService: SakService,
+    tokenService: TokenService,
+) {
     post(SØKNAD_PATH) {
         logger.debug { "Mottatt ny søknad på '$SØKNAD_PATH' -  Prøver deserialisere og lagre." }
         call.withSystembruker(tokenService = tokenService) { systembruker: Systembruker ->
             val søknadDTO = call.receive<SøknadDTO>()
             logger.debug { "Deserialisert søknad OK med id ${søknadDTO.søknadId}" }
-            // Oppretter sak med søknad og lagrer den
+            val sak = sakService.hentForSaksnummer(Saksnummer(søknadDTO.saksnummer), systembruker)
+            // Oppretter søknad og lagrer den med kobling til angitt sak
             søknadService.nySøknad(
                 søknad = SøknadDTOMapper.mapSøknad(
                     dto = søknadDTO,
                     innhentet = søknadDTO.opprettet,
+                    sak = sak,
                 ),
                 systembruker = systembruker,
             )

@@ -32,7 +32,7 @@ internal class VedtakslisteTest {
                 sak.stønadsdager() shouldBe sak.krympStønadsdager(hele)
                 val førsteStønadsdagPeriode = Stønadsdager(
                     vurderingsperiode = jan1,
-                    registerSaksopplysning = sak.førstegangsbehandling.stønadsdager.registerSaksopplysning.copy(
+                    registerSaksopplysning = sak.førstegangsbehandling!!.stønadsdager.registerSaksopplysning.copy(
                         periode = jan1,
                     ),
                 )

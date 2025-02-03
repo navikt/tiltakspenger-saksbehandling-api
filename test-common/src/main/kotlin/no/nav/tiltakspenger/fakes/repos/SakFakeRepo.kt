@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saker
@@ -21,6 +20,7 @@ class SakFakeRepo(
     private val meldekortBehandlingRepo: MeldekortBehandlingFakeRepo,
     private val meldeperiodeRepo: MeldeperiodeFakeRepo,
     private val utbetalingsvedtakRepo: UtbetalingsvedtakFakeRepo,
+    private val søknadFakeRepo: SøknadFakeRepo,
 ) : SakRepo {
     val data = Atomic(mutableMapOf<SakId, Sak>())
 
@@ -31,12 +31,8 @@ class SakFakeRepo(
         return hentSak(sakId)
     }
 
-    override fun opprettSakOgFørstegangsbehandling(
-        sak: Sak,
-        transactionContext: TransactionContext?,
-    ) {
+    override fun opprettSak(sak: Sak) {
         data.get()[sak.id] = sak
-        behandlingRepo.lagre(sak.førstegangsbehandling)
     }
 
     override fun hentForSakId(sakId: SakId): Sak? {
@@ -53,7 +49,8 @@ class SakFakeRepo(
     ): Sak? {
         val behandlinger = behandlingRepo.hentBehandlingerForSakId(sakId)
         val meldekortBehandlinger =
-            meldekortBehandlingRepo.hentForSakId(sakId) ?: MeldekortBehandlinger.empty(behandlinger.first().tiltakstype)
+            meldekortBehandlingRepo.hentForSakId(sakId) ?: MeldekortBehandlinger.empty()
+        val soknader = søknadFakeRepo.hentForSakId(sakId)
 
         return data.get()[sakId]?.copy(
             behandlinger = behandlinger,
@@ -61,6 +58,7 @@ class SakFakeRepo(
             meldekortBehandlinger = meldekortBehandlinger,
             utbetalinger = utbetalingsvedtakRepo.hentForSakId(sakId),
             meldeperiodeKjeder = meldeperiodeRepo.hentForSakId(sakId),
+            soknader = soknader,
         )
     }
 

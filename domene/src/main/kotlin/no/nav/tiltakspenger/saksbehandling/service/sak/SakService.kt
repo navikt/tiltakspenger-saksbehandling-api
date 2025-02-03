@@ -1,13 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.service.sak
 
 import arrow.core.Either
+import no.nav.tiltakspenger.felles.Systembruker
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
-import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.benk.Saksoversikt
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.EnkelPersonMedSkjerming
@@ -16,17 +16,22 @@ import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.service.person.KunneIkkeHenteEnkelPerson
 
 interface SakService {
-    suspend fun startFørstegangsbehandling(
-        søknadId: SøknadId,
-        saksbehandler: Saksbehandler,
+    suspend fun hentEllerOpprettSak(
+        fnr: Fnr,
+        systembruker: Systembruker,
         correlationId: CorrelationId,
-    ): Either<KanIkkeStarteFørstegangsbehandling, Sak>
+    ): Sak
 
     suspend fun hentForSaksnummer(
         saksnummer: Saksnummer,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): Either<KunneIkkeHenteSakForSaksnummer, Sak>
+
+    suspend fun hentForSaksnummer(
+        saksnummer: Saksnummer,
+        systembruker: Systembruker,
+    ): Sak
 
     suspend fun hentForFnr(
         fnr: Fnr,

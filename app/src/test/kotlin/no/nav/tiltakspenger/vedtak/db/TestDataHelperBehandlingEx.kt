@@ -36,6 +36,11 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
     id: SøknadId = Søknad.randomId(),
+    sak: Sak = ObjectMother.nySak(
+        sakId = sakId,
+        fnr = fnr,
+        saksnummer = this.saksnummerGenerator.neste(),
+    ),
     søknad: Søknad =
         ObjectMother.nySøknad(
             periode = tiltaksOgVurderingsperiode,
@@ -51,12 +56,14 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
+            sak = sak,
         ),
 ): Pair<Sak, Søknad> {
-    this.persisterSøknad(
+    this.persisterSakOgSøknad(
         søknad = søknad,
+        sak = sak,
     )
-    val sak =
+    val sakMedBehandling =
         ObjectMother.sakMedOpprettetBehandling(
             søknad = søknad,
             fnr = fnr,
@@ -65,8 +72,7 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
             saksbehandler = saksbehandler,
             sakId = sakId,
         )
-    søknadRepo.lagre(søknad)
-    sakRepo.opprettSakOgFørstegangsbehandling(sak)
+    behandlingRepo.lagre(sakMedBehandling.førstegangsbehandling!!)
 
     return Pair(
         sakRepo.hentForSakId(sakId)!!,
@@ -86,6 +92,11 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
+    sak: Sak = ObjectMother.nySak(
+        sakId = sakId,
+        fnr = fnr,
+        saksnummer = this.saksnummerGenerator.neste(),
+    ),
     id: SøknadId = Søknad.randomId(),
     søknad: Søknad =
         ObjectMother.nySøknad(
@@ -102,6 +113,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
+            sak = sak,
         ),
 ): Pair<Sak, Rammevedtak> {
     val (sak, _) = persisterOpprettetFørstegangsbehandling(
@@ -114,10 +126,11 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
         tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
         id = id,
         søknad = søknad,
+        sak = sak,
     )
     val førstegangsbehandling = sak.førstegangsbehandling
     val oppdatertFørstegangsbehandling =
-        førstegangsbehandling
+        førstegangsbehandling!!
             .leggTilLivsoppholdSaksopplysning(
                 LeggTilLivsoppholdSaksopplysningCommand(
                     behandlingId = førstegangsbehandling.id,
@@ -151,6 +164,11 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
+    sak: Sak = ObjectMother.nySak(
+        sakId = sakId,
+        fnr = fnr,
+        saksnummer = this.saksnummerGenerator.neste(),
+    ),
     id: SøknadId = Søknad.randomId(),
     søknad: Søknad =
         ObjectMother.nySøknad(
@@ -167,6 +185,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
+            sak = sak,
         ),
     stansFraOgMed: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
 ): Pair<Sak, Behandling> {
@@ -181,6 +200,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
         tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
         id = id,
         søknad = søknad,
+        sak = sak,
     )
     return sak.startRevurdering(
         kommando = StartRevurderingKommando(
@@ -204,6 +224,11 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
     id: SøknadId = Søknad.randomId(),
+    sak: Sak = ObjectMother.nySak(
+        sakId = sakId,
+        fnr = fnr,
+        saksnummer = this.saksnummerGenerator.neste(),
+    ),
     søknad: Søknad =
         ObjectMother.nySøknad(
             periode = tiltaksOgVurderingsperiode,
@@ -219,6 +244,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
+            sak = sak,
         ),
 ): Pair<Sak, MeldekortBehandling.MeldekortBehandlet> {
     val (sak, vedtak) = persisterIverksattFørstegangsbehandling(
@@ -232,6 +258,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         id = id,
         søknad = søknad,
         beslutter = beslutter,
+        sak = sak,
     )
     val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
     val behandletMeldekort = ObjectMother.meldekortBehandlet(
