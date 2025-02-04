@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.meldekort.service.OpprettMeldekortBehandlingService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.correlationId
-import no.nav.tiltakspenger.vedtak.routes.withMeldeperiodeId
+import no.nav.tiltakspenger.vedtak.routes.withMeldeperiodeKjedeId
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 
 private const val PATH = "sak/{sakId}/meldeperiode/{meldeperiodeId}/opprettBehandling"
@@ -32,11 +32,11 @@ fun Route.opprettMeldekortBehandlingRoute(
         logger.debug { "Mottatt post-request på $PATH - oppretter meldekort-behandling" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
-                call.withMeldeperiodeId { meldeperiodeId ->
+                call.withMeldeperiodeKjedeId { meldeperiodeKjedeId ->
                     val correlationId = call.correlationId()
 
                     opprettMeldekortBehandlingService.opprettBehandling(
-                        id = meldeperiodeId,
+                        meldeperiodeKjedeId = meldeperiodeKjedeId,
                         sakId = sakId,
                         saksbehandler = saksbehandler,
                         correlationId = correlationId,
@@ -49,12 +49,12 @@ fun Route.opprettMeldekortBehandlingRoute(
                                 )
 
                                 is KanIkkeOppretteMeldekortBehandling.BehandlingFinnes -> call.respond409Conflict(
-                                    melding = "Behandling finnes allerede for meldeperiode $meldeperiodeId på sak $sakId",
+                                    melding = "Behandling finnes allerede for meldeperiode $meldeperiodeKjedeId på sak $sakId",
                                     kode = "",
                                 )
 
                                 is KanIkkeOppretteMeldekortBehandling.IngenMeldeperiode -> call.respond400BadRequest(
-                                    melding = "Fant ikke meldeperioden med id $meldeperiodeId på sak $sakId",
+                                    melding = "Fant ikke meldeperioden med id $meldeperiodeKjedeId på sak $sakId",
                                     kode = "",
                                 )
 

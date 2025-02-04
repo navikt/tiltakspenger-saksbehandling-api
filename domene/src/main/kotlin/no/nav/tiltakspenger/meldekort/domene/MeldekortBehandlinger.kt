@@ -51,16 +51,18 @@ data class MeldekortBehandlinger(
             }
     }
 
-    fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
-        return verdi.find { it.id == meldekortId }
+    fun hentMeldekortBehandlingForMeldekortBehandlingId(meldekortId: MeldekortId): MeldekortBehandling? {
+        return verdi.singleOrNullOrThrow { it.id == meldekortId }
     }
 
-    fun hentMeldekortBehandling(id: HendelseId): MeldekortBehandling? {
-        return this.find { it.meldeperiode.id == id }
+    /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
+    fun hentMeldekortBehandlingForMeldeperiodeId(id: HendelseId): List<MeldekortBehandling> {
+        return this.filter { it.meldeperiode.id == id }
     }
 
-    fun hentMeldekortForKjedeId(meldeperiodeKjedeId: MeldeperiodeKjedeId): MeldekortBehandling? {
-        return verdi.find { it.meldeperiodeKjedeId == meldeperiodeKjedeId }
+    /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
+    fun hentMeldekortBehandlingForMeldeperiodeKjedeId(meldeperiodeKjedeId: MeldeperiodeKjedeId): List<MeldekortBehandling> {
+        return verdi.filter { it.meldeperiodeKjedeId == meldeperiodeKjedeId }
     }
 
     /**

@@ -7,10 +7,11 @@ import arrow.core.right
 import mu.KotlinLogging
 import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.HendelseId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.meldekort.domene.opprettMeldekortBehandling
 import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
@@ -25,7 +26,7 @@ class OpprettMeldekortBehandlingService(
     private val logger = KotlinLogging.logger {}
 
     suspend fun opprettBehandling(
-        id: HendelseId,
+        meldeperiodeKjedeId: MeldeperiodeKjedeId,
         sakId: SakId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
@@ -34,17 +35,12 @@ class OpprettMeldekortBehandlingService(
             logger.error { "Kunne ikke hente sak med id $sakId" }
             return KanIkkeOppretteMeldekortBehandling.IkkeTilgangTilSak.left()
         }.also {
-            if (it.hentMeldekortBehandling(id) != null) {
-                logger.error { "Det finnes allerede en behandling av $id: ${it.id}" }
+            if (it.hentMeldekortBehandlingForMeldeperiodeKjedeId(meldeperiodeKjedeId).isNotEmpty()) {
+                logger.error { "Det finnes allerede en behandling av $meldeperiodeKjedeId: ${it.id}" }
                 return KanIkkeOppretteMeldekortBehandling.BehandlingFinnes.left()
             }
         }
-
-        val meldeperiode = sak.hentMeldeperiode(id = id)
-        if (meldeperiode == null) {
-            logger.error { "Fant ingen meldeperiode med id $id for sak $sakId" }
-            return KanIkkeOppretteMeldekortBehandling.IngenMeldeperiode.left()
-        }
+        val meldeperiode: Meldeperiode = sak.hentMeldeperiodeForKjedeId(meldeperiodeKjedeId = meldeperiodeKjedeId)
 
         val navkontor = Either.catch {
             navkontorService.hentOppfolgingsenhet(sak.fnr)
@@ -66,7 +62,7 @@ class OpprettMeldekortBehandlingService(
             meldekortBehandlingRepo.lagre(meldekortBehandling, tx)
         }
 
-        logger.info { "Opprettet behandling ${meldekortBehandling.id} av meldeperiode hendelse $id for sak $sakId" }
+        logger.info { "Opprettet behandling ${meldekortBehandling.id} av meldeperiode hendelse $meldeperiodeKjedeId for sak $sakId" }
 
         return Unit.right()
     }
