@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.ports
 
+import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -16,5 +17,5 @@ interface SøknadRepo {
 
     fun hentSakIdForSoknad(søknadId: SøknadId): SakId?
 
-    fun hentOppgaveIdForSoknad(behandlingId: BehandlingId): Int?
+    fun hentOppgaveIdForBehandling(behandlingId: BehandlingId): OppgaveId?
 }

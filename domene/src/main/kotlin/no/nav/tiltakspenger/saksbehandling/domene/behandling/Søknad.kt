@@ -2,6 +2,7 @@
 
 package no.nav.tiltakspenger.saksbehandling.domene.behandling
 
+import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -33,7 +34,7 @@ data class Søknad(
     val vedlegg: Int,
     val sakId: SakId,
     val saksnummer: Saksnummer,
-    val oppgaveId: Int?,
+    val oppgaveId: OppgaveId?,
 ) {
     val fnr: Fnr = personopplysninger.fnr
 

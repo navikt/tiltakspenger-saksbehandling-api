@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.fakes.repos
 
 import arrow.atomic.Atomic
+import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -25,7 +26,7 @@ class SøknadFakeRepo : SøknadRepo {
 
     override fun hentSakIdForSoknad(søknadId: SøknadId): SakId = data.get()[søknadId]!!.sakId
 
-    override fun hentOppgaveIdForSoknad(behandlingId: BehandlingId): Int {
+    override fun hentOppgaveIdForBehandling(behandlingId: BehandlingId): OppgaveId {
         return ObjectMother.oppgaveId()
     }
 

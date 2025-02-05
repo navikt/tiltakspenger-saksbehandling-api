@@ -184,7 +184,7 @@ class BehandlingServiceImpl(
             logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å sende behandling til beslutter" }
             return KanIkkeSendeTilBeslutter.MåVæreSaksbehandler.left()
         }
-        val oppgaveId = søknadRepo.hentOppgaveIdForSoknad(behandlingId)
+        val oppgaveId = søknadRepo.hentOppgaveIdForBehandling(behandlingId)
         return hentBehandling(behandlingId, saksbehandler, correlationId).tilBeslutning(saksbehandler).also {
             oppgaveId?.let { id ->
                 logger.info { "Ferdigstiller oppgave med id $id for søknad med behandlingsId $behandlingId" }

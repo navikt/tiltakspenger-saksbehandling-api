@@ -4,6 +4,7 @@ import kotliquery.Row
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
+import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
@@ -48,7 +49,7 @@ internal object SøknadDAO {
     fun finnOppgaveIdForBehandlingId(
         behandlingId: BehandlingId,
         session: Session,
-    ): Int? =
+    ): OppgaveId? =
         session.run(
             queryOf(sqlHent, behandlingId.toString())
                 .map { row -> row.toOppgaveId() }
@@ -191,7 +192,7 @@ internal object SøknadDAO {
                         "vedlegg" to søknad.vedlegg,
                         "opprettet" to søknad.opprettet,
                         "tidsstempel_hos_oss" to søknad.tidsstempelHosOss,
-                        "oppgave_id" to søknad.oppgaveId,
+                        "oppgave_id" to søknad.oppgaveId.toString(),
                     ),
             ).asUpdate,
         )
@@ -201,7 +202,7 @@ internal object SøknadDAO {
 
     private fun Row.toJournalpostId() = string("journalpost_id")
 
-    private fun Row.toOppgaveId() = stringOrNull("oppgave_id")?.toInt()
+    private fun Row.toOppgaveId() = stringOrNull("oppgave_id")?.let { OppgaveId(it) }
 
     private fun Row.toSakId() = stringOrNull("sak_id")?.let { SakId.fromString(it) }
 
@@ -219,7 +220,7 @@ internal object SøknadDAO {
         val vedlegg = int("vedlegg")
         val sakId = SakId.fromString(string("sak_id"))
         val saksnummer = Saksnummer(string("saksnummer"))
-        val oppgaveId = stringOrNull("oppgave_id")?.toInt()
+        val oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) }
         val kvp = periodeSpm(KVP_FELT)
         val intro = periodeSpm(INTRO_FELT)
         val institusjon = periodeSpm(INSTITUSJON_FELT)
