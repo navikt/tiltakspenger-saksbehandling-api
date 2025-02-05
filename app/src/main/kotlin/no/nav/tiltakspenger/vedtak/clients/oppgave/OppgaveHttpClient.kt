@@ -115,7 +115,7 @@ class OppgaveHttpClient(
         callId: UUID,
     ) {
         val ferdigstillOppgaveRequest = FerdigstillOppgaveRequest(
-            versjon = oppgave.versjon + 1,
+            versjon = oppgave.versjon,
             status = OppgaveStatus.FERDIGSTILT,
         )
         val jsonPayload = objectMapper.writeValueAsString(ferdigstillOppgaveRequest)
