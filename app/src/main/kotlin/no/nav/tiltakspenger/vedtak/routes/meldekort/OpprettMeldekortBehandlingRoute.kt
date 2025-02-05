@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.withMeldeperiodeKjedeId
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 
-private const val PATH = "sak/{sakId}/meldeperiode/{meldeperiodeId}/opprettBehandling"
+private const val PATH = "sak/{sakId}/meldeperiode/{meldeperiodeKjedeId}/opprettBehandling"
 
 fun Route.opprettMeldekortBehandlingRoute(
     opprettMeldekortBehandlingService: OpprettMeldekortBehandlingService,
