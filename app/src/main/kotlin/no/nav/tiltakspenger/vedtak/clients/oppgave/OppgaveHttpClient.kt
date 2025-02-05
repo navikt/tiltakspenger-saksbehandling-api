@@ -21,7 +21,7 @@ class OppgaveHttpClient(
     baseUrl: String,
     private val getToken: suspend () -> AccessToken,
     connectTimeout: kotlin.time.Duration = 1.seconds,
-    private val timeout: kotlin.time.Duration = 1.seconds,
+    private val timeout: kotlin.time.Duration = 5.seconds,
 ) : OppgaveGateway {
     private val logger = KotlinLogging.logger {}
     private val client =

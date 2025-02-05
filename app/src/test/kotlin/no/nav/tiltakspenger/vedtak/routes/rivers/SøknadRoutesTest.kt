@@ -113,6 +113,7 @@ class SøknadRoutesTest {
                     trygdOgPensjon = Søknad.PeriodeSpm.Nei,
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
+                    oppgaveId = ObjectMother.oppgaveId(),
                 )
 
             tac.søknadContext.søknadRepo.hentSakIdForSoknad(søknadId) shouldBe sak.id

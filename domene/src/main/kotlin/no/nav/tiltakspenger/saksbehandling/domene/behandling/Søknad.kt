@@ -33,6 +33,7 @@ data class Søknad(
     val vedlegg: Int,
     val sakId: SakId,
     val saksnummer: Saksnummer,
+    val oppgaveId: Int?,
 ) {
     val fnr: Fnr = personopplysninger.fnr
 

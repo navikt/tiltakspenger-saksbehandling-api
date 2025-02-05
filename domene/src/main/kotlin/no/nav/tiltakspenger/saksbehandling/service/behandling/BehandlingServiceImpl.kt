@@ -37,9 +37,11 @@ import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
+import no.nav.tiltakspenger.saksbehandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.ports.TiltakGateway
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteFørstegangsbehandling
@@ -64,6 +66,8 @@ class BehandlingServiceImpl(
     private val sakService: SakService,
     private val gitHash: String,
     private val tiltakGateway: TiltakGateway,
+    private val oppgaveGateway: OppgaveGateway,
+    private val søknadRepo: SøknadRepo,
 ) : BehandlingService {
     val logger = KotlinLogging.logger { }
 
@@ -180,7 +184,12 @@ class BehandlingServiceImpl(
             logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å sende behandling til beslutter" }
             return KanIkkeSendeTilBeslutter.MåVæreSaksbehandler.left()
         }
+        val oppgaveId = søknadRepo.hentOppgaveIdForSoknad(behandlingId)
         return hentBehandling(behandlingId, saksbehandler, correlationId).tilBeslutning(saksbehandler).also {
+            oppgaveId?.let { id ->
+                logger.info { "Ferdigstiller oppgave med id $id for søknad med behandlingsId $behandlingId" }
+                oppgaveGateway.ferdigstillOppgave(id)
+            }
             behandlingRepo.lagre(it)
         }.right()
     }

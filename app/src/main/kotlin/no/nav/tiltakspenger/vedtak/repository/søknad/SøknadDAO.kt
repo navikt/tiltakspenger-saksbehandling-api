@@ -45,6 +45,16 @@ internal object SøknadDAO {
                 .asSingle,
         )
 
+    fun finnOppgaveIdForBehandlingId(
+        behandlingId: BehandlingId,
+        session: Session,
+    ): Int? =
+        session.run(
+            queryOf(sqlHent, behandlingId.toString())
+                .map { row -> row.toOppgaveId() }
+                .asSingle,
+        )
+
     fun finnSakId(
         søknadId: SøknadId,
         session: Session,
@@ -181,6 +191,7 @@ internal object SøknadDAO {
                         "vedlegg" to søknad.vedlegg,
                         "opprettet" to søknad.opprettet,
                         "tidsstempel_hos_oss" to søknad.tidsstempelHosOss,
+                        "oppgave_id" to søknad.oppgaveId,
                     ),
             ).asUpdate,
         )
@@ -189,6 +200,8 @@ internal object SøknadDAO {
     private fun Row.toIdent() = string("ident")
 
     private fun Row.toJournalpostId() = string("journalpost_id")
+
+    private fun Row.toOppgaveId() = stringOrNull("oppgave_id")?.toInt()
 
     private fun Row.toSakId() = stringOrNull("sak_id")?.let { SakId.fromString(it) }
 
@@ -206,6 +219,7 @@ internal object SøknadDAO {
         val vedlegg = int("vedlegg")
         val sakId = SakId.fromString(string("sak_id"))
         val saksnummer = Saksnummer(string("saksnummer"))
+        val oppgaveId = stringOrNull("oppgave_id")?.toInt()
         val kvp = periodeSpm(KVP_FELT)
         val intro = periodeSpm(INTRO_FELT)
         val institusjon = periodeSpm(INSTITUSJON_FELT)
@@ -245,6 +259,7 @@ internal object SøknadDAO {
             trygdOgPensjon = trygdOgPensjon,
             sakId = sakId,
             saksnummer = saksnummer,
+            oppgaveId = oppgaveId,
         )
     }
 
@@ -302,7 +317,8 @@ internal object SøknadDAO {
             trygd_og_pensjon_fom,
             trygd_og_pensjon_tom,
             etterlonn_type,
-            vedlegg
+            vedlegg,
+            oppgave_id
         ) values (
             :id,
             :versjon,
@@ -354,7 +370,8 @@ internal object SøknadDAO {
             :trygd_og_pensjon_fom,
             :trygd_og_pensjon_tom,
             :etterlonn_type,
-            :vedlegg
+            :vedlegg,
+            :oppgave_id
         )
         """.trimIndent()
 

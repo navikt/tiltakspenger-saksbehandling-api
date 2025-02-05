@@ -1,9 +1,11 @@
 package no.nav.tiltakspenger.fakes.repos
 
 import arrow.atomic.Atomic
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.ports.SøknadRepo
 
@@ -22,6 +24,10 @@ class SøknadFakeRepo : SøknadRepo {
     override fun hentForSøknadId(søknadId: SøknadId): Søknad = data.get()[søknadId]!!
 
     override fun hentSakIdForSoknad(søknadId: SøknadId): SakId = data.get()[søknadId]!!.sakId
+
+    override fun hentOppgaveIdForSoknad(behandlingId: BehandlingId): Int {
+        return ObjectMother.oppgaveId()
+    }
 
     fun hentForSakId(sakId: SakId): List<Søknad> {
         return data.get().filter { it.value.sakId == sakId }.values.toList()

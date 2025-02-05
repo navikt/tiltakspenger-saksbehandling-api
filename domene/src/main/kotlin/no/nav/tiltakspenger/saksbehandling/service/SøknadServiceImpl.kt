@@ -1,17 +1,25 @@
 package no.nav.tiltakspenger.saksbehandling.service
 
+import mu.KotlinLogging
 import no.nav.tiltakspenger.felles.Systembruker
+import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.ports.SøknadRepo
 
 class SøknadServiceImpl(
     private val søknadRepo: SøknadRepo,
+    private val oppgaveGateway: OppgaveGateway,
 ) : SøknadService {
-    override fun nySøknad(søknad: Søknad, systembruker: Systembruker) {
+    private val log = KotlinLogging.logger {}
+
+    override suspend fun nySøknad(søknad: Søknad, systembruker: Systembruker) {
         require(systembruker.roller.harLageHendelser()) { "Systembruker mangler rollen LAGE_HENDELSER. Systembrukers roller: ${systembruker.roller}" }
-        søknadRepo.lagre(søknad)
+        val oppgaveId = oppgaveGateway.opprettOppgave(søknad.fnr, JournalpostId(søknad.journalpostId))
+        log.info { "Opprettet oppgave med id $oppgaveId for søknad med id ${søknad.id}" }
+        søknadRepo.lagre(søknad.copy(oppgaveId = oppgaveId))
     }
 
     override fun hentSøknad(søknadId: SøknadId): Søknad {

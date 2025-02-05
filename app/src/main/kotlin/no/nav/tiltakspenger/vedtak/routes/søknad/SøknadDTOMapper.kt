@@ -56,6 +56,7 @@ object SøknadDTOMapper {
             trygdOgPensjon = no.nav.tiltakspenger.vedtak.routes.søknad.SøknadDTOMapper.mapPeriodeSpm(dto.trygdOgPensjon),
             sakId = sak.id,
             saksnummer = sak.saksnummer,
+            oppgaveId = null,
         )
 
     private fun mapPeriodeSpm(periodeSpmDTO: PeriodeSpmDTO): Søknad.PeriodeSpm =

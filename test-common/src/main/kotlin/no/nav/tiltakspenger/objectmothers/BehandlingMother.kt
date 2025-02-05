@@ -143,7 +143,7 @@ interface BehandlingMother {
             .iverksett(beslutter(), godkjentAttestering())
 }
 
-fun TestApplicationContext.nySøknad(
+suspend fun TestApplicationContext.nySøknad(
     periode: Periode = ObjectMother.vurderingsperiode(),
     fnr: Fnr = Fnr.random(),
     fornavn: String = "Fornavn",

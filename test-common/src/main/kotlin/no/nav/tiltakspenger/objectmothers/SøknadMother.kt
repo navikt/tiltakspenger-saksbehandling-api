@@ -92,6 +92,7 @@ interface SøknadMother {
         supplerendeStønadFlyktning: Søknad.PeriodeSpm = periodeNei(),
         jobbsjansen: Søknad.PeriodeSpm = periodeNei(),
         sak: Sak = ObjectMother.nySak(fnr = fnr),
+        oppgaveId: Int? = ObjectMother.oppgaveId(),
     ): Søknad =
         Søknad(
             versjon = versjon,
@@ -116,6 +117,7 @@ interface SøknadMother {
             trygdOgPensjon = trygdOgPensjon,
             sakId = sak.id,
             saksnummer = sak.saksnummer,
+            oppgaveId = oppgaveId,
         )
 
     fun personSøknad(

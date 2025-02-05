@@ -11,9 +11,11 @@ import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.ports.GenererStansvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.ports.JournalførVedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
+import no.nav.tiltakspenger.saksbehandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.ports.TiltakGateway
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingServiceImpl
@@ -46,6 +48,8 @@ open class FørstegangsbehandlingContext(
     navIdentClient: NavIdentClient,
     sakService: SakService,
     tiltakGateway: TiltakGateway,
+    oppgaveGateway: OppgaveGateway,
+    søknadRepo: SøknadRepo,
 ) {
     open val rammevedtakRepo: RammevedtakRepo by lazy { RammevedtakPostgresRepo(sessionFactory as PostgresSessionFactory) }
     open val behandlingRepo: BehandlingRepo by lazy { BehandlingPostgresRepo(sessionFactory as PostgresSessionFactory) }
@@ -63,6 +67,8 @@ open class FørstegangsbehandlingContext(
             gitHash = gitHash,
             sakService = sakService,
             tiltakGateway = tiltakGateway,
+            oppgaveGateway = oppgaveGateway,
+            søknadRepo = søknadRepo,
         )
     }
     val tiltaksdeltagelseVilkårService: TiltaksdeltagelseVilkårService by lazy {

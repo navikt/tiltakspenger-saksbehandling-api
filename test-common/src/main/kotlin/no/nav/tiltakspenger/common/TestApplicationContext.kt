@@ -158,7 +158,7 @@ class TestApplicationContext(
     }
 
     override val søknadContext by lazy {
-        object : SøknadContext(sessionFactory) {
+        object : SøknadContext(sessionFactory, oppgaveGateway) {
             override val søknadRepo = søknadFakeRepo
         }
     }
@@ -215,6 +215,8 @@ class TestApplicationContext(
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
             tiltakGateway = tiltakGatewayFake,
+            oppgaveGateway = oppgaveGateway,
+            søknadRepo = søknadFakeRepo,
         ) {
             override val rammevedtakRepo = rammevedtakFakeRepo
             override val behandlingRepo = behandlingFakeRepo

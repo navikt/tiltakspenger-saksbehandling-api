@@ -76,7 +76,7 @@ open class ApplicationContext(
     open val personContext by lazy { PersonContext(sessionFactory, entraIdSystemtokenClient) }
     open val dokumentContext by lazy { DokumentContext(entraIdSystemtokenClient) }
     open val statistikkContext by lazy { StatistikkContext(sessionFactory) }
-    open val søknadContext by lazy { SøknadContext(sessionFactory) }
+    open val søknadContext by lazy { SøknadContext(sessionFactory, oppgaveGateway) }
     open val tiltakContext by lazy { TiltakContext(entraIdSystemtokenClient) }
     open val profile by lazy { Configuration.applicationProfile() }
     open val sakContext by lazy {
@@ -127,6 +127,8 @@ open class ApplicationContext(
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
             tiltakGateway = tiltakContext.tiltakGateway,
+            oppgaveGateway = oppgaveGateway,
+            søknadRepo = søknadContext.søknadRepo,
         )
     }
 
