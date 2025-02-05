@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.libs.jobber.LeaderPodLookupFeil
 import no.nav.tiltakspenger.libs.jobber.RunCheckFactory
 import no.nav.tiltakspenger.vedtak.Configuration.applicationProfile
 import no.nav.tiltakspenger.vedtak.Configuration.httpPort
-import no.nav.tiltakspenger.vedtak.Configuration.isProd
 import no.nav.tiltakspenger.vedtak.context.ApplicationContext
 import no.nav.tiltakspenger.vedtak.jobber.TaskExecutor
 import no.nav.tiltakspenger.vedtak.routes.vedtakApi
@@ -64,10 +63,7 @@ internal fun start(
         runCheckFactory = runCheckFactory,
         tasks =
         listOf {
-            // Kun dev: 22 januar var det datalast i OS/UR. Nå har helved og tømt basen sin. Vi stopper utbetaling frem til a) OS/UR har tømt sin base og helved har tømt sin igjen for tiltakspenger. b) vi tømmer devbasen vår c) vi slår på utbetalingsjobben igjen.
-            if (isProd()) {
-                applicationContext.utbetalingContext.sendUtbetalingerService.send()
-            }
+            applicationContext.utbetalingContext.sendUtbetalingerService.send()
             applicationContext.utbetalingContext.journalførUtbetalingsvedtakService.journalfør()
             applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør()
             applicationContext.behandlingContext.distribuerVedtaksbrevService.distribuer()

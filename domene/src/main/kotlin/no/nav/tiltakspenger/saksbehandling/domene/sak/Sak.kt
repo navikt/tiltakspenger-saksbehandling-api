@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
@@ -49,16 +50,26 @@ data class Sak(
         meldekortBehandlinger.sisteGodkjenteMeldekort?.navkontor
     }
 
-    fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
-        return meldekortBehandlinger.hentMeldekortBehandling(meldekortId)
+    fun hentMeldekortBehandlingForMeldekortBehandlingId(meldekortId: MeldekortId): MeldekortBehandling? {
+        return meldekortBehandlinger.hentMeldekortBehandlingForMeldekortBehandlingId(meldekortId)
     }
 
-    fun hentMeldekortBehandling(id: HendelseId): MeldekortBehandling? {
-        return meldekortBehandlinger.hentMeldekortBehandling(id)
+    /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
+    fun hentMeldekortBehandlingForMeldeperiodeId(id: HendelseId): List<MeldekortBehandling> {
+        return meldekortBehandlinger.hentMeldekortBehandlingForMeldeperiodeId(id)
+    }
+
+    /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
+    fun hentMeldekortBehandlingForMeldeperiodeKjedeId(id: MeldeperiodeKjedeId): List<MeldekortBehandling> {
+        return meldekortBehandlinger.hentMeldekortBehandlingForMeldeperiodeKjedeId(id)
     }
 
     fun hentMeldeperiode(id: HendelseId): Meldeperiode? {
         return meldeperiodeKjeder.hentMeldeperiode(id)
+    }
+
+    fun hentMeldeperiodeForKjedeId(meldeperiodeKjedeId: MeldeperiodeKjedeId): Meldeperiode {
+        return meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(meldeperiodeKjedeId)
     }
 
     fun hentMeldekortUnderBehandling(): MeldekortBehandling? = meldekortBehandlinger.meldekortUnderBehandling

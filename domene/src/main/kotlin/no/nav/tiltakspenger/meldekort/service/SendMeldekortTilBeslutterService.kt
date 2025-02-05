@@ -45,7 +45,7 @@ class SendMeldekortTilBeslutterService(
         val sak = sakService.hentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
             .getOrElse { return KanIkkeSendeMeldekortTilBeslutter.KunneIkkeHenteSak(it).left() }
 
-        val meldekortbehandling = sak.hentMeldekortBehandling(kommando.meldekortId)!!
+        val meldekortbehandling = sak.hentMeldekortBehandlingForMeldekortBehandlingId(kommando.meldekortId)!!
         val meldeperiode = meldekortbehandling.meldeperiode
         if (!sak.erSisteVersjonAvMeldeperiode(meldeperiode)) {
             throw IllegalStateException("Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: ${sak.id}, meldekortId: ${meldekortbehandling.id}")
