@@ -210,7 +210,6 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
             sakService = sakContext.sakService,
             tiltakGateway = tiltakGatewayFake,
             oppgaveGateway = oppgaveGateway,
-            søknadRepo = søknadContext.søknadRepo,
         ) {}
     }
     override val utbetalingContext by lazy {

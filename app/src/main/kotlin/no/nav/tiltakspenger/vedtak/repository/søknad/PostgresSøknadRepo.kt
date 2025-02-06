@@ -1,7 +1,5 @@
 package no.nav.tiltakspenger.vedtak.repository.søknad
 
-import no.nav.tiltakspenger.felles.OppgaveId
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
@@ -29,10 +27,5 @@ internal class PostgresSøknadRepo(
     override fun hentSakIdForSoknad(søknadId: SøknadId): SakId? =
         sessionFactory.withSession {
             SøknadDAO.finnSakId(søknadId, it)
-        }
-
-    override fun hentOppgaveIdForBehandling(behandlingId: BehandlingId): OppgaveId? =
-        sessionFactory.withSession {
-            SøknadDAO.finnOppgaveIdForBehandlingId(behandlingId, it)
         }
 }

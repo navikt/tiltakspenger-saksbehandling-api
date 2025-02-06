@@ -46,16 +46,6 @@ internal object SøknadDAO {
                 .asSingle,
         )
 
-    fun finnOppgaveIdForBehandlingId(
-        behandlingId: BehandlingId,
-        session: Session,
-    ): OppgaveId? =
-        session.run(
-            queryOf(sqlHent, behandlingId.toString())
-                .map { row -> row.toOppgaveId() }
-                .asSingle,
-        )
-
     fun finnSakId(
         søknadId: SøknadId,
         session: Session,
@@ -201,8 +191,6 @@ internal object SøknadDAO {
     private fun Row.toIdent() = string("ident")
 
     private fun Row.toJournalpostId() = string("journalpost_id")
-
-    private fun Row.toOppgaveId() = stringOrNull("oppgave_id")?.let { OppgaveId(it) }
 
     private fun Row.toSakId() = stringOrNull("sak_id")?.let { SakId.fromString(it) }
 

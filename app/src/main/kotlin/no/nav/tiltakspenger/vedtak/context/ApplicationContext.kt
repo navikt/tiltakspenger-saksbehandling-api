@@ -128,7 +128,6 @@ open class ApplicationContext(
             sakService = sakContext.sakService,
             tiltakGateway = tiltakContext.tiltakGateway,
             oppgaveGateway = oppgaveGateway,
-            søknadRepo = søknadContext.søknadRepo,
         )
     }
 

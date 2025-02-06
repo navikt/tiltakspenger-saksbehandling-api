@@ -216,7 +216,6 @@ class TestApplicationContext(
             sakService = sakContext.sakService,
             tiltakGateway = tiltakGatewayFake,
             oppgaveGateway = oppgaveGateway,
-            søknadRepo = søknadFakeRepo,
         ) {
             override val rammevedtakRepo = rammevedtakFakeRepo
             override val behandlingRepo = behandlingFakeRepo
