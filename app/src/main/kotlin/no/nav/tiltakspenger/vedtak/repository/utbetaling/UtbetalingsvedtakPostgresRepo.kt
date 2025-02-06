@@ -122,10 +122,13 @@ internal class UtbetalingsvedtakPostgresRepo(
             session.run(
                 queryOf(
                     """
-                    select u.*,s.ident as fnr,s.saksnummer 
-                    from utbetalingsvedtak u 
-                    join sak s on s.id = u.sak_id 
+                    select u.*, s.ident as fnr, s.saksnummer
+                    from utbetalingsvedtak u
+                    join sak s on s.id = u.sak_id
+                    left join utbetalingsvedtak parent on parent.id = u.forrige_vedtak_id
+                      and parent.sak_id = u.sak_id
                     where u.sendt_til_utbetaling_tidspunkt is null
+                      and (u.forrige_vedtak_id is null or parent.sendt_til_utbetaling_tidspunkt is not null)
                     order by u.opprettet
                     limit :limit
                     """.trimIndent(),
