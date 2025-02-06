@@ -37,6 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
@@ -64,6 +65,7 @@ class BehandlingServiceImpl(
     private val sakService: SakService,
     private val gitHash: String,
     private val tiltakGateway: TiltakGateway,
+    private val oppgaveGateway: OppgaveGateway,
 ) : BehandlingService {
     val logger = KotlinLogging.logger { }
 
@@ -266,6 +268,11 @@ class BehandlingServiceImpl(
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk,
             )
+        }
+
+        behandling.oppgaveId?.let { id ->
+            logger.info { "Ferdigstiller oppgave med id $id for behandling med behandlingsId $behandlingId" }
+            oppgaveGateway.ferdigstillOppgave(id)
         }
 
         return iverksattBehandling.right()

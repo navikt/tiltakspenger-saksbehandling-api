@@ -1,0 +1,1 @@
+ALTER TABLE søknad ADD COLUMN IF NOT EXISTS oppgave_id VARCHAR;

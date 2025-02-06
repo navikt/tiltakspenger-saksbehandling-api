@@ -4,6 +4,7 @@ import kotliquery.Row
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
+import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
@@ -181,6 +182,7 @@ internal object SøknadDAO {
                         "vedlegg" to søknad.vedlegg,
                         "opprettet" to søknad.opprettet,
                         "tidsstempel_hos_oss" to søknad.tidsstempelHosOss,
+                        "oppgave_id" to søknad.oppgaveId.toString(),
                     ),
             ).asUpdate,
         )
@@ -206,6 +208,7 @@ internal object SøknadDAO {
         val vedlegg = int("vedlegg")
         val sakId = SakId.fromString(string("sak_id"))
         val saksnummer = Saksnummer(string("saksnummer"))
+        val oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) }
         val kvp = periodeSpm(KVP_FELT)
         val intro = periodeSpm(INTRO_FELT)
         val institusjon = periodeSpm(INSTITUSJON_FELT)
@@ -245,6 +248,7 @@ internal object SøknadDAO {
             trygdOgPensjon = trygdOgPensjon,
             sakId = sakId,
             saksnummer = saksnummer,
+            oppgaveId = oppgaveId,
         )
     }
 
@@ -302,7 +306,8 @@ internal object SøknadDAO {
             trygd_og_pensjon_fom,
             trygd_og_pensjon_tom,
             etterlonn_type,
-            vedlegg
+            vedlegg,
+            oppgave_id
         ) values (
             :id,
             :versjon,
@@ -354,7 +359,8 @@ internal object SøknadDAO {
             :trygd_og_pensjon_fom,
             :trygd_og_pensjon_tom,
             :etterlonn_type,
-            :vedlegg
+            :vedlegg,
+            :oppgave_id
         )
         """.trimIndent()
 

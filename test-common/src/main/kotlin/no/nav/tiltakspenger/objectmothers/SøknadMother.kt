@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.objectmothers
 
+import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.felles.TiltakId
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.januarDateTime
@@ -92,6 +93,7 @@ interface SøknadMother {
         supplerendeStønadFlyktning: Søknad.PeriodeSpm = periodeNei(),
         jobbsjansen: Søknad.PeriodeSpm = periodeNei(),
         sak: Sak = ObjectMother.nySak(fnr = fnr),
+        oppgaveId: OppgaveId? = ObjectMother.oppgaveId(),
     ): Søknad =
         Søknad(
             versjon = versjon,
@@ -116,6 +118,7 @@ interface SøknadMother {
             trygdOgPensjon = trygdOgPensjon,
             sakId = sak.id,
             saksnummer = sak.saksnummer,
+            oppgaveId = oppgaveId,
         )
 
     fun personSøknad(

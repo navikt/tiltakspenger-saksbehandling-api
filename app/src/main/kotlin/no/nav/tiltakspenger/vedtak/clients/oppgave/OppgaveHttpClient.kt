@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.vedtak.clients.oppgave
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.future.await
 import mu.KotlinLogging
+import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -21,7 +22,7 @@ class OppgaveHttpClient(
     baseUrl: String,
     private val getToken: suspend () -> AccessToken,
     connectTimeout: kotlin.time.Duration = 1.seconds,
-    private val timeout: kotlin.time.Duration = 1.seconds,
+    private val timeout: kotlin.time.Duration = 5.seconds,
 ) : OppgaveGateway {
     private val logger = KotlinLogging.logger {}
     private val client =
@@ -36,17 +37,17 @@ class OppgaveHttpClient(
     override suspend fun opprettOppgave(
         fnr: Fnr,
         journalpostId: JournalpostId,
-    ): Int {
+    ): OppgaveId {
         val callId = UUID.randomUUID()
         val oppgaveResponse = finnOppgave(journalpostId, callId)
         if (oppgaveResponse.antallTreffTotalt > 0 && oppgaveResponse.oppgaver.isNotEmpty()) {
             logger.warn { "Oppgave for journalpostId: $journalpostId finnes fra før, callId: $callId" }
-            return oppgaveResponse.oppgaver.first().id
+            return OppgaveId(oppgaveResponse.oppgaver.first().id.toString())
         }
         return opprettOppgave(fnr, journalpostId, callId)
     }
 
-    override suspend fun ferdigstillOppgave(oppgaveId: Int) {
+    override suspend fun ferdigstillOppgave(oppgaveId: OppgaveId) {
         val callId = UUID.randomUUID()
         val oppgave = getOppgave(oppgaveId, callId)
         if (oppgave.erFerdigstilt()) {
@@ -61,7 +62,7 @@ class OppgaveHttpClient(
         fnr: Fnr,
         journalpostId: JournalpostId,
         callId: UUID,
-    ): Int {
+    ): OppgaveId {
         val opprettOppgaveRequest = OpprettOppgaveRequest(
             personident = fnr.verdi,
             journalpostId = journalpostId.toString(),
@@ -77,7 +78,7 @@ class OppgaveHttpClient(
         val jsonResponse = httpResponse.body()
         val oppgaveId = objectMapper.readValue<OpprettOppgaveResponse>(jsonResponse).id
         logger.info { "Opprettet oppgave med id $oppgaveId for journalpostId: $journalpostId, callId: $callId" }
-        return oppgaveId
+        return OppgaveId(oppgaveId.toString())
     }
 
     private suspend fun finnOppgave(
@@ -96,7 +97,7 @@ class OppgaveHttpClient(
     }
 
     private suspend fun getOppgave(
-        oppgaveId: Int,
+        oppgaveId: OppgaveId,
         callId: UUID,
     ): Oppgave {
         val request = createGetRequest(URI.create("$uri/$oppgaveId"), getToken().token, callId)
@@ -115,7 +116,7 @@ class OppgaveHttpClient(
         callId: UUID,
     ) {
         val ferdigstillOppgaveRequest = FerdigstillOppgaveRequest(
-            versjon = oppgave.versjon + 1,
+            versjon = oppgave.versjon,
             status = OppgaveStatus.FERDIGSTILT,
         )
         val jsonPayload = objectMapper.writeValueAsString(ferdigstillOppgaveRequest)

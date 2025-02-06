@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.felles.exceptions.StøtterIkkeUtfallException
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.felles.sikkerlogg
@@ -60,6 +61,7 @@ data class Behandling(
     val sendtTilDatadeling: LocalDateTime?,
     val sistEndret: LocalDateTime,
     val behandlingstype: Behandlingstype,
+    val oppgaveId: OppgaveId?,
 ) {
     val erVedtatt: Boolean = status == VEDTATT
     val maksDagerMedTiltakspengerForPeriode: Int = stønadsdager.registerSaksopplysning.antallDager
@@ -145,6 +147,7 @@ data class Behandling(
                 sendtTilDatadeling = null,
                 sistEndret = opprettet,
                 behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
+                oppgaveId = søknad.oppgaveId,
             ).right()
         }
 
@@ -177,6 +180,7 @@ data class Behandling(
                 sendtTilDatadeling = null,
                 sistEndret = opprettet,
                 behandlingstype = Behandlingstype.REVURDERING,
+                oppgaveId = null, // her kan man på sikt lagre oppgaveId hvis man oppretter oppgave for revurdering
             )
         }
     }

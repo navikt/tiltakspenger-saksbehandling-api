@@ -1,0 +1,1 @@
+ALTER TABLE behandling ADD COLUMN IF NOT EXISTS oppgave_id VARCHAR;
