@@ -126,6 +126,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                     from utbetalingsvedtak u 
                     join sak s on s.id = u.sak_id 
                     where u.sendt_til_utbetaling_tidspunkt is null
+                    order by u.opprettet
                     limit :limit
                     """.trimIndent(),
                     mapOf("limit" to limit),
