@@ -148,7 +148,7 @@ open class ApplicationContext(
 
     val mottaBrukerutfyltMeldekortService by lazy {
         MottaBrukerutfyltMeldekortService(
-            meldekortBrukerRepo = meldekortContext.meldekortBrukerRepo,
+            brukersMeldekortRepo = meldekortContext.brukersMeldekortRepo,
         )
     }
 }

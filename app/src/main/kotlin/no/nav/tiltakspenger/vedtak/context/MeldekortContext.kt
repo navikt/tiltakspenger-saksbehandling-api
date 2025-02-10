@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBrukerRepo
+import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.meldekort.service.IverksettMeldekortService
@@ -18,8 +18,8 @@ import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
 import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.clients.meldekort.MeldekortApiHttpClient
+import no.nav.tiltakspenger.vedtak.repository.meldekort.BrukersMeldekortPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortBehandlingPostgresRepo
-import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortBrukerPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldeperiodePostgresRepo
 
 /**
@@ -46,8 +46,8 @@ open class MeldekortContext(
             sessionFactory = sessionFactory as PostgresSessionFactory,
         )
     }
-    open val meldekortBrukerRepo: MeldekortBrukerRepo by lazy {
-        MeldekortBrukerPostgresRepo(
+    open val brukersMeldekortRepo: BrukersMeldekortRepo by lazy {
+        BrukersMeldekortPostgresRepo(
             sessionFactory = sessionFactory as PostgresSessionFactory,
         )
     }
@@ -75,6 +75,7 @@ open class MeldekortContext(
     val opprettMeldekortBehandlingService by lazy {
         OpprettMeldekortBehandlingService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
+            brukersMeldekortRepo = brukersMeldekortRepo,
             sakService = sakService,
             navkontorService = navkontorService,
             sessionFactory = sessionFactory,

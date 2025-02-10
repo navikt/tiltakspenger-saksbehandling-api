@@ -20,8 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.domene.sak.TynnSak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.ports.SakRepo
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingPostgresRepo
+import no.nav.tiltakspenger.vedtak.repository.meldekort.BrukersMeldekortPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortBehandlingPostgresRepo
-import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortBrukerPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.søknad.SøknadDAO
 import no.nav.tiltakspenger.vedtak.repository.utbetaling.UtbetalingsvedtakPostgresRepo
@@ -227,7 +227,7 @@ internal class SakPostgresRepo(
                     meldekortBehandlinger = meldekortBehandlinger,
                     utbetalinger = UtbetalingsvedtakPostgresRepo.hentForSakId(id, session),
                     meldeperiodeKjeder = meldeperioder,
-                    brukersMeldekort = MeldekortBrukerPostgresRepo.hentForSakId(id, session),
+                    brukersMeldekort = BrukersMeldekortPostgresRepo.hentForSakId(id, session),
                     soknader = soknader,
                 )
             }
