@@ -9,12 +9,12 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBrukerRepo
+import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.meldekort.domene.NyttBrukersMeldekort
 
-class MeldekortBrukerPostgresRepo(
+class BrukersMeldekortPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
-) : MeldekortBrukerRepo {
+) : BrukersMeldekortRepo {
     override fun lagre(
         brukersMeldekort: NyttBrukersMeldekort,
         sessionContext: SessionContext?,
@@ -60,6 +60,18 @@ class MeldekortBrukerPostgresRepo(
         }
     }
 
+    override fun hentForMeldekortId(meldekortId: MeldekortId, sessionContext: SessionContext?): BrukersMeldekort? {
+        return sessionFactory.withSession(sessionContext) { session ->
+            Companion.hentForMeldekortId(meldekortId, session)
+        }
+    }
+
+    override fun hentForMeldeperiodeId(hendelseId: HendelseId, sessionContext: SessionContext?): BrukersMeldekort? {
+        return sessionFactory.withSession(sessionContext) { session ->
+            Companion.hentForMeldeperiodeId(hendelseId, session)
+        }
+    }
+
     companion object {
         fun hentForSakId(
             sakId: SakId,
@@ -69,11 +81,43 @@ class MeldekortBrukerPostgresRepo(
                 sqlQuery(
                     """
                     select m.*
-                    from meldekort_bruker m 
+                        from meldekort_bruker m 
                     where m.sak_id = :sak_id
                     """,
                     "sak_id" to sakId.toString(),
                 ).map { row -> fromRow(row, session) }.asList,
+            )
+        }
+
+        fun hentForMeldekortId(
+            meldekortId: MeldekortId,
+            session: Session,
+        ): BrukersMeldekort? {
+            return session.run(
+                sqlQuery(
+                    """
+                    select m.*
+                        from meldekort_bruker m 
+                    where m.id = :id
+                    """,
+                    "id" to meldekortId.toString(),
+                ).map { row -> fromRow(row, session) }.asSingle,
+            )
+        }
+
+        fun hentForMeldeperiodeId(
+            hendelseId: HendelseId,
+            session: Session,
+        ): BrukersMeldekort? {
+            return session.run(
+                sqlQuery(
+                    """
+                    select m.*
+                        from meldekort_bruker m 
+                    where m.meldeperiode_hendelse_id = :meldeperiode_hendelse_id
+                    """,
+                    "meldeperiode_hendelse_id" to hendelseId.toString(),
+                ).map { row -> fromRow(row, session) }.asSingle,
             )
         }
 

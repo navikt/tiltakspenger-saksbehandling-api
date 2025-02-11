@@ -12,6 +12,7 @@ data class MeldekortBehandlingDTO(
     val navkontor: String,
     val navkontorNavn: String?,
     val dager: List<MeldekortDagDTO>,
+    val brukersMeldekortId: String?,
 )
 
 fun MeldekortBehandlinger.toDTO(): List<MeldekortBehandlingDTO> {
@@ -30,5 +31,6 @@ fun MeldekortBehandling.toDTO(): MeldekortBehandlingDTO {
         navkontor = navkontor.kontornummer,
         navkontorNavn = navkontor.kontornavn,
         dager = beregning.toDTO(),
+        brukersMeldekortId = brukersMeldekort?.id.toString(),
     )
 }

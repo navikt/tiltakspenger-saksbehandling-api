@@ -316,6 +316,7 @@ fun Sak.opprettMeldekortBehandling(
     meldeperiode: Meldeperiode,
     navkontor: Navkontor,
     saksbehandler: Saksbehandler,
+    brukersMeldekort: BrukersMeldekort?,
 ): MeldekortBehandling.MeldekortUnderBehandling {
     val meldekortId = MeldekortId.random()
 
@@ -340,7 +341,7 @@ fun Sak.opprettMeldekortBehandling(
         opprettet = nå(),
         navkontor = navkontor,
         ikkeRettTilTiltakspengerTidspunkt = null,
-        brukersMeldekort = null,
+        brukersMeldekort = brukersMeldekort,
         meldeperiode = meldeperiode,
         tiltakstype = tiltakstype,
         saksbehandler = saksbehandler.navIdent,

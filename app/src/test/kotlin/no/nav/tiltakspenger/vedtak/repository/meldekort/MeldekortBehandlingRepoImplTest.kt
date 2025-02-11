@@ -56,6 +56,7 @@ class MeldekortBehandlingRepoImplTest {
                 nesteMeldeperiode,
                 ObjectMother.navkontor(),
                 ObjectMother.saksbehandler(),
+                brukersMeldekort = null,
             )
 
             meldeperiodeRepo.lagre(nesteMeldeperiode)
@@ -84,6 +85,7 @@ class MeldekortBehandlingRepoImplTest {
                 meldeperiode,
                 ObjectMother.navkontor(),
                 ObjectMother.saksbehandler(),
+                brukersMeldekort = null,
             )
 
             val meldekortRepo = testDataHelper.meldekortRepo

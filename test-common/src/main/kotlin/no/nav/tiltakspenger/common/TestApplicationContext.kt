@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.fakes.clients.TiltakFakeGateway
 import no.nav.tiltakspenger.fakes.clients.UtbetalingFakeGateway
 import no.nav.tiltakspenger.fakes.clients.VeilarboppfolgingFakeGateway
 import no.nav.tiltakspenger.fakes.repos.BehandlingFakeRepo
+import no.nav.tiltakspenger.fakes.repos.BrukersMeldekortFakeRepo
 import no.nav.tiltakspenger.fakes.repos.MeldekortBehandlingFakeRepo
 import no.nav.tiltakspenger.fakes.repos.MeldeperiodeFakeRepo
 import no.nav.tiltakspenger.fakes.repos.PersonFakeRepo
@@ -71,6 +72,7 @@ class TestApplicationContext(
     private val utbetalingGatewayFake = UtbetalingFakeGateway()
     private val meldekortBehandlingFakeRepo = MeldekortBehandlingFakeRepo()
     private val meldeperiodeFakeRepo = MeldeperiodeFakeRepo()
+    private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
     private val utbetalingsvedtakFakeRepo = UtbetalingsvedtakFakeRepo()
     private val søknadFakeRepo = SøknadFakeRepo()
     private val tiltakGatewayFake = TiltakFakeGateway()
@@ -127,7 +129,8 @@ class TestApplicationContext(
             søknadFakeRepo = søknadFakeRepo,
         )
 
-    private val personFakeRepo = PersonFakeRepo(sakFakeRepo, søknadFakeRepo, meldekortBehandlingFakeRepo, behandlingFakeRepo)
+    private val personFakeRepo =
+        PersonFakeRepo(sakFakeRepo, søknadFakeRepo, meldekortBehandlingFakeRepo, behandlingFakeRepo)
 
     override val entraIdSystemtokenClient = EntraIdSystemtokenFakeClient()
 
@@ -195,6 +198,7 @@ class TestApplicationContext(
             ) {
             override val meldekortBehandlingRepo = meldekortBehandlingFakeRepo
             override val meldeperiodeRepo = meldeperiodeFakeRepo
+            override val brukersMeldekortRepo = brukersMeldekortFakeRepo
         }
     }
 

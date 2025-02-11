@@ -16,6 +16,7 @@ data class MeldeperiodeDTO(
     val status: MeldeperiodeStatusDTO,
     val antallDager: Int,
     val girRett: Map<LocalDate, Boolean>,
+    // TODO: hent ut alle brukers meldekort og behandlinger for perioden
     val brukersMeldekort: BrukersMeldekortDTO?,
     val meldekortBehandling: MeldekortBehandlingDTO?,
 )

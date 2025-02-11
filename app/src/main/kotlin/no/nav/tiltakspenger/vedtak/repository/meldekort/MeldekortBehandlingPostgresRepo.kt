@@ -201,6 +201,11 @@ class MeldekortBehandlingPostgresRepo(
 
             val saksbehandler = row.string("saksbehandler")
 
+            val brukersMeldekort = BrukersMeldekortPostgresRepo.hentForMeldeperiodeId(
+                meldeperiodeId,
+                session,
+            )
+
             requireNotNull(meldeperiode) { "Fant ingen meldeperiode for $meldeperiodeId tilknyttet meldekortbehandling $id" }
 
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
@@ -227,7 +232,7 @@ class MeldekortBehandlingPostgresRepo(
                         iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
                         navkontor = navkontor,
                         ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt"),
-                        brukersMeldekort = null,
+                        brukersMeldekort = brukersMeldekort,
                         meldeperiode = meldeperiode,
                     )
                 }
@@ -249,7 +254,7 @@ class MeldekortBehandlingPostgresRepo(
                         tiltakstype = meldeperiodeBeregning.tiltakstype,
                         navkontor = navkontor,
                         ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt"),
-                        brukersMeldekort = null,
+                        brukersMeldekort = brukersMeldekort,
                         meldeperiode = meldeperiode,
                         saksbehandler = saksbehandler,
                     )

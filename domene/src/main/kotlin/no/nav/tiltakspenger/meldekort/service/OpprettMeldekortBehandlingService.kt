@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.meldekort.domene.opprettMeldekortBehandling
 import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
@@ -20,6 +21,7 @@ import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 class OpprettMeldekortBehandlingService(
     val sakService: SakService,
     val meldekortBehandlingRepo: MeldekortBehandlingRepo,
+    val brukersMeldekortRepo: BrukersMeldekortRepo,
     val navkontorService: NavkontorService,
     val sessionFactory: SessionFactory,
 ) {
@@ -40,6 +42,7 @@ class OpprettMeldekortBehandlingService(
                 return KanIkkeOppretteMeldekortBehandling.BehandlingFinnes.left()
             }
         }
+
         val meldeperiode: Meldeperiode = sak.hentMeldeperiodeForKjedeId(meldeperiodeKjedeId = meldeperiodeKjedeId)
 
         val navkontor = Either.catch {
@@ -52,17 +55,20 @@ class OpprettMeldekortBehandlingService(
             return KanIkkeOppretteMeldekortBehandling.HenteNavkontorFeilet.left()
         }
 
+        val brukersMeldekort = brukersMeldekortRepo.hentForMeldeperiodeId(meldeperiode.id)
+
         val meldekortBehandling = sak.opprettMeldekortBehandling(
             meldeperiode = meldeperiode,
             navkontor = navkontor,
             saksbehandler = saksbehandler,
+            brukersMeldekort = brukersMeldekort,
         )
 
         sessionFactory.withTransactionContext { tx ->
             meldekortBehandlingRepo.lagre(meldekortBehandling, tx)
         }
 
-        logger.info { "Opprettet behandling ${meldekortBehandling.id} av meldeperiode hendelse $meldeperiodeKjedeId for sak $sakId" }
+        logger.info { "Opprettet behandling ${meldekortBehandling.id} på meldeperiode kjede $meldeperiodeKjedeId for sak $sakId" }
 
         return Unit.right()
     }
