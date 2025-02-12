@@ -66,8 +66,8 @@ data class Behandling(
     val sistEndret: LocalDateTime,
     val behandlingstype: Behandlingstype,
     val oppgaveId: OppgaveId?,
-    val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
-    val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering? = null,
+    val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+    val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
 ) {
     val erVedtatt: Boolean = status == VEDTATT
     val maksDagerMedTiltakspengerForPeriode: Int = stønadsdager.registerSaksopplysning.antallDager
@@ -142,8 +142,10 @@ data class Behandling(
                 søknad = søknad,
                 vurderingsperiode = vurderingsperiode,
                 vilkårssett = vilkårssett,
-                // Dette er gammel flyt for opprettelse av førstegangsbehandling og da vil saksopplysninger være null. Ved ny flyt vil ha saksopplysninger, mens vilkårssett vil være null. Hele denne funksjonen skal slettes når vi har ny flyt.
+                // Dette er gammel flyt for opprettelse av førstegangsbehandling og da vil saksopplysninger, fritekstTilVedtaksbrev og begrunnelseVilkårsvurdering være null. Ved ny flyt vil ha saksopplysninger, mens vilkårssett vil være null. Hele denne funksjonen skal slettes når vi har ny flyt.
                 saksopplysninger = null,
+                fritekstTilVedtaksbrev = null,
+                begrunnelseVilkårsvurdering = null,
                 stønadsdager = Stønadsdager(
                     vurderingsperiode = vurderingsperiode,
                     tiltak.tilStønadsdagerRegisterSaksopplysning(),
@@ -185,6 +187,8 @@ data class Behandling(
                 vilkårssett = vilkårssett,
                 // TODO John + Anders: Vurder om vi skal ta med oss saksopplysninger fra førstegangsbehandling eller hente de på nytt. Kan gjøres i flere iterasjoner.
                 saksopplysninger = null,
+                fritekstTilVedtaksbrev = null,
+                begrunnelseVilkårsvurdering = null,
                 stønadsdager = stønadsdager,
                 status = UNDER_BEHANDLING,
                 attesteringer = emptyList(),

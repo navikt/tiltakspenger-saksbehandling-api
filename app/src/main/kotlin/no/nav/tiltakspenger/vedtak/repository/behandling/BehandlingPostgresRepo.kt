@@ -14,8 +14,10 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
@@ -164,6 +166,9 @@ class BehandlingPostgresRepo(
                             "sendt_til_datadeling" to behandling.sendtTilDatadeling,
                             "behandlingstype" to behandling.behandlingstype.toDbValue(),
                             "oppgave_id" to behandling.oppgaveId.toString(),
+                            "fritekst_vedtaksbrev" to behandling.fritekstTilVedtaksbrev?.verdi,
+                            "begrunnelse_vilkårsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
+                            "saksopplysninger" to behandling.saksopplysninger?.toDbJson(),
                         ),
                     ).asUpdate,
                 )
@@ -189,6 +194,7 @@ class BehandlingPostgresRepo(
                         "status" to behandling.status.toDb(),
                         "opprettet" to behandling.opprettet,
                         "vilkaarssett" to behandling.vilkårssett.toDbJson(),
+                        "saksopplysninger" to behandling.saksopplysninger?.toDbJson(),
                         "stonadsdager" to behandling.stønadsdager.toDbJson(),
                         "saksbehandler" to behandling.saksbehandler,
                         "beslutter" to behandling.beslutter,
@@ -199,6 +205,8 @@ class BehandlingPostgresRepo(
                         "sist_endret" to behandling.sistEndret,
                         "behandlingstype" to behandling.behandlingstype.toDbValue(),
                         "oppgave_id" to behandling.oppgaveId.toString(),
+                        "fritekst_vedtaksbrev" to behandling.fritekstTilVedtaksbrev?.verdi,
+                        "begrunnelse_vilkarsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
                     ),
                 ).asUpdate,
             )
@@ -246,8 +254,7 @@ class BehandlingPostgresRepo(
                 søknad = søknad,
                 vurderingsperiode = vurderingsperiode,
                 vilkårssett = vilkårssett,
-                // TODO Anders + John: Denne vil være null inntil vi støtter saksopplysninger på behandlingen. Må opprette nullable kolonne først og gjøre vilkårssett nullable.
-                saksopplysninger = null,
+                saksopplysninger = stringOrNull("saksopplysninger")?.toSaksopplysninger(),
                 saksbehandler = saksbehandler,
                 sendtTilBeslutning = sendtTilBeslutning,
                 beslutter = beslutter,
@@ -260,6 +267,8 @@ class BehandlingPostgresRepo(
                 sistEndret = sistEndret,
                 behandlingstype = string("behandlingstype").toBehandlingstype(),
                 oppgaveId = oppgaveId,
+                fritekstTilVedtaksbrev = stringOrNull("fritekst_vedtaksbrev")?.let { FritekstTilVedtaksbrev(it) },
+                begrunnelseVilkårsvurdering = stringOrNull("begrunnelse_vilkårsvurdering")?.let { BegrunnelseVilkårsvurdering(it) },
             )
         }
 
@@ -283,7 +292,10 @@ class BehandlingPostgresRepo(
                 sendt_til_beslutning,
                 sendt_til_datadeling,
                 behandlingstype,
-                oppgave_id
+                oppgave_id,
+                fritekst_vedtaksbrev,
+                begrunnelse_vilkårsvurdering,
+                saksopplysninger
             ) values (
                 :id,
                 :sak_id,
@@ -301,7 +313,10 @@ class BehandlingPostgresRepo(
                 :sendt_til_beslutning,
                 :sendt_til_datadeling,
                 :behandlingstype,
-                :oppgave_id
+                :oppgave_id,
+                :fritekst_vedtaksbrev,
+                :begrunnelse_vilkarsvurdering,
+                to_jsonb(:saksopplysninger::jsonb)
             )
             """.trimIndent()
 
@@ -323,7 +338,11 @@ class BehandlingPostgresRepo(
                 sendt_til_beslutning = :sendt_til_beslutning,
                 sendt_til_datadeling = :sendt_til_datadeling,
                 behandlingstype = :behandlingstype,
-                oppgave_id = :oppgave_id
+                oppgave_id = :oppgave_id,
+                fritekst_vedtaksbrev = :fritekst_vedtaksbrev,
+                begrunnelse_vilkårsvurdering = :begrunnelse_vilkarsvurdering,
+                saksopplysninger = to_jsonb(:saksopplysninger::jsonb)
+             
             where id = :id
               and sist_endret = :sist_endret_old
             """.trimIndent()
