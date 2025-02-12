@@ -22,6 +22,7 @@ internal data class BehandlingDTO(
     val saksopplysninger: SaksopplysningerDTO?,
     val stønadsdager: StønadsdagerDTO,
     val attesteringer: List<AttesteringDTO>,
+    val søknad: SøknadDTO?,
 )
 
 internal fun Behandling.toDTO(): BehandlingDTO {
@@ -38,5 +39,6 @@ internal fun Behandling.toDTO(): BehandlingDTO {
         saksopplysninger = this.saksopplysninger?.toDTO(),
         stønadsdager = this.stønadsdager.toDTO(),
         behandlingstype = behandlingstype,
+        søknad = this.søknad?.toDTO(),
     )
 }
