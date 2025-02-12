@@ -56,6 +56,7 @@ data class Behandling(
     // TODO John + Anders: Gjør denne nullable og sjekk i init at vi enten har enten Vilkårssett eller Saksopplysninger. Dette for å støtte gammel og ny behandling.
     val vilkårssett: Vilkårssett,
     val saksopplysninger: Saksopplysninger?,
+    // TODO John og Anders: Slett denne når vi har fjernet den gamle vilkårsvurderingen.
     val stønadsdager: Stønadsdager,
     val status: Behandlingsstatus,
     val attesteringer: List<Attestering>,
@@ -65,6 +66,8 @@ data class Behandling(
     val sistEndret: LocalDateTime,
     val behandlingstype: Behandlingstype,
     val oppgaveId: OppgaveId?,
+    val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
+    val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering? = null,
 ) {
     val erVedtatt: Boolean = status == VEDTATT
     val maksDagerMedTiltakspengerForPeriode: Int = stønadsdager.registerSaksopplysning.antallDager

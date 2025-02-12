@@ -23,6 +23,8 @@ internal data class BehandlingDTO(
     val stønadsdager: StønadsdagerDTO,
     val attesteringer: List<AttesteringDTO>,
     val søknad: SøknadDTO?,
+    val fritekstTilVedtaksbrev: String?,
+    val begrunnelseVilkårsvurdering: String?,
 )
 
 internal fun Behandling.toDTO(): BehandlingDTO {
@@ -40,5 +42,7 @@ internal fun Behandling.toDTO(): BehandlingDTO {
         stønadsdager = this.stønadsdager.toDTO(),
         behandlingstype = behandlingstype,
         søknad = this.søknad?.toDTO(),
+        fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
+        begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
     )
 }
