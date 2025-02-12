@@ -19,7 +19,6 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.VENTE
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.VURDERES
 import no.nav.tiltakspenger.libs.tiltak.TiltakTilSaksbehandlingDTO
 import no.nav.tiltakspenger.libs.tiltak.toTiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Deltar
@@ -32,17 +31,18 @@ import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.S�
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Venteliste
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.VenterPåOppstart
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Vurderes
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
 
 internal fun mapTiltak(
     tiltakDTOListe: List<TiltakTilSaksbehandlingDTO>,
     maskerTiltaksnavn: Boolean,
-): List<Tiltak> =
+): List<Tiltaksdeltagelse> =
     tiltakDTOListe
         .filterNot { it.deltakelseFom == null }
         .filterNot { it.deltakelseTom == null }
         .map { tiltakDto ->
-            Tiltak(
+            Tiltaksdeltagelse(
                 id = TiltakId.random(),
                 eksternDeltagelseId = tiltakDto.id,
                 gjennomføringId = tiltakDto.gjennomføringId,

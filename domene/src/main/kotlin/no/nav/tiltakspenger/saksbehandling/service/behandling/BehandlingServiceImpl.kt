@@ -100,7 +100,7 @@ class BehandlingServiceImpl(
                 }
         require(adressebeskyttelseGradering != null) { "Fant ikke adressebeskyttelse for person. SøknadId: $søknadId" }
         val registrerteTiltak = runBlocking {
-            tiltakGateway.hentTiltak(
+            tiltakGateway.hentTiltaksdeltagelse(
                 fnr = fnr,
                 maskerTiltaksnavn = adressebeskyttelseGradering.harStrengtFortroligAdresse(),
                 correlationId = correlationId,
@@ -113,7 +113,7 @@ class BehandlingServiceImpl(
         }
         val soknad = sak.soknader.single { it.id == søknadId }
         val førstegangsbehandling =
-            Behandling.opprettFørstegangsbehandling(
+            Behandling.opprettDeprecatedFørstegangsbehandling(
                 sakId = sakId,
                 saksnummer = sak.saksnummer,
                 fnr = fnr,

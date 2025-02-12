@@ -8,9 +8,9 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.objectmothers.ObjectMother.tiltak
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Deltar
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde.Komet
 import java.time.LocalDate
@@ -31,8 +31,8 @@ interface TiltakMother {
         prosent: Float? = 100F,
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
-    ): Tiltak {
-        return Tiltak(
+    ): Tiltaksdeltagelse {
+        return Tiltaksdeltagelse(
             id = id,
             eksternDeltagelseId = eksternTiltaksdeltagelseId,
             gjennomføringId = eksternTiltaksgjennomføringsId,
@@ -60,8 +60,8 @@ interface TiltakMother {
         prosent: Float? = 100F,
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
-    ): Pair<Tiltak, Søknadstiltak> {
-        return Tiltak(
+    ): Pair<Tiltaksdeltagelse, Søknadstiltak> {
+        return Tiltaksdeltagelse(
             id = id,
             eksternDeltagelseId = eksternTiltaksdeltagelseId,
             gjennomføringId = eksternTiltaksgjennomføringsId,
@@ -86,7 +86,7 @@ interface TiltakMother {
 fun Søknadstiltak.toTiltak(
     id: TiltakId = TiltakId.random(),
     eksternTiltaksgjennomføringsId: String = UUID.randomUUID().toString(),
-): Tiltak {
+): Tiltaksdeltagelse {
     return tiltak(
         id = id,
         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
@@ -105,7 +105,7 @@ fun Søknadstiltak.toTiltak(
     )
 }
 
-fun Tiltak.toSøknadstiltak(): Søknadstiltak {
+fun Tiltaksdeltagelse.toSøknadstiltak(): Søknadstiltak {
     return søknadstiltak(
         id = this.eksternDeltagelseId,
         deltakelseFom = this.deltakelsesperiode.fraOgMed,

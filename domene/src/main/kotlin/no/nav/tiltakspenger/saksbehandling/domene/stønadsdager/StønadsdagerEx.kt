@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.domene.stønadsdager
 
 import no.nav.tiltakspenger.felles.nå
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 
-fun Tiltak.tilStønadsdagerRegisterSaksopplysning(): StønadsdagerSaksopplysning.Register =
+fun Tiltaksdeltagelse.tilStønadsdagerRegisterSaksopplysning(): StønadsdagerSaksopplysning.Register =
     // B: Hvorfor kan deltagelsen være null fra tiltaksappen? Får vi null-verdier fra Arena eller Komet?
     if (antallDagerPerUke != null) {
         StønadsdagerSaksopplysning.Register(

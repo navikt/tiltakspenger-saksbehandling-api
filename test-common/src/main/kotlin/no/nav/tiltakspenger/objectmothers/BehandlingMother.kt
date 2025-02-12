@@ -29,7 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.livsopphold.LeggTilLivsoppholdSaksopplysningCommand
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.livsopphold.leggTilLivsoppholdSaksopplysning
 import java.time.LocalDate
@@ -50,9 +50,9 @@ interface BehandlingMother {
         fnr: Fnr = Fnr.random(),
         søknad: Søknad = ObjectMother.nySøknad(periode = periode),
         personopplysningFødselsdato: LocalDate = 1.januar(2000),
-        registrerteTiltak: List<Tiltak> = listOf(søknad.tiltak.toTiltak()),
+        registrerteTiltak: List<Tiltaksdeltagelse> = listOf(søknad.tiltak.toTiltak()),
         saksbehandler: Saksbehandler = saksbehandler(),
-    ): Behandling = Behandling.opprettFørstegangsbehandling(
+    ): Behandling = Behandling.opprettDeprecatedFørstegangsbehandling(
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
@@ -159,8 +159,8 @@ suspend fun TestApplicationContext.nySøknad(
     deltarPåIntroduksjonsprogram: Boolean = false,
     deltarPåKvp: Boolean = false,
     tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
-    tiltak: Tiltak? = null,
-    søknadstiltak: Søknadstiltak? = tiltak?.toSøknadstiltak(),
+    tiltaksdeltagelse: Tiltaksdeltagelse? = null,
+    søknadstiltak: Søknadstiltak? = tiltaksdeltagelse?.toSøknadstiltak(),
     sak: Sak = ObjectMother.nySak(fnr = fnr),
     søknad: Søknad = ObjectMother.nySøknad(
         fnr = fnr,
@@ -177,7 +177,7 @@ suspend fun TestApplicationContext.nySøknad(
     systembruker: Systembruker = ObjectMother.systembrukerLageHendelser(),
 ): Søknad {
     this.søknadContext.søknadService.nySøknad(søknad, systembruker)
-    this.leggTilPerson(fnr, personopplysningerForBrukerFraPdl, tiltak ?: søknad.tiltak.toTiltak())
+    this.leggTilPerson(fnr, personopplysningerForBrukerFraPdl, tiltaksdeltagelse ?: søknad.tiltak.toTiltak())
     return søknad
 }
 
@@ -203,8 +203,8 @@ suspend fun TestApplicationContext.førstegangsbehandlingUavklart(
         etternavn = etternavn,
     ),
     tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
-    tiltak: Tiltak? = null,
-    søknadstiltak: Søknadstiltak? = tiltak?.toSøknadstiltak(),
+    tiltaksdeltagelse: Tiltaksdeltagelse? = null,
+    søknadstiltak: Søknadstiltak? = tiltaksdeltagelse?.toSøknadstiltak(),
     sak: Sak = ObjectMother.nySak(fnr = fnr),
     søknad: Søknad = ObjectMother.nySøknad(
         fnr = fnr,
@@ -228,7 +228,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingUavklart(
         søknad = søknad,
         personopplysningerFraSøknad = personopplysningerFraSøknad,
         personopplysningerForBrukerFraPdl = personopplysningerForBrukerFraPdl,
-        tiltak = tiltak,
+        tiltaksdeltagelse = tiltaksdeltagelse,
         sak = sak,
     )
     return this.behandlingContext.behandlingService.startFørstegangsbehandling(

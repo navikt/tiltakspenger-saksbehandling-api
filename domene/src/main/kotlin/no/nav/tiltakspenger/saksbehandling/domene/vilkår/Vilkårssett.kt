@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.felles.exceptions.StøtterIkkeUtfallException
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.alder.AlderSaksopplysning.Register
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.alder.AlderVilkår
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.alder.LeggTilAlderSaksopplysningCommand
@@ -32,6 +32,7 @@ import java.time.LocalDate
  * Ref til begrepskatalogen.
  * Vil både være inngangsvilkår og andre vilkår.
  * Det totale settet vilkår.
+ * TODO John + Anders: Denne skal slettes når vi har laget den enkle vilkårsvurdering og vedtaksflyten. Husk migrering av databasen.
  */
 data class Vilkårssett(
     val vurderingsperiode: Periode,
@@ -149,7 +150,7 @@ data class Vilkårssett(
         fun opprett(
             søknad: Søknad,
             fødselsdato: LocalDate,
-            tiltak: Tiltak,
+            tiltaksdeltagelse: Tiltaksdeltagelse,
             vurderingsperiode: Periode,
         ): Vilkårssett =
             Vilkårssett(
@@ -177,7 +178,7 @@ data class Vilkårssett(
                 tiltakDeltagelseVilkår =
                 TiltaksdeltagelseVilkår.opprett(
                     vurderingsperiode = vurderingsperiode,
-                    registerSaksopplysning = tiltak.tilRegisterSaksopplysning(),
+                    registerSaksopplysning = tiltaksdeltagelse.tilRegisterSaksopplysning(),
                 ),
             )
     }

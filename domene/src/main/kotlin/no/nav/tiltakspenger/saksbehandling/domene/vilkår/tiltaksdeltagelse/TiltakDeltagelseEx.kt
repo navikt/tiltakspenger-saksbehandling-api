@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.domene.vilkår.tiltaksdeltagelse
 
 import no.nav.tiltakspenger.felles.nå
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 
-fun Tiltak.tilRegisterSaksopplysning(): TiltaksdeltagelseSaksopplysning.Register =
+fun Tiltaksdeltagelse.tilRegisterSaksopplysning(): TiltaksdeltagelseSaksopplysning.Register =
     TiltaksdeltagelseSaksopplysning.Register(
         tiltaksnavn = this.typeNavn,
         eksternDeltagelseId = this.eksternDeltagelseId,

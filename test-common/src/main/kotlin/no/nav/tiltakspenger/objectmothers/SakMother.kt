@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.livsopphold.LeggTilLivsoppholdSaksopplysningCommand
@@ -64,10 +64,10 @@ interface SakMother {
                     deltakelseTom = vurderingsperiode.tilOgMed,
                 ),
             ),
-        registrerteTiltak: List<Tiltak> = listOf(søknad.tiltak.toTiltak()),
+        registrerteTiltak: List<Tiltaksdeltagelse> = listOf(søknad.tiltak.toTiltak()),
     ): Sak {
         val førstegangsbehandling =
-            Behandling.opprettFørstegangsbehandling(
+            Behandling.opprettDeprecatedFørstegangsbehandling(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,

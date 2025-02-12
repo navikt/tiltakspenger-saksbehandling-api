@@ -37,7 +37,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.Profile
@@ -104,14 +104,14 @@ class TestApplicationContext(
     fun leggTilPerson(
         fnr: Fnr,
         personopplysningerForBruker: PersonopplysningerSøker,
-        tiltak: Tiltak,
+        tiltaksdeltagelse: Tiltaksdeltagelse,
     ) {
         personGatewayFake.leggTilPersonopplysning(fnr = fnr, personopplysninger = personopplysningerForBruker)
         tilgangsstyringFakeGateway.lagre(
             fnr = fnr,
             adressebeskyttelseGradering = listOf(AdressebeskyttelseGradering.UGRADERT),
         )
-        tiltakGatewayFake.lagre(fnr = fnr, tiltak = tiltak)
+        tiltakGatewayFake.lagre(fnr = fnr, tiltaksdeltagelse = tiltaksdeltagelse)
     }
 
     private val saksoversiktFakeRepo =

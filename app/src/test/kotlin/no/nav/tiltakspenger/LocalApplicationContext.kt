@@ -25,7 +25,7 @@ import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.objectmothers.toSøknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.domene.sak.SaksnummerGenerator
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.ports.VeilarboppfolgingGateway
@@ -70,7 +70,7 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
     private val søknadId: SøknadId = SøknadId.fromString("soknad_01HSTRQBRM443VGB4WA822TE01")
     private val fnr: Fnr = Fnr.fromString("50218274152")
     private val tiltakId: TiltakId = TiltakId.fromString("tilt_01JETND3NDGHE0YHWFTVAN93B0")
-    private val tiltak: Tiltak = ObjectMother.tiltak(
+    private val tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltak(
         id = tiltakId,
         // Siden Komet eier GRUPPE_AMO, vil dette være en UUID. Hadde det vært Arena som var master ville det vært eksempelvis TA6509186.
         // Kommentar jah: Litt usikker på om Komet sender UUIDen til Arena, eller om de genererer en Arena-ID på formatet TA...
@@ -83,7 +83,7 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
         tom = ObjectMother.vurderingsperiode().tilOgMed,
         kilde = Tiltakskilde.Komet,
     )
-    private val søknadstiltak = tiltak.toSøknadstiltak()
+    private val søknadstiltak = tiltaksdeltagelse.toSøknadstiltak()
 
     init {
         val sakRepo = SakPostgresRepo(
@@ -113,19 +113,19 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
         leggTilPerson(
             fnr = fnr,
             personopplysningerForBruker = ObjectMother.personopplysningKjedeligFyr(fnr = fnr),
-            tiltak = tiltak,
+            tiltaksdeltagelse = tiltaksdeltagelse,
         )
     }
 
     fun leggTilPerson(
         fnr: Fnr,
         personopplysningerForBruker: PersonopplysningerSøker,
-        tiltak: Tiltak,
+        tiltaksdeltagelse: Tiltaksdeltagelse,
     ) {
         fellesFakeSkjermingsklient.leggTil(fnr = fnr, skjermet = false)
         fellesFakeAdressebeskyttelseKlient.leggTil(fnr = fnr, gradering = listOf(AdressebeskyttelseGradering.UGRADERT))
         personGatewayFake.leggTilPersonopplysning(fnr = fnr, personopplysninger = personopplysningerForBruker)
-        tiltakGatewayFake.lagre(fnr = fnr, tiltak = tiltak)
+        tiltakGatewayFake.lagre(fnr = fnr, tiltaksdeltagelse = tiltaksdeltagelse)
         poaoTilgangskontrollFake.leggTil(fnr = fnr, skjermet = false)
     }
 

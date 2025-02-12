@@ -246,6 +246,8 @@ class BehandlingPostgresRepo(
                 søknad = søknad,
                 vurderingsperiode = vurderingsperiode,
                 vilkårssett = vilkårssett,
+                // TODO Anders + John: Denne vil være null inntil vi støtter saksopplysninger på behandlingen. Må opprette nullable kolonne først og gjøre vilkårssett nullable.
+                saksopplysninger = null,
                 saksbehandler = saksbehandler,
                 sendtTilBeslutning = sendtTilBeslutning,
                 beslutter = beslutter,

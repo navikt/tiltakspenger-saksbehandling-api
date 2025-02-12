@@ -9,13 +9,14 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
  * @param typeNavn f.eks. Jobbklubb, Arbeidsmarkedsopplæring (gruppe), Oppfølging, Arbeidstrening
  * @param gjennomføringId Ekstern id. Dette er gjennomføringen sin ID, eksempelvis Rema 1000 i Strandveien. En person knyttes til en gjennomføring og det kalles da en deltagelse. Per nå mottar vi ikke denne fra Arena, men kun fra Komet.
  */
-data class Tiltak(
+data class Tiltaksdeltagelse(
     val id: TiltakId,
     val eksternDeltagelseId: String,
     val gjennomføringId: String?,
     val typeNavn: String,
     val typeKode: TiltakstypeSomGirRett,
     val rettPåTiltakspenger: Boolean,
+    /** TODO John og Anders: Det er ikke en garanti at vi har både fraOgMed og tilOgMed fra Arena. Foreslår at vi endrer denne til nullable fraOgMed og tilOgMed; og dokumenterer det godt. */
     val deltakelsesperiode: Periode,
     val deltakelseStatus: TiltakDeltakerstatus,
     val deltakelseProsent: Float?,

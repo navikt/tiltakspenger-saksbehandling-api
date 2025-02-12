@@ -3,20 +3,20 @@ package no.nav.tiltakspenger.fakes.clients
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.ports.TiltakGateway
 
 class TiltakFakeGateway : TiltakGateway {
-    private val data = Atomic(mutableMapOf<Fnr, List<Tiltak>>())
+    private val data = Atomic(mutableMapOf<Fnr, List<Tiltaksdeltagelse>>())
 
-    override suspend fun hentTiltak(fnr: Fnr, maskerTiltaksnavn: Boolean, correlationId: CorrelationId): List<Tiltak> {
+    override suspend fun hentTiltaksdeltagelse(fnr: Fnr, maskerTiltaksnavn: Boolean, correlationId: CorrelationId): List<Tiltaksdeltagelse> {
         return data.get()[fnr]!!
     }
 
     fun lagre(
         fnr: Fnr,
-        tiltak: Tiltak,
+        tiltaksdeltagelse: Tiltaksdeltagelse,
     ) {
-        data.get()[fnr] = listOf(tiltak)
+        data.get()[fnr] = listOf(tiltaksdeltagelse)
     }
 }

@@ -21,9 +21,10 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.domene.stønadsdager.Stønadsdager
 import no.nav.tiltakspenger.saksbehandling.domene.stønadsdager.tilStønadsdagerRegisterSaksopplysning
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltak
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.SamletUtfall
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.UtfallForPeriode
@@ -52,7 +53,9 @@ data class Behandling(
     val saksbehandler: String?,
     val sendtTilBeslutning: LocalDateTime?,
     val beslutter: String?,
+    // TODO John + Anders: Gjør denne nullable og sjekk i init at vi enten har enten Vilkårssett eller Saksopplysninger. Dette for å støtte gammel og ny behandling.
     val vilkårssett: Vilkårssett,
+    val saksopplysninger: Saksopplysninger?,
     val stønadsdager: Stønadsdager,
     val status: Behandlingsstatus,
     val attesteringer: List<Attestering>,
@@ -83,14 +86,17 @@ data class Behandling(
     companion object {
         private val logger = mu.KotlinLogging.logger { }
 
-        fun opprettFørstegangsbehandling(
+        /**
+         * Gammel måte og opprette førstegangsbehandling. Denne skal slettes når vi har ny flyt.
+         */
+        fun opprettDeprecatedFørstegangsbehandling(
             sakId: SakId,
             saksnummer: Saksnummer,
             fnr: Fnr,
             søknad: Søknad,
             fødselsdato: LocalDate,
             saksbehandler: Saksbehandler,
-            registrerteTiltak: List<Tiltak>,
+            registrerteTiltak: List<Tiltaksdeltagelse>,
         ): Either<KanIkkeOppretteBehandling, Behandling> {
             val vurderingsperiode = søknad.vurderingsperiode()
             if (søknad.barnetillegg.isNotEmpty()) {
@@ -111,7 +117,7 @@ data class Behandling(
                 Vilkårssett.opprett(
                     søknad = søknad,
                     fødselsdato = fødselsdato,
-                    tiltak = tiltak,
+                    tiltaksdeltagelse = tiltak,
                     vurderingsperiode = vurderingsperiode,
                 )
             }.getOrElse {
@@ -133,6 +139,8 @@ data class Behandling(
                 søknad = søknad,
                 vurderingsperiode = vurderingsperiode,
                 vilkårssett = vilkårssett,
+                // Dette er gammel flyt for opprettelse av førstegangsbehandling og da vil saksopplysninger være null. Ved ny flyt vil ha saksopplysninger, mens vilkårssett vil være null. Hele denne funksjonen skal slettes når vi har ny flyt.
+                saksopplysninger = null,
                 stønadsdager = Stønadsdager(
                     vurderingsperiode = vurderingsperiode,
                     tiltak.tilStønadsdagerRegisterSaksopplysning(),
@@ -172,6 +180,8 @@ data class Behandling(
                 sendtTilBeslutning = null,
                 beslutter = null,
                 vilkårssett = vilkårssett,
+                // TODO John + Anders: Vurder om vi skal ta med oss saksopplysninger fra førstegangsbehandling eller hente de på nytt. Kan gjøres i flere iterasjoner.
+                saksopplysninger = null,
                 stønadsdager = stønadsdager,
                 status = UNDER_BEHANDLING,
                 attesteringer = emptyList(),
