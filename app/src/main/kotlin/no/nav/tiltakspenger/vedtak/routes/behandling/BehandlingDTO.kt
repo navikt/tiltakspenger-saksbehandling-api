@@ -19,12 +19,13 @@ internal data class BehandlingDTO(
     val behandlingstype: Behandlingstype,
     val vurderingsperiode: PeriodeDTO,
     val vilkårssett: VilkårssettDTO,
+    val saksopplysninger: SaksopplysningerDTO?,
     val stønadsdager: StønadsdagerDTO,
     val attesteringer: List<AttesteringDTO>,
 )
 
-internal fun Behandling.toDTO() =
-    BehandlingDTO(
+internal fun Behandling.toDTO(): BehandlingDTO {
+    return BehandlingDTO(
         id = this.id.toString(),
         sakId = this.sakId.toString(),
         saksnummer = this.saksnummer.toString(),
@@ -34,6 +35,8 @@ internal fun Behandling.toDTO() =
         vurderingsperiode = this.vurderingsperiode.toDTO(),
         attesteringer = this.attesteringer.toDTO(),
         vilkårssett = this.vilkårssett.toDTO(),
+        saksopplysninger = this.saksopplysninger?.toDTO(),
         stønadsdager = this.stønadsdager.toDTO(),
         behandlingstype = behandlingstype,
     )
+}
