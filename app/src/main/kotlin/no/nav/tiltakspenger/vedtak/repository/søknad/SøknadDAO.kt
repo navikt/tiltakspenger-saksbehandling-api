@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import org.intellij.lang.annotations.Language
@@ -87,6 +88,25 @@ internal object SøknadDAO {
                     mapOf(
                         "sak_id" to sakId.toString(),
                     ),
+                ).map { row ->
+                    row.toSøknad(session)
+                }.asList,
+            )
+
+    fun hentForFnr(
+        fnr: Fnr,
+        session: Session,
+    ): List<Søknad> =
+        session
+            .run(
+                sqlQuery(
+                    """
+                    select
+                        *
+                    from søknad s
+                    join sak on sak.id = s.sak_id where sak.ident = :fnr
+                    """.trimIndent(),
+                    "fnr" to fnr.verdi,
                 ).map { row ->
                     row.toSøknad(session)
                 }.asList,
