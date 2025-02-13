@@ -13,7 +13,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 class TiltaksdeltakerArenaConsumer(
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
-    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl() else LocalKafkaConfig(),
+    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "latest") else LocalKafkaConfig(),
 ) : Consumer<String, String> {
     private val log = KotlinLogging.logger { }
 
