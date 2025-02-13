@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.objectmothers.førstegangsbehandlingIverksatt
+import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.behandling.behandlingRoutes
 import no.nav.tiltakspenger.vedtak.routes.behandling.benk.behandlingBenkRoutes
 import no.nav.tiltakspenger.vedtak.routes.behandling.benk.startRevurderingRoute

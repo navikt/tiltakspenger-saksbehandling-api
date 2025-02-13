@@ -19,8 +19,8 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
-import no.nav.tiltakspenger.vedtak.routes.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.søknad.SØKNAD_PATH
 import no.nav.tiltakspenger.vedtak.routes.søknad.søknadRoutes
 import org.junit.jupiter.api.Test

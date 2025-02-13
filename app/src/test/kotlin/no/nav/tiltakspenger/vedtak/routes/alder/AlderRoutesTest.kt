@@ -21,13 +21,13 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.objectmothers.førstegangsbehandlingUavklart
 import no.nav.tiltakspenger.objectmothers.nySøknad
+import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.behandling.BEHANDLING_PATH
 import no.nav.tiltakspenger.vedtak.routes.behandling.benk.behandlingBenkRoutes
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.SamletUtfallDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.alder.AlderVilkårDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.alder.alderRoutes
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
-import no.nav.tiltakspenger.vedtak.routes.jacksonSerialization
 import org.junit.jupiter.api.Test
 
 class AlderRoutesTest {

@@ -18,9 +18,9 @@ import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.objectmothers.nySøknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
+import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.behandling.BEHANDLING_PATH
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
-import no.nav.tiltakspenger.vedtak.routes.jacksonSerialization
 import org.junit.jupiter.api.Test
 
 class BehandlingBenkRoutesTest {

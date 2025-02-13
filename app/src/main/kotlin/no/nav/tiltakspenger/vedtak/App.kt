@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.vedtak.Configuration.applicationProfile
 import no.nav.tiltakspenger.vedtak.Configuration.httpPort
 import no.nav.tiltakspenger.vedtak.context.ApplicationContext
 import no.nav.tiltakspenger.vedtak.jobber.TaskExecutor
-import no.nav.tiltakspenger.vedtak.routes.vedtakApi
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -78,10 +77,6 @@ internal fun start(
     embeddedServer(
         factory = Netty,
         port = port,
-        module = {
-            vedtakApi(
-                applicationContext = applicationContext,
-            )
-        },
+        module = { ktorSetup(applicationContext) },
     ).start(wait = true)
 }

@@ -13,8 +13,8 @@ import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.objectmothers.førstegangsbehandlingVilkårsvurdert
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
+import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
-import no.nav.tiltakspenger.vedtak.routes.jacksonSerialization
 import org.junit.jupiter.api.Test
 
 class BehandlingRoutesTest {

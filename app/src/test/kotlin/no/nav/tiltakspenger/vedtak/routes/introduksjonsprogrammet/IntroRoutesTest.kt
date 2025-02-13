@@ -14,12 +14,12 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.objectmothers.førstegangsbehandlingUavklart
+import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.behandling.BEHANDLING_PATH
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.introduksjonsprogrammet.IntroVilkårDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.introduksjonsprogrammet.introRoutes
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.kvp.DeltagelseDTO.DELTAR_IKKE
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
-import no.nav.tiltakspenger.vedtak.routes.jacksonSerialization
 import org.junit.jupiter.api.Test
 
 class IntroRoutesTest {

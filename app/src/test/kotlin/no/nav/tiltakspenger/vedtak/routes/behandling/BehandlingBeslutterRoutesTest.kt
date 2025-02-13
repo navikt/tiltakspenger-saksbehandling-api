@@ -14,9 +14,9 @@ import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.objectmothers.førstegangsbehandlingUnderBeslutning
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attestering
+import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.behandling.beslutter.behandlingBeslutterRoutes
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
-import no.nav.tiltakspenger.vedtak.routes.jacksonSerialization
 import org.junit.jupiter.api.Test
 
 class BehandlingBeslutterRoutesTest {

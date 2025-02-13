@@ -25,8 +25,8 @@ import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter
 import no.nav.tiltakspenger.meldekort.service.SendMeldekortTilBeslutterService
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
+import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
-import no.nav.tiltakspenger.vedtak.routes.jacksonSerialization
 import org.junit.jupiter.api.Test
 
 internal class SendMeldekortBehandlingTilBeslutterRouteTest {
