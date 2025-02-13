@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.objectmothers.nySøknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.behandling.BEHANDLING_PATH
+import no.nav.tiltakspenger.vedtak.routes.behandling.behandlingRoutes
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
 import org.junit.jupiter.api.Test
 
@@ -39,12 +40,14 @@ class BehandlingBenkRoutesTest {
                 application {
                     jacksonSerialization()
                     routing {
-                        behandlingBenkRoutes(
+                        behandlingRoutes(
+                            tiltaksdeltagelseVilkårService = tac.behandlingContext.tiltaksdeltagelseVilkårService,
+                            kvpVilkårService = tac.behandlingContext.kvpVilkårService,
+                            livsoppholdVilkårService = tac.behandlingContext.livsoppholdVilkårService,
                             tokenService = tac.tokenService,
                             behandlingService = tac.behandlingContext.behandlingService,
                             sakService = tac.sakContext.sakService,
                             auditService = tac.personContext.auditService,
-                            startRevurderingService = tac.behandlingContext.startRevurderingService,
                             søknadService = tac.søknadContext.søknadService,
                         )
                     }

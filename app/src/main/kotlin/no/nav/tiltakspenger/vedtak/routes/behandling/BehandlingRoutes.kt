@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.vedtak.routes.behandling
 
 import io.ktor.server.routing.Route
 import no.nav.tiltakspenger.libs.auth.core.TokenService
+import no.nav.tiltakspenger.saksbehandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.kvp.KvpVilkårService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.livsopphold.LivsoppholdVilkårService
@@ -30,6 +31,7 @@ fun Route.behandlingRoutes(
     kvpVilkårService: KvpVilkårService,
     livsoppholdVilkårService: LivsoppholdVilkårService,
     auditService: AuditService,
+    søknadService: SøknadService,
 ) {
     hentPersonRoute(tokenService, sakService, auditService)
     tiltakDeltagelseRoutes(behandlingService, tiltaksdeltagelseVilkårService, auditService, tokenService)
@@ -42,4 +44,5 @@ fun Route.behandlingRoutes(
     stønadsdagerRoutes(behandlingService, auditService, tokenService)
     sendBehandlingTilBeslutterRoute(tokenService, behandlingService, auditService)
     hentBehandlingRoute(tokenService, behandlingService, auditService)
+    startBehandlingRoute(tokenService, behandlingService, auditService, søknadService)
 }

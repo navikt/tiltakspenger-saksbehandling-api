@@ -61,6 +61,7 @@ internal class StartRevurderingTest {
                                 kvpVilkårService = tac.behandlingContext.kvpVilkårService,
                                 livsoppholdVilkårService = tac.behandlingContext.livsoppholdVilkårService,
                                 auditService = tac.personContext.auditService,
+                                søknadService = tac.søknadContext.søknadService,
                             )
                             behandlingBeslutterRoutes(
                                 behandlingService = tac.behandlingContext.behandlingService,

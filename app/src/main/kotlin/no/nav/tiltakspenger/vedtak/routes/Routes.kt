@@ -22,6 +22,7 @@ fun Route.routes(applicationContext: ApplicationContext) {
         livsoppholdVilkårService = applicationContext.behandlingContext.livsoppholdVilkårService,
         auditService = applicationContext.personContext.auditService,
         tokenService = applicationContext.tokenService,
+        søknadService = applicationContext.søknadContext.søknadService,
     )
     behandlingBenkRoutes(
         tokenService = applicationContext.tokenService,
