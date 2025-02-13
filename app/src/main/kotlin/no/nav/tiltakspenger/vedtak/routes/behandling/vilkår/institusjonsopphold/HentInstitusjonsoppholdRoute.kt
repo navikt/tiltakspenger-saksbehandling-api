@@ -43,7 +43,7 @@ fun Route.hentInstitusjonsoppholdRoute(
 
                             call.respond(
                                 status = HttpStatusCode.OK,
-                                message = it.vilkårssett.institusjonsoppholdVilkår.toDTO(),
+                                message = it.vilkårssett!!.institusjonsoppholdVilkår.toDTO(),
                             )
                         },
                     )

@@ -116,7 +116,7 @@ interface MeldekortMother {
         status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT,
         iverksattTidspunkt: LocalDateTime? = nå(),
         navkontor: Navkontor = ObjectMother.navkontor(),
-        antallDagerForMeldeperiode: Int = 10,
+        antallDagerForMeldeperiode: Int = 14,
 
         sendtTilBeslutning: LocalDateTime = nå(),
 
@@ -150,7 +150,7 @@ interface MeldekortMother {
         startDato: LocalDate = LocalDate.of(2023, 1, 2),
         meldekortId: MeldekortId = MeldekortId.random(),
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
-        maksDagerMedTiltakspengerForPeriode: Int = 10,
+        maksDagerMedTiltakspengerForPeriode: Int = 14,
     ): MeldeperiodeBeregning.UtfyltMeldeperiode {
         return MeldeperiodeBeregning.UtfyltMeldeperiode(
             sakId = sakId,
@@ -168,7 +168,7 @@ interface MeldekortMother {
         startDato: LocalDate = LocalDate.of(2023, 1, 2),
         meldekortId: MeldekortId = MeldekortId.random(),
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
-        maksDagerMedTiltakspengerForPeriode: Int = 10,
+        maksDagerMedTiltakspengerForPeriode: Int = 14,
     ): MeldeperiodeBeregning.IkkeUtfyltMeldeperiode {
         val meldeperiode = meldeperiode(
             periode = periode,
@@ -377,7 +377,7 @@ interface MeldekortMother {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         fnr: Fnr = Fnr.random(),
         opprettet: LocalDateTime = nå(),
-        antallDagerForPeriode: Int = 10,
+        antallDagerForPeriode: Int = 14,
         girRett: Map<LocalDate, Boolean> = buildMap {
             val perUke = ceil(antallDagerForPeriode / 2.0).toInt()
             (0 until perUke).forEach { day ->

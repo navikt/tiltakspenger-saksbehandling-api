@@ -9,7 +9,7 @@ fun Behandling.leggTilIntroSaksopplysning(command: LeggTilIntroSaksopplysningCom
 
     val oppdatertFørstegangsbehandling =
         this.copy(
-            vilkårssett = vilkårssett.oppdaterIntro(command),
+            vilkårssett = vilkårssett!!.oppdaterIntro(command),
             saksbehandler = command.saksbehandler.navIdent,
         )
     return oppdatertFørstegangsbehandling

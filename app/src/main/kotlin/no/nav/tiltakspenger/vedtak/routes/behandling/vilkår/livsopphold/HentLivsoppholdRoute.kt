@@ -41,7 +41,7 @@ fun Route.hentLivsoppholdRoute(
                         )
                         call.respond(
                             status = HttpStatusCode.OK,
-                            message = it.vilkårssett.livsoppholdVilkår.toDTO(),
+                            message = it.vilkårssett!!.livsoppholdVilkår.toDTO(),
                         )
                     },
                 )

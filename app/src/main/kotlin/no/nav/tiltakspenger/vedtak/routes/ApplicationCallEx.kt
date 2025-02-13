@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond400BadRequest
 
@@ -41,6 +42,18 @@ internal suspend inline fun ApplicationCall.withSakId(
         parse = SakId::fromString,
         errorMessage = "Ugyldig sak id",
         errorCode = "ugyldig_sak_id",
+        onSuccess = onRight,
+    )
+}
+
+internal suspend inline fun ApplicationCall.withSøknadId(
+    crossinline onRight: suspend (SøknadId) -> Unit,
+) {
+    withValidParam(
+        paramName = "søknadId",
+        parse = SøknadId::fromString,
+        errorMessage = "Ugyldig søknad id",
+        errorCode = "ugyldig_søknad_id",
         onSuccess = onRight,
     )
 }

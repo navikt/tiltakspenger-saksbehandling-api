@@ -43,7 +43,7 @@ fun Route.hentIntroRoute(
                             )
                             call.respond(
                                 status = HttpStatusCode.OK,
-                                message = it.vilkårssett.introVilkår.toDTO(),
+                                message = it.vilkårssett!!.introVilkår.toDTO(),
                             )
                         },
                     )

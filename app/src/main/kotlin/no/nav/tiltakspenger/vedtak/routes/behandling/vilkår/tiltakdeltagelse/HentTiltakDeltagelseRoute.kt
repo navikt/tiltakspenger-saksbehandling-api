@@ -41,7 +41,7 @@ fun Route.hentTiltakDeltagelseRoute(
                         )
                         call.respond(
                             status = HttpStatusCode.OK,
-                            message = it.vilkårssett.tiltakDeltagelseVilkår.toDTO(),
+                            message = it.vilkårssett!!.tiltakDeltagelseVilkår.toDTO(),
                         )
                     },
                 )

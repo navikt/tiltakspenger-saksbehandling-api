@@ -60,17 +60,17 @@ interface SakService {
     ): Either<KunneIkkeHenteEnkelPerson, EnkelPersonMedSkjerming>
 }
 
-sealed interface KanIkkeStarteFørstegangsbehandling {
+sealed interface KanIkkeStarteSøknadsbehandling {
     data class HarAlleredeStartetBehandlingen(
         val behandlingId: BehandlingId,
-    ) : KanIkkeStarteFørstegangsbehandling
+    ) : KanIkkeStarteSøknadsbehandling
 
     data class OppretteBehandling(
         val underliggende: KanIkkeOppretteBehandling,
-    ) : KanIkkeStarteFørstegangsbehandling
+    ) : KanIkkeStarteSøknadsbehandling
 
     data class HarIkkeTilgang(
         val kreverEnAvRollene: Set<Saksbehandlerrolle>,
         val harRollene: Set<Saksbehandlerrolle>,
-    ) : KanIkkeStarteFørstegangsbehandling
+    ) : KanIkkeStarteSøknadsbehandling
 }

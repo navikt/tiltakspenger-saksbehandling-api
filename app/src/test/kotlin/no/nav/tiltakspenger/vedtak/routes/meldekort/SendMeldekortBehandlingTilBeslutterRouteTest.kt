@@ -43,7 +43,7 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
         coEvery { auditService.logMedMeldekortId(any(), any(), any(), any(), any()) } returns Unit
         coEvery {
             sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(any())
-        } returns KanIkkeSendeMeldekortTilBeslutter.ForMangeDagerUtfylt(10, 11).left()
+        } returns KanIkkeSendeMeldekortTilBeslutter.ForMangeDagerUtfylt(14, 15).left()
         val request = """
             {
               "navkontor": "0315",
@@ -81,7 +81,7 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
                     ) {
                         status shouldBe HttpStatusCode.BadRequest
                         contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-                        bodyAsText() shouldBe """{"melding":"Kan ikke sende meldekort til beslutter. For mange dager er utfylt. Maks antall for dette meldekortet er 10, mens antall utfylte dager er 11.","kode":"for_mange_dager_utfylt"}"""
+                        bodyAsText() shouldBe """{"melding":"Kan ikke sende meldekort til beslutter. For mange dager er utfylt. Maks antall for dette meldekortet er 14, mens antall utfylte dager er 15.","kode":"for_mange_dager_utfylt"}"""
                     }
                 }
             }

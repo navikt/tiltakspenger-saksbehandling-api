@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBeha
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling.StøtterKunInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingService
-import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteSøknadsbehandling
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.behandling.benk.BehandlingIdDTO
@@ -27,6 +27,9 @@ import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond403Forbidden
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond500InternalServerError
 import no.nav.tiltakspenger.vedtak.routes.withBody
 
+/**
+ * TODO John og Anders: Denne slettes etter vi har laget ny, forenklet vilkårsvurdering.
+ */
 fun Route.startBehandlingRoute(
     tokenService: TokenService,
     behandlingService: BehandlingService,
@@ -50,11 +53,11 @@ fun Route.startBehandlingRoute(
                 ).fold(
                     {
                         when (it) {
-                            is KanIkkeStarteFørstegangsbehandling.HarAlleredeStartetBehandlingen -> {
+                            is KanIkkeStarteSøknadsbehandling.HarAlleredeStartetBehandlingen -> {
                                 call.respond(HttpStatusCode.OK, BehandlingIdDTO(it.behandlingId.toString()))
                             }
 
-                            is KanIkkeStarteFørstegangsbehandling.OppretteBehandling ->
+                            is KanIkkeStarteSøknadsbehandling.OppretteBehandling ->
                                 when (it.underliggende) {
                                     FantIkkeTiltak ->
                                         call.respond500InternalServerError(fantIkkeTiltak())
@@ -65,7 +68,7 @@ fun Route.startBehandlingRoute(
                                     is StøtterKunInnvilgelse -> call.respond400BadRequest(støtterIkkeDelvisEllerAvslag())
                                 }
 
-                            is KanIkkeStarteFørstegangsbehandling.HarIkkeTilgang -> {
+                            is KanIkkeStarteSøknadsbehandling.HarIkkeTilgang -> {
                                 call.respond403Forbidden(
                                     ikkeTilgang("Krever en av rollene ${it.kreverEnAvRollene} for å starte en behandling."),
                                 )

@@ -11,7 +11,7 @@ fun Behandling.leggTilLivsoppholdSaksopplysning(
         "Kan bare legge til saksopplysninger på egen sak. Saksbehandler på behandling: $saksbehandler, utførendeSaksbehandler: ${command.saksbehandler}, behandlingId: ${command.behandlingId}"
     }
 
-    return vilkårssett
+    return vilkårssett!!
         .oppdaterLivsopphold(command)
         .map {
             this.copy(

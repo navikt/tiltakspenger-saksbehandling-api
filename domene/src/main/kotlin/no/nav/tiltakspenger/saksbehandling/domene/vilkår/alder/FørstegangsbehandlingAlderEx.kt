@@ -9,7 +9,7 @@ fun Behandling.leggTilAlderSaksopplysning(command: LeggTilAlderSaksopplysningCom
 
     val oppdatertFørstegangsbehandling =
         this.copy(
-            vilkårssett = vilkårssett.oppdaterAlder(command),
+            vilkårssett = vilkårssett!!.oppdaterAlder(command),
             saksbehandler = command.saksbehandler.navIdent,
         )
     return oppdatertFørstegangsbehandling

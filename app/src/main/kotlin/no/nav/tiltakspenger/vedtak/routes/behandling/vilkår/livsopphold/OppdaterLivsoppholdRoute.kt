@@ -86,7 +86,7 @@ fun Route.oppdaterLivsoppholdRoute(
 
                                 call.respond(
                                     status = HttpStatusCode.Created,
-                                    message = it.vilkårssett.livsoppholdVilkår.toDTO(),
+                                    message = it.vilkårssett!!.livsoppholdVilkår.toDTO(),
                                 )
                             },
                         )
