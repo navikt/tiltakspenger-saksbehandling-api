@@ -28,3 +28,4 @@ azure:
     - name: ROLE_DRIFT
       id: 0405ed09-1248-47f7-a6e3-e998bc90feca
 replicas: 2
+kafka-pool: "nav-prod"

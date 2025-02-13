@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.vedtak.clients.datadeling.DatadelingHttpClient
 import no.nav.tiltakspenger.vedtak.clients.oppgave.OppgaveHttpClient
 import no.nav.tiltakspenger.vedtak.clients.veilarboppfolging.VeilarboppfolgingHttpClient
 import no.nav.tiltakspenger.vedtak.db.DataSourceSetup
+import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena.TiltaksdeltakerArenaConsumer
 
 /**
  * Inneholder alle klienter, repoer og servicer.
@@ -73,6 +74,9 @@ open class ApplicationContext(
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.oppgaveScope) },
         )
     }
+
+    open val tiltaksdeltakerArenaConsumer by lazy { TiltaksdeltakerArenaConsumer(topic = Configuration.arenaTiltaksdeltakerTopic) }
+
     open val personContext by lazy { PersonContext(sessionFactory, entraIdSystemtokenClient) }
     open val dokumentContext by lazy { DokumentContext(entraIdSystemtokenClient) }
     open val statistikkContext by lazy { StatistikkContext(sessionFactory) }

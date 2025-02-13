@@ -58,6 +58,7 @@ internal fun start(
         )
     }
 
+    val applicationProfile = applicationProfile()
     val stoppableTasks = TaskExecutor.startJob(
         initialDelay = if (isNais) 1.minutes else 1.seconds,
         runCheckFactory = runCheckFactory,
@@ -69,11 +70,18 @@ internal fun start(
             applicationContext.behandlingContext.distribuerVedtaksbrevService.distribuer()
             applicationContext.sendTilDatadelingService.send(Configuration.isNais())
 
-            if (applicationProfile() != Profile.PROD) {
+            if (applicationProfile != Profile.PROD) {
                 applicationContext.meldekortContext.sendMeldeperiodeTilBrukerService.send()
             }
         },
     )
+
+    if (applicationProfile != Profile.LOCAL) {
+        val consumers = listOf(
+            applicationContext.tiltaksdeltakerArenaConsumer,
+        )
+        consumers.forEach { it.run() }
+    }
 
     embeddedServer(
         factory = Netty,

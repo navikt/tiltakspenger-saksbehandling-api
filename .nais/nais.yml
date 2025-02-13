@@ -27,6 +27,8 @@ spec:
     path: /metrics
   secureLogs:
     enabled: true
+  kafka:
+    pool: {{ kafka-pool }}
   tokenx:
     enabled: true
   azure:
