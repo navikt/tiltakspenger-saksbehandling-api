@@ -6,8 +6,8 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
 import no.nav.tiltakspenger.saksbehandling.domene.benk.Saksoversikt
 import no.nav.tiltakspenger.saksbehandling.domene.benk.toBenkBehandlingstype
-import no.nav.tiltakspenger.vedtak.routes.behandling.BehandlingstypeDTO
-import no.nav.tiltakspenger.vedtak.routes.behandling.toDTO
+import no.nav.tiltakspenger.vedtak.routes.behandling.dto.BehandlingstypeDTO
+import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
 
 /**
  * @property periode Null dersom det er en søknad.

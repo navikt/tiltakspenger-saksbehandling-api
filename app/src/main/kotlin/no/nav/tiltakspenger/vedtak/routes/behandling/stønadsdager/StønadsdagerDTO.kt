@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.stønadsdager
 
 import no.nav.tiltakspenger.saksbehandling.domene.stønadsdager.Stønadsdager
-import no.nav.tiltakspenger.vedtak.routes.behandling.LovreferanseDTO
-import no.nav.tiltakspenger.vedtak.routes.behandling.toDTO
+import no.nav.tiltakspenger.vedtak.routes.behandling.dto.LovreferanseDTO
+import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
 
 /**
  * Har ansvar for å serialisere Stønadsdager til json. Kontrakt mot frontend.

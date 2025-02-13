@@ -15,9 +15,9 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.path
 import io.ktor.server.routing.routing
 import no.nav.tiltakspenger.vedtak.context.ApplicationContext
-import no.nav.tiltakspenger.vedtak.routes.behandling.behandlingBeslutterRoutes
 import no.nav.tiltakspenger.vedtak.routes.behandling.behandlingRoutes
 import no.nav.tiltakspenger.vedtak.routes.behandling.benk.behandlingBenkRoutes
+import no.nav.tiltakspenger.vedtak.routes.behandling.beslutter.behandlingBeslutterRoutes
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.ExceptionHandler
 import no.nav.tiltakspenger.vedtak.routes.meldekort.meldekortRoutes
 import no.nav.tiltakspenger.vedtak.routes.sak.sakRoutes

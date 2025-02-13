@@ -3,10 +3,9 @@ package no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.institusjonsopphol
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.institusjonsopphold.InstitusjonsoppholdVilkår
-import no.nav.tiltakspenger.vedtak.routes.behandling.LovreferanseDTO
-import no.nav.tiltakspenger.vedtak.routes.behandling.toDTO
+import no.nav.tiltakspenger.vedtak.routes.behandling.dto.LovreferanseDTO
+import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.SamletUtfallDTO
-import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.kvp.toDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.toDTO
 
 /**

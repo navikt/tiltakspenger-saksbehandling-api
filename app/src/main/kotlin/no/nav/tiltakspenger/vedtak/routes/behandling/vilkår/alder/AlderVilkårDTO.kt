@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.alder
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.alder.AlderVilkår
-import no.nav.tiltakspenger.vedtak.routes.behandling.LovreferanseDTO
-import no.nav.tiltakspenger.vedtak.routes.behandling.toDTO
+import no.nav.tiltakspenger.vedtak.routes.behandling.dto.LovreferanseDTO
+import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.SamletUtfallDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.toDTO
 
