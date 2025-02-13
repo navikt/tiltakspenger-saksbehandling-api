@@ -56,7 +56,6 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
     val distribusjonIdGenerator = DistribusjonIdGenerator()
 
     private val utbetalingGatewayFake = UtbetalingFakeGateway()
-    private val tiltakGatewayFake = TiltakFakeGateway()
     private val personGatewayFake = PersonFakeGateway()
     private val genererFakeUtbetalingsvedtakGateway = GenererFakeUtbetalingsvedtakGateway()
     private val genererFakeVedtaksbrevGateway = GenererFakeVedtaksbrevGateway()
@@ -113,19 +112,16 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
         leggTilPerson(
             fnr = fnr,
             personopplysningerForBruker = ObjectMother.personopplysningKjedeligFyr(fnr = fnr),
-            tiltaksdeltagelse = tiltaksdeltagelse,
         )
     }
 
     fun leggTilPerson(
         fnr: Fnr,
         personopplysningerForBruker: PersonopplysningerSøker,
-        tiltaksdeltagelse: Tiltaksdeltagelse,
     ) {
         fellesFakeSkjermingsklient.leggTil(fnr = fnr, skjermet = false)
         fellesFakeAdressebeskyttelseKlient.leggTil(fnr = fnr, gradering = listOf(AdressebeskyttelseGradering.UGRADERT))
         personGatewayFake.leggTilPersonopplysning(fnr = fnr, personopplysninger = personopplysningerForBruker)
-        tiltakGatewayFake.lagre(fnr = fnr, tiltaksdeltagelse = tiltaksdeltagelse)
         poaoTilgangskontrollFake.leggTil(fnr = fnr, skjermet = false)
     }
 
@@ -155,6 +151,7 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
             )
             override val poaoTilgangGateway = poaoTilgangskontrollFake
         }
+
     override val dokumentContext by lazy {
         object : DokumentContext(entraIdSystemtokenClient) {
             override val journalførMeldekortGateway = journalførFakeMeldekortGateway
@@ -163,6 +160,9 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
             override val genererInnvilgelsesvedtaksbrevGateway = genererFakeVedtaksbrevGateway
         }
     }
+
+    private val tiltakGatewayFake =
+        TiltakFakeGateway(søknadRepo = søknadContext.søknadRepo)
 
     override val tiltakContext by lazy {
         object : TiltakContext(entraIdSystemtokenClient) {

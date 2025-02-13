@@ -75,7 +75,7 @@ class TestApplicationContext(
     private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
     private val utbetalingsvedtakFakeRepo = UtbetalingsvedtakFakeRepo()
     private val søknadFakeRepo = SøknadFakeRepo()
-    private val tiltakGatewayFake = TiltakFakeGateway()
+    private val tiltakGatewayFake = TiltakFakeGateway(søknadRepo = søknadFakeRepo)
     private val behandlingFakeRepo = BehandlingFakeRepo()
     private val personGatewayFake = PersonFakeGateway()
     private val tilgangsstyringFakeGateway = TilgangsstyringFakeGateway()
