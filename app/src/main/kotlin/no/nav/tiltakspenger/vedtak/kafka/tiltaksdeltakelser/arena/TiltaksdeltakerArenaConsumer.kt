@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.KAFKA_CONSUMER_GROUP_ID
 import org.apache.kafka.common.serialization.StringDeserializer
-import org.apache.kafka.common.serialization.UUIDDeserializer
 
 class TiltaksdeltakerArenaConsumer(
     topic: String,
@@ -21,7 +20,7 @@ class TiltaksdeltakerArenaConsumer(
     private val consumer = ManagedKafkaConsumer(
         topic = topic,
         config = kafkaConfig.consumerConfig(
-            keyDeserializer = UUIDDeserializer(),
+            keyDeserializer = StringDeserializer(),
             valueDeserializer = StringDeserializer(),
             groupId = groupId,
         ),
