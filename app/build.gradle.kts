@@ -52,6 +52,7 @@ dependencies {
     implementation("com.github.navikt.tiltakspenger-libs:ktor-common:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:logging:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:meldekort-dtos:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:kafka:$felleslibVersion")
 
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
     implementation("ch.qos.logback:logback-classic:1.5.16")

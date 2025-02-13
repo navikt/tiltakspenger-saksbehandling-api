@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.auth.core.AdRolle
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 
 private const val APPLICATION_NAME = "tiltakspenger-saksbehandling-api"
+const val KAFKA_CONSUMER_GROUP_ID = "$APPLICATION_NAME-consumer"
 
 enum class Profile {
     LOCAL,
@@ -88,6 +89,7 @@ object Configuration {
                 "VEILARBOPPFOLGING_URL" to "http://host.docker.internal:8091",
                 "OPPGAVE_SCOPE" to "localhost",
                 "OPPGAVE_URL" to "http://host.docker.internal:8091",
+                "ARENA_TILTAKSDELTAKER_TOPIC" to "arena.tiltaksdeltaker",
             ),
         )
 
@@ -123,6 +125,7 @@ object Configuration {
                 "VEILARBOPPFOLGING_URL" to "http://veilarboppfolging.poao",
                 "OPPGAVE_SCOPE" to "api://dev-fss.oppgavehandtering.oppgave/.default",
                 "OPPGAVE_URL" to "https://oppgave.dev-fss-pub.nais.io",
+                "ARENA_TILTAKSDELTAKER_TOPIC" to "teamarenanais.aapen-arena-tiltakdeltakerendret-v1-q2",
             ),
         )
     private val prodProperties =
@@ -157,6 +160,7 @@ object Configuration {
                 "VEILARBOPPFOLGING_URL" to "http://veilarboppfolging.poao",
                 "OPPGAVE_SCOPE" to "api://prod-fss.oppgavehandtering.oppgave/.default",
                 "OPPGAVE_URL" to "https://oppgave.prod-fss-pub.nais.io",
+                "ARENA_TILTAKSDELTAKER_TOPIC" to "teamarenanais.aapen-arena-tiltakdeltakerendret-v1-p",
             ),
         )
 
@@ -237,6 +241,8 @@ object Configuration {
     val meldekortApiUrl: String by lazy { config()[Key("MELDEKORT_API_URL", stringType)] }
     val veilarboppfolgingUrl: String by lazy { config()[Key("VEILARBOPPFOLGING_URL", stringType)] }
     val oppgaveUrl: String by lazy { config()[Key("OPPGAVE_URL", stringType)] }
+
+    val arenaTiltaksdeltakerTopic: String by lazy { config()[Key("ARENA_TILTAKSDELTAKER_TOPIC", stringType)] }
 
     fun httpPort() = config()[Key("application.httpPort", intType)]
 
