@@ -34,9 +34,7 @@ internal fun Application.ktorSetup(
     }
     jacksonSerialization()
     configureExceptions()
-    routing {
-        routes(applicationContext)
-    }
+    routing { routes(applicationContext) }
 }
 
 fun Application.jacksonSerialization() {

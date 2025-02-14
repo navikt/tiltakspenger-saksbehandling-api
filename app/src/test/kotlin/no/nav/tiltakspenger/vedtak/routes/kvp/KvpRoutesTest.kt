@@ -23,8 +23,8 @@ import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.behandling.BEHANDLING_PATH
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.SamletUtfallDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.kvp.KVPVilkårDTO
-import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.kvp.kvpRoutes
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+import no.nav.tiltakspenger.vedtak.routes.routes
 import org.junit.jupiter.api.Test
 
 class KvpRoutesTest {
@@ -55,14 +55,7 @@ class KvpRoutesTest {
             testApplication {
                 application {
                     jacksonSerialization()
-                    routing {
-                        kvpRoutes(
-                            tokenService = tac.tokenService,
-                            kvpVilkårService = tac.behandlingContext.kvpVilkårService,
-                            behandlingService = tac.behandlingContext.behandlingService,
-                            auditService = tac.personContext.auditService,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
 
                 // Sjekk at man kan kjøre Get
@@ -94,14 +87,7 @@ class KvpRoutesTest {
             testApplication {
                 application {
                     jacksonSerialization()
-                    routing {
-                        kvpRoutes(
-                            tokenService = tac.tokenService,
-                            kvpVilkårService = tac.behandlingContext.kvpVilkårService,
-                            behandlingService = tac.behandlingContext.behandlingService,
-                            auditService = tac.personContext.auditService,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
 
                 defaultRequest(

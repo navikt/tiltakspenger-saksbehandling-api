@@ -21,8 +21,8 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+import no.nav.tiltakspenger.vedtak.routes.routes
 import no.nav.tiltakspenger.vedtak.routes.søknad.SØKNAD_PATH
-import no.nav.tiltakspenger.vedtak.routes.søknad.søknadRoutes
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -43,13 +43,7 @@ class SøknadRoutesTest {
             testApplication {
                 application {
                     jacksonSerialization()
-                    routing {
-                        søknadRoutes(
-                            søknadService = tac.søknadContext.søknadService,
-                            tokenService = tac.tokenService,
-                            sakService = tac.sakContext.sakService,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
                 defaultRequest(
                     HttpMethod.Post,

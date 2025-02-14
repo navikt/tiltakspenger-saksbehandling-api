@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+import no.nav.tiltakspenger.vedtak.routes.routes
 import org.junit.jupiter.api.Test
 
 class HentEllerOpprettSakRouteTest {
@@ -32,12 +33,7 @@ class HentEllerOpprettSakRouteTest {
             testApplication {
                 application {
                     jacksonSerialization()
-                    routing {
-                        hentEllerOpprettSakRoute(
-                            sakService = tac.sakContext.sakService,
-                            tokenService = tac.tokenService,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
                 defaultRequest(
                     HttpMethod.Post,
@@ -67,12 +63,7 @@ class HentEllerOpprettSakRouteTest {
             testApplication {
                 application {
                     jacksonSerialization()
-                    routing {
-                        hentEllerOpprettSakRoute(
-                            sakService = tac.sakContext.sakService,
-                            tokenService = tac.tokenService,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
                 defaultRequest(
                     HttpMethod.Post,

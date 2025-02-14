@@ -20,8 +20,8 @@ import no.nav.tiltakspenger.objectmothers.nySøknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.behandling.BEHANDLING_PATH
-import no.nav.tiltakspenger.vedtak.routes.behandling.behandlingRoutes
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+import no.nav.tiltakspenger.vedtak.routes.routes
 import org.junit.jupiter.api.Test
 
 class BehandlingBenkRoutesTest {
@@ -39,22 +39,7 @@ class BehandlingBenkRoutesTest {
             testApplication {
                 application {
                     jacksonSerialization()
-                    routing {
-                        behandlingRoutes(
-                            tiltaksdeltagelseVilkårService = tac.behandlingContext.tiltaksdeltagelseVilkårService,
-                            kvpVilkårService = tac.behandlingContext.kvpVilkårService,
-                            livsoppholdVilkårService = tac.behandlingContext.livsoppholdVilkårService,
-                            tokenService = tac.tokenService,
-                            behandlingService = tac.behandlingContext.behandlingService,
-                            sakService = tac.sakContext.sakService,
-                            auditService = tac.personContext.auditService,
-                            søknadService = tac.søknadContext.søknadService,
-                            startSøknadsbehandlingV2Service = tac.behandlingContext.startSøknadsbehandlingV2Service,
-                            oppdaterSaksopplysningerService = tac.behandlingContext.oppdaterSaksopplysningerService,
-                            oppdaterBegrunnelseVilkårsvurderingService = tac.behandlingContext.oppdaterBegrunnelseVilkårsvurderingService,
-                            oppdaterFritekstTilVedtaksbrevService = tac.behandlingContext.oppdaterFritekstTilVedtaksbrevService,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
                 defaultRequest(
                     HttpMethod.Post,

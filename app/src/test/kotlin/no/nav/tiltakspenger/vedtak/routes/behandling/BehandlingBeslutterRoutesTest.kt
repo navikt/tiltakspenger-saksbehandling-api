@@ -15,8 +15,8 @@ import no.nav.tiltakspenger.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.objectmothers.førstegangsbehandlingUnderBeslutning
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attestering
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
-import no.nav.tiltakspenger.vedtak.routes.behandling.beslutter.behandlingBeslutterRoutes
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+import no.nav.tiltakspenger.vedtak.routes.routes
 import org.junit.jupiter.api.Test
 
 class BehandlingBeslutterRoutesTest {
@@ -31,13 +31,7 @@ class BehandlingBeslutterRoutesTest {
             testApplication {
                 application {
                     jacksonSerialization()
-                    routing {
-                        behandlingBeslutterRoutes(
-                            behandlingService = tac.behandlingContext.behandlingService,
-                            auditService = tac.personContext.auditService,
-                            tokenService = tac.tokenService,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
                 defaultRequest(
                     HttpMethod.Post,

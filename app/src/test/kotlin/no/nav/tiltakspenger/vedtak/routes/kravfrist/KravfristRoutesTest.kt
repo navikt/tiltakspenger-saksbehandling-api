@@ -18,8 +18,8 @@ import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.behandling.BEHANDLING_PATH
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.SamletUtfallDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.kravfrist.KravfristVilkårDTO
-import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.kravfrist.kravfristRoutes
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+import no.nav.tiltakspenger.vedtak.routes.routes
 import org.junit.jupiter.api.Test
 
 internal class KravfristRoutesTest {
@@ -34,13 +34,7 @@ internal class KravfristRoutesTest {
             testApplication {
                 application {
                     jacksonSerialization()
-                    routing {
-                        kravfristRoutes(
-                            tokenService = tac.tokenService,
-                            behandlingService = tac.behandlingContext.behandlingService,
-                            auditService = tac.personContext.auditService,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
                 defaultRequest(
                     HttpMethod.Get,

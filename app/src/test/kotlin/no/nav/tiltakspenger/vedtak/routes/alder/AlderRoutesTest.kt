@@ -19,8 +19,8 @@ import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.behandling.BEHANDLING_PATH
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.SamletUtfallDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.alder.AlderVilkårDTO
-import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.alder.alderRoutes
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+import no.nav.tiltakspenger.vedtak.routes.routes
 import org.junit.jupiter.api.Test
 
 class AlderRoutesTest {
@@ -35,13 +35,7 @@ class AlderRoutesTest {
             testApplication {
                 application {
                     jacksonSerialization()
-                    routing {
-                        alderRoutes(
-                            behandlingService = tac.behandlingContext.behandlingService,
-                            auditService = tac.personContext.auditService,
-                            tokenService = tac.tokenService,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
 
                 // Sjekk at man kan kjøre Get
@@ -71,13 +65,7 @@ class AlderRoutesTest {
             testApplication {
                 application {
                     jacksonSerialization()
-                    routing {
-                        alderRoutes(
-                            tokenService = tac.tokenService,
-                            behandlingService = tac.behandlingContext.behandlingService,
-                            auditService = tac.personContext.auditService,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
 
                 // Sjekk at man kan kjøre Get

@@ -33,8 +33,8 @@ import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.behandling.BEHANDLING_PATH
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.SamletUtfallDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.livsopphold.LivsoppholdVilkårDTO
-import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.livsopphold.livsoppholdRoutes
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+import no.nav.tiltakspenger.vedtak.routes.routes
 import org.junit.jupiter.api.Test
 
 class LivsoppholdRoutesTest {
@@ -49,14 +49,7 @@ class LivsoppholdRoutesTest {
             testApplication {
                 application {
                     jacksonSerialization()
-                    routing {
-                        livsoppholdRoutes(
-                            tokenService = tac.tokenService,
-                            livsoppholdVilkårService = tac.behandlingContext.livsoppholdVilkårService,
-                            behandlingService = tac.behandlingContext.behandlingService,
-                            auditService = tac.personContext.auditService,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
                 // Sjekk at man kan kjøre Get
                 val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
@@ -115,14 +108,7 @@ class LivsoppholdRoutesTest {
                 application {
                     configureExceptions()
                     jacksonSerialization()
-                    routing {
-                        livsoppholdRoutes(
-                            tokenService = tac.tokenService,
-                            livsoppholdVilkårService = tac.behandlingContext.livsoppholdVilkårService,
-                            behandlingService = tac.behandlingContext.behandlingService,
-                            auditService = tac.personContext.auditService,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
 
                 // Sjekk at man ikke kan si at bruker har livsoppholdytelser
@@ -152,14 +138,7 @@ class LivsoppholdRoutesTest {
             testApplication {
                 application {
                     jacksonSerialization()
-                    routing {
-                        livsoppholdRoutes(
-                            tokenService = tac.tokenService,
-                            livsoppholdVilkårService = tac.behandlingContext.livsoppholdVilkårService,
-                            behandlingService = tac.behandlingContext.behandlingService,
-                            auditService = tac.personContext.auditService,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
 
                 val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
@@ -294,14 +273,7 @@ class LivsoppholdRoutesTest {
                 application {
                     configureExceptions()
                     jacksonSerialization()
-                    routing {
-                        livsoppholdRoutes(
-                            tokenService = tac.tokenService,
-                            livsoppholdVilkårService = tac.behandlingContext.livsoppholdVilkårService,
-                            behandlingService = tac.behandlingContext.behandlingService,
-                            auditService = tac.personContext.auditService,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
 
                 defaultRequest(
