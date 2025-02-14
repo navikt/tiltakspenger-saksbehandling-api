@@ -92,16 +92,16 @@ data class Behandling(
         if (erNyFlyt) saksopplysninger!!.tiltaksdeltagelse.gjennomføringId else vilkårssett!!.tiltakDeltagelseVilkår.registerSaksopplysning.gjennomføringId
 
     // TODO John + Anders: Slett når ny flyt er ferdig. Dette for å støtte gammel flyt. Ny flyt tar ikke stilling til samletUtfall.
-    val samletUtfall =
+    val samletUtfall: SamletUtfall by lazy {
         if (erNyFlyt) throw IllegalStateException("Dette støtter vi ikke for ny flyt enda.") else vilkårssett!!.samletUtfall
-
+    }
     val utfallsperioder: Periodisering<UtfallForPeriode> get() = if (erNyFlyt) throw IllegalStateException("Dette støtter vi ikke for ny flyt enda.") else vilkårssett!!.utfallsperioder()
     val avklarteUtfallsperioder: Periodisering<AvklartUtfallForPeriode> get() = utfallsperioder.toAvklartUtfallForPeriode()
 
     val erFørstegangsbehandling: Boolean = behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING
     val erRevurdering: Boolean = behandlingstype == Behandlingstype.REVURDERING
 
-    val erHelePeriodenIkkeOppfylt: Boolean = samletUtfall == SamletUtfall.IKKE_OPPFYLT
+    val erHelePeriodenIkkeOppfylt: Boolean by lazy { samletUtfall == SamletUtfall.IKKE_OPPFYLT }
 
     /**
      * Påkrevd ved førstegangsbehandling/søknadsbehandling, men kan være null ved revurdering.
