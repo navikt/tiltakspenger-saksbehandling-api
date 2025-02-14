@@ -1,6 +1,6 @@
 val kotlinxCoroutinesVersion = "1.10.1"
 val kotestVersion = "5.9.1"
-val felleslibVersion = "0.0.361"
+val felleslibVersion = "0.0.362"
 
 dependencies {
     api(project(":domene"))
