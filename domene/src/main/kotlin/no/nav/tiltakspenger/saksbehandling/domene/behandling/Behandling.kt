@@ -24,13 +24,11 @@ import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.domene.stønadsdager.Stønadsdager
 import no.nav.tiltakspenger.saksbehandling.domene.stønadsdager.tilStønadsdagerRegisterSaksopplysning
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.SamletUtfall
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.UtfallForPeriode
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Vilkårssett
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.toAvklartUtfallForPeriode
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
@@ -69,7 +67,10 @@ data class Behandling(
     val oppgaveId: OppgaveId?,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
+    val saksopplysningsperiode: Periode?,
+    val innvilgelsesperiode: Periode? = null,
 ) {
+    val erUnderBehandling: Boolean = status == UNDER_BEHANDLING
     val erNyFlyt: Boolean = when {
         vilkårssett == null && stønadsdager == null && saksopplysninger != null -> true
         vilkårssett != null && stønadsdager != null && saksopplysninger == null -> false
@@ -114,34 +115,28 @@ data class Behandling(
          * Ny måte og opprette søknadsbehandling på. Støtter ny og enklere vilkårsvurderingsflyt.
          * TODO John + Anders: Rename når vi har slettet den gamle.
          */
-        fun opprettSøknadsbehandlingV2(
+        suspend fun opprettSøknadsbehandlingV2(
             sakId: SakId,
             saksnummer: Saksnummer,
             fnr: Fnr,
             søknad: Søknad,
-            fødselsdato: LocalDate,
             saksbehandler: Saksbehandler,
-            registrerteTiltak: List<Tiltaksdeltagelse>,
+            hentSaksopplysninger: suspend (saksopplysningsperiode: Periode) -> Saksopplysninger,
         ): Either<KanIkkeOppretteBehandling, Behandling> {
             val vurderingsperiode = søknad.vurderingsperiode()
             if (søknad.barnetillegg.isNotEmpty()) {
                 return KanIkkeOppretteBehandling.StøtterIkkeBarnetillegg.left()
             }
-            val tiltak =
-                registrerteTiltak.find {
-                    it.eksternDeltagelseId == søknad.tiltak.id &&
-                        it.deltakelsesperiode.overlapperMed(vurderingsperiode)
-                }
-
-            if (tiltak == null) {
-                // TODO John + Anders: Beholder kun pga. bakoverkompatibilitet. Bør fjerne begrensningen.
-                return KanIkkeOppretteBehandling.FantIkkeTiltak.left()
-            }
-            val saksopplysninger = Saksopplysninger(
-                tiltaksdeltagelse = tiltak,
-                fødselsdato = fødselsdato,
-            )
             val opprettet = nå()
+
+            /** Kommentar jah: Det kan bli aktuelt at saksbehandler får endre på fraOgMed her. */
+            val saksopplysningsperiode: Periode = run {
+                // § 11: Tiltakspenger og barnetillegg gis for opptil tre måneder før den måneden da kravet om ytelsen ble satt fram, dersom vilkårene var oppfylt i denne perioden.
+                val fraOgMed = søknad.kravdato.withDayOfMonth(1).minusMonths(3)
+                // Forskriften gir ingen begrensninger fram i tid. 100 år bør være nok.
+                val tilOgMed = fraOgMed.plusYears(100)
+                Periode(fraOgMed, tilOgMed)
+            }
             return Behandling(
                 id = BehandlingId.random(),
                 saksnummer = saksnummer,
@@ -152,7 +147,7 @@ data class Behandling(
                 // vilkårssett+vilkårssett vil være null for ny flyt. Og fjernes når ny flyt er ferdig.
                 vilkårssett = null,
                 stønadsdager = null,
-                saksopplysninger = saksopplysninger,
+                saksopplysninger = hentSaksopplysninger(saksopplysningsperiode),
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
                 saksbehandler = saksbehandler.navIdent,
@@ -166,41 +161,41 @@ data class Behandling(
                 sistEndret = opprettet,
                 behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
                 oppgaveId = søknad.oppgaveId,
+                saksopplysningsperiode = saksopplysningsperiode,
             ).right()
         }
 
         /**
-         * Gammel måte og opprette førstegangsbehandling. Denne skal slettes når vi har ny flyt.
+         * Gammel måte og opprette førstegangsbehandling.
+         * TODO John + Anders: Denne skal slettes når vi har ny flyt.
          */
-        fun opprettDeprecatedFørstegangsbehandling(
+        suspend fun opprettDeprecatedFørstegangsbehandling(
             sakId: SakId,
             saksnummer: Saksnummer,
             fnr: Fnr,
             søknad: Søknad,
-            fødselsdato: LocalDate,
             saksbehandler: Saksbehandler,
-            registrerteTiltak: List<Tiltaksdeltagelse>,
+            hentSaksopplysninger: suspend (saksopplysningsperiode: Periode) -> Saksopplysninger,
         ): Either<KanIkkeOppretteBehandling, Behandling> {
             val vurderingsperiode = søknad.vurderingsperiode()
             if (søknad.barnetillegg.isNotEmpty()) {
                 return KanIkkeOppretteBehandling.StøtterIkkeBarnetillegg.left()
             }
-            val tiltak =
-                registrerteTiltak.find {
-                    it.eksternDeltagelseId == søknad.tiltak.id &&
-                        it.deltakelsesperiode.overlapperMed(vurderingsperiode)
-                }
-
-            if (tiltak == null) {
-                return KanIkkeOppretteBehandling.FantIkkeTiltak.left()
+            val saksopplysningsperiode: Periode = run {
+                // § 11: Tiltakspenger og barnetillegg gis for opptil tre måneder før den måneden da kravet om ytelsen ble satt fram, dersom vilkårene var oppfylt i denne perioden.
+                val fraOgMed = søknad.kravdato.withDayOfMonth(1).minusMonths(3)
+                // Forskriften gir ingen begrensninger fram i tid. 100 år bør være nok.
+                val tilOgMed = fraOgMed.plusYears(100)
+                Periode(fraOgMed, tilOgMed)
             }
 
-            // TODO post-mvp B og H: Fjern denne når vi begynner å implementere delvis innvilgelse og/eller avslag
+            val saksopplysninger = hentSaksopplysninger(saksopplysningsperiode)
+
             val vilkårssett = Either.catch {
                 Vilkårssett.opprett(
                     søknad = søknad,
-                    fødselsdato = fødselsdato,
-                    tiltaksdeltagelse = tiltak,
+                    fødselsdato = saksopplysninger.fødselsdato,
+                    tiltaksdeltagelse = saksopplysninger.tiltaksdeltagelse,
                     vurderingsperiode = vurderingsperiode,
                 )
             }.getOrElse {
@@ -228,7 +223,7 @@ data class Behandling(
                 begrunnelseVilkårsvurdering = null,
                 stønadsdager = Stønadsdager(
                     vurderingsperiode = vurderingsperiode,
-                    tiltak.tilStønadsdagerRegisterSaksopplysning(),
+                    saksopplysninger.tiltaksdeltagelse.tilStønadsdagerRegisterSaksopplysning(),
                 ),
                 saksbehandler = saksbehandler.navIdent,
                 sendtTilBeslutning = null,
@@ -241,6 +236,7 @@ data class Behandling(
                 sistEndret = opprettet,
                 behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
                 oppgaveId = søknad.oppgaveId,
+                saksopplysningsperiode = saksopplysningsperiode,
             ).right()
         }
 
@@ -277,7 +273,10 @@ data class Behandling(
                 sendtTilDatadeling = null,
                 sistEndret = opprettet,
                 behandlingstype = Behandlingstype.REVURDERING,
-                oppgaveId = null, // her kan man på sikt lagre oppgaveId hvis man oppretter oppgave for revurdering
+                // her kan man på sikt lagre oppgaveId hvis man oppretter oppgave for revurdering
+                oppgaveId = null,
+                // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for førstegangsbehandling.
+                saksopplysningsperiode = periode,
             )
         }
     }
@@ -402,6 +401,22 @@ data class Behandling(
             vilkårssett = vilkårssett!!.krymp(nyPeriode),
             stønadsdager = stønadsdager!!.krymp(nyPeriode),
         )
+    }
+
+    fun oppdaterSaksopplysninger(
+        saksbehandler: Saksbehandler,
+        oppdaterteSaksopplysninger: Saksopplysninger,
+    ): Behandling {
+        if (!saksbehandler.erSaksbehandler()) {
+            throw IllegalArgumentException("Kunne ikke oppdatere saksopplysinger. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
+        }
+        if (this.saksbehandler != saksbehandler.navIdent) {
+            throw IllegalArgumentException("Kunne ikke oppdatere saksopplysinger. Saksbehandler er ikke satt på behandlingen. sakId=$sakId, behandlingId=$id")
+        }
+        if (!this.erUnderBehandling) {
+            throw IllegalArgumentException("Kunne ikke oppdatere saksopplysinger. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
+        }
+        return this.copy(saksopplysninger = oppdaterteSaksopplysninger)
     }
 
     init {

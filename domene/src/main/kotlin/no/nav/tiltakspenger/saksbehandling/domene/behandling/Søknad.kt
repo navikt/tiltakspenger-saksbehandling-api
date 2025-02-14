@@ -36,6 +36,8 @@ data class Søknad(
     val saksnummer: Saksnummer,
     val oppgaveId: OppgaveId?,
 ) {
+    val kravdato: LocalDate = tidsstempelHosOss.toLocalDate()
+
     val fnr: Fnr = personopplysninger.fnr
 
     companion object {

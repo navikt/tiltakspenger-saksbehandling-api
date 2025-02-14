@@ -63,6 +63,7 @@ internal class StartRevurderingTest {
                                 auditService = tac.personContext.auditService,
                                 søknadService = tac.søknadContext.søknadService,
                                 startSøknadsbehandlingV2Service = tac.behandlingContext.startSøknadsbehandlingV2Service,
+                                oppdaterSaksopplysningerService = tac.behandlingContext.oppdaterSaksopplysningerService,
                             )
                             behandlingBeslutterRoutes(
                                 behandlingService = tac.behandlingContext.behandlingService,

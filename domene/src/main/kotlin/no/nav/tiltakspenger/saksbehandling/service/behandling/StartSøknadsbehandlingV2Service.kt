@@ -4,24 +4,22 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.ports.TiltakGateway
-import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.service.statistikk.sak.genererStatistikkForNyFørstegangsbehandling
@@ -32,12 +30,11 @@ import no.nav.tiltakspenger.saksbehandling.service.statistikk.sak.genererStatist
 class StartSøknadsbehandlingV2Service(
     private val sakService: SakService,
     private val sessionFactory: SessionFactory,
-    private val personService: PersonService,
     private val tilgangsstyringService: TilgangsstyringService,
-    private val tiltakGateway: TiltakGateway,
     private val gitHash: String,
     private val behandlingRepo: BehandlingRepo,
     private val statistikkSakRepo: StatistikkSakRepo,
+    private val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
 ) {
 
     val logger = KotlinLogging.logger {}
@@ -56,14 +53,15 @@ class StartSøknadsbehandlingV2Service(
             ).left()
         }
         // hentForSakId gjør en sjekk på tilgang til sak og til person
-        val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId).getOrElse { throw IllegalStateException("Fant ikke sak") }
+        val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId)
+            .getOrElse { throw IllegalStateException("Fant ikke sak") }
         val fnr = sak.fnr
 
         if (sak.førstegangsbehandling != null) {
             return KanIkkeStarteSøknadsbehandling.HarAlleredeStartetBehandlingen(sak.førstegangsbehandling.id).left()
         }
 
-        val personopplysninger = personService.hentPersonopplysninger(fnr)
+        val soknad = sak.soknader.single { it.id == søknadId }
         val adressebeskyttelseGradering: List<AdressebeskyttelseGradering>? =
             tilgangsstyringService.adressebeskyttelseEnkel(fnr)
                 .getOrElse {
@@ -72,30 +70,23 @@ class StartSøknadsbehandlingV2Service(
                     )
                 }
         require(adressebeskyttelseGradering != null) { "Fant ikke adressebeskyttelse for person. SøknadId: $søknadId" }
-        val registrerteTiltak = runBlocking {
-            tiltakGateway.hentTiltaksdeltagelse(
-                fnr = fnr,
-                maskerTiltaksnavn = adressebeskyttelseGradering.harStrengtFortroligAdresse(),
-                correlationId = correlationId,
-            )
-        }
-        // TODO John + Anders: Denne beholdes kun for bakoverkompatibilitet. Bør nok fjernes.
-        if (registrerteTiltak.isEmpty()) {
-            return KanIkkeStarteSøknadsbehandling.OppretteBehandling(
-                KanIkkeOppretteBehandling.FantIkkeTiltak,
-            ).left()
-        }
-        val soknad = sak.soknader.single { it.id == søknadId }
-        val førstegangsbehandling =
-            Behandling.opprettSøknadsbehandlingV2(
+        val hentSaksopplysninger: suspend (Periode) -> Saksopplysninger = { saksopplysningsperiode: Periode ->
+            oppdaterSaksopplysningerService.hentSaksopplysningerFraRegistre(
                 sakId = sakId,
                 saksnummer = sak.saksnummer,
                 fnr = fnr,
-                søknad = soknad,
-                fødselsdato = personopplysninger.fødselsdato,
-                saksbehandler = saksbehandler,
-                registrerteTiltak = registrerteTiltak,
-            ).getOrElse { return KanIkkeStarteSøknadsbehandling.OppretteBehandling(it).left() }
+                correlationId = correlationId,
+                saksopplysningsperiode = saksopplysningsperiode,
+            )
+        }
+        val førstegangsbehandling = Behandling.opprettSøknadsbehandlingV2(
+            sakId = sakId,
+            saksnummer = sak.saksnummer,
+            fnr = fnr,
+            søknad = soknad,
+            saksbehandler = saksbehandler,
+            hentSaksopplysninger = hentSaksopplysninger,
+        ).getOrElse { return KanIkkeStarteSøknadsbehandling.OppretteBehandling(it).left() }
 
         val statistikk =
             genererStatistikkForNyFørstegangsbehandling(

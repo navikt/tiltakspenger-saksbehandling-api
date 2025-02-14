@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.livsopphold.LeggTilLivsoppholdSaksopplysningCommand
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.livsopphold.leggTilLivsoppholdSaksopplysning
@@ -52,15 +53,20 @@ interface BehandlingMother {
         personopplysningFødselsdato: LocalDate = 1.januar(2000),
         registrerteTiltak: List<Tiltaksdeltagelse> = listOf(søknad.tiltak.toTiltak()),
         saksbehandler: Saksbehandler = saksbehandler(),
-    ): Behandling = Behandling.opprettDeprecatedFørstegangsbehandling(
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        søknad = søknad,
-        fødselsdato = personopplysningFødselsdato,
-        saksbehandler = saksbehandler,
-        registrerteTiltak = registrerteTiltak,
-    ).getOrNull()!!
+        saksopplysninger: Saksopplysninger = Saksopplysninger(
+            fødselsdato = personopplysningFødselsdato,
+            tiltaksdeltagelse = registrerteTiltak.single(),
+        ),
+    ): Behandling = runBlocking {
+        Behandling.opprettDeprecatedFørstegangsbehandling(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            søknad = søknad,
+            saksbehandler = saksbehandler,
+            hentSaksopplysninger = { saksopplysninger },
+        ).getOrNull()!!
+    }
 
     fun behandlingUnderBehandlingInnvilget(
         vurderingsperiode: Periode = vurderingsperiode(),

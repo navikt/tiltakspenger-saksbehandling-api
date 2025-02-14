@@ -24,6 +24,7 @@ fun Route.routes(applicationContext: ApplicationContext) {
         tokenService = applicationContext.tokenService,
         søknadService = applicationContext.søknadContext.søknadService,
         startSøknadsbehandlingV2Service = applicationContext.behandlingContext.startSøknadsbehandlingV2Service,
+        oppdaterSaksopplysningerService = applicationContext.behandlingContext.oppdaterSaksopplysningerService,
     )
     behandlingBenkRoutes(
         tokenService = applicationContext.tokenService,

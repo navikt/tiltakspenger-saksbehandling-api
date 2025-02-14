@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.objectmothers
 
+import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -20,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.opprettVedtak
@@ -65,17 +67,22 @@ interface SakMother {
                 ),
             ),
         registrerteTiltak: List<Tiltaksdeltagelse> = listOf(søknad.tiltak.toTiltak()),
+        saksopplysninger: Saksopplysninger = Saksopplysninger(
+            fødselsdato = fødselsdato,
+            tiltaksdeltagelse = registrerteTiltak.single(),
+        ),
     ): Sak {
         val førstegangsbehandling =
-            Behandling.opprettDeprecatedFørstegangsbehandling(
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                søknad = søknad,
-                fødselsdato = fødselsdato,
-                saksbehandler = saksbehandler,
-                registrerteTiltak = registrerteTiltak,
-            ).getOrFail()
+            runBlocking {
+                Behandling.opprettDeprecatedFørstegangsbehandling(
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    søknad = søknad,
+                    saksbehandler = saksbehandler,
+                    hentSaksopplysninger = { saksopplysninger },
+                ).getOrFail()
+            }
         return Sak(
             id = sakId,
             fnr = fnr,
