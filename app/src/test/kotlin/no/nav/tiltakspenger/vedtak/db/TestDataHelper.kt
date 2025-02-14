@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.common.TestSaksnummerGenerator
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
+import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaRepository
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.benk.BenkOversiktPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.BrukersMeldekortPostgresRepo
@@ -38,6 +39,7 @@ internal class TestDataHelper(
     val meldekortBrukerRepo = BrukersMeldekortPostgresRepo(sessionFactory)
     val utbetalingsvedtakRepo: UtbetalingsvedtakRepo = UtbetalingsvedtakPostgresRepo(sessionFactory)
     val personRepo = PersonPostgresRepo(sessionFactory)
+    val tiltaksdeltakerKafkaRepository = TiltaksdeltakerKafkaRepository(sessionFactory)
 }
 
 private val dbManager = TestDatabaseManager()

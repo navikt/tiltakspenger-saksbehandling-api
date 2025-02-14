@@ -23,6 +23,10 @@ class SøknadFakeRepo : SøknadRepo {
 
     override fun hentSakIdForSoknad(søknadId: SøknadId): SakId = data.get()[søknadId]!!.sakId
 
+    override fun finnSakIdForTiltaksdeltakelse(eksternId: String): SakId? {
+        return null
+    }
+
     fun hentForSakId(sakId: SakId): List<Søknad> {
         return data.get().filter { it.value.sakId == sakId }.values.toList()
     }

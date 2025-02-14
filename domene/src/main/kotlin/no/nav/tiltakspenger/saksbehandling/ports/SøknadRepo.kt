@@ -14,4 +14,6 @@ interface SøknadRepo {
     fun hentForSøknadId(søknadId: SøknadId): Søknad?
 
     fun hentSakIdForSoknad(søknadId: SøknadId): SakId?
+
+    fun finnSakIdForTiltaksdeltakelse(eksternId: String): SakId?
 }
