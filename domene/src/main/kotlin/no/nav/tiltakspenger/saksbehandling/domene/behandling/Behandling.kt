@@ -333,16 +333,51 @@ data class Behandling(
         )
     }
 
+    /**
+     * Skal slettes når ny flyt er ferdig.
+     */
     fun iverksett(
         utøvendeBeslutter: Saksbehandler,
         attestering: Attestering,
     ): Behandling {
-        if (erNyFlyt) throw IllegalStateException("TODO John + Anders: Støtter ikke iverksett for ny flyt enda.")
+        if (erNyFlyt) throw IllegalStateException("Bruk iverksettv2 for ny flyt.")
         if (this.behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING && vilkårssett!!.samletUtfall != SamletUtfall.OPPFYLT) {
             throw IllegalStateException("Kan ikke iverksette en førstegangsbehandling som ikke er innvilget i MVP")
         }
         if (this.behandlingstype == Behandlingstype.REVURDERING && vilkårssett!!.samletUtfall != SamletUtfall.IKKE_OPPFYLT) {
             throw IllegalStateException("Kan ikke iverksette en revurdering som ikke er 'IKKE_OPPFYLT' i MVP")
+        }
+        return when (status) {
+            UNDER_BESLUTNING -> {
+                check(utøvendeBeslutter.erBeslutter()) { "utøvende saksbehandler må være beslutter" }
+                check(this.beslutter == utøvendeBeslutter.navIdent) { "Kan ikke iverksette en behandling man ikke er beslutter på" }
+                check(!this.attesteringer.any { it.isGodkjent() }) {
+                    "Behandlingen er allerede godkjent"
+                }
+                this.copy(
+                    status = VEDTATT,
+                    attesteringer = attesteringer + attestering,
+                    iverksattTidspunkt = nå(),
+                )
+            }
+
+            KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, VEDTATT -> throw IllegalStateException(
+                "Må ha status UNDER_BESLUTNING for å iverksette. Behandlingsstatus: $status",
+            )
+        }
+    }
+
+    /**
+     * Skal erstatte [iverksett] når ny flyt er ferdig.
+     */
+    fun iverksettv2(
+        utøvendeBeslutter: Saksbehandler,
+        attestering: Attestering,
+    ): Behandling {
+        if (!erNyFlyt) throw IllegalStateException("Bruk iverksett for gammel flyt.")
+
+        if (this.behandlingstype == Behandlingstype.REVURDERING) {
+            throw IllegalStateException("TODO John + Anders: Legg til støtte for revurdering.")
         }
         return when (status) {
             UNDER_BESLUTNING -> {
