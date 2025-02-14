@@ -419,6 +419,38 @@ data class Behandling(
         return this.copy(saksopplysninger = oppdaterteSaksopplysninger)
     }
 
+    fun oppdaterBegrunnelseVilkårsvurdering(
+        saksbehandler: Saksbehandler,
+        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering,
+    ): Behandling {
+        if (!saksbehandler.erSaksbehandler()) {
+            throw IllegalArgumentException("Kunne ikke oppdatere begrunnelse/vilkårsvurdering. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
+        }
+        if (this.saksbehandler != saksbehandler.navIdent) {
+            throw IllegalArgumentException("Kunne ikke oppdatere begrunnelse/vilkårsvurdering. Saksbehandler er ikke satt på behandlingen. sakId=$sakId, behandlingId=$id")
+        }
+        if (!this.erUnderBehandling) {
+            throw IllegalArgumentException("Kunne ikke oppdatere begrunnelse/vilkårsvurdering. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
+        }
+        return this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering)
+    }
+
+    fun oppdaterFritekstTilVedtaksbrev(
+        saksbehandler: Saksbehandler,
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev,
+    ): Behandling {
+        if (!saksbehandler.erSaksbehandler()) {
+            throw IllegalArgumentException("Kunne ikke oppdatere fritekst til vedtaksbrev. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
+        }
+        if (this.saksbehandler != saksbehandler.navIdent) {
+            throw IllegalArgumentException("Kunne ikke oppdatere fritekst til vedtaksbrev. Saksbehandler er ikke satt på behandlingen. sakId=$sakId, behandlingId=$id")
+        }
+        if (!this.erUnderBehandling) {
+            throw IllegalArgumentException("Kunne ikke oppdatere fritekst til vedtaksbrev. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
+        }
+        return this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev)
+    }
+
     init {
         if (!erNyFlyt) {
             require(vilkårssett!!.vurderingsperiode == vurderingsperiode) {

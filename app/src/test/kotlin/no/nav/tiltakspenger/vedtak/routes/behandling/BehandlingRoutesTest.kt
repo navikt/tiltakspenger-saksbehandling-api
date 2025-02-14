@@ -40,6 +40,8 @@ class BehandlingRoutesTest {
                             søknadService = tac.søknadContext.søknadService,
                             startSøknadsbehandlingV2Service = tac.behandlingContext.startSøknadsbehandlingV2Service,
                             oppdaterSaksopplysningerService = tac.behandlingContext.oppdaterSaksopplysningerService,
+                            oppdaterBegrunnelseVilkårsvurderingService = tac.behandlingContext.oppdaterBegrunnelseVilkårsvurderingService,
+                            oppdaterFritekstTilVedtaksbrevService = tac.behandlingContext.oppdaterFritekstTilVedtaksbrevService,
                         )
                     }
                 }

@@ -18,6 +18,8 @@ import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.ports.TiltakGateway
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingServiceImpl
+import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
+import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.StartSøknadsbehandlingV2Service
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.kvp.KvpVilkårService
@@ -88,6 +90,18 @@ open class FørstegangsbehandlingContext(
             sakService = sakService,
             personService = personService,
             tiltakGateway = tiltakGateway,
+            behandlingRepo = behandlingRepo,
+        )
+    }
+    val oppdaterBegrunnelseVilkårsvurderingService by lazy {
+        OppdaterBegrunnelseVilkårsvurderingService(
+            sakService = sakService,
+            behandlingRepo = behandlingRepo,
+        )
+    }
+    val oppdaterFritekstTilVedtaksbrevService by lazy {
+        OppdaterFritekstTilVedtaksbrevService(
+            sakService = sakService,
             behandlingRepo = behandlingRepo,
         )
     }

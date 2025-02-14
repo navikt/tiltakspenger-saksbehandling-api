@@ -22,7 +22,7 @@ fun Route.oppdaterSaksopplysningerRoute(
 ) {
     val logger = KotlinLogging.logger {}
     patch("/sak/{sakId}/behandling/{behandlingId}/saksopplysninger") {
-        logger.debug("Mottatt get-request på '$BEHANDLING_PATH/{behandlingId}' - henter saksopplysninger fra registre på nytt og oppdaterer behandlingen.")
+        logger.debug("Mottatt get-request på '/sak/{sakId}/behandling/{behandlingId}/saksopplysninger' - henter saksopplysninger fra registre på nytt og oppdaterer behandlingen.")
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
@@ -36,8 +36,8 @@ fun Route.oppdaterSaksopplysningerRoute(
                         auditService.logMedBehandlingId(
                             behandlingId = behandlingId,
                             navIdent = saksbehandler.navIdent,
-                            action = AuditLogEvent.Action.ACCESS,
-                            contextMessage = "Henter hele behandlingen",
+                            action = AuditLogEvent.Action.UPDATE,
+                            contextMessage = "Oppdaterer saksopplysninger",
                             correlationId = correlationId,
                         )
 
