@@ -48,16 +48,17 @@ data class Behandling(
     val sakId: SakId,
     val saksnummer: Saksnummer,
     val fnr: Fnr,
+    // TODO John + Anders: Denne må være nullable for ny flyt. Vi vil legge til nullable innvilgelsesperiode i tillegg. Bare en av disse vil kunne være utfylt ved dobbel flyt.
     val vurderingsperiode: Periode,
     val søknad: Søknad?,
     val saksbehandler: String?,
     val sendtTilBeslutning: LocalDateTime?,
     val beslutter: String?,
-    // TODO John + Anders: Gjør denne nullable og sjekk i init at vi enten har enten Vilkårssett eller Saksopplysninger. Dette for å støtte gammel og ny behandling.
-    val vilkårssett: Vilkårssett,
+    // TODO John + Anders: Slett når ny flyt er ferdig. Dette for å støtte gammel og ny behandling.
+    val vilkårssett: Vilkårssett?,
     val saksopplysninger: Saksopplysninger?,
-    // TODO John og Anders: Slett denne når vi har fjernet den gamle vilkårsvurderingen.
-    val stønadsdager: Stønadsdager,
+    // TODO John og Anders: Slett når ny flyt er ferdig. Dette for å støtte gammel og ny behandling.
+    val stønadsdager: Stønadsdager?,
     val status: Behandlingsstatus,
     val attesteringer: List<Attestering>,
     val opprettet: LocalDateTime,
@@ -69,16 +70,31 @@ data class Behandling(
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
 ) {
+    val erNyFlyt: Boolean = when {
+        vilkårssett == null && stønadsdager == null && saksopplysninger != null -> true
+        vilkårssett != null && stønadsdager != null && saksopplysninger == null -> false
+        else -> throw IllegalStateException("Behandling har ugyldig tilstand. Må ha enten vilkårssett og stønadsdager (gammel flyt) eller saksopplysninger (ny flyt).")
+    }
+
     val erVedtatt: Boolean = status == VEDTATT
-    val maksDagerMedTiltakspengerForPeriode: Int = stønadsdager.registerSaksopplysning.antallDager
 
-    val tiltaksnavn = vilkårssett.tiltakDeltagelseVilkår.registerSaksopplysning.tiltaksnavn
-    val tiltakstype: TiltakstypeSomGirRett = vilkårssett.tiltakDeltagelseVilkår.registerSaksopplysning.tiltakstype
-    val tiltaksid: String = vilkårssett.tiltakDeltagelseVilkår.registerSaksopplysning.eksternDeltagelseId
-    val gjennomføringId: String? = vilkårssett.tiltakDeltagelseVilkår.registerSaksopplysning.gjennomføringId
-    val samletUtfall = vilkårssett.samletUtfall
+    // John og Agnethe har kommet fram til at vi setter denne til 14 dager for meldeperiode i førsteomgang. Hvis det fører til mye feilutbetaling eller lignende må vi la saksbehandler periodisere dette selv, litt på samme måte som barnetillegg.
+    val maksDagerMedTiltakspengerForPeriode: Int = 14
 
-    val utfallsperioder: Periodisering<UtfallForPeriode> get() = vilkårssett.utfallsperioder()
+    val tiltaksnavn =
+        if (erNyFlyt) saksopplysninger!!.tiltaksdeltagelse.typeNavn else vilkårssett!!.tiltakDeltagelseVilkår.registerSaksopplysning.tiltaksnavn
+    val tiltakstype: TiltakstypeSomGirRett =
+        if (erNyFlyt) saksopplysninger!!.tiltaksdeltagelse.typeKode else vilkårssett!!.tiltakDeltagelseVilkår.registerSaksopplysning.tiltakstype
+    val tiltaksid: String =
+        if (erNyFlyt) saksopplysninger!!.tiltaksdeltagelse.eksternDeltagelseId else vilkårssett!!.tiltakDeltagelseVilkår.registerSaksopplysning.eksternDeltagelseId
+    val gjennomføringId: String? =
+        if (erNyFlyt) saksopplysninger!!.tiltaksdeltagelse.gjennomføringId else vilkårssett!!.tiltakDeltagelseVilkår.registerSaksopplysning.gjennomføringId
+
+    // TODO John + Anders: Slett når ny flyt er ferdig. Dette for å støtte gammel flyt. Ny flyt tar ikke stilling til samletUtfall.
+    val samletUtfall =
+        if (erNyFlyt) throw IllegalStateException("Dette støtter vi ikke for ny flyt enda.") else vilkårssett!!.samletUtfall
+
+    val utfallsperioder: Periodisering<UtfallForPeriode> get() = if (erNyFlyt) throw IllegalStateException("Dette støtter vi ikke for ny flyt enda.") else vilkårssett!!.utfallsperioder()
     val avklarteUtfallsperioder: Periodisering<AvklartUtfallForPeriode> get() = utfallsperioder.toAvklartUtfallForPeriode()
 
     val erFørstegangsbehandling: Boolean = behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING
@@ -86,8 +102,72 @@ data class Behandling(
 
     val erHelePeriodenIkkeOppfylt: Boolean = samletUtfall == SamletUtfall.IKKE_OPPFYLT
 
+    /**
+     * Påkrevd ved førstegangsbehandling/søknadsbehandling, men kan være null ved revurdering.
+     */
+    val kravfrist = søknad?.tidsstempelHosOss
+
     companion object {
         private val logger = mu.KotlinLogging.logger { }
+
+        /**
+         * Ny måte og opprette søknadsbehandling på. Støtter ny og enklere vilkårsvurderingsflyt.
+         * TODO John + Anders: Rename når vi har slettet den gamle.
+         */
+        fun opprettSøknadsbehandlingV2(
+            sakId: SakId,
+            saksnummer: Saksnummer,
+            fnr: Fnr,
+            søknad: Søknad,
+            fødselsdato: LocalDate,
+            saksbehandler: Saksbehandler,
+            registrerteTiltak: List<Tiltaksdeltagelse>,
+        ): Either<KanIkkeOppretteBehandling, Behandling> {
+            val vurderingsperiode = søknad.vurderingsperiode()
+            if (søknad.barnetillegg.isNotEmpty()) {
+                return KanIkkeOppretteBehandling.StøtterIkkeBarnetillegg.left()
+            }
+            val tiltak =
+                registrerteTiltak.find {
+                    it.eksternDeltagelseId == søknad.tiltak.id &&
+                        it.deltakelsesperiode.overlapperMed(vurderingsperiode)
+                }
+
+            if (tiltak == null) {
+                // TODO John + Anders: Beholder kun pga. bakoverkompatibilitet. Bør fjerne begrensningen.
+                return KanIkkeOppretteBehandling.FantIkkeTiltak.left()
+            }
+            val saksopplysninger = Saksopplysninger(
+                tiltaksdeltagelse = tiltak,
+                fødselsdato = fødselsdato,
+            )
+            val opprettet = nå()
+            return Behandling(
+                id = BehandlingId.random(),
+                saksnummer = saksnummer,
+                sakId = sakId,
+                fnr = fnr,
+                søknad = søknad,
+                vurderingsperiode = vurderingsperiode,
+                // vilkårssett+vilkårssett vil være null for ny flyt. Og fjernes når ny flyt er ferdig.
+                vilkårssett = null,
+                stønadsdager = null,
+                saksopplysninger = saksopplysninger,
+                fritekstTilVedtaksbrev = null,
+                begrunnelseVilkårsvurdering = null,
+                saksbehandler = saksbehandler.navIdent,
+                sendtTilBeslutning = null,
+                beslutter = null,
+                status = UNDER_BEHANDLING,
+                attesteringer = emptyList(),
+                opprettet = opprettet,
+                iverksattTidspunkt = null,
+                sendtTilDatadeling = null,
+                sistEndret = opprettet,
+                behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
+                oppgaveId = søknad.oppgaveId,
+            ).right()
+        }
 
         /**
          * Gammel måte og opprette førstegangsbehandling. Denne skal slettes når vi har ny flyt.
@@ -235,10 +315,11 @@ data class Behandling(
         }
 
     fun tilBeslutning(saksbehandler: Saksbehandler): Behandling {
-        if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING && vilkårssett.samletUtfall != SamletUtfall.OPPFYLT) {
+        if (erNyFlyt) throw IllegalStateException("TODO John + Anders: Støtter ikke sende til beslutter for ny flyt enda.")
+        if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING && vilkårssett!!.samletUtfall != SamletUtfall.OPPFYLT) {
             throw IllegalStateException("Kan ikke sende en behandling til beslutning som ikke er innvilget i MVP")
         }
-        if (behandlingstype == Behandlingstype.REVURDERING && vilkårssett.samletUtfall != SamletUtfall.IKKE_OPPFYLT) {
+        if (behandlingstype == Behandlingstype.REVURDERING && vilkårssett!!.samletUtfall != SamletUtfall.IKKE_OPPFYLT) {
             throw IllegalStateException("Kan ikke sende en revurdering til beslutning som er (delvis)innvilget i MVP")
         }
         check(status == UNDER_BEHANDLING) {
@@ -257,10 +338,11 @@ data class Behandling(
         utøvendeBeslutter: Saksbehandler,
         attestering: Attestering,
     ): Behandling {
-        if (this.behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING && vilkårssett.samletUtfall != SamletUtfall.OPPFYLT) {
+        if (erNyFlyt) throw IllegalStateException("TODO John + Anders: Støtter ikke iverksett for ny flyt enda.")
+        if (this.behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING && vilkårssett!!.samletUtfall != SamletUtfall.OPPFYLT) {
             throw IllegalStateException("Kan ikke iverksette en førstegangsbehandling som ikke er innvilget i MVP")
         }
-        if (this.behandlingstype == Behandlingstype.REVURDERING && vilkårssett.samletUtfall != SamletUtfall.IKKE_OPPFYLT) {
+        if (this.behandlingstype == Behandlingstype.REVURDERING && vilkårssett!!.samletUtfall != SamletUtfall.IKKE_OPPFYLT) {
             throw IllegalStateException("Kan ikke iverksette en revurdering som ikke er 'IKKE_OPPFYLT' i MVP")
         }
         return when (status) {
@@ -312,21 +394,24 @@ data class Behandling(
      * Endrer ikke [Søknad].
      */
     fun krymp(nyPeriode: Periode): Behandling {
+        if (erNyFlyt) throw IllegalStateException("TODO John + Anders: Støtter ikke krymp for ny flyt enda.")
         if (vurderingsperiode == nyPeriode) return this
         require(vurderingsperiode.inneholderHele(nyPeriode)) { "Ny periode ($nyPeriode) må være innenfor vedtakets periode ($vurderingsperiode)" }
         return this.copy(
             vurderingsperiode = nyPeriode,
-            vilkårssett = vilkårssett.krymp(nyPeriode),
-            stønadsdager = stønadsdager.krymp(nyPeriode),
+            vilkårssett = vilkårssett!!.krymp(nyPeriode),
+            stønadsdager = stønadsdager!!.krymp(nyPeriode),
         )
     }
 
     init {
-        require(vilkårssett.vurderingsperiode == vurderingsperiode) {
-            "Vilkårssettets periode (${vilkårssett.vurderingsperiode} må være lik vurderingsperioden $vurderingsperiode"
-        }
-        require(stønadsdager.vurderingsperiode == vurderingsperiode) {
-            "Stønadsdagers periode (${stønadsdager.vurderingsperiode} må være lik vurderingsperioden $vurderingsperiode"
+        if (!erNyFlyt) {
+            require(vilkårssett!!.vurderingsperiode == vurderingsperiode) {
+                "Vilkårssettets periode (${vilkårssett.vurderingsperiode} må være lik vurderingsperioden $vurderingsperiode"
+            }
+            require(stønadsdager!!.vurderingsperiode == vurderingsperiode) {
+                "Stønadsdagers periode (${stønadsdager.vurderingsperiode} må være lik vurderingsperioden $vurderingsperiode"
+            }
         }
         if (beslutter != null && saksbehandler != null) {
             require(beslutter != saksbehandler) { "Saksbehandler og beslutter kan ikke være samme person" }
@@ -367,8 +452,10 @@ data class Behandling(
                 require(beslutter == null) {
                     "Behandlingen kan ikke være tilknyttet en beslutter når status er KLAR_TIL_BESLUTNING"
                 }
-                require(vilkårssett.samletUtfall != SamletUtfall.UAVKLART) {
-                    "Behandlingen kan ikke være KLAR_TIL_BESLUTNING når samlet utfall er UAVKLART"
+                if (!erNyFlyt) {
+                    require(vilkårssett!!.samletUtfall != SamletUtfall.UAVKLART) {
+                        "Behandlingen kan ikke være KLAR_TIL_BESLUTNING når samlet utfall er UAVKLART"
+                    }
                 }
                 require(iverksattTidspunkt == null)
             }
@@ -377,9 +464,11 @@ data class Behandling(
                 // Vi kan ikke ta saksbehandler av behandlingen før den underkjennes.
                 requireNotNull(saksbehandler) { "Behandlingen må ha saksbehandler når status er UNDER_BESLUTNING" }
                 requireNotNull(beslutter) { "Behandlingen må tilknyttet en beslutter når status er UNDER_BESLUTNING" }
-                require(
-                    vilkårssett.samletUtfall != SamletUtfall.UAVKLART,
-                ) { "Behandlingen kan ikke være UNDER_BESLUTNING når samlet utfall er UAVKLART" }
+                if (!erNyFlyt) {
+                    require(
+                        vilkårssett!!.samletUtfall != SamletUtfall.UAVKLART,
+                    ) { "Behandlingen kan ikke være UNDER_BESLUTNING når samlet utfall er UAVKLART" }
+                }
                 require(iverksattTidspunkt == null)
             }
 
@@ -387,9 +476,11 @@ data class Behandling(
                 // Det er viktig at vi ikke tar saksbehandler og beslutter av behandlingen når status er VEDTATT.
                 requireNotNull(beslutter) { "Behandlingen må ha beslutter når status er VEDTATT" }
                 requireNotNull(saksbehandler) { "Behandlingen må ha saksbehandler når status er VEDTATT" }
-                require(
-                    vilkårssett.samletUtfall != SamletUtfall.UAVKLART,
-                ) { "Vi støtter ikke samlet utfall: UAVKLART på dette tidspunktet." }
+                if (erNyFlyt) {
+                    require(
+                        vilkårssett!!.samletUtfall != SamletUtfall.UAVKLART,
+                    ) { "Vi støtter ikke samlet utfall: UAVKLART på dette tidspunktet." }
+                }
                 requireNotNull(iverksattTidspunkt)
                 requireNotNull(sendtTilBeslutning)
             }

@@ -106,7 +106,7 @@ interface BehandlingMother {
             saksbehandler = saksbehandler,
         )
 
-        behandling.vilkårssett.oppdaterLivsopphold(
+        behandling.vilkårssett!!.oppdaterLivsopphold(
             LeggTilLivsoppholdSaksopplysningCommand(
                 behandlingId = behandling.id,
                 saksbehandler = saksbehandler,

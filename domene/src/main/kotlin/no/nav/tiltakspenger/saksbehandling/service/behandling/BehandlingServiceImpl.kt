@@ -34,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBesl
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeUnderkjenne
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
@@ -43,7 +44,7 @@ import no.nav.tiltakspenger.saksbehandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.ports.TiltakGateway
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
-import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.service.sak.KunneIkkeHenteSakForSakId
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.service.statistikk.sak.StatistikkSakDTO
@@ -74,10 +75,10 @@ class BehandlingServiceImpl(
         sakId: SakId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<KanIkkeStarteFørstegangsbehandling, Sak> {
+    ): Either<KanIkkeStarteSøknadsbehandling, Sak> {
         if (!saksbehandler.erSaksbehandler()) {
             logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å opprette behandling for fnr" }
-            return KanIkkeStarteFørstegangsbehandling.HarIkkeTilgang(
+            return KanIkkeStarteSøknadsbehandling.HarIkkeTilgang(
                 kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER),
                 harRollene = saksbehandler.roller,
             ).left()
@@ -87,7 +88,7 @@ class BehandlingServiceImpl(
         val fnr = sak.fnr
 
         if (sak.førstegangsbehandling != null) {
-            return KanIkkeStarteFørstegangsbehandling.HarAlleredeStartetBehandlingen(sak.førstegangsbehandling.id).left()
+            return KanIkkeStarteSøknadsbehandling.HarAlleredeStartetBehandlingen(sak.førstegangsbehandling.id).left()
         }
 
         val personopplysninger = personService.hentPersonopplysninger(fnr)
@@ -99,7 +100,7 @@ class BehandlingServiceImpl(
                     )
                 }
         require(adressebeskyttelseGradering != null) { "Fant ikke adressebeskyttelse for person. SøknadId: $søknadId" }
-        val registrerteTiltak = runBlocking {
+        val registrerteTiltak: List<Tiltaksdeltagelse> = runBlocking {
             tiltakGateway.hentTiltaksdeltagelse(
                 fnr = fnr,
                 maskerTiltaksnavn = adressebeskyttelseGradering.harStrengtFortroligAdresse(),
@@ -107,7 +108,7 @@ class BehandlingServiceImpl(
             )
         }
         if (registrerteTiltak.isEmpty()) {
-            return KanIkkeStarteFørstegangsbehandling.OppretteBehandling(
+            return KanIkkeStarteSøknadsbehandling.OppretteBehandling(
                 KanIkkeOppretteBehandling.FantIkkeTiltak,
             ).left()
         }
@@ -121,7 +122,7 @@ class BehandlingServiceImpl(
                 fødselsdato = personopplysninger.fødselsdato,
                 saksbehandler = saksbehandler,
                 registrerteTiltak = registrerteTiltak,
-            ).getOrElse { return KanIkkeStarteFørstegangsbehandling.OppretteBehandling(it).left() }
+            ).getOrElse { return KanIkkeStarteSøknadsbehandling.OppretteBehandling(it).left() }
 
         val statistikk =
             genererStatistikkForNyFørstegangsbehandling(

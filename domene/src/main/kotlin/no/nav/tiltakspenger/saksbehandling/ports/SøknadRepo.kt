@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.ports
 
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
@@ -14,6 +15,8 @@ interface SøknadRepo {
     fun hentForSøknadId(søknadId: SøknadId): Søknad?
 
     fun hentSakIdForSoknad(søknadId: SøknadId): SakId?
+
+    fun hentSøknaderForFnr(fnr: Fnr): List<Søknad>
 
     fun finnSakIdForTiltaksdeltakelse(eksternId: String): SakId?
 }

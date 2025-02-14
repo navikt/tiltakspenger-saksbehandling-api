@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBesl
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeUnderkjenne
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteSøknadsbehandling
 
 interface BehandlingService {
     suspend fun startFørstegangsbehandling(
@@ -22,7 +22,7 @@ interface BehandlingService {
         sakId: SakId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<KanIkkeStarteFørstegangsbehandling, Sak>
+    ): Either<KanIkkeStarteSøknadsbehandling, Sak>
 
     /**
      * Tenkt brukt i systemkall der vi ikke skal gjøre tilgangskontroll eller sjekk på skjermet/kode6/kode7

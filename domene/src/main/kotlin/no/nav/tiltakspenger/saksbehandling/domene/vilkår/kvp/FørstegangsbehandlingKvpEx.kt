@@ -9,7 +9,7 @@ fun Behandling.leggTilKvpSaksopplysning(command: LeggTilKvpSaksopplysningCommand
 
     val oppdatertFørstegangsbehandling =
         this.copy(
-            vilkårssett = vilkårssett.oppdaterKVP(command),
+            vilkårssett = vilkårssett!!.oppdaterKVP(command),
             saksbehandler = command.saksbehandler.navIdent,
         )
     return oppdatertFørstegangsbehandling

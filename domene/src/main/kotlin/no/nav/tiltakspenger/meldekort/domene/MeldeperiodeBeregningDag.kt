@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.
 import java.time.LocalDate
 
 /**
- * Når en bruker er på tiltak kan hen være 1-10 av 14 dager på tiltak. Dvs. minst 2 dager per uke må være Sperret eller IkkeDeltatt.
+ * Når en bruker er på tiltak kan hen være 1-14 av 14 dager på tiltak. Dvs. minst 2 dager per uke må være Sperret eller IkkeDeltatt.
  *
  * Vi vet at det på et tidspunkt kommer til å være mulig å fylle ut en meldekortdag for flere enn ett tiltak. Da vil man kunne rename Meldekortdag til MeldekortdagForTiltak og wrappe den i en Meldekortdag(List<MeldekortdagForTiltak>)
  */
@@ -22,7 +22,7 @@ sealed interface MeldeperiodeBeregningDag {
     val beløp: Int get() = beregningsdag?.beløp ?: 0
     val prosent: Int get() = beregningsdag?.prosent ?: 0
 
-    /** Begrenses av maksDagerMedTiltakspengerForPeriode (1-10) per meldeperiode og SPERRET. */
+    /** Begrenses av maksDagerMedTiltakspengerForPeriode (1-14) per meldeperiode og SPERRET. */
     val harDeltattEllerFravær: Boolean
 
     data class IkkeUtfylt(
@@ -39,7 +39,7 @@ sealed interface MeldeperiodeBeregningDag {
         override val tiltakstype: TiltakstypeSomGirRett
         override val reduksjon: ReduksjonAvYtelsePåGrunnAvFravær
 
-        /** Begrenses av maksDagerMedTiltakspengerForPeriode (1-10) per meldeperiode og SPERRET. */
+        /** Begrenses av maksDagerMedTiltakspengerForPeriode (1-14) per meldeperiode og SPERRET. */
         override val harDeltattEllerFravær: Boolean
 
         sealed interface Deltatt : Utfylt {

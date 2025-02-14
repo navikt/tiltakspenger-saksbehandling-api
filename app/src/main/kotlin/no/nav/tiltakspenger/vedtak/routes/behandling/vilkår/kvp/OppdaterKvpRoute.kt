@@ -83,7 +83,7 @@ fun Route.oppdaterKvpRoute(
                             )
                             call.respond(
                                 status = HttpStatusCode.Created,
-                                message = it.vilkårssett.kvpVilkår.toDTO(),
+                                message = it.vilkårssett!!.kvpVilkår.toDTO(),
                             )
                         },
                     )

@@ -41,7 +41,7 @@ fun Route.hentStønadsdagerRoute(
                         )
                         call.respond(
                             status = HttpStatusCode.OK,
-                            message = it.stønadsdager.toDTO(),
+                            message = it.stønadsdager!!.toDTO(),
                         )
                     },
                 )

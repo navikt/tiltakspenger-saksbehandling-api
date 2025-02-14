@@ -41,7 +41,7 @@ fun Route.hentKvpRoute(
                         )
                         call.respond(
                             status = HttpStatusCode.OK,
-                            message = it.vilkårssett.kvpVilkår.toDTO(),
+                            message = it.vilkårssett!!.kvpVilkår.toDTO(),
                         )
                     },
                 )

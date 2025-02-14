@@ -19,7 +19,8 @@ class SaksoversiktFakeRepo(
                 periode = behandling.vurderingsperiode,
                 status = status,
                 underkjent = behandling.attesteringer.any { it.isUnderkjent() },
-                kravtidspunkt = behandling.vilkårssett.kravfristVilkår.avklartSaksopplysning.kravdato,
+                // Kommentar jah: Dette vil ikke fungere hvis vi utvider denne til revurdering.
+                kravtidspunkt = behandling.kravfrist!!,
                 behandlingstype = behandling.behandlingstype.toBenkBehandlingstype(),
                 fnr = behandling.fnr,
                 saksnummer = behandling.saksnummer,

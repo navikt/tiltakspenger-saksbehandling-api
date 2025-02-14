@@ -41,7 +41,7 @@ fun Route.hentKravfristRoute(
                         )
                         call.respond(
                             status = HttpStatusCode.OK,
-                            message = it.vilkårssett.kravfristVilkår.toDTO(),
+                            message = it.vilkårssett!!.kravfristVilkår.toDTO(),
                         )
                     },
                 )

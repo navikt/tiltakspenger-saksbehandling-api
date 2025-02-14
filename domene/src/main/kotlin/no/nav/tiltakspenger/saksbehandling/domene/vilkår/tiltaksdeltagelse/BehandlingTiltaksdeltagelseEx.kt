@@ -10,7 +10,7 @@ fun Behandling.leggTilTiltaksdeltagelseSaksopplysning(
     require(saksbehandler == kommando.saksbehandler.navIdent) {
         "Kan bare legge til saksopplysninger på egen sak. Saksbehandler på behandling: $saksbehandler, utførendeSaksbehandler: ${kommando.saksbehandler}, behandlingId: ${kommando.behandlingId}"
     }
-    return vilkårssett.oppdaterTiltaksdeltagelse(kommando).map {
+    return vilkårssett!!.oppdaterTiltaksdeltagelse(kommando).map {
         this.copy(
             vilkårssett = it,
             saksbehandler = kommando.saksbehandler.navIdent,

@@ -10,7 +10,7 @@ fun Behandling.leggTilKravfristSaksopplysning(command: LeggTilKravfristSaksopply
 
     val oppdatertFørstegangsbehandling =
         this.copy(
-            vilkårssett = vilkårssett.oppdaterKravdato(command),
+            vilkårssett = vilkårssett!!.oppdaterKravdato(command),
             saksbehandler = command.saksbehandler.navIdent,
         )
     return oppdatertFørstegangsbehandling

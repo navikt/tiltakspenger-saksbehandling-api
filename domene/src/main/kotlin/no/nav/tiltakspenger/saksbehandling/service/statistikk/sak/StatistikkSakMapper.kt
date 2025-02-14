@@ -110,7 +110,10 @@ private fun mapResultat(utfall: UtfallForPeriode): Resultat {
     }
 }
 
-private fun mapVilkår(vilkårssett: Vilkårssett): List<VilkårStatistikkDTO> {
+private fun mapVilkår(vilkårssett: Vilkårssett?): List<VilkårStatistikkDTO> {
+    if (vilkårssett == null) {
+        return emptyList()
+    }
     val intro = vilkårssett.introVilkår.utfall.perioderMedVerdi.map {
         VilkårStatistikkDTO(
             vilkår = "intro",

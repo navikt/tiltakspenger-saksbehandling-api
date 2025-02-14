@@ -42,7 +42,7 @@ fun Route.hentAlderRoute(
                             )
                             call.respond(
                                 status = HttpStatusCode.OK,
-                                message = it.vilkårssett.alderVilkår.toDTO(),
+                                message = it.vilkårssett!!.alderVilkår.toDTO(),
                             )
                         },
                     )
