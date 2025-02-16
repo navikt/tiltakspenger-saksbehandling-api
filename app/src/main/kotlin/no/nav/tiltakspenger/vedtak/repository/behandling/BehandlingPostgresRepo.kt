@@ -244,9 +244,10 @@ class BehandlingPostgresRepo(
             // Kan være null for revurderinger. Domeneobjektet passer på dette selv.
             val søknad: Søknad? = SøknadDAO.hentForBehandlingId(id, session)
 
-            val stønadsdager = string("stønadsdager").toStønadsdager()
+            val stønadsdager = stringOrNull("stønadsdager")?.toStønadsdager()
+            val vilkårssett = stringOrNull("vilkårssett")?.toVilkårssett(vurderingsperiode)
+
             val attesteringer = string("attesteringer").toAttesteringer()
-            val vilkårssett = string("vilkårssett").toVilkårssett(vurderingsperiode)
             val fnr = Fnr.fromString(string("ident"))
             val saksnummer = Saksnummer(string("saksnummer"))
 

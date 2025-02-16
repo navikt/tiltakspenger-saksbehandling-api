@@ -1,0 +1,1 @@
+ALTER TABLE behandling ALTER COLUMN stønadsdager DROP NOT NULL;
