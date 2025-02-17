@@ -4,6 +4,7 @@ import io.ktor.server.routing.Route
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.saksbehandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingService
+import no.nav.tiltakspenger.saksbehandling.service.behandling.IverksettBehandlingV2Service
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterSaksopplysningerService
@@ -13,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.livsopphol
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.tiltaksdeltagelse.TiltaksdeltagelseVilkårService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
+import no.nav.tiltakspenger.vedtak.routes.behandling.beslutter.iverksettBehandlingv2Route
 import no.nav.tiltakspenger.vedtak.routes.behandling.personopplysninger.hentPersonRoute
 import no.nav.tiltakspenger.vedtak.routes.behandling.stønadsdager.stønadsdagerRoutes
 import no.nav.tiltakspenger.vedtak.routes.behandling.tilbeslutter.sendBehandlingTilBeslutterRoute
@@ -40,6 +42,7 @@ fun Route.behandlingRoutes(
     oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
     oppdaterBegrunnelseVilkårsvurderingService: OppdaterBegrunnelseVilkårsvurderingService,
     oppdaterFritekstTilVedtaksbrevService: OppdaterFritekstTilVedtaksbrevService,
+    iverksettBehandlingV2Service: IverksettBehandlingV2Service,
 ) {
     hentPersonRoute(tokenService, sakService, auditService)
     tiltakDeltagelseRoutes(behandlingService, tiltaksdeltagelseVilkårService, auditService, tokenService)
@@ -57,4 +60,5 @@ fun Route.behandlingRoutes(
     oppdaterSaksopplysningerRoute(tokenService, auditService, oppdaterSaksopplysningerService)
     oppdaterBegrunnelseVilkårsvurderingRoute(tokenService, auditService, oppdaterBegrunnelseVilkårsvurderingService)
     oppdaterFritekstTilVedtaksbrevRoute(tokenService, auditService, oppdaterFritekstTilVedtaksbrevService)
+    iverksettBehandlingv2Route(iverksettBehandlingV2Service, auditService, tokenService)
 }

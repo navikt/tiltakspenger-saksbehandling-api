@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+import org.json.JSONObject
 
 interface OppdaterBegrunnelseBuilder {
     suspend fun ApplicationTestBuilder.oppdaterBegrunnelse(
@@ -36,6 +37,7 @@ interface OppdaterBegrunnelseBuilder {
                 "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
             ) {
                 status shouldBe HttpStatusCode.OK
+                JSONObject(bodyAsText).getString("begrunnelseVilkårsvurdering") shouldBe begrunnelse
             }
             return bodyAsText
         }

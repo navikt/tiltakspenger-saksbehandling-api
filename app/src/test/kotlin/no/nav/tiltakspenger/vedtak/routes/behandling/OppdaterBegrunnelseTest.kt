@@ -24,8 +24,15 @@ internal class OppdaterBegrunnelseTest {
                 }
                 val (sak, søknad) = opprettSakOgSøknad(tac)
                 val behandlingId = startBehandling(tac, sak.id, søknad.id)
-                val responseJson = oppdaterBegrunnelse(tac, sak.id, behandlingId, "some_tekst")
-                JSONObject(responseJson).getString("begrunnelseVilkårsvurdering") shouldBe "some_tekst"
+                tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+                    it.begrunnelseVilkårsvurdering?.verdi shouldBe null
+                }
+                val begrunnelse = "some_tekst"
+                val responseJson = oppdaterBegrunnelse(tac, sak.id, behandlingId, begrunnelse)
+                JSONObject(responseJson).getString("begrunnelseVilkårsvurdering") shouldBe begrunnelse
+                tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+                    it.begrunnelseVilkårsvurdering!!.verdi shouldBe begrunnelse
+                }
             }
         }
     }

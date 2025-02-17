@@ -24,8 +24,15 @@ internal class OppdaterFritekstTest {
                 }
                 val (sak, søknad) = opprettSakOgSøknad(tac)
                 val behandlingId = startBehandling(tac, sak.id, søknad.id)
-                val responseJson = oppdaterFritekst(tac, sak.id, behandlingId, "some_tekst")
-                JSONObject(responseJson).getString("fritekstTilVedtaksbrev") shouldBe "some_tekst"
+                tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+                    it.fritekstTilVedtaksbrev?.verdi shouldBe null
+                }
+                val fritekstTilVedtaksbrev = "some_tekst"
+                val responseJson = oppdaterFritekst(tac, sak.id, behandlingId, fritekstTilVedtaksbrev)
+                JSONObject(responseJson).getString("fritekstTilVedtaksbrev") shouldBe fritekstTilVedtaksbrev
+                tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+                    it.fritekstTilVedtaksbrev!!.verdi shouldBe fritekstTilVedtaksbrev
+                }
             }
         }
     }

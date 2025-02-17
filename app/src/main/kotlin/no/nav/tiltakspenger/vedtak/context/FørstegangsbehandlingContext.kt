@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.ports.TiltakGateway
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingServiceImpl
+import no.nav.tiltakspenger.saksbehandling.service.behandling.IverksettBehandlingV2Service
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterSaksopplysningerService
@@ -103,6 +104,22 @@ open class FørstegangsbehandlingContext(
         OppdaterFritekstTilVedtaksbrevService(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
+        )
+    }
+    val iverksettBehandlingV2Service by lazy {
+        IverksettBehandlingV2Service(
+            behandlingRepo = behandlingRepo,
+            rammevedtakRepo = rammevedtakRepo,
+            meldekortBehandlingRepo = meldekortBehandlingRepo,
+            meldeperiodeRepo = meldeperiodeRepo,
+            sessionFactory = sessionFactory,
+            statistikkSakRepo = statistikkSakRepo,
+            statistikkStønadRepo = statistikkStønadRepo,
+            tilgangsstyringService = tilgangsstyringService,
+            personService = personService,
+            gitHash = gitHash,
+            sakService = sakService,
+            oppgaveGateway = oppgaveGateway,
         )
     }
     val tiltaksdeltagelseVilkårService: TiltaksdeltagelseVilkårService by lazy {
