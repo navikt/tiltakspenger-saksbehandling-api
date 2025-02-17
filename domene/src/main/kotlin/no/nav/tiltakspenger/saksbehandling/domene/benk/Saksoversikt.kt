@@ -21,12 +21,13 @@ data class Saksoversikt(
 
 /**
  * @property id Vi har ikke en fellestype for behandlingId og søknadId, så vi bruker Ulid. Hvis ikke må vi endre denne til en sealed interface.
+ * @property kravtidspunkt settes kun for søknad og førstegangsbehandling
  */
 data class BehandlingEllerSøknadForSaksoversikt(
     val periode: Periode?,
     val status: Status,
     val underkjent: Boolean?,
-    val kravtidspunkt: LocalDateTime,
+    val kravtidspunkt: LocalDateTime?,
     val behandlingstype: BenkBehandlingstype,
     val fnr: Fnr,
     val saksnummer: Saksnummer?,
@@ -34,6 +35,7 @@ data class BehandlingEllerSøknadForSaksoversikt(
     val saksbehandler: String?,
     val beslutter: String?,
     val sakId: SakId?,
+    val erDeprecatedBehandling: Boolean? = null,
 ) {
     sealed interface Status {
         data object Søknad : Status

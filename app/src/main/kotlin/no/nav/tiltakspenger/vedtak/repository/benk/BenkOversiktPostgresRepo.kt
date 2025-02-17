@@ -39,10 +39,11 @@ class BenkOversiktPostgresRepo(
                           behandling.attesteringer,
                           behandling.sak_id,
                           behandling.behandlingstype,
-                          søknad.tidsstempel_hos_oss as kravtidspunkt                        
+                          søknad.tidsstempel_hos_oss as kravtidspunkt,
+                          behandling.saksopplysninger
                         from behandling
                         left join sak on sak.id = behandling.sak_id
-                        join søknad on sak.id = søknad.sak_id
+                        left join søknad on behandling.id = søknad.behandling_id
                         where behandling.status != 'VEDTATT'
                         order by sak.saksnummer, behandling.id
                         """.trimIndent(),
@@ -53,7 +54,7 @@ class BenkOversiktPostgresRepo(
                                 fraOgMed = row.localDate("fra_og_med"),
                                 tilOgMed = row.localDate("til_og_med"),
                             )
-                        val kravtidspunkt = row.localDateTime("kravtidspunkt")
+                        val kravtidspunkt = row.localDateTimeOrNull("kravtidspunkt")
                         val beslutter = row.stringOrNull("beslutter")
                         val saksbehandler = row.stringOrNull("saksbehandler")
                         val behandlingstype = row.string("behandlingstype").toBehandlingstype().toBenkBehandlingstype()
@@ -74,6 +75,7 @@ class BenkOversiktPostgresRepo(
                             saksbehandler = saksbehandler,
                             beslutter = beslutter,
                             sakId = row.stringOrNull("sak_id")?.let { SakId.fromString(it) },
+                            erDeprecatedBehandling = row.stringOrNull("saksopplysninger") == null,
                         )
                     }.asList,
                 )
