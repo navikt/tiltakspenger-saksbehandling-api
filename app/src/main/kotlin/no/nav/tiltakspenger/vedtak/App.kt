@@ -78,6 +78,7 @@ internal fun start(
     if (applicationProfile != Profile.LOCAL) {
         val consumers = listOf(
             applicationContext.tiltaksdeltakerArenaConsumer,
+            applicationContext.tiltaksdeltakerKometConsumer,
         )
         consumers.forEach { it.run() }
     }
