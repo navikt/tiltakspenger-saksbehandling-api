@@ -22,7 +22,10 @@ import no.nav.tiltakspenger.vedtak.clients.datadeling.DatadelingHttpClient
 import no.nav.tiltakspenger.vedtak.clients.oppgave.OppgaveHttpClient
 import no.nav.tiltakspenger.vedtak.clients.veilarboppfolging.VeilarboppfolgingHttpClient
 import no.nav.tiltakspenger.vedtak.db.DataSourceSetup
+import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.TiltaksdeltakerService
+import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena.TiltaksdeltakerArenaConsumer
+import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaRepository
 
 /**
  * Inneholder alle klienter, repoer og servicer.
@@ -75,7 +78,25 @@ open class ApplicationContext(
         )
     }
 
-    open val tiltaksdeltakerArenaConsumer by lazy { TiltaksdeltakerArenaConsumer(topic = Configuration.arenaTiltaksdeltakerTopic) }
+    open val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository by lazy {
+        TiltaksdeltakerKafkaRepository(
+            sessionFactory = sessionFactory as PostgresSessionFactory,
+        )
+    }
+    open val tiltaksdeltakerService: TiltaksdeltakerService by lazy {
+        TiltaksdeltakerService(
+            tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
+            søknadRepo = søknadContext.søknadRepo,
+            arenaDeltakerMapper = ArenaDeltakerMapper(),
+        )
+    }
+
+    open val tiltaksdeltakerArenaConsumer by lazy {
+        TiltaksdeltakerArenaConsumer(
+            tiltaksdeltakerService = tiltaksdeltakerService,
+            topic = Configuration.arenaTiltaksdeltakerTopic,
+        )
+    }
 
     open val personContext by lazy { PersonContext(sessionFactory, entraIdSystemtokenClient) }
     open val dokumentContext by lazy { DokumentContext(entraIdSystemtokenClient) }

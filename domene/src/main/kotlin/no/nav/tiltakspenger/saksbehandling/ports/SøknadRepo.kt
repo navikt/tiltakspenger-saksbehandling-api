@@ -17,4 +17,6 @@ interface SøknadRepo {
     fun hentSakIdForSoknad(søknadId: SøknadId): SakId?
 
     fun hentSøknaderForFnr(fnr: Fnr): List<Søknad>
+
+    fun finnSakIdForTiltaksdeltakelse(eksternId: String): SakId?
 }

@@ -82,6 +82,7 @@ internal class TestDatabaseManager {
             queryOf(
                 """
                 TRUNCATE
+                  tiltaksdeltaker_kafka,
                   utbetalingsvedtak,
                   statistikk_utbetaling,
                   statistikk_stønad,

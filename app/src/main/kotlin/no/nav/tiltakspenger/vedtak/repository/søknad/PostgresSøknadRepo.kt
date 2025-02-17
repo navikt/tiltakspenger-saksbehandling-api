@@ -35,4 +35,9 @@ internal class PostgresSøknadRepo(
             SøknadDAO.hentForFnr(fnr, it)
         }
     }
+
+    override fun finnSakIdForTiltaksdeltakelse(eksternId: String): SakId? =
+        sessionFactory.withSession {
+            SøknadDAO.finnSakIdForTiltaksdeltakelse(eksternId, it)
+        }
 }

@@ -8,12 +8,14 @@ import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
 import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.KAFKA_CONSUMER_GROUP_ID
+import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.TiltaksdeltakerService
 import org.apache.kafka.common.serialization.StringDeserializer
 
 class TiltaksdeltakerArenaConsumer(
+    private val tiltaksdeltakerService: TiltaksdeltakerService,
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
-    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "latest") else LocalKafkaConfig(),
+    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "none") else LocalKafkaConfig(),
 ) : Consumer<String, String> {
     private val log = KotlinLogging.logger { }
 
@@ -29,6 +31,7 @@ class TiltaksdeltakerArenaConsumer(
 
     override suspend fun consume(key: String, value: String) {
         log.info { "Mottatt tiltaksdeltakelse fra arena med key $key" }
+        tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId = key, melding = value)
     }
 
     override fun run() = consumer.run()

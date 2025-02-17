@@ -47,6 +47,16 @@ internal object SøknadDAO {
                 .asSingle,
         )
 
+    fun finnSakIdForTiltaksdeltakelse(
+        eksternId: String,
+        session: Session,
+    ): SakId? =
+        session.run(
+            queryOf(sqlHentSakIdForTiltaksdeltakelse, eksternId)
+                .map { row -> row.toSakId() }
+                .asSingle,
+        )
+
     fun finnSakId(
         søknadId: SøknadId,
         session: Session,
@@ -392,4 +402,7 @@ internal object SøknadDAO {
 
     @Language("SQL")
     private val sqlHentIdent = "select * from søknad s join sak on sak.id = s.sak_id where s.id = ?"
+
+    @Language("SQL")
+    private val sqlHentSakIdForTiltaksdeltakelse = "select sak_id from søknad s join søknadstiltak st on st.søknad_id = s.id where st.ekstern_id = ?"
 }
