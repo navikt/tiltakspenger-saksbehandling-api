@@ -90,6 +90,7 @@ object Configuration {
                 "OPPGAVE_SCOPE" to "localhost",
                 "OPPGAVE_URL" to "http://host.docker.internal:8091",
                 "ARENA_TILTAKSDELTAKER_TOPIC" to "arena.tiltaksdeltaker",
+                "KOMET_TILTAKSDELTAKER_TOPIC" to "komet.tiltaksdeltaker",
             ),
         )
 
@@ -126,6 +127,7 @@ object Configuration {
                 "OPPGAVE_SCOPE" to "api://dev-fss.oppgavehandtering.oppgave/.default",
                 "OPPGAVE_URL" to "https://oppgave.dev-fss-pub.nais.io",
                 "ARENA_TILTAKSDELTAKER_TOPIC" to "teamarenanais.aapen-arena-tiltakdeltakerendret-v1-q2",
+                "KOMET_TILTAKSDELTAKER_TOPIC" to "amt.deltaker-v1",
             ),
         )
     private val prodProperties =
@@ -161,6 +163,7 @@ object Configuration {
                 "OPPGAVE_SCOPE" to "api://prod-fss.oppgavehandtering.oppgave/.default",
                 "OPPGAVE_URL" to "https://oppgave.prod-fss-pub.nais.io",
                 "ARENA_TILTAKSDELTAKER_TOPIC" to "teamarenanais.aapen-arena-tiltakdeltakerendret-v1-p",
+                "KOMET_TILTAKSDELTAKER_TOPIC" to "amt.deltaker-v1",
             ),
         )
 
@@ -243,6 +246,7 @@ object Configuration {
     val oppgaveUrl: String by lazy { config()[Key("OPPGAVE_URL", stringType)] }
 
     val arenaTiltaksdeltakerTopic: String by lazy { config()[Key("ARENA_TILTAKSDELTAKER_TOPIC", stringType)] }
+    val kometTiltaksdeltakerTopic: String by lazy { config()[Key("KOMET_TILTAKSDELTAKER_TOPIC", stringType)] }
 
     fun httpPort() = config()[Key("application.httpPort", intType)]
 

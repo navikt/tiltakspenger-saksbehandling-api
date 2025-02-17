@@ -6,13 +6,16 @@ import no.nav.tiltakspenger.db.persisterSakOgSøknad
 import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.TiltaksdeltakerService
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena.ArenaDeltakerMapper
+import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.komet.DeltakerV1Dto
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaDb
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.util.UUID
 
 class TiltaksdeltakerServiceTest {
     private val arenaDeltakerMapper = ArenaDeltakerMapper()
@@ -113,6 +116,103 @@ class TiltaksdeltakerServiceTest {
         }
     }
 
+    @Test
+    fun `behandleMottattKometdeltaker - finnes ingen sak - ignorerer`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val soknadRepo = testDataHelper.søknadRepo
+            val tiltaksdeltakerService =
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper)
+            val kometDeltaker = getKometDeltaker()
+            val deltakerId = kometDeltaker.id
+
+            tiltaksdeltakerService.behandleMottattKometdeltaker(deltakerId, objectMapper.writeValueAsString(kometDeltaker))
+
+            tiltaksdeltakerKafkaRepository.hent(deltakerId.toString()) shouldBe null
+        }
+    }
+
+    @Test
+    fun `behandleMottattKometdeltaker - finnes sak, ikke lagret melding - lagrer`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val soknadRepo = testDataHelper.søknadRepo
+            val tiltaksdeltakerService =
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper)
+            val kometDeltaker = getKometDeltaker()
+            val deltakerId = kometDeltaker.id
+            val fnr = Fnr.random()
+            val sak = ObjectMother.nySak(fnr = fnr)
+            testDataHelper.persisterSakOgSøknad(
+                fnr = fnr,
+                sak = sak,
+                søknad = ObjectMother.nySøknad(
+                    personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                    søknadstiltak = ObjectMother.søknadstiltak(id = deltakerId.toString()),
+                    sak = sak,
+                ),
+            )
+
+            tiltaksdeltakerService.behandleMottattKometdeltaker(deltakerId, objectMapper.writeValueAsString(kometDeltaker))
+
+            val tiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(deltakerId.toString())
+            tiltaksdeltakerKafkaDb shouldNotBe null
+            tiltaksdeltakerKafkaDb?.deltakelseFraOgMed shouldBe kometDeltaker.startDato
+            tiltaksdeltakerKafkaDb?.deltakelseTilOgMed shouldBe kometDeltaker.sluttDato
+            tiltaksdeltakerKafkaDb?.dagerPerUke shouldBe kometDeltaker.dagerPerUke
+            tiltaksdeltakerKafkaDb?.deltakelsesprosent shouldBe kometDeltaker.prosentStilling
+            tiltaksdeltakerKafkaDb?.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
+            tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
+            tiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
+        }
+    }
+
+    @Test
+    fun `behandleMottattKometdeltaker - finnes sak og melding med oppgaveId - lagrer og beholder oppgaveId`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val soknadRepo = testDataHelper.søknadRepo
+            val tiltaksdeltakerService =
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper)
+            val kometDeltaker = getKometDeltaker()
+            val deltakerId = kometDeltaker.id
+            val fnr = Fnr.random()
+            val sak = ObjectMother.nySak(fnr = fnr)
+            testDataHelper.persisterSakOgSøknad(
+                fnr = fnr,
+                sak = sak,
+                søknad = ObjectMother.nySøknad(
+                    personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                    søknadstiltak = ObjectMother.søknadstiltak(id = deltakerId.toString()),
+                    sak = sak,
+                ),
+            )
+            val opprinneligTiltaksdeltakerKafkaDb = TiltaksdeltakerKafkaDb(
+                id = deltakerId.toString(),
+                deltakelseFraOgMed = LocalDate.of(2024, 10, 14),
+                deltakelseTilOgMed = LocalDate.of(2025, 1, 10),
+                dagerPerUke = 3.0F,
+                deltakelsesprosent = 60.0F,
+                deltakerstatus = TiltakDeltakerstatus.HarSluttet,
+                sakId = sak.id,
+                oppgaveId = ObjectMother.oppgaveId(),
+            )
+            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerKafkaDb)
+
+            tiltaksdeltakerService.behandleMottattKometdeltaker(deltakerId, objectMapper.writeValueAsString(kometDeltaker))
+
+            val tiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(deltakerId.toString())
+            tiltaksdeltakerKafkaDb shouldNotBe null
+            tiltaksdeltakerKafkaDb?.deltakelseFraOgMed shouldBe kometDeltaker.startDato
+            tiltaksdeltakerKafkaDb?.deltakelseTilOgMed shouldBe kometDeltaker.sluttDato
+            tiltaksdeltakerKafkaDb?.dagerPerUke shouldBe kometDeltaker.dagerPerUke
+            tiltaksdeltakerKafkaDb?.deltakelsesprosent shouldBe kometDeltaker.prosentStilling
+            tiltaksdeltakerKafkaDb?.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
+            tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
+            tiltaksdeltakerKafkaDb?.oppgaveId shouldBe opprinneligTiltaksdeltakerKafkaDb.oppgaveId
+        }
+    }
+
     private fun getArenaMeldingString() =
         """
            {
@@ -126,4 +226,14 @@ class TiltaksdeltakerServiceTest {
               }
             } 
         """.trimIndent()
+
+    private fun getKometDeltaker(): DeltakerV1Dto =
+        DeltakerV1Dto(
+            id = UUID.randomUUID(),
+            startDato = LocalDate.of(2024, 10, 14),
+            sluttDato = LocalDate.of(2025, 8, 10),
+            status = DeltakerV1Dto.DeltakerStatusDto(DeltakerV1Dto.DeltakerStatusDto.Type.DELTAR),
+            dagerPerUke = 2.0F,
+            prosentStilling = 50.0F,
+        )
 }

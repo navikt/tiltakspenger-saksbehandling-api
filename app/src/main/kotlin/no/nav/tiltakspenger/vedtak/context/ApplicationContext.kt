@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.vedtak.db.DataSourceSetup
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.TiltaksdeltakerService
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena.TiltaksdeltakerArenaConsumer
+import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.komet.TiltaksdeltakerKometConsumer
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaRepository
 
 /**
@@ -95,6 +96,12 @@ open class ApplicationContext(
         TiltaksdeltakerArenaConsumer(
             tiltaksdeltakerService = tiltaksdeltakerService,
             topic = Configuration.arenaTiltaksdeltakerTopic,
+        )
+    }
+    open val tiltaksdeltakerKometConsumer by lazy {
+        TiltaksdeltakerKometConsumer(
+            tiltaksdeltakerService = tiltaksdeltakerService,
+            topic = Configuration.kometTiltaksdeltakerTopic,
         )
     }
 

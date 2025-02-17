@@ -1,11 +1,15 @@
 package no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.saksbehandling.ports.SøknadRepo
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena.ArenaDeltakerMapper
+import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.komet.DeltakerV1Dto
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaRepository
+import java.util.UUID
 
 class TiltaksdeltakerService(
     private val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository,
@@ -30,6 +34,19 @@ class TiltaksdeltakerService(
             }
         } else {
             log.info { "Fant ingen sak knyttet til eksternId $eksternId, lagrer ikke" }
+        }
+    }
+
+    fun behandleMottattKometdeltaker(deltakerId: UUID, melding: String) {
+        val sakId = finnSakIdForTiltaksdeltaker(deltakerId.toString())
+        if (sakId != null) {
+            log.info { "Fant sakId $sakId for komet-deltaker med id $deltakerId" }
+            val deltakerV1Dto = objectMapper.readValue<DeltakerV1Dto>(melding)
+            val tiltaksdeltakerKafkaDb = deltakerV1Dto.toTiltaksdeltakerKafkaDb(sakId)
+            lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb)
+            log.info { "Lagret melding for kometdeltaker med id $deltakerId" }
+        } else {
+            log.info { "Fant ingen sak knyttet til eksternId $deltakerId, lagrer ikke" }
         }
     }
 
