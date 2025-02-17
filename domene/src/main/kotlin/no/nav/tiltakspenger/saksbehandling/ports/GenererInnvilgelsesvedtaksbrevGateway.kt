@@ -15,4 +15,12 @@ interface GenererInnvilgelsesvedtaksbrevGateway {
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
+
+    suspend fun genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+        vedtak: Rammevedtak,
+        vedtaksdato: LocalDate,
+        tilleggstekst: String?,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

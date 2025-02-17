@@ -25,6 +25,16 @@ class GenererFakeVedtaksbrevGateway :
         return response
     }
 
+    override suspend fun genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+        vedtak: Rammevedtak,
+        vedtaksdato: LocalDate,
+        tilleggstekst: String?,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response
+    }
+
     override suspend fun genererStansvedtak(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,

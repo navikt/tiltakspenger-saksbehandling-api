@@ -67,6 +67,27 @@ internal class PdfgenHttpClient(
         )
     }
 
+    override suspend fun genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+        vedtak: Rammevedtak,
+        vedtaksdato: LocalDate,
+        tilleggstekst: String?,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return pdfgenRequest(
+            jsonPayload = {
+                vedtak.toInnvilgetSøknadsbrev(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    vedtaksdato = vedtaksdato,
+                    tilleggstekst = tilleggstekst,
+                )
+            },
+            errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
+            uri = vedtakInnvilgelseUri,
+        )
+    }
+
     override suspend fun genererUtbetalingsvedtak(
         utbetalingsvedtak: Utbetalingsvedtak,
         tiltaksnavn: String,
