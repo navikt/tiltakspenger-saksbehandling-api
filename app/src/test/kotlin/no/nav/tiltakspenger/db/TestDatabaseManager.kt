@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.vedtak.db
+package no.nav.tiltakspenger.db
 
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.util.date.getTimeMillis
@@ -12,7 +12,6 @@ import org.testcontainers.containers.PostgreSQLContainer
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.sql.DataSource
-import kotlin.concurrent.Volatile
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 

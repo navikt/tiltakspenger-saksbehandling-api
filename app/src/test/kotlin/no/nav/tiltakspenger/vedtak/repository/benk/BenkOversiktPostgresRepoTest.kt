@@ -2,17 +2,17 @@ package no.nav.tiltakspenger.vedtak.repository.benk
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.tiltakspenger.db.persisterIverksattFørstegangsbehandling
+import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandling
+import no.nav.tiltakspenger.db.persisterOpprettetRevurdering
+import no.nav.tiltakspenger.db.persisterSakOgSøknad
+import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.felles.januarDateTime
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
 import no.nav.tiltakspenger.saksbehandling.domene.benk.BenkBehandlingstype
 import no.nav.tiltakspenger.saksbehandling.domene.benk.Saksoversikt
-import no.nav.tiltakspenger.vedtak.db.persisterIverksattFørstegangsbehandling
-import no.nav.tiltakspenger.vedtak.db.persisterOpprettetFørstegangsbehandling
-import no.nav.tiltakspenger.vedtak.db.persisterOpprettetRevurdering
-import no.nav.tiltakspenger.vedtak.db.persisterSakOgSøknad
-import no.nav.tiltakspenger.vedtak.db.withMigratedDb
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 

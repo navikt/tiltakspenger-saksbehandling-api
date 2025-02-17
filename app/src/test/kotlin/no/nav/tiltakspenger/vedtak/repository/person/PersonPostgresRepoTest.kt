@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.vedtak.repository.person
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.vedtak.db.persisterOpprettetRevurdering
-import no.nav.tiltakspenger.vedtak.db.withMigratedDb
+import no.nav.tiltakspenger.db.persisterOpprettetRevurdering
+import no.nav.tiltakspenger.db.withMigratedDb
 import org.junit.jupiter.api.Test
 
 class PersonPostgresRepoTest {

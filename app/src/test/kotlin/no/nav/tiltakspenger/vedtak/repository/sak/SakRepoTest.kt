@@ -1,13 +1,13 @@
 package no.nav.tiltakspenger.vedtak.repository.sak
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandling
+import no.nav.tiltakspenger.db.persisterSak
+import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.domene.sak.TynnSak
-import no.nav.tiltakspenger.vedtak.db.persisterOpprettetFørstegangsbehandling
-import no.nav.tiltakspenger.vedtak.db.persisterSak
-import no.nav.tiltakspenger.vedtak.db.withMigratedDb
 import org.junit.jupiter.api.Test
 
 internal class SakRepoTest {

@@ -1,14 +1,14 @@
 package no.nav.tiltakspenger.vedtak.repository.utbetaling
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.db.persisterRammevedtakMedBehandletMeldekort
+import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.felles.april
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.saksbehandling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.utbetaling.domene.opprettUtbetalingsvedtak
-import no.nav.tiltakspenger.vedtak.db.persisterRammevedtakMedBehandletMeldekort
-import no.nav.tiltakspenger.vedtak.db.withMigratedDb
 import org.junit.jupiter.api.Test
 
 class UtbetalingsvedtakRepoImplTest {

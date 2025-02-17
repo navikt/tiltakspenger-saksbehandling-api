@@ -1,13 +1,14 @@
-package no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser
+package no.nav.tiltakspenger.tiltaksdeltakelser
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.tiltakspenger.db.persisterSakOgSøknad
+import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
-import no.nav.tiltakspenger.vedtak.db.persisterSakOgSøknad
-import no.nav.tiltakspenger.vedtak.db.withMigratedDb
+import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.TiltaksdeltakerService
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaDb
 import org.junit.jupiter.api.Test
