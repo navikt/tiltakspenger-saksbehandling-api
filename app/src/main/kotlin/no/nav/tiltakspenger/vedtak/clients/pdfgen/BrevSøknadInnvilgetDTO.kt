@@ -22,12 +22,14 @@ private class BrevFørstegangsvedtakInnvilgelseDTO(
     val datoForUtsending: String,
     val sats: Int,
     val satsBarn: Int,
+    val tilleggstekst: String? = null,
 )
 
 internal suspend fun Rammevedtak.toInnvilgetSøknadsbrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
     vedtaksdato: LocalDate,
+    tilleggstekst: String? = null,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
@@ -53,5 +55,6 @@ internal suspend fun Rammevedtak.toInnvilgetSøknadsbrev(
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
         sats = Satser.sats(periode.fraOgMed).sats,
         satsBarn = Satser.sats(periode.fraOgMed).satsBarnetillegg,
+        tilleggstekst = tilleggstekst,
     ).let { serialize(it) }
 }
