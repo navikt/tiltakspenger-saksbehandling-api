@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.vedtak.db
+package no.nav.tiltakspenger.db
 
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.mars

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.vedtak.db
+package no.nav.tiltakspenger.db
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.felles.januar

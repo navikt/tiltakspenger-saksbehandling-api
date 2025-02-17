@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.vedtak
+package no.nav.tiltakspenger
 
 import mu.KotlinLogging
 import org.junit.jupiter.api.Test

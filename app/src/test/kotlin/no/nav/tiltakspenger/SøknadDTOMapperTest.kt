@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.vedtak.rivers
+package no.nav.tiltakspenger
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
@@ -15,13 +15,13 @@ import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.vedtak.routes.søknad.SøknadDTOMapper
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Month
+import kotlin.test.assertEquals
 
-internal class SøknadDTOTest {
+internal class SøknadDTOMapperTest {
     @Test
     fun mapBasisFelter() {
         val sak = ObjectMother.nySak()

@@ -1,9 +1,10 @@
-package no.nav.tiltakspenger.vedtak.clients.person
+package no.nav.tiltakspenger.clients.person
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.EnkelPerson
+import no.nav.tiltakspenger.vedtak.clients.person.toEnkelPerson
 import org.junit.jupiter.api.Test
 
 internal class EnkelPersonMapperTest {

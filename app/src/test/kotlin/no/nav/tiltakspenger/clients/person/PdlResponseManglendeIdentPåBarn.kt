@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.vedtak.clients.person
+package no.nav.tiltakspenger.clients.person
 
 internal val pdlResponseManglendeIdentPåBarn = """
 {

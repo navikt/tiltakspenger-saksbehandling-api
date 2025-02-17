@@ -1,10 +1,11 @@
-package no.nav.tiltakspenger.vedtak.clients.utbetaling
+package no.nav.tiltakspenger.clients.utbetaling
 
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.vedtak.clients.utbetaling.toDTO
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 

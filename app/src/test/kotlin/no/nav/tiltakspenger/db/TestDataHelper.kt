@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.vedtak.db
+package no.nav.tiltakspenger.db
 
 import mu.KotlinLogging
 import no.nav.tiltakspenger.common.TestSaksnummerGenerator

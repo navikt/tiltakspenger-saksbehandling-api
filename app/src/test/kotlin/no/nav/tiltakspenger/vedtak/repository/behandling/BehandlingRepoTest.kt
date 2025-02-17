@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.vedtak.repository.behandling
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.vedtak.db.persisterOpprettetFørstegangsbehandling
-import no.nav.tiltakspenger.vedtak.db.withMigratedDb
+import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandling
+import no.nav.tiltakspenger.db.withMigratedDb
 import org.junit.jupiter.api.Test
 import java.util.Random
 
