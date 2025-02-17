@@ -58,6 +58,7 @@ class BenkOversiktPostgresRepoTest {
                                 underkjent = false,
                                 kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
                                 id = førstegangsBehandlingSak.førstegangsbehandling!!.id,
+                                erDeprecatedBehandling = true,
                             ),
                             BehandlingEllerSøknadForSaksoversikt(
                                 periode = ObjectMother.revurderingsperiode(),
@@ -69,8 +70,9 @@ class BenkOversiktPostgresRepoTest {
                                 beslutter = null,
                                 sakId = revurderingSak.id,
                                 underkjent = false,
-                                kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
+                                kravtidspunkt = null,
                                 id = revurderingSak.revurderinger.first().id,
+                                erDeprecatedBehandling = true,
                             ),
                         ),
                     )
