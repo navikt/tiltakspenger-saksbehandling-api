@@ -169,6 +169,10 @@ class BehandlingPostgresRepo(
                             "fritekst_vedtaksbrev" to behandling.fritekstTilVedtaksbrev?.verdi,
                             "begrunnelse_vilkårsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
                             "saksopplysninger" to behandling.saksopplysninger?.toDbJson(),
+                            "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode?.fraOgMed,
+                            "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode?.tilOgMed,
+                            "innvilgelsesperiode_fra_og_med" to behandling.innvilgelsesperiode?.fraOgMed,
+                            "innvilgelsesperiode_til_og_med" to behandling.innvilgelsesperiode?.tilOgMed,
                         ),
                     ).asUpdate,
                 )
@@ -207,6 +211,11 @@ class BehandlingPostgresRepo(
                         "oppgave_id" to behandling.oppgaveId.toString(),
                         "fritekst_vedtaksbrev" to behandling.fritekstTilVedtaksbrev?.verdi,
                         "begrunnelse_vilkarsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
+                        "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode?.fraOgMed,
+                        "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode?.tilOgMed,
+                        "innvilgelsesperiode_fra_og_med" to behandling.innvilgelsesperiode?.fraOgMed,
+                        "innvilgelsesperiode_til_og_med" to behandling.innvilgelsesperiode?.tilOgMed,
+
                     ),
                 ).asUpdate,
             )
@@ -235,9 +244,10 @@ class BehandlingPostgresRepo(
             // Kan være null for revurderinger. Domeneobjektet passer på dette selv.
             val søknad: Søknad? = SøknadDAO.hentForBehandlingId(id, session)
 
-            val stønadsdager = string("stønadsdager").toStønadsdager()
+            val stønadsdager = stringOrNull("stønadsdager")?.toStønadsdager()
+            val vilkårssett = stringOrNull("vilkårssett")?.toVilkårssett(vurderingsperiode)
+
             val attesteringer = string("attesteringer").toAttesteringer()
-            val vilkårssett = string("vilkårssett").toVilkårssett(vurderingsperiode)
             val fnr = Fnr.fromString(string("ident"))
             val saksnummer = Saksnummer(string("saksnummer"))
 
@@ -246,6 +256,10 @@ class BehandlingPostgresRepo(
             val iverksattTidspunkt = localDateTimeOrNull("iverksatt_tidspunkt")
             val sistEndret = localDateTime("sist_endret")
             val oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) }
+            val saksopplysningsperiodeFraOgMed = localDateOrNull("saksopplysningsperiode_fra_og_med")
+            val saksopplysningsperiodeTilOgMed = localDateOrNull("saksopplysningsperiode_til_og_med")
+            val innvilgelsesperiodeFraOgMed = localDateOrNull("innvilgelsesperiode_fra_og_med")
+            val innvilgelsesperiodeTilOgMed = localDateOrNull("innvilgelsesperiode_til_og_med")
             return Behandling(
                 id = id,
                 sakId = sakId,
@@ -269,6 +283,8 @@ class BehandlingPostgresRepo(
                 oppgaveId = oppgaveId,
                 fritekstTilVedtaksbrev = stringOrNull("fritekst_vedtaksbrev")?.let { FritekstTilVedtaksbrev(it) },
                 begrunnelseVilkårsvurdering = stringOrNull("begrunnelse_vilkårsvurdering")?.let { BegrunnelseVilkårsvurdering(it) },
+                saksopplysningsperiode = saksopplysningsperiodeFraOgMed?.let { Periode(saksopplysningsperiodeFraOgMed, saksopplysningsperiodeTilOgMed!!) },
+                innvilgelsesperiode = innvilgelsesperiodeFraOgMed?.let { Periode(innvilgelsesperiodeFraOgMed, innvilgelsesperiodeTilOgMed!!) },
             )
         }
 
@@ -295,7 +311,11 @@ class BehandlingPostgresRepo(
                 oppgave_id,
                 fritekst_vedtaksbrev,
                 begrunnelse_vilkårsvurdering,
-                saksopplysninger
+                saksopplysninger,
+                saksopplysningsperiode_fra_og_med,
+                saksopplysningsperiode_til_og_med,
+                innvilgelsesperiode_fra_og_med,
+                innvilgelsesperiode_til_og_med
             ) values (
                 :id,
                 :sak_id,
@@ -316,7 +336,11 @@ class BehandlingPostgresRepo(
                 :oppgave_id,
                 :fritekst_vedtaksbrev,
                 :begrunnelse_vilkarsvurdering,
-                to_jsonb(:saksopplysninger::jsonb)
+                to_jsonb(:saksopplysninger::jsonb),
+                :saksopplysningsperiode_fra_og_med,
+                :saksopplysningsperiode_til_og_med,
+                :innvilgelsesperiode_fra_og_med,
+                :innvilgelsesperiode_til_og_med
             )
             """.trimIndent()
 
@@ -341,8 +365,11 @@ class BehandlingPostgresRepo(
                 oppgave_id = :oppgave_id,
                 fritekst_vedtaksbrev = :fritekst_vedtaksbrev,
                 begrunnelse_vilkårsvurdering = :begrunnelse_vilkarsvurdering,
-                saksopplysninger = to_jsonb(:saksopplysninger::jsonb)
-             
+                saksopplysninger = to_jsonb(:saksopplysninger::jsonb),
+                saksopplysningsperiode_fra_og_med = :saksopplysningsperiode_fra_og_med,
+                saksopplysningsperiode_til_og_med = :saksopplysningsperiode_til_og_med,
+                innvilgelsesperiode_fra_og_med = :innvilgelsesperiode_fra_og_med,
+                innvilgelsesperiode_til_og_med = :innvilgelsesperiode_til_og_med
             where id = :id
               and sist_endret = :sist_endret_old
             """.trimIndent()

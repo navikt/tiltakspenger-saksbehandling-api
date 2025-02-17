@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.objectmothers.førstegangsbehandlingVilkårsvurdert
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+import no.nav.tiltakspenger.vedtak.routes.routes
 import org.junit.jupiter.api.Test
 
 class BehandlingRoutesTest {
@@ -28,19 +29,7 @@ class BehandlingRoutesTest {
             testApplication {
                 application {
                     jacksonSerialization()
-                    routing {
-                        behandlingRoutes(
-                            behandlingService = tac.behandlingContext.behandlingService,
-                            tiltaksdeltagelseVilkårService = tac.behandlingContext.tiltaksdeltagelseVilkårService,
-                            tokenService = tac.tokenService,
-                            sakService = tac.sakContext.sakService,
-                            kvpVilkårService = tac.behandlingContext.kvpVilkårService,
-                            livsoppholdVilkårService = tac.behandlingContext.livsoppholdVilkårService,
-                            auditService = tac.personContext.auditService,
-                            søknadService = tac.søknadContext.søknadService,
-                            startSøknadsbehandlingV2Service = tac.behandlingContext.startSøknadsbehandlingV2Service,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
                 defaultRequest(
                     HttpMethod.Post,

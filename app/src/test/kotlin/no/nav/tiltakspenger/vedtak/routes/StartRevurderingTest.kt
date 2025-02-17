@@ -27,11 +27,6 @@ import no.nav.tiltakspenger.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.objectmothers.førstegangsbehandlingIverksatt
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
-import no.nav.tiltakspenger.vedtak.routes.behandling.behandlingRoutes
-import no.nav.tiltakspenger.vedtak.routes.behandling.benk.behandlingBenkRoutes
-import no.nav.tiltakspenger.vedtak.routes.behandling.benk.startRevurderingRoute
-import no.nav.tiltakspenger.vedtak.routes.behandling.beslutter.behandlingBeslutterRoutes
-import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.tiltakdeltagelse.tiltakDeltagelseRoutes
 import org.junit.jupiter.api.Test
 
 internal class StartRevurderingTest {
@@ -49,46 +44,9 @@ internal class StartRevurderingTest {
                     sak.førstegangsbehandling!!.vurderingsperiode.tilOgMed,
                 )
                 testApplication {
-                    // TODO jah: Vi trenger en generell måte å spinne opp alle routes med fakes på.
                     application {
                         jacksonSerialization()
-                        routing {
-                            behandlingRoutes(
-                                behandlingService = tac.behandlingContext.behandlingService,
-                                tiltaksdeltagelseVilkårService = tac.behandlingContext.tiltaksdeltagelseVilkårService,
-                                tokenService = tac.tokenService,
-                                sakService = tac.sakContext.sakService,
-                                kvpVilkårService = tac.behandlingContext.kvpVilkårService,
-                                livsoppholdVilkårService = tac.behandlingContext.livsoppholdVilkårService,
-                                auditService = tac.personContext.auditService,
-                                søknadService = tac.søknadContext.søknadService,
-                                startSøknadsbehandlingV2Service = tac.behandlingContext.startSøknadsbehandlingV2Service,
-                            )
-                            behandlingBeslutterRoutes(
-                                behandlingService = tac.behandlingContext.behandlingService,
-                                auditService = tac.personContext.auditService,
-                                tokenService = tac.tokenService,
-                            )
-                            behandlingBenkRoutes(
-                                tokenService = tac.tokenService,
-                                behandlingService = tac.behandlingContext.behandlingService,
-                                sakService = tac.sakContext.sakService,
-                                auditService = tac.personContext.auditService,
-                                startRevurderingService = tac.behandlingContext.startRevurderingService,
-                                søknadService = tac.søknadContext.søknadService,
-                            )
-                            startRevurderingRoute(
-                                tokenService = tac.tokenService,
-                                startRevurderingService = tac.behandlingContext.startRevurderingService,
-                                auditService = tac.personContext.auditService,
-                            )
-                            tiltakDeltagelseRoutes(
-                                tiltaksdeltagelseVilkårService = tac.behandlingContext.tiltaksdeltagelseVilkårService,
-                                tokenService = tac.tokenService,
-                                auditService = tac.personContext.auditService,
-                                behandlingService = tac.behandlingContext.behandlingService,
-                            )
-                        }
+                        routing { routes(tac) }
                     }
                     val revurderingId = startRevurdering(sak.id, tac, revurderingsperiode, saksbehandler)
                     oppdaterStatus(sak.id, revurderingId, tac, revurderingsperiode, saksbehandler)

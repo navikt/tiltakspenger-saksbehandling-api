@@ -17,9 +17,9 @@ import no.nav.tiltakspenger.objectmothers.førstegangsbehandlingUavklart
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.behandling.BEHANDLING_PATH
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.introduksjonsprogrammet.IntroVilkårDTO
-import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.introduksjonsprogrammet.introRoutes
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.kvp.DeltagelseDTO.DELTAR_IKKE
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+import no.nav.tiltakspenger.vedtak.routes.routes
 import org.junit.jupiter.api.Test
 
 class IntroRoutesTest {
@@ -33,13 +33,7 @@ class IntroRoutesTest {
             testApplication {
                 application {
                     jacksonSerialization()
-                    routing {
-                        introRoutes(
-                            tokenService = tac.tokenService,
-                            behandlingService = tac.behandlingContext.behandlingService,
-                            auditService = tac.personContext.auditService,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
 
                 // Sjekk at man kan kjøre Get
@@ -70,13 +64,7 @@ class IntroRoutesTest {
             testApplication {
                 application {
                     jacksonSerialization()
-                    routing {
-                        introRoutes(
-                            tokenService = tac.tokenService,
-                            behandlingService = tac.behandlingContext.behandlingService,
-                            auditService = tac.personContext.auditService,
-                        )
-                    }
+                    routing { routes(tac) }
                 }
 
                 // Sjekk at man kan kjøre Get

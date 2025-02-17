@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.tiltakspenger.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.felles.exceptions.TilgangException
@@ -29,12 +28,10 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeHenteBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeIverksetteBehandling
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeUnderkjenne
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
@@ -67,6 +64,7 @@ class BehandlingServiceImpl(
     private val gitHash: String,
     private val tiltakGateway: TiltakGateway,
     private val oppgaveGateway: OppgaveGateway,
+    private val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
 ) : BehandlingService {
     val logger = KotlinLogging.logger { }
 
@@ -91,7 +89,6 @@ class BehandlingServiceImpl(
             return KanIkkeStarteSøknadsbehandling.HarAlleredeStartetBehandlingen(sak.førstegangsbehandling.id).left()
         }
 
-        val personopplysninger = personService.hentPersonopplysninger(fnr)
         val adressebeskyttelseGradering: List<AdressebeskyttelseGradering>? =
             tilgangsstyringService.adressebeskyttelseEnkel(fnr)
                 .getOrElse {
@@ -100,18 +97,7 @@ class BehandlingServiceImpl(
                     )
                 }
         require(adressebeskyttelseGradering != null) { "Fant ikke adressebeskyttelse for person. SøknadId: $søknadId" }
-        val registrerteTiltak: List<Tiltaksdeltagelse> = runBlocking {
-            tiltakGateway.hentTiltaksdeltagelse(
-                fnr = fnr,
-                maskerTiltaksnavn = adressebeskyttelseGradering.harStrengtFortroligAdresse(),
-                correlationId = correlationId,
-            )
-        }
-        if (registrerteTiltak.isEmpty()) {
-            return KanIkkeStarteSøknadsbehandling.OppretteBehandling(
-                KanIkkeOppretteBehandling.FantIkkeTiltak,
-            ).left()
-        }
+
         val soknad = sak.soknader.single { it.id == søknadId }
         val førstegangsbehandling =
             Behandling.opprettDeprecatedFørstegangsbehandling(
@@ -119,9 +105,16 @@ class BehandlingServiceImpl(
                 saksnummer = sak.saksnummer,
                 fnr = fnr,
                 søknad = soknad,
-                fødselsdato = personopplysninger.fødselsdato,
                 saksbehandler = saksbehandler,
-                registrerteTiltak = registrerteTiltak,
+                hentSaksopplysninger = { saksopplysningsperiode ->
+                    oppdaterSaksopplysningerService.hentSaksopplysningerFraRegistre(
+                        sakId = sakId,
+                        saksnummer = sak.saksnummer,
+                        fnr = fnr,
+                        correlationId = correlationId,
+                        saksopplysningsperiode = saksopplysningsperiode,
+                    )
+                },
             ).getOrElse { return KanIkkeStarteSøknadsbehandling.OppretteBehandling(it).left() }
 
         val statistikk =

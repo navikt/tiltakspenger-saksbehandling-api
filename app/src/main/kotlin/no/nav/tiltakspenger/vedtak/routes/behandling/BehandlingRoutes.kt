@@ -4,6 +4,9 @@ import io.ktor.server.routing.Route
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.saksbehandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingService
+import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
+import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
+import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.StartSøknadsbehandlingV2Service
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.kvp.KvpVilkårService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.livsopphold.LivsoppholdVilkårService
@@ -34,6 +37,9 @@ fun Route.behandlingRoutes(
     auditService: AuditService,
     søknadService: SøknadService,
     startSøknadsbehandlingV2Service: StartSøknadsbehandlingV2Service,
+    oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
+    oppdaterBegrunnelseVilkårsvurderingService: OppdaterBegrunnelseVilkårsvurderingService,
+    oppdaterFritekstTilVedtaksbrevService: OppdaterFritekstTilVedtaksbrevService,
 ) {
     hentPersonRoute(tokenService, sakService, auditService)
     tiltakDeltagelseRoutes(behandlingService, tiltaksdeltagelseVilkårService, auditService, tokenService)
@@ -48,4 +54,7 @@ fun Route.behandlingRoutes(
     hentBehandlingRoute(tokenService, behandlingService, auditService)
     startBehandlingRoute(tokenService, behandlingService, auditService, søknadService)
     startBehandlingV2Route(tokenService, startSøknadsbehandlingV2Service, auditService)
+    oppdaterSaksopplysningerRoute(tokenService, auditService, oppdaterSaksopplysningerService)
+    oppdaterBegrunnelseVilkårsvurderingRoute(tokenService, auditService, oppdaterBegrunnelseVilkårsvurderingService)
+    oppdaterFritekstTilVedtaksbrevRoute(tokenService, auditService, oppdaterFritekstTilVedtaksbrevService)
 }

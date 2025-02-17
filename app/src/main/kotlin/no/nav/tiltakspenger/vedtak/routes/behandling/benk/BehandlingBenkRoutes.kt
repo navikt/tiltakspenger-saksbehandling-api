@@ -10,7 +10,6 @@ import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.common.BehandlingId
-import no.nav.tiltakspenger.saksbehandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeHenteSaksoversikt
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
@@ -32,7 +31,6 @@ fun Route.behandlingBenkRoutes(
     sakService: SakService,
     auditService: AuditService,
     startRevurderingService: StartRevurderingService,
-    søknadService: SøknadService,
 ) {
     val logger = KotlinLogging.logger {}
 

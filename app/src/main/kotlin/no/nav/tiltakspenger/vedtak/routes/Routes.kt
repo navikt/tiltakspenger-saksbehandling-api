@@ -24,6 +24,9 @@ fun Route.routes(applicationContext: ApplicationContext) {
         tokenService = applicationContext.tokenService,
         søknadService = applicationContext.søknadContext.søknadService,
         startSøknadsbehandlingV2Service = applicationContext.behandlingContext.startSøknadsbehandlingV2Service,
+        oppdaterSaksopplysningerService = applicationContext.behandlingContext.oppdaterSaksopplysningerService,
+        oppdaterBegrunnelseVilkårsvurderingService = applicationContext.behandlingContext.oppdaterBegrunnelseVilkårsvurderingService,
+        oppdaterFritekstTilVedtaksbrevService = applicationContext.behandlingContext.oppdaterFritekstTilVedtaksbrevService,
     )
     behandlingBenkRoutes(
         tokenService = applicationContext.tokenService,
@@ -31,7 +34,6 @@ fun Route.routes(applicationContext: ApplicationContext) {
         sakService = applicationContext.sakContext.sakService,
         auditService = applicationContext.personContext.auditService,
         startRevurderingService = applicationContext.behandlingContext.startRevurderingService,
-        søknadService = applicationContext.søknadContext.søknadService,
     )
     behandlingBeslutterRoutes(
         tokenService = applicationContext.tokenService,

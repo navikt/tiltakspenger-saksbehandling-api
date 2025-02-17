@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.ports.SaksoversiktRepo
 import no.nav.tiltakspenger.vedtak.repository.behandling.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.vedtak.repository.behandling.toBehandlingsstatus
 import no.nav.tiltakspenger.vedtak.repository.behandling.toBehandlingstype
-import java.time.LocalDateTime
 
 class BenkOversiktPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -40,9 +39,10 @@ class BenkOversiktPostgresRepo(
                           behandling.attesteringer,
                           behandling.sak_id,
                           behandling.behandlingstype,
-                          (behandling.vilkårssett -> 'kravfristVilkår' -> 'avklartSaksopplysning' ->> 'kravdato') as kravtidspunkt                        
+                          søknad.tidsstempel_hos_oss as kravtidspunkt                        
                         from behandling
                         left join sak on sak.id = behandling.sak_id
+                        join søknad on sak.id = søknad.sak_id
                         where behandling.status != 'VEDTATT'
                         order by sak.saksnummer, behandling.id
                         """.trimIndent(),
@@ -53,7 +53,7 @@ class BenkOversiktPostgresRepo(
                                 fraOgMed = row.localDate("fra_og_med"),
                                 tilOgMed = row.localDate("til_og_med"),
                             )
-                        val kravtidspunkt = LocalDateTime.parse(row.string("kravtidspunkt"))
+                        val kravtidspunkt = row.localDateTime("kravtidspunkt")
                         val beslutter = row.stringOrNull("beslutter")
                         val saksbehandler = row.stringOrNull("saksbehandler")
                         val behandlingstype = row.string("behandlingstype").toBehandlingstype().toBenkBehandlingstype()

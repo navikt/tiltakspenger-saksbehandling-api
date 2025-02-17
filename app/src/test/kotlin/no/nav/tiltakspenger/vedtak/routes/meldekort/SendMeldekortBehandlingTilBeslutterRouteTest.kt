@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+import no.nav.tiltakspenger.vedtak.routes.routes
 import org.junit.jupiter.api.Test
 
 internal class SendMeldekortBehandlingTilBeslutterRouteTest {

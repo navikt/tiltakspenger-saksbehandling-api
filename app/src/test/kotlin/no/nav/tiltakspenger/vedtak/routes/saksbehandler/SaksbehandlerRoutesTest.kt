@@ -43,7 +43,6 @@ class SaksbehandlerRoutesTest {
         runTest {
             testApplication {
                 application {
-                    // vedtakTestApi()
                     jacksonSerialization()
                     routing {
                         saksbehandlerRoutes(
