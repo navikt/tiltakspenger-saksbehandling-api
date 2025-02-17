@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.vedtak.routes.behandling
+package no.nav.tiltakspenger.vedtak.routes.behandling.sendtilbake
 
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
@@ -11,20 +11,21 @@ import io.ktor.server.testing.testApplication
 import io.ktor.server.util.url
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.common.TestApplicationContext
-import no.nav.tiltakspenger.objectmothers.ObjectMother.beslutter
+import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.objectmothers.førstegangsbehandlingUnderBeslutning
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attestering
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
+import no.nav.tiltakspenger.vedtak.routes.behandling.BEHANDLING_PATH
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
 import no.nav.tiltakspenger.vedtak.routes.routes
 import org.junit.jupiter.api.Test
 
-class BehandlingBeslutterRoutesTest {
+class SendTilbakeTilSaksbehandlerTest {
 
     @Test
     fun `sjekk at begrunnelse kan sendes inn`() = runTest {
         with(TestApplicationContext()) {
-            val beslutter = beslutter()
+            val beslutter = ObjectMother.beslutter()
             val tac = this
             val sak = this.førstegangsbehandlingUnderBeslutning(beslutter = beslutter)
             val behandlingId = sak.førstegangsbehandling!!.id
@@ -54,7 +55,7 @@ class BehandlingBeslutterRoutesTest {
                         tidspunkt = it.tidspunkt,
                         status = no.nav.tiltakspenger.saksbehandling.domene.behandling.Attesteringsstatus.SENDT_TILBAKE,
                         begrunnelse = "begrunnelse",
-                        beslutter = beslutter().navIdent,
+                        beslutter = ObjectMother.beslutter().navIdent,
                     )
             }
         }
