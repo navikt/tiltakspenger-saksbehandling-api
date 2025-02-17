@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.vedtak.routes.behandling
+package no.nav.tiltakspenger.vedtak.routes.behandling.tabehandling
 
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
@@ -18,7 +18,9 @@ import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
 
 interface TaBehandlingBuilder {
-    suspend fun ApplicationTestBuilder.taBehandling(
+
+    /** Forventer at det allerede finnes en behandling. Denne fungerer både for saksbehandler og beslutter. */
+    suspend fun ApplicationTestBuilder.taBehanding(
         tac: TestApplicationContext,
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),

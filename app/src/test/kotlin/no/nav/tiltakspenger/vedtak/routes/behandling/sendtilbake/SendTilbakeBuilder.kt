@@ -1,8 +1,9 @@
-package no.nav.tiltakspenger.vedtak.routes.behandling.tilbeslutter
+package no.nav.tiltakspenger.vedtak.routes.behandling.sendtilbake
 
 import arrow.core.Tuple4
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -17,43 +18,45 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.oppdaterBegrunnelseForBehandlingId
-import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.oppdaterFritekstForBehandlingId
-import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.startBehandling
+import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.sendTilBeslutter
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.taBehanding
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
 
-interface SendTilBeslutterBuilder {
+interface SendTilbakeBuilder {
 
-    /** Oppretter ny sak, søknad og behandling. */
-    suspend fun ApplicationTestBuilder.sendTilBeslutter(
+    /**
+     * Oppretter ny sak, søknad og behandling.
+     * Merk at denne tar behandlingen, før den sender tilbake til saksbehandler.
+     * */
+    suspend fun ApplicationTestBuilder.sendTilbake(
         tac: TestApplicationContext,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        begrunnelse: String = "send_tilbake_begrunnelse",
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
-        val (sak, søknad, behandlingId) = startBehandling(tac)
-        val sakId = sak.id
-        oppdaterFritekstForBehandlingId(tac, sakId, behandlingId, saksbehandler)
-        oppdaterBegrunnelseForBehandlingId(tac, sakId, behandlingId, saksbehandler)
-        taBehanding(tac, behandlingId, saksbehandler)
-        return Tuple4(sak, søknad, behandlingId, sendTilBeslutterForBehandlingId(tac, behandlingId, saksbehandler))
+        val (sak, søknad, behandlingId) = sendTilBeslutter(tac)
+        taBehanding(tac, behandlingId, beslutter)
+        return Tuple4(sak, søknad, behandlingId, sendTilbakeForBehandlingId(tac, behandlingId, begrunnelse, beslutter))
     }
 
-    /** Forventer at det allerede finnes en behandling med status `UNDER_BEHANDLING` */
-    suspend fun ApplicationTestBuilder.sendTilBeslutterForBehandlingId(
+    /** Forventer at det allerede finnes en behandling med status `UNDER_BESLUTNING` */
+    suspend fun ApplicationTestBuilder.sendTilbakeForBehandlingId(
         tac: TestApplicationContext,
         behandlingId: BehandlingId,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        begrunnelse: String = "send_tilbake_begrunnelse",
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): String {
         defaultRequest(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/behandling/beslutter/$behandlingId")
+                path("/behandling/sendtilbake/$behandlingId")
             },
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(
-                saksbehandler = saksbehandler,
+                saksbehandler = beslutter,
             ),
-        ).apply {
+        ) {
+            setBody("""{"begrunnelse": "$begrunnelse"}""")
+        }.apply {
             val bodyAsText = this.bodyAsText()
             withClue(
                 "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",

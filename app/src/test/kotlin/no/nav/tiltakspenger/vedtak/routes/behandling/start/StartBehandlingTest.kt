@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.vedtak.routes.behandling
+package no.nav.tiltakspenger.vedtak.routes.behandling.start
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -7,7 +7,6 @@ import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
-import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.startBehandling
 import no.nav.tiltakspenger.vedtak.routes.routes
 import org.junit.jupiter.api.Test
@@ -22,8 +21,7 @@ internal class StartBehandlingTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, søknad) = opprettSakOgSøknad(tac)
-                val behandlingId = startBehandling(tac, sak.id, søknad.id)
+                val (sak, søknad, behandlingId) = startBehandling(tac)
                 val opprettetBehandling = tac.behandlingContext.behandlingRepo.hent(behandlingId)
                 opprettetBehandling.erFørstegangsbehandling shouldBe true
                 opprettetBehandling.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
