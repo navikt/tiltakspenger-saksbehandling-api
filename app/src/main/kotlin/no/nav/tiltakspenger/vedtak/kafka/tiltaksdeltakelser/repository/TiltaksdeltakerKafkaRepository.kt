@@ -20,6 +20,14 @@ class TiltaksdeltakerKafkaRepository(
         )
     }
 
+    fun hentAlleUtenOppgave(): List<TiltaksdeltakerKafkaDb> = sessionFactory.withSession {
+        it.run(
+            queryOf(sqlHentAlleUtenOppgave)
+                .map { row -> row.toTiltaksdeltakerKafkaDb() }
+                .asList,
+        )
+    }
+
     fun lagre(tiltaksdeltakerKafkaDb: TiltaksdeltakerKafkaDb) {
         sessionFactory.withSession { session ->
             session.run(
@@ -37,6 +45,14 @@ class TiltaksdeltakerKafkaRepository(
                         "sist_oppdatert" to LocalDateTime.now(),
                     ),
                 ).asUpdate,
+            )
+        }
+    }
+
+    fun slett(id: String) {
+        sessionFactory.withSession {
+            it.run(
+                queryOf(sqlHentForId, id).asUpdate,
             )
         }
     }
@@ -87,4 +103,10 @@ class TiltaksdeltakerKafkaRepository(
 
     @Language("SQL")
     private val sqlHentForId = "select * from tiltaksdeltaker_kafka where id = ?"
+
+    @Language("SQL")
+    private val sqlHentAlleUtenOppgave = "select * from tiltaksdeltaker_kafka where oppgave_id is null"
+
+    @Language("SQL")
+    private val sqlSlettForId = "delete from tiltaksdeltaker_kafka where id = ?"
 }

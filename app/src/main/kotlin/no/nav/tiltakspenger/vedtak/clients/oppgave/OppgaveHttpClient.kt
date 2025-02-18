@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.ports.Oppgavebehov
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
@@ -37,6 +38,7 @@ class OppgaveHttpClient(
     override suspend fun opprettOppgave(
         fnr: Fnr,
         journalpostId: JournalpostId,
+        oppgavebehov: Oppgavebehov,
     ): OppgaveId {
         val callId = UUID.randomUUID()
         val oppgaveResponse = finnOppgave(journalpostId, callId)
@@ -44,7 +46,29 @@ class OppgaveHttpClient(
             logger.warn { "Oppgave for journalpostId: $journalpostId finnes fra før, callId: $callId" }
             return OppgaveId(oppgaveResponse.oppgaver.first().id.toString())
         }
-        return opprettOppgave(fnr, journalpostId, callId)
+        val opprettOppgaveRequest = if (oppgavebehov == Oppgavebehov.NY_SOKNAD) {
+            OpprettOppgaveRequest.opprettOppgaveRequestForSoknad(
+                fnr = fnr,
+                journalpostId = journalpostId,
+            )
+        } else {
+            logger.error { "Ukjent oppgavebehov for oppgave med journalpost: ${oppgavebehov.name}" }
+            throw IllegalArgumentException("Ukjent oppgavebehov for oppgave med journalpost: ${oppgavebehov.name}")
+        }
+        return opprettOppgave(opprettOppgaveRequest, callId)
+    }
+
+    override suspend fun opprettOppgaveUtenDuplikatkontroll(fnr: Fnr, oppgavebehov: Oppgavebehov): OppgaveId {
+        val callId = UUID.randomUUID()
+        val opprettOppgaveRequest = if (oppgavebehov == Oppgavebehov.ENDRET_TILTAKDELTAKER) {
+            OpprettOppgaveRequest.opprettOppgaveRequestForEndretTiltaksdeltaker(
+                fnr = fnr,
+            )
+        } else {
+            logger.error { "Ukjent oppgavebehov for oppgave uten journalpost og duplikatkontroll: ${oppgavebehov.name}" }
+            throw IllegalArgumentException("Ukjent oppgavebehov for oppgave uten journalpost og duplikatkontroll: ${oppgavebehov.name}")
+        }
+        return opprettOppgave(opprettOppgaveRequest, callId)
     }
 
     override suspend fun ferdigstillOppgave(oppgaveId: OppgaveId) {
@@ -59,25 +83,20 @@ class OppgaveHttpClient(
     }
 
     private suspend fun opprettOppgave(
-        fnr: Fnr,
-        journalpostId: JournalpostId,
+        opprettOppgaveRequest: OpprettOppgaveRequest,
         callId: UUID,
     ): OppgaveId {
-        val opprettOppgaveRequest = OpprettOppgaveRequest(
-            personident = fnr.verdi,
-            journalpostId = journalpostId.toString(),
-        )
         val jsonPayload = objectMapper.writeValueAsString(opprettOppgaveRequest)
         val request = createPostRequest(jsonPayload, getToken().token, callId)
         val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
         val status = httpResponse.statusCode()
         if (status != 201) {
-            logger.error { "Kunne ikke opprette oppgave, statuskode $status. JournalpostId: $journalpostId, callId: $callId" }
+            logger.error { "Kunne ikke opprette oppgave, statuskode $status. CallId: $callId ${opprettOppgaveRequest.journalpostId?.let { ", journalpostId: $it" }}" }
             error("Kunne ikke opprette oppgave, statuskode $status")
         }
         val jsonResponse = httpResponse.body()
         val oppgaveId = objectMapper.readValue<OpprettOppgaveResponse>(jsonResponse).id
-        logger.info { "Opprettet oppgave med id $oppgaveId for journalpostId: $journalpostId, callId: $callId" }
+        logger.info { "Opprettet oppgave med id $oppgaveId for callId: $callId ${opprettOppgaveRequest.journalpostId?.let { ", journalpostId: $it" }}" }
         return OppgaveId(oppgaveId.toString())
     }
 
