@@ -207,6 +207,7 @@ class BehandlingServiceImpl(
         return behandling.right()
     }
 
+    /** TODO John + Anders: Skal slettes når ny flyt er på plass. */
     override suspend fun iverksett(
         behandlingId: BehandlingId,
         beslutter: Saksbehandler,
