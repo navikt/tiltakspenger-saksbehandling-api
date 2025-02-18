@@ -371,7 +371,7 @@ data class Behandling(
         return this.copy(
             status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
             sendtTilBeslutning = nå(),
-            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             innvilgelsesperiode = kommando.innvilgelsesperiode,
         )

@@ -51,7 +51,7 @@ private data class SendTilBeslutterBody(
 }
 
 fun Route.sendBehandlingTilBeslutterV2Route(
-    sendBehandlingTilBesluterV2Service: SendBehandlingTilBeslutterV2Service,
+    sendBehandlingTilBeslutterV2Service: SendBehandlingTilBeslutterV2Service,
     auditService: AuditService,
     tokenService: TokenService,
 ) {
@@ -63,7 +63,7 @@ fun Route.sendBehandlingTilBeslutterV2Route(
                 call.withBehandlingId { behandlingId ->
                     val correlationId = call.correlationId()
                     call.withBody<SendTilBeslutterBody> { body ->
-                        sendBehandlingTilBesluterV2Service.sendTilBeslutter(
+                        sendBehandlingTilBeslutterV2Service.sendTilBeslutter(
                             kommando = body.toDomain(
                                 sakId = sakId,
                                 behandlingId = behandlingId,

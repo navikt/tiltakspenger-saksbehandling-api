@@ -167,7 +167,7 @@ class BehandlingPostgresRepo(
                             "behandlingstype" to behandling.behandlingstype.toDbValue(),
                             "oppgave_id" to behandling.oppgaveId.toString(),
                             "fritekst_vedtaksbrev" to behandling.fritekstTilVedtaksbrev?.verdi,
-                            "begrunnelse_vilkårsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
+                            "begrunnelse_vilkarsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
                             "saksopplysninger" to behandling.saksopplysninger?.toDbJson(),
                             "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode?.fraOgMed,
                             "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode?.tilOgMed,
