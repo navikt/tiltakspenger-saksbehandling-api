@@ -95,7 +95,22 @@ data class Behandling(
     val samletUtfall: SamletUtfall by lazy {
         if (erNyFlyt) throw IllegalStateException("Dette støtter vi ikke for ny flyt enda.") else vilkårssett!!.samletUtfall
     }
-    val utfallsperioder: Periodisering<UtfallForPeriode> get() = if (erNyFlyt) throw IllegalStateException("Dette støtter vi ikke for ny flyt enda.") else vilkårssett!!.utfallsperioder()
+    val utfallsperioder: Periodisering<UtfallForPeriode>
+        get() = if (erNyFlyt) {
+            // Dersom det er en innvilgelse, vil hele innvilgelsesperioden være utfallsperoden: OPPFYLT
+            // Dersom det er et avslag, vil vi ikke forholde oss til en utfallsperiode. Det skal ikke lages meldeperioder. Og vedtaket skal bare "ignoreres" som regel.
+            // Dersom det er en revurdering stans/opphør, vil vi ha en opphørsperiode.
+            when (behandlingstype) {
+                Behandlingstype.FØRSTEGANGSBEHANDLING -> {
+                    Periodisering<UtfallForPeriode>(UtfallForPeriode.OPPFYLT, innvilgelsesperiode!!)
+                }
+                Behandlingstype.REVURDERING -> {
+                    throw IllegalStateException("Kan ikke bestemme utfallsperioder for revurdering i ny flyt enda.")
+                }
+            }
+        } else {
+            vilkårssett!!.utfallsperioder()
+        }
     val avklarteUtfallsperioder: Periodisering<AvklartUtfallForPeriode> get() = utfallsperioder.toAvklartUtfallForPeriode()
 
     val erFørstegangsbehandling: Boolean = behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING
@@ -589,9 +604,9 @@ data class Behandling(
                 // Det er viktig at vi ikke tar saksbehandler og beslutter av behandlingen når status er VEDTATT.
                 requireNotNull(beslutter) { "Behandlingen må ha beslutter når status er VEDTATT" }
                 requireNotNull(saksbehandler) { "Behandlingen må ha saksbehandler når status er VEDTATT" }
-                if (erNyFlyt) {
+                if (!erNyFlyt) {
                     require(
-                        vilkårssett!!.samletUtfall != SamletUtfall.UAVKLART,
+                        vilkårssett!!.samletUtfall in listOf(SamletUtfall.IKKE_OPPFYLT, SamletUtfall.OPPFYLT),
                     ) { "Vi støtter ikke samlet utfall: UAVKLART på dette tidspunktet." }
                 }
                 requireNotNull(iverksattTidspunkt)

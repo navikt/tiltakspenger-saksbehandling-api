@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.vedtak.routes
 
 import no.nav.tiltakspenger.vedtak.routes.behandling.begrunnelse.OppdaterBegrunnelseBuilder
 import no.nav.tiltakspenger.vedtak.routes.behandling.fritekst.OppdaterFritekstBuilder
+import no.nav.tiltakspenger.vedtak.routes.behandling.iverksett.IverksettBehandlingBuilder
 import no.nav.tiltakspenger.vedtak.routes.behandling.sendtilbake.SendTilbakeBuilder
 import no.nav.tiltakspenger.vedtak.routes.behandling.start.StartBehandlingBuilder
 import no.nav.tiltakspenger.vedtak.routes.behandling.tabehandling.TaBehandlingBuilder
@@ -17,4 +18,5 @@ object RouteBuilder :
     OppdaterFritekstBuilder,
     OppdaterBegrunnelseBuilder,
     SendTilBeslutterBuilder,
-    SendTilbakeBuilder
+    SendTilbakeBuilder,
+    IverksettBehandlingBuilder
