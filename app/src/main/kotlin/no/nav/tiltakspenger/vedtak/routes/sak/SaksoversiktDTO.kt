@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
 data class SaksoversiktDTO(
     val periode: PeriodeDTO?,
     val status: String,
-    val kravtidspunkt: String,
+    val kravtidspunkt: String?,
     val underkjent: Boolean?,
     val typeBehandling: BehandlingstypeDTO,
     val fnr: String,
@@ -27,6 +27,7 @@ data class SaksoversiktDTO(
     val sakId: String?,
     val saksbehandler: String?,
     val beslutter: String?,
+    val erDeprecatedBehandling: Boolean? = null,
 )
 
 internal fun Saksoversikt.toDTO(): List<SaksoversiktDTO> = this.map { it.toSaksoversiktDTO() }
@@ -39,7 +40,7 @@ fun BehandlingEllerSøknadForSaksoversikt.toSaksoversiktDTO() = SaksoversiktDTO(
         is BehandlingEllerSøknadForSaksoversikt.Status.Behandling -> s.behandlingsstatus.toDTO().toString()
     },
     underkjent = underkjent,
-    kravtidspunkt = kravtidspunkt.toString(),
+    kravtidspunkt = kravtidspunkt?.toString(),
     typeBehandling = behandlingstype.toDTO(),
     fnr = fnr.verdi,
     saksnummer = saksnummer.toString(),
@@ -47,6 +48,7 @@ fun BehandlingEllerSøknadForSaksoversikt.toSaksoversiktDTO() = SaksoversiktDTO(
     saksbehandler = saksbehandler,
     beslutter = beslutter,
     sakId = sakId.toString(),
+    erDeprecatedBehandling = erDeprecatedBehandling,
 )
 
 fun List<Behandling>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
@@ -55,7 +57,7 @@ fun List<Behandling>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
 fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
     periode = vurderingsperiode.toDTO(),
     status = status.toDTO().toString(),
-    kravtidspunkt = this.kravfrist.toString(),
+    kravtidspunkt = this.kravfrist?.toString(),
     underkjent = attesteringer.any { attestering -> attestering.isUnderkjent() },
     typeBehandling = behandlingstype.toBenkBehandlingstype().toDTO(),
     fnr = fnr.verdi,

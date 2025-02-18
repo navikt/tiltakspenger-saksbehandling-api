@@ -321,10 +321,9 @@ class BehandlingServiceImpl(
             return KanIkkeTaBehandling.MåVæreSaksbehandlerEllerBeslutter.left()
         }
         val behandling = hentBehandling(behandlingId, saksbehandler, correlationId)
-        behandling.taBehandling(saksbehandler).also {
+        return behandling.taBehandling(saksbehandler).also {
             behandlingRepo.lagre(it)
-        }
-        return behandling.right()
+        }.right()
     }
 
     private suspend fun sjekkTilgang(

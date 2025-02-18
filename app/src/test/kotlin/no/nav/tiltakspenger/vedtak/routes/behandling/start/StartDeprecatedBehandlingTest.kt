@@ -1,8 +1,7 @@
-package no.nav.tiltakspenger.vedtak.routes.behandling.benk
+package no.nav.tiltakspenger.vedtak.routes.behandling.start
 
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
@@ -24,7 +23,8 @@ import no.nav.tiltakspenger.vedtak.routes.defaultRequest
 import no.nav.tiltakspenger.vedtak.routes.routes
 import org.junit.jupiter.api.Test
 
-class BehandlingBenkRoutesTest {
+/** TODO John + Anders: Slettes når vi fjerner den gamle behandlingsflyten. */
+class StartDeprecatedBehandlingTest {
     @Test
     fun `startbehandling - oppretter førstegangsbehandling knyttet til søknad og sak`() = runTest {
         with(TestApplicationContext()) {
@@ -60,12 +60,12 @@ class BehandlingBenkRoutesTest {
                         status shouldBe HttpStatusCode.OK
                     }
                 }
-                val opprettetBehandling = tac.behandlingContext.behandlingRepo.hentForSøknadId(søknad.id)
-                opprettetBehandling shouldNotBe null
-                opprettetBehandling?.erFørstegangsbehandling shouldBe true
-                opprettetBehandling?.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
-                opprettetBehandling?.sakId shouldBe sak.id
-                opprettetBehandling?.oppgaveId shouldBe søknad.oppgaveId
+                val opprettetBehandling = tac.behandlingContext.behandlingRepo.hentForSøknadId(søknad.id)!!
+                opprettetBehandling.erFørstegangsbehandling shouldBe true
+                opprettetBehandling.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                opprettetBehandling.sakId shouldBe sak.id
+                opprettetBehandling.oppgaveId shouldBe søknad.oppgaveId
+                opprettetBehandling.erNyFlyt shouldBe false
             }
         }
     }

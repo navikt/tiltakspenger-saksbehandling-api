@@ -314,19 +314,24 @@ data class Behandling(
         }
 
     fun tilBeslutning(saksbehandler: Saksbehandler): Behandling {
-        if (erNyFlyt) throw IllegalStateException("TODO John + Anders: Støtter ikke sende til beslutter for ny flyt enda.")
-        if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING && vilkårssett!!.samletUtfall != SamletUtfall.OPPFYLT) {
-            throw IllegalStateException("Kan ikke sende en behandling til beslutning som ikke er innvilget i MVP")
-        }
-        if (behandlingstype == Behandlingstype.REVURDERING && vilkårssett!!.samletUtfall != SamletUtfall.IKKE_OPPFYLT) {
-            throw IllegalStateException("Kan ikke sende en revurdering til beslutning som er (delvis)innvilget i MVP")
+        if (!erNyFlyt) {
+            if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING && vilkårssett!!.samletUtfall != SamletUtfall.OPPFYLT) {
+                throw IllegalStateException("Kan ikke sende en behandling til beslutning som ikke er innvilget i MVP")
+            }
+            if (behandlingstype == Behandlingstype.REVURDERING && vilkårssett!!.samletUtfall != SamletUtfall.IKKE_OPPFYLT) {
+                throw IllegalStateException("Kan ikke sende en revurdering til beslutning som er (delvis)innvilget i MVP")
+            }
+            check(samletUtfall != SamletUtfall.UAVKLART) { "Kan ikke sende en UAVKLART behandling til beslutter" }
+        } else {
+            if (behandlingstype == Behandlingstype.REVURDERING) {
+                throw IllegalStateException("TODO John + Anders: Legg til støtte for revurdering.")
+            }
         }
         check(status == UNDER_BEHANDLING) {
             "Behandlingen må være under behandling, det innebærer også at en saksbehandler må ta saken før den kan sendes til beslutter. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}"
         }
-
         check(saksbehandler.navIdent == this.saksbehandler) { "Det er ikke lov å sende en annen sin behandling til beslutter" }
-        check(samletUtfall != SamletUtfall.UAVKLART) { "Kan ikke sende en UAVKLART behandling til beslutter" }
+
         return this.copy(
             status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
             sendtTilBeslutning = nå(),
