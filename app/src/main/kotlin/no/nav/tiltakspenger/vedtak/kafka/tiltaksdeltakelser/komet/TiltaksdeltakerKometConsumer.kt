@@ -17,7 +17,7 @@ class TiltaksdeltakerKometConsumer(
     private val tiltaksdeltakerService: TiltaksdeltakerService,
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
-    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "latest") else LocalKafkaConfig(),
+    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "none") else LocalKafkaConfig(),
 ) : Consumer<UUID, String?> {
     private val log = KotlinLogging.logger { }
 

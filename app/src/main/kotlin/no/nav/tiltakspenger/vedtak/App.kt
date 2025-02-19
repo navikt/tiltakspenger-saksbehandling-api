@@ -81,6 +81,7 @@ internal fun start(
             applicationContext.sendTilDatadelingService.send(Configuration.isNais())
             if (Configuration.isNais()) {
                 applicationContext.endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
+                applicationContext.endretTiltaksdeltakerJobb.opprydning()
             }
 
             if (applicationProfile != Profile.PROD) {

@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class TiltaksdeltakerKafkaDb(
     val id: String,
@@ -15,6 +16,7 @@ data class TiltaksdeltakerKafkaDb(
     val deltakerstatus: TiltakDeltakerstatus,
     val sakId: SakId,
     val oppgaveId: OppgaveId?,
+    val oppgaveSistSjekket: LocalDateTime?,
 ) {
     fun tiltaksdeltakelseErEndret(
         tiltaksdeltakelseFraBehandling: Tiltaksdeltagelse,

@@ -1,0 +1,1 @@
+ALTER TABLE tiltaksdeltaker_kafka ADD COLUMN oppgave_sist_sjekket TIMESTAMPTZ;
