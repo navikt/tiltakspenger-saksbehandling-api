@@ -78,18 +78,29 @@ tasks {
 
     register("checkFlywayMigrationNames") {
         doLast {
-            val migrationDir = project.file("app/src/main/resources/db/migration")
-            val invalidFiles = migrationDir.walk()
+            val files = project.file("app/src/main/resources/db/migration").walk()
                 .filter { it.isFile && it.extension == "sql" }
+                .toList()
+
+            val invalidFiles = files
                 .filterNot { it.name.matches(Regex("V[0-9]+__[\\w]+\\.sql")) }
                 .map { it.name }
-                .toList()
 
             if (invalidFiles.isNotEmpty()) {
                 throw GradleException("Invalid migration filenames:\n${invalidFiles.joinToString("\n")}")
-            } else {
-                println("All migration filenames are valid.")
             }
+
+            val duplicateVersions = files
+                .mapNotNull { it.name.split("__").firstOrNull()?.removePrefix("V")?.toIntOrNull() }
+                .groupBy { it }
+                .filter { it.value.size > 1 }
+                .keys
+
+            if (duplicateVersions.isNotEmpty()) {
+                throw GradleException("Duplicate version numbers found:\n${duplicateVersions.joinToString("\n") { "Version $it is used multiple times" }}")
+            }
+
+            println("All migration filenames are valid and version numbers are unique.")
         }
     }
 

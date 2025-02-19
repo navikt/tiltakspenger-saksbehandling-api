@@ -3,7 +3,6 @@
 package no.nav.tiltakspenger.vedtak.clients.tiltak
 
 import arrow.core.getOrElse
-import no.nav.tiltakspenger.felles.TiltakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.AVBRUTT
@@ -43,7 +42,6 @@ internal fun mapTiltak(
         .filterNot { it.deltakelseTom == null }
         .map { tiltakDto ->
             Tiltaksdeltagelse(
-                id = TiltakId.random(),
                 eksternDeltagelseId = tiltakDto.id,
                 gjennomføringId = tiltakDto.gjennomføringId,
                 typeNavn = if (maskerTiltaksnavn) "Ikke tilgjengelig" else tiltakDto.typeNavn,

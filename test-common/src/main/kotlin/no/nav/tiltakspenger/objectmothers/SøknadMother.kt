@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.objectmothers
 
 import no.nav.tiltakspenger.felles.OppgaveId
-import no.nav.tiltakspenger.felles.TiltakId
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.januarDateTime
 import no.nav.tiltakspenger.felles.juni
@@ -81,8 +80,7 @@ interface SøknadMother {
         opprettet: LocalDateTime = 1.januarDateTime(2022),
         barnetillegg: List<Barnetillegg> = listOf(),
         tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
-        eksternId: TiltakId = TiltakId.random(),
-        søknadstiltak: Søknadstiltak = søknadstiltak(deltakelseFom = periode.fraOgMed, deltakelseTom = periode.tilOgMed, id = eksternId.toString()),
+        søknadstiltak: Søknadstiltak = søknadstiltak(deltakelseFom = periode.fraOgMed, deltakelseTom = periode.tilOgMed),
         trygdOgPensjon: Søknad.PeriodeSpm = periodeNei(),
         vedlegg: Int = 0,
         etterlønn: Søknad.JaNeiSpm = nei(),

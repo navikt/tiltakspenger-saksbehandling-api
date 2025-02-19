@@ -5,7 +5,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.felles.OppgaveId
-import no.nav.tiltakspenger.felles.TiltakId
 import no.nav.tiltakspenger.felles.exceptions.StøtterIkkeUtfallException
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.felles.sikkerlogg
@@ -99,7 +98,6 @@ data class Behandling(
         saksopplysninger!!.tiltaksdeltagelse
     } else {
         Tiltaksdeltagelse(
-            id = TiltakId.random(),
             eksternDeltagelseId = tiltaksid,
             gjennomføringId = gjennomføringId,
             typeNavn = tiltaksnavn,

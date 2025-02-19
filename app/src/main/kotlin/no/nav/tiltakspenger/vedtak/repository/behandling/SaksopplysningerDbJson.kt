@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.vedtak.repository.behandling
 
-import no.nav.tiltakspenger.felles.TiltakId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -19,7 +18,6 @@ private data class SaksopplysningerDbJson(
     val tiltaksdeltagelse: TiltaksdeltagelseDbJson,
 ) {
     data class TiltaksdeltagelseDbJson(
-        val id: String,
         val eksternDeltagelseId: String,
         val gjennomføringId: String?,
         val typeNavn: String,
@@ -34,7 +32,6 @@ private data class SaksopplysningerDbJson(
     ) {
         fun toDomain(): Tiltaksdeltagelse {
             return Tiltaksdeltagelse(
-                id = TiltakId.fromString(id),
                 eksternDeltagelseId = eksternDeltagelseId,
                 gjennomføringId = gjennomføringId,
                 typeNavn = typeNavn,
@@ -52,7 +49,6 @@ private data class SaksopplysningerDbJson(
 
 private fun Tiltaksdeltagelse.toDbJson(): TiltaksdeltagelseDbJson {
     return TiltaksdeltagelseDbJson(
-        id = this.id.toString(),
         eksternDeltagelseId = this.eksternDeltagelseId,
         gjennomføringId = this.gjennomføringId,
         typeNavn = this.typeNavn,

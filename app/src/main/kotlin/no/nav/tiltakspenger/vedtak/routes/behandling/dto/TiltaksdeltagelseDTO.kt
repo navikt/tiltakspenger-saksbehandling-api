@@ -4,7 +4,6 @@ import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import java.time.LocalDate
 
 data class TiltaksdeltagelseDTO(
-    val id: String,
     val eksternDeltagelseId: String,
     val gjennomføringId: String?,
     val typeNavn: String,
@@ -19,7 +18,6 @@ data class TiltaksdeltagelseDTO(
 
 fun Tiltaksdeltagelse.toDTO(): TiltaksdeltagelseDTO {
     return TiltaksdeltagelseDTO(
-        id = this.id.toString(),
         eksternDeltagelseId = this.eksternDeltagelseId,
         gjennomføringId = this.gjennomføringId,
         typeNavn = this.typeNavn,

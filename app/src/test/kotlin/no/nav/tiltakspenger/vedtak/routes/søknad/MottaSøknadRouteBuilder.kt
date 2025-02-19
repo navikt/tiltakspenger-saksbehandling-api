@@ -12,7 +12,6 @@ import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.common.TestApplicationContext
-import no.nav.tiltakspenger.felles.TiltakId
 import no.nav.tiltakspenger.felles.april
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -84,7 +83,6 @@ interface MottaSøknadRouteBuilder {
                 fnr = fnr,
                 personopplysningerForBruker = personopplysningerForBrukerFraPdl,
                 tiltaksdeltagelse = Tiltaksdeltagelse(
-                    id = TiltakId.random(),
                     eksternDeltagelseId = "TA12345",
                     gjennomføringId = null,
                     typeNavn = "Testnavn",

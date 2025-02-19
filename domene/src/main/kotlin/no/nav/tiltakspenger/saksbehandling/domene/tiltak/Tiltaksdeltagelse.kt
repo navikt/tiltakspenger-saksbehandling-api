@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.domene.tiltak
 
-import no.nav.tiltakspenger.felles.TiltakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 
@@ -10,7 +9,6 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
  * @param gjennomføringId Ekstern id. Dette er gjennomføringen sin ID, eksempelvis Rema 1000 i Strandveien. En person knyttes til en gjennomføring og det kalles da en deltagelse. Per nå mottar vi ikke denne fra Arena, men kun fra Komet.
  */
 data class Tiltaksdeltagelse(
-    val id: TiltakId,
     val eksternDeltagelseId: String,
     val gjennomføringId: String?,
     val typeNavn: String,

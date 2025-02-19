@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.felles.OppgaveId
-import no.nav.tiltakspenger.felles.TiltakId
 import no.nav.tiltakspenger.felles.april
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.libs.common.SakId
@@ -18,7 +17,6 @@ import java.util.UUID
 
 class TiltaksdeltakerKafkaDbTest {
     private val lagretTiltaksdeltakelse = Tiltaksdeltagelse(
-        id = TiltakId.random(),
         eksternDeltagelseId = UUID.randomUUID().toString(),
         gjennomføringId = UUID.randomUUID().toString(),
         typeNavn = "Avklaring",

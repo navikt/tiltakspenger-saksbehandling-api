@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.objectmothers
 
-import no.nav.tiltakspenger.felles.TiltakId
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -19,7 +18,6 @@ import java.util.UUID
 interface TiltakMother {
 
     fun tiltak(
-        id: TiltakId = TiltakId.random(),
         eksternTiltaksdeltagelseId: String = UUID.randomUUID().toString(),
         typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
@@ -33,7 +31,6 @@ interface TiltakMother {
         kilde: Tiltakskilde = Komet,
     ): Tiltaksdeltagelse {
         return Tiltaksdeltagelse(
-            id = id,
             eksternDeltagelseId = eksternTiltaksdeltagelseId,
             gjennomføringId = eksternTiltaksgjennomføringsId,
             typeKode = typeKode,
@@ -48,7 +45,6 @@ interface TiltakMother {
     }
 
     fun tiltakOgSøknadstiltak(
-        id: TiltakId = TiltakId.random(),
         eksternTiltaksdeltagelseId: String = UUID.randomUUID().toString(),
         typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
@@ -62,7 +58,6 @@ interface TiltakMother {
         kilde: Tiltakskilde = Komet,
     ): Pair<Tiltaksdeltagelse, Søknadstiltak> {
         return Tiltaksdeltagelse(
-            id = id,
             eksternDeltagelseId = eksternTiltaksdeltagelseId,
             gjennomføringId = eksternTiltaksgjennomføringsId,
             typeKode = typeKode,
@@ -84,11 +79,9 @@ interface TiltakMother {
 }
 
 fun Søknadstiltak.toTiltak(
-    id: TiltakId = TiltakId.random(),
     eksternTiltaksgjennomføringsId: String = UUID.randomUUID().toString(),
 ): Tiltaksdeltagelse {
     return tiltak(
-        id = id,
         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
         eksternTiltaksdeltagelseId = this.id,
         // TODO jah: Vi burde ha kontroll på denne fra vi tar inn søknaden i routen til først søknad og deretter saksbehandling-api

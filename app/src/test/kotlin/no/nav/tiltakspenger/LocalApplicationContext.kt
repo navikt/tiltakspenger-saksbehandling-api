@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.fakes.clients.PersonFakeGateway
 import no.nav.tiltakspenger.fakes.clients.PoaoTilgangskontrollFake
 import no.nav.tiltakspenger.fakes.clients.TiltakFakeGateway
 import no.nav.tiltakspenger.fakes.clients.UtbetalingFakeGateway
-import no.nav.tiltakspenger.felles.TiltakId
 import no.nav.tiltakspenger.libs.auth.test.core.EntraIdSystemtokenFakeClient
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -68,9 +67,7 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
 
     private val søknadId: SøknadId = SøknadId.fromString("soknad_01HSTRQBRM443VGB4WA822TE01")
     private val fnr: Fnr = Fnr.fromString("50218274152")
-    private val tiltakId: TiltakId = TiltakId.fromString("tilt_01JETND3NDGHE0YHWFTVAN93B0")
     private val tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltak(
-        id = tiltakId,
         // Siden Komet eier GRUPPE_AMO, vil dette være en UUID. Hadde det vært Arena som var master ville det vært eksempelvis TA6509186.
         // Kommentar jah: Litt usikker på om Komet sender UUIDen til Arena, eller om de genererer en Arena-ID på formatet TA...
         // Kommentar Tia: Komet genererer uuid og sender denne til Arena for tiltakstyper de har tatt over. Komet er ikke master for ikke gruppeamo ennå.
@@ -101,7 +98,6 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
         val søknad = søknadContext.søknadRepo.hentForSøknadId(søknadId) ?: ObjectMother.nySøknad(
             fnr = fnr,
             id = søknadId,
-            eksternId = tiltakId,
             søknadstiltak = søknadstiltak,
             sak = sak,
             oppgaveId = ObjectMother.oppgaveId(),
