@@ -66,5 +66,5 @@ fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
     sakId = sakId.toString(),
     saksbehandler = saksbehandler,
     beslutter = beslutter,
-
+    erDeprecatedBehandling = saksopplysninger == null,
 )
