@@ -34,7 +34,7 @@ fun Route.iverksettBehandlingv2Route(
                         {
                             when (it) {
                                 KanIkkeIverksetteBehandling.KunneIkkeOppretteOppgave -> call.respond500InternalServerError(
-                                    melding = "Feil ved oppretting av oppgaving",
+                                    melding = "Feil under oppretting av oppgave for behandlingen",
                                     kode = "",
                                 )
                                 KanIkkeIverksetteBehandling.MåVæreBeslutter -> call.respond403Forbidden(måVæreBeslutter())
