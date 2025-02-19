@@ -2,8 +2,10 @@ package no.nav.tiltakspenger.vedtak
 
 import arrow.core.Either
 import arrow.core.right
+import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.util.AttributeKey
 import mu.KLogger
 import mu.KotlinLogging
 import no.nav.tiltakspenger.felles.sikkerlogg
@@ -86,9 +88,22 @@ internal fun start(
         consumers.forEach { it.run() }
     }
 
-    embeddedServer(
+    val server = embeddedServer(
         factory = Netty,
         port = port,
         module = { ktorSetup(applicationContext) },
-    ).start(wait = true)
+    )
+    server.application.attributes.put(isReadyKey, true)
+
+    Runtime.getRuntime().addShutdownHook(
+        Thread {
+            server.application.attributes.put(isReadyKey, false)
+            server.stop(gracePeriodMillis = 5_000, timeoutMillis = 30_000)
+        },
+    )
+    server.start(wait = true)
 }
+
+val isReadyKey = AttributeKey<Boolean>("isReady")
+
+fun Application.isReady() = attributes.getOrNull(isReadyKey) == true
