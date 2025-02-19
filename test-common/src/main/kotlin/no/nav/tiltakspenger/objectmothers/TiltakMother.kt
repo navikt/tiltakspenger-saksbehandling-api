@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.felles.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.objectmothers.ObjectMother.søknadstiltak
-import no.nav.tiltakspenger.objectmothers.ObjectMother.tiltak
+import no.nav.tiltakspenger.objectmothers.ObjectMother.tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Deltar
@@ -17,7 +17,7 @@ import java.util.UUID
 
 interface TiltakMother {
 
-    fun tiltak(
+    fun tiltaksdeltagelse(
         eksternTiltaksdeltagelseId: String = UUID.randomUUID().toString(),
         typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
@@ -81,7 +81,7 @@ interface TiltakMother {
 fun Søknadstiltak.toTiltak(
     eksternTiltaksgjennomføringsId: String = UUID.randomUUID().toString(),
 ): Tiltaksdeltagelse {
-    return tiltak(
+    return tiltaksdeltagelse(
         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
         eksternTiltaksdeltagelseId = this.id,
         // TODO jah: Vi burde ha kontroll på denne fra vi tar inn søknaden i routen til først søknad og deretter saksbehandling-api

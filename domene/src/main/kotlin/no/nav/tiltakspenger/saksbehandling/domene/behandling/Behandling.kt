@@ -55,7 +55,7 @@ data class Behandling(
     val beslutter: String?,
     // TODO John + Anders: Slett når ny flyt er ferdig. Dette for å støtte gammel og ny behandling.
     val vilkårssett: Vilkårssett?,
-    val saksopplysninger: Saksopplysninger?,
+    val saksopplysninger: Saksopplysninger,
     // TODO John og Anders: Slett når ny flyt er ferdig. Dette for å støtte gammel og ny behandling.
     val stønadsdager: Stønadsdager?,
     val status: Behandlingsstatus,
@@ -124,6 +124,7 @@ data class Behandling(
                 Behandlingstype.FØRSTEGANGSBEHANDLING -> {
                     Periodisering<UtfallForPeriode>(UtfallForPeriode.OPPFYLT, innvilgelsesperiode!!)
                 }
+
                 Behandlingstype.REVURDERING -> {
                     throw IllegalStateException("Kan ikke bestemme utfallsperioder for revurdering i ny flyt enda.")
                 }
@@ -277,14 +278,15 @@ data class Behandling(
             ).right()
         }
 
-        fun opprettRevurdering(
+        suspend fun opprettRevurdering(
             sakId: SakId,
             saksnummer: Saksnummer,
             fnr: Fnr,
             saksbehandler: Saksbehandler,
             periode: Periode,
-            vilkårssett: Vilkårssett,
-            stønadsdager: Stønadsdager,
+            vilkårssett: Vilkårssett?,
+            stønadsdager: Stønadsdager?,
+            hentSaksopplysninger: suspend () -> Saksopplysninger,
         ): Behandling {
             val opprettet = nå()
             return Behandling(
@@ -298,8 +300,7 @@ data class Behandling(
                 sendtTilBeslutning = null,
                 beslutter = null,
                 vilkårssett = vilkårssett,
-                // TODO John + Anders: Vurder om vi skal ta med oss saksopplysninger fra førstegangsbehandling eller hente de på nytt. Kan gjøres i flere iterasjoner.
-                saksopplysninger = null,
+                saksopplysninger = hentSaksopplysninger(),
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
                 stønadsdager = stønadsdager,

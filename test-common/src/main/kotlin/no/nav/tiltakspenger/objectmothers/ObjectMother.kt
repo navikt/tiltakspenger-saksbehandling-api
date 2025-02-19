@@ -14,7 +14,8 @@ object ObjectMother :
     PersonMother,
     MeldekortMother,
     UtbetalingsvedtakMother,
-    TiltakMother {
+    TiltakMother,
+    SaksopplysningerMother {
     fun navn() = Navn("Fornavn", "Mellomnavn", "Etternavn")
     fun navkontor() = Navkontor(kontornummer = "0220", kontornavn = "Nav Asker")
     fun oppgaveId(oppgaveId: OppgaveId = OppgaveId("100")) = oppgaveId

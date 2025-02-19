@@ -153,6 +153,7 @@ open class FørstegangsbehandlingContext(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
             tilgangsstyringService = tilgangsstyringService,
+            saksopplysningerService = oppdaterSaksopplysningerService,
         )
     }
 

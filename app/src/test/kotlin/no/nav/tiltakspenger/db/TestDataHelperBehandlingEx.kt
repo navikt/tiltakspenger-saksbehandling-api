@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.db
 
+import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.mars
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -18,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.livsopphold.LeggTilLivsoppholdSaksopplysningCommand
@@ -188,28 +190,34 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
             sak = sak,
         ),
     stansFraOgMed: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
+    hentSaksopplysninger: suspend (sakId: SakId, saksnummer: Saksnummer, fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _, _, _ -> ObjectMother.saksopplysninger() },
 ): Pair<Sak, Behandling> {
-    val (sak, _) = persisterIverksattFørstegangsbehandling(
-        sakId = sakId,
-        fnr = fnr,
-        deltakelseFom = deltakelseFom,
-        deltakelseTom = deltakelseTom,
-        journalpostId = journalpostId,
-        saksbehandler = saksbehandler,
-        beslutter = beslutter,
-        tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
-        id = id,
-        søknad = søknad,
-        sak = sak,
-    )
-    return sak.startRevurdering(
-        kommando = StartRevurderingKommando(
+    val (sak, _) = runBlocking {
+        persisterIverksattFørstegangsbehandling(
             sakId = sakId,
-            fraOgMed = stansFraOgMed,
-            correlationId = CorrelationId.generate(),
+            fnr = fnr,
+            deltakelseFom = deltakelseFom,
+            deltakelseTom = deltakelseTom,
+            journalpostId = journalpostId,
             saksbehandler = saksbehandler,
-        ),
-    ).getOrNull()!!.also {
+            beslutter = beslutter,
+            tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
+            id = id,
+            søknad = søknad,
+            sak = sak,
+        )
+    }
+    return runBlocking {
+        sak.startRevurdering(
+            kommando = StartRevurderingKommando(
+                sakId = sakId,
+                fraOgMed = stansFraOgMed,
+                correlationId = CorrelationId.generate(),
+                saksbehandler = saksbehandler,
+            ),
+            hentSaksopplysninger = hentSaksopplysninger,
+        )
+    }.getOrNull()!!.also {
         behandlingRepo.lagre(it.second)
     }
 }
