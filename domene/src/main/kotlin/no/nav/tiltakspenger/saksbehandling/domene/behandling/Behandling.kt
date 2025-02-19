@@ -390,9 +390,6 @@ data class Behandling(
     fun tilBeslutningV2(
         kommando: SendBehandlingTilBeslutterKommando,
     ): Behandling {
-        if (behandlingstype == Behandlingstype.REVURDERING) {
-            throw IllegalStateException("TODO John + Anders: Legg til støtte for revurdering for ny flyt")
-        }
         check(status == UNDER_BEHANDLING) {
             "Behandlingen må være under behandling, det innebærer også at en saksbehandler må ta saken før den kan sendes til beslutter. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}"
         }
@@ -449,11 +446,11 @@ data class Behandling(
     ): Behandling {
         if (!erNyFlyt) throw IllegalStateException("Bruk iverksett for gammel flyt.")
 
-        if (this.behandlingstype == Behandlingstype.REVURDERING) {
-            throw IllegalStateException("TODO John + Anders: Legg til støtte for revurdering.")
-        }
         if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING) {
             require(innvilgelsesperiode != null) { "Innvilgelsesperiode må være satt for førstegangsbehandling" }
+        }
+        if (behandlingstype == Behandlingstype.REVURDERING) {
+            require(stansperiode != null) { "Stansperiode må være satt for revurdering" }
         }
         return when (status) {
             UNDER_BESLUTNING -> {

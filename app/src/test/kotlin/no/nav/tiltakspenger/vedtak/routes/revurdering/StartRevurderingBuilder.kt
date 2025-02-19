@@ -28,7 +28,7 @@ import java.time.LocalDate
 interface StartRevurderingBuilder {
 
     /** Oppretter ny sak, søknad, innvilget søknadsbehandling og revurdering. */
-    suspend fun ApplicationTestBuilder.startRevurdeirng(
+    suspend fun ApplicationTestBuilder.startRevurdering(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, Behandling, Behandling> {

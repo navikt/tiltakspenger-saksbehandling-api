@@ -112,7 +112,7 @@ fun Sak.utledVedtakstype(behandling: Behandling): Vedtakstype {
             if (behandling.stansperiode!!.tilOgMed != this.utfallsperioder().totalePeriode.tilOgMed) {
                 throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - revurderingens tilOgMed (${behandling.stansperiode.tilOgMed}) må være lik sakens tilOgMed (${this.vedtaksperiode!!.tilOgMed})")
             }
-            if (!behandling.erHelePeriodenIkkeOppfylt) {
+            if (!erNyFlyt!! && behandling.erHelePeriodenIkkeOppfylt == false) {
                 throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - hele perioden må være 'ikke oppfylt'")
             }
             if (this.sisteUtbetalteMeldekortDag() == null || this.sisteUtbetalteMeldekortDag()!! < behandling.stansperiode.fraOgMed) {

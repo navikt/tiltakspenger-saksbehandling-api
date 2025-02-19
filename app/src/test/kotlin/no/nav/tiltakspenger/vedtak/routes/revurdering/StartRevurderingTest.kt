@@ -8,7 +8,7 @@ import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
-import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.startRevurdeirng
+import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.startRevurdering
 import no.nav.tiltakspenger.vedtak.routes.routes
 import org.junit.jupiter.api.Test
 
@@ -22,7 +22,7 @@ internal class StartRevurderingTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, søknad, førstegangsbehandling, revurdering) = startRevurdeirng(tac)
+                val (sak, søknad, førstegangsbehandling, revurdering) = startRevurdering(tac)
                 revurdering.erFørstegangsbehandling shouldBe false
                 revurdering.erRevurdering shouldBe true
                 revurdering.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
