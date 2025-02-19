@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeIverksetteBe
 import no.nav.tiltakspenger.saksbehandling.service.behandling.IverksettBehandlingV2Service
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
+import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.måVæreBeslutter
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond403Forbidden
@@ -49,7 +50,7 @@ fun Route.iverksettBehandlingv2Route(
                                 correlationId = correlationId,
                                 sakId = sakId,
                             )
-                            call.respond(message = "{}", status = HttpStatusCode.OK)
+                            call.respond(message = it.toDTO(), status = HttpStatusCode.OK)
                         },
                     )
                 }
