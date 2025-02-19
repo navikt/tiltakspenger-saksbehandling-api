@@ -68,6 +68,9 @@ internal fun start(
             applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør()
             applicationContext.behandlingContext.distribuerVedtaksbrevService.distribuer()
             applicationContext.sendTilDatadelingService.send(Configuration.isNais())
+            if (Configuration.isNais()) {
+                applicationContext.endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
+            }
 
             if (applicationProfile != Profile.PROD) {
                 applicationContext.meldekortContext.sendMeldeperiodeTilBrukerService.send()
@@ -75,7 +78,7 @@ internal fun start(
         },
     )
 
-    if (applicationProfile != Profile.LOCAL) {
+    if (Configuration.isNais()) {
         val consumers = listOf(
             applicationContext.tiltaksdeltakerArenaConsumer,
             applicationContext.tiltaksdeltakerKometConsumer,

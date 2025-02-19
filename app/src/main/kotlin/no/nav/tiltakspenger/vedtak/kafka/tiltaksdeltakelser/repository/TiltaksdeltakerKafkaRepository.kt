@@ -20,7 +20,15 @@ class TiltaksdeltakerKafkaRepository(
         )
     }
 
-    fun lagre(tiltaksdeltakerKafkaDb: TiltaksdeltakerKafkaDb) {
+    fun hentAlleUtenOppgave(): List<TiltaksdeltakerKafkaDb> = sessionFactory.withSession {
+        it.run(
+            queryOf(sqlHentAlleUtenOppgave)
+                .map { row -> row.toTiltaksdeltakerKafkaDb() }
+                .asList,
+        )
+    }
+
+    fun lagre(tiltaksdeltakerKafkaDb: TiltaksdeltakerKafkaDb, melding: String) {
         sessionFactory.withSession { session ->
             session.run(
                 queryOf(
@@ -35,6 +43,31 @@ class TiltaksdeltakerKafkaRepository(
                         "sak_id" to tiltaksdeltakerKafkaDb.sakId.toString(),
                         "oppgave_id" to tiltaksdeltakerKafkaDb.oppgaveId?.toString(),
                         "sist_oppdatert" to LocalDateTime.now(),
+                        "melding" to melding,
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
+    fun slett(id: String) {
+        sessionFactory.withSession {
+            it.run(
+                queryOf(sqlSlettForId, id).asUpdate,
+            )
+        }
+    }
+
+    fun lagreOppgaveId(id: String, oppgaveId: OppgaveId) {
+        sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """
+                        update tiltaksdeltaker_kafka set oppgave_id = :oppgave_id where id = :id
+                    """.trimIndent(),
+                    mapOf(
+                        "oppgave_id" to oppgaveId.toString(),
+                        "id" to id,
                     ),
                 ).asUpdate,
             )
@@ -65,7 +98,8 @@ class TiltaksdeltakerKafkaRepository(
             deltakerstatus,
             sak_id,
             oppgave_id,
-            sist_oppdatert
+            sist_oppdatert,
+            melding
         ) values (
             :id,
             :deltakelse_fra_og_med,
@@ -75,16 +109,24 @@ class TiltaksdeltakerKafkaRepository(
             :deltakerstatus,
             :sak_id,
             :oppgave_id,
-            :sist_oppdatert
+            :sist_oppdatert,
+            :melding
         ) ON CONFLICT (id) DO UPDATE SET
             deltakelse_fra_og_med = :deltakelse_fra_og_med,
             deltakelse_til_og_med = :deltakelse_til_og_med,
             dager_per_uke = :dager_per_uke,
             deltakelsesprosent = :deltakelsesprosent,
             deltakerstatus = :deltakerstatus,
-            sist_oppdatert = :sist_oppdatert
+            sist_oppdatert = :sist_oppdatert,
+            melding = :melding
         """.trimIndent()
 
     @Language("SQL")
     private val sqlHentForId = "select * from tiltaksdeltaker_kafka where id = ?"
+
+    @Language("SQL")
+    private val sqlHentAlleUtenOppgave = "select * from tiltaksdeltaker_kafka where oppgave_id is null"
+
+    @Language("SQL")
+    private val sqlSlettForId = "delete from tiltaksdeltaker_kafka where id = ?"
 }

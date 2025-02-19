@@ -1,9 +1,7 @@
 package no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaDb
 import java.time.LocalDate
@@ -15,10 +13,9 @@ class ArenaDeltakerMapper {
 
     fun mapArenaDeltaker(
         eksternId: String,
-        melding: String,
+        arenaKafkaMessage: ArenaKafkaMessage,
         sakId: SakId,
     ): TiltaksdeltakerKafkaDb? {
-        val arenaKafkaMessage = objectMapper.readValue<ArenaKafkaMessage>(melding)
         arenaKafkaMessage.after?.let { return it.toTiltaksdeltakerKafkaDb(eksternId, sakId) }
 
         if (arenaKafkaMessage.opType == OperationType.D) {

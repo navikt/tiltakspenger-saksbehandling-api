@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.ports.SøknadRepo
 
 class SøknadServiceImpl(
@@ -17,7 +18,7 @@ class SøknadServiceImpl(
 
     override suspend fun nySøknad(søknad: Søknad, systembruker: Systembruker) {
         require(systembruker.roller.harLageHendelser()) { "Systembruker mangler rollen LAGE_HENDELSER. Systembrukers roller: ${systembruker.roller}" }
-        val oppgaveId = oppgaveGateway.opprettOppgave(søknad.fnr, JournalpostId(søknad.journalpostId))
+        val oppgaveId = oppgaveGateway.opprettOppgave(søknad.fnr, JournalpostId(søknad.journalpostId), Oppgavebehov.NY_SOKNAD)
         log.info { "Opprettet oppgave med id $oppgaveId for søknad med id ${søknad.id}" }
         søknadRepo.lagre(søknad.copy(oppgaveId = oppgaveId))
     }
