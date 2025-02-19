@@ -79,7 +79,7 @@ fun Sak.opprettNesteMeldeperiode(): Meldeperiode? {
 
 private fun Sak.opprettMeldeperiode(
     periode: Periode,
-    utfallsperioder: Periodisering<AvklartUtfallForPeriode>?,
+    utfallsperioder: Periodisering<AvklartUtfallForPeriode>,
 ): Meldeperiode {
     val meldeperiode = Meldeperiode(
         meldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
@@ -92,7 +92,7 @@ private fun Sak.opprettMeldeperiode(
         opprettet = nå(),
         versjon = HendelseVersjon.ny(),
         girRett = periode.tilDager().associateWith {
-            (utfallsperioder?.hentVerdiForDag(it) == AvklartUtfallForPeriode.OPPFYLT)
+            (utfallsperioder.hentVerdiForDag(it) == AvklartUtfallForPeriode.OPPFYLT)
         },
         sendtTilMeldekortApi = null,
     )

@@ -1,0 +1,1 @@
+update behandling set innvilgelsesperiode_fra_og_med = fra_og_med, innvilgelsesperiode_til_og_med = til_og_med where saksopplysninger is null and innvilgelsesperiode_fra_og_med is null and innvilgelsesperiode_til_og_med is null;

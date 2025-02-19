@@ -31,6 +31,12 @@ data class Behandlinger(
         return behandlinger.singleOrNullOrThrow { it.id == behandlingId }
     }
 
+    fun oppdaterBehandling(behandling: Behandling): Behandlinger {
+        behandlinger.single { it.id == behandling.id }
+        val behandlinger = this.behandlinger.map { if (it.id == behandling.id) behandling else it }
+        return this.copy(behandlinger = behandlinger)
+    }
+
     init {
         require(behandlinger.distinctBy { it.id }.size == behandlinger.size) { "Behandlinger inneholder duplikate behandlinger: ${behandlinger.map { it.id.toString() }}" }
         require(behandlinger.distinctBy { it.sakId }.size <= 1) { "Behandlinger inneholder behandlinger for ulike saker: ${behandlinger.map { it.sakId.toString() }}" }
