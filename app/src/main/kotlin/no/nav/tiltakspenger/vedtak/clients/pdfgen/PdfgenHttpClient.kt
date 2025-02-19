@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.felles.journalføring.PdfOgJson
 import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.meldekort.ports.GenererUtbetalingsvedtakGateway
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.Navn
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
@@ -70,7 +71,7 @@ internal class PdfgenHttpClient(
     override suspend fun genererInnvilgelsesvedtaksbrevMedTilleggstekst(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
-        tilleggstekst: String?,
+        tilleggstekst: FritekstTilVedtaksbrev?,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
@@ -80,7 +81,7 @@ internal class PdfgenHttpClient(
                     hentBrukersNavn = hentBrukersNavn,
                     hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                     vedtaksdato = vedtaksdato,
-                    tilleggstekst = tilleggstekst,
+                    tilleggstekst = tilleggstekst?.verdi,
                 )
             },
             errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",

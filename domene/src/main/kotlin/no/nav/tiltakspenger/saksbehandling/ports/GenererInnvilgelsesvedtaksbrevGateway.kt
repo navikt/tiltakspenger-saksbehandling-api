@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.tiltakspenger.felles.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.felles.journalføring.PdfOgJson
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.Navn
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import java.time.LocalDate
@@ -19,7 +20,7 @@ interface GenererInnvilgelsesvedtaksbrevGateway {
     suspend fun genererInnvilgelsesvedtaksbrevMedTilleggstekst(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
-        tilleggstekst: String?,
+        tilleggstekst: FritekstTilVedtaksbrev?,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
