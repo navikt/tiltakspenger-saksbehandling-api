@@ -41,14 +41,14 @@ import java.time.LocalDateTime
  * @param saksbehandler Vil bli satt på en behandling ved opprettelse, men i noen tilfeller kan saksbehandler ta seg selv av behandlingen igjen.
  * @param beslutter Vil bli satt når behandlingen avsluttes (iverksett eller avbrytes) eller underkjennes.
  * @param søknad Påkrevd for [Behandlingstype.FØRSTEGANGSBEHANDLING]. Kan være null for [Behandlingstype.REVURDERING]. Må vurdere på sikt om en endringssøknad (samme tiltak) er en ny førstegangssøknad eller en revurdering. Og om en ny søknad (nytt tiltak) er en førstegangssøknad, søknad eller en revurdering.
- * @param vurderingsperiode Påkrevd for revurdering stans (stansperiode). Vil være null for førstegangsbehandling i ny flyt.
+ * @param stansperiode Påkrevd for revurdering stans (stansperiode). Vil være null for førstegangsbehandling i ny flyt. Bruke litt som innvilgelsesperiode i gammel flyt.
  */
 data class Behandling(
     val id: BehandlingId,
     val sakId: SakId,
     val saksnummer: Saksnummer,
     val fnr: Fnr,
-    val vurderingsperiode: Periode?,
+    val stansperiode: Periode?,
     val søknad: Søknad?,
     val saksbehandler: String?,
     val sendtTilBeslutning: LocalDateTime?,
@@ -144,12 +144,13 @@ data class Behandling(
      */
     val kravfrist = søknad?.tidsstempelHosOss
 
-    val periode: Periode? by lazy {
+    /** Virkningsperioden er perioden vedtak virker, kan være innvilgelsesperiode eller stansperiode. */
+    val virkningsperiode: Periode? by lazy {
         when (behandlingstype) {
             // TODO John + Anders: Skal være innvilgelsesperiode for innvilgelset førstegangsbehandling, men null for avslag/avbrutt.
-            Behandlingstype.FØRSTEGANGSBEHANDLING -> innvilgelsesperiode ?: vurderingsperiode
+            Behandlingstype.FØRSTEGANGSBEHANDLING -> innvilgelsesperiode ?: stansperiode
             // TODO John + Anders: Vil være vurderingsperiode for stansvedtak (fram/tilbake i tid) og innvilgelsesperiode ved forlengense eller ikke-stans revurdering.
-            Behandlingstype.REVURDERING -> vurderingsperiode
+            Behandlingstype.REVURDERING -> stansperiode
         }
     }
 
@@ -168,7 +169,6 @@ data class Behandling(
             saksbehandler: Saksbehandler,
             hentSaksopplysninger: suspend (saksopplysningsperiode: Periode) -> Saksopplysninger,
         ): Either<KanIkkeOppretteBehandling, Behandling> {
-            val vurderingsperiode = søknad.vurderingsperiode()
             if (søknad.barnetillegg.isNotEmpty()) {
                 return KanIkkeOppretteBehandling.StøtterIkkeBarnetillegg.left()
             }
@@ -188,7 +188,7 @@ data class Behandling(
                 sakId = sakId,
                 fnr = fnr,
                 søknad = søknad,
-                vurderingsperiode = vurderingsperiode,
+                stansperiode = null,
                 // vilkårssett+vilkårssett vil være null for ny flyt. Og fjernes når ny flyt er ferdig.
                 vilkårssett = null,
                 stønadsdager = null,
@@ -261,7 +261,7 @@ data class Behandling(
                 sakId = sakId,
                 fnr = fnr,
                 søknad = søknad,
-                vurderingsperiode = vurderingsperiode,
+                stansperiode = vurderingsperiode,
                 vilkårssett = vilkårssett,
                 // Vi legger til saksopplysninger også for den gamle flyten, slik at vi enklere kan konvertere de gamle behandlingene til ny flyt.
                 saksopplysninger = saksopplysninger,
@@ -303,7 +303,7 @@ data class Behandling(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                vurderingsperiode = periode,
+                stansperiode = periode,
                 søknad = null,
                 saksbehandler = saksbehandler.navIdent,
                 sendtTilBeslutning = null,
@@ -500,16 +500,16 @@ data class Behandling(
     }
 
     /**
-     * Krymper [vurderingsperiode], [vilkårssett] og [stønadsdager] til [nyPeriode].
+     * Krymper [stansperiode], [vilkårssett] og [stønadsdager] til [nyPeriode].
      * Endrer ikke [Søknad].
      */
     fun krymp(nyPeriode: Periode): Behandling {
-        if (vurderingsperiode == nyPeriode) return this
-        if (vurderingsperiode != null) require(vurderingsperiode.inneholderHele(nyPeriode)) { "Ny periode ($nyPeriode) må være innenfor vedtakets vurderingsperiode ($vurderingsperiode)" }
+        if (stansperiode == nyPeriode) return this
+        if (stansperiode != null) require(stansperiode.inneholderHele(nyPeriode)) { "Ny periode ($nyPeriode) må være innenfor vedtakets vurderingsperiode ($stansperiode)" }
         if (innvilgelsesperiode != null) require(innvilgelsesperiode.inneholderHele(nyPeriode)) { "Ny periode ($nyPeriode) må være innenfor vedtakets innvilgelsesperiode ($innvilgelsesperiode)" }
         return this.copy(
             innvilgelsesperiode = if (innvilgelsesperiode != null) nyPeriode else null,
-            vurderingsperiode = if (vurderingsperiode != null) nyPeriode else null,
+            stansperiode = if (stansperiode != null) nyPeriode else null,
             vilkårssett = vilkårssett?.krymp(nyPeriode),
             stønadsdager = stønadsdager?.krymp(nyPeriode),
         )
@@ -564,13 +564,15 @@ data class Behandling(
     }
 
     init {
-
+        if (erNyFlyt && behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING) {
+            require(stansperiode == null) { "Vurderingsperiode må være null i ny flyt ved førstegangsbehandling" }
+        }
         if (!erNyFlyt) {
-            require(vilkårssett!!.vurderingsperiode == vurderingsperiode) {
-                "Vilkårssettets periode (${vilkårssett.vurderingsperiode} må være lik vurderingsperioden $vurderingsperiode"
+            require(vilkårssett!!.vurderingsperiode == stansperiode) {
+                "Vilkårssettets periode (${vilkårssett.vurderingsperiode} må være lik vurderingsperioden $stansperiode"
             }
-            require(stønadsdager!!.vurderingsperiode == vurderingsperiode) {
-                "Stønadsdagers periode (${stønadsdager.vurderingsperiode} må være lik vurderingsperioden $vurderingsperiode"
+            require(stønadsdager!!.vurderingsperiode == stansperiode) {
+                "Stønadsdagers periode (${stønadsdager.vurderingsperiode} må være lik vurderingsperioden $stansperiode"
             }
         }
         if (beslutter != null && saksbehandler != null) {

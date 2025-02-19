@@ -31,6 +31,11 @@ data class Vedtaksliste(
     }
 
     /** Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
+    val førsteInnvilgetDato: LocalDate? by lazy {
+        tidslinje.filter { it.verdi.vedtaksType == Vedtakstype.INNVILGELSE }.minOfOrNull { it.periode.fraOgMed }
+    }
+
+    /** Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
     val sisteInnvilgetDato: LocalDate? by lazy {
         tidslinje.filter { it.verdi.vedtaksType == Vedtakstype.INNVILGELSE }.maxOfOrNull { it.periode.tilOgMed }
     }

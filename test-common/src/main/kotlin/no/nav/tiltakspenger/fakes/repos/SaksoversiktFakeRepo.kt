@@ -16,7 +16,7 @@ class SaksoversiktFakeRepo(
             val status = BehandlingEllerSøknadForSaksoversikt.Status.Behandling(behandling.status)
 
             BehandlingEllerSøknadForSaksoversikt(
-                periode = behandling.vurderingsperiode,
+                periode = behandling.stansperiode,
                 status = status,
                 underkjent = behandling.attesteringer.any { it.isUnderkjent() },
                 // Kommentar jah: Dette vil ikke fungere hvis vi utvider denne til revurdering.

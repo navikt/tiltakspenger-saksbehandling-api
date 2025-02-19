@@ -44,6 +44,10 @@ suspend fun Sak.startRevurdering(
     require(this.vedtaksliste.antallInnvilgelsesperiode == 1) {
         "Kan kun opprette en stansrevurdering dersom vi har en sammenhengende innvilgelsesperiode. sakId=${this.id}"
     }
+
+    if (fraOgMed.isBefore(this.førsteInnvilgetDato)) {
+        throw IllegalArgumentException("Kan ikke starte revurdering ($fraOgMed) før første innvilgetdato (${this.førsteInnvilgetDato})")
+    }
     val tilOgMed = this.sisteInnvilgetDato!!
     val revurderingsperiode = Periode(fraOgMed, tilOgMed)
     // Merk at vi beholder eventuelle tidspunkt og IDer når vi krymper.

@@ -40,8 +40,8 @@ internal class StartRevurderingTest {
                 val tac = this
                 val sak = this.førstegangsbehandlingIverksatt(saksbehandler = saksbehandler, beslutter = beslutter)
                 val revurderingsperiode = Periode(
-                    sak.førstegangsbehandling!!.vurderingsperiode!!.fraOgMed.plusMonths(1),
-                    sak.førstegangsbehandling!!.vurderingsperiode!!.tilOgMed,
+                    sak.førstegangsbehandling!!.stansperiode!!.fraOgMed.plusMonths(1),
+                    sak.førstegangsbehandling!!.stansperiode!!.tilOgMed,
                 )
                 testApplication {
                     application {

@@ -36,7 +36,7 @@ internal fun Behandling.toDTO(): BehandlingDTO {
         saksbehandler = this.saksbehandler,
         beslutter = this.beslutter,
         status = this.status.toDTO(),
-        vurderingsperiode = this.vurderingsperiode?.toDTO(),
+        vurderingsperiode = this.stansperiode?.toDTO(),
         attesteringer = this.attesteringer.toDTO(),
         vilkårssett = this.vilkårssett?.toDTO(),
         saksopplysninger = this.saksopplysninger.toDTO(),

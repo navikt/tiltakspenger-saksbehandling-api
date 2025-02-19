@@ -44,7 +44,13 @@ interface SendTilBeslutterBuilder {
             sak,
             søknad,
             behandlingId,
-            sendTilBeslutterForBehandlingId(tac, sakId, behandlingId, saksbehandler),
+            sendTilBeslutterForBehandlingId(
+                tac,
+                sakId,
+                behandlingId,
+                saksbehandler,
+                innvilgelsesperiode = søknad.vurderingsperiode(),
+            ),
         )
     }
 

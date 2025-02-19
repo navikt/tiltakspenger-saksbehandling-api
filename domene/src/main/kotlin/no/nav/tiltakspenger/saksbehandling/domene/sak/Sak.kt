@@ -36,6 +36,7 @@ data class Sak(
     /** Dette er sakens totale vedtaksperiode. Per tidspunkt er den sammenhengende, men hvis vi lar en sak gjelde på tvers av tiltak, vil den kunne ha hull. */
     val vedtaksperiode: Periode? = vedtaksliste.vedtaksperiode
 
+    val førsteInnvilgetDato = vedtaksliste.førsteInnvilgetDato
     val sisteInnvilgetDato = vedtaksliste.sisteInnvilgetDato
 
     /**

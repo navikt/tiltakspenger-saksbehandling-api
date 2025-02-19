@@ -37,9 +37,10 @@ interface MottaSøknadRouteBuilder {
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
         søknadId: SøknadId = SøknadId.random(),
+        deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
     ): Pair<Sak, Søknad> {
         val saksnummer = hentEllerOpprettSak(tac, fnr)
-        mottaSøknad(tac, fnr, saksnummer, søknadId)
+        mottaSøknad(tac, fnr, saksnummer, søknadId, deltakelsesperiode)
         val sak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
         return sak to sak.soknader.single { it.id == søknadId }
     }
@@ -49,6 +50,7 @@ interface MottaSøknadRouteBuilder {
         fnr: Fnr,
         saksnummer: Saksnummer,
         søknadId: SøknadId = SøknadId.random(),
+        deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
     ) {
         defaultRequest(
             HttpMethod.Post,
@@ -65,6 +67,7 @@ interface MottaSøknadRouteBuilder {
                     saksnummer = saksnummer.verdi,
                     fnr = fnr.verdi,
                     søknadId = søknadId.toString(),
+                    deltakelsesperiode = deltakelsesperiode,
                 ),
             )
         }.apply {
@@ -88,7 +91,7 @@ interface MottaSøknadRouteBuilder {
                     typeNavn = "Testnavn",
                     typeKode = TiltakstypeSomGirRett.JOBBKLUBB,
                     rettPåTiltakspenger = true,
-                    deltakelsesperiode = Periode(1.april(2025), 10.april(2025)),
+                    deltakelsesperiode = deltakelsesperiode,
                     deltakelseStatus = TiltakDeltakerstatus.Deltar,
                     deltakelseProsent = 100.0f,
                     antallDagerPerUke = 5.0f,
@@ -103,6 +106,7 @@ interface MottaSøknadRouteBuilder {
         saksnummer: String = Saksnummer.genererSaknummer(løpenr = "0001").verdi,
         journalpostId: String = "123456789",
         fnr: String = Fnr.random().toString(),
+        deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
     ): String {
         return """
         {
@@ -119,8 +123,8 @@ interface MottaSøknadRouteBuilder {
               "arrangør": "Testarrangør",
               "typeKode": "Annen utdanning",
               "typeNavn": "Annen utdanning",
-              "deltakelseFom": "2025-04-01",
-              "deltakelseTom": "2025-04-10"
+              "deltakelseFom": "${deltakelsesperiode.fraOgMed}",
+              "deltakelseTom": "${deltakelsesperiode.tilOgMed}"
             },
             "barnetilleggPdl": [],
             "barnetilleggManuelle": [],
