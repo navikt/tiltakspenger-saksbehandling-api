@@ -25,6 +25,7 @@ internal data class BehandlingDTO(
     val søknad: SøknadDTO?,
     val fritekstTilVedtaksbrev: String?,
     val begrunnelseVilkårsvurdering: String?,
+    val innvilgelsesperiode: PeriodeDTO?,
 )
 
 internal fun Behandling.toDTO(): BehandlingDTO {
@@ -44,5 +45,6 @@ internal fun Behandling.toDTO(): BehandlingDTO {
         søknad = this.søknad?.toDTO(),
         fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
         begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
+        innvilgelsesperiode = this.innvilgelsesperiode?.toDTO(),
     )
 }
