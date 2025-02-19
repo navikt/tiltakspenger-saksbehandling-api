@@ -8,6 +8,7 @@ import mu.KotlinLogging
 import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.jobber.RunCheckFactory
+import no.nav.tiltakspenger.libs.jobber.RunJobCheck
 import no.nav.tiltakspenger.libs.jobber.StoppableJob
 import no.nav.tiltakspenger.libs.jobber.startStoppableJob
 import no.nav.tiltakspenger.vedtak.CALL_ID_MDC_KEY
@@ -29,6 +30,7 @@ internal class TaskExecutor(
             tasks: List<suspend (CorrelationId) -> Unit>,
             initialDelay: Duration = 1.minutes,
             intervall: Duration = 10.seconds,
+            isReady: IsReady,
         ): TaskExecutor {
             val logger = KotlinLogging.logger { }
             return TaskExecutor(
@@ -40,7 +42,7 @@ internal class TaskExecutor(
                     sikkerLogg = sikkerlogg,
                     // Ref callIdMdc(CALL_ID_MDC_KEY) i KtorSetup.kt
                     mdcCallIdKey = CALL_ID_MDC_KEY,
-                    runJobCheck = listOf(runCheckFactory.leaderPod()),
+                    runJobCheck = listOf(runCheckFactory.leaderPod(), isReady),
                     // Denne kjører så ofte at vi ønsker ikke bli spammet av logging.
                     enableDebuggingLogging = false,
                     job = { correlationId ->
@@ -58,5 +60,13 @@ internal class TaskExecutor(
                 ),
             )
         }
+    }
+}
+
+class IsReady(
+    private val applicationIsReady: () -> Boolean,
+) : RunJobCheck {
+    override fun shouldRun(): Boolean {
+        return applicationIsReady()
     }
 }

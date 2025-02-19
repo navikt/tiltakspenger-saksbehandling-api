@@ -2,8 +2,10 @@ package no.nav.tiltakspenger.vedtak
 
 import arrow.core.Either
 import arrow.core.right
+import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.util.AttributeKey
 import mu.KLogger
 import mu.KotlinLogging
 import no.nav.tiltakspenger.felles.sikkerlogg
@@ -14,6 +16,7 @@ import no.nav.tiltakspenger.libs.jobber.RunCheckFactory
 import no.nav.tiltakspenger.vedtak.Configuration.applicationProfile
 import no.nav.tiltakspenger.vedtak.Configuration.httpPort
 import no.nav.tiltakspenger.vedtak.context.ApplicationContext
+import no.nav.tiltakspenger.vedtak.jobber.IsReady
 import no.nav.tiltakspenger.vedtak.jobber.TaskExecutor
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -58,11 +61,19 @@ internal fun start(
     }
 
     val applicationProfile = applicationProfile()
+
+    val server = embeddedServer(
+        factory = Netty,
+        port = port,
+        module = { ktorSetup(applicationContext) },
+    )
+    server.application.attributes.put(isReadyKey, true)
+
     val stoppableTasks = TaskExecutor.startJob(
         initialDelay = if (isNais) 1.minutes else 1.seconds,
         runCheckFactory = runCheckFactory,
-        tasks =
-        listOf {
+        isReady = IsReady { server.application.isReady() },
+        tasks = listOf {
             applicationContext.utbetalingContext.sendUtbetalingerService.send()
             applicationContext.utbetalingContext.journalførUtbetalingsvedtakService.journalfør()
             applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør()
@@ -86,9 +97,15 @@ internal fun start(
         consumers.forEach { it.run() }
     }
 
-    embeddedServer(
-        factory = Netty,
-        port = port,
-        module = { ktorSetup(applicationContext) },
-    ).start(wait = true)
+    Runtime.getRuntime().addShutdownHook(
+        Thread {
+            server.application.attributes.put(isReadyKey, false)
+            server.stop(gracePeriodMillis = 5_000, timeoutMillis = 30_000)
+        },
+    )
+    server.start(wait = true)
 }
+
+val isReadyKey = AttributeKey<Boolean>("isReady")
+
+fun Application.isReady() = attributes.getOrNull(isReadyKey) == true
