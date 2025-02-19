@@ -40,7 +40,8 @@ class BenkOversiktPostgresRepo(
                           behandling.sak_id,
                           behandling.behandlingstype,
                           søknad.tidsstempel_hos_oss as kravtidspunkt,
-                          behandling.saksopplysninger
+                          behandling.saksopplysninger,
+                          behandling.vilkårssett
                         from behandling
                         left join sak on sak.id = behandling.sak_id
                         left join søknad on behandling.id = søknad.behandling_id
@@ -75,7 +76,7 @@ class BenkOversiktPostgresRepo(
                             saksbehandler = saksbehandler,
                             beslutter = beslutter,
                             sakId = row.stringOrNull("sak_id")?.let { SakId.fromString(it) },
-                            erDeprecatedBehandling = row.stringOrNull("saksopplysninger") == null,
+                            erDeprecatedBehandling = row.stringOrNull("vilkårssett") != null,
                         )
                     }.asList,
                 )

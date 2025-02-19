@@ -74,9 +74,9 @@ data class Behandling(
 ) {
     val erUnderBehandling: Boolean = status == UNDER_BEHANDLING
     val erNyFlyt: Boolean = when {
-        vilkårssett == null && stønadsdager == null && saksopplysninger != null -> true
-        vilkårssett != null && stønadsdager != null && saksopplysninger == null -> false
-        else -> throw IllegalStateException("Behandling har ugyldig tilstand. Må ha enten vilkårssett og stønadsdager (gammel flyt) eller saksopplysninger (ny flyt).")
+        vilkårssett == null && stønadsdager == null -> true
+        vilkårssett != null && stønadsdager != null -> false
+        else -> throw IllegalStateException("Behandling har ugyldig tilstand. Må ha både vilkårssett og stønadsdager (gammel flyt) eller ingen av de (ny flyt).")
     }
 
     val erVedtatt: Boolean = status == VEDTATT
@@ -255,8 +255,8 @@ data class Behandling(
                 søknad = søknad,
                 vurderingsperiode = vurderingsperiode,
                 vilkårssett = vilkårssett,
-                // Dette er gammel flyt for opprettelse av førstegangsbehandling og da vil saksopplysninger, fritekstTilVedtaksbrev og begrunnelseVilkårsvurdering være null. Ved ny flyt vil ha saksopplysninger, mens vilkårssett vil være null. Hele denne funksjonen skal slettes når vi har ny flyt.
-                saksopplysninger = null,
+                // Vi legger til saksopplysninger også for den gamle flyten, slik at vi enklere kan konvertere de gamle behandlingene til ny flyt.
+                saksopplysninger = saksopplysninger,
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
                 stønadsdager = Stønadsdager(
@@ -555,6 +555,9 @@ data class Behandling(
     }
 
     init {
+        if (erNyFlyt) {
+            require(saksopplysninger != null) { "Saksopplysninger må være satt for ny flyt" }
+        }
         if (!erNyFlyt) {
             require(vilkårssett!!.vurderingsperiode == vurderingsperiode) {
                 "Vilkårssettets periode (${vilkårssett.vurderingsperiode} må være lik vurderingsperioden $vurderingsperiode"
