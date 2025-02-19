@@ -249,8 +249,17 @@ class BehandlingPostgresRepo(
             // Kan være null for revurderinger. Domeneobjektet passer på dette selv.
             val søknad: Søknad? = SøknadDAO.hentForBehandlingId(id, session)
 
+            val innvilgelsesperiodeFraOgMed = localDateOrNull("innvilgelsesperiode_fra_og_med")
+            val innvilgelsesperiodeTilOgMed = localDateOrNull("innvilgelsesperiode_til_og_med")
+            val innvilgelsesperiode = innvilgelsesperiodeFraOgMed?.let {
+                Periode(
+                    innvilgelsesperiodeFraOgMed,
+                    innvilgelsesperiodeTilOgMed!!,
+                )
+            }
+
             val stønadsdager = stringOrNull("stønadsdager")?.toStønadsdager()
-            val vilkårssett = stringOrNull("vilkårssett")?.toVilkårssett(vurderingsperiode!!)
+            val vilkårssett = stringOrNull("vilkårssett")?.toVilkårssett(innvilgelsesperiode ?: vurderingsperiode!!)
 
             val attesteringer = string("attesteringer").toAttesteringer()
             val fnr = Fnr.fromString(string("ident"))
@@ -263,8 +272,7 @@ class BehandlingPostgresRepo(
             val oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) }
             val saksopplysningsperiodeFraOgMed = localDateOrNull("saksopplysningsperiode_fra_og_med")
             val saksopplysningsperiodeTilOgMed = localDateOrNull("saksopplysningsperiode_til_og_med")
-            val innvilgelsesperiodeFraOgMed = localDateOrNull("innvilgelsesperiode_fra_og_med")
-            val innvilgelsesperiodeTilOgMed = localDateOrNull("innvilgelsesperiode_til_og_med")
+
             return Behandling(
                 id = id,
                 sakId = sakId,
@@ -298,12 +306,7 @@ class BehandlingPostgresRepo(
                         saksopplysningsperiodeTilOgMed!!,
                     )
                 },
-                innvilgelsesperiode = innvilgelsesperiodeFraOgMed?.let {
-                    Periode(
-                        innvilgelsesperiodeFraOgMed,
-                        innvilgelsesperiodeTilOgMed!!,
-                    )
-                },
+                innvilgelsesperiode = innvilgelsesperiode,
             )
         }
 
