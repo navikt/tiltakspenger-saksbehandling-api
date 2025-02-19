@@ -82,6 +82,13 @@ class OppgaveHttpClient(
         }
     }
 
+    override suspend fun erFerdigstilt(oppgaveId: OppgaveId): Boolean {
+        val callId = UUID.randomUUID()
+        logger.info { "Sjekker om oppgave med id $oppgaveId er ferdigstilt, callId $callId" }
+        val oppgave = getOppgave(oppgaveId, callId)
+        return oppgave.erFerdigstilt()
+    }
+
     private suspend fun opprettOppgave(
         opprettOppgaveRequest: OpprettOppgaveRequest,
         callId: UUID,

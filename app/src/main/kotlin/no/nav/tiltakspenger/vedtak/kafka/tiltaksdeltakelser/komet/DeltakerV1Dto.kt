@@ -55,6 +55,7 @@ data class DeltakerV1Dto(
             deltakerstatus = status.type.toTiltakDeltakerStatus(),
             sakId = sakId,
             oppgaveId = null,
+            oppgaveSistSjekket = null,
         )
 
     private fun DeltakerStatusDto.Type.toTiltakDeltakerStatus(): TiltakDeltakerstatus {

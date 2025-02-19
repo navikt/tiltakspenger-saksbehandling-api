@@ -38,6 +38,7 @@ class ArenaDeltakerMapper {
             deltakerstatus = DELTAKERSTATUSKODE.toTiltakDeltakerstatus(deltakelseFraOgMed),
             sakId = sakId,
             oppgaveId = null,
+            oppgaveSistSjekket = null,
         )
     }
 

@@ -18,4 +18,8 @@ class OppgaveFakeGateway : OppgaveGateway {
     override suspend fun opprettOppgaveUtenDuplikatkontroll(fnr: Fnr, oppgavebehov: Oppgavebehov): OppgaveId {
         return ObjectMother.oppgaveId()
     }
+
+    override suspend fun erFerdigstilt(oppgaveId: OppgaveId): Boolean {
+        return true
+    }
 }

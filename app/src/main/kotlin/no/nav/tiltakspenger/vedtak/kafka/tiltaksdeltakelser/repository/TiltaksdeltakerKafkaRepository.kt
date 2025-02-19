@@ -28,6 +28,25 @@ class TiltaksdeltakerKafkaRepository(
         )
     }
 
+    fun hentAlleMedOppgave(
+        oppgaveSistSjekket: LocalDateTime = LocalDateTime.now().minusHours(1),
+    ): List<TiltaksdeltakerKafkaDb> = sessionFactory.withSession {
+        it.run(
+            queryOf(
+                """
+                    select *
+                    from tiltaksdeltaker_kafka
+                    where oppgave_id is not null
+                      and (oppgave_sist_sjekket is null or oppgave_sist_sjekket < :oppgave_sist_sjekket)
+                """.trimIndent(),
+                mapOf(
+                    "oppgave_sist_sjekket" to oppgaveSistSjekket,
+                ),
+            ).map { row -> row.toTiltaksdeltakerKafkaDb() }
+                .asList,
+        )
+    }
+
     fun lagre(tiltaksdeltakerKafkaDb: TiltaksdeltakerKafkaDb, melding: String) {
         sessionFactory.withSession { session ->
             session.run(
@@ -44,6 +63,7 @@ class TiltaksdeltakerKafkaRepository(
                         "oppgave_id" to tiltaksdeltakerKafkaDb.oppgaveId?.toString(),
                         "sist_oppdatert" to LocalDateTime.now(),
                         "melding" to melding,
+                        "oppgave_sist_sjekket" to tiltaksdeltakerKafkaDb.oppgaveSistSjekket,
                     ),
                 ).asUpdate,
             )
@@ -74,6 +94,22 @@ class TiltaksdeltakerKafkaRepository(
         }
     }
 
+    fun oppdaterOppgaveSistSjekket(id: String) {
+        sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """
+                        update tiltaksdeltaker_kafka set oppgave_sist_sjekket = :oppgave_sist_sjekket where id = :id
+                    """.trimIndent(),
+                    mapOf(
+                        "oppgave_sist_sjekket" to LocalDateTime.now(),
+                        "id" to id,
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
     private fun Row.toTiltaksdeltakerKafkaDb() =
         TiltaksdeltakerKafkaDb(
             id = string("id"),
@@ -84,6 +120,7 @@ class TiltaksdeltakerKafkaRepository(
             deltakerstatus = TiltakDeltakerstatus.valueOf(string("deltakerstatus")),
             sakId = SakId.fromString(string("sak_id")),
             oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) },
+            oppgaveSistSjekket = localDateTimeOrNull("oppgave_sist_sjekket"),
         )
 
     @Language("SQL")
@@ -99,7 +136,8 @@ class TiltaksdeltakerKafkaRepository(
             sak_id,
             oppgave_id,
             sist_oppdatert,
-            melding
+            melding,
+            oppgave_sist_sjekket
         ) values (
             :id,
             :deltakelse_fra_og_med,
@@ -110,7 +148,8 @@ class TiltaksdeltakerKafkaRepository(
             :sak_id,
             :oppgave_id,
             :sist_oppdatert,
-            :melding
+            :melding,
+            :oppgave_sist_sjekket
         ) ON CONFLICT (id) DO UPDATE SET
             deltakelse_fra_og_med = :deltakelse_fra_og_med,
             deltakelse_til_og_med = :deltakelse_til_og_med,

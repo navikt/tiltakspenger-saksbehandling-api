@@ -24,6 +24,8 @@ import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.getTiltak
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class EndretTiltaksdeltakerJobbTest {
@@ -238,6 +240,107 @@ class EndretTiltaksdeltakerJobbTest {
                 oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                 oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
                 coVerify(exactly = 1) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+            }
+        }
+    }
+
+    @Test
+    fun `opprydning - opprettet oppgave, ikke ferdigstilt - oppdaterer sist sjekket`() {
+        coEvery { oppgaveGateway.erFerdigstilt(any()) } returns false
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+                val sakRepo = testDataHelper.sakRepo
+                val endretTiltaksdeltakerJobb =
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
+                val id = UUID.randomUUID().toString()
+                val fnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = fnr)
+                val deltakelseFom = 5.januar(2025)
+                val deltakelsesTom = 5.mai(2025)
+                testDataHelper.persisterIverksattFørstegangsbehandling(
+                    sakId = sak.id,
+                    fnr = fnr,
+                    deltakelseFom = deltakelseFom,
+                    deltakelseTom = deltakelsesTom,
+                    sak = sak,
+                    søknad = ObjectMother.nySøknad(
+                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                        søknadstiltak = ObjectMother.søknadstiltak(
+                            id = id,
+                            deltakelseFom = deltakelseFom,
+                            deltakelseTom = deltakelsesTom,
+                        ),
+                        sak = sak,
+                    ),
+                )
+                val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                    id = id,
+                    sakId = sak.id,
+                    fom = deltakelseFom,
+                    tom = LocalDate.now(),
+                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    oppgaveId = oppgaveId,
+                    oppgaveSistSjekket = null,
+                )
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+
+                endretTiltaksdeltakerJobb.opprydning()
+
+                val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
+                oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
+                oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
+                oppdatertTiltaksdeltakerKafkaDb?.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES)
+                coVerify(exactly = 1) { oppgaveGateway.erFerdigstilt(oppgaveId) }
+            }
+        }
+    }
+
+    @Test
+    fun `opprydning - opprettet oppgave, ferdigstilt - sletter fra db`() {
+        coEvery { oppgaveGateway.erFerdigstilt(any()) } returns true
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+                val sakRepo = testDataHelper.sakRepo
+                val endretTiltaksdeltakerJobb =
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
+                val id = UUID.randomUUID().toString()
+                val fnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = fnr)
+                val deltakelseFom = 5.januar(2025)
+                val deltakelsesTom = 5.mai(2025)
+                testDataHelper.persisterIverksattFørstegangsbehandling(
+                    sakId = sak.id,
+                    fnr = fnr,
+                    deltakelseFom = deltakelseFom,
+                    deltakelseTom = deltakelsesTom,
+                    sak = sak,
+                    søknad = ObjectMother.nySøknad(
+                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                        søknadstiltak = ObjectMother.søknadstiltak(
+                            id = id,
+                            deltakelseFom = deltakelseFom,
+                            deltakelseTom = deltakelsesTom,
+                        ),
+                        sak = sak,
+                    ),
+                )
+                val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                    id = id,
+                    sakId = sak.id,
+                    fom = deltakelseFom,
+                    tom = LocalDate.now(),
+                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    oppgaveId = oppgaveId,
+                    oppgaveSistSjekket = LocalDateTime.now().minusHours(2),
+                )
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+
+                endretTiltaksdeltakerJobb.opprydning()
+
+                tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
+                coVerify(exactly = 1) { oppgaveGateway.erFerdigstilt(oppgaveId) }
             }
         }
     }

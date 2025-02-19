@@ -45,6 +45,23 @@ class EndretTiltaksdeltakerJobb(
         }
     }
 
+    suspend fun opprydning() {
+        val deltakereMedOppgave = tiltaksdeltakerKafkaRepository.hentAlleMedOppgave()
+
+        deltakereMedOppgave.forEach {
+            if (it.oppgaveId != null) {
+                val ferdigstilt = oppgaveGateway.erFerdigstilt(it.oppgaveId)
+                if (ferdigstilt) {
+                    log.info { "Oppgave med id ${it.oppgaveId} er ferdigstilt, sletter innslag for tiltaksdeltakelse ${it.id}" }
+                    tiltaksdeltakerKafkaRepository.slett(it.id)
+                } else {
+                    log.info { "Oppgave med id ${it.oppgaveId} er ikke ferdigstilt, oppdaterer sist sjekket for tiltaksdeltakelse ${it.id}" }
+                    tiltaksdeltakerKafkaRepository.oppdaterOppgaveSistSjekket(it.id)
+                }
+            }
+        }
+    }
+
     private fun finnNyesteIverksatteBehandlingForDeltakelse(sak: Sak, tiltaksdeltakerId: String): Behandling? {
         val iverksatteBehandlingerForDeltakelse =
             sak.behandlinger.behandlinger.filter { it.tiltaksid == tiltaksdeltakerId && it.iverksattTidspunkt != null }

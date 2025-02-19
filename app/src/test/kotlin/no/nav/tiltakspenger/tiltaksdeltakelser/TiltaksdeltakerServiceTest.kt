@@ -15,6 +15,8 @@ import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.komet.DeltakerV1Dto
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaDb
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class TiltaksdeltakerServiceTest {
@@ -90,6 +92,7 @@ class TiltaksdeltakerServiceTest {
                     sak = sak,
                 ),
             )
+            val oppgaveSistSjekket = LocalDateTime.now()
             val opprinneligTiltaksdeltakerKafkaDb = TiltaksdeltakerKafkaDb(
                 id = id,
                 deltakelseFraOgMed = LocalDate.of(2024, 10, 14),
@@ -99,6 +102,7 @@ class TiltaksdeltakerServiceTest {
                 deltakerstatus = TiltakDeltakerstatus.HarSluttet,
                 sakId = sak.id,
                 oppgaveId = ObjectMother.oppgaveId(),
+                oppgaveSistSjekket = oppgaveSistSjekket,
             )
             tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerKafkaDb, "melding")
 
@@ -113,6 +117,7 @@ class TiltaksdeltakerServiceTest {
             tiltaksdeltakerKafkaDb?.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
             tiltaksdeltakerKafkaDb?.oppgaveId shouldBe opprinneligTiltaksdeltakerKafkaDb.oppgaveId
+            tiltaksdeltakerKafkaDb?.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe oppgaveSistSjekket.truncatedTo(ChronoUnit.MINUTES)
         }
     }
 
@@ -187,6 +192,7 @@ class TiltaksdeltakerServiceTest {
                     sak = sak,
                 ),
             )
+            val oppgaveSistSjekket = LocalDateTime.now()
             val opprinneligTiltaksdeltakerKafkaDb = TiltaksdeltakerKafkaDb(
                 id = deltakerId.toString(),
                 deltakelseFraOgMed = LocalDate.of(2024, 10, 14),
@@ -196,6 +202,7 @@ class TiltaksdeltakerServiceTest {
                 deltakerstatus = TiltakDeltakerstatus.HarSluttet,
                 sakId = sak.id,
                 oppgaveId = ObjectMother.oppgaveId(),
+                oppgaveSistSjekket = oppgaveSistSjekket,
             )
             tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerKafkaDb, "melding")
 
@@ -210,6 +217,7 @@ class TiltaksdeltakerServiceTest {
             tiltaksdeltakerKafkaDb?.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
             tiltaksdeltakerKafkaDb?.oppgaveId shouldBe opprinneligTiltaksdeltakerKafkaDb.oppgaveId
+            tiltaksdeltakerKafkaDb?.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe oppgaveSistSjekket.truncatedTo(ChronoUnit.MINUTES)
         }
     }
 

@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 class TiltaksdeltakerKafkaDbTest {
@@ -144,6 +145,7 @@ fun getTiltaksdeltakerKafkaDb(
     deltakerstatus: TiltakDeltakerstatus = TiltakDeltakerstatus.Deltar,
     sakId: SakId = SakId.random(),
     oppgaveId: OppgaveId? = null,
+    oppgaveSistSjekket: LocalDateTime? = null,
 ) =
     TiltaksdeltakerKafkaDb(
         id = id,
@@ -154,4 +156,5 @@ fun getTiltaksdeltakerKafkaDb(
         deltakerstatus = deltakerstatus,
         sakId = sakId,
         oppgaveId = oppgaveId,
+        oppgaveSistSjekket = oppgaveSistSjekket,
     )
