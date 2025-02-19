@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.start
 
+import arrow.core.Tuple4
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
@@ -16,6 +17,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.opprettSakOgSøknad
@@ -28,9 +30,10 @@ interface StartBehandlingBuilder {
     suspend fun ApplicationTestBuilder.startBehandling(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    ): Triple<Sak, Søknad, BehandlingId> {
+    ): Tuple4<Sak, Søknad, Behandling, String> {
         val (sak, søknad) = opprettSakOgSøknad(tac)
-        return Triple(sak, søknad, startBehandlingForSøknadId(tac, sak.id, søknad.id))
+        val (behandling, response) = startBehandlingForSøknadId(tac, sak.id, søknad.id)
+        return Tuple4(sak, søknad, behandling, response)
     }
 
     /** Forventer at det allerede finnes en sak og søknad. */
@@ -38,7 +41,7 @@ interface StartBehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         søknadId: SøknadId,
-    ): BehandlingId {
+    ): Pair<Behandling, String> {
         defaultRequest(
             HttpMethod.Post,
             url {
@@ -53,7 +56,8 @@ interface StartBehandlingBuilder {
             ) {
                 status shouldBe HttpStatusCode.OK
             }
-            return BehandlingId.fromString(JSONObject(bodyAsText).getString("id"))
+            val behandlingId = BehandlingId.fromString(JSONObject(bodyAsText).getString("id"))
+            return tac.behandlingContext.behandlingRepo.hent(behandlingId) to bodyAsText
         }
     }
 }
