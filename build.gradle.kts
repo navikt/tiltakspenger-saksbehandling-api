@@ -83,7 +83,7 @@ tasks {
                 .toList()
 
             val invalidFiles = files
-                .filterNot { it.name.matches(Regex("V[0-9]+__[\\w]+\\.sql")) }
+                .filterNot { it.name.matches(Regex("V[0-9]+__[a-zA-Z0-9][\\w]+\\.sql")) }
                 .map { it.name }
 
             if (invalidFiles.isNotEmpty()) {
