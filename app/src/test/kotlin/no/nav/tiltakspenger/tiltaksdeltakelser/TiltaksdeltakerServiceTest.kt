@@ -100,7 +100,7 @@ class TiltaksdeltakerServiceTest {
                 sakId = sak.id,
                 oppgaveId = ObjectMother.oppgaveId(),
             )
-            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerKafkaDb)
+            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerKafkaDb, "melding")
 
             tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingString())
 
@@ -197,7 +197,7 @@ class TiltaksdeltakerServiceTest {
                 sakId = sak.id,
                 oppgaveId = ObjectMother.oppgaveId(),
             )
-            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerKafkaDb)
+            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerKafkaDb, "melding")
 
             tiltaksdeltakerService.behandleMottattKometdeltaker(deltakerId, objectMapper.writeValueAsString(kometDeltaker))
 

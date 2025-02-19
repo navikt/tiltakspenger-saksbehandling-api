@@ -62,7 +62,7 @@ class EndretTiltaksdeltakerJobbTest {
                     ),
                 )
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id)
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb)
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -96,7 +96,7 @@ class EndretTiltaksdeltakerJobbTest {
                     ),
                 )
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id)
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb)
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -137,7 +137,7 @@ class EndretTiltaksdeltakerJobbTest {
                 )
                 val tiltaksdeltakerKafkaDb =
                     getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id, fom = deltakelseFom, tom = deltakelsesTom)
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb)
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -182,7 +182,7 @@ class EndretTiltaksdeltakerJobbTest {
                     fom = deltakelseFom,
                     tom = deltakelsesTom.plusMonths(1),
                 )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb)
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -230,7 +230,7 @@ class EndretTiltaksdeltakerJobbTest {
                     tom = LocalDate.now(),
                     deltakerstatus = TiltakDeltakerstatus.Avbrutt,
                 )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb)
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
