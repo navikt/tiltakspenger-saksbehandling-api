@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.vedtak.routes.behandling.oppdaterSaksopplysninger
 
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -16,6 +15,8 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
 
 interface OppdaterSaksopplysningerBuilder {
@@ -26,7 +27,7 @@ interface OppdaterSaksopplysningerBuilder {
         sakId: SakId,
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    ): String {
+    ): Triple<Sak, Behandling, String> {
         defaultRequest(
             HttpMethod.Patch,
             url {
@@ -43,7 +44,9 @@ interface OppdaterSaksopplysningerBuilder {
             ) {
                 status shouldBe HttpStatusCode.OK
             }
-            return bodyAsText
+            val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+            val behandling = tac.behandlingContext.behandlingRepo.hent(behandlingId)
+            return Triple(sak, behandling, bodyAsText)
         }
     }
 }

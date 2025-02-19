@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.startBehandling
@@ -30,14 +31,15 @@ interface OppdaterBegrunnelseBuilder {
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         fritekstTilVedtaksbrev: String = "some_tekst",
-    ): Tuple4<Sak, Søknad, BehandlingId, String> {
-        val (sak, søknad, behandlingId) = startBehandling(tac)
+    ): Tuple4<Sak, Søknad, Behandling, String> {
+        val (sak, søknad, behandling) = startBehandling(tac)
         val sakId = sak.id
+        val (oppdatertSak, oppdatertBehandling, response) = oppdaterBegrunnelseForBehandlingId(tac, sakId, behandling.id, saksbehandler, fritekstTilVedtaksbrev)
         return Tuple4(
-            sak,
+            oppdatertSak,
             søknad,
-            behandlingId,
-            oppdaterBegrunnelseForBehandlingId(tac, sakId, behandlingId, saksbehandler, fritekstTilVedtaksbrev),
+            oppdatertBehandling,
+            response,
         )
     }
 
@@ -48,7 +50,7 @@ interface OppdaterBegrunnelseBuilder {
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: String = "begrunnelse_her",
-    ): String {
+    ): Triple<Sak, Behandling, String> {
         defaultRequest(
             HttpMethod.Patch,
             url {
@@ -64,7 +66,9 @@ interface OppdaterBegrunnelseBuilder {
                 status shouldBe HttpStatusCode.OK
                 JSONObject(bodyAsText).getString("begrunnelseVilkårsvurdering") shouldBe begrunnelse
             }
-            return bodyAsText
+            val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+            val behandling = tac.behandlingContext.behandlingRepo.hent(behandlingId)
+            return Triple(sak, behandling, bodyAsText)
         }
     }
 }

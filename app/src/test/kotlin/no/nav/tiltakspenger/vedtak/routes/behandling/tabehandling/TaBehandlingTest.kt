@@ -24,7 +24,8 @@ internal class TaBehandlingTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (_, _, behandlingId) = startBehandling(tac)
+                val (_, _, behandling) = startBehandling(tac)
+                val behandlingId = behandling.id
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
                     it.saksbehandler shouldBe "Z12345"

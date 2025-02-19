@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.startBehandling
@@ -30,10 +31,17 @@ interface OppdaterFritekstBuilder {
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         fritekstTilVedtaksbrev: String = "some_tekst",
-    ): Tuple4<Sak, Søknad, BehandlingId, String> {
-        val (sak, søknad, behandlingId) = startBehandling(tac)
+    ): Tuple4<Sak, Søknad, Behandling, String> {
+        val (sak, søknad, behandling) = startBehandling(tac)
         val sakId = sak.id
-        return Tuple4(sak, søknad, behandlingId, oppdaterFritekstForBehandlingId(tac, sakId, behandlingId, saksbehandler, fritekstTilVedtaksbrev))
+        val (oppdatertSak, oppdatertBehandling, responseJson) = oppdaterFritekstForBehandlingId(
+            tac,
+            sakId,
+            behandling.id,
+            saksbehandler,
+            fritekstTilVedtaksbrev,
+        )
+        return Tuple4(oppdatertSak, søknad, oppdatertBehandling, responseJson)
     }
 
     /** Forventer at det allerede finnes en sak, søknad og behandling. */
@@ -43,7 +51,7 @@ interface OppdaterFritekstBuilder {
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         fritekstTilVedtaksbrev: String = "some_tekst",
-    ): String {
+    ): Triple<Sak, Behandling, String> {
         defaultRequest(
             HttpMethod.Patch,
             url {
@@ -59,7 +67,9 @@ interface OppdaterFritekstBuilder {
                 status shouldBe HttpStatusCode.OK
                 JSONObject(bodyAsText).getString("fritekstTilVedtaksbrev") shouldBe fritekstTilVedtaksbrev
             }
-            return bodyAsText
+            val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+            val behandling = tac.behandlingContext.behandlingRepo.hent(behandlingId)
+            return Triple(sak, behandling, bodyAsText)
         }
     }
 }

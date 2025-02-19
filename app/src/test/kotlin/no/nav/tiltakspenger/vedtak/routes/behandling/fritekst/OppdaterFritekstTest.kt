@@ -21,21 +21,20 @@ internal class OppdaterFritekstTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, _, behandlingId) = startBehandling(tac)
+                val (sak, _, behandling) = startBehandling(tac)
+                val behandlingId = behandling.id
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
                     it.fritekstTilVedtaksbrev?.verdi shouldBe null
                 }
                 val fritekstTilVedtaksbrev = "some_tekst"
-                val responseJson = oppdaterFritekstForBehandlingId(
+                val (oppdatertSak, oppdatertBehandling, responseJson) = oppdaterFritekstForBehandlingId(
                     tac = tac,
                     sakId = sak.id,
                     behandlingId = behandlingId,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 )
                 JSONObject(responseJson).getString("fritekstTilVedtaksbrev") shouldBe fritekstTilVedtaksbrev
-                tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                    it.fritekstTilVedtaksbrev!!.verdi shouldBe fritekstTilVedtaksbrev
-                }
+                oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe fritekstTilVedtaksbrev
             }
         }
     }

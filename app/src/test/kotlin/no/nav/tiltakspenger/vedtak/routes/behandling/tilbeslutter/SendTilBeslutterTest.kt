@@ -24,7 +24,8 @@ class SendTilBeslutterTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, søknad, behandlingId) = this.startBehandling(tac, saksbehandler = saksbehandler)
+                val (sak, søknad, behandling) = this.startBehandling(tac, saksbehandler = saksbehandler)
+                val behandlingId = behandling.id
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
                     it.saksbehandler shouldBe saksbehandler.navIdent
