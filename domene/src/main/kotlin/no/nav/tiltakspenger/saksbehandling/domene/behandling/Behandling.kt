@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.felles.OppgaveId
+import no.nav.tiltakspenger.felles.TiltakId
 import no.nav.tiltakspenger.felles.exceptions.StøtterIkkeUtfallException
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.felles.sikkerlogg
@@ -24,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.domene.stønadsdager.Stønadsdager
 import no.nav.tiltakspenger.saksbehandling.domene.stønadsdager.tilStønadsdagerRegisterSaksopplysning
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.SamletUtfall
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.UtfallForPeriode
@@ -90,6 +92,26 @@ data class Behandling(
         if (erNyFlyt) saksopplysninger!!.tiltaksdeltagelse.eksternDeltagelseId else vilkårssett!!.tiltakDeltagelseVilkår.registerSaksopplysning.eksternDeltagelseId
     val gjennomføringId: String? =
         if (erNyFlyt) saksopplysninger!!.tiltaksdeltagelse.gjennomføringId else vilkårssett!!.tiltakDeltagelseVilkår.registerSaksopplysning.gjennomføringId
+
+    // Denne er kun en midlertidig løsning for å kunne støtte ny og gammel vilkårsvurdering i EndretTiltaksdeltakerJobb og bør ikke brukes noe annet
+    // sted siden vi mangler data for id, deltakelsesprosent og antallDagerPerUke i gammel vilkårsvurdering og dermed bruker noen defaultverdier
+    val tiltaksdeltakelse = if (erNyFlyt) {
+        saksopplysninger!!.tiltaksdeltagelse
+    } else {
+        Tiltaksdeltagelse(
+            id = TiltakId.random(),
+            eksternDeltagelseId = tiltaksid,
+            gjennomføringId = gjennomføringId,
+            typeNavn = tiltaksnavn,
+            typeKode = tiltakstype,
+            rettPåTiltakspenger = vilkårssett!!.tiltakDeltagelseVilkår.registerSaksopplysning.girRett,
+            deltakelsesperiode = vilkårssett.tiltakDeltagelseVilkår.registerSaksopplysning.deltagelsePeriode,
+            deltakelseStatus = vilkårssett.tiltakDeltagelseVilkår.registerSaksopplysning.status,
+            deltakelseProsent = null,
+            antallDagerPerUke = null,
+            kilde = vilkårssett.tiltakDeltagelseVilkår.registerSaksopplysning.kilde,
+        )
+    }
 
     // TODO John + Anders: Slett når ny flyt er ferdig. Dette for å støtte gammel flyt. Ny flyt tar ikke stilling til samletUtfall.
     val samletUtfall: SamletUtfall by lazy {

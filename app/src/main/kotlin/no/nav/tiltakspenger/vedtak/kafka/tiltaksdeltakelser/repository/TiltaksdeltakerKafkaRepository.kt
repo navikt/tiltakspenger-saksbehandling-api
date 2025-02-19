@@ -52,7 +52,23 @@ class TiltaksdeltakerKafkaRepository(
     fun slett(id: String) {
         sessionFactory.withSession {
             it.run(
-                queryOf(sqlHentForId, id).asUpdate,
+                queryOf(sqlSlettForId, id).asUpdate,
+            )
+        }
+    }
+
+    fun lagreOppgaveId(id: String, oppgaveId: OppgaveId) {
+        sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """
+                        update tiltaksdeltaker_kafka set oppgave_id = :oppgave_id where id = :id
+                    """.trimIndent(),
+                    mapOf(
+                        "oppgave_id" to oppgaveId.toString(),
+                        "id" to id,
+                    ),
+                ).asUpdate,
             )
         }
     }
@@ -109,4 +125,7 @@ class TiltaksdeltakerKafkaRepository(
 
     @Language("SQL")
     private val sqlSlettForId = "delete from tiltaksdeltaker_kafka where id = ?"
+
+    @Language("SQL")
+    private val sqlLagreOppgaveIdForId = "update tiltaksdeltaker_kafka set oppgave_id = :oppgaveId where id = :id"
 }

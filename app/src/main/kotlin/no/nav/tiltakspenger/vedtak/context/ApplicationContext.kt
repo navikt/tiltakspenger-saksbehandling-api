@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.vedtak.db.DataSourceSetup
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.TiltaksdeltakerService
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena.TiltaksdeltakerArenaConsumer
+import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.jobb.EndretTiltaksdeltakerJobb
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.komet.TiltaksdeltakerKometConsumer
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaRepository
 
@@ -89,6 +90,14 @@ open class ApplicationContext(
             tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
             søknadRepo = søknadContext.søknadRepo,
             arenaDeltakerMapper = ArenaDeltakerMapper(),
+        )
+    }
+
+    open val endretTiltaksdeltakerJobb by lazy {
+        EndretTiltaksdeltakerJobb(
+            tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
+            sakRepo = sakContext.sakRepo,
+            oppgaveGateway = oppgaveGateway,
         )
     }
 
