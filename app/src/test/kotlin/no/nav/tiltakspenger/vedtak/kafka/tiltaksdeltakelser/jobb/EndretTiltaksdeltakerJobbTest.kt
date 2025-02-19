@@ -8,7 +8,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.db.persisterIverksattFørstegangsbehandling
-import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandling
+import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandlingDeprecated
 import no.nav.tiltakspenger.db.persisterSakOgSøknad
 import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.felles.OppgaveId
@@ -86,7 +86,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
-                testDataHelper.persisterOpprettetFørstegangsbehandling(
+                testDataHelper.persisterOpprettetFørstegangsbehandlingDeprecated(
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     fnr = fnr,

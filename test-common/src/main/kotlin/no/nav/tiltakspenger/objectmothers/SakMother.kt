@@ -49,7 +49,7 @@ interface SakMother {
         soknader = emptyList(),
     )
 
-    fun sakMedOpprettetBehandling(
+    fun sakMedOpprettetDeprecatedBehandling(
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         iDag: LocalDate = LocalDate.of(2023, 1, 1),
@@ -97,6 +97,54 @@ interface SakMother {
         )
     }
 
+    fun sakMedOpprettetBehandling(
+        sakId: SakId = SakId.random(),
+        fnr: Fnr = Fnr.random(),
+        iDag: LocalDate = LocalDate.of(2023, 1, 1),
+        løpenummer: Int = 1001,
+        saksnummer: Saksnummer = Saksnummer(iDag, løpenummer),
+        vurderingsperiode: Periode = Periode(fraOgMed = 1.januar(2023), tilOgMed = 31.januar(2023)),
+        fødselsdato: LocalDate = ObjectMother.fødselsdato(),
+        saksbehandler: Saksbehandler = saksbehandler(),
+        søknad: Søknad =
+            nySøknad(
+                søknadstiltak =
+                søknadstiltak(
+                    deltakelseFom = vurderingsperiode.fraOgMed,
+                    deltakelseTom = vurderingsperiode.tilOgMed,
+                ),
+            ),
+        registrerteTiltak: List<Tiltaksdeltagelse> = listOf(søknad.tiltak.toTiltak()),
+        saksopplysninger: Saksopplysninger = Saksopplysninger(
+            fødselsdato = fødselsdato,
+            tiltaksdeltagelse = registrerteTiltak.single(),
+        ),
+    ): Sak {
+        val førstegangsbehandling =
+            runBlocking {
+                Behandling.opprettSøknadsbehandlingV2(
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    søknad = søknad,
+                    saksbehandler = saksbehandler,
+                    hentSaksopplysninger = { saksopplysninger },
+                ).getOrFail()
+            }
+        return Sak(
+            id = sakId,
+            fnr = fnr,
+            saksnummer = saksnummer,
+            behandlinger = Behandlinger(førstegangsbehandling),
+            vedtaksliste = Vedtaksliste.empty(),
+            meldekortBehandlinger = MeldekortBehandlinger.empty(),
+            utbetalinger = Utbetalinger(emptyList()),
+            meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
+            brukersMeldekort = emptyList(),
+            soknader = listOf(søknad),
+        )
+    }
+
     fun sakMedInnvilgetVilkårssett(
         sakId: SakId = SakId.random(),
         iDag: LocalDate = LocalDate.of(2023, 1, 1),
@@ -106,7 +154,7 @@ interface SakMother {
         correlationId: CorrelationId = CorrelationId.generate(),
         vurderingsperiode: Periode = Periode(fraOgMed = 1.januar(2023), tilOgMed = 31.januar(2023)),
     ): Sak {
-        return sakMedOpprettetBehandling(
+        return sakMedOpprettetDeprecatedBehandling(
             iDag = iDag,
             løpenummer = løpenummer,
             sakId = sakId,

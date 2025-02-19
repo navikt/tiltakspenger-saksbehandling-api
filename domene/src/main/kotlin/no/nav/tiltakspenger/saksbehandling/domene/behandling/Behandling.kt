@@ -565,11 +565,23 @@ data class Behandling(
             require(stansperiode == null) { "Vurderingsperiode må være null i ny flyt ved førstegangsbehandling" }
         }
         if (!erNyFlyt) {
-            require(vilkårssett!!.vurderingsperiode == stansperiode) {
-                "Vilkårssettets periode (${vilkårssett.vurderingsperiode} må være lik vurderingsperioden $stansperiode"
-            }
-            require(stønadsdager!!.vurderingsperiode == stansperiode) {
-                "Stønadsdagers periode (${stønadsdager.vurderingsperiode} må være lik vurderingsperioden $stansperiode"
+            when (behandlingstype) {
+                Behandlingstype.FØRSTEGANGSBEHANDLING -> {
+                    require(vilkårssett!!.vurderingsperiode == innvilgelsesperiode) {
+                        "Vilkårssettets periode (${vilkårssett.vurderingsperiode} må være lik innvilgelsesperiode $innvilgelsesperiode"
+                    }
+                    require(stønadsdager!!.vurderingsperiode == innvilgelsesperiode) {
+                        "Stønadsdagers periode (${stønadsdager.vurderingsperiode} må være lik innvilgelsesperiode $innvilgelsesperiode"
+                    }
+                }
+                Behandlingstype.REVURDERING -> {
+                    require(vilkårssett!!.vurderingsperiode == stansperiode) {
+                        "Vilkårssettets periode (${vilkårssett.vurderingsperiode} må være lik stansperioden $stansperiode"
+                    }
+                    require(stønadsdager!!.vurderingsperiode == stansperiode) {
+                        "Stønadsdagers periode (${stønadsdager.vurderingsperiode} må være lik stansperioden $stansperiode"
+                    }
+                }
             }
         }
         if (beslutter != null && saksbehandler != null) {

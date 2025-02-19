@@ -28,6 +28,60 @@ import no.nav.tiltakspenger.saksbehandling.domene.vilkår.livsopphold.leggTilLiv
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingRepoTest.Companion.random
 import java.time.LocalDate
 
+internal fun TestDataHelper.persisterOpprettetFørstegangsbehandlingDeprecated(
+    sakId: SakId = SakId.random(),
+    saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
+    fnr: Fnr = Fnr.random(),
+    deltakelseFom: LocalDate = 1.januar(2023),
+    deltakelseTom: LocalDate = 31.mars(2023),
+    journalpostId: String = random.nextInt().toString(),
+    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
+    id: SøknadId = Søknad.randomId(),
+    sak: Sak = ObjectMother.nySak(
+        sakId = sakId,
+        fnr = fnr,
+        saksnummer = this.saksnummerGenerator.neste(),
+    ),
+    søknad: Søknad =
+        ObjectMother.nySøknad(
+            periode = tiltaksOgVurderingsperiode,
+            journalpostId = journalpostId,
+            personopplysninger =
+            ObjectMother.personSøknad(
+                fnr = fnr,
+            ),
+            id = id,
+            søknadstiltak =
+            ObjectMother.søknadstiltak(
+                deltakelseFom = deltakelseFom,
+                deltakelseTom = deltakelseTom,
+            ),
+            barnetillegg = listOf(),
+            sak = sak,
+        ),
+): Pair<Sak, Søknad> {
+    this.persisterSakOgSøknad(
+        søknad = søknad,
+        sak = sak,
+    )
+    val sakMedBehandling =
+        ObjectMother.sakMedOpprettetDeprecatedBehandling(
+            søknad = søknad,
+            fnr = fnr,
+            vurderingsperiode = tiltaksOgVurderingsperiode,
+            saksnummer = saksnummer,
+            saksbehandler = saksbehandler,
+            sakId = sakId,
+        )
+    behandlingRepo.lagre(sakMedBehandling.førstegangsbehandling!!)
+
+    return Pair(
+        sakRepo.hentForSakId(sakId)!!,
+        søknadRepo.hentForSøknadId(søknad.id)!!,
+    )
+}
+
 internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
     sakId: SakId = SakId.random(),
     saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
@@ -118,7 +172,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
             sak = sak,
         ),
 ): Pair<Sak, Rammevedtak> {
-    val (sak, _) = persisterOpprettetFørstegangsbehandling(
+    val (sak, _) = persisterOpprettetFørstegangsbehandlingDeprecated(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,

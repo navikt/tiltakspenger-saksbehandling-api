@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.vedtak.repository.benk
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.db.persisterIverksattFørstegangsbehandling
-import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandling
+import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandlingDeprecated
 import no.nav.tiltakspenger.db.persisterOpprettetRevurdering
 import no.nav.tiltakspenger.db.persisterSakOgSøknad
 import no.nav.tiltakspenger.db.withMigratedDb
@@ -23,7 +23,7 @@ class BenkOversiktPostgresRepoTest {
             val repo = testDataHelper.saksoversiktRepo
             val søknad1 = testDataHelper.persisterSakOgSøknad()
             val sakId = testDataHelper.søknadRepo.hentSakIdForSoknad(søknad1.id)!!
-            val (førstegangsBehandlingSak, førstegangsBehandling) = testDataHelper.persisterOpprettetFørstegangsbehandling()
+            val (førstegangsBehandlingSak, førstegangsBehandling) = testDataHelper.persisterOpprettetFørstegangsbehandlingDeprecated()
             val (revurderingSak, revurdering) = testDataHelper.persisterOpprettetRevurdering()
             val behandlinger = repo.hentAlleBehandlinger()
             val søknader = repo.hentAlleSøknader()

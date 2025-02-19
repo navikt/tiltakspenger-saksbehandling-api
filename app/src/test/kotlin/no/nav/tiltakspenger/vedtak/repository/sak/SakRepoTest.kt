@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.vedtak.repository.sak
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandling
+import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandlingDeprecated
 import no.nav.tiltakspenger.db.persisterSak
 import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -34,8 +34,8 @@ internal class SakRepoTest {
         withMigratedDb { testDataHelper ->
             val sakRepo = testDataHelper.sakRepo
 
-            val sak1 = testDataHelper.persisterOpprettetFørstegangsbehandling().first
-            testDataHelper.persisterOpprettetFørstegangsbehandling().first
+            val sak1 = testDataHelper.persisterOpprettetFørstegangsbehandlingDeprecated().first
+            testDataHelper.persisterOpprettetFørstegangsbehandlingDeprecated().first
             val tynnSak = TynnSak(sak1.id, sak1.fnr, sak1.saksnummer)
 
             sakRepo.hentForFnr(sak1.fnr) shouldBe Saker(sak1.fnr, listOf(sak1))
@@ -54,15 +54,15 @@ internal class SakRepoTest {
 
             val sak1 =
                 testDataHelper
-                    .persisterOpprettetFørstegangsbehandling(
+                    .persisterOpprettetFørstegangsbehandlingDeprecated(
                         fnr = fnr,
                     ).first
             val sak2 =
                 testDataHelper
-                    .persisterOpprettetFørstegangsbehandling(
+                    .persisterOpprettetFørstegangsbehandlingDeprecated(
                         fnr = fnr,
                     ).first
-            testDataHelper.persisterOpprettetFørstegangsbehandling()
+            testDataHelper.persisterOpprettetFørstegangsbehandlingDeprecated()
 
             sakRepo.hentForFnr(fnr) shouldBe Saker(fnr, listOf(sak1, sak2))
         }
