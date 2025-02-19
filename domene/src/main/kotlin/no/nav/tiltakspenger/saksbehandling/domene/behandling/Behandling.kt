@@ -41,14 +41,14 @@ import java.time.LocalDateTime
  * @param saksbehandler Vil bli satt på en behandling ved opprettelse, men i noen tilfeller kan saksbehandler ta seg selv av behandlingen igjen.
  * @param beslutter Vil bli satt når behandlingen avsluttes (iverksett eller avbrytes) eller underkjennes.
  * @param søknad Påkrevd for [Behandlingstype.FØRSTEGANGSBEHANDLING]. Kan være null for [Behandlingstype.REVURDERING]. Må vurdere på sikt om en endringssøknad (samme tiltak) er en ny førstegangssøknad eller en revurdering. Og om en ny søknad (nytt tiltak) er en førstegangssøknad, søknad eller en revurdering.
+ * @param vurderingsperiode Påkrevd for revurdering stans (stansperiode). Vil være null for førstegangsbehandling i ny flyt.
  */
 data class Behandling(
     val id: BehandlingId,
     val sakId: SakId,
     val saksnummer: Saksnummer,
     val fnr: Fnr,
-    // TODO John + Anders: Denne må være nullable for ny flyt. Vi vil legge til nullable innvilgelsesperiode i tillegg. Bare en av disse vil kunne være utfylt ved dobbel flyt.
-    val vurderingsperiode: Periode,
+    val vurderingsperiode: Periode?,
     val søknad: Søknad?,
     val saksbehandler: String?,
     val sendtTilBeslutning: LocalDateTime?,
@@ -84,18 +84,18 @@ data class Behandling(
     val maksDagerMedTiltakspengerForPeriode: Int = 14
 
     val tiltaksnavn =
-        if (erNyFlyt) saksopplysninger!!.tiltaksdeltagelse.typeNavn else vilkårssett!!.tiltakDeltagelseVilkår.registerSaksopplysning.tiltaksnavn
+        if (erNyFlyt) saksopplysninger.tiltaksdeltagelse.typeNavn else vilkårssett!!.tiltakDeltagelseVilkår.registerSaksopplysning.tiltaksnavn
     val tiltakstype: TiltakstypeSomGirRett =
-        if (erNyFlyt) saksopplysninger!!.tiltaksdeltagelse.typeKode else vilkårssett!!.tiltakDeltagelseVilkår.registerSaksopplysning.tiltakstype
+        if (erNyFlyt) saksopplysninger.tiltaksdeltagelse.typeKode else vilkårssett!!.tiltakDeltagelseVilkår.registerSaksopplysning.tiltakstype
     val tiltaksid: String =
-        if (erNyFlyt) saksopplysninger!!.tiltaksdeltagelse.eksternDeltagelseId else vilkårssett!!.tiltakDeltagelseVilkår.registerSaksopplysning.eksternDeltagelseId
+        if (erNyFlyt) saksopplysninger.tiltaksdeltagelse.eksternDeltagelseId else vilkårssett!!.tiltakDeltagelseVilkår.registerSaksopplysning.eksternDeltagelseId
     val gjennomføringId: String? =
-        if (erNyFlyt) saksopplysninger!!.tiltaksdeltagelse.gjennomføringId else vilkårssett!!.tiltakDeltagelseVilkår.registerSaksopplysning.gjennomføringId
+        if (erNyFlyt) saksopplysninger.tiltaksdeltagelse.gjennomføringId else vilkårssett!!.tiltakDeltagelseVilkår.registerSaksopplysning.gjennomføringId
 
     // Denne er kun en midlertidig løsning for å kunne støtte ny og gammel vilkårsvurdering i EndretTiltaksdeltakerJobb og bør ikke brukes noe annet
     // sted siden vi mangler data for id, deltakelsesprosent og antallDagerPerUke i gammel vilkårsvurdering og dermed bruker noen defaultverdier
     val tiltaksdeltakelse = if (erNyFlyt) {
-        saksopplysninger!!.tiltaksdeltagelse
+        saksopplysninger.tiltaksdeltagelse
     } else {
         Tiltaksdeltagelse(
             eksternDeltagelseId = tiltaksid,
@@ -143,6 +143,15 @@ data class Behandling(
      * Påkrevd ved førstegangsbehandling/søknadsbehandling, men kan være null ved revurdering.
      */
     val kravfrist = søknad?.tidsstempelHosOss
+
+    val periode: Periode? by lazy {
+        when (behandlingstype) {
+            // TODO John + Anders: Skal være innvilgelsesperiode for innvilgelset førstegangsbehandling, men null for avslag/avbrutt.
+            Behandlingstype.FØRSTEGANGSBEHANDLING -> innvilgelsesperiode ?: vurderingsperiode
+            // TODO John + Anders: Vil være vurderingsperiode for stansvedtak (fram/tilbake i tid) og innvilgelsesperiode ved forlengense eller ikke-stans revurdering.
+            Behandlingstype.REVURDERING -> vurderingsperiode
+        }
+    }
 
     companion object {
         private val logger = mu.KotlinLogging.logger { }
@@ -495,13 +504,14 @@ data class Behandling(
      * Endrer ikke [Søknad].
      */
     fun krymp(nyPeriode: Periode): Behandling {
-        if (erNyFlyt) throw IllegalStateException("TODO John + Anders: Støtter ikke krymp for ny flyt enda.")
         if (vurderingsperiode == nyPeriode) return this
-        require(vurderingsperiode.inneholderHele(nyPeriode)) { "Ny periode ($nyPeriode) må være innenfor vedtakets periode ($vurderingsperiode)" }
+        if (vurderingsperiode != null) require(vurderingsperiode.inneholderHele(nyPeriode)) { "Ny periode ($nyPeriode) må være innenfor vedtakets vurderingsperiode ($vurderingsperiode)" }
+        if (innvilgelsesperiode != null) require(innvilgelsesperiode.inneholderHele(nyPeriode)) { "Ny periode ($nyPeriode) må være innenfor vedtakets innvilgelsesperiode ($innvilgelsesperiode)" }
         return this.copy(
-            vurderingsperiode = nyPeriode,
-            vilkårssett = vilkårssett!!.krymp(nyPeriode),
-            stønadsdager = stønadsdager!!.krymp(nyPeriode),
+            innvilgelsesperiode = if (innvilgelsesperiode != null) nyPeriode else null,
+            vurderingsperiode = if (vurderingsperiode != null) nyPeriode else null,
+            vilkårssett = vilkårssett?.krymp(nyPeriode),
+            stønadsdager = stønadsdager?.krymp(nyPeriode),
         )
     }
 
@@ -554,9 +564,7 @@ data class Behandling(
     }
 
     init {
-        if (erNyFlyt) {
-            require(saksopplysninger != null) { "Saksopplysninger må være satt for ny flyt" }
-        }
+
         if (!erNyFlyt) {
             require(vilkårssett!!.vurderingsperiode == vurderingsperiode) {
                 "Vilkårssettets periode (${vilkårssett.vurderingsperiode} må være lik vurderingsperioden $vurderingsperiode"

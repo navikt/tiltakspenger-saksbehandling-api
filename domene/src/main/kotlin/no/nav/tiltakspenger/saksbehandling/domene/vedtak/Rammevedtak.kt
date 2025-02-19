@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.meldekort.domene.sisteGodkjenteMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingstype
@@ -21,6 +20,7 @@ import java.time.LocalDateTime
 
 /**
  * @param opprettet Tidspunktet vi instansierte og persisterte dette utbetalingsvedtaket første gangen. Dette har ingenting med vedtaksbrevet å gjøre.
+ * @periode Stansperiode eller innvilgelsesperiode (ikke nødvendigvis det samme som vurderingsperiode.)
  */
 data class Rammevedtak(
     override val id: VedtakId = VedtakId.random(),
@@ -90,7 +90,7 @@ fun Sak.opprettVedtak(
         behandling = behandling,
         vedtaksdato = null,
         vedtaksType = this.utledVedtakstype(behandling),
-        periode = behandling.vurderingsperiode,
+        periode = behandling.vurderingsperiode ?: behandling.innvilgelsesperiode!!,
         journalpostId = null,
         journalføringstidspunkt = null,
         distribusjonId = null,
@@ -109,13 +109,12 @@ fun Sak.utledVedtakstype(behandling: Behandling): Vedtakstype {
         Behandlingstype.FØRSTEGANGSBEHANDLING -> Vedtakstype.INNVILGELSE
         Behandlingstype.REVURDERING -> {
             // Kommentar jah: Dette er en førsteimplementasjon for å avgjøre om dette er et stansvedtak. Ved andre typer revurderinger må vi utvide denne.
-            if (behandling.vurderingsperiode.tilOgMed != this.utfallsperioder().totalePeriode.tilOgMed) {
+            if (behandling.vurderingsperiode!!.tilOgMed != this.utfallsperioder().totalePeriode.tilOgMed) {
                 throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - revurderingens tilOgMed (${behandling.vurderingsperiode.tilOgMed}) må være lik sakens tilOgMed (${this.vedtaksperiode!!.tilOgMed})")
             }
             if (!behandling.erHelePeriodenIkkeOppfylt) {
                 throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - hele perioden må være 'ikke oppfylt'")
             }
-            val sisteGodkjenteMeldekort = this.sisteGodkjenteMeldekortBehandling() ?: return Vedtakstype.STANS
             if (this.sisteUtbetalteMeldekortDag() == null || this.sisteUtbetalteMeldekortDag()!! < behandling.vurderingsperiode.fraOgMed) {
                 Vedtakstype.STANS
             } else {

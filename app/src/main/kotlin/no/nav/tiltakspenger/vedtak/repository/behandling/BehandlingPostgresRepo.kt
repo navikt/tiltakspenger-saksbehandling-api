@@ -151,8 +151,8 @@ class BehandlingPostgresRepo(
                         mapOf(
                             "id" to behandling.id.toString(),
                             "sak_id" to behandling.sakId.toString(),
-                            "fra_og_med" to behandling.vurderingsperiode.fraOgMed,
-                            "til_og_med" to behandling.vurderingsperiode.tilOgMed,
+                            "fra_og_med" to behandling.vurderingsperiode?.fraOgMed,
+                            "til_og_med" to behandling.vurderingsperiode?.tilOgMed,
                             "status" to behandling.status.toDb(),
                             "sist_endret_old" to sistEndret,
                             "sist_endret" to behandling.sistEndret,
@@ -193,8 +193,8 @@ class BehandlingPostgresRepo(
                     mapOf(
                         "id" to behandling.id.toString(),
                         "sak_id" to behandling.sakId.toString(),
-                        "fra_og_med" to behandling.vurderingsperiode.fraOgMed,
-                        "til_og_med" to behandling.vurderingsperiode.tilOgMed,
+                        "fra_og_med" to behandling.vurderingsperiode?.fraOgMed,
+                        "til_og_med" to behandling.vurderingsperiode?.tilOgMed,
                         "status" to behandling.status.toDb(),
                         "opprettet" to behandling.opprettet,
                         "vilkaarssett" to behandling.vilkårssett?.toDbJson(),
@@ -237,7 +237,12 @@ class BehandlingPostgresRepo(
         private fun Row.toBehandling(session: Session): Behandling {
             val id = BehandlingId.fromString(string("id"))
             val sakId = SakId.fromString(string("sak_id"))
-            val vurderingsperiode = Periode(localDate("fra_og_med"), localDate("til_og_med"))
+            val fraOgMed = localDateOrNull("fra_og_med")
+            val tilOgMed = localDateOrNull("til_og_med")
+            if ((fraOgMed == null).xor(tilOgMed == null)) {
+                throw IllegalStateException("Både fra og med og til og med må være satt, eller ingen av dem")
+            }
+            val vurderingsperiode = fraOgMed?.let { Periode(fraOgMed, tilOgMed!!) }
             val status = string("status")
             val saksbehandler = stringOrNull("saksbehandler")
             val beslutter = stringOrNull("beslutter")
@@ -245,7 +250,7 @@ class BehandlingPostgresRepo(
             val søknad: Søknad? = SøknadDAO.hentForBehandlingId(id, session)
 
             val stønadsdager = stringOrNull("stønadsdager")?.toStønadsdager()
-            val vilkårssett = stringOrNull("vilkårssett")?.toVilkårssett(vurderingsperiode)
+            val vilkårssett = stringOrNull("vilkårssett")?.toVilkårssett(vurderingsperiode!!)
 
             val attesteringer = string("attesteringer").toAttesteringer()
             val fnr = Fnr.fromString(string("ident"))
@@ -282,9 +287,23 @@ class BehandlingPostgresRepo(
                 behandlingstype = string("behandlingstype").toBehandlingstype(),
                 oppgaveId = oppgaveId,
                 fritekstTilVedtaksbrev = stringOrNull("fritekst_vedtaksbrev")?.let { FritekstTilVedtaksbrev(it) },
-                begrunnelseVilkårsvurdering = stringOrNull("begrunnelse_vilkårsvurdering")?.let { BegrunnelseVilkårsvurdering(it) },
-                saksopplysningsperiode = saksopplysningsperiodeFraOgMed?.let { Periode(saksopplysningsperiodeFraOgMed, saksopplysningsperiodeTilOgMed!!) },
-                innvilgelsesperiode = innvilgelsesperiodeFraOgMed?.let { Periode(innvilgelsesperiodeFraOgMed, innvilgelsesperiodeTilOgMed!!) },
+                begrunnelseVilkårsvurdering = stringOrNull("begrunnelse_vilkårsvurdering")?.let {
+                    BegrunnelseVilkårsvurdering(
+                        it,
+                    )
+                },
+                saksopplysningsperiode = saksopplysningsperiodeFraOgMed?.let {
+                    Periode(
+                        saksopplysningsperiodeFraOgMed,
+                        saksopplysningsperiodeTilOgMed!!,
+                    )
+                },
+                innvilgelsesperiode = innvilgelsesperiodeFraOgMed?.let {
+                    Periode(
+                        innvilgelsesperiodeFraOgMed,
+                        innvilgelsesperiodeTilOgMed!!,
+                    )
+                },
             )
         }
 

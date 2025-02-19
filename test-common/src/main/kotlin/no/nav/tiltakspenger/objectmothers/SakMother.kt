@@ -119,7 +119,7 @@ interface SakMother {
                     behandlingId = it.førstegangsbehandling!!.id,
                     saksbehandler = saksbehandler,
                     harYtelseForPeriode = HarYtelseForPeriode(
-                        periode = it.førstegangsbehandling!!.vurderingsperiode,
+                        periode = it.førstegangsbehandling!!.vurderingsperiode!!,
                         harYtelse = false,
                     ),
                     correlationId = correlationId,

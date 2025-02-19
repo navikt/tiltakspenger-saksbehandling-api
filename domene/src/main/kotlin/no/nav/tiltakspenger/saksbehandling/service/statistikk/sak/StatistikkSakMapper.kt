@@ -26,7 +26,8 @@ fun genererStatistikkForNyFørstegangsbehandling(
         utbetaltTidspunkt = null,
         tekniskTidspunkt = nå(),
         søknadsformat = Format.DIGITAL.name,
-        forventetOppstartTidspunkt = behandling.vurderingsperiode.fraOgMed,
+        // TODO jah: Dette bør være et eget felt som utledes fra tiltaksperioden og kravfrist.
+        forventetOppstartTidspunkt = behandling.saksopplysningsperiode?.fraOgMed,
         vilkår = mapVilkår(behandling.vilkårssett),
         sakYtelse = "IND",
         sakUtland = "N",
@@ -72,7 +73,7 @@ fun genererSaksstatistikkForRammevedtak(
         tekniskTidspunkt = nå(),
         søknadsformat = Format.DIGITAL.name,
         // TODO jah: Hva gjør vi ved revurdering/stans i dette tilfellet. Skal vi sende førstegangsbehandling sin første innvilget fraOgMed eller null?
-        forventetOppstartTidspunkt = if (behandling.erFørstegangsbehandling) behandling.vurderingsperiode.fraOgMed else null,
+        forventetOppstartTidspunkt = if (behandling.erFørstegangsbehandling) behandling.saksopplysningsperiode?.fraOgMed else null,
         vilkår = mapVilkår(behandling.vilkårssett),
         sakYtelse = "IND",
         sakUtland = "N",
