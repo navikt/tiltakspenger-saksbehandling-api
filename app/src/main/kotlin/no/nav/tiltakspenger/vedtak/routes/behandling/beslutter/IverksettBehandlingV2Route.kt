@@ -7,6 +7,8 @@ import io.ktor.server.routing.post
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
+import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeIverksetteBehandling
 import no.nav.tiltakspenger.saksbehandling.service.behandling.IverksettBehandlingV2Service
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
@@ -29,7 +31,15 @@ fun Route.iverksettBehandlingv2Route(
                 call.withBehandlingId { behandlingId ->
                     val correlationId = call.correlationId()
                     iverksettBehandlingV2Service.iverksett(behandlingId, saksbehandler, correlationId, sakId).fold(
-                        { call.respond403Forbidden(måVæreBeslutter()) },
+                        {
+                            when (it) {
+                                KanIkkeIverksetteBehandling.KunneIkkeOppretteOppgave -> call.respond500InternalServerError(
+                                    melding = "Feil ved oppretting av oppgaving",
+                                    kode = "",
+                                )
+                                KanIkkeIverksetteBehandling.MåVæreBeslutter -> call.respond403Forbidden(måVæreBeslutter())
+                            }
+                        },
                         {
                             auditService.logMedSakId(
                                 behandlingId = behandlingId,

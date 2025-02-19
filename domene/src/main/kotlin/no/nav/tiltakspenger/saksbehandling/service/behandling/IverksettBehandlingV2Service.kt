@@ -100,6 +100,15 @@ class IverksettBehandlingV2Service(
         )
         val stønadStatistikk = genererStønadsstatistikkForRammevedtak(vedtak)
 
+        Either.catch {
+            behandling.oppgaveId?.let { id ->
+                logger.info { "Ferdigstiller oppgave med id $id for behandling med behandlingsId $behandlingId" }
+                oppgaveGateway.ferdigstillOppgave(id)
+            }
+        }.onLeft {
+            return KanIkkeIverksetteBehandling.KunneIkkeOppretteOppgave.left()
+        }
+
         when (behandling.behandlingstype) {
             Behandlingstype.FØRSTEGANGSBEHANDLING -> oppdatertSak.iverksettFørstegangsbehandling(
                 vedtak = vedtak,
@@ -112,11 +121,6 @@ class IverksettBehandlingV2Service(
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk,
             )
-        }
-
-        behandling.oppgaveId?.let { id ->
-            logger.info { "Ferdigstiller oppgave med id $id for behandling med behandlingsId $behandlingId" }
-            oppgaveGateway.ferdigstillOppgave(id)
         }
 
         return iverksattBehandling.right()
