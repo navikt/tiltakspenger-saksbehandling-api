@@ -21,16 +21,19 @@ internal class OppdaterBegrunnelseTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, _, behandlingId) = startBehandling(tac)
-                tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+                val (sak, _, behandling) = startBehandling(tac)
+                tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
                     it.begrunnelseVilkårsvurdering?.verdi shouldBe null
                 }
                 val begrunnelse = "some_tekst"
-                val responseJson = oppdaterBegrunnelseForBehandlingId(tac, sak.id, behandlingId, begrunnelse = begrunnelse)
+                val (oppdatertSak, oppdatertBehandling, responseJson) = oppdaterBegrunnelseForBehandlingId(
+                    tac,
+                    sak.id,
+                    behandling.id,
+                    begrunnelse = begrunnelse,
+                )
                 JSONObject(responseJson).getString("begrunnelseVilkårsvurdering") shouldBe begrunnelse
-                tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                    it.begrunnelseVilkårsvurdering!!.verdi shouldBe begrunnelse
-                }
+                oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe begrunnelse
             }
         }
     }

@@ -21,7 +21,8 @@ internal class StartBehandlingTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, søknad, behandlingId) = startBehandling(tac)
+                val (sak, søknad, behandling) = startBehandling(tac)
+                val behandlingId = behandling.id
                 val opprettetBehandling = tac.behandlingContext.behandlingRepo.hent(behandlingId)
                 opprettetBehandling.erFørstegangsbehandling shouldBe true
                 opprettetBehandling.status shouldBe Behandlingsstatus.UNDER_BEHANDLING

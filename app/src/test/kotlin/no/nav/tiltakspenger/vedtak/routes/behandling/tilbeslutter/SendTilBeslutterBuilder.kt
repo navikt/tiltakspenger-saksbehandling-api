@@ -35,8 +35,9 @@ interface SendTilBeslutterBuilder {
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
-        val (sak, søknad, behandlingId) = startBehandling(tac)
+        val (sak, søknad, behandling) = startBehandling(tac)
         val sakId = sak.id
+        val behandlingId = behandling.id
         oppdaterFritekstForBehandlingId(tac, sakId, behandlingId, saksbehandler)
         oppdaterBegrunnelseForBehandlingId(tac, sakId, behandlingId, saksbehandler)
         taBehanding(tac, behandlingId, saksbehandler)
