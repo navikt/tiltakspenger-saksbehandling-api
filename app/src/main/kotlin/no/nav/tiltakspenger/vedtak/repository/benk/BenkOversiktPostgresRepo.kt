@@ -49,11 +49,14 @@ class BenkOversiktPostgresRepo(
                         """.trimIndent(),
                     ).map { row ->
                         val id = row.string("behandling_id").let { BehandlingId.fromString(it) }
-                        val periode =
+                        val fraOgMed = row.localDateOrNull("fra_og_med")
+                        val periode = fraOgMed?.let {
                             Periode(
-                                fraOgMed = row.localDate("fra_og_med"),
+                                fraOgMed = it,
                                 tilOgMed = row.localDate("til_og_med"),
                             )
+                        }
+
                         val kravtidspunkt = row.localDateTimeOrNull("kravtidspunkt")
                         val beslutter = row.stringOrNull("beslutter")
                         val saksbehandler = row.stringOrNull("saksbehandler")
