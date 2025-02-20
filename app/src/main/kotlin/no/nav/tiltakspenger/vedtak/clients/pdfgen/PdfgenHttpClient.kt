@@ -11,9 +11,12 @@ import no.nav.tiltakspenger.felles.PdfA
 import no.nav.tiltakspenger.felles.journalføring.PdfOgJson
 import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.Navn
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.ports.GenererStansvedtaksbrevGateway
@@ -81,10 +84,43 @@ internal class PdfgenHttpClient(
                     hentBrukersNavn = hentBrukersNavn,
                     hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                     vedtaksdato = vedtaksdato,
-                    tilleggstekst = tilleggstekst?.verdi,
+                    tilleggstekst = tilleggstekst,
                 )
             },
             errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
+            uri = vedtakInnvilgelseUri,
+        )
+    }
+
+    override suspend fun genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+        vedtaksdato: LocalDate,
+        tilleggstekst: FritekstTilVedtaksbrev?,
+        fnr: Fnr,
+        saksbehandlerNavIdent: String,
+        beslutterNavIdent: String?,
+        tiltaksnavn: String,
+        innvilgelsesperiode: Periode,
+        saksnummer: Saksnummer,
+        sakId: SakId,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return pdfgenRequest(
+            jsonPayload = {
+                genererInnvilgetSøknadsbrev(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    vedtaksdato = vedtaksdato,
+                    tilleggstekst = tilleggstekst,
+                    fnr = fnr,
+                    saksbehandlerNavIdent = saksbehandlerNavIdent,
+                    beslutterNavIdent = beslutterNavIdent,
+                    tiltaksnavn = tiltaksnavn,
+                    innvilgelsesperiode = innvilgelsesperiode,
+                    saksnummer = saksnummer,
+                )
+            },
+            errorContext = "SakId: $sakId, saksnummer: $saksnummer",
             uri = vedtakInnvilgelseUri,
         )
     }
@@ -119,6 +155,37 @@ internal class PdfgenHttpClient(
         return pdfgenRequest(
             jsonPayload = { vedtak.toRevurderingStans(hentBrukersNavn, hentSaksbehandlersNavn, vedtaksdato) },
             errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
+            uri = stansvedtakUri,
+        )
+    }
+
+    override suspend fun genererStansvedtak(
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+        vedtaksdato: LocalDate,
+        fnr: Fnr,
+        saksbehandlerNavIdent: String,
+        beslutterNavIdent: String?,
+        tiltaksnavn: String,
+        stansperiode: Periode,
+        saksnummer: Saksnummer,
+        sakId: SakId,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return pdfgenRequest(
+            jsonPayload = {
+                genererStansbrev(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    vedtaksdato = vedtaksdato,
+                    fnr = fnr,
+                    saksbehandlerNavIdent = saksbehandlerNavIdent,
+                    beslutterNavIdent = beslutterNavIdent,
+                    tiltaksnavn = tiltaksnavn,
+                    stansperiode = stansperiode,
+                    saksnummer = saksnummer,
+                )
+            },
+            errorContext = "SakId: $sakId, saksnummer: $saksnummer",
             uri = stansvedtakUri,
         )
     }

@@ -2,7 +2,10 @@ package no.nav.tiltakspenger.vedtak.clients.pdfgen
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
+import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.Navn
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.utbetaling.domene.Satser
 import no.nav.tiltakspenger.vedtak.clients.pdfgen.formattering.norskDatoFormatter
@@ -17,7 +20,7 @@ private class BrevFørstegangsvedtakInnvilgelseDTO(
     val saksnummer: String,
     val barnetillegg: Boolean,
     val saksbehandlerNavn: String,
-    val beslutterNavn: String,
+    val beslutterNavn: String?,
     val kontor: String,
     val datoForUtsending: String,
     val sats: Int,
@@ -29,22 +32,48 @@ internal suspend fun Rammevedtak.toInnvilgetSøknadsbrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
     vedtaksdato: LocalDate,
-    tilleggstekst: String? = null,
+    tilleggstekst: FritekstTilVedtaksbrev? = null,
+): String {
+    return genererInnvilgetSøknadsbrev(
+        hentBrukersNavn = hentBrukersNavn,
+        hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+        vedtaksdato = vedtaksdato,
+        tilleggstekst = tilleggstekst,
+        fnr = fnr,
+        saksbehandlerNavIdent = saksbehandlerNavIdent,
+        beslutterNavIdent = beslutterNavIdent,
+        tiltaksnavn = this.behandling.tiltaksnavn,
+        innvilgelsesperiode = this.periode,
+        saksnummer = saksnummer,
+    )
+}
+
+internal suspend fun genererInnvilgetSøknadsbrev(
+    hentBrukersNavn: suspend (Fnr) -> Navn,
+    hentSaksbehandlersNavn: suspend (String) -> String,
+    vedtaksdato: LocalDate,
+    tilleggstekst: FritekstTilVedtaksbrev? = null,
+    fnr: Fnr,
+    saksbehandlerNavIdent: String,
+    beslutterNavIdent: String?,
+    tiltaksnavn: String,
+    innvilgelsesperiode: Periode,
+    saksnummer: Saksnummer,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
-    val besluttersNavn = hentSaksbehandlersNavn(beslutterNavIdent)
+    val besluttersNavn = beslutterNavIdent?.let { hentSaksbehandlersNavn(it) }
 
     return BrevFørstegangsvedtakInnvilgelseDTO(
         personalia = BrevPersonaliaDTO(
-            ident = this.fnr.verdi,
+            ident = fnr.verdi,
             fornavn = brukersNavn.fornavn,
             etternavn = brukersNavn.mellomnavnOgEtternavn,
             antallBarn = 0,
         ),
-        tiltaksnavn = this.behandling.tiltaksnavn,
-        rammevedtakFraDato = periode.fraOgMed.format(norskDatoFormatter),
-        rammevedtakTilDato = periode.tilOgMed.format(norskDatoFormatter),
+        tiltaksnavn = tiltaksnavn,
+        rammevedtakFraDato = innvilgelsesperiode.fraOgMed.format(norskDatoFormatter),
+        rammevedtakTilDato = innvilgelsesperiode.tilOgMed.format(norskDatoFormatter),
         saksnummer = saksnummer.verdi,
         barnetillegg = false,
         saksbehandlerNavn = saksbehandlersNavn,
@@ -53,8 +82,8 @@ internal suspend fun Rammevedtak.toInnvilgetSøknadsbrev(
         kontor = "Nav Tiltak Øst-Viken",
         // Dette er vår dato, det brukes typisk når bruker klager på vedtaksbrev på dato ...
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
-        sats = Satser.sats(periode.fraOgMed).sats,
-        satsBarn = Satser.sats(periode.fraOgMed).satsBarnetillegg,
-        tilleggstekst = tilleggstekst,
+        sats = Satser.sats(innvilgelsesperiode.fraOgMed).sats,
+        satsBarn = Satser.sats(innvilgelsesperiode.fraOgMed).satsBarnetillegg,
+        tilleggstekst = tilleggstekst?.verdi,
     ).let { serialize(it) }
 }
