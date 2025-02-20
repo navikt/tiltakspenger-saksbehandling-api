@@ -46,14 +46,25 @@ class OppgaveHttpClient(
             logger.warn { "Oppgave for journalpostId: $journalpostId finnes fra før, callId: $callId" }
             return OppgaveId(oppgaveResponse.oppgaver.first().id.toString())
         }
-        val opprettOppgaveRequest = if (oppgavebehov == Oppgavebehov.NY_SOKNAD) {
-            OpprettOppgaveRequest.opprettOppgaveRequestForSoknad(
-                fnr = fnr,
-                journalpostId = journalpostId,
-            )
-        } else {
-            logger.error { "Ukjent oppgavebehov for oppgave med journalpost: ${oppgavebehov.name}" }
-            throw IllegalArgumentException("Ukjent oppgavebehov for oppgave med journalpost: ${oppgavebehov.name}")
+        val opprettOppgaveRequest = when (oppgavebehov) {
+            Oppgavebehov.NY_SOKNAD -> {
+                OpprettOppgaveRequest.opprettOppgaveRequestForSoknad(
+                    fnr = fnr,
+                    journalpostId = journalpostId,
+                )
+            }
+
+            Oppgavebehov.NYTT_MELDEKORT -> {
+                OpprettOppgaveRequest.opprettOppgaveRequestForMeldekort(
+                    fnr = fnr,
+                    journalpostId = journalpostId,
+                )
+            }
+
+            else -> {
+                logger.error { "Ukjent oppgavebehov for oppgave med journalpost: ${oppgavebehov.name}" }
+                throw IllegalArgumentException("Ukjent oppgavebehov for oppgave med journalpost: ${oppgavebehov.name}")
+            }
         }
         return opprettOppgave(opprettOppgaveRequest, callId)
     }
