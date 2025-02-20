@@ -76,6 +76,6 @@ class GenererFakeVedtaksbrevGateway :
         saksnummer: Saksnummer,
         sakId: SakId,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        TODO("Not yet implemented")
+        return response
     }
 }

@@ -25,7 +25,7 @@ class ForhåndsvisVedtaksbrevService(
             throw IllegalStateException("Kunne ikke forhåndsvise vedtaksbrev. Fant ikke sak eller hadde ikke tilgang til sak. sakId=${kommando.sakId}, behandlingId=${kommando.behandlingId}")
         }
         val behandling = sak.hentBehandling(kommando.behandlingId)!!
-        if (behandling.saksbehandler != kommando.saksbehandler.brukernavn) {
+        if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {
             throw IllegalStateException("Kunne ikke forhåndsvise vedtaksbrev. Saksbehandler har ikke tatt behandling. sakId=${kommando.sakId}, behandlingId=${kommando.behandlingId}")
         }
         return when (behandling.behandlingstype) {
