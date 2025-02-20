@@ -195,6 +195,8 @@ class TestApplicationContext(
                 personService = personContext.personService,
                 entraIdSystemtokenClient = entraIdSystemtokenClient,
                 navkontorService = navkontorService,
+                oppgaveGateway = oppgaveGateway,
+                sakRepo = sakContext.sakRepo,
             ) {
             override val meldekortBehandlingRepo = meldekortBehandlingFakeRepo
             override val meldeperiodeRepo = meldeperiodeFakeRepo

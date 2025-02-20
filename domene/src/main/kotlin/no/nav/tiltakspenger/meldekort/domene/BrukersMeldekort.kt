@@ -23,6 +23,8 @@ data class BrukersMeldekort(
     val meldeperiode: Meldeperiode,
     val sakId: SakId,
     val dager: List<BrukersMeldekortDag>,
+    val journalpostId: String?,
+    val oppgaveId: String?,
 ) {
     val meldeperiodeKjedeId: MeldeperiodeKjedeId = meldeperiode.meldeperiodeKjedeId
     val meldeperiodeVersjon: HendelseVersjon = meldeperiode.versjon
@@ -32,6 +34,7 @@ data class BrukersMeldekort(
         val status: InnmeldtStatus,
         val dato: LocalDate,
     )
+
     init {
         dager.zipWithNext().forEach { (dag, nesteDag) ->
             require(dag.dato.isBefore(nesteDag.dato)) { "Dager må være sortert" }

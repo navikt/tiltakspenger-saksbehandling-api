@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.objectmothers
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
+import no.nav.tiltakspenger.common.JournalpostIdGenerator
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.felles.erHelg
 import no.nav.tiltakspenger.felles.nå
@@ -422,6 +423,8 @@ interface MeldekortMother {
             meldeperiode = meldeperiode,
             sakId = sakId,
             dager = dager,
+            journalpostId = JournalpostIdGenerator().neste().toString(),
+            oppgaveId = null,
         )
     }
 
@@ -446,6 +449,8 @@ interface MeldekortMother {
             meldeperiodeId = meldeperiodeId,
             sakId = sakId,
             dager = dager,
+            journalpostId = JournalpostIdGenerator().neste(),
+            oppgaveId = null,
         )
     }
 }

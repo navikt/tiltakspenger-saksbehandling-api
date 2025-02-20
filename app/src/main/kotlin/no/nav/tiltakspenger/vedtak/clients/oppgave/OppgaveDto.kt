@@ -8,6 +8,7 @@ import java.time.LocalDate
 const val TEMA_TILTAKSPENGER: String = "IND"
 const val OPPGAVETYPE_BEHANDLE_SAK: String = "BEH_SAK"
 const val OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE: String = "VUR_KONS_YTE"
+const val OPPGAVETYPE_VURDER_HENVENDELSE: String = "VUR_HENV"
 
 const val BEHANDLES_AV_APPLIKASJON = "TILTAKSPENGER"
 
@@ -43,6 +44,17 @@ data class OpprettOppgaveRequest(
             beskrivelse = "Det har skjedd en endring i tiltaksdeltakelsen som kan påvirke tiltakspengeytelsen.",
             behandlesAvApplikasjon = null,
             oppgavetype = OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE,
+        )
+
+        fun opprettOppgaveRequestForMeldekort(
+            fnr: Fnr,
+            journalpostId: JournalpostId,
+        ) = OpprettOppgaveRequest(
+            personident = fnr.verdi,
+            journalpostId = journalpostId.toString(),
+            beskrivelse = "Nytt meldekort for tiltakspenger. Behandles i ny løsning.",
+            behandlesAvApplikasjon = BEHANDLES_AV_APPLIKASJON,
+            oppgavetype = OPPGAVETYPE_VURDER_HENVENDELSE,
         )
     }
 }

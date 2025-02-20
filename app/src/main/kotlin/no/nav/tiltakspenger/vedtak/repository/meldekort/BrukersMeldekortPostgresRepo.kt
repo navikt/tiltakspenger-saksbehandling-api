@@ -30,7 +30,9 @@ class BrukersMeldekortPostgresRepo(
                         meldeperiode_versjon,
                         sak_id,
                         mottatt,
-                        dager
+                        dager,
+                        journalpost_id,
+                        oppgave_id
                     ) values (
                         :id,
                         :meldeperiode_id,
@@ -38,7 +40,9 @@ class BrukersMeldekortPostgresRepo(
                         (SELECT versjon FROM meldeperiode WHERE id = :meldeperiode_id),
                         :sak_id,
                         :mottatt,
-                        to_jsonb(:dager::jsonb)
+                        to_jsonb(:dager::jsonb),
+                        :journalpost_id,
+                        :oppgave_id
                     )
                     """,
                     "id" to brukersMeldekort.id.toString(),
@@ -46,6 +50,8 @@ class BrukersMeldekortPostgresRepo(
                     "sak_id" to brukersMeldekort.sakId.toString(),
                     "mottatt" to brukersMeldekort.mottatt,
                     "dager" to brukersMeldekort.toDagerJson(),
+                    "journalpost_id" to brukersMeldekort.journalpostId.toString(),
+                    "oppgave_id" to brukersMeldekort.oppgaveId,
                 ).asUpdate,
             )
         }
@@ -69,6 +75,21 @@ class BrukersMeldekortPostgresRepo(
     override fun hentForMeldeperiodeId(meldeperiodeId: MeldeperiodeId, sessionContext: SessionContext?): BrukersMeldekort? {
         return sessionFactory.withSession(sessionContext) { session ->
             hentForMeldeperiodeId(meldeperiodeId, session)
+        }
+    }
+
+    override fun hentMeldekortSomIKkeSkalGodkjennesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
+        return sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select *
+                        from meldekort_bruker 
+                    where journalpost_id is not null
+                    and oppgave_id is null
+                    """,
+                ).map { row -> fromRow(row, session) }.asList,
+            )
         }
     }
 
@@ -134,6 +155,8 @@ class BrukersMeldekortPostgresRepo(
                 )!!,
                 sakId = SakId.fromString(row.string("sak_id")),
                 dager = row.string("dager").toMeldekortDager(),
+                journalpostId = row.string("journalpost_id"),
+                oppgaveId = row.stringOrNull("oppgave_id"),
             )
         }
     }
