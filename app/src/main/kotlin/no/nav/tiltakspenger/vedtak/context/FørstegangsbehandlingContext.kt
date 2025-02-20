@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterFritekstTi
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutterV2Service
 import no.nav.tiltakspenger.saksbehandling.service.behandling.StartSøknadsbehandlingV2Service
+import no.nav.tiltakspenger.saksbehandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.kvp.KvpVilkårService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.kvp.KvpVilkårServiceImpl
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.livsopphold.LivsoppholdVilkårService
@@ -172,6 +173,16 @@ open class FørstegangsbehandlingContext(
         DistribuerVedtaksbrevService(
             dokdistGateway = dokdistGateway,
             rammevedtakRepo = rammevedtakRepo,
+        )
+    }
+
+    val forhåndsvisVedtaksbrevService by lazy {
+        ForhåndsvisVedtaksbrevService(
+            sakService = sakService,
+            genererInnvilgelsesbrevClient = genererVedtaksbrevGateway,
+            genererStansbrevClient = genererStansvedtaksbrevGateway,
+            personService = personService,
+            navIdentClient = navIdentClient,
         )
     }
 }

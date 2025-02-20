@@ -10,12 +10,14 @@ import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterFritekstTi
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutterV2Service
 import no.nav.tiltakspenger.saksbehandling.service.behandling.StartSøknadsbehandlingV2Service
+import no.nav.tiltakspenger.saksbehandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.kvp.KvpVilkårService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.livsopphold.LivsoppholdVilkårService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.tiltaksdeltagelse.TiltaksdeltagelseVilkårService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.behandling.beslutter.iverksettBehandlingv2Route
+import no.nav.tiltakspenger.vedtak.routes.behandling.brev.forhåndsvisVedtaksbrevRoute
 import no.nav.tiltakspenger.vedtak.routes.behandling.brev.oppdaterFritekstTilVedtaksbrevRoute
 import no.nav.tiltakspenger.vedtak.routes.behandling.personopplysninger.hentPersonRoute
 import no.nav.tiltakspenger.vedtak.routes.behandling.stønadsdager.stønadsdagerRoutes
@@ -46,6 +48,7 @@ fun Route.behandlingRoutes(
     oppdaterFritekstTilVedtaksbrevService: OppdaterFritekstTilVedtaksbrevService,
     iverksettBehandlingV2Service: IverksettBehandlingV2Service,
     sendBehandlingTilBesluterV2Service: SendBehandlingTilBeslutterV2Service,
+    forhåndsvisVedtaksbrevService: ForhåndsvisVedtaksbrevService,
 ) {
     hentPersonRoute(tokenService, sakService, auditService)
     tiltakDeltagelseRoutes(behandlingService, tiltaksdeltagelseVilkårService, auditService, tokenService)
@@ -65,4 +68,5 @@ fun Route.behandlingRoutes(
     oppdaterFritekstTilVedtaksbrevRoute(tokenService, auditService, oppdaterFritekstTilVedtaksbrevService)
     iverksettBehandlingv2Route(iverksettBehandlingV2Service, auditService, tokenService)
     sendBehandlingTilBeslutterV2Route(sendBehandlingTilBesluterV2Service, auditService, tokenService)
+    forhåndsvisVedtaksbrevRoute(tokenService, auditService, forhåndsvisVedtaksbrevService)
 }

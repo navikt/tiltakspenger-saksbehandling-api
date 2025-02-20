@@ -38,7 +38,7 @@ private data class ForhåndsvisBehandlingBody(
     )
 }
 
-fun Route.forhåndsvisVedtaksbrev(
+fun Route.forhåndsvisVedtaksbrevRoute(
     tokenService: TokenService,
     auditService: AuditService,
     forhåndsvisVedtaksbrevService: ForhåndsvisVedtaksbrevService,

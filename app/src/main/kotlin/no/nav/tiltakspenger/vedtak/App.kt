@@ -84,7 +84,7 @@ internal fun start(
                 applicationContext.endretTiltaksdeltakerJobb.opprydning()
             }
 
-            if (applicationProfile != Profile.PROD) {
+            if (applicationProfile == Profile.DEV) {
                 applicationContext.meldekortContext.sendMeldeperiodeTilBrukerService.send()
             }
         },
