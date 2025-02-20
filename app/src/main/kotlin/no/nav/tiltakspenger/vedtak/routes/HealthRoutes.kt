@@ -13,7 +13,6 @@ fun Route.healthRoutes() {
     }
 
     get("/isready") {
-        call.respondText("READY")
         if (call.application.isReady()) {
             call.respondText("READY")
         } else {
