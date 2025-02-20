@@ -8,9 +8,12 @@ import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.meldekort.service.IverksettMeldekortService
+import no.nav.tiltakspenger.meldekort.service.OppgaveMeldekortService
 import no.nav.tiltakspenger.meldekort.service.OpprettMeldekortBehandlingService
 import no.nav.tiltakspenger.meldekort.service.SendMeldekortTilBeslutningService
 import no.nav.tiltakspenger.meldekort.service.SendMeldeperiodeTilBrukerService
+import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
@@ -35,6 +38,8 @@ open class MeldekortContext(
     statistikkStønadRepo: StatistikkStønadRepo,
     entraIdSystemtokenClient: EntraIdSystemtokenClient,
     navkontorService: NavkontorService,
+    oppgaveGateway: OppgaveGateway,
+    sakRepo: SakRepo,
 ) {
     open val meldekortBehandlingRepo: MeldekortBehandlingRepo by lazy {
         MeldekortBehandlingPostgresRepo(
@@ -92,6 +97,14 @@ open class MeldekortContext(
         SendMeldeperiodeTilBrukerService(
             meldeperiodeRepo = meldeperiodeRepo,
             meldekortApiHttpClient = meldekortApiHttpClient,
+        )
+    }
+
+    val oppgaveMeldekortService by lazy {
+        OppgaveMeldekortService(
+            oppgaveGateway = oppgaveGateway,
+            sakRepo = sakRepo,
+            brukersMeldekortRepo = brukersMeldekortRepo,
         )
     }
 }

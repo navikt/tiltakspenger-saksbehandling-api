@@ -37,6 +37,8 @@ class MeldekortBrukerPostgresRepoTest {
                     meldeperiode = meldeperiode,
                     sakId = nyttBrukersMeldekort.sakId,
                     dager = nyttBrukersMeldekort.dager,
+                    journalpostId = nyttBrukersMeldekort.journalpostId.toString(),
+                    oppgaveId = nyttBrukersMeldekort.oppgaveId,
                 ),
             )
         }

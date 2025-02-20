@@ -25,4 +25,8 @@ interface BrukersMeldekortRepo {
         meldeperiodeId: MeldeperiodeId,
         sessionContext: SessionContext? = null,
     ): BrukersMeldekort?
+
+    fun hentMeldekortSomIKkeSkalGodkjennesAutomatisk(
+        sessionContext: SessionContext? = null,
+    ): List<BrukersMeldekort>
 }

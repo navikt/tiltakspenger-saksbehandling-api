@@ -23,6 +23,8 @@ class BrukersMeldekortFakeRepo(val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) :
             meldeperiode = meldeperiode,
             mottatt = brukersMeldekort.mottatt,
             dager = brukersMeldekort.dager,
+            journalpostId = brukersMeldekort.journalpostId.toString(),
+            oppgaveId = brukersMeldekort.oppgaveId,
         )
     }
 
@@ -41,5 +43,9 @@ class BrukersMeldekortFakeRepo(val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) :
         sessionContext: SessionContext?,
     ): BrukersMeldekort? {
         return data.get().values.find { it.meldeperiode.id == meldeperiodeId }
+    }
+
+    override fun hentMeldekortSomIKkeSkalGodkjennesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
+        return data.get().values.filter { it.oppgaveId == null }
     }
 }

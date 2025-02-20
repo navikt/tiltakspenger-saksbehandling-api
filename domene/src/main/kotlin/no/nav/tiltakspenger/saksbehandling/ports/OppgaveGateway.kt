@@ -12,6 +12,7 @@ interface OppgaveGateway {
 }
 
 enum class Oppgavebehov {
-    NY_SOKNAD,
     ENDRET_TILTAKDELTAKER,
+    NY_SOKNAD,
+    NYTT_MELDEKORT,
 }

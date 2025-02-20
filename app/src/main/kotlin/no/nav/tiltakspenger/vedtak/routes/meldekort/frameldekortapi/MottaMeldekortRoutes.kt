@@ -6,6 +6,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import mu.KotlinLogging
+import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -67,5 +68,7 @@ private fun BrukerutfyltMeldekortDTO.toDomain(): NyttBrukersMeldekort {
                 },
             )
         },
+        journalpostId = JournalpostId(this.journalpostId),
+        oppgaveId = null,
     )
 }
