@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.libs.jobber.RunCheckFactory
 import no.nav.tiltakspenger.vedtak.Configuration.applicationProfile
 import no.nav.tiltakspenger.vedtak.Configuration.httpPort
 import no.nav.tiltakspenger.vedtak.context.ApplicationContext
-import no.nav.tiltakspenger.vedtak.jobber.IsReady
 import no.nav.tiltakspenger.vedtak.jobber.TaskExecutor
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -42,24 +41,6 @@ internal fun start(
         sikkerlogg.error(e) { e.message }
     }
 
-    val runCheckFactory = if (isNais) {
-        RunCheckFactory(
-            leaderPodLookup =
-            LeaderPodLookupClient(
-                electorPath = Configuration.electorPath(),
-                logger = KotlinLogging.logger { },
-            ),
-        )
-    } else {
-        RunCheckFactory(
-            leaderPodLookup =
-            object : LeaderPodLookup {
-                override fun amITheLeader(localHostName: String): Either<LeaderPodLookupFeil, Boolean> =
-                    true.right()
-            },
-        )
-    }
-
     val applicationProfile = applicationProfile()
 
     val server = embeddedServer(
@@ -69,10 +50,29 @@ internal fun start(
     )
     server.application.attributes.put(isReadyKey, true)
 
+    val runCheckFactory = if (isNais) {
+        RunCheckFactory(
+            leaderPodLookup =
+            LeaderPodLookupClient(
+                electorPath = Configuration.electorPath(),
+                logger = KotlinLogging.logger { },
+            ),
+            applicationIsReady = { server.application.isReady() },
+        )
+    } else {
+        RunCheckFactory(
+            leaderPodLookup =
+            object : LeaderPodLookup {
+                override fun amITheLeader(localHostName: String): Either<LeaderPodLookupFeil, Boolean> =
+                    true.right()
+            },
+            applicationIsReady = { server.application.isReady() },
+        )
+    }
+
     val stoppableTasks = TaskExecutor.startJob(
         initialDelay = if (isNais) 1.minutes else 1.seconds,
         runCheckFactory = runCheckFactory,
-        isReady = IsReady { server.application.isReady() },
         tasks = listOf {
             applicationContext.utbetalingContext.sendUtbetalingerService.send()
             applicationContext.utbetalingContext.journalførUtbetalingsvedtakService.journalfør()
