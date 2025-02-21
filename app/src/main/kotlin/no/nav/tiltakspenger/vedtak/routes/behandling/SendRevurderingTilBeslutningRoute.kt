@@ -13,8 +13,8 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter.MåVæreSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendRevurderingTilBeslutterKommando
-import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutterV2Service
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendRevurderingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutningV2Service
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
@@ -26,7 +26,7 @@ import no.nav.tiltakspenger.vedtak.routes.withBody
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 import java.time.LocalDate
 
-private data class SendRevurderingTilBeslutterBody(
+private data class SendRevurderingTilBeslutningBody(
     val begrunnelse: String,
     val stansDato: LocalDate,
 ) {
@@ -35,8 +35,8 @@ private data class SendRevurderingTilBeslutterBody(
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): SendRevurderingTilBeslutterKommando {
-        return SendRevurderingTilBeslutterKommando(
+    ): SendRevurderingTilBeslutningKommando {
+        return SendRevurderingTilBeslutningKommando(
             sakId = sakId,
             behandlingId = behandlingId,
             saksbehandler = saksbehandler,
@@ -47,23 +47,23 @@ private data class SendRevurderingTilBeslutterBody(
     }
 }
 
-private const val PATH = "/sak/{sakId}/revurdering/{behandlingId}/sendtilbeslutter"
+private const val PATH = "/sak/{sakId}/revurdering/{behandlingId}/sendtilbeslutning"
 
-fun Route.sendRevurderingTilBeslutterRoute(
-    sendBehandlingTilBeslutterV2Service: SendBehandlingTilBeslutterV2Service,
+fun Route.sendRevurderingTilBeslutningRoute(
+    sendBehandlingTilBeslutningV2Service: SendBehandlingTilBeslutningV2Service,
     auditService: AuditService,
     tokenService: TokenService,
 ) {
     val logger = KotlinLogging.logger {}
     post(PATH) {
-        logger.debug { "Mottatt post-request på '$PATH' - Sender revurderingen til beslutter" }
+        logger.debug { "Mottatt post-request på '$PATH' - Sender revurderingen til beslutning" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<SendRevurderingTilBeslutterBody> { body ->
+                    call.withBody<SendRevurderingTilBeslutningBody> { body ->
                         val correlationId = call.correlationId()
 
-                        sendBehandlingTilBeslutterV2Service.sendRevurderingTilBeslutter(
+                        sendBehandlingTilBeslutningV2Service.sendRevurderingTilBeslutning(
                             kommando = body.toDomain(
                                 sakId = sakId,
                                 behandlingId = behandlingId,
@@ -79,7 +79,7 @@ fun Route.sendRevurderingTilBeslutterRoute(
                                 behandlingId = behandlingId,
                                 navIdent = saksbehandler.navIdent,
                                 action = AuditLogEvent.Action.UPDATE,
-                                contextMessage = "Sender revurdering til beslutter",
+                                contextMessage = "Sender revurdering til beslutning",
                                 correlationId = correlationId,
                             )
                             call.respond(HttpStatusCode.OK, it.toDTO())

@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårs
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter.MåVæreSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendBehandlingTilBeslutterKommando
-import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutterV2Service
+import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutningV2Service
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
@@ -50,8 +50,8 @@ private data class SendTilBeslutterBody(
     }
 }
 
-fun Route.sendBehandlingTilBeslutterV2Route(
-    sendBehandlingTilBeslutterV2Service: SendBehandlingTilBeslutterV2Service,
+fun Route.sendBehandlingTilBeslutningV2Route(
+    sendBehandlingTilBeslutningV2Service: SendBehandlingTilBeslutningV2Service,
     auditService: AuditService,
     tokenService: TokenService,
 ) {
@@ -64,7 +64,7 @@ fun Route.sendBehandlingTilBeslutterV2Route(
                     call.withBody<SendTilBeslutterBody> { body ->
                         val correlationId = call.correlationId()
 
-                        sendBehandlingTilBeslutterV2Service.sendTilBeslutter(
+                        sendBehandlingTilBeslutningV2Service.sendTilBeslutning(
                             kommando = body.toDomain(
                                 sakId = sakId,
                                 behandlingId = behandlingId,

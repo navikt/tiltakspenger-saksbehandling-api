@@ -216,7 +216,7 @@ data class Behandling(
             saksnummer: Saksnummer,
             fnr: Fnr,
             saksbehandler: Saksbehandler,
-            periode: Periode,
+            saksopplysningsperiode: Periode,
             hentSaksopplysninger: suspend () -> Saksopplysninger,
         ): Behandling {
             val opprettet = nå()
@@ -245,7 +245,7 @@ data class Behandling(
                 // her kan man på sikt lagre oppgaveId hvis man oppretter oppgave for revurdering
                 oppgaveId = null,
                 // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for førstegangsbehandling.
-                saksopplysningsperiode = periode,
+                saksopplysningsperiode = saksopplysningsperiode,
                 innvilgelsesperiode = null,
             )
         }
@@ -443,8 +443,8 @@ data class Behandling(
         )
     }
 
-    fun tilRevurdering(
-        kommando: SendRevurderingTilBeslutterKommando,
+    fun sendRevurderingTilBeslutning(
+        kommando: SendRevurderingTilBeslutningKommando,
         vedtaksperiode: Periode,
     ): Behandling {
         check(status == UNDER_BEHANDLING) {

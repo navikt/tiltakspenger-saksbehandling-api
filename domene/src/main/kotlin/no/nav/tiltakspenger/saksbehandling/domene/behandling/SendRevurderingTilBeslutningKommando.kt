@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import java.time.LocalDate
 
-data class SendRevurderingTilBeslutterKommando(
+data class SendRevurderingTilBeslutningKommando(
     val sakId: SakId,
     val behandlingId: BehandlingId,
     val saksbehandler: Saksbehandler,

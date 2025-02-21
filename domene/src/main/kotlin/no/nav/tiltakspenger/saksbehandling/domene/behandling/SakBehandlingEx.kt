@@ -5,7 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 
-fun Sak.sendBehandlingTilBeslutter(
+fun Sak.sendBehandlingTilBeslutning(
     kommando: SendBehandlingTilBeslutterKommando,
 ): Either<KanIkkeSendeTilBeslutter, Pair<Sak, Behandling>> {
     if (!kommando.saksbehandler.erSaksbehandler()) {
@@ -16,8 +16,8 @@ fun Sak.sendBehandlingTilBeslutter(
     return (this.copy(behandlinger = this.behandlinger.oppdaterBehandling(oppdatertBehandling)) to oppdatertBehandling).right()
 }
 
-fun Sak.sendRevurderingTilBeslutter(
-    kommando: SendRevurderingTilBeslutterKommando,
+fun Sak.sendRevurderingTilBeslutning(
+    kommando: SendRevurderingTilBeslutningKommando,
 ): Either<KanIkkeSendeTilBeslutter, Behandling> {
     if (!kommando.saksbehandler.erSaksbehandler()) {
         return KanIkkeSendeTilBeslutter.MåVæreSaksbehandler.left()
@@ -25,9 +25,9 @@ fun Sak.sendRevurderingTilBeslutter(
 
     val stansDato = kommando.stansDato
 
-    this.sisteUtbetalteMeldekortDag()?.also {
-        if (it >= stansDato) {
-            throw IllegalArgumentException("Kan ikke stanse for meldeperioder som allerede er utbetalt")
+    this.førsteLovligeStansdato()?.also {
+        if (stansDato.isBefore(it)) {
+            throw IllegalArgumentException("Angitt stansdato $stansDato er før første lovlige stansdato $it")
         }
     }
 
@@ -36,7 +36,7 @@ fun Sak.sendRevurderingTilBeslutter(
     }
 
     val behandling: Behandling = this.hentBehandling(kommando.behandlingId)!!
-    val oppdatertBehandling = behandling.tilRevurdering(kommando, this.vedtaksperiode!!)
+    val oppdatertBehandling = behandling.sendRevurderingTilBeslutning(kommando, this.vedtaksperiode!!)
 
     return oppdatertBehandling.right()
 }

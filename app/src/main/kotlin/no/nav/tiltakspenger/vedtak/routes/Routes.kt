@@ -28,7 +28,7 @@ fun Route.routes(applicationContext: ApplicationContext) {
         oppdaterBegrunnelseVilkårsvurderingService = applicationContext.behandlingContext.oppdaterBegrunnelseVilkårsvurderingService,
         oppdaterFritekstTilVedtaksbrevService = applicationContext.behandlingContext.oppdaterFritekstTilVedtaksbrevService,
         iverksettBehandlingV2Service = applicationContext.behandlingContext.iverksettBehandlingV2Service,
-        sendBehandlingTilBeslutterV2Service = applicationContext.behandlingContext.sendBehandlingTilBeslutterV2Service,
+        sendBehandlingTilBeslutningV2Service = applicationContext.behandlingContext.sendBehandlingTilBeslutningV2Service,
         forhåndsvisVedtaksbrevService = applicationContext.behandlingContext.forhåndsvisVedtaksbrevService,
         startRevurderingService = applicationContext.behandlingContext.startRevurderingService,
     )
