@@ -211,6 +211,45 @@ data class Behandling(
             ).right()
         }
 
+        suspend fun opprettRevurderingV2(
+            sakId: SakId,
+            saksnummer: Saksnummer,
+            fnr: Fnr,
+            saksbehandler: Saksbehandler,
+            periode: Periode,
+            hentSaksopplysninger: suspend () -> Saksopplysninger,
+        ): Behandling {
+            val opprettet = nå()
+            return Behandling(
+                id = BehandlingId.random(),
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                stansperiode = null,
+                søknad = null,
+                saksbehandler = saksbehandler.navIdent,
+                sendtTilBeslutning = null,
+                beslutter = null,
+                vilkårssett = null,
+                saksopplysninger = hentSaksopplysninger(),
+                fritekstTilVedtaksbrev = null,
+                begrunnelseVilkårsvurdering = null,
+                stønadsdager = null,
+                status = UNDER_BEHANDLING,
+                attesteringer = emptyList(),
+                opprettet = opprettet,
+                iverksattTidspunkt = null,
+                sendtTilDatadeling = null,
+                sistEndret = opprettet,
+                behandlingstype = Behandlingstype.REVURDERING,
+                // her kan man på sikt lagre oppgaveId hvis man oppretter oppgave for revurdering
+                oppgaveId = null,
+                // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for førstegangsbehandling.
+                saksopplysningsperiode = periode,
+                innvilgelsesperiode = null,
+            )
+        }
+
         /**
          * Gammel måte og opprette førstegangsbehandling.
          * TODO John + Anders: Denne skal slettes når vi har ny flyt.
@@ -401,6 +440,23 @@ data class Behandling(
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             innvilgelsesperiode = kommando.innvilgelsesperiode,
+        )
+    }
+
+    fun tilRevurdering(
+        kommando: SendRevurderingTilBeslutterKommando,
+        vedtaksperiode: Periode,
+    ): Behandling {
+        check(status == UNDER_BEHANDLING) {
+            "Behandlingen må være under behandling, det innebærer også at en saksbehandler må ta saken før den kan sendes til beslutter. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}"
+        }
+        check(kommando.saksbehandler.navIdent == this.saksbehandler) { "Det er ikke lov å sende en annen sin behandling til beslutter" }
+
+        return this.copy(
+            status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
+            sendtTilBeslutning = nå(),
+            begrunnelseVilkårsvurdering = kommando.begrunnelse,
+            stansperiode = Periode(kommando.stansDato, vedtaksperiode.tilOgMed),
         )
     }
 

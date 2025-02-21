@@ -11,11 +11,9 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter.MåVæreSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendBehandlingTilBeslutterKommando
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendRevurderingTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutterV2Service
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
@@ -26,45 +24,46 @@ import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond403Forbidden
 import no.nav.tiltakspenger.vedtak.routes.withBehandlingId
 import no.nav.tiltakspenger.vedtak.routes.withBody
 import no.nav.tiltakspenger.vedtak.routes.withSakId
+import java.time.LocalDate
 
-private data class SendTilBeslutterBody(
-    val fritekstTilVedtaksbrev: String?,
-    val begrunnelseVilkårsvurdering: String?,
-    val innvilgelsesperiode: PeriodeDTO,
+private data class SendRevurderingTilBeslutterBody(
+    val begrunnelse: String,
+    val stansDato: LocalDate,
 ) {
     fun toDomain(
         sakId: SakId,
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): SendBehandlingTilBeslutterKommando {
-        return SendBehandlingTilBeslutterKommando(
+    ): SendRevurderingTilBeslutterKommando {
+        return SendRevurderingTilBeslutterKommando(
             sakId = sakId,
             behandlingId = behandlingId,
             saksbehandler = saksbehandler,
             correlationId = correlationId,
-            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(it) },
-            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { BegrunnelseVilkårsvurdering(it) },
-            innvilgelsesperiode = innvilgelsesperiode.toDomain(),
+            begrunnelse = BegrunnelseVilkårsvurdering(begrunnelse),
+            stansDato = stansDato,
         )
     }
 }
 
-fun Route.sendBehandlingTilBeslutterV2Route(
+private const val PATH = "/sak/{sakId}/revurdering/{behandlingId}/sendtilbeslutter"
+
+fun Route.sendRevurderingTilBeslutterRoute(
     sendBehandlingTilBeslutterV2Service: SendBehandlingTilBeslutterV2Service,
     auditService: AuditService,
     tokenService: TokenService,
 ) {
     val logger = KotlinLogging.logger {}
-    post("/sak/{sakId}/behandling/{behandlingId}/sendtilbeslutter") {
-        logger.debug { "Mottatt post-request på '/sak/{sakId}/behandling/{behandlingId}/sendtilbeslutter' - Sender behandlingen til beslutter" }
+    post(PATH) {
+        logger.debug { "Mottatt post-request på '$PATH' - Sender revurderingen til beslutter" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<SendTilBeslutterBody> { body ->
+                    call.withBody<SendRevurderingTilBeslutterBody> { body ->
                         val correlationId = call.correlationId()
 
-                        sendBehandlingTilBeslutterV2Service.sendTilBeslutter(
+                        sendBehandlingTilBeslutterV2Service.sendRevurderingTilBeslutter(
                             kommando = body.toDomain(
                                 sakId = sakId,
                                 behandlingId = behandlingId,
@@ -80,7 +79,7 @@ fun Route.sendBehandlingTilBeslutterV2Route(
                                 behandlingId = behandlingId,
                                 navIdent = saksbehandler.navIdent,
                                 action = AuditLogEvent.Action.UPDATE,
-                                contextMessage = "Sender behandling til beslutter",
+                                contextMessage = "Sender revurdering til beslutter",
                                 correlationId = correlationId,
                             )
                             call.respond(HttpStatusCode.OK, it.toDTO())

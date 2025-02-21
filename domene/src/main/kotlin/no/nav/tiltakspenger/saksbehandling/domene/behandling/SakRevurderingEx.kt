@@ -74,6 +74,48 @@ suspend fun Sak.startRevurdering(
     return Pair(leggTilRevurdering(revurdering), revurdering).right()
 }
 
+suspend fun Sak.startRevurderingV2(
+    kommando: StartRevurderingV2Kommando,
+    hentSaksopplysninger: suspend (sakId: SakId, saksnummer: Saksnummer, fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger,
+): Either<KanIkkeStarteRevurdering, Pair<Sak, Behandling>> {
+    val saksbehandler = kommando.saksbehandler
+
+    if (!kommando.saksbehandler.erSaksbehandler()) {
+        loggerForStartRevurdering.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å starte revurdering på sak ${kommando.sakId}" }
+        return KanIkkeStarteRevurdering.HarIkkeTilgang(
+            kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER),
+            harRollene = saksbehandler.roller,
+        ).left()
+    }
+
+    require(this.vedtaksliste.antallInnvilgelsesperiode == 1) {
+        "Kan kun opprette en stansrevurdering dersom vi har en sammenhengende innvilgelsesperiode. sakId=${this.id}"
+    }
+
+    requireNotNull(this.førstegangsbehandling) { "Kan ikke opprette revurdering uten en førstegangsbehandling" }
+
+    val periode = this.vedtaksperiode!!
+
+    val revurdering = Behandling.opprettRevurderingV2(
+        sakId = this.id,
+        saksnummer = this.saksnummer,
+        fnr = this.fnr,
+        saksbehandler = saksbehandler,
+        hentSaksopplysninger = {
+            hentSaksopplysninger(
+                this.id,
+                this.saksnummer,
+                this.fnr,
+                kommando.correlationId,
+                periode,
+            )
+        },
+        periode = periode,
+    )
+
+    return Pair(leggTilRevurdering(revurdering), revurdering).right()
+}
+
 fun Sak.leggTilRevurdering(
     revurdering: Behandling,
 ): Sak {

@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.kvp.KvpVil
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.livsopphold.LivsoppholdVilkårService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.tiltaksdeltagelse.TiltaksdeltagelseVilkårService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.service.sak.StartRevurderingService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.behandling.beslutter.iverksettBehandlingv2Route
 import no.nav.tiltakspenger.vedtak.routes.behandling.brev.forhåndsvisVedtaksbrevRoute
@@ -47,8 +48,9 @@ fun Route.behandlingRoutes(
     oppdaterBegrunnelseVilkårsvurderingService: OppdaterBegrunnelseVilkårsvurderingService,
     oppdaterFritekstTilVedtaksbrevService: OppdaterFritekstTilVedtaksbrevService,
     iverksettBehandlingV2Service: IverksettBehandlingV2Service,
-    sendBehandlingTilBesluterV2Service: SendBehandlingTilBeslutterV2Service,
+    sendBehandlingTilBeslutterV2Service: SendBehandlingTilBeslutterV2Service,
     forhåndsvisVedtaksbrevService: ForhåndsvisVedtaksbrevService,
+    startRevurderingService: StartRevurderingService,
 ) {
     hentPersonRoute(tokenService, sakService, auditService)
     tiltakDeltagelseRoutes(behandlingService, tiltaksdeltagelseVilkårService, auditService, tokenService)
@@ -67,6 +69,9 @@ fun Route.behandlingRoutes(
     oppdaterBegrunnelseVilkårsvurderingRoute(tokenService, auditService, oppdaterBegrunnelseVilkårsvurderingService)
     oppdaterFritekstTilVedtaksbrevRoute(tokenService, auditService, oppdaterFritekstTilVedtaksbrevService)
     iverksettBehandlingv2Route(iverksettBehandlingV2Service, auditService, tokenService)
-    sendBehandlingTilBeslutterV2Route(sendBehandlingTilBesluterV2Service, auditService, tokenService)
+    sendBehandlingTilBeslutterV2Route(sendBehandlingTilBeslutterV2Service, auditService, tokenService)
     forhåndsvisVedtaksbrevRoute(tokenService, auditService, forhåndsvisVedtaksbrevService)
+    startRevurderingRoute(tokenService, startRevurderingService, auditService)
+    startRevurderingV2Route(tokenService, startRevurderingService, auditService)
+    sendRevurderingTilBeslutterRoute(sendBehandlingTilBeslutterV2Service, auditService, tokenService)
 }
