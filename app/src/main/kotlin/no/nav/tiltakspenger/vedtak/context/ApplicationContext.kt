@@ -149,6 +149,8 @@ open class ApplicationContext(
             personService = personContext.personService,
             entraIdSystemtokenClient = entraIdSystemtokenClient,
             navkontorService = navkontorService,
+            oppgaveGateway = oppgaveGateway,
+            sakRepo = sakContext.sakRepo,
         )
     }
     open val behandlingContext by lazy {

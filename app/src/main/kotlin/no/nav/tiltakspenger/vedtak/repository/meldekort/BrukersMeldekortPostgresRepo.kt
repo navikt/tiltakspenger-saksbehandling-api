@@ -72,6 +72,21 @@ class BrukersMeldekortPostgresRepo(
         }
     }
 
+    override fun hentDeUtenTilknyttetOppgave(sessionContext: SessionContext?): List<BrukersMeldekort> {
+        return sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select *
+                        from meldekort_bruker 
+                    where journalpost_id is not null
+                    and oppgave_id is null
+                    """,
+                ).map { row -> fromRow(row, session) }.asList,
+            )
+        }
+    }
+
     companion object {
         fun hentForSakId(
             sakId: SakId,
@@ -134,6 +149,8 @@ class BrukersMeldekortPostgresRepo(
                 )!!,
                 sakId = SakId.fromString(row.string("sak_id")),
                 dager = row.string("dager").toMeldekortDager(),
+                journalpostId = row.string("journalpost_id"),
+                oppgaveId = row.stringOrNull("oppgave_id"),
             )
         }
     }

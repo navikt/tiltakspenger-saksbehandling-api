@@ -25,4 +25,8 @@ interface BrukersMeldekortRepo {
         hendelseId: HendelseId,
         sessionContext: SessionContext? = null,
     ): BrukersMeldekort?
+
+    fun hentDeUtenTilknyttetOppgave(
+        sessionContext: SessionContext? = null,
+    ): List<BrukersMeldekort>
 }

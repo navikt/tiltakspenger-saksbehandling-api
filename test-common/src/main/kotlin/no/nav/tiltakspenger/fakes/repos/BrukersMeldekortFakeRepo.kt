@@ -42,4 +42,8 @@ class BrukersMeldekortFakeRepo(val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) :
     ): BrukersMeldekort? {
         return data.get().values.find { it.meldeperiode.id == hendelseId }
     }
+
+    override fun hentDeUtenTilknyttetOppgave(sessionContext: SessionContext?): List<BrukersMeldekort> {
+        TODO("Not yet implemented")
+    }
 }
