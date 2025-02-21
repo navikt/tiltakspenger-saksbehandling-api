@@ -26,6 +26,8 @@ internal data class BehandlingDTO(
     val begrunnelseVilkårsvurdering: String?,
     val stønadsdager: StønadsdagerDTO?,
     val vilkårssett: VilkårssettDTO?,
+//    Denne burde være med på revurderinger for client-side validering
+//    val førsteLovligeStansdato: LocalDate?,
 )
 
 internal fun Behandling.toDTO(): BehandlingDTO {

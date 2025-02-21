@@ -69,7 +69,7 @@ interface SendTilBeslutterBuilder {
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/behandling/$behandlingId/sendtilbeslutter")
+                path("/sak/$sakId/behandling/$behandlingId/sendtilbeslutning")
             },
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(
                 saksbehandler = saksbehandler,
