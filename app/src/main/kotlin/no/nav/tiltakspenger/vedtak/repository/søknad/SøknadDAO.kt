@@ -212,7 +212,7 @@ internal object SøknadDAO {
                         "vedlegg" to søknad.vedlegg,
                         "opprettet" to søknad.opprettet,
                         "tidsstempel_hos_oss" to søknad.tidsstempelHosOss,
-                        "oppgave_id" to søknad.oppgaveId.toString(),
+                        "oppgave_id" to søknad.oppgaveId?.toString(),
                     ),
             ).asUpdate,
         )
