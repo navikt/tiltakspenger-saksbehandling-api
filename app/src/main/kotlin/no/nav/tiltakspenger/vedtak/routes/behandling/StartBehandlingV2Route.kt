@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.service.behandling.StartSøknadsbehan
 import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteSøknadsbehandling
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
-import no.nav.tiltakspenger.vedtak.routes.behandling.benk.BehandlingIdDTO
+import no.nav.tiltakspenger.vedtak.routes.behandling.dto.BehandlingIdDTO
 import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.fantIkkeTiltak
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.ikkeTilgang

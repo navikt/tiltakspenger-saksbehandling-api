@@ -8,13 +8,14 @@ import no.nav.tiltakspenger.saksbehandling.service.behandling.IverksettBehandlin
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterSaksopplysningerService
-import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutterV2Service
+import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutningV2Service
 import no.nav.tiltakspenger.saksbehandling.service.behandling.StartSøknadsbehandlingV2Service
 import no.nav.tiltakspenger.saksbehandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.kvp.KvpVilkårService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.livsopphold.LivsoppholdVilkårService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.tiltaksdeltagelse.TiltaksdeltagelseVilkårService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.service.sak.StartRevurderingService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.behandling.beslutter.iverksettBehandlingv2Route
 import no.nav.tiltakspenger.vedtak.routes.behandling.brev.forhåndsvisVedtaksbrevRoute
@@ -47,8 +48,9 @@ fun Route.behandlingRoutes(
     oppdaterBegrunnelseVilkårsvurderingService: OppdaterBegrunnelseVilkårsvurderingService,
     oppdaterFritekstTilVedtaksbrevService: OppdaterFritekstTilVedtaksbrevService,
     iverksettBehandlingV2Service: IverksettBehandlingV2Service,
-    sendBehandlingTilBesluterV2Service: SendBehandlingTilBeslutterV2Service,
+    sendBehandlingTilBeslutningV2Service: SendBehandlingTilBeslutningV2Service,
     forhåndsvisVedtaksbrevService: ForhåndsvisVedtaksbrevService,
+    startRevurderingService: StartRevurderingService,
 ) {
     hentPersonRoute(tokenService, sakService, auditService)
     tiltakDeltagelseRoutes(behandlingService, tiltaksdeltagelseVilkårService, auditService, tokenService)
@@ -67,6 +69,9 @@ fun Route.behandlingRoutes(
     oppdaterBegrunnelseVilkårsvurderingRoute(tokenService, auditService, oppdaterBegrunnelseVilkårsvurderingService)
     oppdaterFritekstTilVedtaksbrevRoute(tokenService, auditService, oppdaterFritekstTilVedtaksbrevService)
     iverksettBehandlingv2Route(iverksettBehandlingV2Service, auditService, tokenService)
-    sendBehandlingTilBeslutterV2Route(sendBehandlingTilBesluterV2Service, auditService, tokenService)
+    sendBehandlingTilBeslutningV2Route(sendBehandlingTilBeslutningV2Service, auditService, tokenService)
     forhåndsvisVedtaksbrevRoute(tokenService, auditService, forhåndsvisVedtaksbrevService)
+    startRevurderingRoute(tokenService, startRevurderingService, auditService)
+    startRevurderingV2Route(tokenService, startRevurderingService, auditService)
+    sendRevurderingTilBeslutningRoute(sendBehandlingTilBeslutningV2Service, auditService, tokenService)
 }

@@ -28,15 +28,15 @@ fun Route.routes(applicationContext: ApplicationContext) {
         oppdaterBegrunnelseVilkårsvurderingService = applicationContext.behandlingContext.oppdaterBegrunnelseVilkårsvurderingService,
         oppdaterFritekstTilVedtaksbrevService = applicationContext.behandlingContext.oppdaterFritekstTilVedtaksbrevService,
         iverksettBehandlingV2Service = applicationContext.behandlingContext.iverksettBehandlingV2Service,
-        sendBehandlingTilBesluterV2Service = applicationContext.behandlingContext.sendBehandlingTilBeslutterV2Service,
+        sendBehandlingTilBeslutningV2Service = applicationContext.behandlingContext.sendBehandlingTilBeslutningV2Service,
         forhåndsvisVedtaksbrevService = applicationContext.behandlingContext.forhåndsvisVedtaksbrevService,
+        startRevurderingService = applicationContext.behandlingContext.startRevurderingService,
     )
     behandlingBenkRoutes(
         tokenService = applicationContext.tokenService,
         behandlingService = applicationContext.behandlingContext.behandlingService,
         sakService = applicationContext.sakContext.sakService,
         auditService = applicationContext.personContext.auditService,
-        startRevurderingService = applicationContext.behandlingContext.startRevurderingService,
     )
     behandlingBeslutterRoutes(
         tokenService = applicationContext.tokenService,

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.vedtak.routes.behandling.benk
+package no.nav.tiltakspenger.vedtak.routes.behandling
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteRevurdering
 import no.nav.tiltakspenger.saksbehandling.service.sak.StartRevurderingService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
+import no.nav.tiltakspenger.vedtak.routes.behandling.dto.BehandlingIdDTO
 import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.ErrorJson
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.ikkeTilgang

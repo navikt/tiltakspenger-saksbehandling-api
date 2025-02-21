@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.service.behandling.IverksettBehandlin
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterSaksopplysningerService
-import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutterV2Service
+import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutningV2Service
 import no.nav.tiltakspenger.saksbehandling.service.behandling.StartSøknadsbehandlingV2Service
 import no.nav.tiltakspenger.saksbehandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.kvp.KvpVilkårService
@@ -125,8 +125,8 @@ open class FørstegangsbehandlingContext(
         )
     }
 
-    val sendBehandlingTilBeslutterV2Service by lazy {
-        SendBehandlingTilBeslutterV2Service(
+    val sendBehandlingTilBeslutningV2Service by lazy {
+        SendBehandlingTilBeslutningV2Service(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
         )

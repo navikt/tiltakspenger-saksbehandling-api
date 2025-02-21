@@ -13,11 +13,11 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeHenteSaksoversikt
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.service.sak.StartRevurderingService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.behandling.BEHANDLINGER_PATH
 import no.nav.tiltakspenger.vedtak.routes.behandling.BEHANDLING_PATH
+import no.nav.tiltakspenger.vedtak.routes.behandling.dto.BehandlingIdDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.ikkeTilgang
@@ -30,7 +30,6 @@ fun Route.behandlingBenkRoutes(
     behandlingService: BehandlingService,
     sakService: SakService,
     auditService: AuditService,
-    startRevurderingService: StartRevurderingService,
 ) {
     val logger = KotlinLogging.logger {}
 
@@ -78,6 +77,4 @@ fun Route.behandlingBenkRoutes(
             )
         }
     }
-
-    startRevurderingRoute(tokenService, startRevurderingService, auditService)
 }

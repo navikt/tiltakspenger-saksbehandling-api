@@ -11,3 +11,9 @@ data class StartRevurderingKommando(
     val correlationId: CorrelationId,
     val saksbehandler: Saksbehandler,
 )
+
+data class StartRevurderingV2Kommando(
+    val sakId: SakId,
+    val correlationId: CorrelationId,
+    val saksbehandler: Saksbehandler,
+)

@@ -46,6 +46,8 @@ data class Sak(
     val førstegangsbehandling: Behandling? = behandlinger.førstegangsbehandling
     val revurderinger = behandlinger.revurderinger
 
+    val saksopplysningsperiode: Periode? = førstegangsbehandling?.saksopplysningsperiode
+
     /** Henter fra siste godkjente meldekort */
     val sisteNavkontor: Navkontor? by lazy {
         meldekortBehandlinger.sisteGodkjenteMeldekort?.navkontor

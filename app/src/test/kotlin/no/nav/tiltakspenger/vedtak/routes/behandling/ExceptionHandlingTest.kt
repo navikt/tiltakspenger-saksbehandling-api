@@ -59,7 +59,6 @@ class ExceptionHandlingTest {
                             behandlingService = mockk<BehandlingServiceImpl>(),
                             sakService = sakService,
                             auditService = mockAuditService,
-                            startRevurderingService = mockk(),
                         )
                     }
                 }
