@@ -6,7 +6,7 @@ import arrow.core.right
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 
 fun Sak.sendBehandlingTilBeslutning(
-    kommando: SendBehandlingTilBeslutterKommando,
+    kommando: SendBehandlingTilBeslutningKommando,
 ): Either<KanIkkeSendeTilBeslutter, Pair<Sak, Behandling>> {
     if (!kommando.saksbehandler.erSaksbehandler()) {
         return KanIkkeSendeTilBeslutter.MåVæreSaksbehandler.left()

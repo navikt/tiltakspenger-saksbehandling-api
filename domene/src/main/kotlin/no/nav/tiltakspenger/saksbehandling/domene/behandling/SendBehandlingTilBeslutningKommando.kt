@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
 
-data class SendBehandlingTilBeslutterKommando(
+data class SendBehandlingTilBeslutningKommando(
     val sakId: SakId,
     val behandlingId: BehandlingId,
     val saksbehandler: Saksbehandler,

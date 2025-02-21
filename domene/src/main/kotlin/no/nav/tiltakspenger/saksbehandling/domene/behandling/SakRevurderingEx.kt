@@ -94,7 +94,7 @@ suspend fun Sak.startRevurderingV2(
 
     requireNotNull(this.førstegangsbehandling) { "Kan ikke opprette revurdering uten en førstegangsbehandling" }
 
-    val saksopplysningsperiode = this.vedtaksperiode!!
+    val saksopplysningsperiode = this.saksopplysningsperiode!!
 
     val revurdering = Behandling.opprettRevurderingV2(
         sakId = this.id,

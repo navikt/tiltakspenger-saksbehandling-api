@@ -427,7 +427,7 @@ data class Behandling(
 
     /** Skal erstatte [tilBeslutning] når ny flyt er ferdig.  */
     fun tilBeslutningV2(
-        kommando: SendBehandlingTilBeslutterKommando,
+        kommando: SendBehandlingTilBeslutningKommando,
     ): Behandling {
         check(status == UNDER_BEHANDLING) {
             "Behandlingen må være under behandling, det innebærer også at en saksbehandler må ta saken før den kan sendes til beslutter. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}"

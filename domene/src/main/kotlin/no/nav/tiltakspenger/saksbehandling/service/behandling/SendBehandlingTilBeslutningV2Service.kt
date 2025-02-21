@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendBehandlingTilBeslutterKommando
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendRevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.sendBehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.sendRevurderingTilBeslutning
@@ -17,7 +17,7 @@ class SendBehandlingTilBeslutningV2Service(
     private val behandlingRepo: BehandlingRepo,
 ) {
     suspend fun sendTilBeslutning(
-        kommando: SendBehandlingTilBeslutterKommando,
+        kommando: SendBehandlingTilBeslutningKommando,
     ): Either<KanIkkeSendeTilBeslutter, Behandling> {
         val sak: Sak =
             sakService.hentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId).getOrElse {
