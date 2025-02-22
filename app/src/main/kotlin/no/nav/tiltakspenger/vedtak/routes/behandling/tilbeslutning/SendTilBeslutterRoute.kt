@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.vedtak.routes.behandling.tilbeslutter
+package no.nav.tiltakspenger.vedtak.routes.behandling.tilbeslutning
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond

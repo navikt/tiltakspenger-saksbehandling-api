@@ -193,7 +193,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
                     saksbehandler = saksbehandler,
                     harYtelseForPeriode =
                     HarYtelseForPeriode(
-                        periode = førstegangsbehandling.stansperiode!!,
+                        periode = førstegangsbehandling.virkningsperiode!!,
                         harYtelse = false,
                     ),
                     correlationId = CorrelationId.generate(),

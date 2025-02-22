@@ -75,7 +75,7 @@ class LivsoppholdRoutesTest {
                     },
                     jwt = jwt,
                 ) {
-                    setBody(bodyLivsoppholdYtelse(sak.førstegangsbehandling!!.stansperiode!!.toDTO(), false))
+                    setBody(bodyLivsoppholdYtelse(sak.førstegangsbehandling!!.virkningsperiode!!.toDTO(), false))
                 }.apply {
                     status shouldBe HttpStatusCode.Created
                 }
@@ -120,7 +120,7 @@ class LivsoppholdRoutesTest {
                     },
                     jwt = tac.jwtGenerator.createJwtForSaksbehandler(),
                 ) {
-                    setBody(bodyLivsoppholdYtelse(sak.førstegangsbehandling!!.stansperiode!!.toDTO(), true))
+                    setBody(bodyLivsoppholdYtelse(sak.førstegangsbehandling!!.virkningsperiode!!.toDTO(), true))
                 }.apply {
                     status shouldBe HttpStatusCode.NotImplemented
                 }
@@ -166,7 +166,7 @@ class LivsoppholdRoutesTest {
                     },
                     jwt = jwt,
                 ) {
-                    setBody(bodyLivsoppholdYtelse(sak.førstegangsbehandling!!.stansperiode!!.toDTO(), false))
+                    setBody(bodyLivsoppholdYtelse(sak.førstegangsbehandling!!.virkningsperiode!!.toDTO(), false))
                 }.apply {
                     status shouldBe HttpStatusCode.Created
                 }

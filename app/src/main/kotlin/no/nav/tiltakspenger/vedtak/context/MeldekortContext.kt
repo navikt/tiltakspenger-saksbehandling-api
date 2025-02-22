@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.meldekort.service.IverksettMeldekortService
 import no.nav.tiltakspenger.meldekort.service.OpprettMeldekortBehandlingService
-import no.nav.tiltakspenger.meldekort.service.SendMeldekortTilBeslutterService
+import no.nav.tiltakspenger.meldekort.service.SendMeldekortTilBeslutningService
 import no.nav.tiltakspenger.meldekort.service.SendMeldeperiodeTilBrukerService
 import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
@@ -65,7 +65,7 @@ open class MeldekortContext(
         )
     }
     val sendMeldekortTilBeslutterService by lazy {
-        SendMeldekortTilBeslutterService(
+        SendMeldekortTilBeslutningService(
             tilgangsstyringService = tilgangsstyringService,
             personService = personService,
             meldekortBehandlingRepo = meldekortBehandlingRepo,

@@ -15,14 +15,14 @@ import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Spe
 import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
 import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon
 import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Status.FRAVÆR_SYK
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Status.FRAVÆR_SYKT_BARN
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Status.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Status.IKKE_DELTATT
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Status.SPERRET
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.FRAVÆR_SYK
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.FRAVÆR_SYKT_BARN
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.FRAVÆR_VELFERD_GODKJENT_AV_NAV
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.IKKE_DELTATT
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.SPERRET
 import java.time.LocalDate
 
 private const val ANTALL_EGENMELDINGSDAGER = 3
@@ -45,7 +45,7 @@ private data class MeldekortBeregning(
     private var sisteSyktBarnSykedag: LocalDate? = null
 
     fun beregn(
-        kommando: SendMeldekortTilBeslutterKommando,
+        kommando: SendMeldekortTilBeslutningKommando,
         eksisterendeMeldekortPåSaken: MeldekortBehandlinger,
     ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
         require(eksisterendeMeldekortPåSaken.sakId == kommando.sakId) {
@@ -431,7 +431,7 @@ private enum class SykTilstand {
     Karantene,
 }
 
-fun SendMeldekortTilBeslutterKommando.beregn(
+fun SendMeldekortTilBeslutningKommando.beregn(
     eksisterendeMeldekortBehandlinger: MeldekortBehandlinger,
 ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
     return MeldekortBeregning(

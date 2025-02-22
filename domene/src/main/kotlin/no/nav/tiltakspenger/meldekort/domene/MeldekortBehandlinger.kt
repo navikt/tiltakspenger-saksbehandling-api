@@ -28,8 +28,8 @@ data class MeldekortBehandlinger(
      * @throws IllegalArgumentException Dersom innsendt meldekortid ikke samsvarer med siste meldekortperiode.
      */
     fun sendTilBeslutter(
-        kommando: SendMeldekortTilBeslutterKommando,
-    ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<MeldekortBehandlinger, MeldekortBehandlet>> {
+        kommando: SendMeldekortTilBeslutningKommando,
+    ): Either<KanIkkeSendeMeldekortTilBeslutning, Pair<MeldekortBehandlinger, MeldekortBehandlet>> {
         val meldekortUnderBehandling = this.meldekortUnderBehandling!!
 
         require(meldekortUnderBehandling.id == kommando.meldekortId) {

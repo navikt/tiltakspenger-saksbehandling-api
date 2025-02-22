@@ -12,16 +12,16 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter
-import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter.ForMangeDagerUtfylt
-import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter.KanIkkeEndreDagFraSperret
-import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter.KanIkkeEndreDagTilSperret
-import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter.KunneIkkeHenteSak
-import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter.MeldekortperiodenKanIkkeVæreFremITid
-import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter.MåVæreSaksbehandler
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Dager
-import no.nav.tiltakspenger.meldekort.service.SendMeldekortTilBeslutterService
+import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning
+import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.ForMangeDagerUtfylt
+import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagFraSperret
+import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagTilSperret
+import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.KunneIkkeHenteSak
+import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.MeldekortperiodenKanIkkeVæreFremITid
+import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.MåVæreSaksbehandler
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager
+import no.nav.tiltakspenger.meldekort.service.SendMeldekortTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.service.sak.KunneIkkeHenteSakForSakId
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
@@ -47,8 +47,8 @@ private data class Body(
         meldekortId: MeldekortId,
         sakId: SakId,
         correlationId: CorrelationId,
-    ): SendMeldekortTilBeslutterKommando {
-        return SendMeldekortTilBeslutterKommando(
+    ): SendMeldekortTilBeslutningKommando {
+        return SendMeldekortTilBeslutningKommando(
             sakId = sakId,
             saksbehandler = saksbehandler,
             correlationId = correlationId,
@@ -58,14 +58,14 @@ private data class Body(
                         dag = LocalDate.parse(dag.dato),
                         status =
                         when (dag.status) {
-                            "SPERRET" -> SendMeldekortTilBeslutterKommando.Status.SPERRET
-                            "DELTATT_UTEN_LØNN_I_TILTAKET" -> SendMeldekortTilBeslutterKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
-                            "DELTATT_MED_LØNN_I_TILTAKET" -> SendMeldekortTilBeslutterKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
-                            "IKKE_DELTATT" -> SendMeldekortTilBeslutterKommando.Status.IKKE_DELTATT
-                            "FRAVÆR_SYK" -> SendMeldekortTilBeslutterKommando.Status.FRAVÆR_SYK
-                            "FRAVÆR_SYKT_BARN" -> SendMeldekortTilBeslutterKommando.Status.FRAVÆR_SYKT_BARN
-                            "FRAVÆR_VELFERD_GODKJENT_AV_NAV" -> SendMeldekortTilBeslutterKommando.Status.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-                            "FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV" -> SendMeldekortTilBeslutterKommando.Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
+                            "SPERRET" -> SendMeldekortTilBeslutningKommando.Status.SPERRET
+                            "DELTATT_UTEN_LØNN_I_TILTAKET" -> SendMeldekortTilBeslutningKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
+                            "DELTATT_MED_LØNN_I_TILTAKET" -> SendMeldekortTilBeslutningKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
+                            "IKKE_DELTATT" -> SendMeldekortTilBeslutningKommando.Status.IKKE_DELTATT
+                            "FRAVÆR_SYK" -> SendMeldekortTilBeslutningKommando.Status.FRAVÆR_SYK
+                            "FRAVÆR_SYKT_BARN" -> SendMeldekortTilBeslutningKommando.Status.FRAVÆR_SYKT_BARN
+                            "FRAVÆR_VELFERD_GODKJENT_AV_NAV" -> SendMeldekortTilBeslutningKommando.Status.FRAVÆR_VELFERD_GODKJENT_AV_NAV
+                            "FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV" -> SendMeldekortTilBeslutningKommando.Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
                             else -> throw IllegalArgumentException("Ukjent status: ${dag.status}")
                         },
                     )
@@ -77,7 +77,7 @@ private data class Body(
 }
 
 fun Route.sendMeldekortTilBeslutterRoute(
-    sendMeldekortTilBeslutterService: SendMeldekortTilBeslutterService,
+    sendMeldekortTilBeslutterService: SendMeldekortTilBeslutningService,
     auditService: AuditService,
     tokenService: TokenService,
 ) {
@@ -133,7 +133,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
                                         kode = "kan_ikke_endre_dager_som_er_sperret",
                                     )
 
-                                    KanIkkeSendeMeldekortTilBeslutter.InnsendteDagerMåMatcheMeldeperiode -> call.respond400BadRequest(
+                                    KanIkkeSendeMeldekortTilBeslutning.InnsendteDagerMåMatcheMeldeperiode -> call.respond400BadRequest(
                                         melding = "Innsendte dager må matche meldeperiode.",
                                         kode = "innsendte_dager_må_matche_meldeperiode",
                                     )

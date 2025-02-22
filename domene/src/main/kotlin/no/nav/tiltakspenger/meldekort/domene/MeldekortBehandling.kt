@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.felles.nå
+import no.nav.tiltakspenger.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
@@ -12,6 +13,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.overlappendePerioder
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus.IKKE_BEHANDLET
@@ -239,18 +241,18 @@ sealed interface MeldekortBehandling {
         fun sendTilBeslutter(
             utfyltMeldeperiode: MeldeperiodeBeregning.UtfyltMeldeperiode,
             saksbehandler: Saksbehandler,
-        ): Either<KanIkkeSendeMeldekortTilBeslutter, MeldekortBehandlet> {
+        ): Either<KanIkkeSendeMeldekortTilBeslutning, MeldekortBehandlet> {
             require(utfyltMeldeperiode.periode == this.periode) {
                 "Når man fyller ut et meldekort må meldekortperioden være den samme som den som er opprettet. Opprettet periode: ${this.beregning.periode}, utfylt periode: ${utfyltMeldeperiode.periode}"
             }
             require(sakId == utfyltMeldeperiode.sakId)
             if (!saksbehandler.erSaksbehandler()) {
-                return KanIkkeSendeMeldekortTilBeslutter.MåVæreSaksbehandler(saksbehandler.roller).left()
+                return KanIkkeSendeMeldekortTilBeslutning.MåVæreSaksbehandler(saksbehandler.roller).left()
             }
             if (!erKlarTilUtfylling()) {
                 // John har avklart med Sølvi og Taulant at vi bør ha en begrensning på at vi kan fylle ut et meldekort hvis dagens dato er innenfor meldekortperioden eller senere.
                 // Dette kan endres på ved behov.
-                return KanIkkeSendeMeldekortTilBeslutter.MeldekortperiodenKanIkkeVæreFremITid.left()
+                return KanIkkeSendeMeldekortTilBeslutning.MeldekortperiodenKanIkkeVæreFremITid.left()
             }
             return MeldekortBehandlet(
                 id = this.id,
@@ -320,11 +322,13 @@ fun Sak.opprettMeldekortBehandling(
 ): MeldekortBehandling.MeldekortUnderBehandling {
     val meldekortId = MeldekortId.random()
 
-    requireNotNull(this.vedtaksliste.vedtaksperiode) { "Må ha en vedtaksperiode for å opprette meldekortbehandling" }
+    require(this.vedtaksliste.innvilgelsesperioder.isNotEmpty()) { "Må ha minst én periode som gir rett til tiltakspegner for å opprette meldekortbehandling" }
 
-    val overlappendePeriode = meldeperiode.periode.overlappendePeriode(this.vedtaksliste.vedtaksperiode)
+    val overlappendePeriode = this.vedtaksliste.innvilgelsesperioder.overlappendePerioder(
+        listOf(meldeperiode.periode),
+    ).singleOrNullOrThrow()
 
-    requireNotNull(overlappendePeriode) { "Meldeperioden må overlappe med vedtaksperioden" }
+    requireNotNull(overlappendePeriode) { "Meldeperioden må overlappe med innvilgelsesperioden(e)" }
 
     // TODO: håndtere flere vedtak
     val vedtak = this.vedtaksliste.tidslinjeForPeriode(overlappendePeriode).single().verdi

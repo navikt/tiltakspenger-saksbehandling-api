@@ -181,7 +181,7 @@ interface MottaSøknadRouteBuilder {
               "fom": null,
               "tom": null
             },
-            "opprettet": "2023-06-14T21:12:08.447993177",
+            "opprettet": "${deltakelsesperiode.fraOgMed.atTime(0, 0, 0, 0)}",
             "saksnummer": "$saksnummer"
         }
         """.trimIndent()

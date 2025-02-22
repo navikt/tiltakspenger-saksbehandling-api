@@ -10,12 +10,12 @@ import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Dager.Dag
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Status.IKKE_DELTATT
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Status.SPERRET
+import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager.Dag
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.IKKE_DELTATT
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.SPERRET
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.objectmothers.meldekortBehandlingOpprettet
 import org.junit.jupiter.api.Test
@@ -32,12 +32,12 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 val sak = this.meldekortBehandlingOpprettet(correlationId = correlationId)
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                    SendMeldekortTilBeslutterKommando(
+                    SendMeldekortTilBeslutningKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        dager = SendMeldekortTilBeslutterKommando.Dager(
+                        dager = SendMeldekortTilBeslutningKommando.Dager(
                             dager = nonEmptyListOf(
                                 Dag(
                                     dag = ikkeUtfyltMeldekort.fraOgMed,
@@ -46,7 +46,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                             ),
                         ),
                     ),
-                ) shouldBeLeft KanIkkeSendeMeldekortTilBeslutter.InnsendteDagerMåMatcheMeldeperiode
+                ) shouldBeLeft KanIkkeSendeMeldekortTilBeslutning.InnsendteDagerMåMatcheMeldeperiode
             }
         }
     }
@@ -64,12 +64,12 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed.minusDays(1)
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                    SendMeldekortTilBeslutterKommando(
+                    SendMeldekortTilBeslutningKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        dager = SendMeldekortTilBeslutterKommando.Dager(
+                        dager = SendMeldekortTilBeslutningKommando.Dager(
                             dager = dager(
                                 førsteDag,
                                 SPERRET,
@@ -90,7 +90,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                             ),
                         ),
                     ),
-                ) shouldBeLeft KanIkkeSendeMeldekortTilBeslutter.InnsendteDagerMåMatcheMeldeperiode
+                ) shouldBeLeft KanIkkeSendeMeldekortTilBeslutning.InnsendteDagerMåMatcheMeldeperiode
             }
         }
     }
@@ -108,12 +108,12 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                    SendMeldekortTilBeslutterKommando(
+                    SendMeldekortTilBeslutningKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        dager = SendMeldekortTilBeslutterKommando.Dager(
+                        dager = SendMeldekortTilBeslutningKommando.Dager(
                             dager = dager(
                                 førsteDag,
                                 SPERRET,
@@ -134,7 +134,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                             ),
                         ),
                     ),
-                ) shouldBeLeft KanIkkeSendeMeldekortTilBeslutter.InnsendteDagerMåMatcheMeldeperiode
+                ) shouldBeLeft KanIkkeSendeMeldekortTilBeslutning.InnsendteDagerMåMatcheMeldeperiode
             }
         }
     }
@@ -152,12 +152,12 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                    SendMeldekortTilBeslutterKommando(
+                    SendMeldekortTilBeslutningKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        dager = SendMeldekortTilBeslutterKommando.Dager(
+                        dager = SendMeldekortTilBeslutningKommando.Dager(
                             dager = dager(
                                 førsteDag,
                                 SPERRET,
@@ -177,7 +177,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                             ),
                         ),
                     ),
-                ) shouldBeLeft KanIkkeSendeMeldekortTilBeslutter.KanIkkeEndreDagTilSperret
+                ) shouldBeLeft KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagTilSperret
             }
         }
     }
@@ -195,12 +195,12 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                    SendMeldekortTilBeslutterKommando(
+                    SendMeldekortTilBeslutningKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        dager = SendMeldekortTilBeslutterKommando.Dager(
+                        dager = SendMeldekortTilBeslutningKommando.Dager(
                             dager = dager(
                                 førsteDag,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
@@ -220,7 +220,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                             ),
                         ),
                     ),
-                ) shouldBeLeft KanIkkeSendeMeldekortTilBeslutter.KanIkkeEndreDagFraSperret
+                ) shouldBeLeft KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagFraSperret
             }
         }
     }
@@ -238,12 +238,12 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                    SendMeldekortTilBeslutterKommando(
+                    SendMeldekortTilBeslutningKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        dager = SendMeldekortTilBeslutterKommando.Dager(
+                        dager = SendMeldekortTilBeslutningKommando.Dager(
                             dager = dager(
                                 førsteDag,
                                 SPERRET,
@@ -270,14 +270,14 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
 
     private fun dager(
         førsteDag: LocalDate,
-        vararg statuser: SendMeldekortTilBeslutterKommando.Status,
+        vararg statuser: SendMeldekortTilBeslutningKommando.Status,
     ): NonEmptyList<Dag> {
         return dager(førsteDag, statuser.toList())
     }
 
     private fun dager(
         førsteDag: LocalDate,
-        statuser: List<SendMeldekortTilBeslutterKommando.Status>,
+        statuser: List<SendMeldekortTilBeslutningKommando.Status>,
     ): NonEmptyList<Dag> {
         return statuser.mapIndexed { index, status ->
             Dag(

@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter.InnsendteDagerMåMatcheMeldeperiode
+import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.InnsendteDagerMåMatcheMeldeperiode
 import java.time.DayOfWeek
 import java.time.LocalDate
 
@@ -156,18 +156,18 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
 
         fun tilUtfyltMeldeperiode(
             utfylteDager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-        ): Either<KanIkkeSendeMeldekortTilBeslutter, UtfyltMeldeperiode> {
+        ): Either<KanIkkeSendeMeldekortTilBeslutning, UtfyltMeldeperiode> {
             if (dager.periode() != utfylteDager.periode()) {
                 return InnsendteDagerMåMatcheMeldeperiode.left()
             }
             this.dager.zip(utfylteDager).forEach { (dagA, dagB) ->
                 if (dagA is MeldeperiodeBeregningDag.Utfylt.Sperret && dagB !is MeldeperiodeBeregningDag.Utfylt.Sperret) {
                     log.error { "Kan ikke endre dag fra sperret. Generert base: ${this.dager}. Innsendt: $utfylteDager" }
-                    return KanIkkeSendeMeldekortTilBeslutter.KanIkkeEndreDagFraSperret.left()
+                    return KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagFraSperret.left()
                 }
                 if (dagA !is MeldeperiodeBeregningDag.Utfylt.Sperret && dagB is MeldeperiodeBeregningDag.Utfylt.Sperret) {
                     log.error { "Kan ikke endre dag til sperret. Generert base: ${this.dager}. Innsendt: $utfylteDager" }
-                    return KanIkkeSendeMeldekortTilBeslutter.KanIkkeEndreDagTilSperret.left()
+                    return KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagTilSperret.left()
                 }
             }
             return validerAntallDager().map {
@@ -203,9 +203,9 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
 }
 
 /** Denne skal ikke kalles utenfra */
-private fun MeldeperiodeBeregning.validerAntallDager(): Either<KanIkkeSendeMeldekortTilBeslutter.ForMangeDagerUtfylt, Unit> {
+private fun MeldeperiodeBeregning.validerAntallDager(): Either<KanIkkeSendeMeldekortTilBeslutning.ForMangeDagerUtfylt, Unit> {
     return if (antallDagerMedDeltattEllerFravær > this.maksDagerMedTiltakspengerForPeriode) {
-        return KanIkkeSendeMeldekortTilBeslutter.ForMangeDagerUtfylt(
+        return KanIkkeSendeMeldekortTilBeslutning.ForMangeDagerUtfylt(
             maksDagerMedTiltakspengerForPeriode = this.maksDagerMedTiltakspengerForPeriode,
             antallDagerUtfylt = antallDagerMedDeltattEllerFravær,
         ).left()

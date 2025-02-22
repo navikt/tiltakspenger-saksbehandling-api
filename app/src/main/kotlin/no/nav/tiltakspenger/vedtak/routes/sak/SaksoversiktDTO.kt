@@ -55,7 +55,7 @@ fun List<Behandling>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
     this.map { it.toSaksoversiktDTO() }
 
 fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
-    periode = innvilgelsesperiode?.toDTO() ?: stansperiode?.toDTO(),
+    periode = virkningsperiode?.toDTO(),
     status = status.toDTO().toString(),
     kravtidspunkt = this.kravfrist?.toString(),
     underkjent = attesteringer.any { attestering -> attestering.isUnderkjent() },

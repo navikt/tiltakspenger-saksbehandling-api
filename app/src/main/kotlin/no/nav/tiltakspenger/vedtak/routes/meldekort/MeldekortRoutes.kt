@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.meldekort.service.IverksettMeldekortService
 import no.nav.tiltakspenger.meldekort.service.MottaBrukerutfyltMeldekortService
 import no.nav.tiltakspenger.meldekort.service.OpprettMeldekortBehandlingService
-import no.nav.tiltakspenger.meldekort.service.SendMeldekortTilBeslutterService
+import no.nav.tiltakspenger.meldekort.service.SendMeldekortTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.meldekort.frameldekortapi.mottaMeldekortRoutes
@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.vedtak.routes.meldekort.frameldekortapi.mottaMeldeko
 fun Route.meldekortRoutes(
     opprettMeldekortBehandlingService: OpprettMeldekortBehandlingService,
     iverksettMeldekortService: IverksettMeldekortService,
-    sendMeldekortTilBeslutterService: SendMeldekortTilBeslutterService,
+    sendMeldekortTilBeslutterService: SendMeldekortTilBeslutningService,
     auditService: AuditService,
     sakService: SakService,
     tokenService: TokenService,

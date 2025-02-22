@@ -7,7 +7,8 @@ import no.nav.tiltakspenger.vedtak.routes.behandling.oppdaterSaksopplysninger.Op
 import no.nav.tiltakspenger.vedtak.routes.behandling.sendtilbake.SendTilbakeBuilder
 import no.nav.tiltakspenger.vedtak.routes.behandling.start.StartBehandlingBuilder
 import no.nav.tiltakspenger.vedtak.routes.behandling.tabehandling.TaBehandlingBuilder
-import no.nav.tiltakspenger.vedtak.routes.behandling.tilbeslutter.SendTilBeslutterBuilder
+import no.nav.tiltakspenger.vedtak.routes.behandling.tilbeslutter.SendFørstegangsbehandlingTilBeslutningBuilder
+import no.nav.tiltakspenger.vedtak.routes.revurdering.SendRevurderingTilBeslutterBuilder
 import no.nav.tiltakspenger.vedtak.routes.revurdering.StartRevurderingBuilder
 import no.nav.tiltakspenger.vedtak.routes.sak.OpprettSakRouteBuilder
 import no.nav.tiltakspenger.vedtak.routes.søknad.MottaSøknadRouteBuilder
@@ -19,7 +20,8 @@ object RouteBuilder :
     TaBehandlingBuilder,
     OppdaterFritekstBuilder,
     OppdaterBegrunnelseBuilder,
-    SendTilBeslutterBuilder,
+    SendFørstegangsbehandlingTilBeslutningBuilder,
+    SendRevurderingTilBeslutterBuilder,
     SendTilbakeBuilder,
     IverksettBehandlingBuilder,
     StartRevurderingBuilder,

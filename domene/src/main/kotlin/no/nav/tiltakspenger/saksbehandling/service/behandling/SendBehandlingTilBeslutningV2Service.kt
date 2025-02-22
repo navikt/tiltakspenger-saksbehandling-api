@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendRevurderingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.sendBehandlingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.sendFørstegangsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.sendRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
@@ -16,14 +16,14 @@ class SendBehandlingTilBeslutningV2Service(
     private val sakService: SakService,
     private val behandlingRepo: BehandlingRepo,
 ) {
-    suspend fun sendTilBeslutning(
+    suspend fun sendFørstegangsbehandlingTilBeslutning(
         kommando: SendBehandlingTilBeslutningKommando,
     ): Either<KanIkkeSendeTilBeslutter, Behandling> {
         val sak: Sak =
             sakService.hentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId).getOrElse {
                 throw IllegalStateException("Saksbehandler ${kommando.saksbehandler.navIdent} har ikke tilgang til sak ${kommando.sakId}")
             }
-        return sak.sendBehandlingTilBeslutning(kommando).map { (_, behandling) -> behandling }.onRight {
+        return sak.sendFørstegangsbehandlingTilBeslutning(kommando).map { (_, behandling) -> behandling }.onRight {
             behandlingRepo.lagre(it)
         }
     }

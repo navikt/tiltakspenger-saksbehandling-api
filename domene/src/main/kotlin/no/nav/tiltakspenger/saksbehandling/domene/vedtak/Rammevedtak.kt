@@ -90,7 +90,7 @@ fun Sak.opprettVedtak(
         behandling = behandling,
         vedtaksdato = null,
         vedtaksType = this.utledVedtakstype(behandling),
-        periode = behandling.stansperiode ?: behandling.innvilgelsesperiode!!,
+        periode = behandling.virkningsperiode!!,
         journalpostId = null,
         journalføringstidspunkt = null,
         distribusjonId = null,
@@ -109,13 +109,13 @@ fun Sak.utledVedtakstype(behandling: Behandling): Vedtakstype {
         Behandlingstype.FØRSTEGANGSBEHANDLING -> Vedtakstype.INNVILGELSE
         Behandlingstype.REVURDERING -> {
             // Kommentar jah: Dette er en førsteimplementasjon for å avgjøre om dette er et stansvedtak. Ved andre typer revurderinger må vi utvide denne.
-            if (behandling.stansperiode!!.tilOgMed != this.utfallsperioder().totalePeriode.tilOgMed) {
-                throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - revurderingens tilOgMed (${behandling.stansperiode.tilOgMed}) må være lik sakens tilOgMed (${this.vedtaksperiode!!.tilOgMed})")
+            if (behandling.virkningsperiode!!.tilOgMed != this.utfallsperioder().totalePeriode.tilOgMed) {
+                throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - revurderingens tilOgMed (${behandling.virkningsperiode.tilOgMed}) må være lik sakens tilOgMed (${this.vedtaksperiode!!.tilOgMed})")
             }
             if (!erNyFlyt!! && behandling.erHelePeriodenIkkeOppfylt == false) {
                 throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - hele perioden må være 'ikke oppfylt'")
             }
-            if (this.sisteUtbetalteMeldekortDag() == null || this.sisteUtbetalteMeldekortDag()!! < behandling.stansperiode.fraOgMed) {
+            if (this.sisteUtbetalteMeldekortDag() == null || this.sisteUtbetalteMeldekortDag()!! < behandling.virkningsperiode.fraOgMed) {
                 Vedtakstype.STANS
             } else {
                 throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - godkjent meldekort overlapper revurderingsperioden")

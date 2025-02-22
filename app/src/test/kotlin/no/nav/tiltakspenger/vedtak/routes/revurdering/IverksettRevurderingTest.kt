@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.iverksettForBehandlingId
-import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.sendTilBeslutterForBehandlingId
+import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.sendRevurderingTilBeslutterForBehandlingId
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.startRevurdering
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.taBehanding
 import no.nav.tiltakspenger.vedtak.routes.routes
@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 
 internal class IverksettRevurderingTest {
     @Test
-    fun `kan starte revurdering`() {
+    fun `kan iverksette revurdering`() {
         with(TestApplicationContext()) {
             val tac = this
             testApplication {
@@ -22,9 +22,9 @@ internal class IverksettRevurderingTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, _, _, revurdering) = startRevurdering(tac)
+                val (sak, _, førstegangsbehandling, revurdering) = startRevurdering(tac)
                 taBehanding(tac, revurdering.id)
-                sendTilBeslutterForBehandlingId(tac, sak.id, revurdering.id)
+                sendRevurderingTilBeslutterForBehandlingId(tac, sak.id, revurdering.id, stansperiode = førstegangsbehandling.virkningsperiode!!)
                 taBehanding(tac, revurdering.id, saksbehandler = ObjectMother.beslutter())
                 iverksettForBehandlingId(tac, sak.id, revurdering.id)
             }

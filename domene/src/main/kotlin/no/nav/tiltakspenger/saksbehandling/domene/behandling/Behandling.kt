@@ -41,14 +41,14 @@ import java.time.LocalDateTime
  * @param saksbehandler Vil bli satt på en behandling ved opprettelse, men i noen tilfeller kan saksbehandler ta seg selv av behandlingen igjen.
  * @param beslutter Vil bli satt når behandlingen avsluttes (iverksett eller avbrytes) eller underkjennes.
  * @param søknad Påkrevd for [Behandlingstype.FØRSTEGANGSBEHANDLING]. Kan være null for [Behandlingstype.REVURDERING]. Må vurdere på sikt om en endringssøknad (samme tiltak) er en ny førstegangssøknad eller en revurdering. Og om en ny søknad (nytt tiltak) er en førstegangssøknad, søknad eller en revurdering.
- * @param stansperiode Påkrevd for revurdering stans (stansperiode). Vil være null for førstegangsbehandling i ny flyt. Bruke litt som innvilgelsesperiode i gammel flyt.
+ * @param virkningsperiode Vil tilsvare innvilgelsesperiode for vedtak som gir rett til tiltakspenger og stansperiode/opphørsperiode for vedtak som fjerner rett til tiltakspenger.
  */
 data class Behandling(
     val id: BehandlingId,
     val sakId: SakId,
     val saksnummer: Saksnummer,
     val fnr: Fnr,
-    val stansperiode: Periode?,
+    val virkningsperiode: Periode?,
     val søknad: Søknad?,
     val saksbehandler: String?,
     val sendtTilBeslutning: LocalDateTime?,
@@ -69,7 +69,6 @@ data class Behandling(
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     val saksopplysningsperiode: Periode?,
-    val innvilgelsesperiode: Periode?,
 ) {
     val erUnderBehandling: Boolean = status == UNDER_BEHANDLING
     val erNyFlyt: Boolean = when {
@@ -122,7 +121,7 @@ data class Behandling(
             // Dersom det er en revurdering stans/opphør, vil vi ha en opphørsperiode.
             when (behandlingstype) {
                 Behandlingstype.FØRSTEGANGSBEHANDLING -> {
-                    Periodisering<UtfallForPeriode>(UtfallForPeriode.OPPFYLT, innvilgelsesperiode!!)
+                    Periodisering<UtfallForPeriode>(UtfallForPeriode.OPPFYLT, virkningsperiode!!)
                 }
 
                 Behandlingstype.REVURDERING -> {
@@ -143,16 +142,6 @@ data class Behandling(
      * Påkrevd ved førstegangsbehandling/søknadsbehandling, men kan være null ved revurdering.
      */
     val kravfrist = søknad?.tidsstempelHosOss
-
-    /** Virkningsperioden er perioden vedtak virker, kan være innvilgelsesperiode eller stansperiode. */
-    val virkningsperiode: Periode? by lazy {
-        when (behandlingstype) {
-            // TODO John + Anders: Skal være innvilgelsesperiode for innvilgelset førstegangsbehandling, men null for avslag/avbrutt.
-            Behandlingstype.FØRSTEGANGSBEHANDLING -> innvilgelsesperiode ?: stansperiode
-            // TODO John + Anders: Vil være vurderingsperiode for stansvedtak (fram/tilbake i tid) og innvilgelsesperiode ved forlengense eller ikke-stans revurdering.
-            Behandlingstype.REVURDERING -> stansperiode
-        }
-    }
 
     companion object {
         private val logger = mu.KotlinLogging.logger { }
@@ -188,7 +177,7 @@ data class Behandling(
                 sakId = sakId,
                 fnr = fnr,
                 søknad = søknad,
-                stansperiode = null,
+                virkningsperiode = null,
                 // vilkårssett+vilkårssett vil være null for ny flyt. Og fjernes når ny flyt er ferdig.
                 vilkårssett = null,
                 stønadsdager = null,
@@ -207,7 +196,6 @@ data class Behandling(
                 behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
                 oppgaveId = søknad.oppgaveId,
                 saksopplysningsperiode = saksopplysningsperiode,
-                innvilgelsesperiode = null,
             ).right()
         }
 
@@ -225,7 +213,7 @@ data class Behandling(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                stansperiode = null,
+                virkningsperiode = null,
                 søknad = null,
                 saksbehandler = saksbehandler.navIdent,
                 sendtTilBeslutning = null,
@@ -246,7 +234,6 @@ data class Behandling(
                 oppgaveId = null,
                 // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for førstegangsbehandling.
                 saksopplysningsperiode = saksopplysningsperiode,
-                innvilgelsesperiode = null,
             )
         }
 
@@ -300,7 +287,7 @@ data class Behandling(
                 sakId = sakId,
                 fnr = fnr,
                 søknad = søknad,
-                stansperiode = vurderingsperiode,
+                virkningsperiode = vurderingsperiode,
                 vilkårssett = vilkårssett,
                 // Vi legger til saksopplysninger også for den gamle flyten, slik at vi enklere kan konvertere de gamle behandlingene til ny flyt.
                 saksopplysninger = saksopplysninger,
@@ -322,7 +309,6 @@ data class Behandling(
                 behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
                 oppgaveId = søknad.oppgaveId,
                 saksopplysningsperiode = saksopplysningsperiode,
-                innvilgelsesperiode = vurderingsperiode,
             ).right()
         }
 
@@ -342,7 +328,7 @@ data class Behandling(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                stansperiode = periode,
+                virkningsperiode = periode,
                 søknad = null,
                 saksbehandler = saksbehandler.navIdent,
                 sendtTilBeslutning = null,
@@ -363,7 +349,6 @@ data class Behandling(
                 oppgaveId = null,
                 // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for førstegangsbehandling.
                 saksopplysningsperiode = periode,
-                innvilgelsesperiode = null,
             )
         }
     }
@@ -412,7 +397,7 @@ data class Behandling(
         }
         check(samletUtfall != SamletUtfall.UAVKLART) { "Kan ikke sende en UAVKLART behandling til beslutter" }
         if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING) {
-            require(innvilgelsesperiode != null) { "Innvilgelsesperiode må være satt for førstegangsbehandling" }
+            require(virkningsperiode != null) { "Innvilgelsesperiode må være satt for førstegangsbehandling" }
         }
         check(status == UNDER_BEHANDLING) {
             "Behandlingen må være under behandling, det innebærer også at en saksbehandler må ta saken før den kan sendes til beslutter. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}"
@@ -439,7 +424,7 @@ data class Behandling(
             sendtTilBeslutning = nå(),
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
-            innvilgelsesperiode = kommando.innvilgelsesperiode,
+            virkningsperiode = kommando.innvilgelsesperiode,
         )
     }
 
@@ -456,7 +441,7 @@ data class Behandling(
             status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
             sendtTilBeslutning = nå(),
             begrunnelseVilkårsvurdering = kommando.begrunnelse,
-            stansperiode = Periode(kommando.stansDato, vedtaksperiode.tilOgMed),
+            virkningsperiode = Periode(kommando.stansDato, vedtaksperiode.tilOgMed),
         )
     }
 
@@ -473,7 +458,7 @@ data class Behandling(
             throw IllegalStateException("Kan ikke iverksette en revurdering som ikke er 'IKKE_OPPFYLT' i MVP")
         }
         if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING) {
-            require(innvilgelsesperiode != null) { "Innvilgelsesperiode må være satt for førstegangsbehandling" }
+            require(virkningsperiode != null) { "Innvilgelsesperiode må være satt for førstegangsbehandling" }
         }
         return when (status) {
             UNDER_BESLUTNING -> {
@@ -502,12 +487,8 @@ data class Behandling(
     ): Behandling {
         if (!erNyFlyt) throw IllegalStateException("Bruk iverksett for gammel flyt.")
 
-        if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING) {
-            require(innvilgelsesperiode != null) { "Innvilgelsesperiode må være satt for førstegangsbehandling" }
-        }
-        if (behandlingstype == Behandlingstype.REVURDERING) {
-            require(stansperiode != null) { "Stansperiode må være satt for revurdering" }
-        }
+        require(virkningsperiode != null) { "virkningsperiode må være satt ved iverksetting" }
+
         return when (status) {
             UNDER_BESLUTNING -> {
                 check(utøvendeBeslutter.erBeslutter()) { "utøvende saksbehandler må være beslutter" }
@@ -553,16 +534,14 @@ data class Behandling(
     }
 
     /**
-     * Krymper [stansperiode], [vilkårssett] og [stønadsdager] til [nyPeriode].
+     * Krymper [virkningsperiode], [vilkårssett] og [stønadsdager] til [nyPeriode].
      * Endrer ikke [Søknad].
      */
     fun krymp(nyPeriode: Periode): Behandling {
-        if (stansperiode == nyPeriode) return this
-        if (stansperiode != null) require(stansperiode.inneholderHele(nyPeriode)) { "Ny periode ($nyPeriode) må være innenfor vedtakets vurderingsperiode ($stansperiode)" }
-        if (innvilgelsesperiode != null) require(innvilgelsesperiode.inneholderHele(nyPeriode)) { "Ny periode ($nyPeriode) må være innenfor vedtakets innvilgelsesperiode ($innvilgelsesperiode)" }
+        if (virkningsperiode == nyPeriode) return this
+        if (virkningsperiode != null) require(virkningsperiode.inneholderHele(nyPeriode)) { "Ny periode ($nyPeriode) må være innenfor vedtakets virkningsperiode ($virkningsperiode)" }
         return this.copy(
-            innvilgelsesperiode = if (innvilgelsesperiode != null) nyPeriode else null,
-            stansperiode = if (stansperiode != null) nyPeriode else null,
+            virkningsperiode = if (virkningsperiode != null) nyPeriode else null,
             vilkårssett = vilkårssett?.krymp(nyPeriode),
             stønadsdager = stønadsdager?.krymp(nyPeriode),
         )
@@ -617,27 +596,14 @@ data class Behandling(
     }
 
     init {
-        if (erNyFlyt && behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING) {
-            require(stansperiode == null) { "Vurderingsperiode må være null i ny flyt ved førstegangsbehandling" }
-        }
+
         if (!erNyFlyt) {
-            when (behandlingstype) {
-                Behandlingstype.FØRSTEGANGSBEHANDLING -> {
-                    require(vilkårssett!!.vurderingsperiode == innvilgelsesperiode) {
-                        "Vilkårssettets periode (${vilkårssett.vurderingsperiode} må være lik innvilgelsesperiode $innvilgelsesperiode"
-                    }
-                    require(stønadsdager!!.vurderingsperiode == innvilgelsesperiode) {
-                        "Stønadsdagers periode (${stønadsdager.vurderingsperiode} må være lik innvilgelsesperiode $innvilgelsesperiode"
-                    }
-                }
-                Behandlingstype.REVURDERING -> {
-                    require(vilkårssett!!.vurderingsperiode == stansperiode) {
-                        "Vilkårssettets periode (${vilkårssett.vurderingsperiode} må være lik stansperioden $stansperiode"
-                    }
-                    require(stønadsdager!!.vurderingsperiode == stansperiode) {
-                        "Stønadsdagers periode (${stønadsdager.vurderingsperiode} må være lik stansperioden $stansperiode"
-                    }
-                }
+            require(virkningsperiode != null)
+            require(vilkårssett!!.vurderingsperiode == virkningsperiode) {
+                "Vilkårssettets periode (${vilkårssett.vurderingsperiode} må være lik virkningsperiode $virkningsperiode"
+            }
+            require(stønadsdager!!.vurderingsperiode == virkningsperiode) {
+                "Stønadsdagers periode (${stønadsdager.vurderingsperiode} må være lik virkningsperiode $virkningsperiode"
             }
         }
         if (beslutter != null && saksbehandler != null) {

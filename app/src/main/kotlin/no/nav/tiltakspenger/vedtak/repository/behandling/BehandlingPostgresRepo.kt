@@ -151,8 +151,8 @@ class BehandlingPostgresRepo(
                         mapOf(
                             "id" to behandling.id.toString(),
                             "sak_id" to behandling.sakId.toString(),
-                            "fra_og_med" to behandling.stansperiode?.fraOgMed,
-                            "til_og_med" to behandling.stansperiode?.tilOgMed,
+                            "virkningsperiode_fra_og_med" to behandling.virkningsperiode?.fraOgMed,
+                            "virkningsperiode_til_og_med" to behandling.virkningsperiode?.tilOgMed,
                             "status" to behandling.status.toDb(),
                             "sist_endret_old" to sistEndret,
                             "sist_endret" to behandling.sistEndret,
@@ -171,8 +171,6 @@ class BehandlingPostgresRepo(
                             "saksopplysninger" to behandling.saksopplysninger.toDbJson(),
                             "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode?.fraOgMed,
                             "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode?.tilOgMed,
-                            "innvilgelsesperiode_fra_og_med" to behandling.innvilgelsesperiode?.fraOgMed,
-                            "innvilgelsesperiode_til_og_med" to behandling.innvilgelsesperiode?.tilOgMed,
                         ),
                     ).asUpdate,
                 )
@@ -193,8 +191,8 @@ class BehandlingPostgresRepo(
                     mapOf(
                         "id" to behandling.id.toString(),
                         "sak_id" to behandling.sakId.toString(),
-                        "fra_og_med" to behandling.stansperiode?.fraOgMed,
-                        "til_og_med" to behandling.stansperiode?.tilOgMed,
+                        "virkningsperiode_fra_og_med" to behandling.virkningsperiode?.fraOgMed,
+                        "virkningsperiode_til_og_med" to behandling.virkningsperiode?.tilOgMed,
                         "status" to behandling.status.toDb(),
                         "opprettet" to behandling.opprettet,
                         "vilkaarssett" to behandling.vilkårssett?.toDbJson(),
@@ -213,9 +211,6 @@ class BehandlingPostgresRepo(
                         "begrunnelse_vilkarsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
                         "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode?.fraOgMed,
                         "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode?.tilOgMed,
-                        "innvilgelsesperiode_fra_og_med" to behandling.innvilgelsesperiode?.fraOgMed,
-                        "innvilgelsesperiode_til_og_med" to behandling.innvilgelsesperiode?.tilOgMed,
-
                     ),
                 ).asUpdate,
             )
@@ -237,29 +232,20 @@ class BehandlingPostgresRepo(
         private fun Row.toBehandling(session: Session): Behandling {
             val id = BehandlingId.fromString(string("id"))
             val sakId = SakId.fromString(string("sak_id"))
-            val fraOgMed = localDateOrNull("fra_og_med")
-            val tilOgMed = localDateOrNull("til_og_med")
-            if ((fraOgMed == null).xor(tilOgMed == null)) {
+            val virkningsperiodeFraOgMed = localDateOrNull("virkningsperiode_fra_og_med")
+            val virkningsperiodeTilOgMed = localDateOrNull("virkningsperiode_til_og_med")
+            if ((virkningsperiodeFraOgMed == null).xor(virkningsperiodeTilOgMed == null)) {
                 throw IllegalStateException("Både fra og med og til og med må være satt, eller ingen av dem")
             }
-            val vurderingsperiode = fraOgMed?.let { Periode(fraOgMed, tilOgMed!!) }
+            val virkningsperiode = virkningsperiodeFraOgMed?.let { Periode(virkningsperiodeFraOgMed, virkningsperiodeTilOgMed!!) }
             val status = string("status")
             val saksbehandler = stringOrNull("saksbehandler")
             val beslutter = stringOrNull("beslutter")
             // Kan være null for revurderinger. Domeneobjektet passer på dette selv.
             val søknad: Søknad? = SøknadDAO.hentForBehandlingId(id, session)
 
-            val innvilgelsesperiodeFraOgMed = localDateOrNull("innvilgelsesperiode_fra_og_med")
-            val innvilgelsesperiodeTilOgMed = localDateOrNull("innvilgelsesperiode_til_og_med")
-            val innvilgelsesperiode = innvilgelsesperiodeFraOgMed?.let {
-                Periode(
-                    innvilgelsesperiodeFraOgMed,
-                    innvilgelsesperiodeTilOgMed!!,
-                )
-            }
-
             val stønadsdager = stringOrNull("stønadsdager")?.toStønadsdager()
-            val vilkårssett = stringOrNull("vilkårssett")?.toVilkårssett(innvilgelsesperiode ?: vurderingsperiode!!)
+            val vilkårssett = stringOrNull("vilkårssett")?.toVilkårssett(virkningsperiode!!)
 
             val attesteringer = string("attesteringer").toAttesteringer()
             val fnr = Fnr.fromString(string("ident"))
@@ -279,7 +265,7 @@ class BehandlingPostgresRepo(
                 saksnummer = saksnummer,
                 fnr = fnr,
                 søknad = søknad,
-                stansperiode = vurderingsperiode,
+                virkningsperiode = virkningsperiode,
                 vilkårssett = vilkårssett,
                 saksopplysninger = string("saksopplysninger").toSaksopplysninger(),
                 saksbehandler = saksbehandler,
@@ -306,7 +292,6 @@ class BehandlingPostgresRepo(
                         saksopplysningsperiodeTilOgMed!!,
                     )
                 },
-                innvilgelsesperiode = innvilgelsesperiode,
             )
         }
 
@@ -316,8 +301,8 @@ class BehandlingPostgresRepo(
             insert into behandling (
                 id,
                 sak_id,
-                fra_og_med,
-                til_og_med,
+                virkningsperiode_fra_og_med,
+                virkningsperiode_til_og_med,
                 status,
                 sist_endret,
                 opprettet,
@@ -335,14 +320,12 @@ class BehandlingPostgresRepo(
                 begrunnelse_vilkårsvurdering,
                 saksopplysninger,
                 saksopplysningsperiode_fra_og_med,
-                saksopplysningsperiode_til_og_med,
-                innvilgelsesperiode_fra_og_med,
-                innvilgelsesperiode_til_og_med
+                saksopplysningsperiode_til_og_med
             ) values (
                 :id,
                 :sak_id,
-                :fra_og_med,
-                :til_og_med,
+                :virkningsperiode_fra_og_med,
+                :virkningsperiode_til_og_med,
                 :status,
                 :sist_endret,
                 :opprettet,
@@ -360,9 +343,7 @@ class BehandlingPostgresRepo(
                 :begrunnelse_vilkarsvurdering,
                 to_jsonb(:saksopplysninger::jsonb),
                 :saksopplysningsperiode_fra_og_med,
-                :saksopplysningsperiode_til_og_med,
-                :innvilgelsesperiode_fra_og_med,
-                :innvilgelsesperiode_til_og_med
+                :saksopplysningsperiode_til_og_med
             )
             """.trimIndent()
 
@@ -370,8 +351,8 @@ class BehandlingPostgresRepo(
         private val sqlOppdaterBehandling =
             """
             update behandling set 
-                fra_og_med = :fra_og_med,
-                til_og_med = :til_og_med,
+                virkningsperiode_fra_og_med = :virkningsperiode_fra_og_med,
+                virkningsperiode_til_og_med = :virkningsperiode_til_og_med,
                 sak_id = :sak_id,
                 status = :status,
                 sist_endret = :sist_endret,
@@ -389,9 +370,7 @@ class BehandlingPostgresRepo(
                 begrunnelse_vilkårsvurdering = :begrunnelse_vilkarsvurdering,
                 saksopplysninger = to_jsonb(:saksopplysninger::jsonb),
                 saksopplysningsperiode_fra_og_med = :saksopplysningsperiode_fra_og_med,
-                saksopplysningsperiode_til_og_med = :saksopplysningsperiode_til_og_med,
-                innvilgelsesperiode_fra_og_med = :innvilgelsesperiode_fra_og_med,
-                innvilgelsesperiode_til_og_med = :innvilgelsesperiode_til_og_med
+                saksopplysningsperiode_til_og_med = :saksopplysningsperiode_til_og_med
             where id = :id
               and sist_endret = :sist_endret_old
             """.trimIndent()

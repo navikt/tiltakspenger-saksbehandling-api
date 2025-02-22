@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.vedtak.routes.behandling.brev.forhåndsvisVedtaksbre
 import no.nav.tiltakspenger.vedtak.routes.behandling.brev.oppdaterFritekstTilVedtaksbrevRoute
 import no.nav.tiltakspenger.vedtak.routes.behandling.personopplysninger.hentPersonRoute
 import no.nav.tiltakspenger.vedtak.routes.behandling.stønadsdager.stønadsdagerRoutes
-import no.nav.tiltakspenger.vedtak.routes.behandling.tilbeslutter.sendBehandlingTilBeslutterRoute
+import no.nav.tiltakspenger.vedtak.routes.behandling.tilbeslutning.sendBehandlingTilBeslutterRoute
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.alder.alderRoutes
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.institusjonsopphold.institusjonsoppholdRoutes
 import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.introduksjonsprogrammet.introRoutes

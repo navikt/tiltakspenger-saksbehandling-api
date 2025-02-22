@@ -24,7 +24,7 @@ class IverksettBehandlingTest {
                     routing { routes(tac) }
                 }
                 val (sak, _, behandling) = this.iverksett(tac)
-                behandling.innvilgelsesperiode.shouldNotBeNull()
+                behandling.virkningsperiode.shouldNotBeNull()
                 behandling.status shouldBe Behandlingsstatus.VEDTATT
                 behandling.erNyFlyt shouldBe true
                 behandling.saksopplysningsperiode.shouldNotBeNull()

@@ -117,7 +117,7 @@ interface BehandlingMother {
                 behandlingId = behandling.id,
                 saksbehandler = saksbehandler,
                 harYtelseForPeriode = LeggTilLivsoppholdSaksopplysningCommand.HarYtelseForPeriode(
-                    periode = behandling.stansperiode!!,
+                    periode = behandling.virkningsperiode!!,
                     harYtelse = true,
                 ),
                 correlationId = correlationId,

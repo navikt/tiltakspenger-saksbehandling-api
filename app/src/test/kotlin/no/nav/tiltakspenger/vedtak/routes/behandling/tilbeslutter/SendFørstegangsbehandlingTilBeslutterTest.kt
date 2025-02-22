@@ -8,12 +8,12 @@ import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
-import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.sendTilBeslutterForBehandlingId
+import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.sendFørstegangsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.startBehandling
 import no.nav.tiltakspenger.vedtak.routes.routes
 import org.junit.jupiter.api.Test
 
-class SendTilBeslutterTest {
+class SendFørstegangsbehandlingTilBeslutterTest {
     @Test
     fun `send til beslutter endrer status på behandlingen`() = runTest {
         with(TestApplicationContext()) {
@@ -31,7 +31,7 @@ class SendTilBeslutterTest {
                     it.saksbehandler shouldBe saksbehandler.navIdent
                     it.beslutter shouldBe null
                 }
-                sendTilBeslutterForBehandlingId(
+                sendFørstegangsbehandlingTilBeslutningForBehandlingId(
                     tac,
                     sak.id,
                     behandlingId,

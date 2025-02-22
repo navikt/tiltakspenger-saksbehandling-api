@@ -17,27 +17,29 @@ data class Vedtaksliste(
 
     val tidslinje: Periodisering<Rammevedtak> by lazy { value.toTidslinje() }
 
-    val førstegangsvedtak: Rammevedtak? = value.singleOrNullOrThrow { it.erFørstegangsvedtak }
+    val førstegangsvedtak: Rammevedtak? by lazy { value.singleOrNullOrThrow { it.erFørstegangsvedtak } }
 
-    /** Dette er sakens totale vedtaksperiode. Per tidspunkt er den sammenhengende, men hvis vi lar en sak gjelde på tvers av tiltak, vil den kunne ha hull. */
-    val vedtaksperiode: Periode? = tidslinje.ifEmpty { null }?.totalePeriode
+    /** Nåtilstand. Dette er sakens totale vedtaksperiode. Vær veldig obs når du bruker denne, fordi den sier ikke noe om antall perioder, om de gir rett eller ikke. */
+    val vedtaksperiode: Periode? by lazy { tidslinje.ifEmpty { null }?.totalePeriode }
 
+    /** Nåtilstand. Sakens totale vedtaksperioder. Vil kunne ha hull dersom det f.eks. er opphold mellom 2 tiltaksdeltagelsesperioder. Avslag og delvis avslag vil ikke være med her. */
+    val vedtaksperioder: List<Periode> by lazy { tidslinje.perioder }
+
+    /** Nåtilstand. De periodene som gir rett til tiltakspenger. Vil kunne være hull. */
     val innvilgelsesperioder: List<Periode> by lazy {
         tidslinje.filter { it.verdi.vedtaksType == Vedtakstype.INNVILGELSE }.map { it.periode }
     }
 
-    val antallInnvilgelsesperiode: Int by lazy {
-        innvilgelsesperioder.size
+    val antallInnvilgelsesperioder: Int by lazy { innvilgelsesperioder.size }
+
+    /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
+    val førsteDagSomGirRett: LocalDate? by lazy {
+        innvilgelsesperioder.minOfOrNull { it.fraOgMed }
     }
 
-    /** Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
-    val førsteInnvilgetDato: LocalDate? by lazy {
-        tidslinje.filter { it.verdi.vedtaksType == Vedtakstype.INNVILGELSE }.minOfOrNull { it.periode.fraOgMed }
-    }
-
-    /** Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
-    val sisteInnvilgetDato: LocalDate? by lazy {
-        tidslinje.filter { it.verdi.vedtaksType == Vedtakstype.INNVILGELSE }.maxOfOrNull { it.periode.tilOgMed }
+    /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
+    val sisteDagSomGirRett: LocalDate? by lazy {
+        innvilgelsesperioder.maxOfOrNull { it.tilOgMed }
     }
 
     // TODO pre-revurdering-av-revurdering jah: Det gir egentlig ikke mening og ha periodiserte vilkårssett. Her bør man heller slå sammen vilkårssettene. Men det krever at hvert vilkår kan periodiseres.

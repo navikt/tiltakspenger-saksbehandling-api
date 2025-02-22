@@ -28,10 +28,10 @@ import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.startBehandling
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.taBehanding
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
 
-interface SendTilBeslutterBuilder {
+interface SendFørstegangsbehandlingTilBeslutningBuilder {
 
     /** Oppretter ny sak, søknad og behandling. */
-    suspend fun ApplicationTestBuilder.sendTilBeslutter(
+    suspend fun ApplicationTestBuilder.sendFørstegangsbehandlingTilBeslutning(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
@@ -45,7 +45,7 @@ interface SendTilBeslutterBuilder {
             sak,
             søknad,
             behandlingId,
-            sendTilBeslutterForBehandlingId(
+            sendFørstegangsbehandlingTilBeslutningForBehandlingId(
                 tac,
                 sakId,
                 behandlingId,
@@ -56,7 +56,7 @@ interface SendTilBeslutterBuilder {
     }
 
     /** Forventer at det allerede finnes en behandling med status `UNDER_BEHANDLING` */
-    suspend fun ApplicationTestBuilder.sendTilBeslutterForBehandlingId(
+    suspend fun ApplicationTestBuilder.sendFørstegangsbehandlingTilBeslutningForBehandlingId(
         tac: TestApplicationContext,
         sakId: SakId,
         behandlingId: BehandlingId,

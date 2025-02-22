@@ -5,13 +5,14 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 
-fun Sak.sendBehandlingTilBeslutning(
+fun Sak.sendFørstegangsbehandlingTilBeslutning(
     kommando: SendBehandlingTilBeslutningKommando,
 ): Either<KanIkkeSendeTilBeslutter, Pair<Sak, Behandling>> {
     if (!kommando.saksbehandler.erSaksbehandler()) {
         return KanIkkeSendeTilBeslutter.MåVæreSaksbehandler.left()
     }
     val behandling: Behandling = this.hentBehandling(kommando.behandlingId)!!
+    require(behandling.erFørstegangsbehandling) { "Behandlingen må være en førstegangsbehandling, men var: ${behandling.behandlingstype}" }
     val oppdatertBehandling = behandling.tilBeslutningV2(kommando)
     return (this.copy(behandlinger = this.behandlinger.oppdaterBehandling(oppdatertBehandling)) to oppdatertBehandling).right()
 }
@@ -31,11 +32,12 @@ fun Sak.sendRevurderingTilBeslutning(
         }
     }
 
-    if (stansDato.isBefore(this.førsteInnvilgetDato)) {
-        throw IllegalArgumentException("Kan ikke starte revurdering ($stansDato) før første innvilgetdato (${this.førsteInnvilgetDato})")
+    if (stansDato.isBefore(this.førsteDagSomGirRett)) {
+        throw IllegalArgumentException("Kan ikke starte revurdering ($stansDato) før første innvilgetdato (${this.førsteDagSomGirRett})")
     }
 
     val behandling: Behandling = this.hentBehandling(kommando.behandlingId)!!
+    require(behandling.erRevurdering) { "Finnes egen funksjon for å sende til førstegangbehandling til beslutning" }
     val oppdatertBehandling = behandling.sendRevurderingTilBeslutning(kommando, this.vedtaksperiode!!)
 
     return oppdatertBehandling.right()

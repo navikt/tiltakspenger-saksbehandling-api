@@ -10,9 +10,9 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter
+import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
@@ -21,7 +21,7 @@ import java.lang.IllegalStateException
 /**
  * Har ansvar for å ta imot et utfylt meldekort og sende det til beslutter.
  */
-class SendMeldekortTilBeslutterService(
+class SendMeldekortTilBeslutningService(
     private val tilgangsstyringService: TilgangsstyringService,
     private val personService: PersonService,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
@@ -33,17 +33,17 @@ class SendMeldekortTilBeslutterService(
      * @throws IllegalStateException Dersom vi ikke fant saken.
      */
     suspend fun sendMeldekortTilBeslutter(
-        kommando: SendMeldekortTilBeslutterKommando,
-    ): Either<KanIkkeSendeMeldekortTilBeslutter, MeldekortBehandling.MeldekortBehandlet> {
+        kommando: SendMeldekortTilBeslutningKommando,
+    ): Either<KanIkkeSendeMeldekortTilBeslutning, MeldekortBehandling.MeldekortBehandlet> {
         if (!kommando.saksbehandler.erSaksbehandler()) {
-            return KanIkkeSendeMeldekortTilBeslutter.MåVæreSaksbehandler(
+            return KanIkkeSendeMeldekortTilBeslutning.MåVæreSaksbehandler(
                 kommando.saksbehandler.roller,
             ).left()
         }
 
         kastHvisIkkeTilgangTilPerson(kommando.saksbehandler, kommando.meldekortId, kommando.correlationId)
         val sak = sakService.hentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
-            .getOrElse { return KanIkkeSendeMeldekortTilBeslutter.KunneIkkeHenteSak(it).left() }
+            .getOrElse { return KanIkkeSendeMeldekortTilBeslutning.KunneIkkeHenteSak(it).left() }
 
         val meldekortbehandling = sak.hentMeldekortBehandlingForMeldekortBehandlingId(kommando.meldekortId)!!
         val meldeperiode = meldekortbehandling.meldeperiode

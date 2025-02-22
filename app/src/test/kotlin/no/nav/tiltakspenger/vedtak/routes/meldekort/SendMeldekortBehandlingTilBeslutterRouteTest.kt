@@ -21,13 +21,12 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter
-import no.nav.tiltakspenger.meldekort.service.SendMeldekortTilBeslutterService
+import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning
+import no.nav.tiltakspenger.meldekort.service.SendMeldekortTilBeslutningService
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
-import no.nav.tiltakspenger.vedtak.routes.routes
 import org.junit.jupiter.api.Test
 
 internal class SendMeldekortBehandlingTilBeslutterRouteTest {
@@ -40,11 +39,11 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
             override suspend fun validerOgHentBruker(token: String) = ObjectMother.saksbehandler().right()
         }
         val auditService = mockk<AuditService>()
-        val sendMeldekortTilBeslutterService = mockk<SendMeldekortTilBeslutterService>()
+        val sendMeldekortTilBeslutterService = mockk<SendMeldekortTilBeslutningService>()
         coEvery { auditService.logMedMeldekortId(any(), any(), any(), any(), any()) } returns Unit
         coEvery {
             sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(any())
-        } returns KanIkkeSendeMeldekortTilBeslutter.ForMangeDagerUtfylt(14, 15).left()
+        } returns KanIkkeSendeMeldekortTilBeslutning.ForMangeDagerUtfylt(14, 15).left()
         val request = """
             {
               "navkontor": "0315",

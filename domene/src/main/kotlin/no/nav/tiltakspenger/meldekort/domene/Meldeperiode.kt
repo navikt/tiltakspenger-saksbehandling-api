@@ -44,10 +44,10 @@ data class Meldeperiode(
 
 fun Sak.opprettFørsteMeldeperiode(): Meldeperiode {
     requireNotNull(this.vedtaksliste.førstegangsvedtak) { "Kan ikke opprette første meldeperiode uten førstegangsvedtak" }
-    requireNotNull(this.vedtaksperiode) { "Kan ikke opprette første meldeperiode uten en vedtaksperiode" }
-
-    val periode = finnFørsteMeldekortsperiode(this.vedtaksperiode)
-    val utfallsperioder = this.vedtaksliste.førstegangsvedtak.utfallsperioder
+    requireNotNull(this.vedtaksliste.innvilgelsesperioder) { "Kan ikke opprette første meldeperiode uten minst én periode som gir rett til tiltakspenger" }
+    // TODO John + Anders: Denne fungerer ikke når vi får 2 førstegangsbehandlinger.
+    val periode = finnFørsteMeldekortsperiode(this.vedtaksliste.innvilgelsesperioder.single())
+    val utfallsperioder = this.vedtaksliste.førstegangsvedtak!!.utfallsperioder
 
     return this.opprettMeldeperiode(periode, utfallsperioder)
 }

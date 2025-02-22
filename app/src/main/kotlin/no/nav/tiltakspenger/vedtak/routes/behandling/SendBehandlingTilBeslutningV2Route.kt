@@ -64,7 +64,7 @@ fun Route.sendBehandlingTilBeslutningV2Route(
                     call.withBody<SendTilBeslutningBody> { body ->
                         val correlationId = call.correlationId()
 
-                        sendBehandlingTilBeslutningV2Service.sendTilBeslutning(
+                        sendBehandlingTilBeslutningV2Service.sendFørstegangsbehandlingTilBeslutning(
                             kommando = body.toDomain(
                                 sakId = sakId,
                                 behandlingId = behandlingId,

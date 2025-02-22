@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.sendTilBeslutter
+import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.sendFørstegangsbehandlingTilBeslutning
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.taBehanding
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
 
@@ -33,7 +33,7 @@ interface SendTilbakeBuilder {
         begrunnelse: String = "send_tilbake_begrunnelse",
         beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
-        val (sak, søknad, behandlingId) = sendTilBeslutter(tac)
+        val (sak, søknad, behandlingId) = sendFørstegangsbehandlingTilBeslutning(tac)
         taBehanding(tac, behandlingId, beslutter)
         return Tuple4(sak, søknad, behandlingId, sendTilbakeForBehandlingId(tac, behandlingId, begrunnelse, beslutter))
     }

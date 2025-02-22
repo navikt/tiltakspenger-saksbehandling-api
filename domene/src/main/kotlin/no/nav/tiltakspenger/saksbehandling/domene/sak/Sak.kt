@@ -33,11 +33,14 @@ data class Sak(
     val utbetalinger: Utbetalinger,
     val soknader: List<Søknad>,
 ) {
-    /** Dette er sakens totale vedtaksperiode. Per tidspunkt er den sammenhengende, men hvis vi lar en sak gjelde på tvers av tiltak, vil den kunne ha hull. */
+    /** Nåtilstand. Dette er sakens totale vedtaksperiode. Vær veldig obs når du bruker denne, fordi den sier ikke noe om antall perioder, om de gir rett eller ikke. */
     val vedtaksperiode: Periode? = vedtaksliste.vedtaksperiode
 
-    val førsteInnvilgetDato = vedtaksliste.førsteInnvilgetDato
-    val sisteInnvilgetDato = vedtaksliste.sisteInnvilgetDato
+    /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
+    val førsteDagSomGirRett = vedtaksliste.førsteDagSomGirRett
+
+    /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
+    val sisteDagSomGirRett = vedtaksliste.sisteDagSomGirRett
 
     /**
      * En sak kan kun ha en førstegangsbehandling, dersom perioden til den vedtatte førstegangsbehandlingen skal utvides eller minskes (den må fortsatt være sammenhengende) må vi revurdere/omgjøre, ikke førstegangsbehandle på nytt.

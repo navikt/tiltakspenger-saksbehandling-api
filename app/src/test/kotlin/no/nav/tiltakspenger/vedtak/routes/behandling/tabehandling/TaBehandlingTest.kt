@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
-import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.sendTilBeslutter
+import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.sendFørstegangsbehandlingTilBeslutning
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.startBehandling
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.taBehanding
 import no.nav.tiltakspenger.vedtak.routes.routes
@@ -57,7 +57,7 @@ internal class TaBehandlingTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (_, _, behandlingId) = sendTilBeslutter(tac)
+                val (_, _, behandlingId) = sendFørstegangsbehandlingTilBeslutning(tac)
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Behandlingsstatus.KLAR_TIL_BESLUTNING
                 }

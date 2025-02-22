@@ -30,8 +30,8 @@ class BenkOversiktPostgresRepo(
                         select behandling.id as behandling_id,
                           sak.ident,
                           behandling.opprettet,
-                          behandling.fra_og_med,
-                          behandling.til_og_med,
+                          behandling.virkningsperiode_fra_og_med,
+                          behandling.virkningsperiode_til_og_med,
                           behandling.status,
                           sak.saksnummer,
                           behandling.saksbehandler,
@@ -49,11 +49,11 @@ class BenkOversiktPostgresRepo(
                         """.trimIndent(),
                     ).map { row ->
                         val id = row.string("behandling_id").let { BehandlingId.fromString(it) }
-                        val fraOgMed = row.localDateOrNull("fra_og_med")
+                        val fraOgMed = row.localDateOrNull("virkningsperiode_fra_og_med")
                         val periode = fraOgMed?.let {
                             Periode(
                                 fraOgMed = it,
-                                tilOgMed = row.localDate("til_og_med"),
+                                tilOgMed = row.localDate("virkningsperiode_til_og_med"),
                             )
                         }
 

@@ -30,8 +30,8 @@ import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.meldekort.domene.NyttBrukersMeldekort
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Dager
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
 import java.time.LocalDate
@@ -248,7 +248,7 @@ interface MeldekortMother {
         navkontor: Navkontor = ObjectMother.navkontor(),
     ): MeldekortBehandlinger {
         val kommandoer = meldeperioder.map { meldeperiode ->
-            SendMeldekortTilBeslutterKommando(
+            SendMeldekortTilBeslutningKommando(
                 sakId = sakId,
                 meldekortId = MeldekortId.random(),
                 saksbehandler = saksbehandler,
@@ -279,7 +279,7 @@ interface MeldekortMother {
         fnr: Fnr = Fnr.random(),
         rammevedtakId: VedtakId,
         opprettet: LocalDateTime = nå(),
-        kommando: SendMeldekortTilBeslutterKommando,
+        kommando: SendMeldekortTilBeslutningKommando,
         meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
     ): Pair<MeldekortBehandlinger, MeldekortBehandling.MeldekortBehandlet> {
@@ -322,7 +322,7 @@ interface MeldekortMother {
     }
 
     fun MeldekortBehandlinger.beregnNesteMeldekort(
-        kommando: SendMeldekortTilBeslutterKommando,
+        kommando: SendMeldekortTilBeslutningKommando,
         fnr: Fnr,
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
@@ -464,31 +464,31 @@ interface MeldekortMother {
 
 fun MeldekortBehandling.MeldekortUnderBehandling.tilSendMeldekortTilBeslutterKommando(
     saksbehandler: Saksbehandler,
-): SendMeldekortTilBeslutterKommando {
+): SendMeldekortTilBeslutningKommando {
     val dager = beregning.map { dag ->
         Dager.Dag(
             dag = dag.dato,
             status = when (dag) {
                 is MeldeperiodeBeregningDag.IkkeUtfylt -> if (dag.dato.erHelg()) {
-                    SendMeldekortTilBeslutterKommando.Status.IKKE_DELTATT
+                    SendMeldekortTilBeslutningKommando.Status.IKKE_DELTATT
                 } else {
-                    SendMeldekortTilBeslutterKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
+                    SendMeldekortTilBeslutningKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
                 }
 
                 is MeldeperiodeBeregningDag.Utfylt -> when (dag) {
-                    is MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattMedLønnITiltaket -> SendMeldekortTilBeslutterKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
-                    is MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket -> SendMeldekortTilBeslutterKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
-                    is MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SykBruker -> SendMeldekortTilBeslutterKommando.Status.FRAVÆR_SYK
-                    is MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SyktBarn -> SendMeldekortTilBeslutterKommando.Status.FRAVÆR_SYKT_BARN
-                    is MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdGodkjentAvNav -> SendMeldekortTilBeslutterKommando.Status.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-                    is MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdIkkeGodkjentAvNav -> SendMeldekortTilBeslutterKommando.Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-                    is MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt -> SendMeldekortTilBeslutterKommando.Status.IKKE_DELTATT
-                    is MeldeperiodeBeregningDag.Utfylt.Sperret -> SendMeldekortTilBeslutterKommando.Status.SPERRET
+                    is MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattMedLønnITiltaket -> SendMeldekortTilBeslutningKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
+                    is MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket -> SendMeldekortTilBeslutningKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
+                    is MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SykBruker -> SendMeldekortTilBeslutningKommando.Status.FRAVÆR_SYK
+                    is MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SyktBarn -> SendMeldekortTilBeslutningKommando.Status.FRAVÆR_SYKT_BARN
+                    is MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdGodkjentAvNav -> SendMeldekortTilBeslutningKommando.Status.FRAVÆR_VELFERD_GODKJENT_AV_NAV
+                    is MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdIkkeGodkjentAvNav -> SendMeldekortTilBeslutningKommando.Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
+                    is MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt -> SendMeldekortTilBeslutningKommando.Status.IKKE_DELTATT
+                    is MeldeperiodeBeregningDag.Utfylt.Sperret -> SendMeldekortTilBeslutningKommando.Status.SPERRET
                 }
             },
         )
     }.toNonEmptyListOrNull()!!
-    return SendMeldekortTilBeslutterKommando(
+    return SendMeldekortTilBeslutningKommando(
         sakId = sakId,
         meldekortId = id,
         saksbehandler = saksbehandler,

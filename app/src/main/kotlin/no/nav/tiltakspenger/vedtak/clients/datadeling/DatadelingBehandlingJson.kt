@@ -11,9 +11,9 @@ fun Behandling.toBehandlingJson(): String {
         behandlingId = id.toString(),
         sakId = sakId.toString(),
         saksnummer = saksnummer.verdi,
-        fraOgMed = innvilgelsesperiode?.fraOgMed ?: stansperiode?.fraOgMed ?: saksopplysningsperiode?.fraOgMed
+        fraOgMed = virkningsperiode?.fraOgMed ?: saksopplysningsperiode?.fraOgMed
             ?: søknad!!.vurderingsperiode().fraOgMed,
-        tilOgMed = innvilgelsesperiode?.tilOgMed ?: stansperiode?.tilOgMed ?: saksopplysningsperiode?.tilOgMed
+        tilOgMed = virkningsperiode?.tilOgMed ?: saksopplysningsperiode?.tilOgMed
             ?: søknad!!.vurderingsperiode().tilOgMed,
         behandlingStatus = status.toDatadelingDTO(),
         saksbehandler = saksbehandler,

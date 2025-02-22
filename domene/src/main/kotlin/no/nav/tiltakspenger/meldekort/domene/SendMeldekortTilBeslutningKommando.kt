@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutterKommando.Dager.Dag
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager.Dag
 import java.time.LocalDate
 
 /**
@@ -15,7 +15,7 @@ import java.time.LocalDate
  * Vi gjør ingen validering i denne klassen, det gjøres heller av [no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortBehandlet]
  *
  */
-class SendMeldekortTilBeslutterKommando(
+class SendMeldekortTilBeslutningKommando(
     val sakId: SakId,
     val meldekortId: MeldekortId,
     val saksbehandler: Saksbehandler,

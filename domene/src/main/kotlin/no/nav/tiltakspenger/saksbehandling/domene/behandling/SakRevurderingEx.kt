@@ -41,14 +41,14 @@ suspend fun Sak.startRevurdering(
             ).left()
         }
     }
-    require(this.vedtaksliste.antallInnvilgelsesperiode == 1) {
+    require(this.vedtaksliste.antallInnvilgelsesperioder == 1) {
         "Kan kun opprette en stansrevurdering dersom vi har en sammenhengende innvilgelsesperiode. sakId=${this.id}"
     }
 
-    if (fraOgMed.isBefore(this.førsteInnvilgetDato)) {
-        throw IllegalArgumentException("Kan ikke starte revurdering ($fraOgMed) før første innvilgetdato (${this.førsteInnvilgetDato})")
+    if (fraOgMed.isBefore(this.førsteDagSomGirRett)) {
+        throw IllegalArgumentException("Kan ikke starte revurdering ($fraOgMed) før første innvilgetdato (${this.førsteDagSomGirRett})")
     }
-    val tilOgMed = this.sisteInnvilgetDato!!
+    val tilOgMed = this.sisteDagSomGirRett!!
     val revurderingsperiode = Periode(fraOgMed, tilOgMed)
     // Merk at vi beholder eventuelle tidspunkt og IDer når vi krymper.
     val vilkårssett = if (erNyFlyt!!) null else this.krympVilkårssett(revurderingsperiode).single().verdi
@@ -88,7 +88,7 @@ suspend fun Sak.startRevurderingV2(
         ).left()
     }
 
-    require(this.vedtaksliste.antallInnvilgelsesperiode == 1) {
+    require(this.vedtaksliste.antallInnvilgelsesperioder == 1) {
         "Kan kun opprette en stansrevurdering dersom vi har en sammenhengende innvilgelsesperiode. sakId=${this.id}"
     }
 

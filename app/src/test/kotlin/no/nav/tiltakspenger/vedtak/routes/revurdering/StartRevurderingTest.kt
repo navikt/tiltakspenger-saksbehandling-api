@@ -34,8 +34,7 @@ internal class StartRevurderingTest {
                 revurdering.saksnummer shouldBe sak.saksnummer
                 revurdering.søknad.shouldBeNull()
                 revurdering.vilkårssett shouldBe null
-                revurdering.innvilgelsesperiode shouldBe null
-                revurdering.stansperiode shouldBe sak.førstegangsbehandling!!.innvilgelsesperiode!!
+                revurdering.virkningsperiode shouldBe sak.førstegangsbehandling!!.virkningsperiode!!
                 revurdering.attesteringer shouldBe emptyList()
                 revurdering.erNyFlyt shouldBe true
                 revurdering.saksopplysninger.shouldNotBeNull()

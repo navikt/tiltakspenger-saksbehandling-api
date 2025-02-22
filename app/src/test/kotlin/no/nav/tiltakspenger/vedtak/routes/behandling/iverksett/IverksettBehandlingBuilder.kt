@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.sendTilBeslutter
+import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.sendFørstegangsbehandlingTilBeslutning
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.taBehanding
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
 
@@ -30,7 +30,7 @@ interface IverksettBehandlingBuilder {
         tac: TestApplicationContext,
         beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): Tuple4<Sak, Søknad, Behandling, String> {
-        val (sak, søknad, behandlingId, _) = sendTilBeslutter(tac)
+        val (sak, søknad, behandlingId, _) = sendFørstegangsbehandlingTilBeslutning(tac)
         taBehanding(tac, behandlingId, beslutter)
         val (oppdatertSak, oppdatertBehandling, jsonResponse) = iverksettForBehandlingId(
             tac,
