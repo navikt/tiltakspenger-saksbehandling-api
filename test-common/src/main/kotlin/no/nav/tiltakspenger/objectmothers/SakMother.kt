@@ -115,7 +115,7 @@ interface SakMother {
     ): Sak {
         val førstegangsbehandling =
             runBlocking {
-                Behandling.opprettSøknadsbehandlingV2(
+                Behandling.opprettSøknadsbehandling(
                     sakId = sakId,
                     saksnummer = saksnummer,
                     fnr = fnr,

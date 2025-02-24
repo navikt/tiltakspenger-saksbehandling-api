@@ -14,8 +14,8 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingV2Kommando
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.startRevurderingV2
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterSaksopplysningerService
@@ -28,8 +28,8 @@ class StartRevurderingService(
 ) {
     val logger = KotlinLogging.logger { }
 
-    suspend fun startRevurderingV2(
-        kommando: StartRevurderingV2Kommando,
+    suspend fun startRevurdering(
+        kommando: StartRevurderingKommando,
     ): Either<KanIkkeStarteRevurdering, Pair<Sak, Behandling>> {
         val (sakId, correlationId, saksbehandler) = kommando
 
@@ -48,7 +48,7 @@ class StartRevurderingService(
         sjekkSaksbehandlersTilgangTilPerson(sak.fnr, sak.id, saksbehandler, correlationId)
 
         val (oppdatertSak, behandling) = sak
-            .startRevurderingV2(kommando, saksopplysningerService::hentSaksopplysningerFraRegistre)
+            .startRevurdering(kommando, saksopplysningerService::hentSaksopplysningerFraRegistre)
             .getOrElse { return it.left() }
 
         behandlingRepo.lagre(behandling)

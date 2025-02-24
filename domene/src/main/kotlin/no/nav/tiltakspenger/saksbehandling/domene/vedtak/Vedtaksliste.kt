@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
+import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode
 import java.time.LocalDate
 
 data class Vedtaksliste(
@@ -55,9 +55,9 @@ data class Vedtaksliste(
      * Utfallsperioder: 01.01.2021 - 02.01.2021 Oppfylt (fra vedtak 1)
      *                  03.01.2021 - 04.01.2021 Ikke Oppfylt (fra vedtak 2)
      */
-    val utfallsperioder: Periodisering<AvklartUtfallForPeriode> by lazy {
+    val utfallsperioder: Periodisering<Utfallsperiode> by lazy {
         tidslinje.perioderMedVerdi.flatMap { pmvVedtak ->
-            pmvVedtak.verdi.utfallsperioder.perioderMedVerdi.mapNotNull {
+            pmvVedtak.verdi.utfallsperioder!!.perioderMedVerdi.mapNotNull {
                 it.periode.overlappendePeriode(pmvVedtak.periode)?.let { overlappendePeriode ->
                     PeriodeMedVerdi(
                         periode = overlappendePeriode,

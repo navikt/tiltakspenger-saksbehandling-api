@@ -16,8 +16,8 @@ import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteRevurdering
 
 private val loggerForStartRevurdering = KotlinLogging.logger { }
 
-suspend fun Sak.startRevurderingV2(
-    kommando: StartRevurderingV2Kommando,
+suspend fun Sak.startRevurdering(
+    kommando: StartRevurderingKommando,
     hentSaksopplysninger: suspend (sakId: SakId, saksnummer: Saksnummer, fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger,
 ): Either<KanIkkeStarteRevurdering, Pair<Sak, Behandling>> {
     val saksbehandler = kommando.saksbehandler
@@ -38,7 +38,7 @@ suspend fun Sak.startRevurderingV2(
 
     val saksopplysningsperiode = this.saksopplysningsperiode!!
 
-    val revurdering = Behandling.opprettRevurderingV2(
+    val revurdering = Behandling.opprettRevurdering(
         sakId = this.id,
         saksnummer = this.saksnummer,
         fnr = this.fnr,

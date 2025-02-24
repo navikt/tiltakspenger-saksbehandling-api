@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter.MåVæreSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendRevurderingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutningV2Service
+import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
@@ -50,7 +50,7 @@ private data class SendRevurderingTilBeslutningBody(
 private const val PATH = "/sak/{sakId}/revurdering/{behandlingId}/sendtilbeslutning"
 
 fun Route.sendRevurderingTilBeslutningRoute(
-    sendBehandlingTilBeslutningV2Service: SendBehandlingTilBeslutningV2Service,
+    sendBehandlingTilBeslutningService: SendBehandlingTilBeslutningService,
     auditService: AuditService,
     tokenService: TokenService,
 ) {
@@ -63,7 +63,7 @@ fun Route.sendRevurderingTilBeslutningRoute(
                     call.withBody<SendRevurderingTilBeslutningBody> { body ->
                         val correlationId = call.correlationId()
 
-                        sendBehandlingTilBeslutningV2Service.sendRevurderingTilBeslutning(
+                        sendBehandlingTilBeslutningService.sendRevurderingTilBeslutning(
                             kommando = body.toDomain(
                                 sakId = sakId,
                                 behandlingId = behandlingId,

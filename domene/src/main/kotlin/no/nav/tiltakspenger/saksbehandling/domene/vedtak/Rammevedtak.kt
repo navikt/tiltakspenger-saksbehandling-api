@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
+import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -43,7 +43,7 @@ data class Rammevedtak(
     val saksnummer: Saksnummer = behandling.saksnummer
     val saksbehandlerNavIdent: String = behandling.saksbehandler!!
     val beslutterNavIdent: String = behandling.beslutter!!
-    val utfallsperioder: Periodisering<AvklartUtfallForPeriode> get() = behandling.avklarteUtfallsperioder
+    val utfallsperioder: Periodisering<Utfallsperiode>? by lazy { behandling.utfallsperioder }
     override val antallDagerPerMeldeperiode: Int = behandling.maksDagerMedTiltakspengerForPeriode
 
     val erFørstegangsvedtak = vedtaksType == Vedtakstype.INNVILGELSE

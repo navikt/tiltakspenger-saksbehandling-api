@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attestering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendBehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
@@ -136,7 +136,7 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
         tiltaksdeltagelse = tiltaksdeltagelse,
         sak = sak,
     )
-    return this.behandlingContext.startSøknadsbehandlingV2Service.startSøknadsbehandling(
+    return this.behandlingContext.startSøknadsbehandlingService.startSøknadsbehandling(
         søknad.id,
         sak.id,
         saksbehandler,
@@ -158,8 +158,8 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
         saksbehandler = saksbehandler,
     )
 
-    this.behandlingContext.sendBehandlingTilBeslutningV2Service.sendFørstegangsbehandlingTilBeslutning(
-        SendBehandlingTilBeslutningKommando(
+    this.behandlingContext.sendBehandlingTilBeslutningService.sendFørstegangsbehandlingTilBeslutning(
+        SendSøknadsbehandlingTilBeslutningKommando(
             sakId = sakMedFørstegangsbehandling.id,
             behandlingId = sakMedFørstegangsbehandling.førstegangsbehandling!!.id,
             saksbehandler = saksbehandler,
@@ -215,7 +215,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingIverksatt(
         beslutter = beslutter,
     )
     runBlocking {
-        tac.behandlingContext.iverksettBehandlingV2Service.iverksett(
+        tac.behandlingContext.iverksettBehandlingService.iverksett(
             behandlingId = underBeslutning.førstegangsbehandling!!.id,
             beslutter = beslutter,
             correlationId = correlationId,

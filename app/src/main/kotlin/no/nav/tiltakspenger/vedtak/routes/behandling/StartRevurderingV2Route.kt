@@ -7,7 +7,7 @@ import io.ktor.server.routing.post
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingV2Kommando
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteRevurdering
 import no.nav.tiltakspenger.saksbehandling.service.sak.StartRevurderingService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.vedtak.routes.withSakId
 
 private const val PATH = "/sak/{sakId}/revurdering/start"
 
-fun Route.startRevurderingV2Route(
+fun Route.startRevurderingRoute(
     tokenService: TokenService,
     startRevurderingService: StartRevurderingService,
     auditService: AuditService,
@@ -34,7 +34,7 @@ fun Route.startRevurderingV2Route(
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 val correlationId = call.correlationId()
-                startRevurderingService.startRevurderingV2(StartRevurderingV2Kommando(sakId, correlationId, saksbehandler))
+                startRevurderingService.startRevurdering(StartRevurderingKommando(sakId, correlationId, saksbehandler))
                     .fold(
                         {
                             when (it) {

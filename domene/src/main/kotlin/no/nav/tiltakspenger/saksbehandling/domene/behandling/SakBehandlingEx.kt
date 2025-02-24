@@ -6,14 +6,14 @@ import arrow.core.right
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 
 fun Sak.sendFørstegangsbehandlingTilBeslutning(
-    kommando: SendBehandlingTilBeslutningKommando,
+    kommando: SendSøknadsbehandlingTilBeslutningKommando,
 ): Either<KanIkkeSendeTilBeslutter, Pair<Sak, Behandling>> {
     if (!kommando.saksbehandler.erSaksbehandler()) {
         return KanIkkeSendeTilBeslutter.MåVæreSaksbehandler.left()
     }
     val behandling: Behandling = this.hentBehandling(kommando.behandlingId)!!
     require(behandling.erFørstegangsbehandling) { "Behandlingen må være en førstegangsbehandling, men var: ${behandling.behandlingstype}" }
-    val oppdatertBehandling = behandling.tilBeslutningV2(kommando)
+    val oppdatertBehandling = behandling.tilBeslutning(kommando)
     return (this.copy(behandlinger = this.behandlinger.oppdaterBehandling(oppdatertBehandling)) to oppdatertBehandling).right()
 }
 

@@ -18,12 +18,12 @@ import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.ports.TiltakGateway
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingServiceImpl
-import no.nav.tiltakspenger.saksbehandling.service.behandling.IverksettBehandlingV2Service
+import no.nav.tiltakspenger.saksbehandling.service.behandling.IverksettBehandlingService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterSaksopplysningerService
-import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutningV2Service
-import no.nav.tiltakspenger.saksbehandling.service.behandling.StartSøknadsbehandlingV2Service
+import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutningService
+import no.nav.tiltakspenger.saksbehandling.service.behandling.StartSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.service.distribuering.DistribuerVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.service.journalføring.JournalførRammevedtakService
@@ -61,8 +61,8 @@ open class FørstegangsbehandlingContext(
             personService = personService,
         )
     }
-    val startSøknadsbehandlingV2Service: StartSøknadsbehandlingV2Service by lazy {
-        StartSøknadsbehandlingV2Service(
+    val startSøknadsbehandlingService: StartSøknadsbehandlingService by lazy {
+        StartSøknadsbehandlingService(
             sakService = sakService,
             sessionFactory = sessionFactory,
             tilgangsstyringService = tilgangsstyringService,
@@ -93,8 +93,8 @@ open class FørstegangsbehandlingContext(
             behandlingRepo = behandlingRepo,
         )
     }
-    val iverksettBehandlingV2Service by lazy {
-        IverksettBehandlingV2Service(
+    val iverksettBehandlingService by lazy {
+        IverksettBehandlingService(
             behandlingRepo = behandlingRepo,
             rammevedtakRepo = rammevedtakRepo,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
@@ -110,8 +110,8 @@ open class FørstegangsbehandlingContext(
         )
     }
 
-    val sendBehandlingTilBeslutningV2Service by lazy {
-        SendBehandlingTilBeslutningV2Service(
+    val sendBehandlingTilBeslutningService by lazy {
+        SendBehandlingTilBeslutningService(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
         )

@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.vedtak.repository.behandling.felles
 
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.UtfallForPeriode
+import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode
 import no.nav.tiltakspenger.vedtak.repository.felles.PeriodeDbJson
 import no.nav.tiltakspenger.vedtak.repository.felles.toDbJson
 
@@ -11,21 +11,20 @@ internal data class PeriodisertUtfallDbJson(
     val periode: PeriodeDbJson,
 ) {
     enum class UtfallDbJson {
+        // TODO: Lag db-migreringskript fra OPPFYLT->RETT_TIL_TILTAKSPENGER og IKKE_OPPFYLT->IKKE_RETT_TIL_TILTAKSPENGER og rename disse.
         OPPFYLT,
         IKKE_OPPFYLT,
-        UAVKLART,
         ;
 
-        fun toDomain(): UtfallForPeriode =
+        fun toDomain(): Utfallsperiode =
             when (this) {
-                OPPFYLT -> UtfallForPeriode.OPPFYLT
-                IKKE_OPPFYLT -> UtfallForPeriode.IKKE_OPPFYLT
-                UAVKLART -> UtfallForPeriode.UAVKLART
+                OPPFYLT -> Utfallsperiode.RETT_TIL_TILTAKSPENGER
+                IKKE_OPPFYLT -> Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER
             }
     }
 }
 
-internal fun Periodisering<UtfallForPeriode>.toDbJson(): List<PeriodisertUtfallDbJson> {
+internal fun Periodisering<Utfallsperiode>.toDbJson(): List<PeriodisertUtfallDbJson> {
     return this.perioderMedVerdi.map {
         PeriodisertUtfallDbJson(
             utfall = it.verdi.toDbJson(),
@@ -34,14 +33,13 @@ internal fun Periodisering<UtfallForPeriode>.toDbJson(): List<PeriodisertUtfallD
     }
 }
 
-internal fun UtfallForPeriode.toDbJson(): PeriodisertUtfallDbJson.UtfallDbJson =
+internal fun Utfallsperiode.toDbJson(): PeriodisertUtfallDbJson.UtfallDbJson =
     when (this) {
-        UtfallForPeriode.OPPFYLT -> PeriodisertUtfallDbJson.UtfallDbJson.OPPFYLT
-        UtfallForPeriode.IKKE_OPPFYLT -> PeriodisertUtfallDbJson.UtfallDbJson.IKKE_OPPFYLT
-        UtfallForPeriode.UAVKLART -> PeriodisertUtfallDbJson.UtfallDbJson.UAVKLART
+        Utfallsperiode.RETT_TIL_TILTAKSPENGER -> PeriodisertUtfallDbJson.UtfallDbJson.OPPFYLT
+        Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER -> PeriodisertUtfallDbJson.UtfallDbJson.IKKE_OPPFYLT
     }
 
-internal fun List<PeriodisertUtfallDbJson>.toDomain(): Periodisering<UtfallForPeriode> =
+internal fun List<PeriodisertUtfallDbJson>.toDomain(): Periodisering<Utfallsperiode> =
     Periodisering(
         this.map {
             PeriodeMedVerdi(

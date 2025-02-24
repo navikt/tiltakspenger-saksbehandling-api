@@ -82,7 +82,7 @@ class BehandlingServiceImpl(
             )
 
         val behandling =
-            hentBehandling(behandlingId, beslutter, correlationId).sendTilbake(beslutter, attestering).also {
+            hentBehandling(behandlingId, beslutter, correlationId).sendTilbakeTilBehandling(beslutter, attestering).also {
                 sessionFactory.withTransactionContext { tx ->
                     behandlingRepo.lagre(it, tx)
                 }

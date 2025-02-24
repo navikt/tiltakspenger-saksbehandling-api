@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
+import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -25,7 +25,7 @@ data class Meldeperiode(
     val sakId: SakId,
     val saksnummer: Saksnummer,
     val fnr: Fnr,
-    // Dette gjelder hele perioden
+    /** Dette gjelder hele perioden */
     val antallDagerForPeriode: Int,
     val girRett: Map<LocalDate, Boolean>,
     val sendtTilMeldekortApi: LocalDateTime?,
@@ -34,7 +34,7 @@ data class Meldeperiode(
         return girRett.values.toList().all { !it }
     }
 
-    // TODO: når skal vi tillate at meldekortet fylles ut? Siste fredag i perioden?
+    // TODO Anders: når skal vi tillate at meldekortet fylles ut? Siste fredag i perioden?
     fun erKlarTilUtfylling(): Boolean {
         return periode.fraOgMed <= nå().toLocalDate()
     }
@@ -49,7 +49,7 @@ fun Sak.opprettFørsteMeldeperiode(): Meldeperiode {
     val periode = finnFørsteMeldekortsperiode(this.vedtaksliste.innvilgelsesperioder.single())
     val utfallsperioder = this.vedtaksliste.førstegangsvedtak!!.utfallsperioder
 
-    return this.opprettMeldeperiode(periode, utfallsperioder)
+    return this.opprettMeldeperiode(periode, utfallsperioder!!)
 }
 
 /**
@@ -79,7 +79,7 @@ fun Sak.opprettNesteMeldeperiode(): Meldeperiode? {
 
 private fun Sak.opprettMeldeperiode(
     periode: Periode,
-    utfallsperioder: Periodisering<AvklartUtfallForPeriode>,
+    utfallsperioder: Periodisering<Utfallsperiode>,
 ): Meldeperiode {
     val meldeperiode = Meldeperiode(
         meldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
@@ -92,7 +92,7 @@ private fun Sak.opprettMeldeperiode(
         opprettet = nå(),
         versjon = HendelseVersjon.ny(),
         girRett = periode.tilDager().associateWith {
-            (utfallsperioder.hentVerdiForDag(it) == AvklartUtfallForPeriode.OPPFYLT)
+            (utfallsperioder.hentVerdiForDag(it) == Utfallsperiode.RETT_TIL_TILTAKSPENGER)
         },
         sendtTilMeldekortApi = null,
     )

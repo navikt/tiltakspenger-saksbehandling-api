@@ -33,7 +33,7 @@ import no.nav.tiltakspenger.meldekort.domene.NyttBrukersMeldekort
 import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
+import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.math.ceil
@@ -241,8 +241,8 @@ interface MeldekortMother {
         fnr: Fnr = Fnr.random(),
         meldeperioder: NonEmptyList<NonEmptyList<Dager.Dag>>,
         rammevedtakId: VedtakId = VedtakId.random(),
-        utfallsperioder: Periodisering<AvklartUtfallForPeriode> = Periodisering(
-            initiellVerdi = AvklartUtfallForPeriode.OPPFYLT,
+        utfallsperioder: Periodisering<Utfallsperiode> = Periodisering(
+            initiellVerdi = Utfallsperiode.RETT_TIL_TILTAKSPENGER,
             totalePeriode = vurderingsperiode,
         ),
         navkontor: Navkontor = ObjectMother.navkontor(),

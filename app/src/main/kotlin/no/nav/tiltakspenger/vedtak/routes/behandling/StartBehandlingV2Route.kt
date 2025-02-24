@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling.FantIkkeTiltak
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling.StøtterIkkeBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling.StøtterKunInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.service.behandling.StartSøknadsbehandlingV2Service
+import no.nav.tiltakspenger.saksbehandling.service.behandling.StartSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteSøknadsbehandling
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
@@ -31,9 +31,9 @@ import no.nav.tiltakspenger.vedtak.routes.withSøknadId
  * Støtter ny, forenklet vilkårsvurdering.
  * Vi beholder 2 løp for ikke å bryte eksisterende funksjonalitet.
  */
-fun Route.startBehandlingV2Route(
+fun Route.startBehandlingRoute(
     tokenService: TokenService,
-    startSøknadsbehandlingService: StartSøknadsbehandlingV2Service,
+    startSøknadsbehandlingService: StartSøknadsbehandlingService,
     auditService: AuditService,
 ) {
     val logger = KotlinLogging.logger {}

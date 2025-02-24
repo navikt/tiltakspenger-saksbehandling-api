@@ -24,10 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteSøknadsbeha
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.service.statistikk.sak.genererStatistikkForNyFørstegangsbehandling
 
-/**
- * Fjern V2 når vi har slettet den gamle.
- */
-class StartSøknadsbehandlingV2Service(
+class StartSøknadsbehandlingService(
     private val sakService: SakService,
     private val sessionFactory: SessionFactory,
     private val tilgangsstyringService: TilgangsstyringService,
@@ -79,7 +76,7 @@ class StartSøknadsbehandlingV2Service(
                 saksopplysningsperiode = saksopplysningsperiode,
             )
         }
-        val førstegangsbehandling = Behandling.opprettSøknadsbehandlingV2(
+        val førstegangsbehandling = Behandling.opprettSøknadsbehandling(
             sakId = sakId,
             saksnummer = sak.saksnummer,
             fnr = fnr,

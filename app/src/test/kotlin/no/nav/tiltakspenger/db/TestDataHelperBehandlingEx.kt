@@ -16,12 +16,12 @@ import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendRevurderingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingV2Kommando
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.sendRevurderingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.startRevurderingV2
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
@@ -136,8 +136,8 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
     val førstegangsbehandling = sak.førstegangsbehandling
     val oppdatertFørstegangsbehandling =
         førstegangsbehandling!!
-            .tilBeslutningV2(
-                SendBehandlingTilBeslutningKommando(
+            .tilBeslutning(
+                SendSøknadsbehandlingTilBeslutningKommando(
                     sakId = sakId,
                     saksbehandler = saksbehandler,
                     behandlingId = førstegangsbehandling.id,
@@ -148,7 +148,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
                 ),
             )
             .taBehandling(beslutter)
-            .iverksettv2(beslutter, ObjectMother.godkjentAttestering(beslutter))
+            .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter))
     behandlingRepo.lagre(oppdatertFørstegangsbehandling)
     val vedtak = sak.opprettVedtak(oppdatertFørstegangsbehandling).second
     vedtakRepo.lagre(vedtak)
@@ -208,8 +208,8 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
         )
     }
     return runBlocking {
-        sak.startRevurderingV2(
-            kommando = StartRevurderingV2Kommando(
+        sak.startRevurdering(
+            kommando = StartRevurderingKommando(
                 sakId = sakId,
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
@@ -271,8 +271,8 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
         )
     }
     return runBlocking {
-        sak.startRevurderingV2(
-            kommando = StartRevurderingV2Kommando(
+        sak.startRevurdering(
+            kommando = StartRevurderingKommando(
                 sakId = sakId,
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,

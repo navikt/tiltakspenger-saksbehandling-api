@@ -15,8 +15,8 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter.MåVæreSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendBehandlingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutningV2Service
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
@@ -37,8 +37,8 @@ private data class SendTilBeslutningBody(
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): SendBehandlingTilBeslutningKommando {
-        return SendBehandlingTilBeslutningKommando(
+    ): SendSøknadsbehandlingTilBeslutningKommando {
+        return SendSøknadsbehandlingTilBeslutningKommando(
             sakId = sakId,
             behandlingId = behandlingId,
             saksbehandler = saksbehandler,
@@ -50,8 +50,8 @@ private data class SendTilBeslutningBody(
     }
 }
 
-fun Route.sendBehandlingTilBeslutningV2Route(
-    sendBehandlingTilBeslutningV2Service: SendBehandlingTilBeslutningV2Service,
+fun Route.sendBehandlingTilBeslutningRoute(
+    sendBehandlingTilBeslutningService: SendBehandlingTilBeslutningService,
     auditService: AuditService,
     tokenService: TokenService,
 ) {
@@ -64,7 +64,7 @@ fun Route.sendBehandlingTilBeslutningV2Route(
                     call.withBody<SendTilBeslutningBody> { body ->
                         val correlationId = call.correlationId()
 
-                        sendBehandlingTilBeslutningV2Service.sendFørstegangsbehandlingTilBeslutning(
+                        sendBehandlingTilBeslutningService.sendFørstegangsbehandlingTilBeslutning(
                             kommando = body.toDomain(
                                 sakId = sakId,
                                 behandlingId = behandlingId,

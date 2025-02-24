@@ -17,11 +17,13 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus.K
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus.VEDTATT
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingstype.FØRSTEGANGSBEHANDLING
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingstype.REVURDERING
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.UtfallForPeriode
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.toAvklartUtfallForPeriode
+import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode
+import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER
+import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode.RETT_TIL_TILTAKSPENGER
 import java.time.LocalDateTime
 
 /**
@@ -74,37 +76,31 @@ data class Behandling(
     // sted siden vi mangler data for id, deltakelsesprosent og antallDagerPerUke i gammel vilkårsvurdering og dermed bruker noen defaultverdier
     val tiltaksdeltakelse = saksopplysninger.tiltaksdeltagelse
 
-    val utfallsperioder: Periodisering<UtfallForPeriode>
-        get() =
-            // Dersom det er en innvilgelse, vil hele innvilgelsesperioden være utfallsperoden: OPPFYLT
-            // Dersom det er et avslag, vil vi ikke forholde oss til en utfallsperiode. Det skal ikke lages meldeperioder. Og vedtaket skal bare "ignoreres" som regel.
-            // Dersom det er en revurdering stans/opphør, vil vi ha en opphørsperiode.
-            when (behandlingstype) {
-                Behandlingstype.FØRSTEGANGSBEHANDLING -> {
-                    Periodisering<UtfallForPeriode>(UtfallForPeriode.OPPFYLT, virkningsperiode!!)
-                }
+    /**
+     * null dersom [virkningsperiode] ikke er satt enda. Typisk i stegene før til beslutning eller ved avslag.
+     *
+     * Dersom det er en innvilgelse, vil hele utfallsperioden være: [Utfallsperiode.RETT_TIL_TILTAKSPENGER]
+     * Dersom det er et avslag, vil den være null.
+     * Dersom det er en revurdering stans/opphør, vil hele utfallsperioden være: [Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER]
+     *
+     */
+    val utfallsperioder: Periodisering<Utfallsperiode>? by lazy {
+        if (virkningsperiode == null) return@lazy null
+        when (behandlingstype) {
+            FØRSTEGANGSBEHANDLING -> Periodisering<Utfallsperiode>(RETT_TIL_TILTAKSPENGER, virkningsperiode)
+            REVURDERING -> Periodisering<Utfallsperiode>(IKKE_RETT_TIL_TILTAKSPENGER, virkningsperiode)
+        }
+    }
 
-                Behandlingstype.REVURDERING -> {
-                    Periodisering<UtfallForPeriode>(UtfallForPeriode.IKKE_OPPFYLT, virkningsperiode!!)
-                }
-            }
-
-    val avklarteUtfallsperioder: Periodisering<AvklartUtfallForPeriode> get() = utfallsperioder.toAvklartUtfallForPeriode()
-
-    val erFørstegangsbehandling: Boolean = behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING
-    val erRevurdering: Boolean = behandlingstype == Behandlingstype.REVURDERING
+    val erFørstegangsbehandling: Boolean = behandlingstype == FØRSTEGANGSBEHANDLING
+    val erRevurdering: Boolean = behandlingstype == REVURDERING
 
     /** Påkrevd ved førstegangsbehandling/søknadsbehandling, men kan være null ved revurdering. */
     val kravfrist = søknad?.tidsstempelHosOss
 
     companion object {
-        private val logger = mu.KotlinLogging.logger { }
 
-        /**
-         * Ny måte og opprette søknadsbehandling på. Støtter ny og enklere vilkårsvurderingsflyt.
-         * TODO John + Anders: Rename når vi har slettet den gamle.
-         */
-        suspend fun opprettSøknadsbehandlingV2(
+        suspend fun opprettSøknadsbehandling(
             sakId: SakId,
             saksnummer: Saksnummer,
             fnr: Fnr,
@@ -144,13 +140,13 @@ data class Behandling(
                 iverksattTidspunkt = null,
                 sendtTilDatadeling = null,
                 sistEndret = opprettet,
-                behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
+                behandlingstype = FØRSTEGANGSBEHANDLING,
                 oppgaveId = søknad.oppgaveId,
                 saksopplysningsperiode = saksopplysningsperiode,
             ).right()
         }
 
-        suspend fun opprettRevurderingV2(
+        suspend fun opprettRevurdering(
             sakId: SakId,
             saksnummer: Saksnummer,
             fnr: Fnr,
@@ -178,7 +174,7 @@ data class Behandling(
                 iverksattTidspunkt = null,
                 sendtTilDatadeling = null,
                 sistEndret = opprettet,
-                behandlingstype = Behandlingstype.REVURDERING,
+                behandlingstype = REVURDERING,
                 // her kan man på sikt lagre oppgaveId hvis man oppretter oppgave for revurdering
                 oppgaveId = null,
                 // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for førstegangsbehandling.
@@ -188,8 +184,8 @@ data class Behandling(
     }
 
     /** Saksbehandler/beslutter tar eller overtar behandlingen. */
-    fun taBehandling(saksbehandler: Saksbehandler): Behandling =
-        when (this.status) {
+    fun taBehandling(saksbehandler: Saksbehandler): Behandling {
+        return when (this.status) {
             KLAR_TIL_BEHANDLING, UNDER_BEHANDLING -> {
                 check(saksbehandler.erSaksbehandler()) {
                     "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
@@ -216,10 +212,10 @@ data class Behandling(
                 )
             }
         }
+    }
 
-    /** Skal renames til tilBeslutning */
-    fun tilBeslutningV2(
-        kommando: SendBehandlingTilBeslutningKommando,
+    fun tilBeslutning(
+        kommando: SendSøknadsbehandlingTilBeslutningKommando,
     ): Behandling {
         check(status == UNDER_BEHANDLING) {
             "Behandlingen må være under behandling, det innebærer også at en saksbehandler må ta saken før den kan sendes til beslutter. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}"
@@ -252,8 +248,7 @@ data class Behandling(
         )
     }
 
-    /** Rename til iverksett (gjelder generelt alle v2)  */
-    fun iverksettv2(
+    fun iverksett(
         utøvendeBeslutter: Saksbehandler,
         attestering: Attestering,
     ): Behandling {
@@ -279,7 +274,7 @@ data class Behandling(
         }
     }
 
-    fun sendTilbake(
+    fun sendTilbakeTilBehandling(
         utøvendeBeslutter: Saksbehandler,
         attestering: Attestering,
     ): Behandling {
@@ -368,14 +363,14 @@ data class Behandling(
             require(beslutter != saksbehandler) { "Saksbehandler og beslutter kan ikke være samme person" }
         }
         when (behandlingstype) {
-            Behandlingstype.FØRSTEGANGSBEHANDLING -> {
+            FØRSTEGANGSBEHANDLING -> {
                 requireNotNull(søknad) { "Søknad må være satt for førstegangsbehandling" }
                 require(søknad.barnetillegg.isEmpty()) {
                     "Barnetillegg er ikke støttet i MVP 1"
                 }
             }
 
-            Behandlingstype.REVURDERING -> {
+            REVURDERING -> {
                 require(søknad == null) { "Søknad kan ikke være satt for revurdering" }
             }
         }

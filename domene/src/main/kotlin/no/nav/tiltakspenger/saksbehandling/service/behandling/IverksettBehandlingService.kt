@@ -37,10 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.service.statistikk.sak.genererSakssta
 import no.nav.tiltakspenger.saksbehandling.service.statistikk.stønad.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.service.statistikk.stønad.genererStønadsstatistikkForRammevedtak
 
-/**
- * TODO John + Anders: Fjern V2 når vi har slettet det gamle vilkårsvurderingsflyten.
- */
-class IverksettBehandlingV2Service(
+class IverksettBehandlingService(
     private val behandlingRepo: BehandlingRepo,
     private val rammevedtakRepo: RammevedtakRepo,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
@@ -79,7 +76,7 @@ class IverksettBehandlingV2Service(
             begrunnelse = null,
             beslutter = beslutter.navIdent,
         )
-        val iverksattBehandling = behandling.iverksettv2(beslutter, attestering)
+        val iverksattBehandling = behandling.iverksett(beslutter, attestering)
 
         val (oppdatertSak, vedtak) = sak.opprettVedtak(iverksattBehandling)
 

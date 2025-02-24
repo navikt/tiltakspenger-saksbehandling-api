@@ -57,7 +57,7 @@ interface IverksettBehandlingBuilder {
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/behandling/$behandlingId/iverksettv2")
+                path("/sak/$sakId/behandling/$behandlingId/iverksett")
             },
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(
                 saksbehandler = beslutter,
