@@ -143,8 +143,7 @@ class MeldekortBehandlingPostgresRepo(
                     select
                       m.*,
                       s.ident as fnr,
-                      s.saksnummer,
-                      (b.stønadsdager -> 'registerSaksopplysning' ->> 'antallDager')::int as antall_dager_per_meldeperiode
+                      s.saksnummer
                     from meldekortbehandling m
                     join sak s on s.id = m.sak_id
                     join rammevedtak r on r.id = m.rammevedtak_id
@@ -166,8 +165,7 @@ class MeldekortBehandlingPostgresRepo(
                     select
                       m.*,
                       s.ident as fnr,
-                      s.saksnummer,
-                      (b.stønadsdager -> 'registerSaksopplysning' ->> 'antallDager')::int as antall_dager_per_meldeperiode
+                      s.saksnummer
                     from meldekortbehandling m
                     join sak s on s.id = m.sak_id
                     join rammevedtak r on r.id = m.rammevedtak_id
@@ -191,7 +189,7 @@ class MeldekortBehandlingPostgresRepo(
             val navkontorNavn = row.stringOrNull("navkontor_navn")
             val rammevedtakId = VedtakId.fromString(row.string("rammevedtak_id"))
             val fnr = Fnr.fromString(row.string("fnr"))
-            val maksDagerMedTiltakspengerForPeriode = row.int("antall_dager_per_meldeperiode")
+            val maksDagerMedTiltakspengerForPeriode = 14
             val opprettet = row.localDateTime("opprettet")
 
             val meldeperiodeId = HendelseId.fromString(row.string("meldeperiode_hendelse_id"))
