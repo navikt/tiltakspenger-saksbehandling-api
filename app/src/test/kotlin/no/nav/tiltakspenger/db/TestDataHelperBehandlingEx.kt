@@ -15,77 +15,20 @@ import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendRevurderingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingV2Kommando
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.sendRevurderingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.startRevurderingV2
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.opprettVedtak
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.livsopphold.LeggTilLivsoppholdSaksopplysningCommand
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.livsopphold.LeggTilLivsoppholdSaksopplysningCommand.HarYtelseForPeriode
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.livsopphold.leggTilLivsoppholdSaksopplysning
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingRepoTest.Companion.random
 import java.time.LocalDate
-
-internal fun TestDataHelper.persisterOpprettetFørstegangsbehandlingDeprecated(
-    sakId: SakId = SakId.random(),
-    saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
-    fnr: Fnr = Fnr.random(),
-    deltakelseFom: LocalDate = 1.januar(2023),
-    deltakelseTom: LocalDate = 31.mars(2023),
-    journalpostId: String = random.nextInt().toString(),
-    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
-    id: SøknadId = Søknad.randomId(),
-    sak: Sak = ObjectMother.nySak(
-        sakId = sakId,
-        fnr = fnr,
-        saksnummer = this.saksnummerGenerator.neste(),
-    ),
-    søknad: Søknad =
-        ObjectMother.nySøknad(
-            periode = tiltaksOgVurderingsperiode,
-            journalpostId = journalpostId,
-            personopplysninger =
-            ObjectMother.personSøknad(
-                fnr = fnr,
-            ),
-            id = id,
-            søknadstiltak =
-            ObjectMother.søknadstiltak(
-                deltakelseFom = deltakelseFom,
-                deltakelseTom = deltakelseTom,
-            ),
-            barnetillegg = listOf(),
-            sak = sak,
-        ),
-): Pair<Sak, Søknad> {
-    this.persisterSakOgSøknad(
-        søknad = søknad,
-        sak = sak,
-    )
-    val sakMedBehandling =
-        ObjectMother.sakMedOpprettetDeprecatedBehandling(
-            søknad = søknad,
-            fnr = fnr,
-            vurderingsperiode = tiltaksOgVurderingsperiode,
-            saksnummer = saksnummer,
-            saksbehandler = saksbehandler,
-            sakId = sakId,
-        )
-    behandlingRepo.lagre(sakMedBehandling.førstegangsbehandling!!)
-
-    return Pair(
-        sakRepo.hentForSakId(sakId)!!,
-        søknadRepo.hentForSøknadId(søknad.id)!!,
-    )
-}
 
 internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
     sakId: SakId = SakId.random(),
@@ -176,8 +119,9 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
             barnetillegg = listOf(),
             sak = sak,
         ),
+    correlationId: CorrelationId = CorrelationId.generate(),
 ): Pair<Sak, Rammevedtak> {
-    val (sak, _) = persisterOpprettetFørstegangsbehandlingDeprecated(
+    val (sak, _) = persisterOpprettetFørstegangsbehandling(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,
@@ -192,21 +136,19 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
     val førstegangsbehandling = sak.førstegangsbehandling
     val oppdatertFørstegangsbehandling =
         førstegangsbehandling!!
-            .leggTilLivsoppholdSaksopplysning(
-                LeggTilLivsoppholdSaksopplysningCommand(
-                    behandlingId = førstegangsbehandling.id,
+            .tilBeslutningV2(
+                SendBehandlingTilBeslutningKommando(
+                    sakId = sakId,
                     saksbehandler = saksbehandler,
-                    harYtelseForPeriode =
-                    HarYtelseForPeriode(
-                        periode = førstegangsbehandling.virkningsperiode!!,
-                        harYtelse = false,
-                    ),
-                    correlationId = CorrelationId.generate(),
+                    behandlingId = førstegangsbehandling.id,
+                    correlationId = correlationId,
+                    fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("fritekstTilVedtaksbrev"),
+                    begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("begrunnelseVilkårsvurdering"),
+                    innvilgelsesperiode = tiltaksOgVurderingsperiode,
                 ),
-            ).getOrNull()!!
-            .tilBeslutning(saksbehandler)
+            )
             .taBehandling(beslutter)
-            .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter))
+            .iverksettv2(beslutter, ObjectMother.godkjentAttestering(beslutter))
     behandlingRepo.lagre(oppdatertFørstegangsbehandling)
     val vedtak = sak.opprettVedtak(oppdatertFørstegangsbehandling).second
     vedtakRepo.lagre(vedtak)
@@ -219,8 +161,8 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
 internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
-    deltakelseFom: LocalDate = ObjectMother.vurderingsperiode().fraOgMed,
-    deltakelseTom: LocalDate = ObjectMother.vurderingsperiode().tilOgMed,
+    deltakelseFom: LocalDate = ObjectMother.virningsperiode().fraOgMed,
+    deltakelseTom: LocalDate = ObjectMother.virningsperiode().tilOgMed,
     journalpostId: String = random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
@@ -248,7 +190,6 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
             barnetillegg = listOf(),
             sak = sak,
         ),
-    stansFraOgMed: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
     hentSaksopplysninger: suspend (sakId: SakId, saksnummer: Saksnummer, fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _, _, _ -> ObjectMother.saksopplysninger() },
 ): Pair<Sak, Behandling> {
     val (sak, _) = runBlocking {
@@ -267,10 +208,9 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
         )
     }
     return runBlocking {
-        sak.startRevurdering(
-            kommando = StartRevurderingKommando(
+        sak.startRevurderingV2(
+            kommando = StartRevurderingV2Kommando(
                 sakId = sakId,
-                fraOgMed = stansFraOgMed,
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
             ),
@@ -284,8 +224,8 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
 internal fun TestDataHelper.persisterOpprettetRevurdering(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
-    deltakelseFom: LocalDate = ObjectMother.vurderingsperiode().fraOgMed,
-    deltakelseTom: LocalDate = ObjectMother.vurderingsperiode().tilOgMed,
+    deltakelseFom: LocalDate = ObjectMother.virningsperiode().fraOgMed,
+    deltakelseTom: LocalDate = ObjectMother.virningsperiode().tilOgMed,
     journalpostId: String = random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
@@ -347,8 +287,8 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
 internal fun TestDataHelper.persisterBehandletRevurdering(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
-    deltakelseFom: LocalDate = ObjectMother.vurderingsperiode().fraOgMed,
-    deltakelseTom: LocalDate = ObjectMother.vurderingsperiode().tilOgMed,
+    deltakelseFom: LocalDate = ObjectMother.virningsperiode().fraOgMed,
+    deltakelseTom: LocalDate = ObjectMother.virningsperiode().tilOgMed,
     journalpostId: String = random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),

@@ -4,10 +4,6 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingstype
-import no.nav.tiltakspenger.vedtak.routes.behandling.stønadsdager.StønadsdagerDTO
-import no.nav.tiltakspenger.vedtak.routes.behandling.stønadsdager.toDTO
-import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.VilkårssettDTO
-import no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.toDTO
 
 internal data class BehandlingDTO(
     val id: String,
@@ -24,8 +20,6 @@ internal data class BehandlingDTO(
     val saksopplysningsperiode: PeriodeDTO?,
     val fritekstTilVedtaksbrev: String?,
     val begrunnelseVilkårsvurdering: String?,
-    val stønadsdager: StønadsdagerDTO?,
-    val vilkårssett: VilkårssettDTO?,
 //    Denne burde være med på revurderinger for client-side validering
 //    val førsteLovligeStansdato: LocalDate?,
 )
@@ -46,7 +40,5 @@ internal fun Behandling.toDTO(): BehandlingDTO {
         saksopplysningsperiode = this.saksopplysningsperiode?.toDTO(),
         fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
         begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
-        stønadsdager = this.stønadsdager?.toDTO(),
-        vilkårssett = this.vilkårssett?.toDTO(),
     )
 }

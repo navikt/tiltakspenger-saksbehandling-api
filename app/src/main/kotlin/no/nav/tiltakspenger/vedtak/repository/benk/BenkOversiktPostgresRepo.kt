@@ -49,8 +49,8 @@ class BenkOversiktPostgresRepo(
                         """.trimIndent(),
                     ).map { row ->
                         val id = row.string("behandling_id").let { BehandlingId.fromString(it) }
-                        val fraOgMed = row.localDateOrNull("virkningsperiode_fra_og_med")
-                        val periode = fraOgMed?.let {
+                        val virkningsperiodeFraOgMed = row.localDateOrNull("virkningsperiode_fra_og_med")
+                        val periode = virkningsperiodeFraOgMed?.let {
                             Periode(
                                 fraOgMed = it,
                                 tilOgMed = row.localDate("virkningsperiode_til_og_med"),
@@ -78,7 +78,6 @@ class BenkOversiktPostgresRepo(
                             saksbehandler = saksbehandler,
                             beslutter = beslutter,
                             sakId = row.stringOrNull("sak_id")?.let { SakId.fromString(it) },
-                            erDeprecatedBehandling = row.stringOrNull("vilkårssett") != null,
                         )
                     }.asList,
                 )

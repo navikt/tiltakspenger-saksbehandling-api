@@ -370,7 +370,7 @@ interface MeldekortMother {
 
     fun meldeperiode(
         id: HendelseId = HendelseId.random(),
-        periode: Periode = ObjectMother.vurderingsperiode(),
+        periode: Periode = ObjectMother.virningsperiode(),
         meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
         sakId: SakId = SakId.random(),
         versjon: HendelseVersjon = HendelseVersjon.ny(),

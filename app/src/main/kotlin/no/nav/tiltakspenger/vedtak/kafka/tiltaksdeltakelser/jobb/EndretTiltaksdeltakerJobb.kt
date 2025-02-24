@@ -33,7 +33,7 @@ class EndretTiltaksdeltakerJobb(
             log.info { "Fant behandling ${nyesteIverksatteBehandling.id} for sakId ${it.sakId} og deltakerId ${it.id}" }
 
             val tiltaksdeltakelseFraBehandling = nyesteIverksatteBehandling.tiltaksdeltakelse
-            if (it.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling, nyFlyt = nyesteIverksatteBehandling.erNyFlyt)) {
+            if (it.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling)) {
                 log.info { "Tiltaksdeltakelse ${it.id} er endret, oppretter oppgave" }
                 val oppgaveId = oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(sak.fnr, Oppgavebehov.ENDRET_TILTAKDELTAKER)
                 tiltaksdeltakerKafkaRepository.lagreOppgaveId(it.id, oppgaveId)

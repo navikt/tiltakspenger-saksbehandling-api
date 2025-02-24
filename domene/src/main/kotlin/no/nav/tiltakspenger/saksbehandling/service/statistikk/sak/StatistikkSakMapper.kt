@@ -4,8 +4,6 @@ import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Vedtakstype
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.UtfallForPeriode
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Vilkårssett
 
 fun genererStatistikkForNyFørstegangsbehandling(
     behandling: Behandling,
@@ -28,7 +26,7 @@ fun genererStatistikkForNyFørstegangsbehandling(
         søknadsformat = Format.DIGITAL.name,
         // TODO jah: Dette bør være et eget felt som utledes fra tiltaksperioden og kravfrist.
         forventetOppstartTidspunkt = behandling.saksopplysningsperiode?.fraOgMed,
-        vilkår = mapVilkår(behandling.vilkårssett),
+        vilkår = emptyList(),
         sakYtelse = "IND",
         sakUtland = "N",
         behandlingType = BehandlingType.FØRSTEGANGSBEHANDLING,
@@ -74,7 +72,7 @@ fun genererSaksstatistikkForRammevedtak(
         søknadsformat = Format.DIGITAL.name,
         // TODO jah: Hva gjør vi ved revurdering/stans i dette tilfellet. Skal vi sende førstegangsbehandling sin første innvilget fraOgMed eller null?
         forventetOppstartTidspunkt = if (behandling.erFørstegangsbehandling) behandling.saksopplysningsperiode?.fraOgMed else null,
-        vilkår = mapVilkår(behandling.vilkårssett),
+        vilkår = emptyList(),
         sakYtelse = "IND",
         sakUtland = "N",
         behandlingType = if (behandling.erFørstegangsbehandling) BehandlingType.FØRSTEGANGSBEHANDLING else BehandlingType.REVURDERING,
@@ -101,75 +99,4 @@ fun genererSaksstatistikkForRammevedtak(
         versjon = versjon,
         hendelse = "iverksatt_behandling",
     )
-}
-
-private fun mapResultat(utfall: UtfallForPeriode): Resultat {
-    return when (utfall) {
-        UtfallForPeriode.IKKE_OPPFYLT -> Resultat.IKKE_OPPFYLT
-        UtfallForPeriode.OPPFYLT -> Resultat.OPPFYLT
-        UtfallForPeriode.UAVKLART -> Resultat.UAVKLART
-    }
-}
-
-private fun mapVilkår(vilkårssett: Vilkårssett?): List<VilkårStatistikkDTO> {
-    if (vilkårssett == null) {
-        return emptyList()
-    }
-    val intro = vilkårssett.introVilkår.utfall.perioderMedVerdi.map {
-        VilkårStatistikkDTO(
-            vilkår = "intro",
-            beskrivelse = "Om bruker deltar på introprogrammet",
-            resultat = mapResultat(it.verdi),
-        )
-    }
-
-    val kvp = vilkårssett.kvpVilkår.utfall.perioderMedVerdi.map {
-        VilkårStatistikkDTO(
-            vilkår = "kvp",
-            beskrivelse = "Om bruker deltar på kvp",
-            resultat = mapResultat(it.verdi),
-        )
-    }
-
-    val alder = vilkårssett.alderVilkår.utfall.perioderMedVerdi.map {
-        VilkårStatistikkDTO(
-            vilkår = "alder",
-            beskrivelse = "Om bruker er over 18 år",
-            resultat = mapResultat(it.verdi),
-        )
-    }
-
-    val kravfrist = vilkårssett.kravfristVilkår.utfall.perioderMedVerdi.map {
-        VilkårStatistikkDTO(
-            vilkår = "kravfrist",
-            beskrivelse = "Om bruker har søkt innen fristen",
-            resultat = mapResultat(it.verdi),
-        )
-    }
-
-    val institusjon = vilkårssett.institusjonsoppholdVilkår.utfall.perioderMedVerdi.map {
-        VilkårStatistikkDTO(
-            vilkår = "institusjon",
-            beskrivelse = "Om bruker bor på institusjon og får dekket livsopphold",
-            resultat = mapResultat(it.verdi),
-        )
-    }
-
-    val tiltak = vilkårssett.tiltakDeltagelseVilkår.utfall.perioderMedVerdi.map {
-        VilkårStatistikkDTO(
-            vilkår = "tiltakdeltagelse",
-            beskrivelse = "Om bruker deltar på tiltak som gir rett til tiltakspenger",
-            resultat = mapResultat(it.verdi),
-        )
-    }
-
-    val livsopphold = vilkårssett.livsoppholdVilkår.utfall.perioderMedVerdi.map {
-        VilkårStatistikkDTO(
-            vilkår = "livsopphold",
-            beskrivelse = "Om bruker får dekket livsopphold fra andre ytelser",
-            resultat = mapResultat(it.verdi),
-        )
-    }
-
-    return intro + kvp + alder + tiltak + kravfrist + institusjon + livsopphold
 }

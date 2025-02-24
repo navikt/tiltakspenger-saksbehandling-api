@@ -66,7 +66,7 @@ interface SøknadMother {
     fun personopplysningFødselsdato() = 1.januar(2000)
 
     fun nySøknad(
-        periode: Periode = ObjectMother.vurderingsperiode(),
+        periode: Periode = ObjectMother.virningsperiode(),
         versjon: String = "1",
         id: SøknadId = Søknad.randomId(),
         journalpostId: String = "journalpostId",

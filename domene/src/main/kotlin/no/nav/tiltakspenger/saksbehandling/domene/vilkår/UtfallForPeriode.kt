@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.domene.vilkår
 
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.SamletUtfall.UAVKLART
 
 /**
  * Utfall for en sammenhengende periode.

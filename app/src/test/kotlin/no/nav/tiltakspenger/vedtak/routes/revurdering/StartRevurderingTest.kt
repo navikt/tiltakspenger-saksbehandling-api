@@ -33,10 +33,8 @@ internal class StartRevurderingTest {
                 revurdering.saksbehandler shouldBe "Z12345"
                 revurdering.saksnummer shouldBe sak.saksnummer
                 revurdering.søknad.shouldBeNull()
-                revurdering.vilkårssett shouldBe null
-                revurdering.virkningsperiode shouldBe sak.førstegangsbehandling!!.virkningsperiode!!
+                revurdering.virkningsperiode shouldBe null
                 revurdering.attesteringer shouldBe emptyList()
-                revurdering.erNyFlyt shouldBe true
                 revurdering.saksopplysninger.shouldNotBeNull()
             }
         }

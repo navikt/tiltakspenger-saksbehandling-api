@@ -33,9 +33,7 @@ internal class StartBehandlingTest {
                 opprettetBehandling.saksbehandler shouldBe "Z12345"
                 opprettetBehandling.saksnummer shouldBe sak.saksnummer
                 opprettetBehandling.søknad!!.id shouldBe søknad.id
-                opprettetBehandling.vilkårssett shouldBe null
                 opprettetBehandling.attesteringer shouldBe emptyList()
-                opprettetBehandling.erNyFlyt shouldBe true
                 opprettetBehandling.erRevurdering shouldBe false
                 opprettetBehandling.saksopplysninger.shouldNotBeNull()
             }

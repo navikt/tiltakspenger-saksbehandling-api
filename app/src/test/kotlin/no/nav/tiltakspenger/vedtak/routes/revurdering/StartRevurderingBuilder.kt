@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.vedtak.routes.revurdering
 import arrow.core.Tuple4
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -53,10 +52,10 @@ interface StartRevurderingBuilder {
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/revurdering")
+                path("/sak/$sakId/revurdering/start")
             },
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(),
-        ) { setBody("""{"fraOgMed": "$revurderingFraOgMed"}""") }.apply {
+        ).apply {
             val bodyAsText = this.bodyAsText()
             withClue(
                 "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",

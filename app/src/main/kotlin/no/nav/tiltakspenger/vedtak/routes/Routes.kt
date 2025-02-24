@@ -16,13 +16,9 @@ fun Route.routes(applicationContext: ApplicationContext) {
     saksbehandlerRoutes(applicationContext.tokenService)
     behandlingRoutes(
         behandlingService = applicationContext.behandlingContext.behandlingService,
-        tiltaksdeltagelseVilkårService = applicationContext.behandlingContext.tiltaksdeltagelseVilkårService,
         sakService = applicationContext.sakContext.sakService,
-        kvpVilkårService = applicationContext.behandlingContext.kvpVilkårService,
-        livsoppholdVilkårService = applicationContext.behandlingContext.livsoppholdVilkårService,
         auditService = applicationContext.personContext.auditService,
         tokenService = applicationContext.tokenService,
-        søknadService = applicationContext.søknadContext.søknadService,
         startSøknadsbehandlingV2Service = applicationContext.behandlingContext.startSøknadsbehandlingV2Service,
         oppdaterSaksopplysningerService = applicationContext.behandlingContext.oppdaterSaksopplysningerService,
         oppdaterBegrunnelseVilkårsvurderingService = applicationContext.behandlingContext.oppdaterBegrunnelseVilkårsvurderingService,

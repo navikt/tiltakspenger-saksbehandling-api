@@ -8,7 +8,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.db.persisterIverksattFørstegangsbehandling
-import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandlingDeprecated
+import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandling
 import no.nav.tiltakspenger.db.persisterSakOgSøknad
 import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.felles.OppgaveId
@@ -86,7 +86,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
-                testDataHelper.persisterOpprettetFørstegangsbehandlingDeprecated(
+                testDataHelper.persisterOpprettetFørstegangsbehandling(
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     fnr = fnr,
@@ -138,7 +138,7 @@ class EndretTiltaksdeltakerJobbTest {
                     ),
                 )
                 val tiltaksdeltakerKafkaDb =
-                    getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id, fom = deltakelseFom, tom = deltakelsesTom)
+                    getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id, fom = deltakelseFom, tom = deltakelsesTom, dagerPerUke = 5F, deltakelsesprosent = 100F)
                 tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
@@ -290,7 +290,8 @@ class EndretTiltaksdeltakerJobbTest {
                 val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
                 oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                 oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
-                oppdatertTiltaksdeltakerKafkaDb?.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES)
+                oppdatertTiltaksdeltakerKafkaDb?.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe LocalDateTime.now()
+                    .truncatedTo(ChronoUnit.MINUTES)
                 coVerify(exactly = 1) { oppgaveGateway.erFerdigstilt(oppgaveId) }
             }
         }

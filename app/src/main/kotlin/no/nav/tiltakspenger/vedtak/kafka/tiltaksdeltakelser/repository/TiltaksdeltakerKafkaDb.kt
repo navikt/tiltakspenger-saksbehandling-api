@@ -20,7 +20,6 @@ data class TiltaksdeltakerKafkaDb(
 ) {
     fun tiltaksdeltakelseErEndret(
         tiltaksdeltakelseFraBehandling: Tiltaksdeltagelse,
-        nyFlyt: Boolean = true,
     ): Boolean {
         val sammeFom = deltakelseFraOgMed == tiltaksdeltakelseFraBehandling.deltakelsesperiode.fraOgMed
         val sammeTom = deltakelseTilOgMed == tiltaksdeltakelseFraBehandling.deltakelsesperiode.tilOgMed
@@ -28,16 +27,6 @@ data class TiltaksdeltakerKafkaDb(
         val sammeAntallDagerPerUke = floatIsEqual(dagerPerUke, tiltaksdeltakelseFraBehandling.antallDagerPerUke)
         val sammeDeltakelsesprosent = floatIsEqual(deltakelsesprosent, tiltaksdeltakelseFraBehandling.deltakelseProsent)
         val sammeStatus = deltakerstatus == tiltaksdeltakelseFraBehandling.deltakelseStatus
-
-        // TODO: Fjern denne når vi ikke lenger trenger å støtte gammel flyt! Gammel flyt mangler informasjon om
-        // dager pr uke og deltakelsesprosent, så vi kan ikke sammenligne med disse
-        if (!nyFlyt) {
-            return if (sammeFom && sammeTom) {
-                !(sammeStatus || deltakelsenErAvsluttetSomForventet())
-            } else {
-                true
-            }
-        }
 
         return if (sammeFom && sammeTom && sammeAntallDagerPerUke && sammeDeltakelsesprosent) {
             !(sammeStatus || deltakelsenErAvsluttetSomForventet())

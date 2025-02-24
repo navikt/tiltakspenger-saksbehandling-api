@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.vedtak.repository.benk
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.db.persisterIverksattFørstegangsbehandling
-import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandlingDeprecated
+import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandling
 import no.nav.tiltakspenger.db.persisterOpprettetRevurderingDeprecated
 import no.nav.tiltakspenger.db.persisterSakOgSøknad
 import no.nav.tiltakspenger.db.withMigratedDb
@@ -23,7 +23,7 @@ class BenkOversiktPostgresRepoTest {
             val repo = testDataHelper.saksoversiktRepo
             val søknad1 = testDataHelper.persisterSakOgSøknad()
             val sakId = testDataHelper.søknadRepo.hentSakIdForSoknad(søknad1.id)!!
-            val (førstegangsBehandlingSak, førstegangsBehandling) = testDataHelper.persisterOpprettetFørstegangsbehandlingDeprecated()
+            val (førstegangsBehandlingSak, førstegangsBehandling) = testDataHelper.persisterOpprettetFørstegangsbehandling()
             val (revurderingSak, revurdering) = testDataHelper.persisterOpprettetRevurderingDeprecated()
             val behandlinger = repo.hentAlleBehandlinger()
             val søknader = repo.hentAlleSøknader()
@@ -47,7 +47,7 @@ class BenkOversiktPostgresRepoTest {
                                 id = søknad1.id,
                             ),
                             BehandlingEllerSøknadForSaksoversikt(
-                                periode = ObjectMother.vurderingsperiode(),
+                                periode = null,
                                 status = BehandlingEllerSøknadForSaksoversikt.Status.Behandling(Behandlingsstatus.UNDER_BEHANDLING),
                                 behandlingstype = BenkBehandlingstype.FØRSTEGANGSBEHANDLING,
                                 fnr = førstegangsBehandling.fnr,
@@ -58,10 +58,9 @@ class BenkOversiktPostgresRepoTest {
                                 underkjent = false,
                                 kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
                                 id = førstegangsBehandlingSak.førstegangsbehandling!!.id,
-                                erDeprecatedBehandling = true,
                             ),
                             BehandlingEllerSøknadForSaksoversikt(
-                                periode = ObjectMother.revurderingsperiode(),
+                                periode = null,
                                 status = BehandlingEllerSøknadForSaksoversikt.Status.Behandling(Behandlingsstatus.UNDER_BEHANDLING),
                                 behandlingstype = BenkBehandlingstype.REVURDERING,
                                 fnr = revurdering.fnr,
@@ -72,7 +71,6 @@ class BenkOversiktPostgresRepoTest {
                                 underkjent = false,
                                 kravtidspunkt = null,
                                 id = revurderingSak.revurderinger.first().id,
-                                erDeprecatedBehandling = true,
                             ),
                         ),
                     )
@@ -94,7 +92,7 @@ class BenkOversiktPostgresRepoTest {
                     Saksoversikt(
                         listOf(
                             BehandlingEllerSøknadForSaksoversikt(
-                                periode = ObjectMother.vurderingsperiode(),
+                                periode = ObjectMother.virningsperiode(),
                                 status = BehandlingEllerSøknadForSaksoversikt.Status.Behandling(Behandlingsstatus.VEDTATT),
                                 behandlingstype = BenkBehandlingstype.FØRSTEGANGSBEHANDLING,
                                 fnr = søknad.fnr,

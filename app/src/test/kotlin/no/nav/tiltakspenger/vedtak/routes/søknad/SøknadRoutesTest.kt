@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.vedtak.routes.rivers
+package no.nav.tiltakspenger.vedtak.routes.søknad
 
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
@@ -22,7 +22,6 @@ import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
 import no.nav.tiltakspenger.vedtak.routes.routes
-import no.nav.tiltakspenger.vedtak.routes.søknad.SØKNAD_PATH
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime

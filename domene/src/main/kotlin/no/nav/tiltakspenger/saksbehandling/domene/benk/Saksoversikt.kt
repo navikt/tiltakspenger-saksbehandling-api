@@ -35,7 +35,6 @@ data class BehandlingEllerSøknadForSaksoversikt(
     val saksbehandler: String?,
     val beslutter: String?,
     val sakId: SakId?,
-    val erDeprecatedBehandling: Boolean? = null,
 ) {
     sealed interface Status {
         data object Søknad : Status

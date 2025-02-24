@@ -3,26 +3,14 @@ package no.nav.tiltakspenger.saksbehandling.service.behandling
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeHenteBehandling
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeIverksetteBehandling
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeUnderkjenne
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteSøknadsbehandling
 
 interface BehandlingService {
-    suspend fun startFørstegangsbehandling(
-        søknadId: SøknadId,
-        sakId: SakId,
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
-    ): Either<KanIkkeStarteSøknadsbehandling, Sak>
 
     /**
      * Tenkt brukt i systemkall der vi ikke skal gjøre tilgangskontroll eller sjekk på skjermet/kode6/kode7
@@ -59,25 +47,12 @@ interface BehandlingService {
         sessionContext: SessionContext? = null,
     ): Either<KanIkkeHenteBehandling, Behandling>
 
-    suspend fun sendTilBeslutter(
-        behandlingId: BehandlingId,
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
-    ): Either<KanIkkeSendeTilBeslutter, Behandling>
-
     suspend fun sendTilbakeTilSaksbehandler(
         behandlingId: BehandlingId,
         beslutter: Saksbehandler,
         begrunnelse: String,
         correlationId: CorrelationId,
     ): Either<KanIkkeUnderkjenne, Behandling>
-
-    suspend fun iverksett(
-        behandlingId: BehandlingId,
-        beslutter: Saksbehandler,
-        correlationId: CorrelationId,
-        sakId: SakId,
-    ): Either<KanIkkeIverksetteBehandling, Behandling>
 
     suspend fun taBehandling(
         behandlingId: BehandlingId,

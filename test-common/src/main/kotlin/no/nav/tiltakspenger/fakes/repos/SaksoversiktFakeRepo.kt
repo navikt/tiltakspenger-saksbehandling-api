@@ -28,7 +28,6 @@ class SaksoversiktFakeRepo(
                 saksbehandler = behandling.saksbehandler,
                 beslutter = behandling.beslutter,
                 sakId = behandling.sakId,
-                erDeprecatedBehandling = behandling.vilkårssett != null,
             )
         }
     }

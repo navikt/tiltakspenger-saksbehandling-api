@@ -75,8 +75,8 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
         eksternTiltaksgjennomføringsId = "5667273f-784e-4521-89c3-75b0be8ee250",
         typeKode = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn = "Arbeidsmarkedsoppfølging gruppe",
-        fom = ObjectMother.vurderingsperiode().fraOgMed,
-        tom = ObjectMother.vurderingsperiode().tilOgMed,
+        fom = ObjectMother.virningsperiode().fraOgMed,
+        tom = ObjectMother.virningsperiode().tilOgMed,
         kilde = Tiltakskilde.Komet,
     )
     private val søknadstiltak = tiltaksdeltagelse.toSøknadstiltak()

@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.iverksett
 
-import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.server.routing.routing
@@ -26,10 +25,7 @@ class IverksettBehandlingTest {
                 val (sak, _, behandling) = this.iverksett(tac)
                 behandling.virkningsperiode.shouldNotBeNull()
                 behandling.status shouldBe Behandlingsstatus.VEDTATT
-                behandling.erNyFlyt shouldBe true
                 behandling.saksopplysningsperiode.shouldNotBeNull()
-                behandling.vilkårssett.shouldBeNull()
-                behandling.stønadsdager.shouldBeNull()
             }
         }
     }

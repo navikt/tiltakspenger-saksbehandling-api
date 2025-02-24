@@ -27,7 +27,6 @@ data class SaksoversiktDTO(
     val sakId: String?,
     val saksbehandler: String?,
     val beslutter: String?,
-    val erDeprecatedBehandling: Boolean? = null,
 )
 
 internal fun Saksoversikt.toDTO(): List<SaksoversiktDTO> = this.map { it.toSaksoversiktDTO() }
@@ -48,7 +47,6 @@ fun BehandlingEllerSøknadForSaksoversikt.toSaksoversiktDTO() = SaksoversiktDTO(
     saksbehandler = saksbehandler,
     beslutter = beslutter,
     sakId = sakId.toString(),
-    erDeprecatedBehandling = erDeprecatedBehandling,
 )
 
 fun List<Behandling>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
@@ -66,5 +64,4 @@ fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
     sakId = sakId.toString(),
     saksbehandler = saksbehandler,
     beslutter = beslutter,
-    erDeprecatedBehandling = vilkårssett != null,
 )

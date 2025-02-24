@@ -23,10 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.vedtak.repository.behandling.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.vedtak.repository.behandling.attesteringer.toDbJson
-import no.nav.tiltakspenger.vedtak.repository.behandling.felles.toDbJson
-import no.nav.tiltakspenger.vedtak.repository.behandling.felles.toVilkårssett
-import no.nav.tiltakspenger.vedtak.repository.behandling.stønadsdager.toDbJson
-import no.nav.tiltakspenger.vedtak.repository.behandling.stønadsdager.toStønadsdager
 import no.nav.tiltakspenger.vedtak.repository.søknad.SøknadDAO
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
@@ -158,9 +154,7 @@ class BehandlingPostgresRepo(
                             "sist_endret" to behandling.sistEndret,
                             "saksbehandler" to behandling.saksbehandler,
                             "beslutter" to behandling.beslutter,
-                            "vilkaarssett" to behandling.vilkårssett?.toDbJson(),
                             "attesteringer" to behandling.attesteringer.toDbJson(),
-                            "stonadsdager" to behandling.stønadsdager?.toDbJson(),
                             "iverksatt_tidspunkt" to behandling.iverksattTidspunkt,
                             "sendt_til_beslutning" to behandling.sendtTilBeslutning,
                             "sendt_til_datadeling" to behandling.sendtTilDatadeling,
@@ -195,9 +189,7 @@ class BehandlingPostgresRepo(
                         "virkningsperiode_til_og_med" to behandling.virkningsperiode?.tilOgMed,
                         "status" to behandling.status.toDb(),
                         "opprettet" to behandling.opprettet,
-                        "vilkaarssett" to behandling.vilkårssett?.toDbJson(),
                         "saksopplysninger" to behandling.saksopplysninger.toDbJson(),
-                        "stonadsdager" to behandling.stønadsdager?.toDbJson(),
                         "saksbehandler" to behandling.saksbehandler,
                         "beslutter" to behandling.beslutter,
                         "attesteringer" to behandling.attesteringer.toDbJson(),
@@ -244,9 +236,6 @@ class BehandlingPostgresRepo(
             // Kan være null for revurderinger. Domeneobjektet passer på dette selv.
             val søknad: Søknad? = SøknadDAO.hentForBehandlingId(id, session)
 
-            val stønadsdager = stringOrNull("stønadsdager")?.toStønadsdager()
-            val vilkårssett = stringOrNull("vilkårssett")?.toVilkårssett(virkningsperiode!!)
-
             val attesteringer = string("attesteringer").toAttesteringer()
             val fnr = Fnr.fromString(string("ident"))
             val saksnummer = Saksnummer(string("saksnummer"))
@@ -266,13 +255,11 @@ class BehandlingPostgresRepo(
                 fnr = fnr,
                 søknad = søknad,
                 virkningsperiode = virkningsperiode,
-                vilkårssett = vilkårssett,
                 saksopplysninger = string("saksopplysninger").toSaksopplysninger(),
                 saksbehandler = saksbehandler,
                 sendtTilBeslutning = sendtTilBeslutning,
                 beslutter = beslutter,
                 attesteringer = attesteringer,
-                stønadsdager = stønadsdager,
                 status = status.toBehandlingsstatus(),
                 opprettet = opprettet,
                 iverksattTidspunkt = iverksattTidspunkt,

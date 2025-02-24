@@ -25,11 +25,6 @@ import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterSaksopplys
 import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutningV2Service
 import no.nav.tiltakspenger.saksbehandling.service.behandling.StartSøknadsbehandlingV2Service
 import no.nav.tiltakspenger.saksbehandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
-import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.kvp.KvpVilkårService
-import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.kvp.KvpVilkårServiceImpl
-import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.livsopphold.LivsoppholdVilkårService
-import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.livsopphold.LivsoppholdVilkårServiceImpl
-import no.nav.tiltakspenger.saksbehandling.service.behandling.vilkår.tiltaksdeltagelse.TiltaksdeltagelseVilkårService
 import no.nav.tiltakspenger.saksbehandling.service.distribuering.DistribuerVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.service.journalføring.JournalførRammevedtakService
 import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
@@ -61,19 +56,9 @@ open class FørstegangsbehandlingContext(
     val behandlingService: BehandlingService by lazy {
         BehandlingServiceImpl(
             behandlingRepo = behandlingRepo,
-            rammevedtakRepo = rammevedtakRepo,
-            meldekortBehandlingRepo = meldekortBehandlingRepo,
-            meldeperiodeRepo = meldeperiodeRepo,
             sessionFactory = sessionFactory,
-            statistikkSakRepo = statistikkSakRepo,
-            statistikkStønadRepo = statistikkStønadRepo,
             tilgangsstyringService = tilgangsstyringService,
             personService = personService,
-            gitHash = gitHash,
-            sakService = sakService,
-            tiltakGateway = tiltakGateway,
-            oppgaveGateway = oppgaveGateway,
-            oppdaterSaksopplysningerService = oppdaterSaksopplysningerService,
         )
     }
     val startSøknadsbehandlingV2Service: StartSøknadsbehandlingV2Service by lazy {
@@ -128,24 +113,6 @@ open class FørstegangsbehandlingContext(
     val sendBehandlingTilBeslutningV2Service by lazy {
         SendBehandlingTilBeslutningV2Service(
             sakService = sakService,
-            behandlingRepo = behandlingRepo,
-        )
-    }
-    val tiltaksdeltagelseVilkårService: TiltaksdeltagelseVilkårService by lazy {
-        TiltaksdeltagelseVilkårService(
-            behandlingRepo = behandlingRepo,
-            behandlingService = behandlingService,
-        )
-    }
-    val kvpVilkårService: KvpVilkårService by lazy {
-        KvpVilkårServiceImpl(
-            behandlingService = behandlingService,
-            behandlingRepo = behandlingRepo,
-        )
-    }
-    val livsoppholdVilkårService: LivsoppholdVilkårService by lazy {
-        LivsoppholdVilkårServiceImpl(
-            behandlingService = behandlingService,
             behandlingRepo = behandlingRepo,
         )
     }

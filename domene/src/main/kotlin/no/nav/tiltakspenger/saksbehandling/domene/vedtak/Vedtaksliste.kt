@@ -5,9 +5,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
-import no.nav.tiltakspenger.saksbehandling.domene.stønadsdager.Stønadsdager
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.AvklartUtfallForPeriode
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Vilkårssett
 import java.time.LocalDate
 
 data class Vedtaksliste(
@@ -42,28 +40,12 @@ data class Vedtaksliste(
         innvilgelsesperioder.maxOfOrNull { it.tilOgMed }
     }
 
-    // TODO pre-revurdering-av-revurdering jah: Det gir egentlig ikke mening og ha periodiserte vilkårssett. Her bør man heller slå sammen vilkårssettene. Men det krever at hvert vilkår kan periodiseres.
-    // TODO John + Anders: Vi får muligens en tilsvarende på Saksopplysninger? Vi må ha denne for bakoverkompatibilitet.
-    val vilkårssett: Periodisering<Vilkårssett> by lazy {
-        tidslinje.perioderMedVerdi.map {
-            PeriodeMedVerdi(
-                it.verdi.krymp(it.periode).behandling.vilkårssett!!,
-                it.periode,
-            )
-        }.let { Periodisering(it) }
-    }
-
     /**
      * Perioden må være innenfor tidslinjen
      *
      * **/
     fun tidslinjeForPeriode(periode: Periode): Periodisering<Rammevedtak> {
         return tidslinje.krymp(periode)
-    }
-
-    fun krympVilkårssett(nyPeriode: Periode): Periodisering<Vilkårssett> {
-        if (nyPeriode == vedtaksperiode) return vilkårssett
-        return vilkårssett.krymp(nyPeriode).map { it.krymp(nyPeriode) }
     }
 
     /**
@@ -92,27 +74,6 @@ data class Vedtaksliste(
             Vedtakstype.STANS -> Unit
         }
         return copy(value = listOf(vedtak))
-    }
-
-    fun krympUtfallsperioder(nyPeriode: Periode): Periodisering<AvklartUtfallForPeriode> {
-        if (nyPeriode == vedtaksperiode) return utfallsperioder
-        return utfallsperioder.krymp(nyPeriode)
-    }
-
-    // TODO pre-revurdering-av-revurdering jah: Det gir egentlig ikke mening og ha periodiserte stønadsdager. Her bør man heller slå sammen stønadsdagene. Men det krever at Stønadsdager er periodisert på innsiden.
-    // TODO John + Anders: Vi får muligens en tilsvarende på Saksopplysninger? Vi må ha denne for bakoverkompatibilitet.
-    val stønadsdager: Periodisering<Stønadsdager> by lazy {
-        tidslinje.perioderMedVerdi.map {
-            PeriodeMedVerdi(
-                it.verdi.krymp(it.periode).behandling.stønadsdager!!,
-                it.periode,
-            )
-        }.let { Periodisering(it) }
-    }
-
-    fun krympStønadsdager(nyPeriode: Periode): Periodisering<Stønadsdager> {
-        if (nyPeriode == vedtaksperiode) return stønadsdager
-        return stønadsdager.krymp(nyPeriode).map { it.krymp(nyPeriode) }
     }
 
     /**

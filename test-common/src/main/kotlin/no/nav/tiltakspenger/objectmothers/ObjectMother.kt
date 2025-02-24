@@ -10,7 +10,6 @@ object ObjectMother :
     SøknadMother,
     BehandlingMother,
     SakMother,
-    VilkårMother,
     PersonMother,
     MeldekortMother,
     UtbetalingsvedtakMother,

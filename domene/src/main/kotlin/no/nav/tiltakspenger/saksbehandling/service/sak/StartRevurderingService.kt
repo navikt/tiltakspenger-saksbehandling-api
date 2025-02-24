@@ -14,9 +14,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingV2Kommando
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.startRevurderingV2
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
@@ -29,29 +27,6 @@ class StartRevurderingService(
     private val saksopplysningerService: OppdaterSaksopplysningerService,
 ) {
     val logger = KotlinLogging.logger { }
-
-    suspend fun startRevurdering(
-        kommando: StartRevurderingKommando,
-    ): Either<KanIkkeStarteRevurdering, Pair<Sak, Behandling>> {
-        val (sakId, _, correlationId, saksbehandler) = kommando
-
-        val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId).getOrElse {
-            when (it) {
-                is KunneIkkeHenteSakForSakId.HarIkkeTilgang -> {
-                    logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til sak for sakId $sakId" }
-                    return KanIkkeStarteRevurdering.HarIkkeTilgang(
-                        kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER),
-                        harRollene = saksbehandler.roller,
-                    ).left()
-                }
-            }
-        }
-        sjekkSaksbehandlersTilgangTilPerson(sak.fnr, sak.id, saksbehandler, correlationId)
-
-        val (oppdatertSak, behandling) = sak.startRevurdering(kommando, saksopplysningerService::hentSaksopplysningerFraRegistre).getOrElse { return it.left() }
-        behandlingRepo.lagre(behandling)
-        return Pair(oppdatertSak, behandling).right()
-    }
 
     suspend fun startRevurderingV2(
         kommando: StartRevurderingV2Kommando,

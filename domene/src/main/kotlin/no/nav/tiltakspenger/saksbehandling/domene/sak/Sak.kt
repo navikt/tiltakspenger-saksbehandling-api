@@ -56,9 +56,6 @@ data class Sak(
         meldekortBehandlinger.sisteGodkjenteMeldekort?.navkontor
     }
 
-    /** null dersom det ikke finnes behandlinger */
-    val erNyFlyt: Boolean? = førstegangsbehandling?.erNyFlyt
-
     fun hentMeldekortBehandlingForMeldekortBehandlingId(meldekortId: MeldekortId): MeldekortBehandling? {
         return meldekortBehandlinger.hentMeldekortBehandlingForMeldekortBehandlingId(meldekortId)
     }
