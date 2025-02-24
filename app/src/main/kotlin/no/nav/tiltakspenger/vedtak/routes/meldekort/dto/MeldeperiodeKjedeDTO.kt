@@ -16,10 +16,10 @@ fun Sak.toMeldeperiodeKjedeDTO(meldeperiodeKjedeId: MeldeperiodeKjedeId): Meldep
     val meldeperiodeKjede = this.meldeperiodeKjeder.find { it.kjedeId == meldeperiodeKjedeId } ?: return null
 
     return MeldeperiodeKjedeDTO(
-        kjedeId = meldeperiodeKjedeId.toString(),
+        kjedeId = meldeperiodeKjede.kjedeId.toString(),
         periode = meldeperiodeKjede.periode.toDTO(),
         tiltaksnavn = this.hentTiltaksnavn(),
-        meldeperioder = meldeperiodeKjede.map { this.toMeldeperiodeDTO(it) },
+        meldeperioder = meldeperiodeKjede.map { toMeldeperiodeDTO(it) },
     )
 }
 

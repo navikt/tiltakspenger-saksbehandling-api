@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekortRepo
+import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.meldekort.domene.opprettMeldekortBehandling
 import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
@@ -32,7 +33,7 @@ class OpprettMeldekortBehandlingService(
         sakId: SakId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<KanIkkeOppretteMeldekortBehandling, Unit> {
+    ): Either<KanIkkeOppretteMeldekortBehandling, MeldekortBehandling> {
         val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId).getOrElse {
             logger.error { "Kunne ikke hente sak med id $sakId" }
             return KanIkkeOppretteMeldekortBehandling.IkkeTilgangTilSak.left()
@@ -70,7 +71,7 @@ class OpprettMeldekortBehandlingService(
 
         logger.info { "Opprettet behandling ${meldekortBehandling.id} på meldeperiode kjede $meldeperiodeKjedeId for sak $sakId" }
 
-        return Unit.right()
+        return meldekortBehandling.right()
     }
 }
 

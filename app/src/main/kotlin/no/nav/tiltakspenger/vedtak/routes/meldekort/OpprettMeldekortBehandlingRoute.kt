@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.meldekort.service.OpprettMeldekortBehandlingService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.correlationId
+import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.withMeldeperiodeKjedeId
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 
@@ -73,7 +74,7 @@ fun Route.opprettMeldekortBehandlingRoute(
                                 correlationId = correlationId,
                             )
 
-                            call.respond(HttpStatusCode.OK, it)
+                            call.respond(HttpStatusCode.OK, it.toDTO())
                         },
                     )
                 }
