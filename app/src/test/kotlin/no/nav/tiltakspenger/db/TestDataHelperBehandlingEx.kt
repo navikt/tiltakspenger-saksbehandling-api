@@ -406,7 +406,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         meldeperiode = førsteMeldeperiode,
         periode = førsteMeldeperiode.periode,
     )
-    meldekortRepo.lagre(behandletMeldekort)
     meldeperiodeRepo.lagre(behandletMeldekort.meldeperiode)
+    meldekortRepo.lagre(behandletMeldekort)
     return Pair(sakRepo.hentForSakId(sakId)!!, behandletMeldekort)
 }

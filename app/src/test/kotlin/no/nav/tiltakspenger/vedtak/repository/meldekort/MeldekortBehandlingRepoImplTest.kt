@@ -34,12 +34,12 @@ class MeldekortBehandlingRepoImplTest {
                 periode = førsteMeldeperiode.periode,
             )
 
-            val meldekortRepo = testDataHelper.meldekortRepo
             val meldeperiodeRepo = testDataHelper.meldeperiodeRepo
+            val meldekortRepo = testDataHelper.meldekortRepo
             val sakRepo = testDataHelper.sakRepo
 
-            meldekortRepo.lagre(meldekort)
             meldeperiodeRepo.lagre(meldekort.meldeperiode)
+            meldekortRepo.lagre(meldekort)
 
             testDataHelper.sessionFactory.withSession {
                 MeldekortBehandlingPostgresRepo.hentForMeldekortId(meldekort.id, it)!! shouldBe meldekort
@@ -90,8 +90,8 @@ class MeldekortBehandlingRepoImplTest {
             val meldekortRepo = testDataHelper.meldekortRepo
             val meldeperiodeRepo = testDataHelper.meldeperiodeRepo
 
-            meldekortRepo.lagre(meldekortBehandling)
             meldeperiodeRepo.lagre(meldeperiode)
+            meldekortRepo.lagre(meldekortBehandling)
 
             val oppdatertMeldekortBehandling = meldekortBehandling.sendTilBeslutter(
                 utfyltMeldeperiode = ObjectMother.utfyltMeldekortperiode(
