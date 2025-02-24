@@ -5,8 +5,8 @@ import kotliquery.Row
 import kotliquery.Session
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
@@ -183,8 +183,8 @@ class MeldekortBehandlingPostgresRepo(
             val maksDagerMedTiltakspengerForPeriode = 14
             val opprettet = row.localDateTime("opprettet")
 
-            val meldeperiodeId = HendelseId.fromString(row.string("meldeperiode_hendelse_id"))
-            val meldeperiode = MeldeperiodePostgresRepo.hentForHendelseId(meldeperiodeId, session)
+            val meldeperiodeId = MeldeperiodeId.fromString(row.string("meldeperiode_hendelse_id"))
+            val meldeperiode = MeldeperiodePostgresRepo.hentForMeldeperiodeId(meldeperiodeId, session)
 
             val navkontor = Navkontor(kontornummer = navkontorEnhetsnummer, kontornavn = navkontorNavn)
 

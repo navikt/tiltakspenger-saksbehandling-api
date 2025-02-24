@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.meldekort.domene
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.HendelseId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
@@ -45,7 +45,7 @@ data class MeldeperiodeKjeder(
         return meldeperiodeKjeder.last().hentSisteMeldeperiode()
     }
 
-    fun hentMeldeperiode(id: HendelseId): Meldeperiode? {
+    fun hentMeldeperiode(id: MeldeperiodeId): Meldeperiode? {
         return meldeperiodeKjeder.asSequence().flatten().find { it.id == id }
     }
 

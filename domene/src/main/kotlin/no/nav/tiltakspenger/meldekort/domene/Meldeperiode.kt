@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.meldekort.domene
 
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
+import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -17,7 +17,7 @@ import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
 
 data class Meldeperiode(
-    val id: HendelseId,
+    val id: MeldeperiodeId,
     val meldeperiodeKjedeId: MeldeperiodeKjedeId,
     val versjon: HendelseVersjon,
     val periode: Periode,
@@ -83,7 +83,7 @@ private fun Sak.opprettMeldeperiode(
 ): Meldeperiode {
     val meldeperiode = Meldeperiode(
         meldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
-        id = HendelseId.random(),
+        id = MeldeperiodeId.random(),
         fnr = this.fnr,
         saksnummer = this.saksnummer,
         sakId = this.id,

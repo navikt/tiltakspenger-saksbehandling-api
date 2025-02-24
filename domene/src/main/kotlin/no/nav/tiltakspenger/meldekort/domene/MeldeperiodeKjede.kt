@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.meldekort.domene
 
 import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.HendelseId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
@@ -49,7 +49,7 @@ data class MeldeperiodeKjede(
         return if (stansperiode.overlapperMed(this.periode)) {
             val oppdatertMeldeperiode = Meldeperiode(
                 meldeperiodeKjedeId = kjedeId,
-                id = HendelseId.random(),
+                id = MeldeperiodeId.random(),
                 versjon = siste.versjon.inc(),
                 periode = this.periode,
                 opprettet = nå(),

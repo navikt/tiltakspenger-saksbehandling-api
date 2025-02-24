@@ -6,8 +6,8 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import mu.KotlinLogging
-import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.logging.sikkerlogg
@@ -51,7 +51,7 @@ private fun BrukerutfyltMeldekortDTO.toDomain(): NyttBrukersMeldekort {
     return NyttBrukersMeldekort(
         id = MeldekortId.fromString(this.id),
         mottatt = this.mottatt,
-        meldeperiodeHendelseId = HendelseId.fromString(this.meldeperiodeId),
+        meldeperiodeId = MeldeperiodeId.fromString(this.meldeperiodeId),
         sakId = SakId.fromString(this.sakId),
         dager = this.dager.map {
             BrukersMeldekortDag(

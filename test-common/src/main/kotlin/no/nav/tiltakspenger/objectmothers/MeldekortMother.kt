@@ -8,9 +8,9 @@ import no.nav.tiltakspenger.felles.erHelg
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -358,7 +358,7 @@ interface MeldekortMother {
     }
 
     fun meldeperiode(
-        id: HendelseId = HendelseId.random(),
+        id: MeldeperiodeId = MeldeperiodeId.random(),
         periode: Periode = ObjectMother.virningsperiode(),
         meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
         sakId: SakId = SakId.random(),
@@ -429,7 +429,7 @@ interface MeldekortMother {
         id: MeldekortId = MeldekortId.random(),
         mottatt: LocalDateTime = LocalDateTime.now(),
         sakId: SakId = SakId.random(),
-        meldeperiodeId: HendelseId = HendelseId.random(),
+        meldeperiodeId: MeldeperiodeId = MeldeperiodeId.random(),
         periode: Periode,
         dager: List<BrukersMeldekortDag> = buildList {
             val dagerFraPeriode = periode.tilDager()
@@ -443,7 +443,7 @@ interface MeldekortMother {
         return NyttBrukersMeldekort(
             id = id,
             mottatt = mottatt,
-            meldeperiodeHendelseId = meldeperiodeId,
+            meldeperiodeId = meldeperiodeId,
             sakId = sakId,
             dager = dager,
         )

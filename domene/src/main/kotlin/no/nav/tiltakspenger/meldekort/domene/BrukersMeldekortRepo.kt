@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.meldekort.domene
 
-import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 
@@ -22,7 +22,7 @@ interface BrukersMeldekortRepo {
     ): BrukersMeldekort?
 
     fun hentForMeldeperiodeId(
-        hendelseId: HendelseId,
+        meldeperiodeId: MeldeperiodeId,
         sessionContext: SessionContext? = null,
     ): BrukersMeldekort?
 }

@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference
 import kotliquery.Row
 import kotliquery.Session
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
+import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.json.objectMapper
@@ -76,9 +76,9 @@ internal class MeldeperiodePostgresRepo(
         }
     }
 
-    override fun hentForHendelseId(id: HendelseId, sessionContext: SessionContext?): Meldeperiode? {
+    override fun hentForMeldeperiodeId(id: MeldeperiodeId, sessionContext: SessionContext?): Meldeperiode? {
         return sessionFactory.withSession(sessionContext) { session ->
-            Companion.hentForHendelseId(id, session)
+            hentForMeldeperiodeId(id, session)
         }
     }
 
@@ -101,7 +101,7 @@ internal class MeldeperiodePostgresRepo(
         }
     }
 
-    override fun markerSomSendtTilBruker(id: HendelseId, tidspunkt: LocalDateTime) {
+    override fun markerSomSendtTilBruker(id: MeldeperiodeId, tidspunkt: LocalDateTime) {
         return sessionFactory.withSession { session ->
             session.run(
                 sqlQuery(
@@ -128,8 +128,8 @@ internal class MeldeperiodePostgresRepo(
     }
 
     companion object {
-        internal fun hentForHendelseId(
-            id: HendelseId,
+        internal fun hentForMeldeperiodeId(
+            id: MeldeperiodeId,
             session: Session,
         ): Meldeperiode? {
             return session.run(
@@ -175,7 +175,7 @@ internal class MeldeperiodePostgresRepo(
             return Meldeperiode(
                 meldeperiodeKjedeId = MeldeperiodeKjedeId(row.string("id")),
                 versjon = HendelseVersjon(row.int("versjon")),
-                id = HendelseId.fromString(row.string("hendelse_id")),
+                id = MeldeperiodeId.fromString(row.string("hendelse_id")),
                 sakId = SakId.fromString(row.string("sak_id")),
                 saksnummer = Saksnummer(row.string("saksnummer")),
                 fnr = Fnr.fromString(row.string("fnr")),

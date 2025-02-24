@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.fakes.repos
 
 import arrow.atomic.Atomic
-import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
@@ -13,9 +13,9 @@ class BrukersMeldekortFakeRepo(val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) :
     private val data = Atomic(mutableMapOf<MeldekortId, BrukersMeldekort>())
 
     override fun lagre(brukersMeldekort: NyttBrukersMeldekort, sessionContext: SessionContext?) {
-        val meldeperiode = meldeperiodeFakeRepo.hentForHendelseId(brukersMeldekort.meldeperiodeHendelseId)
+        val meldeperiode = meldeperiodeFakeRepo.hentForMeldeperiodeId(brukersMeldekort.meldeperiodeId)
 
-        requireNotNull(meldeperiode) { "Ingen meldeperiode for ${brukersMeldekort.meldeperiodeHendelseId}" }
+        requireNotNull(meldeperiode) { "Ingen meldeperiode for ${brukersMeldekort.meldeperiodeId}" }
 
         data.get()[brukersMeldekort.id] = BrukersMeldekort(
             id = brukersMeldekort.id,
@@ -37,9 +37,9 @@ class BrukersMeldekortFakeRepo(val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) :
     }
 
     override fun hentForMeldeperiodeId(
-        hendelseId: HendelseId,
+        meldeperiodeId: MeldeperiodeId,
         sessionContext: SessionContext?,
     ): BrukersMeldekort? {
-        return data.get().values.find { it.meldeperiode.id == hendelseId }
+        return data.get().values.find { it.meldeperiode.id == meldeperiodeId }
     }
 }

@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.vedtak.repository.meldekort
 
 import kotliquery.Row
 import kotliquery.Session
-import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -42,7 +42,7 @@ class BrukersMeldekortPostgresRepo(
                     )
                     """,
                     "id" to brukersMeldekort.id.toString(),
-                    "meldeperiode_hendelse_id" to brukersMeldekort.meldeperiodeHendelseId.toString(),
+                    "meldeperiode_hendelse_id" to brukersMeldekort.meldeperiodeId.toString(),
                     "sak_id" to brukersMeldekort.sakId.toString(),
                     "mottatt" to brukersMeldekort.mottatt,
                     "dager" to brukersMeldekort.toDagerJson(),
@@ -56,19 +56,19 @@ class BrukersMeldekortPostgresRepo(
         sessionContext: SessionContext?,
     ): List<BrukersMeldekort> {
         return sessionFactory.withSession(sessionContext) { session ->
-            Companion.hentForSakId(sakId, session)
+            hentForSakId(sakId, session)
         }
     }
 
     override fun hentForMeldekortId(meldekortId: MeldekortId, sessionContext: SessionContext?): BrukersMeldekort? {
         return sessionFactory.withSession(sessionContext) { session ->
-            Companion.hentForMeldekortId(meldekortId, session)
+            hentForMeldekortId(meldekortId, session)
         }
     }
 
-    override fun hentForMeldeperiodeId(hendelseId: HendelseId, sessionContext: SessionContext?): BrukersMeldekort? {
+    override fun hentForMeldeperiodeId(meldeperiodeId: MeldeperiodeId, sessionContext: SessionContext?): BrukersMeldekort? {
         return sessionFactory.withSession(sessionContext) { session ->
-            Companion.hentForMeldeperiodeId(hendelseId, session)
+            hentForMeldeperiodeId(meldeperiodeId, session)
         }
     }
 
@@ -106,7 +106,7 @@ class BrukersMeldekortPostgresRepo(
         }
 
         fun hentForMeldeperiodeId(
-            hendelseId: HendelseId,
+            meldeperiodeId: MeldeperiodeId,
             session: Session,
         ): BrukersMeldekort? {
             return session.run(
@@ -116,7 +116,7 @@ class BrukersMeldekortPostgresRepo(
                         from meldekort_bruker m 
                     where m.meldeperiode_hendelse_id = :meldeperiode_hendelse_id
                     """,
-                    "meldeperiode_hendelse_id" to hendelseId.toString(),
+                    "meldeperiode_hendelse_id" to meldeperiodeId.toString(),
                 ).map { row -> fromRow(row, session) }.asSingle,
             )
         }
@@ -128,8 +128,8 @@ class BrukersMeldekortPostgresRepo(
             return BrukersMeldekort(
                 id = MeldekortId.fromString(row.string("id")),
                 mottatt = row.localDateTime("mottatt"),
-                meldeperiode = MeldeperiodePostgresRepo.hentForHendelseId(
-                    HendelseId.fromString(row.string("meldeperiode_hendelse_id")),
+                meldeperiode = MeldeperiodePostgresRepo.hentForMeldeperiodeId(
+                    MeldeperiodeId.fromString(row.string("meldeperiode_hendelse_id")),
                     session,
                 )!!,
                 sakId = SakId.fromString(row.string("sak_id")),
