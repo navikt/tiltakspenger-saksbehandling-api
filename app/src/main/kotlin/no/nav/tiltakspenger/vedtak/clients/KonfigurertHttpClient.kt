@@ -7,7 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.apache.Apache
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -23,15 +23,17 @@ private val LOG = KotlinLogging.logger {}
 
 private const val SIXTY_SECONDS = 60L
 
-fun httpClientCIO(timeout: Long = SIXTY_SECONDS) = HttpClient(CIO).config(timeout)
+fun httpClientApache(timeout: Long = SIXTY_SECONDS) = HttpClient(Apache).config(timeout)
 
 fun httpClientGeneric(
-    engine: HttpClientEngine,
+    engine: HttpClientEngine?,
     timeout: Long = SIXTY_SECONDS,
-) = HttpClient(engine).config(timeout)
+) = engine
+    ?.let { HttpClient(engine).config(timeout) }
+    ?: HttpClient(Apache).config(timeout)
 
 fun httpClientWithRetry(timeout: Long = SIXTY_SECONDS) =
-    httpClientCIO(timeout).also { httpClient ->
+    httpClientApache(timeout).also { httpClient ->
         httpClient.config {
             install(HttpRequestRetry) {
                 retryOnServerErrors(maxRetries = 3)
