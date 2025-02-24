@@ -9,7 +9,6 @@ data class MeldeperiodeKjedeDTO(
     val kjedeId: String,
     val periode: PeriodeDTO,
     val tiltaksnavn: String?,
-    val vedtaksPeriode: PeriodeDTO?,
     val meldeperioder: List<MeldeperiodeDTO>,
 )
 
@@ -20,8 +19,17 @@ fun Sak.toMeldeperiodeKjedeDTO(meldeperiodeKjedeId: MeldeperiodeKjedeId): Meldep
         kjedeId = meldeperiodeKjedeId.toString(),
         periode = meldeperiodeKjede.periode.toDTO(),
         tiltaksnavn = this.hentTiltaksnavn(),
-        // TODO John+Anders: Finn ut hvordan denne blir brukt i frontend. Gjetter på at vi eller er interessert i periodene som gir rett til tiltakspenger?
-        vedtaksPeriode = vedtaksperiode?.toDTO(),
         meldeperioder = meldeperiodeKjede.map { this.toMeldeperiodeDTO(it) },
     )
+}
+
+fun Sak.toMeldeperiodeKjederDTO(): List<MeldeperiodeKjedeDTO> {
+    return this.meldeperiodeKjeder.map { meldeperiodeKjede ->
+        MeldeperiodeKjedeDTO(
+            kjedeId = meldeperiodeKjede.kjedeId.toString(),
+            periode = meldeperiodeKjede.periode.toDTO(),
+            tiltaksnavn = this.hentTiltaksnavn(),
+            meldeperioder = meldeperiodeKjede.map { toMeldeperiodeDTO(it) },
+        )
+    }
 }

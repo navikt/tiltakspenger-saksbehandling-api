@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.måVær
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.saksbehandlerOgBeslutterKanIkkeVæreLik
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond400BadRequest
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond403Forbidden
+import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.withMeldekortId
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 
@@ -67,7 +68,7 @@ fun Route.iverksettMeldekortRoute(
                                 }
                             }
                         },
-                        { call.respond(message = {}, status = HttpStatusCode.OK) },
+                        { call.respond(HttpStatusCode.OK, it.toDTO()) },
                     )
                 }
             }

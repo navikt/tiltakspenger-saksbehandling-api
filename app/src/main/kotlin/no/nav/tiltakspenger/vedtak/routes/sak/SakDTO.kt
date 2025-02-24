@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.vedtak.routes.sak
 
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.MeldeperiodeDTO
-import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.toMeldeperiodeDTO
+import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.MeldeperiodeKjedeDTO
+import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.toMeldeperiodeKjederDTO
 import java.time.LocalDate
 
 /**
@@ -13,8 +13,9 @@ data class SakDTO(
     val sakId: String,
     val fnr: String,
     val behandlingsoversikt: List<SaksoversiktDTO>,
-    val meldeperiodeoversikt: List<MeldeperiodeDTO>,
+    val meldeperiodeKjeder: List<MeldeperiodeKjedeDTO>,
     val førsteLovligeStansdato: LocalDate?,
+    val sisteDagSomGirRett: LocalDate?,
 )
 
 fun Sak.toDTO() = SakDTO(
@@ -22,10 +23,7 @@ fun Sak.toDTO() = SakDTO(
     sakId = id.toString(),
     fnr = fnr.verdi,
     behandlingsoversikt = behandlinger.toSaksoversiktDTO(),
-    meldeperiodeoversikt = toMeldeperiodeoversiktDTO(),
+    meldeperiodeKjeder = toMeldeperiodeKjederDTO(),
     førsteLovligeStansdato = førsteLovligeStansdato(),
+    sisteDagSomGirRett = sisteDagSomGirRett,
 )
-
-fun Sak.toMeldeperiodeoversiktDTO(): List<MeldeperiodeDTO> {
-    return this.meldeperiodeKjeder.meldeperioder.map { toMeldeperiodeDTO(it) }
-}

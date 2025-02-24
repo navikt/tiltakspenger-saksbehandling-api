@@ -73,7 +73,7 @@ fun Route.opprettMeldekortBehandlingRoute(
                                 correlationId = correlationId,
                             )
 
-                            call.respond(status = HttpStatusCode.OK, message = "{}")
+                            call.respond(HttpStatusCode.OK, it)
                         },
                     )
                 }
