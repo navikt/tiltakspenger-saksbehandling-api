@@ -34,8 +34,8 @@ class MeldekortBehandlingPostgresRepo(
                     """
                     insert into meldekortbehandling (
                         id,
+                        meldeperiode_kjede_id,
                         meldeperiode_id,
-                        meldeperiode_hendelse_id,
                         sak_id,
                         opprettet,
                         fra_og_med,
@@ -50,8 +50,8 @@ class MeldekortBehandlingPostgresRepo(
                         navkontor_navn
                     ) values (
                         :id,
+                        :meldeperiode_kjede_id,
                         :meldeperiode_id,
-                        :meldeperiode_hendelse_id,
                         :sak_id,
                         :opprettet,
                         :fra_og_med,
@@ -67,8 +67,8 @@ class MeldekortBehandlingPostgresRepo(
                     )
                     """,
                     "id" to meldekortBehandling.id.toString(),
-                    "meldeperiode_id" to meldekortBehandling.meldeperiodeKjedeId.toString(),
-                    "meldeperiode_hendelse_id" to meldekortBehandling.meldeperiode.id.toString(),
+                    "meldeperiode_kjede_id" to meldekortBehandling.meldeperiodeKjedeId.toString(),
+                    "meldeperiode_id" to meldekortBehandling.meldeperiode.id.toString(),
                     "sak_id" to meldekortBehandling.sakId.toString(),
                     "opprettet" to meldekortBehandling.opprettet,
                     "fra_og_med" to meldekortBehandling.fraOgMed,
@@ -102,7 +102,7 @@ class MeldekortBehandlingPostgresRepo(
                         navkontor = :navkontor,
                         iverksatt_tidspunkt = :iverksatt_tidspunkt,
                         sendt_til_beslutning = :sendt_til_beslutning,
-                        meldeperiode_hendelse_id = :meldeperiode_hendelse_id
+                        meldeperiode_id = :meldeperiode_id
                     where id = :id
                     """,
                     "id" to meldekortBehandling.id.toString(),
@@ -113,7 +113,7 @@ class MeldekortBehandlingPostgresRepo(
                     "navkontor" to meldekortBehandling.navkontor.kontornummer,
                     "iverksatt_tidspunkt" to meldekortBehandling.iverksattTidspunkt,
                     "sendt_til_beslutning" to meldekortBehandling.sendtTilBeslutning,
-                    "meldeperiode_hendelse_id" to meldekortBehandling.meldeperiode.id.toString(),
+                    "meldeperiode_id" to meldekortBehandling.meldeperiode.id.toString(),
                 ).asUpdate,
             )
         }
@@ -183,7 +183,7 @@ class MeldekortBehandlingPostgresRepo(
             val maksDagerMedTiltakspengerForPeriode = 14
             val opprettet = row.localDateTime("opprettet")
 
-            val meldeperiodeId = MeldeperiodeId.fromString(row.string("meldeperiode_hendelse_id"))
+            val meldeperiodeId = MeldeperiodeId.fromString(row.string("meldeperiode_id"))
             val meldeperiode = MeldeperiodePostgresRepo.hentForMeldeperiodeId(meldeperiodeId, session)
 
             val navkontor = Navkontor(kontornummer = navkontorEnhetsnummer, kontornavn = navkontorNavn)

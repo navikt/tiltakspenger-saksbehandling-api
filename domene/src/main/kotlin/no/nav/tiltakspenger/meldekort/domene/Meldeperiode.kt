@@ -18,6 +18,7 @@ import java.time.temporal.TemporalAdjusters
 
 data class Meldeperiode(
     val id: MeldeperiodeId,
+    // TODO Anders: Rename meldeperiodeKjedeId til kjedeId
     val meldeperiodeKjedeId: MeldeperiodeKjedeId,
     val versjon: HendelseVersjon,
     val periode: Periode,

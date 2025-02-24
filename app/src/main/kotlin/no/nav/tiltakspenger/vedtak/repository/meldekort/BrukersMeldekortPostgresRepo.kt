@@ -25,24 +25,24 @@ class BrukersMeldekortPostgresRepo(
                     """
                     insert into meldekort_bruker (
                         id,
-                        meldeperiode_hendelse_id,
                         meldeperiode_id,
+                        meldeperiode_kjede_id,
                         meldeperiode_versjon,
                         sak_id,
                         mottatt,
                         dager
                     ) values (
                         :id,
-                        :meldeperiode_hendelse_id,
-                        (SELECT id FROM meldeperiode WHERE hendelse_id = :meldeperiode_hendelse_id),
-                        (SELECT versjon FROM meldeperiode WHERE hendelse_id = :meldeperiode_hendelse_id),
+                        :meldeperiode_id,
+                        (SELECT kjede_id FROM meldeperiode WHERE id = :meldeperiode_id),
+                        (SELECT versjon FROM meldeperiode WHERE id = :meldeperiode_id),
                         :sak_id,
                         :mottatt,
                         to_jsonb(:dager::jsonb)
                     )
                     """,
                     "id" to brukersMeldekort.id.toString(),
-                    "meldeperiode_hendelse_id" to brukersMeldekort.meldeperiodeId.toString(),
+                    "meldeperiode_id" to brukersMeldekort.meldeperiodeId.toString(),
                     "sak_id" to brukersMeldekort.sakId.toString(),
                     "mottatt" to brukersMeldekort.mottatt,
                     "dager" to brukersMeldekort.toDagerJson(),
@@ -114,9 +114,9 @@ class BrukersMeldekortPostgresRepo(
                     """
                     select m.*
                         from meldekort_bruker m 
-                    where m.meldeperiode_hendelse_id = :meldeperiode_hendelse_id
+                    where m.meldeperiode_id = :meldeperiode_id
                     """,
-                    "meldeperiode_hendelse_id" to meldeperiodeId.toString(),
+                    "meldeperiode_id" to meldeperiodeId.toString(),
                 ).map { row -> fromRow(row, session) }.asSingle,
             )
         }
@@ -129,7 +129,7 @@ class BrukersMeldekortPostgresRepo(
                 id = MeldekortId.fromString(row.string("id")),
                 mottatt = row.localDateTime("mottatt"),
                 meldeperiode = MeldeperiodePostgresRepo.hentForMeldeperiodeId(
-                    MeldeperiodeId.fromString(row.string("meldeperiode_hendelse_id")),
+                    MeldeperiodeId.fromString(row.string("meldeperiode_id")),
                     session,
                 )!!,
                 sakId = SakId.fromString(row.string("sak_id")),

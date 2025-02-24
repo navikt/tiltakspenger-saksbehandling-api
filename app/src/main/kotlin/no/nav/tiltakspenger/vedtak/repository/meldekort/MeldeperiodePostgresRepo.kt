@@ -34,7 +34,7 @@ internal class MeldeperiodePostgresRepo(
                     insert into meldeperiode (
                         id,
                         versjon,
-                        hendelse_id,
+                        kjede_id,
                         sak_id,
                         opprettet,
                         fra_og_med,
@@ -44,7 +44,7 @@ internal class MeldeperiodePostgresRepo(
                     ) values (
                         :id,
                         :versjon,
-                        :hendelse_id,
+                        :kjede_id,
                         :sak_id,
                         :opprettet,
                         :fra_og_med,
@@ -53,9 +53,9 @@ internal class MeldeperiodePostgresRepo(
                         to_jsonb(:gir_rett::jsonb)
                     )
                     """,
-                    "id" to meldeperiode.meldeperiodeKjedeId.toString(),
+                    "id" to meldeperiode.id.toString(),
                     "versjon" to meldeperiode.versjon.value,
-                    "hendelse_id" to meldeperiode.id.toString(),
+                    "kjede_id" to meldeperiode.meldeperiodeKjedeId.toString(),
                     "sak_id" to meldeperiode.sakId.toString(),
                     "opprettet" to meldeperiode.opprettet,
                     "fra_og_med" to meldeperiode.periode.fraOgMed,
@@ -101,16 +101,16 @@ internal class MeldeperiodePostgresRepo(
         }
     }
 
-    override fun markerSomSendtTilBruker(id: MeldeperiodeId, tidspunkt: LocalDateTime) {
+    override fun markerSomSendtTilBruker(meldeperiodeId: MeldeperiodeId, tidspunkt: LocalDateTime) {
         return sessionFactory.withSession { session ->
             session.run(
                 sqlQuery(
                     """
                     update meldeperiode set
                         sendt_til_meldekort_api = :tidspunkt
-                    where hendelse_id = :id                                    
+                    where id = :id                                    
                     """,
-                    "id" to id.toString(),
+                    "id" to meldeperiodeId.toString(),
                     "tidspunkt" to tidspunkt,
                 ).asUpdate,
             )
@@ -129,7 +129,7 @@ internal class MeldeperiodePostgresRepo(
 
     companion object {
         internal fun hentForMeldeperiodeId(
-            id: MeldeperiodeId,
+            meldeperiodeId: MeldeperiodeId,
             session: Session,
         ): Meldeperiode? {
             return session.run(
@@ -141,9 +141,9 @@ internal class MeldeperiodePostgresRepo(
                         s.fnr 
                     from meldeperiode m 
                     join sak s on s.id = m.sak_id 
-                    where m.hendelse_id = :hendelse_id
+                    where m.id = :id
                     """,
-                    "hendelse_id" to id.toString(),
+                    "id" to meldeperiodeId.toString(),
                 ).map { row -> fromRow(row) }.asSingle,
             )
         }
@@ -173,9 +173,9 @@ internal class MeldeperiodePostgresRepo(
 
         private fun fromRow(row: Row): Meldeperiode {
             return Meldeperiode(
-                meldeperiodeKjedeId = MeldeperiodeKjedeId(row.string("id")),
+                meldeperiodeKjedeId = MeldeperiodeKjedeId(row.string("kjede_id")),
                 versjon = HendelseVersjon(row.int("versjon")),
-                id = MeldeperiodeId.fromString(row.string("hendelse_id")),
+                id = MeldeperiodeId.fromString(row.string("id")),
                 sakId = SakId.fromString(row.string("sak_id")),
                 saksnummer = Saksnummer(row.string("saksnummer")),
                 fnr = Fnr.fromString(row.string("fnr")),
