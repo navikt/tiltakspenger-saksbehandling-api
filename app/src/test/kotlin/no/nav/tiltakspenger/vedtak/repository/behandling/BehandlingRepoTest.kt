@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.vedtak.repository.behandling
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.db.persisterBehandletRevurdering
 import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandling
 import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandlingDeprecated
 import no.nav.tiltakspenger.db.withMigratedDb
@@ -33,6 +34,18 @@ internal class BehandlingRepoTest {
             val (sak, _) = testDataHelper.persisterOpprettetFørstegangsbehandling()
             sakRepo.hentForSakId(sak.id) shouldBe sak
             behandlingRepo.hent(sak.førstegangsbehandling!!.id) shouldBe sak.førstegangsbehandling
+        }
+    }
+
+    @Test
+    fun `lagre og hente en behandlet revurdering`() {
+        withMigratedDb { testDataHelper ->
+            val behandlingRepo = testDataHelper.behandlingRepo
+            val sakRepo = testDataHelper.sakRepo
+
+            val (sak, behandling) = testDataHelper.persisterBehandletRevurdering()
+            sakRepo.hentForSakId(sak.id) shouldBe sak
+            behandlingRepo.hent(sak.revurderinger.last().id) shouldBe behandling
         }
     }
 

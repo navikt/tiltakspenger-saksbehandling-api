@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.vedtak.repository.person
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.db.persisterOpprettetRevurdering
+import no.nav.tiltakspenger.db.persisterOpprettetRevurderingDeprecated
 import no.nav.tiltakspenger.db.withMigratedDb
 import org.junit.jupiter.api.Test
 
@@ -10,7 +10,7 @@ class PersonPostgresRepoTest {
     @Test
     fun hentFnrForBehandlingId() {
         withMigratedDb { testDataHelper ->
-            val (sak, revurdering) = testDataHelper.persisterOpprettetRevurdering()
+            val (sak, revurdering) = testDataHelper.persisterOpprettetRevurderingDeprecated()
             testDataHelper.personRepo.hentFnrForSakId(sak.id) shouldBe sak.fnr
             testDataHelper.personRepo.hentFnrForBehandlingId(sak.førstegangsbehandling!!.id) shouldBe sak.fnr
             testDataHelper.personRepo.hentFnrForBehandlingId(revurdering.id) shouldBe sak.fnr

@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.db.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandlingDeprecated
-import no.nav.tiltakspenger.db.persisterOpprettetRevurdering
+import no.nav.tiltakspenger.db.persisterOpprettetRevurderingDeprecated
 import no.nav.tiltakspenger.db.persisterSakOgSøknad
 import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.felles.januarDateTime
@@ -24,7 +24,7 @@ class BenkOversiktPostgresRepoTest {
             val søknad1 = testDataHelper.persisterSakOgSøknad()
             val sakId = testDataHelper.søknadRepo.hentSakIdForSoknad(søknad1.id)!!
             val (førstegangsBehandlingSak, førstegangsBehandling) = testDataHelper.persisterOpprettetFørstegangsbehandlingDeprecated()
-            val (revurderingSak, revurdering) = testDataHelper.persisterOpprettetRevurdering()
+            val (revurderingSak, revurdering) = testDataHelper.persisterOpprettetRevurderingDeprecated()
             val behandlinger = repo.hentAlleBehandlinger()
             val søknader = repo.hentAlleSøknader()
             val benkOversikt = Saksoversikt(søknader + behandlinger)

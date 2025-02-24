@@ -13,10 +13,15 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendRevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.StartRevurderingV2Kommando
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.sendRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.startRevurdering
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.startRevurderingV2
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
@@ -211,7 +216,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
 /**
  * Persisterer førstegangsbehandling med tilhørende rammevedtak og starter en revurdering
  */
-internal fun TestDataHelper.persisterOpprettetRevurdering(
+internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = ObjectMother.vurderingsperiode().fraOgMed,
@@ -273,6 +278,136 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
         )
     }.getOrNull()!!.also {
         behandlingRepo.lagre(it.second)
+    }
+}
+
+internal fun TestDataHelper.persisterOpprettetRevurdering(
+    sakId: SakId = SakId.random(),
+    fnr: Fnr = Fnr.random(),
+    deltakelseFom: LocalDate = ObjectMother.vurderingsperiode().fraOgMed,
+    deltakelseTom: LocalDate = ObjectMother.vurderingsperiode().tilOgMed,
+    journalpostId: String = random.nextInt().toString(),
+    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    beslutter: Saksbehandler = ObjectMother.beslutter(),
+    tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
+    sak: Sak = ObjectMother.nySak(
+        sakId = sakId,
+        fnr = fnr,
+        saksnummer = this.saksnummerGenerator.neste(),
+    ),
+    id: SøknadId = Søknad.randomId(),
+    søknad: Søknad =
+        ObjectMother.nySøknad(
+            periode = tiltaksOgVurderingsperiode,
+            journalpostId = journalpostId,
+            personopplysninger =
+            ObjectMother.personSøknad(
+                fnr = fnr,
+            ),
+            id = id,
+            søknadstiltak =
+            ObjectMother.søknadstiltak(
+                deltakelseFom = deltakelseFom,
+                deltakelseTom = deltakelseTom,
+            ),
+            barnetillegg = listOf(),
+            sak = sak,
+        ),
+    hentSaksopplysninger: suspend (sakId: SakId, saksnummer: Saksnummer, fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _, _, _ -> ObjectMother.saksopplysninger() },
+): Pair<Sak, Behandling> {
+    val (sak, _) = runBlocking {
+        persisterIverksattFørstegangsbehandling(
+            sakId = sakId,
+            fnr = fnr,
+            deltakelseFom = deltakelseFom,
+            deltakelseTom = deltakelseTom,
+            journalpostId = journalpostId,
+            saksbehandler = saksbehandler,
+            beslutter = beslutter,
+            tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
+            id = id,
+            søknad = søknad,
+            sak = sak,
+        )
+    }
+    return runBlocking {
+        sak.startRevurderingV2(
+            kommando = StartRevurderingV2Kommando(
+                sakId = sakId,
+                correlationId = CorrelationId.generate(),
+                saksbehandler = saksbehandler,
+            ),
+            hentSaksopplysninger = hentSaksopplysninger,
+        )
+    }.getOrNull()!!.also {
+        behandlingRepo.lagre(it.second)
+    }
+}
+
+internal fun TestDataHelper.persisterBehandletRevurdering(
+    sakId: SakId = SakId.random(),
+    fnr: Fnr = Fnr.random(),
+    deltakelseFom: LocalDate = ObjectMother.vurderingsperiode().fraOgMed,
+    deltakelseTom: LocalDate = ObjectMother.vurderingsperiode().tilOgMed,
+    journalpostId: String = random.nextInt().toString(),
+    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    beslutter: Saksbehandler = ObjectMother.beslutter(),
+    tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
+    sak: Sak = ObjectMother.nySak(
+        sakId = sakId,
+        fnr = fnr,
+        saksnummer = this.saksnummerGenerator.neste(),
+    ),
+    id: SøknadId = Søknad.randomId(),
+    søknad: Søknad =
+        ObjectMother.nySøknad(
+            periode = tiltaksOgVurderingsperiode,
+            journalpostId = journalpostId,
+            personopplysninger =
+            ObjectMother.personSøknad(
+                fnr = fnr,
+            ),
+            id = id,
+            søknadstiltak =
+            ObjectMother.søknadstiltak(
+                deltakelseFom = deltakelseFom,
+                deltakelseTom = deltakelseTom,
+            ),
+            barnetillegg = listOf(),
+            sak = sak,
+        ),
+    stansDato: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
+    begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("fordi"),
+): Pair<Sak, Behandling> {
+    val (sak, behandling) = runBlocking {
+        persisterOpprettetRevurdering(
+            sakId = sakId,
+            fnr = fnr,
+            deltakelseFom = deltakelseFom,
+            deltakelseTom = deltakelseTom,
+            journalpostId = journalpostId,
+            saksbehandler = saksbehandler,
+            beslutter = beslutter,
+            tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
+            id = id,
+            søknad = søknad,
+            sak = sak,
+        )
+    }
+    return runBlocking {
+        sak.sendRevurderingTilBeslutning(
+            kommando = SendRevurderingTilBeslutningKommando(
+                sakId = sakId,
+                behandlingId = behandling.id,
+                saksbehandler = saksbehandler,
+                correlationId = CorrelationId.generate(),
+                begrunnelse = begrunnelse,
+                stansDato = stansDato,
+            ),
+        )
+    }.getOrNull()!!.let {
+        behandlingRepo.lagre(it)
+        sakRepo.hentForSakId(sakId)!! to it
     }
 }
 
