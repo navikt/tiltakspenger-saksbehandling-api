@@ -48,13 +48,13 @@ class BehandlingPostgresRepo(
     /**
      * Denne returnerer ikke [Behandlinger] siden vi ikke har avklart om en person kan ha flere saker. I så fall vil dette bli en liste med [Behandlinger].
      */
-    override fun hentAlleForIdent(fnr: Fnr): List<Behandling> {
+    override fun hentAlleForFnr(fnr: Fnr): List<Behandling> {
         return sessionFactory.withSession { session ->
             session.run(
                 queryOf(
-                    sqlHentBehandlingForIdent,
+                    sqlHentBehandlingForFnr,
                     mapOf(
-                        "ident" to fnr.verdi,
+                        "fnr" to fnr.verdi,
                     ),
                 ).map { row ->
                     row.toBehandling(session)
@@ -68,7 +68,7 @@ class BehandlingPostgresRepo(
             session.run(
                 queryOf(
                     """
-                    select b.*,sak.saksnummer,sak.ident
+                    select b.*,sak.saksnummer,sak.fnr
                       from behandling b
                       join søknad s on b.id = s.behandling_id
                       join sak on sak.id = b.sak_id
@@ -123,7 +123,7 @@ class BehandlingPostgresRepo(
             session
                 .run(
                     queryOf(
-                        "select b.*,s.ident, s.saksnummer from behandling b join sak s on s.id = b.sak_id where b.sak_id = :sak_id order by b.opprettet",
+                        "select b.*,s.fnr, s.saksnummer from behandling b join sak s on s.id = b.sak_id where b.sak_id = :sak_id order by b.opprettet",
                         mapOf(
                             "sak_id" to sakId.toString(),
                         ),
@@ -237,7 +237,7 @@ class BehandlingPostgresRepo(
             val søknad: Søknad? = SøknadDAO.hentForBehandlingId(id, session)
 
             val attesteringer = string("attesteringer").toAttesteringer()
-            val fnr = Fnr.fromString(string("ident"))
+            val fnr = Fnr.fromString(string("fnr"))
             val saksnummer = Saksnummer(string("saksnummer"))
 
             val sendtTilBeslutning = localDateTimeOrNull("sendt_til_beslutning")
@@ -365,15 +365,15 @@ class BehandlingPostgresRepo(
         @Language("SQL")
         private val sqlHentBehandling =
             """
-            select b.*,s.ident, s.saksnummer from behandling b join sak s on s.id = b.sak_id where b.id = :id
+            select b.*,s.fnr, s.saksnummer from behandling b join sak s on s.id = b.sak_id where b.id = :id
             """.trimIndent()
 
         @Language("SQL")
-        private val sqlHentBehandlingForIdent =
+        private val sqlHentBehandlingForFnr =
             """
-            select b.*,s.ident, s.saksnummer from behandling b
+            select b.*,s.fnr, s.saksnummer from behandling b
               join sak s on s.id = b.sak_id
-              where s.ident = :ident
+              where s.fnr = :fnr
               order by b.opprettet 
             """.trimIndent()
     }
@@ -384,7 +384,7 @@ class BehandlingPostgresRepo(
             session.run(
                 queryOf(
                     """
-                    select b.*,sak.saksnummer,sak.ident
+                    select b.*,sak.saksnummer,sak.fnr
                     from behandling b
                     join sak on sak.id = b.sak_id
                     where

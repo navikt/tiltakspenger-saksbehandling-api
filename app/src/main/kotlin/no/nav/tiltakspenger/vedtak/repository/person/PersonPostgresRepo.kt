@@ -21,12 +21,12 @@ class PersonPostgresRepo(
         sessionFactory.withSession { session ->
             session.run(
                 queryOf(
-                    """select ident from sak where id = :id""",
+                    """select fnr from sak where id = :id""",
                     mapOf(
                         "id" to sakId.toString(),
                     ),
                 ).map { row ->
-                    Fnr.fromString(row.string("ident"))
+                    Fnr.fromString(row.string("fnr"))
                 }.asSingle,
             )
         }
@@ -35,12 +35,12 @@ class PersonPostgresRepo(
         sessionFactory.withSession { session ->
             session.run(
                 queryOf(
-                    """select ident from sak where saksnummer = :saksnummer""",
+                    """select fnr from sak where saksnummer = :saksnummer""",
                     mapOf(
                         "saksnummer" to saksnummer.verdi,
                     ),
                 ).map { row ->
-                    Fnr.fromString(row.string("ident"))
+                    Fnr.fromString(row.string("fnr"))
                 }.asSingle,
             )
         }
@@ -49,12 +49,12 @@ class PersonPostgresRepo(
         sessionFactory.withSession { session ->
             session.run(
                 queryOf(
-                    """select s.ident from behandling b join sak s on s.id = b.sak_id where b.id = :behandlingId""",
+                    """select s.fnr from behandling b join sak s on s.id = b.sak_id where b.id = :behandlingId""",
                     mapOf(
                         "behandlingId" to behandlingId.toString(),
                     ),
                 ).map { row ->
-                    Fnr.fromString(row.string("ident"))
+                    Fnr.fromString(row.string("fnr"))
                 }.asSingle,
             )
         }
@@ -63,12 +63,12 @@ class PersonPostgresRepo(
         sessionFactory.withSession { session ->
             session.run(
                 queryOf(
-                    """select ident from søknad where id = :id""",
+                    """select fnr from søknad where id = :id""",
                     mapOf(
                         "id" to søknadId.toString(),
                     ),
                 ).map { row ->
-                    Fnr.fromString(row.string("ident"))
+                    Fnr.fromString(row.string("fnr"))
                 }.asSingle,
             )
         }
@@ -78,7 +78,7 @@ class PersonPostgresRepo(
             session.run(
                 queryOf(
                     """
-                        select sak.ident from meldekortbehandling m
+                        select sak.fnr from meldekortbehandling m
                         join public.sak sak on sak.id = m.sak_id
                         where m.id = :meldekort_id
                     """.trimMargin(),
@@ -86,7 +86,7 @@ class PersonPostgresRepo(
                         "meldekort_id" to meldekortId.toString(),
                     ),
                 ).map { row ->
-                    Fnr.fromString(row.string("ident"))
+                    Fnr.fromString(row.string("fnr"))
                 }.asSingle,
             )
         }

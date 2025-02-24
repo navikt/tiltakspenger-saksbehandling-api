@@ -27,26 +27,6 @@ private const val TRYGD_OG_PENSJON_FELT = "trygd_og_pensjon"
 private const val ETTERLØNN_FELT = "etterlonn"
 
 internal object SøknadDAO {
-    fun finnIdent(
-        søknadId: String,
-        session: Session,
-    ): String? =
-        session.run(
-            queryOf(sqlHentIdent, søknadId)
-                .map { row -> row.toIdent() }
-                .asSingle,
-        )
-
-    fun finnJournalpostId(
-        søknadId: String,
-        session: Session,
-    ): String? =
-        session.run(
-            queryOf(sqlHentIdent, søknadId)
-                .map { row -> row.toJournalpostId() }
-                .asSingle,
-        )
-
     fun finnSakIdForTiltaksdeltakelse(
         eksternId: String,
         session: Session,
@@ -62,7 +42,7 @@ internal object SøknadDAO {
         session: Session,
     ): SakId? =
         session.run(
-            queryOf(sqlHentIdent, søknadId.toString())
+            queryOf(sqlHentFnr, søknadId.toString())
                 .map { row -> row.toSakId() }
                 .asSingle,
         )
@@ -82,7 +62,7 @@ internal object SøknadDAO {
         session: Session,
     ): Søknad? =
         session.run(
-            queryOf(sqlHentIdent, søknadId.toString())
+            queryOf(sqlHentFnr, søknadId.toString())
                 .map { row -> row.toSøknad(session) }
                 .asSingle,
         )
@@ -114,7 +94,7 @@ internal object SøknadDAO {
                     select
                         *
                     from søknad s
-                    join sak on sak.id = s.sak_id where sak.ident = :fnr
+                    join sak on sak.id = s.sak_id where sak.fnr = :fnr
                     """.trimIndent(),
                     "fnr" to fnr.verdi,
                 ).map { row ->
@@ -207,7 +187,7 @@ internal object SøknadDAO {
                         "behandling_id" to null,
                         "fornavn" to søknad.personopplysninger.fornavn,
                         "etternavn" to søknad.personopplysninger.etternavn,
-                        "ident" to søknad.fnr.verdi,
+                        "fnr" to søknad.fnr.verdi,
                         "journalpost_id" to søknad.journalpostId,
                         "vedlegg" to søknad.vedlegg,
                         "opprettet" to søknad.opprettet,
@@ -218,10 +198,6 @@ internal object SøknadDAO {
         )
     }
 
-    private fun Row.toIdent() = string("ident")
-
-    private fun Row.toJournalpostId() = string("journalpost_id")
-
     private fun Row.toSakId() = stringOrNull("sak_id")?.let { SakId.fromString(it) }
 
     private fun Row.toSøknad(session: Session): Søknad {
@@ -229,7 +205,7 @@ internal object SøknadDAO {
         val versjon = string("versjon")
         val fornavn = string("fornavn")
         val etternavn = string("etternavn")
-        val fnr = Fnr.fromString(string("ident"))
+        val fnr = Fnr.fromString(string("fnr"))
         val opprettet = localDateTime("opprettet")
         val tidsstempelHosOss = localDateTime("tidsstempel_hos_oss")
         val journalpostId = string("journalpost_id")
@@ -293,7 +269,7 @@ internal object SøknadDAO {
             journalpost_id,
             fornavn, 
             etternavn, 
-            ident, 
+            fnr, 
             opprettet,
             tidsstempel_hos_oss,
             kvp_type,
@@ -346,7 +322,7 @@ internal object SøknadDAO {
             :journalpost_id,
             :fornavn, 
             :etternavn,
-            :ident,
+            :fnr,
             :opprettet,
             :tidsstempel_hos_oss,
             :kvp_type,
@@ -401,7 +377,7 @@ internal object SøknadDAO {
     private val sqlHent = "select * from søknad s join sak on sak.id = s.sak_id where s.behandling_id = ?"
 
     @Language("SQL")
-    private val sqlHentIdent = "select * from søknad s join sak on sak.id = s.sak_id where s.id = ?"
+    private val sqlHentFnr = "select * from søknad s join sak on sak.id = s.sak_id where s.id = ?"
 
     @Language("SQL")
     private val sqlHentSakIdForTiltaksdeltakelse = "select sak_id from søknad s join søknadstiltak st on st.søknad_id = s.id where st.ekstern_id = ?"

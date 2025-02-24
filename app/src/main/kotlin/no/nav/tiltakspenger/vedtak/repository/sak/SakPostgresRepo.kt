@@ -39,8 +39,8 @@ internal class SakPostgresRepo(
                 sessionContext.withSession { session ->
                     session.run(
                         queryOf(
-                            sqlHentSakerForIdent,
-                            mapOf("ident" to fnr.verdi),
+                            sqlHentSakerForFnr,
+                            mapOf("fnr" to fnr.verdi),
                         ).map { row ->
                             row.toSak(sessionContext)
                         }.asList,
@@ -89,7 +89,7 @@ internal class SakPostgresRepo(
             session.run(
                 queryOf(
                     """
-                        select ident from sak where saksnummer = :saksnummer
+                        select fnr from sak where saksnummer = :saksnummer
                     """.trimIndent(),
                     mapOf("saksnummer" to saksnummer.verdi),
                 ).map { row ->
@@ -105,7 +105,7 @@ internal class SakPostgresRepo(
         sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 queryOf(
-                    "select ident as fnr from sak  where sak.id = :sak_id",
+                    "select fnr from sak  where sak.id = :sak_id",
                     mapOf("sak_id" to sakId.toString()),
                 ).map { row ->
                     Fnr.fromString(row.string("fnr"))
@@ -125,13 +125,13 @@ internal class SakPostgresRepo(
                         """
                     insert into sak (
                         id,
-                        ident,
+                        fnr,
                         saksnummer,
                         sist_endret,
                         opprettet
                     ) values (
                         :id,
-                        :ident,
+                        :fnr,
                         :saksnummer,
                         :sist_endret,
                         :opprettet
@@ -139,7 +139,7 @@ internal class SakPostgresRepo(
                         """.trimIndent(),
                         mapOf(
                             "id" to sak.id.toString(),
-                            "ident" to sak.fnr.verdi,
+                            "fnr" to sak.fnr.verdi,
                             "saksnummer" to sak.saksnummer.verdi,
                             "sist_endret" to nå,
                             "opprettet" to nå,
@@ -209,7 +209,7 @@ internal class SakPostgresRepo(
                 Sak(
                     id = SakId.fromString(string("id")),
                     saksnummer = Saksnummer(verdi = string("saksnummer")),
-                    fnr = Fnr.fromString(string("ident")),
+                    fnr = Fnr.fromString(string("fnr")),
                     behandlinger = behandlinger,
                     vedtaksliste = vedtaksliste,
                     meldekortBehandlinger = meldekortBehandlinger,
@@ -225,13 +225,13 @@ internal class SakPostgresRepo(
             val id = SakId.fromString(string("id"))
             return TynnSak(
                 id = id,
-                fnr = Fnr.fromString(string("ident")),
+                fnr = Fnr.fromString(string("fnr")),
                 saksnummer = Saksnummer(verdi = string("saksnummer")),
             )
         }
 
         private fun Row.toFnr(): Fnr {
-            return Fnr.fromString(string("ident"))
+            return Fnr.fromString(string("fnr"))
         }
 
         @Language("SQL")
@@ -239,8 +239,8 @@ internal class SakPostgresRepo(
             """select * from sak where id = :id""".trimIndent()
 
         @Language("SQL")
-        private val sqlHentSakerForIdent =
-            """select * from sak where ident = :ident""".trimIndent()
+        private val sqlHentSakerForFnr =
+            """select * from sak where fnr = :fnr""".trimIndent()
 
         @Language("SQL")
         private val sqlHentSakForSaksnummer =

@@ -50,11 +50,11 @@ class RammevedtakPostgresRepo(
                             from rammevedtak v
                             join sak s
                               on s.id = v.sak_id 
-                            where s.ident = :ident
+                            where s.fnr = :fnr
                             order by v.opprettet
                         """.trimIndent(),
                         mapOf(
-                            "ident" to fnr.verdi,
+                            "fnr" to fnr.verdi,
                         ),
                     ).map { row ->
                         row.toVedtak(session)

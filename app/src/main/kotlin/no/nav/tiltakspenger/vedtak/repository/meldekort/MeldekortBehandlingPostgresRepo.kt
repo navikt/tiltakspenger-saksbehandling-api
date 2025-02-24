@@ -142,7 +142,7 @@ class MeldekortBehandlingPostgresRepo(
                     """
                     select
                       m.*,
-                      s.ident as fnr,
+                      s.fnr,
                       s.saksnummer
                     from meldekortbehandling m
                     join sak s on s.id = m.sak_id
@@ -164,7 +164,7 @@ class MeldekortBehandlingPostgresRepo(
                     """
                     select
                       m.*,
-                      s.ident as fnr,
+                      s.fnr,
                       s.saksnummer
                     from meldekortbehandling m
                     join sak s on s.id = m.sak_id

@@ -10,7 +10,7 @@ data class StatistikkSakDTO(
     val behandlingId: String,
     /** Hvis behandlingen har oppstått med bakgrunn i en annen, skal den foregående behandlingen refereres til her. Når det gjelder klage skal denne vise til påklaget behandling. */
     val relatertBehandlingId: String?,
-    val ident: String,
+    val fnr: String,
     // TODO jah: Her skriver de at de ikke ønsker millisekunder. Men vi lagrer den med millisekunder. Bør vi gjøre en avsjekk med team statistikk sak? Bør gå over alle stedet vi bruker tidspunkt/LocalDateTime.
     /** Tidspunktet da behandlingen oppstår (eks. søknad mottas). Dette er starten på beregning av saksbehandlingstid. Denne verdien må være før eller samtidig som registrertTidspunkt. Dette feltet må være utfylt bør behandlingen avsluttes. Tidligere meldinger må re-sendes ved oppdatering av dette feltet. */
     val mottattTidspunkt: LocalDateTime,

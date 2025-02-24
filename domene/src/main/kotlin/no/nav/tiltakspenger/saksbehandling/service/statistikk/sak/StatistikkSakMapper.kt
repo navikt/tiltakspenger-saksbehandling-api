@@ -15,7 +15,7 @@ fun genererStatistikkForNyFørstegangsbehandling(
         saksnummer = behandling.saksnummer.toString(),
         behandlingId = behandling.id.toString(),
         relatertBehandlingId = null,
-        ident = behandling.fnr.verdi,
+        fnr = behandling.fnr.verdi,
         mottattTidspunkt = behandling.søknad!!.opprettet,
         registrertTidspunkt = behandling.opprettet,
         ferdigBehandletTidspunkt = null,
@@ -61,7 +61,7 @@ fun genererSaksstatistikkForRammevedtak(
         behandlingId = vedtak.behandling.id.toString(),
         // TODO jah: Denne vil vel kunne være en liste? Vi kan legge den på senere.
         relatertBehandlingId = null,
-        ident = behandling.fnr.verdi,
+        fnr = behandling.fnr.verdi,
         mottattTidspunkt = if (behandling.erFørstegangsbehandling) behandling.søknad!!.opprettet else behandling.opprettet,
         registrertTidspunkt = behandling.opprettet,
         ferdigBehandletTidspunkt = vedtak.opprettet,

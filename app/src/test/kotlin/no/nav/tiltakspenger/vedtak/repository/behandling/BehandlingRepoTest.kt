@@ -56,8 +56,8 @@ internal class BehandlingRepoTest {
             val (sak1, _) = testDataHelper.persisterOpprettetFørstegangsbehandling()
             val (sak2, _) = testDataHelper.persisterOpprettetFørstegangsbehandling()
 
-            behandlingRepo.hentAlleForIdent(sak1.fnr) shouldBe listOf(sak1.førstegangsbehandling)
-            behandlingRepo.hentAlleForIdent(sak2.fnr) shouldBe listOf(sak2.førstegangsbehandling)
+            behandlingRepo.hentAlleForFnr(sak1.fnr) shouldBe listOf(sak1.førstegangsbehandling)
+            behandlingRepo.hentAlleForFnr(sak2.fnr) shouldBe listOf(sak2.førstegangsbehandling)
         }
     }
 }

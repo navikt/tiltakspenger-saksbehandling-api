@@ -24,7 +24,7 @@ interface BehandlingRepo {
         sessionContext: SessionContext? = null,
     ): Behandling
 
-    fun hentAlleForIdent(fnr: Fnr): List<Behandling>
+    fun hentAlleForFnr(fnr: Fnr): List<Behandling>
 
     fun hentForSøknadId(søknadId: SøknadId): Behandling?
 

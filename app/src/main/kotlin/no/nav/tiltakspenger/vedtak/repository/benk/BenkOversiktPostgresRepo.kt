@@ -28,7 +28,7 @@ class BenkOversiktPostgresRepo(
                         //language=SQL
                         """
                         select behandling.id as behandling_id,
-                          sak.ident,
+                          sak.fnr,
                           behandling.opprettet,
                           behandling.virkningsperiode_fra_og_med,
                           behandling.virkningsperiode_til_og_med,
@@ -72,7 +72,7 @@ class BenkOversiktPostgresRepo(
                             underkjent = attesteringer.any { attestering -> attestering.isUnderkjent() },
                             kravtidspunkt = kravtidspunkt,
                             behandlingstype = behandlingstype,
-                            fnr = Fnr.fromString(row.string("ident")),
+                            fnr = Fnr.fromString(row.string("fnr")),
                             saksnummer = row.stringOrNull("saksnummer")?.let { Saksnummer(it) },
                             id = id,
                             saksbehandler = saksbehandler,
@@ -91,7 +91,7 @@ class BenkOversiktPostgresRepo(
                         //language=SQL
                         """
                         select søknad.id as søknad_id,
-                          søknad.ident,
+                          søknad.fnr,
                           søknad.opprettet,
                           søknad.behandling_id,
                           søknad.sak_id
@@ -110,7 +110,7 @@ class BenkOversiktPostgresRepo(
                             underkjent = false,
                             kravtidspunkt = opprettet,
                             behandlingstype = behandlingstype,
-                            fnr = Fnr.fromString(row.string("ident")),
+                            fnr = Fnr.fromString(row.string("fnr")),
                             saksnummer = null,
                             id = id,
                             saksbehandler = null,

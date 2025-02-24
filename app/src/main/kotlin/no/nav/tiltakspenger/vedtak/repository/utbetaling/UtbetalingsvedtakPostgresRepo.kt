@@ -122,7 +122,7 @@ internal class UtbetalingsvedtakPostgresRepo(
             session.run(
                 queryOf(
                     """
-                    select u.*, s.ident as fnr, s.saksnummer
+                    select u.*, s.fnr, s.saksnummer
                     from utbetalingsvedtak u
                     join sak s on s.id = u.sak_id
                     left join utbetalingsvedtak parent on parent.id = u.forrige_vedtak_id
@@ -144,7 +144,7 @@ internal class UtbetalingsvedtakPostgresRepo(
             session.run(
                 queryOf(
                     """
-                    select u.*,s.ident as fnr,s.saksnummer 
+                    select u.*,s.fnr,s.saksnummer 
                     from utbetalingsvedtak u 
                     join sak s on s.id = u.sak_id 
                     where u.journalpost_id is null
@@ -161,7 +161,7 @@ internal class UtbetalingsvedtakPostgresRepo(
         fun hentForSakId(sakId: SakId, session: Session): Utbetalinger {
             return session.run(
                 queryOf(
-                    "select u.*, s.saksnummer, s.ident as fnr from utbetalingsvedtak u join sak s on s.id = u.sak_id where u.sak_id = :sak_id order by u.opprettet",
+                    "select u.*, s.saksnummer, s.fnr from utbetalingsvedtak u join sak s on s.id = u.sak_id where u.sak_id = :sak_id order by u.opprettet",
                     mapOf("sak_id" to sakId.toString()),
                 ).map { row ->
                     row.toVedtak(session)

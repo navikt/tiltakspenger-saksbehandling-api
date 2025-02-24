@@ -37,7 +37,7 @@ class BehandlingFakeRepo : BehandlingRepo {
         return hentOrNull(behandlingId, sessionContext)!!
     }
 
-    override fun hentAlleForIdent(fnr: Fnr): List<Behandling> = data.get().values.filter { it.fnr == fnr }
+    override fun hentAlleForFnr(fnr: Fnr): List<Behandling> = data.get().values.filter { it.fnr == fnr }
 
     override fun hentForSøknadId(søknadId: SøknadId): Behandling? = data.get().values.find { it.søknad?.id == søknadId }
 

@@ -90,7 +90,7 @@ internal class MeldeperiodePostgresRepo(
                     select
                         m.*,
                         s.saksnummer,
-                        s.ident as fnr 
+                        s.fnr 
                     from meldeperiode m 
                     join sak s on s.id = m.sak_id 
                     where m.sendt_til_meldekort_api is null
@@ -138,7 +138,7 @@ internal class MeldeperiodePostgresRepo(
                     select 
                         m.*,
                         s.saksnummer,
-                        s.ident as fnr 
+                        s.fnr 
                     from meldeperiode m 
                     join sak s on s.id = m.sak_id 
                     where m.hendelse_id = :hendelse_id
@@ -158,7 +158,7 @@ internal class MeldeperiodePostgresRepo(
                     select
                         m.*,
                         s.saksnummer,
-                        s.ident as fnr
+                        s.fnr
                     from meldeperiode m 
                     join sak s on s.id = m.sak_id
                     where m.sak_id = :sak_id
