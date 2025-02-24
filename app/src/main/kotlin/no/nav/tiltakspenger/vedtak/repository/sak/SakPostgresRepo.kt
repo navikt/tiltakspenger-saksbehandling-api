@@ -81,18 +81,6 @@ internal class SakPostgresRepo(
             }
         }
 
-    override fun hentDetaljerForSakId(sakId: SakId): TynnSak? =
-        sessionFactory.withSession { session ->
-            session.run(
-                queryOf(
-                    sqlHent,
-                    mapOf("id" to sakId.toString()),
-                ).map { row ->
-                    row.toSakDetaljer()
-                }.asSingle,
-            )
-        }
-
     override fun hentFnrForSaksnummer(
         saksnummer: Saksnummer,
         sessionContext: SessionContext?,

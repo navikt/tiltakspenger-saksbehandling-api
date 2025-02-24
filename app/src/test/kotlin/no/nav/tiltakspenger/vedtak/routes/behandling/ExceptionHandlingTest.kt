@@ -50,7 +50,6 @@ class ExceptionHandlingTest {
 
             testApplication {
                 application {
-                    // vedtakTestApi()
                     jacksonSerialization()
                     configureExceptions()
                     routing {

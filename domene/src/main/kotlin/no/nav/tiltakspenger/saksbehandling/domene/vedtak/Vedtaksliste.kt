@@ -11,6 +11,7 @@ import java.time.LocalDate
 data class Vedtaksliste(
     val value: List<Rammevedtak>,
 ) : List<Vedtak> by value {
+    @Suppress("unused")
     constructor(value: Rammevedtak) : this(listOf(value))
 
     val tidslinje: Periodisering<Rammevedtak> by lazy { value.toTidslinje() }
@@ -21,6 +22,7 @@ data class Vedtaksliste(
     val vedtaksperiode: Periode? by lazy { tidslinje.ifEmpty { null }?.totalePeriode }
 
     /** Nåtilstand. Sakens totale vedtaksperioder. Vil kunne ha hull dersom det f.eks. er opphold mellom 2 tiltaksdeltagelsesperioder. Avslag og delvis avslag vil ikke være med her. */
+    @Suppress("unused")
     val vedtaksperioder: List<Periode> by lazy { tidslinje.perioder }
 
     /** Nåtilstand. De periodene som gir rett til tiltakspenger. Vil kunne være hull. */

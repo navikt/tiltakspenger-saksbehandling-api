@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.domene.sak.TynnSak
 
 interface SakRepo {
     fun hentForFnr(fnr: Fnr): Saker
@@ -21,8 +20,6 @@ interface SakRepo {
     fun opprettSak(sak: Sak)
 
     fun hentForSakId(sakId: SakId): Sak?
-
-    fun hentDetaljerForSakId(sakId: SakId): TynnSak?
 
     fun hentNesteSaksnummer(): Saksnummer
 

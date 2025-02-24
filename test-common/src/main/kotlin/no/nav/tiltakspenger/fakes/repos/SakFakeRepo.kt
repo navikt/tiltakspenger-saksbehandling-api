@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.domene.sak.TynnSak
 import no.nav.tiltakspenger.saksbehandling.ports.SakRepo
 import java.time.LocalDate
 
@@ -61,15 +60,6 @@ class SakFakeRepo(
             soknader = soknader,
         )
     }
-
-    override fun hentDetaljerForSakId(sakId: SakId): TynnSak? =
-        data.get()[sakId]?.let {
-            TynnSak(
-                id = it.id,
-                fnr = it.fnr,
-                saksnummer = it.saksnummer,
-            )
-        }
 
     override fun hentNesteSaksnummer(): Saksnummer =
         data

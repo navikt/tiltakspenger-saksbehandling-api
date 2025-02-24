@@ -40,6 +40,7 @@ data class Sak(
     val førsteDagSomGirRett = vedtaksliste.førsteDagSomGirRett
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
+    @Suppress("unused")
     val sisteDagSomGirRett = vedtaksliste.sisteDagSomGirRett
 
     /**
@@ -52,6 +53,7 @@ data class Sak(
     val saksopplysningsperiode: Periode? = førstegangsbehandling?.saksopplysningsperiode
 
     /** Henter fra siste godkjente meldekort */
+    @Suppress("unused")
     val sisteNavkontor: Navkontor? by lazy {
         meldekortBehandlinger.sisteGodkjenteMeldekort?.navkontor
     }
@@ -61,6 +63,7 @@ data class Sak(
     }
 
     /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
+    @Suppress("unused")
     fun hentMeldekortBehandlingForMeldeperiodeId(id: HendelseId): List<MeldekortBehandling> {
         return meldekortBehandlinger.hentMeldekortBehandlingForMeldeperiodeId(id)
     }
