@@ -30,14 +30,12 @@ internal class UtbetalingsvedtakPostgresRepo(
                     insert into utbetalingsvedtak (
                         id,
                         sak_id,
-                        rammevedtak_id,
                         opprettet,
                         forrige_vedtak_id,
                         meldekort_id
                     ) values (
                         :id,
                         :sak_id,
-                        :rammevedtak_id,
                         :opprettet,
                         :forrige_vedtak_id,
                         :meldekort_id
@@ -46,7 +44,6 @@ internal class UtbetalingsvedtakPostgresRepo(
                     mapOf(
                         "id" to vedtak.id.toString(),
                         "sak_id" to vedtak.sakId.toString(),
-                        "rammevedtak_id" to vedtak.rammevedtakId.toString(),
                         "opprettet" to vedtak.opprettet,
                         "forrige_vedtak_id" to vedtak.forrigeUtbetalingsvedtakId?.toString(),
                         "meldekort_id" to vedtak.meldekortId.toString(),
@@ -176,7 +173,6 @@ internal class UtbetalingsvedtakPostgresRepo(
                 sakId = SakId.fromString(string("sak_id")),
                 saksnummer = Saksnummer(string("saksnummer")),
                 fnr = Fnr.fromString(string("fnr")),
-                rammevedtakId = VedtakId.fromString(string("rammevedtak_id")),
                 forrigeUtbetalingsvedtakId = stringOrNull("forrige_vedtak_id")?.let { VedtakId.fromString(it) },
                 meldekortbehandling =
                 MeldekortBehandlingPostgresRepo

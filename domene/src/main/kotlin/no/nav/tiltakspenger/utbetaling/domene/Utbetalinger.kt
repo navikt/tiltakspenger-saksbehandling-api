@@ -17,10 +17,6 @@ data class Utbetalinger(
                 verdi.map { it.sakId }
                     .distinct().size == 1,
             ) { "Alle utbetalingsvedtakene må være for samme sak. ${verdi.map { it.id to it.sakId }}" }
-            require(
-                verdi.map { it.rammevedtakId }
-                    .distinct().size == 1,
-            ) { "Alle utbetalingsvedtakene må være for samme rammevedtak. ${verdi.map { it.id to it.rammevedtakId }}" }
             verdi.mapNotNull { it.journalpostId }.let { journalpostIds ->
                 require(journalpostIds.size == journalpostIds.distinct().size) { "Alle utbetalingsvedtakene må ha unik journalpostId. ${verdi.map { it.id to it.journalpostId }}" }
             }

@@ -27,7 +27,6 @@ class MeldekortBehandlingRepoImplTest {
             val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
             val meldekort = ObjectMother.meldekortBehandlet(
                 sakId = sak.id,
-                rammevedtakId = vedtak.id,
                 fnr = sak.fnr,
                 saksnummer = sak.saksnummer,
                 antallDagerForMeldeperiode = vedtak.antallDagerPerMeldeperiode,

@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -38,7 +37,6 @@ class MeldekortBehandlingPostgresRepo(
                         meldeperiode_id,
                         meldeperiode_hendelse_id,
                         sak_id,
-                        rammevedtak_id,
                         opprettet,
                         fra_og_med,
                         til_og_med,
@@ -55,7 +53,6 @@ class MeldekortBehandlingPostgresRepo(
                         :meldeperiode_id,
                         :meldeperiode_hendelse_id,
                         :sak_id,
-                        :rammevedtak_id,
                         :opprettet,
                         :fra_og_med,
                         :til_og_med,
@@ -73,7 +70,6 @@ class MeldekortBehandlingPostgresRepo(
                     "meldeperiode_id" to meldekortBehandling.meldeperiodeKjedeId.toString(),
                     "meldeperiode_hendelse_id" to meldekortBehandling.meldeperiode.id.toString(),
                     "sak_id" to meldekortBehandling.sakId.toString(),
-                    "rammevedtak_id" to meldekortBehandling.rammevedtakId.toString(),
                     "opprettet" to meldekortBehandling.opprettet,
                     "fra_og_med" to meldekortBehandling.fraOgMed,
                     "til_og_med" to meldekortBehandling.periode.tilOgMed,
@@ -146,8 +142,6 @@ class MeldekortBehandlingPostgresRepo(
                       s.saksnummer
                     from meldekortbehandling m
                     join sak s on s.id = m.sak_id
-                    join rammevedtak r on r.id = m.rammevedtak_id
-                    join behandling b on b.id = r.behandling_id
                     where m.id = :id
                     """,
                     "id" to meldekortId.toString(),
@@ -168,8 +162,6 @@ class MeldekortBehandlingPostgresRepo(
                       s.saksnummer
                     from meldekortbehandling m
                     join sak s on s.id = m.sak_id
-                    join rammevedtak r on r.id = m.rammevedtak_id
-                    join behandling b on b.id = r.behandling_id
                     where s.id = :sakId
                     order by m.fra_og_med
                     """,
@@ -187,7 +179,6 @@ class MeldekortBehandlingPostgresRepo(
             val saksnummer = Saksnummer(row.string("saksnummer"))
             val navkontorEnhetsnummer = row.string("navkontor")
             val navkontorNavn = row.stringOrNull("navkontor_navn")
-            val rammevedtakId = VedtakId.fromString(row.string("rammevedtak_id"))
             val fnr = Fnr.fromString(row.string("fnr"))
             val maksDagerMedTiltakspengerForPeriode = 14
             val opprettet = row.localDateTime("opprettet")
@@ -219,7 +210,6 @@ class MeldekortBehandlingPostgresRepo(
                         sakId = sakId,
                         saksnummer = saksnummer,
                         fnr = fnr,
-                        rammevedtakId = rammevedtakId,
                         opprettet = opprettet,
                         beregning = meldeperiodeBeregning,
                         saksbehandler = saksbehandler,
@@ -246,7 +236,6 @@ class MeldekortBehandlingPostgresRepo(
                         sakId = sakId,
                         saksnummer = saksnummer,
                         fnr = fnr,
-                        rammevedtakId = rammevedtakId,
                         opprettet = opprettet,
                         beregning = meldeperiodeBeregning,
                         tiltakstype = meldeperiodeBeregning.tiltakstype,
@@ -257,8 +246,6 @@ class MeldekortBehandlingPostgresRepo(
                         saksbehandler = saksbehandler,
                     )
                 }
-
-                else -> throw IllegalStateException("Ukjent meldekortstatus $status for meldekortbehandling $id")
             }
         }
     }

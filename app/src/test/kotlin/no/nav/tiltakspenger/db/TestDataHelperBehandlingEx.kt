@@ -400,7 +400,6 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
     val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
     val behandletMeldekort = ObjectMother.meldekortBehandlet(
         sakId = sak.id,
-        rammevedtakId = vedtak.id,
         fnr = sak.fnr,
         saksnummer = sak.saksnummer,
         antallDagerForMeldeperiode = vedtak.antallDagerPerMeldeperiode,

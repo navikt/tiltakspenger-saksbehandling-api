@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.overlappendePerioder
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -29,17 +28,11 @@ sealed interface MeldekortBehandling {
     val sakId: SakId
     val saksnummer: Saksnummer
     val fnr: Fnr
-
-    // TODO: slette?
-    val rammevedtakId: VedtakId
-
     val opprettet: LocalDateTime
     val beregning: MeldeperiodeBeregning
-
     val meldeperiode: Meldeperiode
 
-    // I tilfeller saksbehandler har startet behandling uten brukers meldekort/rapportering
-    // Gjelder spesielt da bruker rapporterte via arena (men manuell kopier av saksbehandler)
+    /** Vil kunne være null dersom vi ikke har mottatt et meldekort via vår digitale flate. Bør på sikt kunne være en liste? */
     val brukersMeldekort: BrukersMeldekort?
 
     /** Et vedtak kan føre til at en meldeperiode ikke lenger gir rett til tiltakspenger; vil den da ha en tiltakstype? */
@@ -74,9 +67,7 @@ sealed interface MeldekortBehandling {
     /** Merk at statusen [IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den vil bli erstattet med AVBRUTT senere. */
     fun erÅpen(): Boolean = !erAvsluttet
 
-    /**
-     * Oppdaterer meldeperioden til [meldeperiode] dersom den har samme kjede id, den er nyere enn den eksisterende og dette ikke er avsluttet meldekortbehandling.
-     */
+    /** Oppdaterer meldeperioden til [meldeperiode] dersom den har samme kjede id, den er nyere enn den eksisterende og dette ikke er avsluttet meldekortbehandling. */
     fun oppdaterMeldeperiode(meldeperiode: Meldeperiode): MeldekortBehandling? {
         require(meldeperiode.meldeperiodeKjedeId == meldeperiodeKjedeId) {
             "MeldekortBehandling: Kan ikke oppdatere meldeperiode med annen kjede id. ${meldeperiode.meldeperiodeKjedeId} != $meldeperiodeKjedeId"
@@ -110,7 +101,6 @@ sealed interface MeldekortBehandling {
         override val sakId: SakId,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val rammevedtakId: VedtakId,
         override val opprettet: LocalDateTime,
         override val beregning: MeldeperiodeBeregning.UtfyltMeldeperiode,
         override val tiltakstype: TiltakstypeSomGirRett,
@@ -188,7 +178,6 @@ sealed interface MeldekortBehandling {
                 sakId = this.sakId,
                 saksnummer = this.saksnummer,
                 fnr = this.fnr,
-                rammevedtakId = this.rammevedtakId,
                 opprettet = this.opprettet,
                 beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
                     meldeperiode = meldeperiode,
@@ -219,7 +208,6 @@ sealed interface MeldekortBehandling {
         override val sakId: SakId,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val rammevedtakId: VedtakId,
         override val opprettet: LocalDateTime,
         override val tiltakstype: TiltakstypeSomGirRett,
         override val beregning: MeldeperiodeBeregning.IkkeUtfyltMeldeperiode,
@@ -259,7 +247,6 @@ sealed interface MeldekortBehandling {
                 sakId = this.sakId,
                 saksnummer = this.saksnummer,
                 fnr = this.fnr,
-                rammevedtakId = this.rammevedtakId,
                 opprettet = this.opprettet,
                 beregning = utfyltMeldeperiode,
                 tiltakstype = this.tiltakstype,
@@ -340,7 +327,6 @@ fun Sak.opprettMeldekortBehandling(
         id = meldekortId,
         sakId = this.id,
         saksnummer = this.saksnummer,
-        rammevedtakId = vedtak.id,
         fnr = this.fnr,
         opprettet = nå(),
         navkontor = navkontor,

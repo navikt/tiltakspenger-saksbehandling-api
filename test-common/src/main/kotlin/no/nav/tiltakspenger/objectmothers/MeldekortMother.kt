@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -39,13 +38,12 @@ import java.time.LocalDateTime
 import kotlin.math.ceil
 
 interface MeldekortMother {
-
+    @Suppress("unused")
     fun meldekortUnderBehandling(
         id: MeldekortId = MeldekortId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         fnr: Fnr = Fnr.random(),
-        rammevedtakId: VedtakId = VedtakId.random(),
         periode: Periode,
         meldekortperiode: MeldeperiodeBeregning.IkkeUtfyltMeldeperiode = ikkeUtfyltMeldekortperiode(
             meldekortId = id,
@@ -74,7 +72,6 @@ interface MeldekortMother {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            rammevedtakId = rammevedtakId,
             opprettet = opprettet,
             beregning = meldekortperiode,
             tiltakstype = tiltakstype,
@@ -91,7 +88,6 @@ interface MeldekortMother {
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         fnr: Fnr = Fnr.random(),
-        rammevedtakId: VedtakId = VedtakId.random(),
         periode: Periode,
         meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
         opprettet: LocalDateTime = nå(),
@@ -126,7 +122,6 @@ interface MeldekortMother {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            rammevedtakId = rammevedtakId,
             opprettet = opprettet,
             beregning = meldekortperiodeBeregning,
             saksbehandler = saksbehandler,
@@ -240,7 +235,6 @@ interface MeldekortMother {
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         meldeperioder: NonEmptyList<NonEmptyList<Dager.Dag>>,
-        rammevedtakId: VedtakId = VedtakId.random(),
         utfallsperioder: Periodisering<Utfallsperiode> = Periodisering(
             initiellVerdi = Utfallsperiode.RETT_TIL_TILTAKSPENGER,
             totalePeriode = vurderingsperiode,
@@ -262,7 +256,6 @@ interface MeldekortMother {
                 meldekortId = kommandoer.first().meldekortId,
                 sakId = sakId,
                 fnr = fnr,
-                rammevedtakId = rammevedtakId,
                 kommando = kommandoer.first(),
                 meldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommandoer.first().periode),
             ).first,
@@ -277,7 +270,6 @@ interface MeldekortMother {
         sakId: SakId,
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         fnr: Fnr = Fnr.random(),
-        rammevedtakId: VedtakId,
         opprettet: LocalDateTime = nå(),
         kommando: SendMeldekortTilBeslutningKommando,
         meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
@@ -300,7 +292,6 @@ interface MeldekortMother {
                     sakId = sakId,
                     saksnummer = saksnummer,
                     fnr = fnr,
-                    rammevedtakId = rammevedtakId,
                     opprettet = opprettet,
                     tiltakstype = tiltakstype,
                     navkontor = navkontor,
@@ -331,7 +322,6 @@ interface MeldekortMother {
     ): MeldekortBehandlinger {
         val meldekortId = kommando.meldekortId
         val sakId = kommando.sakId
-        val rammevedtakId = VedtakId.random()
         val tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
@@ -349,7 +339,6 @@ interface MeldekortMother {
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                rammevedtakId = rammevedtakId,
                 opprettet = opprettet,
                 tiltakstype = tiltakstype,
                 navkontor = navkontor,
@@ -407,9 +396,8 @@ interface MeldekortMother {
         sendtTilMeldekortApi = null,
     )
 
-    /**
-     * @param meldeperiode Hvis denne sendes inn, bør [sakId] og [mottatt] også sendes inn.
-     */
+    /** @param meldeperiode Hvis denne sendes inn, bør [sakId] og [mottatt] også sendes inn. */
+    @Suppress("unused")
     fun brukersMeldekort(
         id: MeldekortId = MeldekortId.random(),
         mottatt: LocalDateTime = LocalDateTime.now(),
