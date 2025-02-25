@@ -5,6 +5,7 @@ import kotlinx.coroutines.future.await
 import mu.KotlinLogging
 import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
@@ -40,12 +41,6 @@ class OppgaveHttpClient(
         journalpostId: JournalpostId,
         oppgavebehov: Oppgavebehov,
     ): OppgaveId {
-        val callId = UUID.randomUUID()
-        val oppgaveResponse = finnOppgave(journalpostId, callId)
-        if (oppgaveResponse.antallTreffTotalt > 0 && oppgaveResponse.oppgaver.isNotEmpty()) {
-            logger.warn { "Oppgave for journalpostId: $journalpostId finnes fra før, callId: $callId" }
-            return OppgaveId(oppgaveResponse.oppgaver.first().id.toString())
-        }
         val opprettOppgaveRequest = when (oppgavebehov) {
             Oppgavebehov.NY_SOKNAD -> {
                 OpprettOppgaveRequest.opprettOppgaveRequestForSoknad(
@@ -65,6 +60,13 @@ class OppgaveHttpClient(
                 logger.error { "Ukjent oppgavebehov for oppgave med journalpost: ${oppgavebehov.name}" }
                 throw IllegalArgumentException("Ukjent oppgavebehov for oppgave med journalpost: ${oppgavebehov.name}")
             }
+        }
+
+        val callId = UUID.randomUUID()
+        val oppgaveResponse = finnOppgave(journalpostId, opprettOppgaveRequest.oppgavetype, callId)
+        if (oppgaveResponse.antallTreffTotalt > 0 && oppgaveResponse.oppgaver.isNotEmpty()) {
+            logger.warn { "Oppgave for journalpostId: $journalpostId finnes fra før, callId: $callId" }
+            return OppgaveId(oppgaveResponse.oppgaver.first().id.toString())
         }
         return opprettOppgave(opprettOppgaveRequest, callId)
     }
@@ -110,6 +112,7 @@ class OppgaveHttpClient(
         val status = httpResponse.statusCode()
         if (status != 201) {
             logger.error { "Kunne ikke opprette oppgave, statuskode $status. CallId: $callId ${opprettOppgaveRequest.journalpostId?.let { ", journalpostId: $it" }}" }
+            sikkerlogg.error { httpResponse.body() }
             error("Kunne ikke opprette oppgave, statuskode $status")
         }
         val jsonResponse = httpResponse.body()
@@ -120,13 +123,15 @@ class OppgaveHttpClient(
 
     private suspend fun finnOppgave(
         journalpostId: JournalpostId,
+        oppgaveType: String,
         callId: UUID,
     ): FinnOppgaveResponse {
-        val request = createGetRequest(createGetOppgaveUri(journalpostId), getToken().token, callId)
+        val request = createGetRequest(createGetOppgaveUri(journalpostId, oppgaveType), getToken().token, callId)
         val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
         val status = httpResponse.statusCode()
         if (status != 200) {
             logger.error { "Noe gikk galt ved søk etter oppgave, statuskode $status. JournalpostId: $journalpostId, callId: $callId" }
+            sikkerlogg.error { httpResponse.body() }
             error("Noe gikk galt ved søk etter oppgave, statuskode $status")
         }
         val jsonResponse = httpResponse.body()
@@ -142,6 +147,7 @@ class OppgaveHttpClient(
         val status = httpResponse.statusCode()
         if (status != 200) {
             logger.error { "Noe gikk galt ved henting av oppgave med id $oppgaveId, statuskode $status, callId: $callId" }
+            sikkerlogg.error { httpResponse.body() }
             error("Noe gikk galt ved henting av oppgave, statuskode $status")
         }
         val jsonResponse = httpResponse.body()
@@ -162,6 +168,7 @@ class OppgaveHttpClient(
         val status = httpResponse.statusCode()
         if (status != 200) {
             logger.error { "Noe gikk galt ved ferdigstilling av oppgave med id ${oppgave.id}, statuskode $status, callId: $callId" }
+            sikkerlogg.error { httpResponse.body() }
             error("Noe gikk galt ved ferdigstilling av oppgave, statuskode $status")
         }
     }
@@ -218,7 +225,7 @@ class OppgaveHttpClient(
             .build()
     }
 
-    private fun createGetOppgaveUri(journalpostId: JournalpostId): URI {
-        return URI.create("$uri?tema=$TEMA_TILTAKSPENGER&oppgavetype=$OPPGAVETYPE_BEHANDLE_SAK&journalpostId=$journalpostId&statuskategori=AAPEN")
+    private fun createGetOppgaveUri(journalpostId: JournalpostId, oppgaveType: String): URI {
+        return URI.create("$uri?tema=$TEMA_TILTAKSPENGER&oppgavetype=$oppgaveType&journalpostId=$journalpostId&statuskategori=AAPEN")
     }
 }

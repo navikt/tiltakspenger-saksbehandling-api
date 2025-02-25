@@ -45,7 +45,7 @@ class BrukersMeldekortFakeRepo(val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) :
         return data.get().values.find { it.meldeperiode.id == meldeperiodeId }
     }
 
-    override fun hentMeldekortSomIKkeSkalGodkjennesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
+    override fun hentMeldekortSomIkkeSkalGodkjennesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
         return data.get().values.filter { it.oppgaveId == null }
     }
 }
