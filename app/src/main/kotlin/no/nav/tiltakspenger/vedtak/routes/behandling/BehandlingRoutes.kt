@@ -4,6 +4,7 @@ import io.ktor.server.routing.Route
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.IverksettBehandlingService
+import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterBarnetilleggService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterSaksopplysningerService
@@ -34,6 +35,7 @@ fun Route.behandlingRoutes(
     sendBehandlingTilBeslutningService: SendBehandlingTilBeslutningService,
     forhåndsvisVedtaksbrevService: ForhåndsvisVedtaksbrevService,
     startRevurderingService: StartRevurderingService,
+    oppdaterBarnetilleggService: OppdaterBarnetilleggService,
 ) {
     hentPersonRoute(tokenService, sakService, auditService)
     hentBehandlingRoute(tokenService, behandlingService, auditService)
@@ -46,4 +48,5 @@ fun Route.behandlingRoutes(
     forhåndsvisVedtaksbrevRoute(tokenService, auditService, forhåndsvisVedtaksbrevService)
     startRevurderingRoute(tokenService, startRevurderingService, auditService)
     sendRevurderingTilBeslutningRoute(sendBehandlingTilBeslutningService, auditService, tokenService)
+    oppdaterBarnetilleggRoute(tokenService, auditService, oppdaterBarnetilleggService)
 }

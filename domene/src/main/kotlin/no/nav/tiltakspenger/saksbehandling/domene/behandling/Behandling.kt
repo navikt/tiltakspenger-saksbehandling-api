@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.domene.behandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -59,6 +60,7 @@ data class Behandling(
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     val saksopplysningsperiode: Periode?,
+    val barnetillegg: Barnetillegg?,
 ) {
     val erUnderBehandling: Boolean = status == UNDER_BEHANDLING
 
@@ -143,6 +145,7 @@ data class Behandling(
                 behandlingstype = FØRSTEGANGSBEHANDLING,
                 oppgaveId = søknad.oppgaveId,
                 saksopplysningsperiode = saksopplysningsperiode,
+                barnetillegg = null,
             ).right()
         }
 
@@ -179,6 +182,7 @@ data class Behandling(
                 oppgaveId = null,
                 // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for førstegangsbehandling.
                 saksopplysningsperiode = saksopplysningsperiode,
+                barnetillegg = null,
             )
         }
     }
@@ -340,6 +344,19 @@ data class Behandling(
             throw IllegalArgumentException("Kunne ikke oppdatere begrunnelse/vilkårsvurdering. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
         }
         return this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering)
+    }
+
+    fun oppdaterBarnetillegg(kommando: OppdaterBarnetilleggKommando): Behandling {
+        if (!kommando.saksbehandler.erSaksbehandler()) {
+            throw IllegalArgumentException("Kunne ikke oppdatere barnetillegg. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
+        }
+        if (this.saksbehandler != kommando.saksbehandler.navIdent) {
+            throw IllegalArgumentException("Kunne ikke oppdatere barnetillegg. Saksbehandler er ikke satt på behandlingen. sakId=$sakId, behandlingId=$id")
+        }
+        if (!this.erUnderBehandling) {
+            throw IllegalArgumentException("Kunne ikke oppdatere barnetillegg. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
+        }
+        return this.copy(barnetillegg = barnetillegg)
     }
 
     fun oppdaterFritekstTilVedtaksbrev(

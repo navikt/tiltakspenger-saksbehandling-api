@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.vedtak.routes.behandling.vilkår.tiltakdeltagelse
+package no.nav.tiltakspenger.vedtak.routes.behandling.tiltakdeltagelse
 
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 

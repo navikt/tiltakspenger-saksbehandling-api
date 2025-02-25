@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.ports.TiltakGateway
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingServiceImpl
 import no.nav.tiltakspenger.saksbehandling.service.behandling.IverksettBehandlingService
+import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterBarnetilleggService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterSaksopplysningerService
@@ -122,6 +123,12 @@ open class FørstegangsbehandlingContext(
             behandlingRepo = behandlingRepo,
             tilgangsstyringService = tilgangsstyringService,
             saksopplysningerService = oppdaterSaksopplysningerService,
+        )
+    }
+    val oppdaterBarnetilleggService: OppdaterBarnetilleggService by lazy {
+        OppdaterBarnetilleggService(
+            sakService = sakService,
+            behandlingRepo = behandlingRepo,
         )
     }
 

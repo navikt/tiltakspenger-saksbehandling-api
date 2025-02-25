@@ -27,6 +27,7 @@ fun Route.routes(applicationContext: ApplicationContext) {
         sendBehandlingTilBeslutningService = applicationContext.behandlingContext.sendBehandlingTilBeslutningService,
         forhåndsvisVedtaksbrevService = applicationContext.behandlingContext.forhåndsvisVedtaksbrevService,
         startRevurderingService = applicationContext.behandlingContext.startRevurderingService,
+        oppdaterBarnetilleggService = applicationContext.behandlingContext.oppdaterBarnetilleggService,
     )
     behandlingBenkRoutes(
         tokenService = applicationContext.tokenService,
