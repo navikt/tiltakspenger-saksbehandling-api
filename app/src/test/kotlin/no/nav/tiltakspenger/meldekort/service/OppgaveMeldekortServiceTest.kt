@@ -36,7 +36,7 @@ class OppgaveMeldekortServiceTest {
             every { meldekort.journalpostId } returns journalpostId
             every { meldekort.sakId } returns SakId.random()
 
-            coEvery { brukersMeldekortRepo.hentMeldekortSomIKkeSkalGodkjennesAutomatisk() } returns listOf(meldekort)
+            coEvery { brukersMeldekortRepo.hentMeldekortSomIkkeSkalGodkjennesAutomatisk() } returns listOf(meldekort)
             coEvery { sakRepo.hentForSakId(any()) } returns mockk(relaxed = true)
 
             service.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk()
@@ -56,7 +56,7 @@ class OppgaveMeldekortServiceTest {
         runTest {
             val meldekort = mockk<BrukersMeldekort>()
             every { meldekort.journalpostId } returns null
-            coEvery { brukersMeldekortRepo.hentMeldekortSomIKkeSkalGodkjennesAutomatisk() } returns listOf(meldekort)
+            coEvery { brukersMeldekortRepo.hentMeldekortSomIkkeSkalGodkjennesAutomatisk() } returns listOf(meldekort)
 
             service.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk()
 
@@ -70,7 +70,7 @@ class OppgaveMeldekortServiceTest {
             val meldekort = mockk<BrukersMeldekort>()
             every { meldekort.journalpostId } returns JournalpostIdGenerator().neste()
             every { meldekort.sakId } returns SakId.random()
-            coEvery { brukersMeldekortRepo.hentMeldekortSomIKkeSkalGodkjennesAutomatisk() } returns listOf(meldekort)
+            coEvery { brukersMeldekortRepo.hentMeldekortSomIkkeSkalGodkjennesAutomatisk() } returns listOf(meldekort)
             coEvery { sakRepo.hentForSakId(any()) } returns null
 
             service.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk()
@@ -83,7 +83,7 @@ class OppgaveMeldekortServiceTest {
     fun `skal opprette oppgaver for gyldige meldekort`() {
         runTest {
             val meldekort = (1..20).map { mockk<BrukersMeldekort>(relaxed = true) }
-            coEvery { brukersMeldekortRepo.hentMeldekortSomIKkeSkalGodkjennesAutomatisk() } returns meldekort
+            coEvery { brukersMeldekortRepo.hentMeldekortSomIkkeSkalGodkjennesAutomatisk() } returns meldekort
             coEvery { sakRepo.hentForSakId(any()) } returns mockk(relaxed = true)
 
             service.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk()

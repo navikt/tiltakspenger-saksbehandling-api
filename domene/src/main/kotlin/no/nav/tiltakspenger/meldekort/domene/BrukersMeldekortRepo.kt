@@ -26,7 +26,7 @@ interface BrukersMeldekortRepo {
         sessionContext: SessionContext? = null,
     ): BrukersMeldekort?
 
-    fun hentMeldekortSomIKkeSkalGodkjennesAutomatisk(
+    fun hentMeldekortSomIkkeSkalGodkjennesAutomatisk(
         sessionContext: SessionContext? = null,
     ): List<BrukersMeldekort>
 }

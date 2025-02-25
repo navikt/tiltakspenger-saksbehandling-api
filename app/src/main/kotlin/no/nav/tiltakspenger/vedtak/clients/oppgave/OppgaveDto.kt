@@ -6,9 +6,6 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 
 const val TEMA_TILTAKSPENGER: String = "IND"
-const val OPPGAVETYPE_BEHANDLE_SAK: String = "BEH_SAK"
-const val OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE: String = "VUR_KONS_YTE"
-const val OPPGAVETYPE_VURDER_HENVENDELSE: String = "VUR_HENV"
 
 const val BEHANDLES_AV_APPLIKASJON = "TILTAKSPENGER"
 
@@ -33,7 +30,7 @@ data class OpprettOppgaveRequest(
             journalpostId = journalpostId.toString(),
             beskrivelse = "Ny søknad om tiltakspenger. Behandles i ny løsning.",
             behandlesAvApplikasjon = BEHANDLES_AV_APPLIKASJON,
-            oppgavetype = OPPGAVETYPE_BEHANDLE_SAK,
+            oppgavetype = OppgaveType.OPPGAVETYPE_BEHANDLE_SAK.value,
         )
 
         fun opprettOppgaveRequestForEndretTiltaksdeltaker(
@@ -43,7 +40,7 @@ data class OpprettOppgaveRequest(
             journalpostId = null,
             beskrivelse = "Det har skjedd en endring i tiltaksdeltakelsen som kan påvirke tiltakspengeytelsen.",
             behandlesAvApplikasjon = null,
-            oppgavetype = OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE,
+            oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE.value,
         )
 
         fun opprettOppgaveRequestForMeldekort(
@@ -54,7 +51,7 @@ data class OpprettOppgaveRequest(
             journalpostId = journalpostId.toString(),
             beskrivelse = "Nytt meldekort for tiltakspenger. Behandles i ny løsning.",
             behandlesAvApplikasjon = BEHANDLES_AV_APPLIKASJON,
-            oppgavetype = OPPGAVETYPE_VURDER_HENVENDELSE,
+            oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_HENVENDELSE.value,
         )
     }
 }
@@ -106,3 +103,9 @@ data class FerdigstillOppgaveRequest(
     val versjon: Int,
     val status: OppgaveStatus,
 )
+
+enum class OppgaveType(val value: String) {
+    OPPGAVETYPE_BEHANDLE_SAK("BEH_SAK"),
+    OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE("VUR_KONS_YTE"),
+    OPPGAVETYPE_VURDER_HENVENDELSE("VURD_HENV"),
+}
