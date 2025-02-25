@@ -23,7 +23,7 @@ class BrukersMeldekortFakeRepo(val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) :
             meldeperiode = meldeperiode,
             mottatt = brukersMeldekort.mottatt,
             dager = brukersMeldekort.dager,
-            journalpostId = brukersMeldekort.journalpostId.toString(),
+            journalpostId = brukersMeldekort.journalpostId,
             oppgaveId = brukersMeldekort.oppgaveId,
         )
     }

@@ -7,7 +7,6 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.common.JournalpostIdGenerator
-import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekortRepo
@@ -32,7 +31,7 @@ class OppgaveMeldekortServiceTest {
     @Test
     fun `skal opprette oppgave for gyldig meldekort`() {
         runTest {
-            val journalpostId = JournalpostIdGenerator().neste().toString()
+            val journalpostId = JournalpostIdGenerator().neste()
             val meldekort = mockk<BrukersMeldekort>()
             every { meldekort.journalpostId } returns journalpostId
             every { meldekort.sakId } returns SakId.random()
@@ -45,7 +44,7 @@ class OppgaveMeldekortServiceTest {
             coVerify {
                 oppgaveGateway.opprettOppgave(
                     any(),
-                    JournalpostId(journalpostId),
+                    journalpostId,
                     Oppgavebehov.NYTT_MELDEKORT,
                 )
             }
@@ -69,7 +68,7 @@ class OppgaveMeldekortServiceTest {
     fun `ingen oppgave opprettes om det ikke finnes en tilknyttet sak`() {
         runTest {
             val meldekort = mockk<BrukersMeldekort>()
-            every { meldekort.journalpostId } returns JournalpostIdGenerator().neste().toString()
+            every { meldekort.journalpostId } returns JournalpostIdGenerator().neste()
             every { meldekort.sakId } returns SakId.random()
             coEvery { brukersMeldekortRepo.hentMeldekortSomIKkeSkalGodkjennesAutomatisk() } returns listOf(meldekort)
             coEvery { sakRepo.hentForSakId(any()) } returns null
