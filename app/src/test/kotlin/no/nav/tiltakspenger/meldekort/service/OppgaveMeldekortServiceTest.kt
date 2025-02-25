@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.meldekort.service
 
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import io.mockk.coJustRun
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -35,9 +36,21 @@ class OppgaveMeldekortServiceTest {
             val meldekort = mockk<BrukersMeldekort>()
             every { meldekort.journalpostId } returns journalpostId
             every { meldekort.sakId } returns SakId.random()
+            every {
+                meldekort.copy(
+                    id = any(),
+                    meldeperiode = any(),
+                    sakId = any(),
+                    mottatt = any(),
+                    dager = any(),
+                    journalpostId = any(),
+                    oppgaveId = any(),
+                )
+            } returns meldekort
 
             coEvery { brukersMeldekortRepo.hentMeldekortSomIkkeSkalGodkjennesAutomatisk() } returns listOf(meldekort)
             coEvery { sakRepo.hentForSakId(any()) } returns mockk(relaxed = true)
+            coJustRun { brukersMeldekortRepo.oppdater(any()) }
 
             service.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk()
 
@@ -57,6 +70,7 @@ class OppgaveMeldekortServiceTest {
             val meldekort = mockk<BrukersMeldekort>()
             every { meldekort.journalpostId } returns null
             coEvery { brukersMeldekortRepo.hentMeldekortSomIkkeSkalGodkjennesAutomatisk() } returns listOf(meldekort)
+            coJustRun { brukersMeldekortRepo.oppdater(any()) }
 
             service.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk()
 
@@ -85,6 +99,7 @@ class OppgaveMeldekortServiceTest {
             val meldekort = (1..20).map { mockk<BrukersMeldekort>(relaxed = true) }
             coEvery { brukersMeldekortRepo.hentMeldekortSomIkkeSkalGodkjennesAutomatisk() } returns meldekort
             coEvery { sakRepo.hentForSakId(any()) } returns mockk(relaxed = true)
+            coJustRun { brukersMeldekortRepo.oppdater(any()) }
 
             service.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk()
 

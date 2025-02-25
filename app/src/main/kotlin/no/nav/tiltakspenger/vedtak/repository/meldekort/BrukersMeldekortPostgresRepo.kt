@@ -53,7 +53,29 @@ class BrukersMeldekortPostgresRepo(
                     "mottatt" to brukersMeldekort.mottatt,
                     "dager" to brukersMeldekort.toDagerJson(),
                     "journalpost_id" to brukersMeldekort.journalpostId.toString(),
-                    "oppgave_id" to brukersMeldekort.oppgaveId,
+                    "oppgave_id" to brukersMeldekort.oppgaveId?.toString(),
+                ).asUpdate,
+            )
+        }
+    }
+
+    /**
+     * Oppdaterer et meldekort som allerede er lagret i databasen.
+     */
+    override fun oppdater(
+        brukersMeldekort: BrukersMeldekort,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                update meldekort_bruker 
+                set oppgave_id = :oppgave_id
+                where id = :id
+                """,
+                    "id" to brukersMeldekort.id.toString(),
+                    "oppgave_id" to brukersMeldekort.oppgaveId?.toString(),
                 ).asUpdate,
             )
         }
