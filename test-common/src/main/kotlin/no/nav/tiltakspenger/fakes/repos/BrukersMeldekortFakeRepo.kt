@@ -28,6 +28,10 @@ class BrukersMeldekortFakeRepo(val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) :
         )
     }
 
+    override fun oppdater(brukersMeldekort: BrukersMeldekort, sessionContext: SessionContext?) {
+        data.get()[brukersMeldekort.id] = brukersMeldekort
+    }
+
     override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): List<BrukersMeldekort> {
         return data.get().values.filter {
             it.sakId == sakId
