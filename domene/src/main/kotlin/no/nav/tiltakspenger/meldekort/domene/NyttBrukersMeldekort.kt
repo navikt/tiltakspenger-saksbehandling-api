@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.meldekort.domene
 
+import no.nav.tiltakspenger.felles.OppgaveId
+import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -21,4 +23,6 @@ data class NyttBrukersMeldekort(
     val meldeperiodeId: MeldeperiodeId,
     val sakId: SakId,
     val dager: List<BrukersMeldekortDag>,
+    val journalpostId: JournalpostId,
+    val oppgaveId: OppgaveId?,
 )

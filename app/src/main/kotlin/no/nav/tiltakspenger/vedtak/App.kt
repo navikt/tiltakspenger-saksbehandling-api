@@ -79,6 +79,7 @@ internal fun start(
             applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør()
             applicationContext.behandlingContext.distribuerVedtaksbrevService.distribuer()
             applicationContext.sendTilDatadelingService.send(Configuration.isNais())
+            applicationContext.meldekortContext.oppgaveMeldekortService.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk()
             if (Configuration.isNais()) {
                 applicationContext.endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
                 applicationContext.endretTiltaksdeltakerJobb.opprydning()

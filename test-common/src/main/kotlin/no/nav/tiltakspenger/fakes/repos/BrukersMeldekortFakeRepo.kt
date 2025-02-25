@@ -23,7 +23,13 @@ class BrukersMeldekortFakeRepo(val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) :
             meldeperiode = meldeperiode,
             mottatt = brukersMeldekort.mottatt,
             dager = brukersMeldekort.dager,
+            journalpostId = brukersMeldekort.journalpostId,
+            oppgaveId = brukersMeldekort.oppgaveId,
         )
+    }
+
+    override fun oppdater(brukersMeldekort: BrukersMeldekort, sessionContext: SessionContext?) {
+        data.get()[brukersMeldekort.id] = brukersMeldekort
     }
 
     override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): List<BrukersMeldekort> {
@@ -41,5 +47,9 @@ class BrukersMeldekortFakeRepo(val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) :
         sessionContext: SessionContext?,
     ): BrukersMeldekort? {
         return data.get().values.find { it.meldeperiode.id == meldeperiodeId }
+    }
+
+    override fun hentMeldekortSomIkkeSkalGodkjennesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
+        return data.get().values.filter { it.oppgaveId == null }
     }
 }

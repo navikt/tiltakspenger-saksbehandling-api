@@ -11,6 +11,11 @@ interface BrukersMeldekortRepo {
         sessionContext: SessionContext? = null,
     )
 
+    fun oppdater(
+        brukersMeldekort: BrukersMeldekort,
+        sessionContext: SessionContext? = null,
+    )
+
     fun hentForSakId(
         sakId: SakId,
         sessionContext: SessionContext? = null,
@@ -25,4 +30,8 @@ interface BrukersMeldekortRepo {
         meldeperiodeId: MeldeperiodeId,
         sessionContext: SessionContext? = null,
     ): BrukersMeldekort?
+
+    fun hentMeldekortSomIkkeSkalGodkjennesAutomatisk(
+        sessionContext: SessionContext? = null,
+    ): List<BrukersMeldekort>
 }

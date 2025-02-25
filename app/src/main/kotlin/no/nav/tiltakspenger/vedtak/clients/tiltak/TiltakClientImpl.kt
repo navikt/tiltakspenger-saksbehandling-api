@@ -18,18 +18,14 @@ import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.tiltak.TiltakTilSaksbehandlingDTO
-import no.nav.tiltakspenger.vedtak.clients.defaultHttpClient
+import no.nav.tiltakspenger.vedtak.clients.httpClientGeneric
 
 class TiltakClientImpl(
     val baseUrl: String,
     private val getToken: suspend () -> AccessToken,
     engine: HttpClientEngine? = null,
-    private val httpClient: HttpClient =
-        defaultHttpClient(
-            engine = engine,
-        ) {},
+    private val httpClient: HttpClient = httpClientGeneric(engine = engine),
 ) : TiltakClient {
-
     val log = KotlinLogging.logger {}
 
     companion object {

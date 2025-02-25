@@ -186,6 +186,8 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
             personService = personContext.personService,
             entraIdSystemtokenClient = entraIdSystemtokenClient,
             navkontorService = navkontorService,
+            oppgaveGateway = oppgaveGateway,
+            sakRepo = sakContext.sakRepo,
         ) {}
     }
     override val behandlingContext by lazy {

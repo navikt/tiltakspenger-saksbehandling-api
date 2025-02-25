@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.meldekort.domene
 
+import no.nav.tiltakspenger.felles.OppgaveId
+import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
@@ -23,6 +25,8 @@ data class BrukersMeldekort(
     val meldeperiode: Meldeperiode,
     val sakId: SakId,
     val dager: List<BrukersMeldekortDag>,
+    val journalpostId: JournalpostId?,
+    val oppgaveId: OppgaveId?,
 ) {
     val meldeperiodeKjedeId: MeldeperiodeKjedeId = meldeperiode.meldeperiodeKjedeId
     val meldeperiodeVersjon: HendelseVersjon = meldeperiode.versjon
@@ -32,6 +36,7 @@ data class BrukersMeldekort(
         val status: InnmeldtStatus,
         val dato: LocalDate,
     )
+
     init {
         dager.zipWithNext().forEach { (dag, nesteDag) ->
             require(dag.dato.isBefore(nesteDag.dato)) { "Dager må være sortert" }
