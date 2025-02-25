@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.vedtak.routes.behandling.tabehandling
 
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -29,12 +28,12 @@ interface TaBehandlingBuilder {
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/behandling/tabehandling")
+                path("/behandling/tabehandling/$behandlingId")
             },
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(
                 saksbehandler = saksbehandler,
             ),
-        ) { setBody("""{"id":"$behandlingId"}""") }.apply {
+        ).apply {
             val bodyAsText = this.bodyAsText()
             withClue(
                 "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
