@@ -11,6 +11,11 @@ interface BrukersMeldekortRepo {
         sessionContext: SessionContext? = null,
     )
 
+    fun oppdater(
+        brukersMeldekort: BrukersMeldekort,
+        sessionContext: SessionContext? = null,
+    )
+
     fun hentForSakId(
         sakId: SakId,
         sessionContext: SessionContext? = null,

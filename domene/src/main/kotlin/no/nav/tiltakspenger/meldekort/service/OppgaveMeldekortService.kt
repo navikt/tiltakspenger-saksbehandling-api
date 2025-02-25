@@ -26,7 +26,10 @@ class OppgaveMeldekortService(
                 ?: log.warn { "Fant ikke sak for sakId ${meldekort.sakId}" }.let { return@forEach }
 
             log.info { "Oppretter oppgave for meldekortId ${meldekort.id}" }
-            oppgaveGateway.opprettOppgave(sak.fnr, journalpostId, Oppgavebehov.NYTT_MELDEKORT)
+            val oppgaveId = oppgaveGateway.opprettOppgave(sak.fnr, journalpostId, Oppgavebehov.NYTT_MELDEKORT)
+
+            log.info { "Opprettet oppgave med id $oppgaveId for meldekort med id ${meldekort.id}" }
+            brukersMeldekortRepo.oppdater(meldekort.copy(oppgaveId = oppgaveId))
         }
     }
 }
