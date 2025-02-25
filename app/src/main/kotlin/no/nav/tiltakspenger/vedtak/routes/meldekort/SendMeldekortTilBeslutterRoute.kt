@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond400BadRequest
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond403Forbidden
+import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.withBody
 import no.nav.tiltakspenger.vedtak.routes.withMeldekortId
 import no.nav.tiltakspenger.vedtak.routes.withSakId
@@ -147,7 +148,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
                                     contextMessage = "Saksbehandler har fylt ut meldekortet og sendt til beslutter",
                                     correlationId = correlationId,
                                 )
-                                call.respond(message = {}, status = HttpStatusCode.OK)
+                                call.respond(message = it.toDTO(), status = HttpStatusCode.OK)
                             },
                         )
                     }
