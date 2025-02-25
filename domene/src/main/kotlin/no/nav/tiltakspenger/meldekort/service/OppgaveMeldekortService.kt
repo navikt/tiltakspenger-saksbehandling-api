@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.meldekort.service
 
 import mu.KotlinLogging
-import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.ports.Oppgavebehov
@@ -21,7 +20,7 @@ class OppgaveMeldekortService(
                 ?: log.warn { "Fant ikke journalpostId for meldekortId ${meldekort.id}" }.let { return@forEach }
             val sak = sakRepo.hentForSakId(meldekort.sakId)
                 ?: log.warn { "Fant ikke sak for sakId ${meldekort.sakId}" }.let { return@forEach }
-            oppgaveGateway.opprettOppgave(sak.fnr, JournalpostId(journalpostId), Oppgavebehov.NYTT_MELDEKORT)
+            oppgaveGateway.opprettOppgave(sak.fnr, journalpostId, Oppgavebehov.NYTT_MELDEKORT)
         }
     }
 }

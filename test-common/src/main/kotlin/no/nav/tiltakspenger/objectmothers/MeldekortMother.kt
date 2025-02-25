@@ -423,7 +423,7 @@ interface MeldekortMother {
             meldeperiode = meldeperiode,
             sakId = sakId,
             dager = dager,
-            journalpostId = JournalpostIdGenerator().neste().toString(),
+            journalpostId = JournalpostIdGenerator().neste(),
             oppgaveId = null,
         )
     }

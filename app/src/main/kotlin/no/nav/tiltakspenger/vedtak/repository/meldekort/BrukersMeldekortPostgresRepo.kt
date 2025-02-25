@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.vedtak.repository.meldekort
 
 import kotliquery.Row
 import kotliquery.Session
+import no.nav.tiltakspenger.felles.OppgaveId
+import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -72,7 +74,10 @@ class BrukersMeldekortPostgresRepo(
         }
     }
 
-    override fun hentForMeldeperiodeId(meldeperiodeId: MeldeperiodeId, sessionContext: SessionContext?): BrukersMeldekort? {
+    override fun hentForMeldeperiodeId(
+        meldeperiodeId: MeldeperiodeId,
+        sessionContext: SessionContext?,
+    ): BrukersMeldekort? {
         return sessionFactory.withSession(sessionContext) { session ->
             hentForMeldeperiodeId(meldeperiodeId, session)
         }
@@ -155,8 +160,8 @@ class BrukersMeldekortPostgresRepo(
                 )!!,
                 sakId = SakId.fromString(row.string("sak_id")),
                 dager = row.string("dager").toMeldekortDager(),
-                journalpostId = row.string("journalpost_id"),
-                oppgaveId = row.stringOrNull("oppgave_id"),
+                journalpostId = JournalpostId(row.string("journalpost_id")),
+                oppgaveId = row.stringOrNull("oppgave_id")?.let { OppgaveId(it) },
             )
         }
     }
