@@ -90,6 +90,7 @@ fun Søknadstiltak.toTiltak(
             "GRUPPEAMO" -> TiltakstypeSomGirRett.GRUPPE_AMO
             "INDOPPFAG" -> TiltakstypeSomGirRett.OPPFØLGING
             "ARBTREN" -> TiltakstypeSomGirRett.ARBEIDSTRENING
+            "GRUPPE_AMO" -> TiltakstypeSomGirRett.GRUPPE_AMO
             else -> throw IllegalArgumentException("Ukjent typekode ${this.typeKode}")
         },
         typeNavn = this.typeNavn,

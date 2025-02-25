@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger
 
+import no.nav.tiltakspenger.clients.person.FakeNavIdentClient
 import no.nav.tiltakspenger.common.DistribusjonIdGenerator
 import no.nav.tiltakspenger.common.JournalpostIdGenerator
 import no.nav.tiltakspenger.fakes.clients.DokdistFakeGateway
@@ -20,18 +21,22 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringServiceImpl
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.objectmothers.toSøknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.domene.sak.SaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.ports.GenererStansvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.ports.VeilarboppfolgingGateway
 import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.Profile
 import no.nav.tiltakspenger.vedtak.clients.oppgave.OppgaveHttpClient
+import no.nav.tiltakspenger.vedtak.clients.pdfgen.PdfgenHttpClient
 import no.nav.tiltakspenger.vedtak.clients.veilarboppfolging.VeilarboppfolgingHttpClient
 import no.nav.tiltakspenger.vedtak.context.ApplicationContext
 import no.nav.tiltakspenger.vedtak.context.DokumentContext
@@ -49,15 +54,29 @@ import no.nav.tiltakspenger.vedtak.repository.sak.SakPostgresRepo
  * Dette vil tilsvare en tom intern database og tomme fakes for eksterne tjenester.
  * Bruk service-funksjoner og hjelpemetoder for å legge til data.
  */
-class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
+class LocalApplicationContext(
+    usePdfGen: Boolean,
+) : ApplicationContext(gitHash = "fake-git-hash") {
 
     val journalpostIdGenerator = JournalpostIdGenerator()
     val distribusjonIdGenerator = DistribusjonIdGenerator()
+    private val realPdfGen = if (usePdfGen) {
+        PdfgenHttpClient(
+            baseUrl = "http://host.docker.internal:8081",
+        )
+    } else {
+        null
+    }
 
     private val utbetalingGatewayFake = UtbetalingFakeGateway()
     private val personGatewayFake = PersonFakeGateway()
-    private val genererFakeUtbetalingsvedtakGateway = GenererFakeUtbetalingsvedtakGateway()
-    private val genererFakeVedtaksbrevGateway = GenererFakeVedtaksbrevGateway()
+    private val genererFakeUtbetalingsvedtakGateway: GenererUtbetalingsvedtakGateway =
+        if (usePdfGen) realPdfGen!! else GenererFakeUtbetalingsvedtakGateway()
+
+    private val genererInnvilgelsevedtaksbrevGateway: GenererInnvilgelsesvedtaksbrevGateway =
+        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevGateway()
+    private val genererStansvedtaksbrevGateway: GenererStansvedtaksbrevGateway =
+        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevGateway()
     private val journalførFakeMeldekortGateway = JournalførFakeMeldekortGateway(journalpostIdGenerator)
     private val journalførFakeVedtaksbrevGateway = JournalførFakeVedtaksbrevGateway(journalpostIdGenerator)
     private val dokdistFakeGateway = DokdistFakeGateway(distribusjonIdGenerator)
@@ -146,6 +165,8 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
                 skjermingClient = fellesFakeSkjermingsklient,
             )
             override val poaoTilgangGateway = poaoTilgangskontrollFake
+
+            override val navIdentClient = if (usePdfGen) FakeNavIdentClient() else super.navIdentClient
         }
 
     override val dokumentContext by lazy {
@@ -153,7 +174,7 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
             override val journalførMeldekortGateway = journalførFakeMeldekortGateway
             override val journalførVedtaksbrevGateway = journalførFakeVedtaksbrevGateway
             override val genererUtbetalingsvedtakGateway = genererFakeUtbetalingsvedtakGateway
-            override val genererInnvilgelsesvedtaksbrevGateway = genererFakeVedtaksbrevGateway
+            override val genererInnvilgelsesvedtaksbrevGateway = genererInnvilgelsevedtaksbrevGateway
         }
     }
 
@@ -197,8 +218,8 @@ class LocalApplicationContext : ApplicationContext(gitHash = "fake-git-hash") {
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             gitHash = "fake-git-hash",
             journalførVedtaksbrevGateway = journalførFakeVedtaksbrevGateway,
-            genererVedtaksbrevGateway = genererFakeVedtaksbrevGateway,
-            genererStansvedtaksbrevGateway = genererFakeVedtaksbrevGateway,
+            genererVedtaksbrevGateway = genererInnvilgelsevedtaksbrevGateway,
+            genererStansvedtaksbrevGateway = genererStansvedtaksbrevGateway,
             personService = personContext.personService,
             tilgangsstyringService = personContext.tilgangsstyringService,
             dokdistGateway = dokdistFakeGateway,

@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.service.behandling.brev.ForhåndsvisVedtaksbrevKommando
 import no.nav.tiltakspenger.saksbehandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
@@ -23,6 +24,7 @@ import no.nav.tiltakspenger.vedtak.routes.withSakId
 
 private data class ForhåndsvisBehandlingBody(
     val fritekst: String,
+    val virkningsperiode: PeriodeDTO?,
 ) {
     fun toDomain(
         sakId: SakId,
@@ -35,6 +37,7 @@ private data class ForhåndsvisBehandlingBody(
         behandlingId = behandlingId,
         correlationId = correlationId,
         saksbehandler = saksbehandler,
+        virkingsperiode = virkningsperiode?.toDomain(),
     )
 }
 
@@ -46,6 +49,7 @@ fun Route.forhåndsvisVedtaksbrevRoute(
     val logger = KotlinLogging.logger {}
     post("/sak/{sakId}/behandling/{behandlingId}/forhandsvis") {
         logger.debug("Mottatt post-request på '/sak/{sakId}/behandling/{behandlingId}/forhandsvis' - forhåndsviser vedtaksbrev")
+        println(call.request.headers)
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->

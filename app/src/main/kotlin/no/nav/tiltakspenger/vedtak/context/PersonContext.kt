@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.vedtak.context
 
+import no.nav.tiltakspenger.felles.NavIdentClient
 import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -37,7 +38,7 @@ open class PersonContext(
             sikkerlogg = sikkerlogg,
         )
     }
-    open val navIdentClient: MicrosoftGraphApiClient by lazy {
+    open val navIdentClient: NavIdentClient by lazy {
         MicrosoftGraphApiClient(
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.microsoftScope) },
             baseUrl = Configuration.microsoftUrl,
