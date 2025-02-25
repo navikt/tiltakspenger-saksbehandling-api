@@ -2,12 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.service.sak
 
 import arrow.core.Either
 import no.nav.tiltakspenger.felles.Systembruker
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.benk.Saksoversikt
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.EnkelPersonMedSkjerming
@@ -62,7 +62,7 @@ interface SakService {
 
 sealed interface KanIkkeStarteSøknadsbehandling {
     data class HarAlleredeStartetBehandlingen(
-        val behandlingId: BehandlingId,
+        val behandling: Behandling,
     ) : KanIkkeStarteSøknadsbehandling
 
     data class OppretteBehandling(

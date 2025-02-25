@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.service.behandling.StartSøknadsbehan
 import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteSøknadsbehandling
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
-import no.nav.tiltakspenger.vedtak.routes.behandling.dto.BehandlingIdDTO
+import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.fantIkkeTiltak
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.ikkeTilgang
@@ -26,11 +26,6 @@ import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond500InternalSe
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 import no.nav.tiltakspenger.vedtak.routes.withSøknadId
 
-/**
- * Erstatter StartBehandlingRoute.kt.
- * Støtter ny, forenklet vilkårsvurdering.
- * Vi beholder 2 løp for ikke å bryte eksisterende funksjonalitet.
- */
 fun Route.startBehandlingRoute(
     tokenService: TokenService,
     startSøknadsbehandlingService: StartSøknadsbehandlingService,
@@ -52,7 +47,7 @@ fun Route.startBehandlingRoute(
                         {
                             when (it) {
                                 is KanIkkeStarteSøknadsbehandling.HarAlleredeStartetBehandlingen -> {
-                                    call.respond(HttpStatusCode.OK, BehandlingIdDTO(it.behandlingId.toString()))
+                                    call.respond(HttpStatusCode.OK, it.behandling.toDTO())
                                 }
 
                                 is KanIkkeStarteSøknadsbehandling.OppretteBehandling ->
@@ -84,7 +79,7 @@ fun Route.startBehandlingRoute(
                                 correlationId = correlationId,
                             )
 
-                            call.respond(HttpStatusCode.OK, BehandlingIdDTO(it.førstegangsbehandling!!.id.toString()))
+                            call.respond(HttpStatusCode.OK, it.førstegangsbehandling!!.toDTO())
                         },
                     )
                 }

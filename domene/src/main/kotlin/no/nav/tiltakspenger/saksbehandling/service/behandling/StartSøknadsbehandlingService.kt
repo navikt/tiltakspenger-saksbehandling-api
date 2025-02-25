@@ -55,7 +55,7 @@ class StartSøknadsbehandlingService(
         val fnr = sak.fnr
 
         if (sak.førstegangsbehandling != null) {
-            return KanIkkeStarteSøknadsbehandling.HarAlleredeStartetBehandlingen(sak.førstegangsbehandling.id).left()
+            return KanIkkeStarteSøknadsbehandling.HarAlleredeStartetBehandlingen(sak.førstegangsbehandling).left()
         }
 
         val soknad = sak.soknader.single { it.id == søknadId }
