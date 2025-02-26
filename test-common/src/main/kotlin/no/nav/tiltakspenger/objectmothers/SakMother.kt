@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.objectmothers
 
 import kotlinx.coroutines.runBlocking
+import no.nav.tiltakspenger.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.felles.januar
+import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -15,6 +17,7 @@ import no.nav.tiltakspenger.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.OppdaterBarnetilleggKommando
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
@@ -64,10 +67,11 @@ interface SakMother {
             fødselsdato = fødselsdato,
             tiltaksdeltagelse = registrerteTiltak.single(),
         ),
+        barnetillegg: Barnetillegg? = null,
     ): Sak {
         val førstegangsbehandling =
             runBlocking {
-                Behandling.opprettSøknadsbehandling(
+                val behandling = Behandling.opprettSøknadsbehandling(
                     sakId = sakId,
                     saksnummer = saksnummer,
                     fnr = fnr,
@@ -75,6 +79,20 @@ interface SakMother {
                     saksbehandler = saksbehandler,
                     hentSaksopplysninger = { saksopplysninger },
                 ).getOrFail()
+
+                if (barnetillegg == null) {
+                    behandling
+                } else {
+                    behandling.oppdaterBarnetillegg(
+                        OppdaterBarnetilleggKommando(
+                            sakId = sakId,
+                            behandlingId = behandling.id,
+                            barnetillegg = barnetillegg,
+                            correlationId = CorrelationId.generate(),
+                            saksbehandler = saksbehandler,
+                        ),
+                    )
+                }
             }
         return Sak(
             id = sakId,

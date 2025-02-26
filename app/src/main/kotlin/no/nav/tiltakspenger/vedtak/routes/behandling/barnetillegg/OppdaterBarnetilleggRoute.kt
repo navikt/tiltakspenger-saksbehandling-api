@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.OppdaterBarnetilleggKommando
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterBarnetilleggService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
@@ -27,6 +28,7 @@ import no.nav.tiltakspenger.vedtak.routes.withSakId
 
 private data class OppdaterBarnetilleggBody(
     val barnetilleggForPeriode: List<BarnetilleggForPeriode>,
+    val begrunnelse: String?,
 ) {
     data class BarnetilleggForPeriode(
         val periode: PeriodeDTO,
@@ -49,6 +51,7 @@ private data class OppdaterBarnetilleggBody(
                     PeriodeMedVerdi(it.antallBarn, it.periode.toDomain())
                 },
             ),
+            begrunnelse = begrunnelse?.let { BegrunnelseVilkårsvurdering(it) },
         ),
     )
 }

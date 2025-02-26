@@ -165,6 +165,7 @@ class BehandlingPostgresRepo(
                             "saksopplysninger" to behandling.saksopplysninger.toDbJson(),
                             "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode?.fraOgMed,
                             "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode?.tilOgMed,
+                            "barnetillegg" to behandling.barnetillegg?.toDbJson(),
                         ),
                     ).asUpdate,
                 )
@@ -203,6 +204,7 @@ class BehandlingPostgresRepo(
                         "begrunnelse_vilkarsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
                         "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode?.fraOgMed,
                         "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode?.tilOgMed,
+                        "barnetillegg" to behandling.barnetillegg?.toDbJson(),
                     ),
                 ).asUpdate,
             )
@@ -229,7 +231,8 @@ class BehandlingPostgresRepo(
             if ((virkningsperiodeFraOgMed == null).xor(virkningsperiodeTilOgMed == null)) {
                 throw IllegalStateException("Både fra og med og til og med må være satt, eller ingen av dem")
             }
-            val virkningsperiode = virkningsperiodeFraOgMed?.let { Periode(virkningsperiodeFraOgMed, virkningsperiodeTilOgMed!!) }
+            val virkningsperiode =
+                virkningsperiodeFraOgMed?.let { Periode(virkningsperiodeFraOgMed, virkningsperiodeTilOgMed!!) }
             val status = string("status")
             val saksbehandler = stringOrNull("saksbehandler")
             val beslutter = stringOrNull("beslutter")
@@ -247,6 +250,7 @@ class BehandlingPostgresRepo(
             val oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) }
             val saksopplysningsperiodeFraOgMed = localDateOrNull("saksopplysningsperiode_fra_og_med")
             val saksopplysningsperiodeTilOgMed = localDateOrNull("saksopplysningsperiode_til_og_med")
+            val barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg()
 
             return Behandling(
                 id = id,
@@ -280,7 +284,7 @@ class BehandlingPostgresRepo(
                     )
                 },
                 // TODO John + Anders: Må persisteres og hentes opp fra basen!
-                barnetillegg = null,
+                barnetillegg = barnetillegg,
             )
         }
 
@@ -309,7 +313,8 @@ class BehandlingPostgresRepo(
                 begrunnelse_vilkårsvurdering,
                 saksopplysninger,
                 saksopplysningsperiode_fra_og_med,
-                saksopplysningsperiode_til_og_med
+                saksopplysningsperiode_til_og_med,
+                barnetillegg
             ) values (
                 :id,
                 :sak_id,
@@ -332,7 +337,8 @@ class BehandlingPostgresRepo(
                 :begrunnelse_vilkarsvurdering,
                 to_jsonb(:saksopplysninger::jsonb),
                 :saksopplysningsperiode_fra_og_med,
-                :saksopplysningsperiode_til_og_med
+                :saksopplysningsperiode_til_og_med,
+                to_jsonb(:barnetillegg::jsonb)
             )
             """.trimIndent()
 
@@ -359,7 +365,8 @@ class BehandlingPostgresRepo(
                 begrunnelse_vilkårsvurdering = :begrunnelse_vilkarsvurdering,
                 saksopplysninger = to_jsonb(:saksopplysninger::jsonb),
                 saksopplysningsperiode_fra_og_med = :saksopplysningsperiode_fra_og_med,
-                saksopplysningsperiode_til_og_med = :saksopplysningsperiode_til_og_med
+                saksopplysningsperiode_til_og_med = :saksopplysningsperiode_til_og_med,
+                barneTillegg = to_jsonb(:barnetillegg::jsonb)
             where id = :id
               and sist_endret = :sist_endret_old
             """.trimIndent()

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.db
 
 import kotlinx.coroutines.runBlocking
+import no.nav.tiltakspenger.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.mars
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -62,6 +63,7 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
             barnetillegg = listOf(),
             sak = sak,
         ),
+    barnetillegg: Barnetillegg? = null,
 ): Pair<Sak, Søknad> {
     this.persisterSakOgSøknad(
         søknad = søknad,
@@ -75,6 +77,7 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
             saksnummer = saksnummer,
             saksbehandler = saksbehandler,
             sakId = sakId,
+            barnetillegg = barnetillegg,
         )
     behandlingRepo.lagre(sakMedBehandling.førstegangsbehandling!!)
 
