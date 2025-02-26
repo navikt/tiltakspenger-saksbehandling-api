@@ -61,9 +61,7 @@ class LocalApplicationContext(
     val journalpostIdGenerator = JournalpostIdGenerator()
     val distribusjonIdGenerator = DistribusjonIdGenerator()
     private val realPdfGen = if (usePdfGen) {
-        PdfgenHttpClient(
-            baseUrl = "http://host.docker.internal:8081",
-        )
+        PdfgenHttpClient(baseUrl = "http://host.docker.internal:8081")
     } else {
         null
     }
@@ -165,7 +163,6 @@ class LocalApplicationContext(
                 skjermingClient = fellesFakeSkjermingsklient,
             )
             override val poaoTilgangGateway = poaoTilgangskontrollFake
-
             override val navIdentClient = if (usePdfGen) FakeNavIdentClient() else super.navIdentClient
         }
 
