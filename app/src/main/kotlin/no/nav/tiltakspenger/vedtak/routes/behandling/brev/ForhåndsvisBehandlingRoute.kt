@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.service.behandling.brev.ForhåndsvisVedtaksbrevKommando
 import no.nav.tiltakspenger.saksbehandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
@@ -21,8 +22,9 @@ import no.nav.tiltakspenger.vedtak.routes.withBehandlingId
 import no.nav.tiltakspenger.vedtak.routes.withBody
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 
-private data class ForhåndsvisBehandlingBody(
+data class ForhåndsvisBehandlingBody(
     val fritekst: String,
+    val virkningsperiode: PeriodeDTO?,
 ) {
     fun toDomain(
         sakId: SakId,
@@ -35,6 +37,7 @@ private data class ForhåndsvisBehandlingBody(
         behandlingId = behandlingId,
         correlationId = correlationId,
         saksbehandler = saksbehandler,
+        virkingsperiode = virkningsperiode?.toDomain(),
     )
 }
 

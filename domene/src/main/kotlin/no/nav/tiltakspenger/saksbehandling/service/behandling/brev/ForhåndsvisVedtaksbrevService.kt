@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.service.behandling.brev
 import arrow.core.getOrElse
 import no.nav.tiltakspenger.felles.NavIdentClient
 import no.nav.tiltakspenger.felles.PdfA
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.ports.GenererStansvedtaksbrevGateway
@@ -28,6 +29,18 @@ class ForhåndsvisVedtaksbrevService(
         if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {
             throw IllegalStateException("Kunne ikke forhåndsvise vedtaksbrev. Saksbehandler har ikke tatt behandling. sakId=${kommando.sakId}, behandlingId=${kommando.behandlingId}")
         }
+
+        // TODO - må ignorere perioden hvis vedtaket er avslag.
+        val virkingsperiode = when (behandling.status) {
+            Behandlingsstatus.KLAR_TIL_BEHANDLING,
+            Behandlingsstatus.UNDER_BEHANDLING,
+            -> kommando.virkingsperiode ?: behandling.virkningsperiode!!
+            Behandlingsstatus.KLAR_TIL_BESLUTNING,
+            Behandlingsstatus.UNDER_BESLUTNING,
+            Behandlingsstatus.VEDTATT,
+            -> behandling.virkningsperiode!!
+        }
+
         return when (behandling.behandlingstype) {
             Behandlingstype.FØRSTEGANGSBEHANDLING -> {
                 genererInnvilgelsesbrevClient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
@@ -39,7 +52,7 @@ class ForhåndsvisVedtaksbrevService(
                     saksbehandlerNavIdent = behandling.saksbehandler,
                     beslutterNavIdent = behandling.beslutter,
                     tiltaksnavn = behandling.tiltaksnavn,
-                    innvilgelsesperiode = behandling.virkningsperiode!!,
+                    innvilgelsesperiode = virkingsperiode,
                     saksnummer = sak.saksnummer,
                     sakId = sak.id,
                 ).fold(
@@ -57,7 +70,7 @@ class ForhåndsvisVedtaksbrevService(
                     saksbehandlerNavIdent = behandling.saksbehandler,
                     beslutterNavIdent = behandling.beslutter,
                     tiltaksnavn = behandling.tiltaksnavn,
-                    stansperiode = behandling.virkningsperiode!!,
+                    stansperiode = virkingsperiode,
                     saksnummer = sak.saksnummer,
                     sakId = sak.id,
                 ).fold(

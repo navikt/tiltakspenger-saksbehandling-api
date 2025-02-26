@@ -18,6 +18,6 @@ fun main() {
     start(
         log = log,
         isNais = false,
-        applicationContext = LocalApplicationContext(),
+        applicationContext = LocalApplicationContext(usePdfGen = true),
     )
 }
