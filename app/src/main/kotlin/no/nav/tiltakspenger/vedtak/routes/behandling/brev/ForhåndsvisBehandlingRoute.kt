@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.vedtak.routes.withBehandlingId
 import no.nav.tiltakspenger.vedtak.routes.withBody
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 
-private data class ForhåndsvisBehandlingBody(
+data class ForhåndsvisBehandlingBody(
     val fritekst: String,
     val virkningsperiode: PeriodeDTO?,
 ) {
@@ -49,7 +49,6 @@ fun Route.forhåndsvisVedtaksbrevRoute(
     val logger = KotlinLogging.logger {}
     post("/sak/{sakId}/behandling/{behandlingId}/forhandsvis") {
         logger.debug("Mottatt post-request på '/sak/{sakId}/behandling/{behandlingId}/forhandsvis' - forhåndsviser vedtaksbrev")
-        println(call.request.headers)
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
