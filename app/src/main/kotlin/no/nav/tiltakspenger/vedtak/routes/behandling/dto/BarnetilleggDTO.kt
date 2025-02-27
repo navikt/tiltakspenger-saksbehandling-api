@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.dto
 
+import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
@@ -20,7 +21,7 @@ internal fun Barnetillegg.toDTO(): BarnetilleggDTO = BarnetilleggDTO(
     begrunnelse = begrunnelse?.verdi,
 )
 
-internal fun PeriodeMedVerdi<Int>.tilBarnetilleggPeriodeDTO(): BarnetilleggPeriodeDTO = BarnetilleggPeriodeDTO(
-    antallBarn = verdi,
+internal fun PeriodeMedVerdi<AntallBarn>.tilBarnetilleggPeriodeDTO(): BarnetilleggPeriodeDTO = BarnetilleggPeriodeDTO(
+    antallBarn = verdi.value,
     periode = periode.toDTO(),
 )
