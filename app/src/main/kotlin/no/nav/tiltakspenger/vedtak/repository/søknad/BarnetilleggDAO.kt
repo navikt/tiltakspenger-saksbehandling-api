@@ -6,7 +6,7 @@ import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.BarnetilleggFraSøknad
 import org.intellij.lang.annotations.Language
 
 internal object BarnetilleggDAO {
@@ -15,7 +15,7 @@ internal object BarnetilleggDAO {
 
     fun lagre(
         søknadId: SøknadId,
-        barnetillegg: List<Barnetillegg>,
+        barnetillegg: List<BarnetilleggFraSøknad>,
         session: TransactionalSession,
     ) {
         slettBarnetillegg(søknadId, session)
@@ -27,7 +27,7 @@ internal object BarnetilleggDAO {
     fun hentBarnetilleggListe(
         søknadId: SøknadId,
         session: Session,
-    ): List<Barnetillegg> =
+    ): List<BarnetilleggFraSøknad> =
         session.run(
             queryOf(hentBarnetillegg, søknadId.toString())
                 .map { row -> row.toBarnetillegg() }
@@ -36,12 +36,12 @@ internal object BarnetilleggDAO {
 
     private fun lagreBarnetillegg(
         søknadId: SøknadId,
-        barnetillegg: Barnetillegg,
+        barnetillegg: BarnetilleggFraSøknad,
         txSession: TransactionalSession,
     ) {
         val paramMap =
             when (barnetillegg) {
-                is Barnetillegg.FraPdl ->
+                is BarnetilleggFraSøknad.FraPdl ->
                     mapOf(
                         "type" to "PDL",
                         "id" to random(ULID_PREFIX_BARNETILLEGG).toString(),
@@ -53,7 +53,7 @@ internal object BarnetilleggDAO {
                         "opphold_i_eos_type" to lagreJaNeiSpmType(barnetillegg.oppholderSegIEØS),
                     )
 
-                is Barnetillegg.Manuell ->
+                is BarnetilleggFraSøknad.Manuell ->
                     mapOf(
                         "type" to "MANUELL",
                         "id" to random(ULID_PREFIX_BARNETILLEGG).toString(),
@@ -79,7 +79,7 @@ internal object BarnetilleggDAO {
         )
     }
 
-    private fun Row.toBarnetillegg(): Barnetillegg {
+    private fun Row.toBarnetillegg(): BarnetilleggFraSøknad {
         val type = string("type")
         val fødselsdato = localDate("fodselsdato")
         val fornavn = stringOrNull("fornavn")
@@ -87,7 +87,7 @@ internal object BarnetilleggDAO {
         val etternavn = stringOrNull("etternavn")
         val oppholderSegIEØS = jaNeiSpm("opphold_i_eos")
         return if (type == "PDL") {
-            Barnetillegg.FraPdl(
+            BarnetilleggFraSøknad.FraPdl(
                 oppholderSegIEØS = oppholderSegIEØS,
                 fornavn = fornavn,
                 mellomnavn = mellomnavn,
@@ -97,7 +97,7 @@ internal object BarnetilleggDAO {
         } else {
             checkNotNull(fornavn) { "Fornavn kan ikke være null for barnetillegg, manuelle barn " }
             checkNotNull(etternavn) { "Etternavn kan ikke være null for barnetillegg, manuelle barn " }
-            Barnetillegg.Manuell(
+            BarnetilleggFraSøknad.Manuell(
                 oppholderSegIEØS = oppholderSegIEØS,
                 fornavn = fornavn,
                 mellomnavn = mellomnavn,

@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
@@ -39,8 +39,8 @@ interface SøknadMother {
         etternavn: String = "Etternavn Barn",
         fødselsdato: LocalDate = 14.juni(2012),
         søktBarnetillegg: Boolean = true,
-    ): Barnetillegg =
-        Barnetillegg.FraPdl(
+    ): BarnetilleggFraSøknad =
+        BarnetilleggFraSøknad.FraPdl(
             oppholderSegIEØS = oppholderSegIEØS,
             fornavn = fornavn,
             mellomnavn = mellomnavn,
@@ -54,8 +54,8 @@ interface SøknadMother {
         mellomnavn: String? = "Mellomnavn Barn",
         etternavn: String = "Etternavn Barn",
         fødselsdato: LocalDate = 14.juni(2012),
-    ): Barnetillegg =
-        Barnetillegg.Manuell(
+    ): BarnetilleggFraSøknad =
+        BarnetilleggFraSøknad.Manuell(
             oppholderSegIEØS = oppholderSegIEØS,
             fornavn = fornavn,
             mellomnavn = mellomnavn,
@@ -78,7 +78,7 @@ interface SøknadMother {
         intro: Søknad.PeriodeSpm = periodeNei(),
         institusjon: Søknad.PeriodeSpm = periodeNei(),
         opprettet: LocalDateTime = 1.januarDateTime(2022),
-        barnetillegg: List<Barnetillegg> = listOf(),
+        barnetillegg: List<BarnetilleggFraSøknad> = listOf(),
         tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
         søknadstiltak: Søknadstiltak = søknadstiltak(deltakelseFom = periode.fraOgMed, deltakelseTom = periode.tilOgMed),
         trygdOgPensjon: Søknad.PeriodeSpm = periodeNei(),

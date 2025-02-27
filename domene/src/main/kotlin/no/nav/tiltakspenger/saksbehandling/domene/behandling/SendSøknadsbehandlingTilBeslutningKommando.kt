@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.domene.behandling
 
+import no.nav.tiltakspenger.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -14,4 +15,5 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     val innvilgelsesperiode: Periode?,
+    val barnetillegg: Barnetillegg?,
 )

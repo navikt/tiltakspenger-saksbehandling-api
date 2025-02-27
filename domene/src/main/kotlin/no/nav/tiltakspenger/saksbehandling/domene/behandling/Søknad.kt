@@ -17,7 +17,7 @@ data class Søknad(
     val journalpostId: String,
     val personopplysninger: Personopplysninger,
     val tiltak: Søknadstiltak,
-    val barnetillegg: List<Barnetillegg>,
+    val barnetillegg: List<BarnetilleggFraSøknad>,
     val opprettet: LocalDateTime,
     val tidsstempelHosOss: LocalDateTime,
     val kvp: PeriodeSpm,
@@ -119,7 +119,7 @@ data class Søknadstiltak(
     val typeNavn: String,
 )
 
-sealed class Barnetillegg {
+sealed class BarnetilleggFraSøknad {
     abstract val oppholderSegIEØS: Søknad.JaNeiSpm
     abstract val fornavn: String?
     abstract val mellomnavn: String?
@@ -134,7 +134,7 @@ sealed class Barnetillegg {
         override val mellomnavn: String?,
         override val etternavn: String?,
         override val fødselsdato: LocalDate,
-    ) : Barnetillegg() {
+    ) : BarnetilleggFraSøknad() {
         override fun under16ForDato(dato: LocalDate): Boolean = fødselsdato.plusYears(16) > dato
     }
 
@@ -144,7 +144,7 @@ sealed class Barnetillegg {
         override val mellomnavn: String?,
         override val etternavn: String,
         override val fødselsdato: LocalDate,
-    ) : Barnetillegg() {
+    ) : BarnetilleggFraSøknad() {
         override fun under16ForDato(dato: LocalDate): Boolean = fødselsdato.plusYears(16) > dato
     }
 }

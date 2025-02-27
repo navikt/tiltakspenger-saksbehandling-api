@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
@@ -82,7 +82,7 @@ class SøknadRoutesTest {
                     ),
                     barnetillegg =
                     listOf(
-                        Barnetillegg.FraPdl(
+                        BarnetilleggFraSøknad.FraPdl(
                             oppholderSegIEØS = Søknad.JaNeiSpm.Ja,
                             fornavn = "INKLUDERENDE",
                             mellomnavn = null,

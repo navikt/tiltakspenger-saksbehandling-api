@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendSøknadsbehandl
 import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
+import no.nav.tiltakspenger.vedtak.routes.behandling.dto.BarnetilleggDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil
@@ -31,6 +32,7 @@ private data class SendTilBeslutningBody(
     val fritekstTilVedtaksbrev: String?,
     val begrunnelseVilkårsvurdering: String?,
     val innvilgelsesperiode: PeriodeDTO,
+    val barnetillegg: BarnetilleggDTO?,
 ) {
     fun toDomain(
         sakId: SakId,
@@ -46,6 +48,7 @@ private data class SendTilBeslutningBody(
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(it) },
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { BegrunnelseVilkårsvurdering(it) },
             innvilgelsesperiode = innvilgelsesperiode.toDomain(),
+            barnetillegg = barnetillegg?.tilBarnetillegg(),
         )
     }
 }

@@ -148,6 +148,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
                     fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("fritekstTilVedtaksbrev"),
                     begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("begrunnelseVilkårsvurdering"),
                     innvilgelsesperiode = tiltaksOgVurderingsperiode,
+                    barnetillegg = null,
                 ),
             )
             .taBehandling(beslutter)

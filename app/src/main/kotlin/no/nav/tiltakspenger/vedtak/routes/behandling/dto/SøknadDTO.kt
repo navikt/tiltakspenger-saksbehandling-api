@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.vedtak.routes.behandling.dto
 
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad.FraOgMedDatoSpm
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad.JaNeiSpm
@@ -14,7 +14,7 @@ import java.time.LocalDateTime
 data class SøknadDTO(
     val journalpostId: String,
     val tiltak: TiltaksdeltagelseFraSøknadDTO,
-    val barnetillegg: List<Barnetillegg>,
+    val barnetillegg: List<BarnetilleggFraSøknad>,
     val opprettet: LocalDateTime,
     val tidsstempelHosOss: LocalDateTime,
     val kvp: PeriodeDTO?,

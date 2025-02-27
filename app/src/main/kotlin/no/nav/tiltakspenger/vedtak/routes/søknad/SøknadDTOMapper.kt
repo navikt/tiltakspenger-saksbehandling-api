@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.soknad.PeriodeSpmDTO
 import no.nav.tiltakspenger.libs.soknad.SpmSvarDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadsTiltakDTO
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
@@ -96,12 +96,12 @@ object SøknadDTOMapper {
             typeNavn = dto.typeNavn,
         )
 
-    private fun mapBarnetilleggManuelle(dto: BarnetilleggDTO): Barnetillegg.FraPdl {
+    private fun mapBarnetilleggManuelle(dto: BarnetilleggDTO): BarnetilleggFraSøknad.FraPdl {
         checkNotNull(dto.fornavn) { "Fornavn kan ikke være null for barnetillegg, manuelle barn " }
         checkNotNull(dto.etternavn) { "Etternavn kan ikke være null for barnetillegg, manuelle barn " }
         checkNotNull(dto.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg, manuelle barn " }
 
-        return Barnetillegg.FraPdl(
+        return BarnetilleggFraSøknad.FraPdl(
             oppholderSegIEØS = no.nav.tiltakspenger.vedtak.routes.søknad.SøknadDTOMapper.mapJaNei(dto.oppholderSegIEØS),
             fornavn = dto.fornavn,
             mellomnavn = dto.mellomnavn,
@@ -110,9 +110,9 @@ object SøknadDTOMapper {
         )
     }
 
-    private fun mapBarnetilleggPDL(dto: BarnetilleggDTO): Barnetillegg.FraPdl {
+    private fun mapBarnetilleggPDL(dto: BarnetilleggDTO): BarnetilleggFraSøknad.FraPdl {
         checkNotNull(dto.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg fra PDL" }
-        return Barnetillegg.FraPdl(
+        return BarnetilleggFraSøknad.FraPdl(
             oppholderSegIEØS = no.nav.tiltakspenger.vedtak.routes.søknad.SøknadDTOMapper.mapJaNei(dto.oppholderSegIEØS),
             fornavn = dto.fornavn,
             mellomnavn = dto.mellomnavn,
