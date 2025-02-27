@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.domene.sak
 
+import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.felles.min
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -9,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
@@ -56,6 +58,12 @@ data class Sak(
     @Suppress("unused")
     val sisteNavkontor: Navkontor? by lazy {
         meldekortBehandlinger.sisteGodkjenteMeldekort?.navkontor
+    }
+
+    val barnetilleggsperioder: Periodisering<AntallBarn> by lazy { vedtaksliste.barnetilleggsperioder }
+
+    fun antallBarnForDag(dag: LocalDate): AntallBarn {
+        return vedtaksliste.antallBarnForDag(dag)
     }
 
     fun hentMeldekortBehandlingForMeldekortBehandlingId(meldekortId: MeldekortId): MeldekortBehandling? {

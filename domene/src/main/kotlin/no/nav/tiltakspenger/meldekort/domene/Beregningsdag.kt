@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.meldekort.domene
 
+import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
 import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon
 import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort
@@ -8,15 +9,21 @@ import java.time.LocalDate
 
 data class Beregningsdag(
     val beløp: Int,
+    val beløpBarnetillegg: Int,
     val prosent: Int,
     val satsdag: Satsdag,
     val dato: LocalDate,
+    val antallBarn: AntallBarn,
 ) {
     init {
         require(dato == satsdag.dato)
     }
 }
-fun beregnDag(dato: LocalDate, reduksjon: ReduksjonAvYtelsePåGrunnAvFravær): Beregningsdag = Satser.sats(dato).let {
+fun beregnDag(
+    dato: LocalDate,
+    reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
+    antallBarn: AntallBarn,
+): Beregningsdag = Satser.sats(dato).let {
     val prosent = when (reduksjon) {
         IngenReduksjon -> 100
         Reduksjon -> 75
@@ -28,8 +35,14 @@ fun beregnDag(dato: LocalDate, reduksjon: ReduksjonAvYtelsePåGrunnAvFravær): B
             Reduksjon -> it.satsRedusert
             YtelsenFallerBort -> 0
         },
+        beløpBarnetillegg = when (reduksjon) {
+            IngenReduksjon -> it.satsBarnetillegg * antallBarn.value
+            Reduksjon -> it.satsBarnetilleggRedusert * antallBarn.value
+            YtelsenFallerBort -> 0
+        },
         prosent = prosent,
         satsdag = it,
         dato = dato,
+        antallBarn = antallBarn,
     )
 }

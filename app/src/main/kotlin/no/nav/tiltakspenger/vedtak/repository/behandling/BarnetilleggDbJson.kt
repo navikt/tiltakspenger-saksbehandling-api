@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.vedtak.repository.behandling
 
+import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
@@ -26,7 +27,7 @@ fun String.toBarnetillegg(): Barnetillegg {
             barnetilleggDbJson.value.map {
                 PeriodeMedVerdi(
                     periode = it.periode.toDomain(),
-                    verdi = it.verdi,
+                    verdi = AntallBarn(it.verdi),
                 )
             },
         ),
@@ -38,7 +39,7 @@ fun Barnetillegg.toDbJson(): String = BarnetilleggDbJson(
     value = this.value.perioderMedVerdi.map {
         BarnetilleggPeriodeMedVerdi(
             periode = it.periode.toDbJson(),
-            verdi = it.verdi,
+            verdi = it.verdi.value,
         )
     },
     begrunnelse = this.begrunnelse?.verdi,

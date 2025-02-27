@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.meldekort.domene
 
+import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
@@ -58,7 +59,13 @@ sealed interface MeldeperiodeBeregningDag {
                         meldekortId: MeldekortId,
                         dato: LocalDate,
                         tiltakstype: TiltakstypeSomGirRett,
-                    ) = DeltattUtenLønnITiltaket(meldekortId, dato, tiltakstype, beregnDag(dato, IngenReduksjon))
+                        antallBarn: AntallBarn,
+                    ) = DeltattUtenLønnITiltaket(
+                        meldekortId,
+                        dato,
+                        tiltakstype,
+                        beregnDag(dato, IngenReduksjon, antallBarn),
+                    )
 
                     fun fromDb(
                         meldekortId: MeldekortId,
@@ -82,7 +89,13 @@ sealed interface MeldeperiodeBeregningDag {
                         meldekortId: MeldekortId,
                         dato: LocalDate,
                         tiltakstype: TiltakstypeSomGirRett,
-                    ) = DeltattMedLønnITiltaket(meldekortId, dato, tiltakstype, beregnDag(dato, YtelsenFallerBort))
+                        antallBarn: AntallBarn,
+                    ) = DeltattMedLønnITiltaket(
+                        meldekortId,
+                        dato,
+                        tiltakstype,
+                        beregnDag(dato, YtelsenFallerBort, antallBarn),
+                    )
 
                     fun fromDb(
                         meldekortId: MeldekortId,
@@ -109,7 +122,8 @@ sealed interface MeldeperiodeBeregningDag {
                     meldekortId: MeldekortId,
                     dato: LocalDate,
                     tiltakstype: TiltakstypeSomGirRett,
-                ) = IkkeDeltatt(meldekortId, dato, tiltakstype, beregnDag(dato, YtelsenFallerBort))
+                    antallBarn: AntallBarn,
+                ) = IkkeDeltatt(meldekortId, dato, tiltakstype, beregnDag(dato, YtelsenFallerBort, antallBarn))
 
                 fun fromDb(
                     meldekortId: MeldekortId,
@@ -143,7 +157,8 @@ sealed interface MeldeperiodeBeregningDag {
                             dato: LocalDate,
                             reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
                             tiltakstype: TiltakstypeSomGirRett,
-                        ) = SykBruker(meldekortId, dato, tiltakstype, reduksjon, beregnDag(dato, reduksjon))
+                            antallBarn: AntallBarn,
+                        ) = SykBruker(meldekortId, dato, tiltakstype, reduksjon, beregnDag(dato, reduksjon, antallBarn))
 
                         fun fromDb(
                             meldekortId: MeldekortId,
@@ -161,14 +176,16 @@ sealed interface MeldeperiodeBeregningDag {
                     override val tiltakstype: TiltakstypeSomGirRett,
                     override val reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
                     override val beregningsdag: Beregningsdag,
+
                 ) : Syk {
                     companion object {
                         fun create(
                             meldekortId: MeldekortId,
-                            dato: LocalDate,
+                            dag: LocalDate,
                             reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
                             tiltakstype: TiltakstypeSomGirRett,
-                        ) = SyktBarn(meldekortId, dato, tiltakstype, reduksjon, beregnDag(dato, reduksjon))
+                            antallBarn: AntallBarn,
+                        ) = SyktBarn(meldekortId, dag, tiltakstype, reduksjon, beregnDag(dag, reduksjon, antallBarn))
 
                         fun fromDb(
                             meldekortId: MeldekortId,
@@ -195,7 +212,13 @@ sealed interface MeldeperiodeBeregningDag {
                             meldekortId: MeldekortId,
                             dato: LocalDate,
                             tiltakstype: TiltakstypeSomGirRett,
-                        ) = VelferdGodkjentAvNav(meldekortId, dato, tiltakstype, beregnDag(dato, IngenReduksjon))
+                            antallBarn: AntallBarn,
+                        ) = VelferdGodkjentAvNav(
+                            meldekortId,
+                            dato,
+                            tiltakstype,
+                            beregnDag(dato, IngenReduksjon, antallBarn),
+                        )
 
                         fun fromDb(
                             meldekortId: MeldekortId,
@@ -219,7 +242,13 @@ sealed interface MeldeperiodeBeregningDag {
                             meldekortId: MeldekortId,
                             dato: LocalDate,
                             tiltakstype: TiltakstypeSomGirRett,
-                        ) = VelferdIkkeGodkjentAvNav(meldekortId, dato, tiltakstype, beregnDag(dato, YtelsenFallerBort))
+                            antallBarn: AntallBarn,
+                        ) = VelferdIkkeGodkjentAvNav(
+                            meldekortId,
+                            dato,
+                            tiltakstype,
+                            beregnDag(dato, YtelsenFallerBort, antallBarn),
+                        )
 
                         fun fromDb(
                             meldekortId: MeldekortId,

@@ -5,12 +5,14 @@ import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.toNonEmptyListOrNull
+import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortBehandlet
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortUnderBehandling
 import java.time.LocalDate
@@ -29,6 +31,7 @@ data class MeldekortBehandlinger(
      */
     fun sendTilBeslutter(
         kommando: SendMeldekortTilBeslutningKommando,
+        barnetilleggsPerioder: Periodisering<AntallBarn>,
     ): Either<KanIkkeSendeMeldekortTilBeslutning, Pair<MeldekortBehandlinger, MeldekortBehandlet>> {
         val meldekortUnderBehandling = this.meldekortUnderBehandling!!
 
@@ -36,7 +39,7 @@ data class MeldekortBehandlinger(
             "MeldekortId i kommando (${kommando.meldekortId}) samsvarer ikke med siste meldekortperiode (${meldekortUnderBehandling.id})"
         }
 
-        val meldekortdager = kommando.beregn(eksisterendeMeldekortBehandlinger = this)
+        val meldekortdager = kommando.beregn(eksisterendeMeldekortBehandlinger = this, barnetilleggsPerioder = barnetilleggsPerioder)
         val utfyltMeldeperiode = meldekortUnderBehandling.beregning.tilUtfyltMeldeperiode(meldekortdager).getOrElse {
             return it.left()
         }

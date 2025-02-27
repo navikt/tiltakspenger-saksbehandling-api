@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.objectmothers
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
+import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.common.JournalpostIdGenerator
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.felles.erHelg
@@ -198,6 +199,7 @@ interface MeldekortMother {
         meldekortId: MeldekortId = MeldekortId.random(),
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         antallDager: Int = 5,
+        antallBarn: AntallBarn = AntallBarn.ZERO,
     ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket> {
         require(antallDager in 1..5) {
             "Antall sammenhengende dager vil aldri være mer mindre enn 1 eller mer enn 5, men var $antallDager"
@@ -207,6 +209,7 @@ interface MeldekortMother {
                 dato = startDato.plusDays(index.toLong()),
                 meldekortId = meldekortId,
                 tiltakstype = tiltakstype,
+                antallBarn = antallBarn,
             )
         }.toNonEmptyListOrNull()!!
     }
@@ -216,6 +219,7 @@ interface MeldekortMother {
         meldekortId: MeldekortId = MeldekortId.random(),
         antallDager: Int = 2,
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
+        antallBarn: AntallBarn = AntallBarn.ZERO,
     ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt> {
         require(antallDager in 1..5) {
             "Antall sammenhengende dager vil aldri være mer mindre enn 1 eller mer enn 5, men var $antallDager"
@@ -225,6 +229,7 @@ interface MeldekortMother {
                 dato = startDato.plusDays(index.toLong()),
                 meldekortId = meldekortId,
                 tiltakstype = tiltakstype,
+                antallBarn = antallBarn,
             )
         }.toNonEmptyListOrNull()!!
     }
@@ -275,6 +280,7 @@ interface MeldekortMother {
         kommando: SendMeldekortTilBeslutningKommando,
         meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
+        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
     ): Pair<MeldekortBehandlinger, MeldekortBehandling.MeldekortBehandlet> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
@@ -310,7 +316,7 @@ interface MeldekortMother {
                 ),
             ),
         )
-        return meldekortBehandlinger.sendTilBeslutter(kommando).getOrFail()
+        return meldekortBehandlinger.sendTilBeslutter(kommando, barnetilleggsPerioder).getOrFail()
     }
 
     fun MeldekortBehandlinger.beregnNesteMeldekort(
@@ -320,6 +326,7 @@ interface MeldekortMother {
         meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
         opprettet: LocalDateTime = nå(),
+        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
     ): MeldekortBehandlinger {
         val meldekortId = kommando.meldekortId
         val sakId = kommando.sakId
@@ -355,7 +362,7 @@ interface MeldekortMother {
                 brukersMeldekort = null,
                 saksbehandler = kommando.saksbehandler.navIdent,
             ),
-        ).sendTilBeslutter(kommando).getOrFail().first
+        ).sendTilBeslutter(kommando, barnetilleggsPerioder).getOrFail().first
     }
 
     fun meldeperiode(

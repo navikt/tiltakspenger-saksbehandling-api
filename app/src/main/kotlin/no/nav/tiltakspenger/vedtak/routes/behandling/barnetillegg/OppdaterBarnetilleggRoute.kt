@@ -5,6 +5,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
 import mu.KotlinLogging
+import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
@@ -48,7 +49,7 @@ private data class OppdaterBarnetilleggBody(
         barnetillegg = Barnetillegg(
             value = Periodisering(
                 barnetilleggForPeriode.map {
-                    PeriodeMedVerdi(it.antallBarn, it.periode.toDomain())
+                    PeriodeMedVerdi(AntallBarn(it.antallBarn), it.periode.toDomain())
                 },
             ),
             begrunnelse = begrunnelse?.let { BegrunnelseVilkårsvurdering(it) },

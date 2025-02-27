@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.vedtak.repository.behandling
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.db.persisterBehandletRevurdering
 import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandling
@@ -45,7 +46,7 @@ internal class BehandlingRepoTest {
                 deltakelseTom = deltakelseTom,
                 barnetillegg = Barnetillegg(
                     value = Periodisering(
-                        PeriodeMedVerdi(1, Periode(deltakelseFom, deltakelseTom)),
+                        PeriodeMedVerdi(AntallBarn(1), Periode(deltakelseFom, deltakelseTom)),
                     ),
                     begrunnelse = BegrunnelseVilkårsvurdering("Begrunnelse"),
                 ),

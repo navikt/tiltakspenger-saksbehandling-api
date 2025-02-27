@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.domene.vedtak
 
+import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
@@ -68,6 +69,24 @@ data class Vedtaksliste(
                 }
             }
         }.let { Periodisering(it) }
+    }
+
+    /** Tidslinje for antall barn. Første og siste periode vil være 1 eller flere. Kan inneholde hull med 0 barn. */
+    val barnetilleggsperioder: Periodisering<AntallBarn> by lazy {
+        tidslinje.perioderMedVerdi.flatMap { pmvVedtak ->
+            (pmvVedtak.verdi.barnetillegg?.value?.perioderMedVerdi ?: emptyList()).mapNotNull {
+                it.periode.overlappendePeriode(pmvVedtak.periode)?.let { overlappendePeriode ->
+                    PeriodeMedVerdi(
+                        periode = overlappendePeriode,
+                        verdi = it.verdi,
+                    )
+                }
+            }
+        }.let { Periodisering(it) }
+    }
+
+    fun antallBarnForDag(dag: LocalDate): AntallBarn {
+        return barnetilleggsperioder.singleOrNullOrThrow { it.periode.inneholder(dag) }?.verdi ?: AntallBarn.ZERO
     }
 
     fun leggTilFørstegangsVedtak(vedtak: Rammevedtak): Vedtaksliste {

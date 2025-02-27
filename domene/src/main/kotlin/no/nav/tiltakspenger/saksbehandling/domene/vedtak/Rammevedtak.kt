@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.domene.vedtak
 
+import no.nav.tiltakspenger.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.distribusjon.domene.DistribusjonId
 import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.felles.nå
@@ -44,6 +45,9 @@ data class Rammevedtak(
     val saksbehandlerNavIdent: String = behandling.saksbehandler!!
     val beslutterNavIdent: String = behandling.beslutter!!
     val utfallsperioder: Periodisering<Utfallsperiode>? by lazy { behandling.utfallsperioder }
+
+    /** Vil være null dersom ingen barn. */
+    val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
     override val antallDagerPerMeldeperiode: Int = behandling.maksDagerMedTiltakspengerForPeriode
 
     val erFørstegangsvedtak = vedtaksType == Vedtakstype.INNVILGELSE
