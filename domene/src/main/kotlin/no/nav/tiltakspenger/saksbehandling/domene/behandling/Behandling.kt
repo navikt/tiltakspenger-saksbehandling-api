@@ -356,7 +356,13 @@ data class Behandling(
         if (!this.erUnderBehandling) {
             throw IllegalArgumentException("Kunne ikke oppdatere barnetillegg. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
         }
-        return this.copy(barnetillegg = kommando.barnetillegg)
+        return this.copy(
+            barnetillegg = Barnetillegg(
+                begrunnelse = kommando.barnetillegg.begrunnelse,
+                // TODO Anders: Ignorerer denne midlertidig, må fikse en greie i frontend først :D
+                value = this.barnetillegg?.value ?: Periodisering(emptyList()),
+            ),
+        )
     }
 
     fun oppdaterFritekstTilVedtaksbrev(
