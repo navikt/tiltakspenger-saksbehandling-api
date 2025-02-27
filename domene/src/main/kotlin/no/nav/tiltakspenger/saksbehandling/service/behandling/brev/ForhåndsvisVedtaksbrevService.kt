@@ -26,8 +26,11 @@ class ForhåndsvisVedtaksbrevService(
             throw IllegalStateException("Kunne ikke forhåndsvise vedtaksbrev. Fant ikke sak eller hadde ikke tilgang til sak. sakId=${kommando.sakId}, behandlingId=${kommando.behandlingId}")
         }
         val behandling = sak.hentBehandling(kommando.behandlingId)!!
-        if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {
-            throw IllegalStateException("Kunne ikke forhåndsvise vedtaksbrev. Saksbehandler har ikke tatt behandling. sakId=${kommando.sakId}, behandlingId=${kommando.behandlingId}")
+        if (behandling.saksbehandler == null) {
+            throw IllegalStateException("Kunne ikke forhåndsvise vedtaksbrev. Behandling har ingen saksbehandler. sakId=${kommando.sakId}, behandlingId=${kommando.behandlingId}")
+        }
+        if (behandling.saksbehandler != kommando.saksbehandler.navIdent && behandling.beslutter != kommando.saksbehandler.navIdent) {
+            throw IllegalStateException("Kunne ikke forhåndsvise vedtaksbrev. Saksbehandler har ikke tatt behandling, eller er ikke behandlingens beslutter. sakId=${kommando.sakId}, behandlingId=${kommando.behandlingId}")
         }
 
         // TODO - må ignorere perioden hvis vedtaket er avslag.
