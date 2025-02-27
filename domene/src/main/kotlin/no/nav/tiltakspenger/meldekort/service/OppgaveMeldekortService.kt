@@ -15,10 +15,10 @@ class OppgaveMeldekortService(
 
     // På sikt vil man bare opprette oppgave for meldekort som trenger en manuell gjennomgang, for meldekort skal generelt godkjennes maskinelt.
     suspend fun opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk() {
-        log.info { "Henter meldekort som det skal opprettes oppgaver for" }
+        log.debug { "Henter meldekort som det skal opprettes oppgaver for" }
         val meldekortList = brukersMeldekortRepo.hentMeldekortSomIkkeSkalGodkjennesAutomatisk()
 
-        log.info { "Fant ${meldekortList.size} meldekort som det skal opprettes oppgaver for" }
+        log.debug { "Fant ${meldekortList.size} meldekort som det skal opprettes oppgaver for" }
         meldekortList.forEach { meldekort ->
             val journalpostId = meldekort.journalpostId
                 ?: log.warn { "Fant ikke journalpostId for meldekortId ${meldekort.id}" }.let { return@forEach }

@@ -20,6 +20,7 @@ internal data class BehandlingDTO(
     val saksopplysningsperiode: PeriodeDTO?,
     val fritekstTilVedtaksbrev: String?,
     val begrunnelseVilkårsvurdering: String?,
+    val barnetillegg: BarnetilleggDTO?,
 //    Denne burde være med på revurderinger for client-side validering
 //    val førsteLovligeStansdato: LocalDate?,
 )
@@ -40,5 +41,6 @@ internal fun Behandling.toDTO(): BehandlingDTO {
         saksopplysningsperiode = this.saksopplysningsperiode?.toDTO(),
         fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
         begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
+        barnetillegg = this.barnetillegg?.toDTO(),
     )
 }
