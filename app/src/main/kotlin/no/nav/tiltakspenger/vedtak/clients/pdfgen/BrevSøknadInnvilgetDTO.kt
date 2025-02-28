@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.vedtak.clients.pdfgen
 
+import java.time.LocalDate
 import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
@@ -11,7 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.utbetaling.domene.Satser
 import no.nav.tiltakspenger.vedtak.clients.pdfgen.formattering.norskDatoFormatter
-import java.time.LocalDate
 
 @Suppress("unused")
 private data class BrevFørstegangsvedtakInnvilgelseDTO(
@@ -29,6 +29,7 @@ private data class BrevFørstegangsvedtakInnvilgelseDTO(
     val sats: Int,
     val satsBarn: Int,
     val tilleggstekst: String? = null,
+    val forhandsvisning: Boolean,
 ) {
     val barnetillegg: Boolean = antallBarn.isNotEmpty()
 
@@ -56,6 +57,8 @@ internal suspend fun Rammevedtak.toInnvilgetSøknadsbrev(
         tiltaksnavn = this.behandling.tiltaksnavn,
         innvilgelsesperiode = this.periode,
         saksnummer = saksnummer,
+        // finnes ikke noe forhåndsvisning for rammevedtak
+        forhåndsvisning = false,
         barnetilleggsPerioder = this.behandling.barnetillegg?.periodisering,
     )
 }
@@ -71,6 +74,7 @@ internal suspend fun genererInnvilgetSøknadsbrev(
     tiltaksnavn: String,
     innvilgelsesperiode: Periode,
     saksnummer: Saksnummer,
+    forhåndsvisning: Boolean,
     barnetilleggsPerioder: Periodisering<AntallBarn>?,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)
@@ -97,6 +101,7 @@ internal suspend fun genererInnvilgetSøknadsbrev(
         sats = Satser.sats(innvilgelsesperiode.fraOgMed).sats,
         satsBarn = Satser.sats(innvilgelsesperiode.fraOgMed).satsBarnetillegg,
         tilleggstekst = tilleggstekst?.verdi,
+        forhandsvisning = forhåndsvisning,
         antallBarn = barnetilleggsPerioder?.perioderMedVerdi?.map {
             BrevFørstegangsvedtakInnvilgelseDTO.AntallBarnPerPeriodeDTO(
                 antallBarn = it.verdi.value,

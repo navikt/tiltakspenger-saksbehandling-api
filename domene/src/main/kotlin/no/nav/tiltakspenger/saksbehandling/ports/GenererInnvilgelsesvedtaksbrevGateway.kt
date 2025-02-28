@@ -42,6 +42,7 @@ interface GenererInnvilgelsesvedtaksbrevGateway {
         innvilgelsesperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
+        forhåndsvisning: Boolean,
         barnetilleggsPerioder: Periodisering<AntallBarn>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }
