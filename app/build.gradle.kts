@@ -1,7 +1,7 @@
 val kotlinxCoroutinesVersion = "1.10.1"
 val kotestVersion = "5.9.1"
 val felleslibVersion = "0.0.378"
-val mockkVersion = "1.13.16"
+val mockkVersion = "1.13.17"
 val ktorVersion = "3.1.1"
 val testContainersVersion = "1.20.5"
 val poaoTilgangVersjon = "2025.02.18_14.13-ac4265f31ef3"
@@ -88,7 +88,7 @@ dependencies {
     api("com.auth0:jwks-rsa:0.22.1")
 
     // DB
-    implementation("org.flywaydb:flyway-database-postgresql:11.3.3")
+    implementation("org.flywaydb:flyway-database-postgresql:11.3.4")
     implementation("com.zaxxer:HikariCP:6.2.1")
     implementation("org.postgresql:postgresql:42.7.5")
     implementation("com.github.seratch:kotliquery:1.9.1")
