@@ -54,9 +54,9 @@ class PersonFakeGateway : PersonGateway {
             fornavn = faker.name.firstName(),
             mellomnavn = null,
             etternavn = faker.name.lastName(),
-            fortrolig = false,
-            strengtFortrolig = false,
-            strengtFortroligUtland = false,
+            fortrolig = fnr.verdi.startsWith('2'),
+            strengtFortrolig = fnr.verdi.startsWith('3'),
+            strengtFortroligUtland = fnr.verdi.startsWith('4'),
         )
     }
 
