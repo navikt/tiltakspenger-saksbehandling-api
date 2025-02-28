@@ -1,8 +1,11 @@
 package no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena
 
 import mu.KotlinLogging
+import no.nav.tiltakspenger.libs.arena.tiltak.ArenaDeltakerStatusType
+import no.nav.tiltakspenger.libs.arena.tiltak.toDTO
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
+import no.nav.tiltakspenger.vedtak.clients.tiltak.toDomain
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaDb
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -42,34 +45,8 @@ class ArenaDeltakerMapper {
         )
     }
 
-    private fun DeltakerStatusKodeArena.toTiltakDeltakerstatus(deltakelseFraOgMed: LocalDate?): TiltakDeltakerstatus {
-        val startdatoFremITid = deltakelseFraOgMed == null || deltakelseFraOgMed.isAfter(LocalDate.now())
-        return when (this) {
-            DeltakerStatusKodeArena.DELAVB,
-            DeltakerStatusKodeArena.GJENN_AVB,
-            DeltakerStatusKodeArena.IKKEM,
-            -> TiltakDeltakerstatus.Avbrutt
-
-            DeltakerStatusKodeArena.GJENN_AVL,
-            DeltakerStatusKodeArena.IKKAKTUELL,
-            DeltakerStatusKodeArena.AVSLAG,
-            DeltakerStatusKodeArena.NEITAKK,
-            -> TiltakDeltakerstatus.IkkeAktuell
-
-            DeltakerStatusKodeArena.GJENN,
-            DeltakerStatusKodeArena.TILBUD,
-            -> if (startdatoFremITid) TiltakDeltakerstatus.VenterPåOppstart else TiltakDeltakerstatus.Deltar
-
-            DeltakerStatusKodeArena.VENTELISTE,
-            DeltakerStatusKodeArena.INFOMOETE,
-            -> TiltakDeltakerstatus.Venteliste
-
-            DeltakerStatusKodeArena.AKTUELL -> TiltakDeltakerstatus.SøktInn
-            DeltakerStatusKodeArena.JATAKK -> TiltakDeltakerstatus.Deltar
-            DeltakerStatusKodeArena.FULLF -> TiltakDeltakerstatus.Fullført
-            DeltakerStatusKodeArena.FEILREG -> TiltakDeltakerstatus.Feilregistrert
-        }
-    }
+    private fun ArenaDeltakerStatusType.toTiltakDeltakerstatus(deltakelseFraOgMed: LocalDate?): TiltakDeltakerstatus =
+        this.toDTO(deltakelseFraOgMed).toDomain()
 
     private fun String.asValidatedLocalDate(): LocalDate {
         try {

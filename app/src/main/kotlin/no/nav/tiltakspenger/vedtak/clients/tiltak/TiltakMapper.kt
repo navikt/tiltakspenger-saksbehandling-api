@@ -66,7 +66,7 @@ internal fun mapTiltak(
             )
         }
 
-private fun DeltakerStatusDTO.toDomain(): TiltakDeltakerstatus {
+fun DeltakerStatusDTO.toDomain(): TiltakDeltakerstatus {
     return when (this) {
         VURDERES -> Vurderes
         VENTER_PA_OPPSTART -> VenterPåOppstart
