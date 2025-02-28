@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.domene.behandling
 
 import arrow.core.Either
-import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.felles.OppgaveId
@@ -110,9 +109,6 @@ data class Behandling(
             saksbehandler: Saksbehandler,
             hentSaksopplysninger: suspend (saksopplysningsperiode: Periode) -> Saksopplysninger,
         ): Either<KanIkkeOppretteBehandling, Behandling> {
-            if (søknad.barnetillegg.isNotEmpty()) {
-                return KanIkkeOppretteBehandling.StøtterIkkeBarnetillegg.left()
-            }
             val opprettet = nå()
 
             /** Kommentar jah: Det kan bli aktuelt at saksbehandler får endre på fraOgMed her. */
@@ -385,9 +381,6 @@ data class Behandling(
         when (behandlingstype) {
             FØRSTEGANGSBEHANDLING -> {
                 requireNotNull(søknad) { "Søknad må være satt for førstegangsbehandling" }
-                require(søknad.barnetillegg.isEmpty()) {
-                    "Barnetillegg er ikke støttet i MVP 1"
-                }
             }
 
             REVURDERING -> {

@@ -8,7 +8,6 @@ import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling.FantIkkeTiltak
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling.StøtterIkkeBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling.StøtterKunInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.service.behandling.StartSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteSøknadsbehandling
@@ -18,7 +17,6 @@ import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.fantIkkeTiltak
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.ikkeTilgang
-import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.støtterIkkeBarnetillegg
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.støtterIkkeDelvisEllerAvslag
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond400BadRequest
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond403Forbidden
@@ -54,9 +52,6 @@ fun Route.startBehandlingRoute(
                                     when (it.underliggende) {
                                         FantIkkeTiltak ->
                                             call.respond500InternalServerError(fantIkkeTiltak())
-
-                                        StøtterIkkeBarnetillegg ->
-                                            call.respond400BadRequest(støtterIkkeBarnetillegg())
 
                                         is StøtterKunInnvilgelse -> call.respond400BadRequest(
                                             støtterIkkeDelvisEllerAvslag(),
