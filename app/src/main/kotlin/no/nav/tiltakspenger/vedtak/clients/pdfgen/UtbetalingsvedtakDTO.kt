@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.vedtak.clients.pdfgen
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
@@ -21,6 +22,9 @@ private data class UtbetalingsvedtakDTO(
     val iverksattTidspunkt: String,
     val fødselsnummer: String,
 ) {
+    @Suppress("unused")
+    @JsonInclude
+    val barnetillegg: Boolean = meldekortDager.map { it.beløpBarnetillegg }.any { it > 0 }
 
     data class SaksbehandlerDTO(
         val navn: String,
@@ -37,6 +41,7 @@ private data class UtbetalingsvedtakDTO(
         val tiltakType: String,
         val status: String,
         val beløp: Int,
+        val beløpBarnetillegg: Int,
         val prosent: Int,
         val reduksjon: String?,
     )
@@ -64,6 +69,7 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
                 tiltakType = dag.tiltakstype.toString(),
                 status = dag.toStatus(),
                 beløp = dag.beløp,
+                beløpBarnetillegg = dag.beløpBarnetillegg,
                 prosent = dag.prosent,
                 reduksjon = dag.toReduksjon(),
             )

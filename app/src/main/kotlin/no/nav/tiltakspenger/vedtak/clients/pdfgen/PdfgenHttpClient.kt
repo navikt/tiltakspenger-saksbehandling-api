@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
+import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.felles.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.felles.PdfA
 import no.nav.tiltakspenger.felles.journalføring.PdfOgJson
@@ -13,6 +14,7 @@ import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.Navn
@@ -104,6 +106,7 @@ internal class PdfgenHttpClient(
         innvilgelsesperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
+        barnetilleggsPerioder: Periodisering<AntallBarn>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -118,6 +121,7 @@ internal class PdfgenHttpClient(
                     tiltaksnavn = tiltaksnavn,
                     innvilgelsesperiode = innvilgelsesperiode,
                     saksnummer = saksnummer,
+                    barnetilleggsPerioder = barnetilleggsPerioder,
                 )
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",

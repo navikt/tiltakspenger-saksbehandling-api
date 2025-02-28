@@ -58,6 +58,7 @@ class ForhåndsvisVedtaksbrevService(
                     innvilgelsesperiode = virkingsperiode,
                     saksnummer = sak.saksnummer,
                     sakId = sak.id,
+                    barnetilleggsPerioder = behandling.barnetillegg?.periodisering,
                 ).fold(
                     ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
                     ifRight = { it.pdf },
