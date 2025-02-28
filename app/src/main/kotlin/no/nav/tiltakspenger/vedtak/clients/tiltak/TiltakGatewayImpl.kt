@@ -8,5 +8,9 @@ import no.nav.tiltakspenger.saksbehandling.ports.TiltakGateway
 class TiltakGatewayImpl(
     private val tiltakClient: TiltakClient,
 ) : TiltakGateway {
-    override suspend fun hentTiltaksdeltagelse(fnr: Fnr, maskerTiltaksnavn: Boolean, correlationId: CorrelationId): List<Tiltaksdeltagelse> = mapTiltak(tiltakClient.hentTiltak(fnr, correlationId), maskerTiltaksnavn)
+    override suspend fun hentTiltaksdeltagelse(
+        fnr: Fnr,
+        correlationId: CorrelationId,
+    ): List<Tiltaksdeltagelse> =
+        mapTiltak(tiltakClient.hentTiltak(fnr, correlationId))
 }

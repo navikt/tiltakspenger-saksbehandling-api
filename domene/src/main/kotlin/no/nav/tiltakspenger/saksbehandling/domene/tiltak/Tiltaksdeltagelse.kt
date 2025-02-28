@@ -5,8 +5,8 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 
 /**
  * @param eksternDeltagelseId mappes fra aktivitetId som vi mottar fra søknadsfrontenden (via søknad-api). Dette er tiltaksdeltagelseIDen og vil kun være forskjellig avhengig om den kommer fra Arena (TA1234567), Komet (UUID) eller team Tiltak (?). Kalles ekstern_id i databasen.
- * @param typeNavn TODO jah Burde renames til tiltaksnavn eller gjennomføringsnavn (ta opp med Tia). Kan inneholde geolokaasjon, eksempelvis Rema 1000 i Strandveien.
- * @param gjennomføringId Ekstern id. Dette er gjennomføringen sin ID, eksempelvis Rema 1000 i Strandveien. En person knyttes til en gjennomføring og det kalles da en deltagelse. Per nå mottar vi ikke denne fra Arena, men kun fra Komet.
+ * @param typeNavn Navn på tiltakstypen, f.eks. "Arbeidsforberedende trening"
+ * @param gjennomføringId Ekstern id fra Valp. Dette er gjennomføringen sin ID, eksempelvis Rema 1000 i Strandveien. En person knyttes til en gjennomføring og det kalles da en deltagelse. Per nå mottar vi ikke denne fra Arena, men kun fra Komet.
  */
 data class Tiltaksdeltagelse(
     val eksternDeltagelseId: String,

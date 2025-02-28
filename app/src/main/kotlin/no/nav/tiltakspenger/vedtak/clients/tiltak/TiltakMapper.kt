@@ -35,7 +35,6 @@ import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
 
 internal fun mapTiltak(
     tiltakDTOListe: List<TiltakTilSaksbehandlingDTO>,
-    maskerTiltaksnavn: Boolean,
 ): List<Tiltaksdeltagelse> =
     tiltakDTOListe
         .filterNot { it.deltakelseFom == null }
@@ -44,7 +43,7 @@ internal fun mapTiltak(
             Tiltaksdeltagelse(
                 eksternDeltagelseId = tiltakDto.id,
                 gjennomføringId = tiltakDto.gjennomføringId,
-                typeNavn = if (maskerTiltaksnavn) "Ikke tilgjengelig" else tiltakDto.typeNavn,
+                typeNavn = tiltakDto.typeNavn,
                 typeKode = tiltakDto.typeKode.toTiltakstypeSomGirRett().getOrElse {
                     throw IllegalStateException(
                         "Inneholder tiltakstype som ikke gir rett (som vi ikke støtter i MVP): ${tiltakDto.typeKode}. Tiltaksid: ${tiltakDto.id}",
