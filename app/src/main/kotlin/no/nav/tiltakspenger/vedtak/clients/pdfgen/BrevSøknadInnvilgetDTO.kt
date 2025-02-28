@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.vedtak.clients.pdfgen
 
-import java.time.LocalDate
 import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
@@ -12,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.utbetaling.domene.Satser
 import no.nav.tiltakspenger.vedtak.clients.pdfgen.formattering.norskDatoFormatter
+import java.time.LocalDate
 
 @Suppress("unused")
 private data class BrevFørstegangsvedtakInnvilgelseDTO(
