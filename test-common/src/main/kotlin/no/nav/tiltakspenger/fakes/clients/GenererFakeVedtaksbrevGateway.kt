@@ -53,6 +53,7 @@ class GenererFakeVedtaksbrevGateway :
         innvilgelsesperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
+        forhåndsvisning: Boolean,
         barnetilleggsPerioder: Periodisering<AntallBarn>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
@@ -78,6 +79,7 @@ class GenererFakeVedtaksbrevGateway :
         stansperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
+        forhåndsvisning: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
     }

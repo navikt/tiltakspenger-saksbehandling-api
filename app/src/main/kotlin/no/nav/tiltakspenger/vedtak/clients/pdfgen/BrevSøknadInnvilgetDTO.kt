@@ -29,6 +29,7 @@ private data class BrevFørstegangsvedtakInnvilgelseDTO(
     val sats: Int,
     val satsBarn: Int,
     val tilleggstekst: String? = null,
+    val forhandsvisning: Boolean,
 ) {
     val barnetillegg: Boolean = antallBarn.isNotEmpty()
 
@@ -56,6 +57,8 @@ internal suspend fun Rammevedtak.toInnvilgetSøknadsbrev(
         tiltaksnavn = this.behandling.tiltaksnavn,
         innvilgelsesperiode = this.periode,
         saksnummer = saksnummer,
+        // finnes ikke noe forhåndsvisning for rammevedtak
+        forhåndsvisning = false,
         barnetilleggsPerioder = this.behandling.barnetillegg?.periodisering,
     )
 }
@@ -71,6 +74,7 @@ internal suspend fun genererInnvilgetSøknadsbrev(
     tiltaksnavn: String,
     innvilgelsesperiode: Periode,
     saksnummer: Saksnummer,
+    forhåndsvisning: Boolean,
     barnetilleggsPerioder: Periodisering<AntallBarn>?,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)
@@ -97,6 +101,7 @@ internal suspend fun genererInnvilgetSøknadsbrev(
         sats = Satser.sats(innvilgelsesperiode.fraOgMed).sats,
         satsBarn = Satser.sats(innvilgelsesperiode.fraOgMed).satsBarnetillegg,
         tilleggstekst = tilleggstekst?.verdi,
+        forhandsvisning = forhåndsvisning,
         antallBarn = barnetilleggsPerioder?.perioderMedVerdi?.map {
             BrevFørstegangsvedtakInnvilgelseDTO.AntallBarnPerPeriodeDTO(
                 antallBarn = it.verdi.value,

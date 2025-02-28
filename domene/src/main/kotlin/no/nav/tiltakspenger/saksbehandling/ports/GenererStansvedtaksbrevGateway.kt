@@ -30,5 +30,6 @@ interface GenererStansvedtaksbrevGateway {
         stansperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
+        forhåndsvisning: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }
