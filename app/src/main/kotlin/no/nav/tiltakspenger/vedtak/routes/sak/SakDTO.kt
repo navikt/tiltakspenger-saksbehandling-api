@@ -22,7 +22,9 @@ fun Sak.toDTO() = SakDTO(
     saksnummer = saksnummer.verdi,
     sakId = id.toString(),
     fnr = fnr.verdi,
-    behandlingsoversikt = behandlinger.toSaksoversiktDTO(),
+    behandlingsoversikt = behandlinger.toSaksoversiktDTO() +
+        this.soknader.filter { soknad -> behandlinger.none { it.søknad?.id == soknad.id } }
+            .toSaksoversiktDTO().sortedBy { it.opprettet },
     meldeperiodeKjeder = toMeldeperiodeKjederDTO(),
     førsteLovligeStansdato = førsteLovligeStansdato(),
     sisteDagSomGirRett = sisteDagSomGirRett,

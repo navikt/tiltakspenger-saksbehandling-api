@@ -28,6 +28,7 @@ class SaksoversiktFakeRepo(
                 saksbehandler = behandling.saksbehandler,
                 beslutter = behandling.beslutter,
                 sakId = behandling.sakId,
+                opprettet = behandling.opprettet,
             )
         }
     }
@@ -47,6 +48,7 @@ class SaksoversiktFakeRepo(
                 saksbehandler = null,
                 beslutter = null,
                 sakId = null,
+                opprettet = søknad.opprettet,
             )
         }
     }
