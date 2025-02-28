@@ -3,7 +3,6 @@
 package no.nav.tiltakspenger.vedtak.clients.tiltak
 
 import arrow.core.getOrElse
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.AVBRUTT
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.DELTAR
@@ -50,7 +49,8 @@ internal fun mapTiltak(
                     )
                 },
                 rettPåTiltakspenger = tiltakDto.typeKode.rettPåTiltakspenger,
-                deltakelsesperiode = Periode(tiltakDto.deltakelseFom!!, tiltakDto.deltakelseTom!!),
+                deltagelseFraOgMed = tiltakDto.deltakelseFom,
+                deltagelseTilOgMed = tiltakDto.deltakelseTom,
                 deltakelseStatus = tiltakDto.deltakelseStatus.toDomain(),
                 antallDagerPerUke = tiltakDto.deltakelsePerUke,
                 deltakelseProsent = tiltakDto.deltakelseProsent,

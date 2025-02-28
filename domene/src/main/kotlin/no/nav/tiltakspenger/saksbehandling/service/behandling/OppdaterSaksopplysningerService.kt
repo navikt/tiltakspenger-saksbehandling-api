@@ -58,7 +58,7 @@ class OppdaterSaksopplysningerService(
             )
             // Vi ønsker ikke filtrere bort tiltak som det ikke er søkt på, siden vi kun tillater de å søke på ett tiltak om gangen. I tillegg kan det ha dukket opp nye tiltak etter brukeren søkte.
         }
-        val registrerteTiltak = ikkeFiltrerteTiltak.filter { it.deltakelsesperiode.overlapperMed(saksopplysningsperiode) }
+        val registrerteTiltak = ikkeFiltrerteTiltak.filter { it.overlapperMedPeriode(saksopplysningsperiode) }
         return Saksopplysninger(
             fødselsdato = personopplysninger.fødselsdato,
             // TODO John + Anders: Vurder på hvilket tidspunkt denne kan gjøres om til en liste. Kan det vente til vi har slettet vilkårssettet?

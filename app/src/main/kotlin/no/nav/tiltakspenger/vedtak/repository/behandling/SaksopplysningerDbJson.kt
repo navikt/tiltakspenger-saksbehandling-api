@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.vedtak.repository.behandling
 
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.vedtak.repository.behandling.SaksopplysningerDbJson.TiltaksdeltagelseDbJson
@@ -36,7 +35,8 @@ private data class SaksopplysningerDbJson(
                 gjennomføringId = gjennomføringId,
                 typeNavn = typeNavn,
                 typeKode = typeKode.toTiltakstypeSomGirRett(),
-                deltakelsesperiode = Periode(deltagelseFraOgMed!!, deltagelseTilOgMed!!),
+                deltagelseFraOgMed = deltagelseFraOgMed,
+                deltagelseTilOgMed = deltagelseTilOgMed,
                 deltakelseStatus = deltakelseStatus.toTiltakDeltakerstatus(),
                 deltakelseProsent = deltakelseProsent,
                 antallDagerPerUke = antallDagerPerUke,
@@ -53,8 +53,8 @@ private fun Tiltaksdeltagelse.toDbJson(): TiltaksdeltagelseDbJson {
         gjennomføringId = this.gjennomføringId,
         typeNavn = this.typeNavn,
         typeKode = this.typeKode.toDb(),
-        deltagelseFraOgMed = this.deltakelsesperiode.fraOgMed,
-        deltagelseTilOgMed = this.deltakelsesperiode.tilOgMed,
+        deltagelseFraOgMed = this.deltagelseFraOgMed,
+        deltagelseTilOgMed = this.deltagelseTilOgMed,
         deltakelseStatus = this.deltakelseStatus.toDb(),
         deltakelseProsent = this.deltakelseProsent,
         antallDagerPerUke = this.antallDagerPerUke,

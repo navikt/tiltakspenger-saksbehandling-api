@@ -21,8 +21,8 @@ data class TiltaksdeltakerKafkaDb(
     fun tiltaksdeltakelseErEndret(
         tiltaksdeltakelseFraBehandling: Tiltaksdeltagelse,
     ): Boolean {
-        val sammeFom = deltakelseFraOgMed == tiltaksdeltakelseFraBehandling.deltakelsesperiode.fraOgMed
-        val sammeTom = deltakelseTilOgMed == tiltaksdeltakelseFraBehandling.deltakelsesperiode.tilOgMed
+        val sammeFom = deltakelseFraOgMed == tiltaksdeltakelseFraBehandling.deltagelseFraOgMed
+        val sammeTom = deltakelseTilOgMed == tiltaksdeltakelseFraBehandling.deltagelseTilOgMed
 
         val sammeAntallDagerPerUke = floatIsEqual(dagerPerUke, tiltaksdeltakelseFraBehandling.antallDagerPerUke)
         val sammeDeltakelsesprosent = floatIsEqual(deltakelsesprosent, tiltaksdeltakelseFraBehandling.deltakelseProsent)
