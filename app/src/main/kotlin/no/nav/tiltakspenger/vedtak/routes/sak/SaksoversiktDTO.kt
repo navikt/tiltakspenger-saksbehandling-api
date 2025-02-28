@@ -28,6 +28,7 @@ data class SaksoversiktDTO(
     val sakId: String?,
     val saksbehandler: String?,
     val beslutter: String?,
+    val opprettet: String,
 )
 
 internal fun Saksoversikt.toDTO(): List<SaksoversiktDTO> = this.map { it.toSaksoversiktDTO() }
@@ -48,6 +49,7 @@ fun BehandlingEllerSøknadForSaksoversikt.toSaksoversiktDTO() = SaksoversiktDTO(
     saksbehandler = saksbehandler,
     beslutter = beslutter,
     sakId = sakId.toString(),
+    opprettet = this.opprettet.toString(),
 )
 
 fun List<Behandling>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
@@ -69,6 +71,7 @@ fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
     sakId = sakId.toString(),
     saksbehandler = saksbehandler,
     beslutter = beslutter,
+    opprettet = this.opprettet.toString(),
 )
 
 fun Søknad.toSaksoversiktDTO() = SaksoversiktDTO(
@@ -83,4 +86,5 @@ fun Søknad.toSaksoversiktDTO() = SaksoversiktDTO(
     sakId = this.sakId.toString(),
     saksbehandler = null,
     beslutter = null,
+    opprettet = this.opprettet.toString(),
 )

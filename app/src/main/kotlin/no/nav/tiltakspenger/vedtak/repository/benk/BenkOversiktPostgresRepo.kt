@@ -78,6 +78,7 @@ class BenkOversiktPostgresRepo(
                             saksbehandler = saksbehandler,
                             beslutter = beslutter,
                             sakId = row.stringOrNull("sak_id")?.let { SakId.fromString(it) },
+                            opprettet = row.localDateTime("opprettet"),
                         )
                     }.asList,
                 )
@@ -116,6 +117,7 @@ class BenkOversiktPostgresRepo(
                             saksbehandler = null,
                             beslutter = null,
                             sakId = row.stringOrNull("sak_id")?.let { SakId.fromString(it) },
+                            opprettet = opprettet,
                         )
                     }.asList,
                 )

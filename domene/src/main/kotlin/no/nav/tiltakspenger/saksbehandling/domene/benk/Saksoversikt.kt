@@ -35,6 +35,7 @@ data class BehandlingEllerSøknadForSaksoversikt(
     val saksbehandler: String?,
     val beslutter: String?,
     val sakId: SakId?,
+    val opprettet: LocalDateTime,
 ) {
     sealed interface Status {
         data object Søknad : Status
