@@ -21,6 +21,7 @@ sealed interface MeldeperiodeBeregningDag {
     val beregningsdag: Beregningsdag?
 
     val beløp: Int get() = beregningsdag?.beløp ?: 0
+    val beløpBarnetillegg: Int get() = beregningsdag?.beløpBarnetillegg ?: 0
     val prosent: Int get() = beregningsdag?.prosent ?: 0
 
     /** Begrenses av maksDagerMedTiltakspengerForPeriode (1-14) per meldeperiode og SPERRET. */

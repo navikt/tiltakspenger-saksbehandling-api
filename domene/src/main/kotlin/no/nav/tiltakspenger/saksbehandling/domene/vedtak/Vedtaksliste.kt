@@ -74,7 +74,7 @@ data class Vedtaksliste(
     /** Tidslinje for antall barn. Første og siste periode vil være 1 eller flere. Kan inneholde hull med 0 barn. */
     val barnetilleggsperioder: Periodisering<AntallBarn> by lazy {
         tidslinje.perioderMedVerdi.flatMap { pmvVedtak ->
-            (pmvVedtak.verdi.barnetillegg?.value?.perioderMedVerdi ?: emptyList()).mapNotNull {
+            (pmvVedtak.verdi.barnetillegg?.periodisering?.perioderMedVerdi ?: emptyList()).mapNotNull {
                 it.periode.overlappendePeriode(pmvVedtak.periode)?.let { overlappendePeriode ->
                     PeriodeMedVerdi(
                         periode = overlappendePeriode,
