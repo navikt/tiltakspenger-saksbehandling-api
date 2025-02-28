@@ -11,6 +11,10 @@ class TiltakGatewayImpl(
     override suspend fun hentTiltaksdeltagelse(
         fnr: Fnr,
         correlationId: CorrelationId,
-    ): List<Tiltaksdeltagelse> =
-        mapTiltak(tiltakClient.hentTiltak(fnr, correlationId))
+    ): List<Tiltaksdeltagelse> {
+        val tiltak = tiltakClient.hentTiltak(fnr, correlationId)
+        val relevanteTiltak = tiltak.filter { it.harFomOgTomEllerRelevantStatus() }
+            .filter { it.rettPaTiltakspenger() }
+        return mapTiltak(relevanteTiltak)
+    }
 }

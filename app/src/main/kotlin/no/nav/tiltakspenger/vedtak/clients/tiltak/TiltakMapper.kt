@@ -36,8 +36,6 @@ internal fun mapTiltak(
     tiltakDTOListe: List<TiltakTilSaksbehandlingDTO>,
 ): List<Tiltaksdeltagelse> =
     tiltakDTOListe
-        .filterNot { it.deltakelseFom == null }
-        .filterNot { it.deltakelseTom == null }
         .map { tiltakDto ->
             Tiltaksdeltagelse(
                 eksternDeltagelseId = tiltakDto.id,
@@ -80,3 +78,14 @@ fun DeltakerStatusDTO.toDomain(): TiltakDeltakerstatus {
         FULLFORT -> Fullført
     }
 }
+
+fun TiltakTilSaksbehandlingDTO.harFomOgTomEllerRelevantStatus(): Boolean {
+    if (deltakelseFom != null || deltakelseTom != null) {
+        return true
+    }
+    // Venter på oppstart er den eneste statusen der datoer kan mangle og som kan være relevant ift tiltakspenger
+    return deltakelseStatus == VENTER_PA_OPPSTART
+}
+
+fun TiltakTilSaksbehandlingDTO.rettPaTiltakspenger(): Boolean =
+    typeKode.toTiltakstypeSomGirRett().isRight()
