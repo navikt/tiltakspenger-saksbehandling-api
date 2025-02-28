@@ -8,11 +8,11 @@ import java.time.LocalDate
  * Representerer en periodisering av barnetillegg.
  */
 data class Barnetillegg(
-    val value: Periodisering<AntallBarn>,
+    val periodisering: Periodisering<AntallBarn>,
     val begrunnelse: BegrunnelseVilkårsvurdering?,
 ) {
     /** @return 0 dersom datoen er utenfor periodiseringen. */
     fun antallBarnPåDato(dato: LocalDate): AntallBarn {
-        return value.hentVerdiForDag(dato) ?: AntallBarn.ZERO
+        return periodisering.hentVerdiForDag(dato) ?: AntallBarn.ZERO
     }
 }

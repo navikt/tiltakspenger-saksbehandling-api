@@ -45,7 +45,7 @@ internal class BehandlingRepoTest {
                 deltakelseFom = deltakelseFom,
                 deltakelseTom = deltakelseTom,
                 barnetillegg = Barnetillegg(
-                    value = Periodisering(
+                    periodisering = Periodisering(
                         PeriodeMedVerdi(AntallBarn(1), Periode(deltakelseFom, deltakelseTom)),
                     ),
                     begrunnelse = BegrunnelseVilkårsvurdering("Begrunnelse"),

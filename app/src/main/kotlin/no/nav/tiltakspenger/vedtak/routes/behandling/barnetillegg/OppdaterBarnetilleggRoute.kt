@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.vedtak.routes.behandling
+package no.nav.tiltakspenger.vedtak.routes.behandling.barnetillegg
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
@@ -47,7 +47,7 @@ private data class OppdaterBarnetilleggBody(
         correlationId = correlationId,
         saksbehandler = saksbehandler,
         barnetillegg = Barnetillegg(
-            value = Periodisering(
+            periodisering = Periodisering(
                 barnetilleggForPeriode.map {
                     PeriodeMedVerdi(AntallBarn(it.antallBarn), it.periode.toDomain())
                 },

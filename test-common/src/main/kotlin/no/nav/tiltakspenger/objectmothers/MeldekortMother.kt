@@ -101,11 +101,13 @@ interface MeldekortMother {
             fnr = fnr,
             opprettet = opprettet,
         ),
+        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
         meldekortperiodeBeregning: MeldeperiodeBeregning.UtfyltMeldeperiode =
             utfyltMeldekortperiode(
                 meldekortId = id,
                 sakId = sakId,
                 startDato = meldeperiode.periode.fraOgMed,
+                barnetilleggsPerioder = barnetilleggsPerioder,
             ),
 
         saksbehandler: String = "saksbehandler",
@@ -115,9 +117,7 @@ interface MeldekortMother {
         iverksattTidspunkt: LocalDateTime? = nå(),
         navkontor: Navkontor = ObjectMother.navkontor(),
         antallDagerForMeldeperiode: Int = 14,
-
         sendtTilBeslutning: LocalDateTime = nå(),
-
     ): MeldekortBehandling.MeldekortBehandlet {
         return MeldekortBehandling.MeldekortBehandlet(
             id = id,
@@ -148,11 +148,17 @@ interface MeldekortMother {
         meldekortId: MeldekortId = MeldekortId.random(),
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         maksDagerMedTiltakspengerForPeriode: Int = 14,
+        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
     ): MeldeperiodeBeregning.UtfyltMeldeperiode {
         return MeldeperiodeBeregning.UtfyltMeldeperiode(
             sakId = sakId,
             maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-            dager = maksAntallDeltattTiltaksdagerIMeldekortperiode(startDato, meldekortId, tiltakstype),
+            dager = maksAntallDeltattTiltaksdagerIMeldekortperiode(
+                startDato,
+                meldekortId,
+                tiltakstype,
+                barnetilleggsPerioder,
+            ),
         )
     }
 
@@ -185,11 +191,12 @@ interface MeldekortMother {
         startDato: LocalDate,
         meldekortId: MeldekortId,
         tiltakstype: TiltakstypeSomGirRett,
+        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
     ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
         return (
-            tiltaksdager(startDato, meldekortId, tiltakstype) +
+            tiltaksdager(startDato, meldekortId, tiltakstype, barnetilleggsPerioder = barnetilleggsPerioder) +
                 ikkeTiltaksdager(startDato.plusDays(5), meldekortId, 2, tiltakstype) +
-                tiltaksdager(startDato.plusDays(7), meldekortId, tiltakstype) +
+                tiltaksdager(startDato.plusDays(7), meldekortId, tiltakstype, barnetilleggsPerioder = barnetilleggsPerioder) +
                 ikkeTiltaksdager(startDato.plusDays(12), meldekortId, 2, tiltakstype)
             ).toNonEmptyListOrNull()!!
     }
@@ -199,17 +206,18 @@ interface MeldekortMother {
         meldekortId: MeldekortId = MeldekortId.random(),
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         antallDager: Int = 5,
-        antallBarn: AntallBarn = AntallBarn.ZERO,
+        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
     ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket> {
         require(antallDager in 1..5) {
             "Antall sammenhengende dager vil aldri være mer mindre enn 1 eller mer enn 5, men var $antallDager"
         }
         return List(antallDager) { index ->
+            val dato = startDato.plusDays(index.toLong())
             MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket.create(
-                dato = startDato.plusDays(index.toLong()),
+                dato = dato,
                 meldekortId = meldekortId,
                 tiltakstype = tiltakstype,
-                antallBarn = antallBarn,
+                antallBarn = barnetilleggsPerioder.hentVerdiForDag(dato) ?: AntallBarn.ZERO,
             )
         }.toNonEmptyListOrNull()!!
     }
@@ -219,17 +227,18 @@ interface MeldekortMother {
         meldekortId: MeldekortId = MeldekortId.random(),
         antallDager: Int = 2,
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
-        antallBarn: AntallBarn = AntallBarn.ZERO,
+        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
     ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt> {
         require(antallDager in 1..5) {
             "Antall sammenhengende dager vil aldri være mer mindre enn 1 eller mer enn 5, men var $antallDager"
         }
         return List(antallDager) { index ->
+            val dato = startDato.plusDays(index.toLong())
             MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt.create(
-                dato = startDato.plusDays(index.toLong()),
+                dato = dato,
                 meldekortId = meldekortId,
                 tiltakstype = tiltakstype,
-                antallBarn = antallBarn,
+                antallBarn = barnetilleggsPerioder.hentVerdiForDag(dato) ?: AntallBarn.ZERO,
             )
         }.toNonEmptyListOrNull()!!
     }
@@ -246,6 +255,7 @@ interface MeldekortMother {
             totalePeriode = vurderingsperiode,
         ),
         navkontor: Navkontor = ObjectMother.navkontor(),
+        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
     ): MeldekortBehandlinger {
         val kommandoer = meldeperioder.map { meldeperiode ->
             SendMeldekortTilBeslutningKommando(
@@ -266,7 +276,7 @@ interface MeldekortMother {
                 meldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommandoer.first().periode),
             ).first,
         ) { meldekortperioder, kommando ->
-            meldekortperioder.beregnNesteMeldekort(kommando, fnr)
+            meldekortperioder.beregnNesteMeldekort(kommando, fnr, barnetilleggsPerioder = barnetilleggsPerioder)
         }
     }
 
@@ -326,7 +336,7 @@ interface MeldekortMother {
         meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
         opprettet: LocalDateTime = nå(),
-        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
+        barnetilleggsPerioder: Periodisering<AntallBarn>,
     ): MeldekortBehandlinger {
         val meldekortId = kommando.meldekortId
         val sakId = kommando.sakId

@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.service.behandling.brev.ForhåndsvisV
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.service.sak.StartRevurderingService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
+import no.nav.tiltakspenger.vedtak.routes.behandling.barnetillegg.oppdaterBarnetilleggRoute
 import no.nav.tiltakspenger.vedtak.routes.behandling.beslutter.iverksettBehandlingRoute
 import no.nav.tiltakspenger.vedtak.routes.behandling.brev.forhåndsvisVedtaksbrevRoute
 import no.nav.tiltakspenger.vedtak.routes.behandling.brev.oppdaterFritekstTilVedtaksbrevRoute

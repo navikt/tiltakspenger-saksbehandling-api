@@ -17,8 +17,19 @@ data class Beregningsdag(
 ) {
     init {
         require(dato == satsdag.dato)
+        if (beløpBarnetillegg > 0) {
+            require(antallBarn.value > 0) {
+                "Antall barn må være større enn 0 for å få barnetillegg"
+            }
+        }
+        if (beløpBarnetillegg > 0) {
+            require(beløp > 0) {
+                "Man kan ikke få barnetillegg uten å få hovedytelse"
+            }
+        }
     }
 }
+
 fun beregnDag(
     dato: LocalDate,
     reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,

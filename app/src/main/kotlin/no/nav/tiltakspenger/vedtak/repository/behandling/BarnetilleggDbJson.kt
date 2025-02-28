@@ -23,7 +23,7 @@ private data class BarnetilleggPeriodeMedVerdi(
 fun String.toBarnetillegg(): Barnetillegg {
     val barnetilleggDbJson = deserialize<BarnetilleggDbJson>(this)
     return Barnetillegg(
-        value = Periodisering(
+        periodisering = Periodisering(
             barnetilleggDbJson.value.map {
                 PeriodeMedVerdi(
                     periode = it.periode.toDomain(),
@@ -36,7 +36,7 @@ fun String.toBarnetillegg(): Barnetillegg {
 }
 
 fun Barnetillegg.toDbJson(): String = BarnetilleggDbJson(
-    value = this.value.perioderMedVerdi.map {
+    value = this.periodisering.perioderMedVerdi.map {
         BarnetilleggPeriodeMedVerdi(
             periode = it.periode.toDbJson(),
             verdi = it.verdi.value,
