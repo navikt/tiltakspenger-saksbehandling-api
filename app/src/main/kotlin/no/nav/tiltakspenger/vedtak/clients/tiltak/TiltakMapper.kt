@@ -3,7 +3,6 @@
 package no.nav.tiltakspenger.vedtak.clients.tiltak
 
 import arrow.core.getOrElse
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.AVBRUTT
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.DELTAR
@@ -35,23 +34,21 @@ import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
 
 internal fun mapTiltak(
     tiltakDTOListe: List<TiltakTilSaksbehandlingDTO>,
-    maskerTiltaksnavn: Boolean,
 ): List<Tiltaksdeltagelse> =
     tiltakDTOListe
-        .filterNot { it.deltakelseFom == null }
-        .filterNot { it.deltakelseTom == null }
         .map { tiltakDto ->
             Tiltaksdeltagelse(
                 eksternDeltagelseId = tiltakDto.id,
                 gjennomføringId = tiltakDto.gjennomføringId,
-                typeNavn = if (maskerTiltaksnavn) "Ikke tilgjengelig" else tiltakDto.typeNavn,
+                typeNavn = tiltakDto.typeNavn,
                 typeKode = tiltakDto.typeKode.toTiltakstypeSomGirRett().getOrElse {
                     throw IllegalStateException(
                         "Inneholder tiltakstype som ikke gir rett (som vi ikke støtter i MVP): ${tiltakDto.typeKode}. Tiltaksid: ${tiltakDto.id}",
                     )
                 },
                 rettPåTiltakspenger = tiltakDto.typeKode.rettPåTiltakspenger,
-                deltakelsesperiode = Periode(tiltakDto.deltakelseFom!!, tiltakDto.deltakelseTom!!),
+                deltagelseFraOgMed = tiltakDto.deltakelseFom,
+                deltagelseTilOgMed = tiltakDto.deltakelseTom,
                 deltakelseStatus = tiltakDto.deltakelseStatus.toDomain(),
                 antallDagerPerUke = tiltakDto.deltakelsePerUke,
                 deltakelseProsent = tiltakDto.deltakelseProsent,
@@ -66,7 +63,7 @@ internal fun mapTiltak(
             )
         }
 
-private fun DeltakerStatusDTO.toDomain(): TiltakDeltakerstatus {
+fun DeltakerStatusDTO.toDomain(): TiltakDeltakerstatus {
     return when (this) {
         VURDERES -> Vurderes
         VENTER_PA_OPPSTART -> VenterPåOppstart
@@ -81,3 +78,14 @@ private fun DeltakerStatusDTO.toDomain(): TiltakDeltakerstatus {
         FULLFORT -> Fullført
     }
 }
+
+fun TiltakTilSaksbehandlingDTO.harFomOgTomEllerRelevantStatus(): Boolean {
+    if (deltakelseFom != null || deltakelseTom != null) {
+        return true
+    }
+    // Venter på oppstart er den eneste statusen der datoer kan mangle og som kan være relevant ift tiltakspenger
+    return deltakelseStatus == VENTER_PA_OPPSTART
+}
+
+fun TiltakTilSaksbehandlingDTO.rettPaTiltakspenger(): Boolean =
+    typeKode.toTiltakstypeSomGirRett().isRight()

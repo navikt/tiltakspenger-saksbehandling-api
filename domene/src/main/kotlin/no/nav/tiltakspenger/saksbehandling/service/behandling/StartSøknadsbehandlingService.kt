@@ -69,8 +69,6 @@ class StartSøknadsbehandlingService(
         require(adressebeskyttelseGradering != null) { "Fant ikke adressebeskyttelse for person. SøknadId: $søknadId" }
         val hentSaksopplysninger: suspend (Periode) -> Saksopplysninger = { saksopplysningsperiode: Periode ->
             oppdaterSaksopplysningerService.hentSaksopplysningerFraRegistre(
-                sakId = sakId,
-                saksnummer = sak.saksnummer,
                 fnr = fnr,
                 correlationId = correlationId,
                 saksopplysningsperiode = saksopplysningsperiode,

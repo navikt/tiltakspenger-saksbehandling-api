@@ -6,11 +6,9 @@ import arrow.core.right
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteRevurdering
 
@@ -18,7 +16,7 @@ private val loggerForStartRevurdering = KotlinLogging.logger { }
 
 suspend fun Sak.startRevurdering(
     kommando: StartRevurderingKommando,
-    hentSaksopplysninger: suspend (sakId: SakId, saksnummer: Saksnummer, fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger,
+    hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger,
 ): Either<KanIkkeStarteRevurdering, Pair<Sak, Behandling>> {
     val saksbehandler = kommando.saksbehandler
 
@@ -45,8 +43,6 @@ suspend fun Sak.startRevurdering(
         saksbehandler = saksbehandler,
         hentSaksopplysninger = {
             hentSaksopplysninger(
-                this.id,
-                this.saksnummer,
                 this.fnr,
                 kommando.correlationId,
                 saksopplysningsperiode,

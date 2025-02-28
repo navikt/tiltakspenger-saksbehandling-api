@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.felles.april
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
@@ -22,7 +21,8 @@ class TiltaksdeltakerKafkaDbTest {
         typeNavn = "Avklaring",
         typeKode = TiltakstypeSomGirRett.AVKLARING,
         rettPåTiltakspenger = true,
-        deltakelsesperiode = Periode(fraOgMed = 5.januar(2025), tilOgMed = 5.april(2025)),
+        deltagelseFraOgMed = 5.januar(2025),
+        deltagelseTilOgMed = 5.april(2025),
         deltakelseStatus = TiltakDeltakerstatus.Deltar,
         deltakelseProsent = 50.0F,
         antallDagerPerUke = 2.0F,
@@ -39,14 +39,14 @@ class TiltaksdeltakerKafkaDbTest {
     @Test
     fun `tiltaksdeltakelseErEndret - endret startdato - returnerer true`() {
         val tiltaksdeltakerKafkaDb =
-            getTiltaksdeltakerKafkaDb(fom = lagretTiltaksdeltakelse.deltakelsesperiode.fraOgMed.minusDays(3))
+            getTiltaksdeltakerKafkaDb(fom = lagretTiltaksdeltakelse.deltagelseFraOgMed!!.minusDays(3))
 
         tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse) shouldBe true
     }
 
     @Test
     fun `tiltaksdeltakelseErEndret - endret sluttdato - returnerer true`() {
-        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(tom = lagretTiltaksdeltakelse.deltakelsesperiode.tilOgMed.plusMonths(1))
+        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(tom = lagretTiltaksdeltakelse.deltagelseTilOgMed!!.plusMonths(1))
 
         tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(lagretTiltaksdeltakelse) shouldBe true
     }
@@ -76,14 +76,12 @@ class TiltaksdeltakerKafkaDbTest {
     @Test
     fun `tiltaksdeltakelseErEndret - endret status og sluttdato - returnerer true`() {
         val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(
-            deltakelsesperiode = Periode(
-                fraOgMed = LocalDate.now().minusMonths(3),
-                tilOgMed = LocalDate.now().plusWeeks(1),
-            ),
+            deltagelseFraOgMed = LocalDate.now().minusMonths(3),
+            deltagelseTilOgMed = LocalDate.now().plusWeeks(1),
         )
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
-            fom = tiltaksdeltakelse.deltakelsesperiode.fraOgMed,
-            tom = tiltaksdeltakelse.deltakelsesperiode.tilOgMed.minusWeeks(2),
+            fom = tiltaksdeltakelse.deltagelseFraOgMed,
+            tom = tiltaksdeltakelse.deltagelseTilOgMed!!.minusWeeks(2),
             deltakerstatus = TiltakDeltakerstatus.HarSluttet,
         )
 
@@ -93,14 +91,12 @@ class TiltaksdeltakerKafkaDbTest {
     @Test
     fun `tiltaksdeltakelseErEndret - kun endret status til fullfort, sluttdato er passert - returnerer false`() {
         val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(
-            deltakelsesperiode = Periode(
-                fraOgMed = LocalDate.now().minusMonths(3),
-                tilOgMed = LocalDate.now().minusDays(1),
-            ),
+            deltagelseFraOgMed = LocalDate.now().minusMonths(3),
+            deltagelseTilOgMed = LocalDate.now().minusDays(1),
         )
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
-            fom = tiltaksdeltakelse.deltakelsesperiode.fraOgMed,
-            tom = tiltaksdeltakelse.deltakelsesperiode.tilOgMed,
+            fom = tiltaksdeltakelse.deltagelseFraOgMed,
+            tom = tiltaksdeltakelse.deltagelseTilOgMed,
             deltakerstatus = TiltakDeltakerstatus.Fullført,
         )
 
@@ -110,14 +106,12 @@ class TiltaksdeltakerKafkaDbTest {
     @Test
     fun `tiltaksdeltakelseErEndret - kun endret status til fullfort, sluttdato er ikke passert - returnerer true`() {
         val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(
-            deltakelsesperiode = Periode(
-                fraOgMed = LocalDate.now().minusMonths(3),
-                tilOgMed = LocalDate.now().plusWeeks(1),
-            ),
+            deltagelseFraOgMed = LocalDate.now().minusMonths(3),
+            deltagelseTilOgMed = LocalDate.now().plusWeeks(1),
         )
         val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
-            fom = tiltaksdeltakelse.deltakelsesperiode.fraOgMed,
-            tom = tiltaksdeltakelse.deltakelsesperiode.tilOgMed,
+            fom = tiltaksdeltakelse.deltagelseFraOgMed,
+            tom = tiltaksdeltakelse.deltagelseTilOgMed,
             deltakerstatus = TiltakDeltakerstatus.Fullført,
         )
 

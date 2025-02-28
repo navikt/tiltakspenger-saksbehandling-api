@@ -75,7 +75,6 @@ open class FørstegangsbehandlingContext(
     }
     val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService by lazy {
         OppdaterSaksopplysningerService(
-            tilgangsstyringService = tilgangsstyringService,
             sakService = sakService,
             personService = personService,
             tiltakGateway = tiltakGateway,

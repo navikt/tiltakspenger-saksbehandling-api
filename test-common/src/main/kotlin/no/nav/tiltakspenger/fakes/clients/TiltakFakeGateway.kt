@@ -13,7 +13,6 @@ class TiltakFakeGateway(private val søknadRepo: SøknadRepo) : TiltakGateway {
 
     override suspend fun hentTiltaksdeltagelse(
         fnr: Fnr,
-        maskerTiltaksnavn: Boolean,
         correlationId: CorrelationId,
     ): List<Tiltaksdeltagelse> {
         return data.get()[fnr] ?: hentTiltaksdeltagelseFraSøknad(fnr)

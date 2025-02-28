@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import no.nav.tiltakspenger.libs.arena.tiltak.ArenaDeltakerStatusType
 
 data class ArenaKafkaMessage(
     @JsonProperty("op_type")
@@ -15,27 +16,9 @@ enum class OperationType {
 }
 
 data class ArenaDeltakerKafka(
-    val DELTAKERSTATUSKODE: DeltakerStatusKodeArena,
+    val DELTAKERSTATUSKODE: ArenaDeltakerStatusType,
     val DATO_FRA: String?,
     val DATO_TIL: String?,
     val PROSENT_DELTID: Float?,
     val ANTALL_DAGER_PR_UKE: Float?,
 )
-
-enum class DeltakerStatusKodeArena {
-    DELAVB,
-    FULLF,
-    GJENN_AVB,
-    GJENN_AVL,
-    IKKEM,
-    IKKAKTUELL,
-    AVSLAG,
-    NEITAKK,
-    GJENN,
-    TILBUD,
-    VENTELISTE,
-    AKTUELL,
-    JATAKK,
-    INFOMOETE,
-    FEILREG,
-}

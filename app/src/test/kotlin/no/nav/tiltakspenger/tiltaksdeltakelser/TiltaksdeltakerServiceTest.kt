@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.json.objectMapper
+import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusType
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.TiltaksdeltakerService
@@ -240,7 +241,7 @@ class TiltaksdeltakerServiceTest {
             id = UUID.randomUUID(),
             startDato = LocalDate.of(2024, 10, 14),
             sluttDato = LocalDate.of(2025, 8, 10),
-            status = DeltakerV1Dto.DeltakerStatusDto(DeltakerV1Dto.DeltakerStatusDto.Type.DELTAR),
+            status = DeltakerV1Dto.DeltakerStatusDto(type = KometDeltakerStatusType.DELTAR),
             dagerPerUke = 2.0F,
             prosentStilling = 50.0F,
         )

@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.objectmothers
 
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.mars
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.objectmothers.ObjectMother.tiltaksdeltagelse
@@ -36,7 +35,8 @@ interface TiltakMother {
             typeKode = typeKode,
             typeNavn = typeNavn,
             rettPåTiltakspenger = rettPåTiltakspenger,
-            deltakelsesperiode = Periode(fom, tom),
+            deltagelseFraOgMed = fom,
+            deltagelseTilOgMed = tom,
             deltakelseStatus = status,
             deltakelseProsent = prosent,
             kilde = kilde,
@@ -63,7 +63,8 @@ interface TiltakMother {
             typeKode = typeKode,
             typeNavn = typeNavn,
             rettPåTiltakspenger = rettPåTiltakspenger,
-            deltakelsesperiode = Periode(fom, tom),
+            deltagelseFraOgMed = fom,
+            deltagelseTilOgMed = tom,
             deltakelseStatus = status,
             deltakelseProsent = prosent,
             kilde = kilde,
@@ -102,8 +103,8 @@ fun Søknadstiltak.toTiltak(
 fun Tiltaksdeltagelse.toSøknadstiltak(): Søknadstiltak {
     return søknadstiltak(
         id = this.eksternDeltagelseId,
-        deltakelseFom = this.deltakelsesperiode.fraOgMed,
-        deltakelseTom = this.deltakelsesperiode.tilOgMed,
+        deltakelseFom = this.deltagelseFraOgMed!!,
+        deltakelseTom = this.deltagelseTilOgMed!!,
         typeKode = this.typeKode.name,
         typeNavn = this.typeNavn,
     )
