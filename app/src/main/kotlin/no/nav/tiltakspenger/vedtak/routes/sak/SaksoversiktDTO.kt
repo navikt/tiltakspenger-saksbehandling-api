@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.vedtak.routes.sak
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
 import no.nav.tiltakspenger.saksbehandling.domene.benk.Saksoversikt
 import no.nav.tiltakspenger.saksbehandling.domene.benk.toBenkBehandlingstype
@@ -52,6 +53,10 @@ fun BehandlingEllerSøknadForSaksoversikt.toSaksoversiktDTO() = SaksoversiktDTO(
 fun List<Behandling>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
     this.map { it.toSaksoversiktDTO() }
 
+@JvmName("toSaksoversiktDTOForSøknad")
+fun List<Søknad>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
+    this.map { it.toSaksoversiktDTO() }
+
 fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
     periode = virkningsperiode?.toDTO(),
     status = status.toDTO().toString(),
@@ -64,4 +69,18 @@ fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
     sakId = sakId.toString(),
     saksbehandler = saksbehandler,
     beslutter = beslutter,
+)
+
+fun Søknad.toSaksoversiktDTO() = SaksoversiktDTO(
+    periode = null,
+    status = "SØKNAD",
+    kravtidspunkt = null,
+    underkjent = null,
+    typeBehandling = BehandlingstypeDTO.SØKNAD,
+    fnr = fnr.verdi,
+    id = this.id.toString(),
+    saksnummer = this.saksnummer.toString(),
+    sakId = this.sakId.toString(),
+    saksbehandler = null,
+    beslutter = null,
 )

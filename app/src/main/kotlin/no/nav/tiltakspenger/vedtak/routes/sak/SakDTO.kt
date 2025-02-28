@@ -22,7 +22,10 @@ fun Sak.toDTO() = SakDTO(
     saksnummer = saksnummer.verdi,
     sakId = id.toString(),
     fnr = fnr.verdi,
-    behandlingsoversikt = behandlinger.toSaksoversiktDTO(),
+    // vi kan enten sende med søknadene til frontend, så kan den gjøre dette. Den vil ta også ha alle søknadene hvis den vil gjøre noe videre
+    // ellers bare gjør vi det her
+    behandlingsoversikt = behandlinger.filterNot { behandling -> this.soknader.any { it.id == behandling.søknad?.id } }
+        .toSaksoversiktDTO() + this.soknader.toSaksoversiktDTO(),
     meldeperiodeKjeder = toMeldeperiodeKjederDTO(),
     førsteLovligeStansdato = førsteLovligeStansdato(),
     sisteDagSomGirRett = sisteDagSomGirRett,
