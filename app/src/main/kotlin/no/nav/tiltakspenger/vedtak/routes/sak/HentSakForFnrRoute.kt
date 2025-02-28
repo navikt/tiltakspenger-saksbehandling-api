@@ -11,6 +11,9 @@ import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.UgyldigFnrException
+import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
+import no.nav.tiltakspenger.libs.logging.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.service.sak.KunneIkkeHenteSakForFnr
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
@@ -32,11 +35,31 @@ fun Route.hentSakForFnrRoute(
     post(SAK_PATH) {
         logger.debug { "Mottatt post-request på $SAK_PATH" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
-            val fnr = Either.catch { Fnr.fromString(call.receive<FnrDTO>().fnr) }.getOrElse {
-                call.respond400BadRequest(
-                    melding = "Forventer at fødselsnummeret er 11 siffer",
-                    kode = "ugyldig_fnr",
-                )
+            val fnrStr = Either.catch { call.receive<FnrDTO>().fnr }.getOrElse {
+                with("Feil ved deserialize av fnr request body") {
+                    logger.error { this }
+                    sikkerlogg.error(it) { this }
+                    call.respond400BadRequest(
+                        melding = this,
+                        kode = "fnr_parsing_feil",
+                    )
+                }
+
+                return@withSaksbehandler
+            }
+
+            val fnr = Either.catch { Fnr.fromString(fnrStr) }.getOrElse {
+                when (it) {
+                    is UgyldigFnrException -> call.respond400BadRequest(
+                        melding = "Forventer at fødselsnummeret er 11 siffer",
+                        kode = "ugyldig_fnr",
+                    )
+
+                    else -> call.respond500InternalServerError(
+                        melding = "Ukjent feil ved lesing av fødselsnummeret",
+                        kode = "fnr_parsing_feil",
+                    )
+                }
                 return@withSaksbehandler
             }
             val correlationId = call.correlationId()
