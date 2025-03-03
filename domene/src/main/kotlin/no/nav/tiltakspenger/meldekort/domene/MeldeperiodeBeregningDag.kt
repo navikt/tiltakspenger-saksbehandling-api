@@ -111,7 +111,6 @@ sealed interface MeldeperiodeBeregningDag {
         data class IkkeDeltatt private constructor(
             override val meldekortId: MeldekortId,
             override val dato: LocalDate,
-            // TODO post-mvp: Siden vi bare støtter ett tiltak i MVP kan vi implisitt fylle ut denne. Dersom vi har flere tiltak, må bruker i så fall velge tiltaket han ikke har deltatt på og det er ikke sikkert det gir mening og vi tar bort feltet.
             override val tiltakstype: TiltakstypeSomGirRett,
             override val beregningsdag: Beregningsdag,
         ) : Utfylt {
