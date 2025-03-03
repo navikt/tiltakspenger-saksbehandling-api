@@ -96,16 +96,16 @@ object SøknadDTOMapper {
             typeNavn = dto.typeNavn,
         )
 
-    private fun mapBarnetilleggManuelle(dto: BarnetilleggDTO): BarnetilleggFraSøknad.FraPdl {
+    private fun mapBarnetilleggManuelle(dto: BarnetilleggDTO): BarnetilleggFraSøknad.Manuell {
         checkNotNull(dto.fornavn) { "Fornavn kan ikke være null for barnetillegg, manuelle barn " }
         checkNotNull(dto.etternavn) { "Etternavn kan ikke være null for barnetillegg, manuelle barn " }
         checkNotNull(dto.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg, manuelle barn " }
 
-        return BarnetilleggFraSøknad.FraPdl(
+        return BarnetilleggFraSøknad.Manuell(
             oppholderSegIEØS = no.nav.tiltakspenger.vedtak.routes.søknad.SøknadDTOMapper.mapJaNei(dto.oppholderSegIEØS),
-            fornavn = dto.fornavn,
+            fornavn = dto.fornavn!!,
             mellomnavn = dto.mellomnavn,
-            etternavn = dto.etternavn,
+            etternavn = dto.etternavn!!,
             fødselsdato = dto.fødselsdato!!,
         )
     }

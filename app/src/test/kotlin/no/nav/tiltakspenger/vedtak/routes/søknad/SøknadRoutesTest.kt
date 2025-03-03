@@ -89,6 +89,13 @@ class SøknadRoutesTest {
                             etternavn = "DIVA",
                             fødselsdato = LocalDate.parse("2010-02-13"),
                         ),
+                        BarnetilleggFraSøknad.Manuell(
+                            oppholderSegIEØS = Søknad.JaNeiSpm.Ja,
+                            fornavn = "IKKEINKLUDERENDE",
+                            mellomnavn = null,
+                            etternavn = "DIVA",
+                            fødselsdato = LocalDate.parse("2011-02-13"),
+                        ),
                     ),
                     opprettet = actualSøknad.opprettet,
                     tidsstempelHosOss = LocalDateTime.parse("2023-06-14T21:12:08.447993177"),
@@ -143,7 +150,17 @@ class SøknadRoutesTest {
                 }
               }
             ],
-            "barnetilleggManuelle": [],
+            "barnetilleggManuelle": [
+              {
+                "fødselsdato": "2011-02-13",
+                "fornavn": "IKKEINKLUDERENDE",
+                "mellomnavn": null,
+                "etternavn": "DIVA",
+                "oppholderSegIEØS": {
+                  "svar": "Ja"
+                }
+              }
+            ],
             "vedlegg": 0,
             "kvp": {
               "svar": "Nei",
