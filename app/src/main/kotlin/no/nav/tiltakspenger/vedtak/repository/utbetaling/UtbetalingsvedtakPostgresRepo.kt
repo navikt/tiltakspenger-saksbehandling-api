@@ -26,20 +26,21 @@ internal class UtbetalingsvedtakPostgresRepo(
         sessionFactory.withSession(context) { session ->
             session.run(
                 queryOf(
+                    //language=SQL
                     """
-                    insert into utbetalingsvedtak (
-                        id,
-                        sak_id,
-                        opprettet,
-                        forrige_vedtak_id,
-                        meldekort_id
-                    ) values (
-                        :id,
-                        :sak_id,
-                        :opprettet,
-                        :forrige_vedtak_id,
-                        :meldekort_id
-                    )
+                        insert into utbetalingsvedtak (
+                            id,
+                            sak_id,
+                            opprettet,
+                            forrige_vedtak_id,
+                            meldekort_id
+                        ) values (
+                            :id,
+                            :sak_id,
+                            :opprettet,
+                            :forrige_vedtak_id,
+                            :meldekort_id
+                        )
                     """.trimIndent(),
                     mapOf(
                         "id" to vedtak.id.toString(),
@@ -61,11 +62,12 @@ internal class UtbetalingsvedtakPostgresRepo(
         sessionFactory.withSession { session ->
             session.run(
                 queryOf(
+                    //language=SQL
                     """
-                      update utbetalingsvedtak
-                      set sendt_til_utbetaling_tidspunkt = :tidspunkt, 
-                          utbetaling_metadata = to_jsonb(:metadata::jsonb)
-                      where id = :id
+                        update utbetalingsvedtak
+                        set sendt_til_utbetaling_tidspunkt = :tidspunkt, 
+                            utbetaling_metadata = to_jsonb(:metadata::jsonb)
+                        where id = :id
                     """.trimIndent(),
                     mapOf(
                         "id" to vedtakId.toString(),
@@ -85,11 +87,12 @@ internal class UtbetalingsvedtakPostgresRepo(
         sessionFactory.withSession { session ->
             session.run(
                 queryOf(
+                    //language=SQL
                     """
-                      update utbetalingsvedtak 
-                      set journalpost_id = :journalpost_id,
-                          journalføringstidspunkt = :tidspunkt
-                      where id = :id
+                        update utbetalingsvedtak 
+                        set journalpost_id = :journalpost_id,
+                        journalføringstidspunkt = :tidspunkt
+                        where id = :id
                     """.trimIndent(),
                     mapOf(
                         "id" to vedtakId.toString(),
@@ -105,7 +108,12 @@ internal class UtbetalingsvedtakPostgresRepo(
         return sessionFactory.withSession { session ->
             session.run(
                 queryOf(
-                    "select (utbetaling_metadata->>'request') as req from utbetalingsvedtak where id = :id",
+                    //language=SQL
+                    """
+                        select (utbetaling_metadata->>'request') as req 
+                        from utbetalingsvedtak 
+                        where id = :id
+                    """.trimIndent(),
                     mapOf("id" to vedtakId.toString()),
                 ).map { row ->
                     row.stringOrNull("req")
@@ -118,16 +126,17 @@ internal class UtbetalingsvedtakPostgresRepo(
         sessionFactory.withSession { session ->
             session.run(
                 queryOf(
+                    //language=SQL
                     """
-                    select u.*, s.fnr, s.saksnummer
-                    from utbetalingsvedtak u
-                    join sak s on s.id = u.sak_id
-                    left join utbetalingsvedtak parent on parent.id = u.forrige_vedtak_id
-                      and parent.sak_id = u.sak_id
-                    where u.sendt_til_utbetaling_tidspunkt is null
-                      and (u.forrige_vedtak_id is null or parent.sendt_til_utbetaling_tidspunkt is not null)
-                    order by u.opprettet
-                    limit :limit
+                        select u.*, s.fnr, s.saksnummer
+                        from utbetalingsvedtak u
+                        join sak s on s.id = u.sak_id
+                        left join utbetalingsvedtak parent on parent.id = u.forrige_vedtak_id
+                          and parent.sak_id = u.sak_id
+                        where u.sendt_til_utbetaling_tidspunkt is null
+                          and (u.forrige_vedtak_id is null or parent.sendt_til_utbetaling_tidspunkt is not null)
+                        order by u.opprettet
+                        limit :limit
                     """.trimIndent(),
                     mapOf("limit" to limit),
                 ).map { row ->
@@ -140,12 +149,13 @@ internal class UtbetalingsvedtakPostgresRepo(
         sessionFactory.withSession { session ->
             session.run(
                 queryOf(
+                    //language=SQL
                     """
-                    select u.*,s.fnr,s.saksnummer 
-                    from utbetalingsvedtak u 
-                    join sak s on s.id = u.sak_id 
-                    where u.journalpost_id is null
-                    limit :limit
+                        select u.*, s.fnr, s.saksnummer 
+                        from utbetalingsvedtak u 
+                        join sak s on s.id = u.sak_id 
+                        where u.journalpost_id is null
+                        limit :limit
                     """.trimIndent(),
                     mapOf("limit" to limit),
                 ).map { row ->
@@ -158,7 +168,14 @@ internal class UtbetalingsvedtakPostgresRepo(
         fun hentForSakId(sakId: SakId, session: Session): Utbetalinger {
             return session.run(
                 queryOf(
-                    "select u.*, s.saksnummer, s.fnr from utbetalingsvedtak u join sak s on s.id = u.sak_id where u.sak_id = :sak_id order by u.opprettet",
+                    //language=SQL
+                    """
+                        select u.*, s.saksnummer, s.fnr 
+                        from utbetalingsvedtak u 
+                        join sak s on s.id = u.sak_id 
+                        where u.sak_id = :sak_id 
+                        order by u.opprettet
+                    """.trimIndent(),
                     mapOf("sak_id" to sakId.toString()),
                 ).map { row ->
                     row.toVedtak(session)
