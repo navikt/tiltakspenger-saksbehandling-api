@@ -55,11 +55,6 @@ private data class MeldekortBeregning(
         require(eksisterendeMeldekortPåSaken.sakId == kommando.sakId) {
             "SakId på eksisterende meldekortperiode ${eksisterendeMeldekortPåSaken.sakId} er ikke likt sakId på kommando ${kommando.sakId}"
         }
-        if (barnetilleggsPerioder.isNotEmpty()) {
-            require(barnetilleggsPerioder.totalePeriode == kommando.periode) {
-                "Periode på barnetilleggsPerioder ${barnetilleggsPerioder.totalePeriode} er ikke likt periode på kommando ${kommando.periode}"
-            }
-        }
         val meldekortSomSkalUtfylles: MeldekortBehandling.MeldekortUnderBehandling =
             eksisterendeMeldekortPåSaken.meldekortUnderBehandling?.also {
                 require(it.id == kommando.meldekortId) {

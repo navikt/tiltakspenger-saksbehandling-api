@@ -167,7 +167,8 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
             innvilgelsesperiode = periode,
-            barnetillegg = null,
+            begrunnelse = null,
+            perioder = null,
         ),
     ).getOrFail()
     return this.sakContext.sakService.hentForSakId(

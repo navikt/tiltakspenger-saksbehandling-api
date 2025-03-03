@@ -73,7 +73,7 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
         ObjectMother.sakMedOpprettetBehandling(
             søknad = søknad,
             fnr = fnr,
-            vurderingsperiode = tiltaksOgVurderingsperiode,
+            virkningsperiode = tiltaksOgVurderingsperiode,
             saksnummer = saksnummer,
             saksbehandler = saksbehandler,
             sakId = sakId,
@@ -148,7 +148,8 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
                     fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("fritekstTilVedtaksbrev"),
                     begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("begrunnelseVilkårsvurdering"),
                     innvilgelsesperiode = tiltaksOgVurderingsperiode,
-                    barnetillegg = null,
+                    begrunnelse = null,
+                    perioder = null,
                 ),
             )
             .taBehandling(beslutter)

@@ -5,6 +5,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import mu.KotlinLogging
+import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -48,7 +49,10 @@ private data class SendTilBeslutningBody(
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(it) },
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { BegrunnelseVilkårsvurdering(it) },
             innvilgelsesperiode = innvilgelsesperiode.toDomain(),
-            barnetillegg = barnetillegg?.tilBarnetillegg(),
+            begrunnelse = barnetillegg?.begrunnelse?.let { BegrunnelseVilkårsvurdering(it) },
+            perioder = barnetillegg?.perioder?.map {
+                Pair(it.periode.toDomain(), AntallBarn(it.antallBarn))
+            },
         )
     }
 }

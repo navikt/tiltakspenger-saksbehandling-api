@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.OppdaterBarnetilleggKommando
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
@@ -51,15 +51,15 @@ interface SakMother {
         iDag: LocalDate = LocalDate.of(2023, 1, 1),
         løpenummer: Int = 1001,
         saksnummer: Saksnummer = Saksnummer(iDag, løpenummer),
-        vurderingsperiode: Periode = Periode(fraOgMed = 1.januar(2023), tilOgMed = 31.januar(2023)),
+        virkningsperiode: Periode = Periode(fraOgMed = 1.januar(2023), tilOgMed = 31.januar(2023)),
         fødselsdato: LocalDate = ObjectMother.fødselsdato(),
         saksbehandler: Saksbehandler = saksbehandler(),
         søknad: Søknad =
             nySøknad(
                 søknadstiltak =
                 søknadstiltak(
-                    deltakelseFom = vurderingsperiode.fraOgMed,
-                    deltakelseTom = vurderingsperiode.tilOgMed,
+                    deltakelseFom = virkningsperiode.fraOgMed,
+                    deltakelseTom = virkningsperiode.tilOgMed,
                 ),
             ),
         registrerteTiltak: List<Tiltaksdeltagelse> = listOf(søknad.tiltak.toTiltak()),
@@ -83,13 +83,17 @@ interface SakMother {
                 if (barnetillegg == null) {
                     behandling
                 } else {
-                    behandling.oppdaterBarnetillegg(
-                        OppdaterBarnetilleggKommando(
+                    behandling.tilBeslutning(
+                        SendSøknadsbehandlingTilBeslutningKommando(
                             sakId = sakId,
                             behandlingId = behandling.id,
-                            barnetillegg = barnetillegg,
                             correlationId = CorrelationId.generate(),
                             saksbehandler = saksbehandler,
+                            begrunnelse = barnetillegg.begrunnelse,
+                            perioder = barnetillegg.periodisering.perioderMedVerdi.map { it.periode to it.verdi },
+                            fritekstTilVedtaksbrev = null,
+                            begrunnelseVilkårsvurdering = null,
+                            innvilgelsesperiode = virkningsperiode,
                         ),
                     )
                 }

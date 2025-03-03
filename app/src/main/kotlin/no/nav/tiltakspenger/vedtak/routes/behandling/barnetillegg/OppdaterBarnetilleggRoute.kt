@@ -6,7 +6,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
 import mu.KotlinLogging
 import no.nav.tiltakspenger.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -14,8 +13,6 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.OppdaterBarnetilleggKommando
 import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterBarnetilleggService
@@ -46,14 +43,10 @@ private data class OppdaterBarnetilleggBody(
         behandlingId = behandlingId,
         correlationId = correlationId,
         saksbehandler = saksbehandler,
-        barnetillegg = Barnetillegg(
-            periodisering = Periodisering(
-                barnetilleggForPeriode.map {
-                    PeriodeMedVerdi(AntallBarn(it.antallBarn), it.periode.toDomain())
-                },
-            ),
-            begrunnelse = begrunnelse?.let { BegrunnelseVilkårsvurdering(it) },
-        ),
+        begrunnelse = begrunnelse?.let { BegrunnelseVilkårsvurdering(it) },
+        perioder = barnetilleggForPeriode.map {
+            Pair(it.periode.toDomain(), AntallBarn(it.antallBarn))
+        },
     )
 }
 
