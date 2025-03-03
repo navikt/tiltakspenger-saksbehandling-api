@@ -4,12 +4,12 @@ import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysnin
 
 data class SaksopplysningerDTO(
     val fødselsdato: String,
-    val tiltaksdeltagelse: TiltaksdeltagelseDTO,
+    val tiltaksdeltagelse: List<TiltaksdeltagelseDTO>,
 )
 
 fun Saksopplysninger.toDTO(): SaksopplysningerDTO {
     return SaksopplysningerDTO(
         fødselsdato = this.fødselsdato.toString(),
-        tiltaksdeltagelse = this.tiltaksdeltagelse.toDTO(),
+        tiltaksdeltagelse = listOf(this.tiltaksdeltagelse.toDTO()),
     )
 }
