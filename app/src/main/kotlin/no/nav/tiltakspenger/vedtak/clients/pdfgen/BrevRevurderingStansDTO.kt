@@ -21,6 +21,7 @@ private class BrevRevurderingStansDTO(
     val kontor: String,
     val beslutterNavn: String?,
     val saksbehandlerNavn: String,
+    val forhandsvisning: Boolean,
 )
 
 internal suspend fun Rammevedtak.toRevurderingStans(
@@ -38,6 +39,8 @@ internal suspend fun Rammevedtak.toRevurderingStans(
         tiltaksnavn = this.behandling.tiltaksnavn,
         stansperiode = this.periode,
         saksnummer = saksnummer,
+        // finnes ikke noe forhåndsvisning for Rammevedtak
+        forhåndsvisning = false,
     )
 }
 
@@ -51,6 +54,7 @@ internal suspend fun genererStansbrev(
     tiltaksnavn: String,
     stansperiode: Periode,
     saksnummer: Saksnummer,
+    forhåndsvisning: Boolean,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
@@ -74,5 +78,6 @@ internal suspend fun genererStansbrev(
         kontor = "Nav Tiltak Øst-Viken",
         // Dette er vår dato, det brukes typisk når bruker klager på vedtaksbrev på dato ...
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
+        forhandsvisning = forhåndsvisning,
     ).let { serialize(it) }
 }

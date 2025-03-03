@@ -14,7 +14,7 @@ internal data class BarnetilleggDTO(
 ) {
     fun tilBarnetillegg(): Barnetillegg = Barnetillegg(
         begrunnelse = begrunnelse?.let { (BegrunnelseVilkårsvurdering(it)) },
-        value = Periodisering(
+        periodisering = Periodisering(
             perioder.map {
                 PeriodeMedVerdi(AntallBarn(it.antallBarn), it.periode.toDomain())
             },
@@ -28,7 +28,7 @@ internal data class BarnetilleggPeriodeDTO(
 )
 
 internal fun Barnetillegg.toDTO(): BarnetilleggDTO = BarnetilleggDTO(
-    perioder = value.perioderMedVerdi.map { it.tilBarnetilleggPeriodeDTO() },
+    perioder = periodisering.perioderMedVerdi.map { it.tilBarnetilleggPeriodeDTO() },
     begrunnelse = begrunnelse?.verdi,
 )
 

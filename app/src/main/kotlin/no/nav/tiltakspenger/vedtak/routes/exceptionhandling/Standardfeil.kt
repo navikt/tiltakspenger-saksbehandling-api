@@ -42,11 +42,6 @@ object Standardfeil {
         "må_ha_saksbehandler_rolle",
     )
 
-    fun støtterIkkeBarnetillegg(): ErrorJson = ErrorJson(
-        "Vi støtter ikke barnetillegg.",
-        "støtter_ikke_barnetillegg",
-    )
-
     fun støtterIkkeDelvisEllerAvslag(): ErrorJson = ErrorJson(
         "Vi støtter ikke delvis innvilgelse eller avslag.",
         "støtter_ikke_delvis_innvilgelse_eller_avslag",

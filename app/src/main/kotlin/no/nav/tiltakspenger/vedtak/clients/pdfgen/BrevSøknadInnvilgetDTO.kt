@@ -1,8 +1,10 @@
 package no.nav.tiltakspenger.vedtak.clients.pdfgen
 
+import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.Navn
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
@@ -12,13 +14,14 @@ import no.nav.tiltakspenger.vedtak.clients.pdfgen.formattering.norskDatoFormatte
 import java.time.LocalDate
 
 @Suppress("unused")
-private class BrevFørstegangsvedtakInnvilgelseDTO(
+private data class BrevFørstegangsvedtakInnvilgelseDTO(
     val personalia: BrevPersonaliaDTO,
     val tiltaksnavn: String,
     val rammevedtakFraDato: String,
     val rammevedtakTilDato: String,
     val saksnummer: String,
-    val barnetillegg: Boolean,
+    val antallBarn: List<AntallBarnPerPeriodeDTO>,
+    val antallBarnHvis1PeriodeIHeleInnvilgelsesperiode: Int?,
     val saksbehandlerNavn: String,
     val beslutterNavn: String?,
     val kontor: String,
@@ -26,7 +29,16 @@ private class BrevFørstegangsvedtakInnvilgelseDTO(
     val sats: Int,
     val satsBarn: Int,
     val tilleggstekst: String? = null,
-)
+    val forhandsvisning: Boolean,
+) {
+    val barnetillegg: Boolean = antallBarn.isNotEmpty()
+
+    data class AntallBarnPerPeriodeDTO(
+        val antallBarn: Int,
+        val fraOgMed: String,
+        val tilOgMed: String,
+    )
+}
 
 internal suspend fun Rammevedtak.toInnvilgetSøknadsbrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
@@ -45,6 +57,9 @@ internal suspend fun Rammevedtak.toInnvilgetSøknadsbrev(
         tiltaksnavn = this.behandling.tiltaksnavn,
         innvilgelsesperiode = this.periode,
         saksnummer = saksnummer,
+        // finnes ikke noe forhåndsvisning for rammevedtak
+        forhåndsvisning = false,
+        barnetilleggsPerioder = this.behandling.barnetillegg?.periodisering,
     )
 }
 
@@ -59,6 +74,8 @@ internal suspend fun genererInnvilgetSøknadsbrev(
     tiltaksnavn: String,
     innvilgelsesperiode: Periode,
     saksnummer: Saksnummer,
+    forhåndsvisning: Boolean,
+    barnetilleggsPerioder: Periodisering<AntallBarn>?,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
@@ -75,7 +92,6 @@ internal suspend fun genererInnvilgetSøknadsbrev(
         rammevedtakFraDato = innvilgelsesperiode.fraOgMed.format(norskDatoFormatter),
         rammevedtakTilDato = innvilgelsesperiode.tilOgMed.format(norskDatoFormatter),
         saksnummer = saksnummer.verdi,
-        barnetillegg = false,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
         // TODO post-mvp: legg inn NORG integrasjon for å hente saksbehandlers kontor.
@@ -85,5 +101,18 @@ internal suspend fun genererInnvilgetSøknadsbrev(
         sats = Satser.sats(innvilgelsesperiode.fraOgMed).sats,
         satsBarn = Satser.sats(innvilgelsesperiode.fraOgMed).satsBarnetillegg,
         tilleggstekst = tilleggstekst?.verdi,
+        forhandsvisning = forhåndsvisning,
+        antallBarn = barnetilleggsPerioder?.perioderMedVerdi?.map {
+            BrevFørstegangsvedtakInnvilgelseDTO.AntallBarnPerPeriodeDTO(
+                antallBarn = it.verdi.value,
+                fraOgMed = it.periode.fraOgMed.format(norskDatoFormatter),
+                tilOgMed = it.periode.tilOgMed.format(norskDatoFormatter),
+            )
+        } ?: emptyList(),
+        antallBarnHvis1PeriodeIHeleInnvilgelsesperiode = when {
+            barnetilleggsPerioder?.size != 1 -> null
+            barnetilleggsPerioder.first().periode == innvilgelsesperiode -> barnetilleggsPerioder.first().verdi.value
+            else -> null
+        },
     ).let { serialize(it) }
 }

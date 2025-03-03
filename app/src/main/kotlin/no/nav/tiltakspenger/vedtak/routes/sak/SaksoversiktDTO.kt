@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.vedtak.routes.sak
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
 import no.nav.tiltakspenger.saksbehandling.domene.benk.Saksoversikt
 import no.nav.tiltakspenger.saksbehandling.domene.benk.toBenkBehandlingstype
@@ -27,6 +28,7 @@ data class SaksoversiktDTO(
     val sakId: String?,
     val saksbehandler: String?,
     val beslutter: String?,
+    val opprettet: String,
 )
 
 internal fun Saksoversikt.toDTO(): List<SaksoversiktDTO> = this.map { it.toSaksoversiktDTO() }
@@ -47,9 +49,14 @@ fun BehandlingEllerSøknadForSaksoversikt.toSaksoversiktDTO() = SaksoversiktDTO(
     saksbehandler = saksbehandler,
     beslutter = beslutter,
     sakId = sakId.toString(),
+    opprettet = this.opprettet.toString(),
 )
 
 fun List<Behandling>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
+    this.map { it.toSaksoversiktDTO() }
+
+@JvmName("toSaksoversiktDTOForSøknad")
+fun List<Søknad>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
     this.map { it.toSaksoversiktDTO() }
 
 fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
@@ -64,4 +71,20 @@ fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
     sakId = sakId.toString(),
     saksbehandler = saksbehandler,
     beslutter = beslutter,
+    opprettet = this.opprettet.toString(),
+)
+
+fun Søknad.toSaksoversiktDTO() = SaksoversiktDTO(
+    periode = null,
+    status = "SØKNAD",
+    kravtidspunkt = null,
+    underkjent = null,
+    typeBehandling = BehandlingstypeDTO.SØKNAD,
+    fnr = fnr.verdi,
+    id = this.id.toString(),
+    saksnummer = this.saksnummer.toString(),
+    sakId = this.sakId.toString(),
+    saksbehandler = null,
+    beslutter = null,
+    opprettet = this.opprettet.toString(),
 )

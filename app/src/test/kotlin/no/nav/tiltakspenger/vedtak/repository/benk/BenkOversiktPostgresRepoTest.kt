@@ -45,6 +45,7 @@ class BenkOversiktPostgresRepoTest {
                                 underkjent = false,
                                 kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
                                 id = søknad1.id,
+                                opprettet = søknad1.opprettet,
                             ),
                             BehandlingEllerSøknadForSaksoversikt(
                                 periode = null,
@@ -58,6 +59,7 @@ class BenkOversiktPostgresRepoTest {
                                 underkjent = false,
                                 kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
                                 id = førstegangsBehandlingSak.førstegangsbehandling!!.id,
+                                opprettet = førstegangsBehandlingSak.førstegangsbehandling!!.opprettet,
                             ),
                             BehandlingEllerSøknadForSaksoversikt(
                                 periode = null,
@@ -71,6 +73,7 @@ class BenkOversiktPostgresRepoTest {
                                 underkjent = false,
                                 kravtidspunkt = null,
                                 id = revurderingSak.revurderinger.first().id,
+                                opprettet = revurderingSak.revurderinger.first().opprettet,
                             ),
                         ),
                     )
@@ -103,6 +106,7 @@ class BenkOversiktPostgresRepoTest {
                                 underkjent = false,
                                 kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
                                 id = sak.førstegangsbehandling!!.id,
+                                opprettet = sak.førstegangsbehandling!!.opprettet,
                             ),
                         ),
                     )
