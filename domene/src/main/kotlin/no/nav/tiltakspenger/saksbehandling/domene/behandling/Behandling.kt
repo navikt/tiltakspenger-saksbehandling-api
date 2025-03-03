@@ -373,6 +373,10 @@ data class Behandling(
     }
 
     init {
+        if (barnetillegg != null && virkningsperiode != null) {
+            val barnetilleggsperiode = barnetillegg.periodisering.totalePeriode
+            require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
+        }
         if (beslutter != null && saksbehandler != null) {
             require(beslutter != saksbehandler) { "Saksbehandler og beslutter kan ikke være samme person" }
         }
