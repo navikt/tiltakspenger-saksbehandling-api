@@ -13,6 +13,10 @@ data class Barnetillegg(
     val periodisering: Periodisering<AntallBarn>,
     val begrunnelse: BegrunnelseVilkårsvurdering?,
 ) {
+    init {
+        require(periodisering.any { it.verdi != AntallBarn.ZERO }) { "Barnetillegg må ha minst én periode med antall barn > 0" }
+    }
+
     /** @return 0 dersom datoen er utenfor periodiseringen. */
     fun antallBarnPåDato(dato: LocalDate): AntallBarn {
         return periodisering.hentVerdiForDag(dato) ?: AntallBarn.ZERO

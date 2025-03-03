@@ -19,11 +19,13 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
     val begrunnelse: BegrunnelseVilkårsvurdering?,
     val perioder: List<Pair<Periode, AntallBarn>>?,
 ) {
-    fun barnetillegg(): Barnetillegg {
-        return Barnetillegg.periodiserOgFyllUtHullMed0(
-            perioder = perioder ?: emptyList(),
-            begrunnelse = begrunnelse,
-            virkningsperiode = innvilgelsesperiode,
-        )
+    fun barnetillegg(): Barnetillegg? {
+        return perioder?.let {
+            Barnetillegg.periodiserOgFyllUtHullMed0(
+                perioder = it,
+                begrunnelse = begrunnelse,
+                virkningsperiode = innvilgelsesperiode,
+            )
+        }
     }
 }
