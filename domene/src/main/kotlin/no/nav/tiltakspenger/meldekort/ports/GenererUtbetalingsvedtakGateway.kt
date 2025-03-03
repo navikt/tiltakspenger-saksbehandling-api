@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.utbetaling.domene.Utbetalingsvedtak
 interface GenererUtbetalingsvedtakGateway {
     suspend fun genererUtbetalingsvedtak(
         utbetalingsvedtak: Utbetalingsvedtak,
+        tiltakstype: String,
         tiltaksnavn: String,
         eksternGjennomføringId: String?,
         eksternDeltagelseId: String,

@@ -6,6 +6,9 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode
 import java.time.LocalDate
 
@@ -71,6 +74,16 @@ data class Vedtaksliste(
         }.let { Periodisering(it) }
     }
 
+    val saksopplysningerperiode: Periodisering<Saksopplysninger> by lazy {
+        tidslinje.perioderMedVerdi.map { PeriodeMedVerdi(it.verdi.behandling.saksopplysninger, it.periode) }.let {
+            Periodisering(it)
+        }
+    }
+
+    val tiltaksdeltagelseperioder: Periodisering<Tiltaksdeltagelse> by lazy {
+        saksopplysningerperiode.map { it.tiltaksdeltagelse }
+    }
+
     /** Tidslinje for antall barn. Første og siste periode vil være 1 eller flere. Kan inneholde hull med 0 barn. */
     val barnetilleggsperioder: Periodisering<AntallBarn> by lazy {
         tidslinje.perioderMedVerdi.flatMap { pmvVedtak ->
@@ -83,6 +96,10 @@ data class Vedtaksliste(
                 }
             }
         }.let { Periodisering(it) }
+    }
+
+    val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy {
+        tiltaksdeltagelseperioder.map { it.typeKode }
     }
 
     fun antallBarnForDag(dag: LocalDate): AntallBarn {
@@ -114,6 +131,8 @@ data class Vedtaksliste(
         val overlappendePeriode = periode.overlappendePeriode(tidslinje.totalePeriode) ?: return null
         return tidslinje.krymp(overlappendePeriode).map {
             TiltaksdataForJournalføring(
+                // TODO Tia + John: Her bør vi på sikt sende inn tiltaksdeltagelse og mappe typen nærmere klienten?
+                tiltakstype = it.tiltakstype.name,
                 tiltaksnavn = it.tiltaksnavn,
                 eksternGjennomføringId = it.gjennomføringId,
                 eksternDeltagelseId = it.tiltaksid,

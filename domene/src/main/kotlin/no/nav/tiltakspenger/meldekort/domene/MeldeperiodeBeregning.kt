@@ -8,8 +8,8 @@ import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.InnsendteDagerMåMatcheMeldeperiode
 import java.time.DayOfWeek
 import java.time.LocalDate
 
@@ -23,22 +23,17 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
     val tilOgMed: LocalDate get() = this.last().dato
     val periode: Periode get() = Periode(fraOgMed, tilOgMed)
     val sakId: SakId
-    val tiltakstype: TiltakstypeSomGirRett
     val meldekortId: MeldekortId
     val maksDagerMedTiltakspengerForPeriode: Int
     val dager: NonEmptyList<MeldeperiodeBeregningDag>
     val antallDagerMedDeltattEllerFravær: Int get() = dager.count { it.harDeltattEllerFravær }
 
-    /**
-     * @property tiltakstype I MVP støtter vi kun ett tiltak, men på sikt kan vi ikke garantere at det er én til én mellom meldekortperiode og tiltakstype.
-     */
     data class UtfyltMeldeperiode(
         override val sakId: SakId,
         override val maksDagerMedTiltakspengerForPeriode: Int,
         override val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
     ) : MeldeperiodeBeregning,
         List<MeldeperiodeBeregningDag> by dager {
-        override val tiltakstype: TiltakstypeSomGirRett = dager.first().tiltakstype
         override val meldekortId = dager.first().meldekortId
 
         init {
@@ -51,9 +46,6 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
                 }
             }
 
-            require(dager.all { it.tiltakstype == tiltakstype }) {
-                "Alle tiltaksdager må ha samme tiltakstype som meldekortsperioden: $tiltakstype. Dager: ${dager.map { it.tiltakstype }}"
-            }
             require(
                 dager.all { it.meldekortId == meldekortId },
             ) { "Alle dager må tilhøre samme meldekort, men var: ${dager.map { it.meldekortId }}" }
@@ -70,8 +62,6 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
 
     /**
      * Merk at ikke utfylt betyr at ikke alle dager utfylt. Noen dager kan være Sperret, og de anses som utfylt.
-     *
-     *  @property tiltakstype I MVP støtter vi kun ett tiltak, men på sikt kan vi ikke garantere at det er én til én mellom meldekortperiode og tiltakstype.
      */
     data class IkkeUtfyltMeldeperiode(
         override val sakId: SakId,
@@ -79,7 +69,6 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
         override val dager: NonEmptyList<MeldeperiodeBeregningDag>,
     ) : MeldeperiodeBeregning,
         List<MeldeperiodeBeregningDag> by dager {
-        override val tiltakstype = dager.first().tiltakstype
 
         override val meldekortId = dager.first().meldekortId
 
@@ -92,7 +81,6 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
                         MeldeperiodeBeregningDag.Utfylt.Sperret(
                             dato = it.dato,
                             meldekortId = it.meldekortId,
-                            tiltakstype = it.tiltakstype,
                         )
                     } else {
                         it
@@ -111,7 +99,6 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
                     MeldeperiodeBeregningDag.Utfylt.Sperret(
                         dato = it.dato,
                         meldekortId = it.meldekortId,
-                        tiltakstype = it.tiltakstype,
                     )
                 }.toNonEmptyListOrNull()!!,
             )
@@ -125,10 +112,10 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
              */
             fun fraPeriode(
                 meldeperiode: Meldeperiode,
-                tiltakstype: TiltakstypeSomGirRett,
                 meldekortId: MeldekortId,
                 sakId: SakId,
                 maksDagerMedTiltakspengerForPeriode: Int,
+                tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
             ): IkkeUtfyltMeldeperiode {
                 val dager =
                     meldeperiode.periode.tilDager().map { dag ->
@@ -136,13 +123,12 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
                             MeldeperiodeBeregningDag.IkkeUtfylt(
                                 dato = dag,
                                 meldekortId = meldekortId,
-                                tiltakstype = tiltakstype,
+                                tiltakstype = tiltakstypePerioder.hentVerdiForDag(dag)!!,
                             )
                         } else {
                             MeldeperiodeBeregningDag.Utfylt.Sperret(
                                 dato = dag,
                                 meldekortId = meldekortId,
-                                tiltakstype = tiltakstype,
                             )
                         }
                     }
@@ -157,19 +143,6 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
         fun tilUtfyltMeldeperiode(
             utfylteDager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
         ): Either<KanIkkeSendeMeldekortTilBeslutning, UtfyltMeldeperiode> {
-            if (dager.periode() != utfylteDager.periode()) {
-                return InnsendteDagerMåMatcheMeldeperiode.left()
-            }
-            this.dager.zip(utfylteDager).forEach { (dagA, dagB) ->
-                if (dagA is MeldeperiodeBeregningDag.Utfylt.Sperret && dagB !is MeldeperiodeBeregningDag.Utfylt.Sperret) {
-                    log.error { "Kan ikke endre dag fra sperret. Generert base: ${this.dager}. Innsendt: $utfylteDager" }
-                    return KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagFraSperret.left()
-                }
-                if (dagA !is MeldeperiodeBeregningDag.Utfylt.Sperret && dagB is MeldeperiodeBeregningDag.Utfylt.Sperret) {
-                    log.error { "Kan ikke endre dag til sperret. Generert base: ${this.dager}. Innsendt: $utfylteDager" }
-                    return KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagTilSperret.left()
-                }
-            }
             return validerAntallDager().map {
                 UtfyltMeldeperiode(
                     sakId = sakId,
@@ -187,10 +160,6 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
                 require(dager.first().dato.plusDays(index.toLong()) == dag.dato) {
                     "Datoene må være sammenhengende og sortert, men var ${dager.map { it.dato }}"
                 }
-            }
-
-            require(dager.all { it.tiltakstype == tiltakstype }) {
-                "Alle tiltaksdager må ha samme tiltakstype som meldekortsperioden: $tiltakstype. Dager: ${dager.map { it.tiltakstype }}"
             }
             require(
                 dager.all { it.meldekortId == meldekortId },

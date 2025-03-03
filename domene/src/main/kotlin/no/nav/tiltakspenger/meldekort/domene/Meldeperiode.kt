@@ -26,7 +26,7 @@ data class Meldeperiode(
     val sakId: SakId,
     val saksnummer: Saksnummer,
     val fnr: Fnr,
-    /** Dette gjelder hele perioden */
+    /** Dette gjelder hele perioden. TODO rename: Noen med fungerende IDE, kan rename denne til maksAntallDagerForPeriode */
     val antallDagerForPeriode: Int,
     val girRett: Map<LocalDate, Boolean>,
     val sendtTilMeldekortApi: LocalDateTime?,

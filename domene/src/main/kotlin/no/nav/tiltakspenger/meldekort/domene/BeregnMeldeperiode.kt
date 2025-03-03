@@ -50,9 +50,15 @@ private data class MeldekortBeregning(
         kommando: SendMeldekortTilBeslutningKommando,
         eksisterendeMeldekortPåSaken: MeldekortBehandlinger,
         barnetilleggsPerioder: Periodisering<AntallBarn>,
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
     ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
         require(eksisterendeMeldekortPåSaken.sakId == kommando.sakId) {
             "SakId på eksisterende meldekortperiode ${eksisterendeMeldekortPåSaken.sakId} er ikke likt sakId på kommando ${kommando.sakId}"
+        }
+        if (barnetilleggsPerioder.isNotEmpty()) {
+            require(barnetilleggsPerioder.totalePeriode == kommando.periode) {
+                "Periode på barnetilleggsPerioder ${barnetilleggsPerioder.totalePeriode} er ikke likt periode på kommando ${kommando.periode}"
+            }
         }
         val meldekortSomSkalUtfylles: MeldekortBehandling.MeldekortUnderBehandling =
             eksisterendeMeldekortPåSaken.meldekortUnderBehandling?.also {
@@ -67,11 +73,13 @@ private data class MeldekortBeregning(
 
         val meldekortId = kommando.meldekortId
         eksisterendeMeldekortPåSaken.utfylteDager.map { meldekortdag ->
-            val tiltakstype = meldekortdag.tiltakstype
+            // Vi ønsker ikke endre tidligere utfylte dager.
+            val tiltakstype: TiltakstypeSomGirRett by lazy { meldekortdag.tiltakstype ?: throw IllegalStateException("Tidligere meldekortdag.tiltakstype var null for meldekortdag $meldekortdag") }
+
             val dag = meldekortdag.dato
             val antallBarn: AntallBarn = barnetilleggsPerioder.hentVerdiForDag(dag) ?: AntallBarn.ZERO
             when (meldekortdag) {
-                is Sperret -> sperret(meldekortId, tiltakstype, dag, false)
+                is Sperret -> sperret(meldekortId, dag, false)
                 is VelferdGodkjentAvNav -> gyldigFravær(meldekortId, tiltakstype, dag, false, antallBarn)
                 is VelferdIkkeGodkjentAvNav -> ugyldigFravær(meldekortId, tiltakstype, dag, false, antallBarn)
                 is SyktBarn -> fraværSykBarn(meldekortId, tiltakstype, dag, false, antallBarn)
@@ -82,11 +90,16 @@ private data class MeldekortBeregning(
             }
         }
         kommando.dager.map { meldekortdag ->
-            val tiltakstype = meldekortSomSkalUtfylles.tiltakstype
+            val tiltakstype: TiltakstypeSomGirRett by lazy {
+                tiltakstypePerioder.hentVerdiForDag(meldekortdag.dag) ?: run {
+                    throw IllegalStateException("Fant ingen tiltakstype for dag ${meldekortdag.dag}. tiltakstypeperiode: ${tiltakstypePerioder.totalePeriode}")
+                }
+            }
             val dag = meldekortdag.dag
             val antallBarn: AntallBarn = barnetilleggsPerioder.hentVerdiForDag(dag) ?: AntallBarn.ZERO
+
             when (meldekortdag.status) {
-                SPERRET -> sperret(meldekortId, tiltakstype, dag, true)
+                SPERRET -> sperret(meldekortId, dag, true)
                 DELTATT_UTEN_LØNN_I_TILTAKET -> deltattUtenLønn(meldekortId, tiltakstype, dag, true, antallBarn)
                 DELTATT_MED_LØNN_I_TILTAKET -> deltattMedLønn(meldekortId, tiltakstype, dag, true, antallBarn)
                 IKKE_DELTATT -> ikkeDeltatt(meldekortId, tiltakstype, dag, true, antallBarn)
@@ -165,7 +178,6 @@ private data class MeldekortBeregning(
 
     private fun sperret(
         meldekortId: MeldekortId,
-        tiltakstype: TiltakstypeSomGirRett,
         dag: LocalDate,
         skalLeggeTilDag: Boolean,
     ) {
@@ -176,7 +188,6 @@ private data class MeldekortBeregning(
                 Sperret(
                     meldekortId = meldekortId,
                     dato = dag,
-                    tiltakstype = tiltakstype,
                 ),
             )
         }
@@ -461,9 +472,10 @@ private enum class SykTilstand {
 fun SendMeldekortTilBeslutningKommando.beregn(
     eksisterendeMeldekortBehandlinger: MeldekortBehandlinger,
     barnetilleggsPerioder: Periodisering<AntallBarn>,
+    tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
 ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
     return MeldekortBeregning(
         utløsendeMeldekortId = this.meldekortId,
         saksbehandler = this.saksbehandler.navIdent,
-    ).beregn(this, eksisterendeMeldekortBehandlinger, barnetilleggsPerioder)
+    ).beregn(this, eksisterendeMeldekortBehandlinger, barnetilleggsPerioder, tiltakstypePerioder)
 }

@@ -5,6 +5,7 @@ import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.toNonEmptyListOrNull
+import mu.KotlinLogging
 import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -13,8 +14,11 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.InnsendteDagerMåMatcheMeldeperiode
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortBehandlet
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortUnderBehandling
+import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Status
 import java.time.LocalDate
 
 /**
@@ -25,6 +29,9 @@ import java.time.LocalDate
 data class MeldekortBehandlinger(
     val verdi: List<MeldekortBehandling>,
 ) : List<MeldekortBehandling> by verdi {
+
+    val log = KotlinLogging.logger { }
+
     /**
      * @throws NullPointerException Dersom det ikke er noen meldekort-behandling som kan sendes til beslutter. Eller siste meldekort ikke er i tilstanden 'under behandling'.
      * @throws IllegalArgumentException Dersom innsendt meldekortid ikke samsvarer med siste meldekortperiode.
@@ -32,14 +39,31 @@ data class MeldekortBehandlinger(
     fun sendTilBeslutter(
         kommando: SendMeldekortTilBeslutningKommando,
         barnetilleggsPerioder: Periodisering<AntallBarn>,
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
     ): Either<KanIkkeSendeMeldekortTilBeslutning, Pair<MeldekortBehandlinger, MeldekortBehandlet>> {
         val meldekortUnderBehandling = this.meldekortUnderBehandling!!
 
         require(meldekortUnderBehandling.id == kommando.meldekortId) {
             "MeldekortId i kommando (${kommando.meldekortId}) samsvarer ikke med siste meldekortperiode (${meldekortUnderBehandling.id})"
         }
-
-        val meldekortdager = kommando.beregn(eksisterendeMeldekortBehandlinger = this, barnetilleggsPerioder = barnetilleggsPerioder)
+        if (kommando.periode != meldekortUnderBehandling.periode) {
+            return InnsendteDagerMåMatcheMeldeperiode.left()
+        }
+        kommando.dager.dager.zip(meldekortUnderBehandling.beregning.dager).forEach { (dagA, dagB) ->
+            if (dagA.status == Status.SPERRET && dagB !is MeldeperiodeBeregningDag.Utfylt.Sperret) {
+                log.error { "Kan ikke endre dag til sperret. Nåværende tilstand: $utfylteDager. Innsendte dager: ${kommando.dager}" }
+                return KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagTilSperret.left()
+            }
+            if (dagA.status != Status.SPERRET && dagB is MeldeperiodeBeregningDag.Utfylt.Sperret) {
+                log.error { "Kan ikke endre dag fra sperret. Nåværende tilstand: $utfylteDager. Innsendte dager: ${kommando.dager}" }
+                return KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagFraSperret.left()
+            }
+        }
+        val meldekortdager = kommando.beregn(
+            eksisterendeMeldekortBehandlinger = this,
+            barnetilleggsPerioder = barnetilleggsPerioder,
+            tiltakstypePerioder = tiltakstypePerioder,
+        )
         val utfyltMeldeperiode = meldekortUnderBehandling.beregning.tilUtfyltMeldeperiode(meldekortdager).getOrElse {
             return it.left()
         }
@@ -71,13 +95,16 @@ data class MeldekortBehandlinger(
     /**
      * Løper igjennom alle ikke-avsluttede meldekortbehandlinger (også de som er sendt til beslutter), setter tilstanden til under behandling, oppdaterer meldeperioden og resetter utfyllinga.
      */
-    fun oppdaterMedNyeKjeder(oppdaterteKjeder: MeldeperiodeKjeder): Pair<MeldekortBehandlinger, List<MeldekortBehandling>> {
+    fun oppdaterMedNyeKjeder(
+        oppdaterteKjeder: MeldeperiodeKjeder,
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+    ): Pair<MeldekortBehandlinger, List<MeldekortBehandling>> {
         return verdi.filter { it.erÅpen() }
             .fold(Pair(this, emptyList())) { acc, meldekortBehandling ->
                 val meldeperiode = oppdaterteKjeder.hentSisteMeldeperiodeForKjedeId(
                     kjedeId = meldekortBehandling.meldeperiode.meldeperiodeKjedeId,
                 )
-                meldekortBehandling.oppdaterMeldeperiode(meldeperiode)?.let {
+                meldekortBehandling.oppdaterMeldeperiode(meldeperiode, tiltakstypePerioder)?.let {
                     Pair(
                         acc.first.oppdaterMeldekortbehandling(it),
                         acc.second + it,
@@ -132,13 +159,6 @@ data class MeldekortBehandlinger(
             require(a.tilOgMed.plusDays(1) == b.fraOgMed) {
                 "Meldekortperiodene må være sammenhengende og sortert, men var ${verdi.map { it.periode }}"
             }
-        }
-        require(verdi.distinctBy { it.tiltakstype }.size <= 1) {
-            "Alle meldekortperioder må ha samme tiltakstype. Meldekortperioders tiltakstyper=${
-                verdi.map {
-                    it.tiltakstype
-                }
-            }"
         }
         require(verdi.dropLast(1).all { it is MeldekortBehandlet }) {
             "Kun det siste meldekortet kan være i tilstanden 'under behandling', de N første må være 'behandlet'."

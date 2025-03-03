@@ -149,7 +149,7 @@ class IverksettBehandlingService(
         val (oppdaterteKjeder, oppdaterteMeldeperioder) =
             this.meldeperiodeKjeder.oppdaterMedNyStansperiode(vedtak.periode)
         val (oppdaterteMeldekortbehandlinger, OppdaterteMeldekort) =
-            this.meldekortBehandlinger.oppdaterMedNyeKjeder(oppdaterteKjeder)
+            this.meldekortBehandlinger.oppdaterMedNyeKjeder(oppdaterteKjeder, tiltakstypeperioder)
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
             behandlingRepo.lagre(vedtak.behandling, tx)

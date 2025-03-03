@@ -12,6 +12,7 @@ class GenererFakeUtbetalingsvedtakGateway : GenererUtbetalingsvedtakGateway {
     private val response by lazy { PdfOgJson(PdfA("pdf".toByteArray()), "json") }
     override suspend fun genererUtbetalingsvedtak(
         utbetalingsvedtak: Utbetalingsvedtak,
+        tiltakstype: String,
         tiltaksnavn: String,
         eksternGjennomføringId: String?,
         eksternDeltagelseId: String,

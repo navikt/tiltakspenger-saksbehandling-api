@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.overlappendePerioder
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
@@ -35,8 +36,6 @@ sealed interface MeldekortBehandling {
     /** Vil kunne være null dersom vi ikke har mottatt et meldekort via vår digitale flate. Bør på sikt kunne være en liste? */
     val brukersMeldekort: BrukersMeldekort?
 
-    /** Et vedtak kan føre til at en meldeperiode ikke lenger gir rett til tiltakspenger; vil den da ha en tiltakstype? */
-    val tiltakstype: TiltakstypeSomGirRett
     val fraOgMed: LocalDate get() = beregning.fraOgMed
     val tilOgMed: LocalDate get() = beregning.tilOgMed
     val periode: Periode get() = beregning.periode
@@ -68,7 +67,10 @@ sealed interface MeldekortBehandling {
     fun erÅpen(): Boolean = !erAvsluttet
 
     /** Oppdaterer meldeperioden til [meldeperiode] dersom den har samme kjede id, den er nyere enn den eksisterende og dette ikke er avsluttet meldekortbehandling. */
-    fun oppdaterMeldeperiode(meldeperiode: Meldeperiode): MeldekortBehandling? {
+    fun oppdaterMeldeperiode(
+        meldeperiode: Meldeperiode,
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+    ): MeldekortBehandling? {
         require(meldeperiode.meldeperiodeKjedeId == meldeperiodeKjedeId) {
             "MeldekortBehandling: Kan ikke oppdatere meldeperiode med annen kjede id. ${meldeperiode.meldeperiodeKjedeId} != $meldeperiodeKjedeId"
         }
@@ -80,11 +82,19 @@ sealed interface MeldekortBehandling {
             is MeldekortBehandlet -> this.tilUnderBehandling(
                 nyMeldeperiode = meldeperiode,
                 ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
+                tiltakstypePerioder = tiltakstypePerioder,
             )
 
             is MeldekortUnderBehandling -> this.copy(
                 meldeperiode = meldeperiode,
                 ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
+                beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
+                    meldeperiode = meldeperiode,
+                    meldekortId = this.id,
+                    sakId = this.sakId,
+                    maksDagerMedTiltakspengerForPeriode = meldeperiode.antallDagerForPeriode,
+                    tiltakstypePerioder = tiltakstypePerioder,
+                ),
             )
         }
     }
@@ -103,7 +113,6 @@ sealed interface MeldekortBehandling {
         override val fnr: Fnr,
         override val opprettet: LocalDateTime,
         override val beregning: MeldeperiodeBeregning.UtfyltMeldeperiode,
-        override val tiltakstype: TiltakstypeSomGirRett,
         override val saksbehandler: String,
         override val sendtTilBeslutning: LocalDateTime?,
         override val beslutter: String?,
@@ -171,6 +180,7 @@ sealed interface MeldekortBehandling {
         fun tilUnderBehandling(
             nyMeldeperiode: Meldeperiode?,
             ikkeRettTilTiltakspengerTidspunkt: LocalDateTime? = null,
+            tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
         ): MeldekortUnderBehandling {
             val meldeperiode = nyMeldeperiode ?: this.meldeperiode
             return MeldekortUnderBehandling(
@@ -181,12 +191,11 @@ sealed interface MeldekortBehandling {
                 opprettet = this.opprettet,
                 beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
                     meldeperiode = meldeperiode,
-                    tiltakstype = tiltakstype,
+                    tiltakstypePerioder = tiltakstypePerioder,
                     meldekortId = this.id,
                     sakId = this.sakId,
                     maksDagerMedTiltakspengerForPeriode = meldeperiode.antallDagerForPeriode,
                 ),
-                tiltakstype = this.tiltakstype,
                 saksbehandler = saksbehandler,
                 navkontor = this.navkontor,
                 ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
@@ -209,7 +218,6 @@ sealed interface MeldekortBehandling {
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
         override val opprettet: LocalDateTime,
-        override val tiltakstype: TiltakstypeSomGirRett,
         override val beregning: MeldeperiodeBeregning.IkkeUtfyltMeldeperiode,
         override val navkontor: Navkontor,
         override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
@@ -249,7 +257,6 @@ sealed interface MeldekortBehandling {
                 fnr = this.fnr,
                 opprettet = this.opprettet,
                 beregning = utfyltMeldeperiode,
-                tiltakstype = this.tiltakstype,
                 saksbehandler = saksbehandler.navIdent,
                 sendtTilBeslutning = nå(),
                 beslutter = this.beslutter,
@@ -317,11 +324,9 @@ fun Sak.opprettMeldekortBehandling(
 
     requireNotNull(overlappendePeriode) { "Meldeperioden må overlappe med innvilgelsesperioden(e)" }
 
-    // TODO: håndtere flere vedtak
+    // TODO jah: Behandlingen må ta inn periodisert antall dager og ikke bruke tidligere vedtak her. Tror ikke maksDagerMedTiltakspengerForPeriode brukes til noe; kanskje den bør bort fra beregningen?
     val vedtak = this.vedtaksliste.tidslinjeForPeriode(overlappendePeriode).single().verdi
-
-    // TODO: hent tiltakstype fra gjeldende periode
-    val tiltakstype = vedtak.behandling.tiltakstype
+    val maksDagerMedTiltakspengerForPeriode = vedtak.behandling.maksDagerMedTiltakspengerForPeriode
 
     return MeldekortBehandling.MeldekortUnderBehandling(
         id = meldekortId,
@@ -333,14 +338,13 @@ fun Sak.opprettMeldekortBehandling(
         ikkeRettTilTiltakspengerTidspunkt = null,
         brukersMeldekort = brukersMeldekort,
         meldeperiode = meldeperiode,
-        tiltakstype = tiltakstype,
         saksbehandler = saksbehandler.navIdent,
         beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
             meldeperiode = meldeperiode,
-            tiltakstype = tiltakstype,
             meldekortId = meldekortId,
             sakId = this.id,
-            maksDagerMedTiltakspengerForPeriode = vedtak.behandling.maksDagerMedTiltakspengerForPeriode,
+            maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
+            tiltakstypePerioder = this.vedtaksliste.tiltakstypeperioder,
         ),
     )
 }

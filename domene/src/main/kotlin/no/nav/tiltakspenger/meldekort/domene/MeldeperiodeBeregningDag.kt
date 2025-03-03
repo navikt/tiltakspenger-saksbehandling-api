@@ -17,7 +17,7 @@ sealed interface MeldeperiodeBeregningDag {
     val dato: LocalDate
     val meldekortId: MeldekortId
     val reduksjon: ReduksjonAvYtelsePåGrunnAvFravær?
-    val tiltakstype: TiltakstypeSomGirRett
+    val tiltakstype: TiltakstypeSomGirRett?
     val beregningsdag: Beregningsdag?
 
     val beløp: Int get() = beregningsdag?.beløp ?: 0
@@ -38,7 +38,7 @@ sealed interface MeldeperiodeBeregningDag {
     }
 
     sealed interface Utfylt : MeldeperiodeBeregningDag {
-        override val tiltakstype: TiltakstypeSomGirRett
+        override val tiltakstype: TiltakstypeSomGirRett?
         override val reduksjon: ReduksjonAvYtelsePåGrunnAvFravær
 
         /** Begrenses av maksDagerMedTiltakspengerForPeriode (1-14) per meldeperiode og SPERRET. */
@@ -272,8 +272,8 @@ sealed interface MeldeperiodeBeregningDag {
         data class Sperret(
             override val meldekortId: MeldekortId,
             override val dato: LocalDate,
-            override val tiltakstype: TiltakstypeSomGirRett,
         ) : Utfylt {
+            override val tiltakstype = null
             override val reduksjon = YtelsenFallerBort
             override val harDeltattEllerFravær = false
             override val beregningsdag = null

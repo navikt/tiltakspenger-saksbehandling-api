@@ -105,7 +105,7 @@ private fun MeldeperiodeBeregningDag.Utfylt.genererUtbetalingsperiode(
                 tilOgMedDato = this.dato,
                 stønadsdata =
                 StønadsdataTiltakspengerV2Dto(
-                    stønadstype = this.tiltakstype.mapStønadstype(),
+                    stønadstype = this.tiltakstype!!.mapStønadstype(),
                     barnetillegg = barnetillegg,
                     brukersNavKontor = brukersNavKontor.kontornummer,
                     meldekortId = meldeperiodeKjedeId.verdi,

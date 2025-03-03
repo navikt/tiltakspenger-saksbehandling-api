@@ -37,6 +37,7 @@ class JournalførUtbetalingsvedtakService(
                         genererUtbetalingsvedtakGateway.genererUtbetalingsvedtak(
                             utbetalingsvedtak,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                            tiltakstype = tiltak.tiltakstype,
                             tiltaksnavn = tiltak.tiltaksnavn,
                             eksternDeltagelseId = tiltak.eksternDeltagelseId,
                             eksternGjennomføringId = tiltak.eksternGjennomføringId,

@@ -49,6 +49,7 @@ private data class UtbetalingsvedtakDTO(
 
 suspend fun Utbetalingsvedtak.toJsonRequest(
     hentSaksbehandlersNavn: suspend (String) -> String,
+    tiltakstype: String,
     tiltaksnavn: String,
     eksternGjennomføringId: String?,
     eksternDeltagelseId: String,
@@ -75,7 +76,7 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
             )
         },
         eksternGjennomføringId = eksternGjennomføringId,
-        tiltakstype = meldekortbehandling.tiltakstype.name,
+        tiltakstype = tiltakstype,
         tiltaksnavn = tiltaksnavn,
         eksternDeltagelseId = eksternDeltagelseId,
         iverksattTidspunkt = opprettet.format(norskTidspunktFormatter),

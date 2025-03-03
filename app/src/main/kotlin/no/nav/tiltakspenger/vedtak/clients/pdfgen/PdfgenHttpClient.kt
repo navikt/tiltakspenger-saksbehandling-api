@@ -133,6 +133,7 @@ internal class PdfgenHttpClient(
 
     override suspend fun genererUtbetalingsvedtak(
         utbetalingsvedtak: Utbetalingsvedtak,
+        tiltakstype: String,
         tiltaksnavn: String,
         eksternGjennomføringId: String?,
         eksternDeltagelseId: String,
@@ -142,6 +143,7 @@ internal class PdfgenHttpClient(
             jsonPayload = {
                 utbetalingsvedtak.toJsonRequest(
                     hentSaksbehandlersNavn,
+                    tiltakstype,
                     tiltaksnavn,
                     eksternGjennomføringId,
                     eksternDeltagelseId,
