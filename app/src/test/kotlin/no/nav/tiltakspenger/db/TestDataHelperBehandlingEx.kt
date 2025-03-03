@@ -194,7 +194,7 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
             barnetillegg = listOf(),
             sak = sak,
         ),
-    hentSaksopplysninger: suspend (sakId: SakId, saksnummer: Saksnummer, fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _, _, _ -> ObjectMother.saksopplysninger() },
+    hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
 ): Pair<Sak, Behandling> {
     val (sak, _) = runBlocking {
         persisterIverksattFørstegangsbehandling(
@@ -257,7 +257,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
             barnetillegg = listOf(),
             sak = sak,
         ),
-    hentSaksopplysninger: suspend (sakId: SakId, saksnummer: Saksnummer, fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _, _, _ -> ObjectMother.saksopplysninger() },
+    hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
 ): Pair<Sak, Behandling> {
     val (sak, _) = runBlocking {
         persisterIverksattFørstegangsbehandling(

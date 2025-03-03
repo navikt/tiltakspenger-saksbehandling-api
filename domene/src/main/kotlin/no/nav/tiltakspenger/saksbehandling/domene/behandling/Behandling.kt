@@ -73,8 +73,6 @@ data class Behandling(
     val tiltaksid: String = saksopplysninger.tiltaksdeltagelse.eksternDeltagelseId
     val gjennomføringId: String? = saksopplysninger.tiltaksdeltagelse.gjennomføringId
 
-    // Denne er kun en midlertidig løsning for å kunne støtte ny og gammel vilkårsvurdering i EndretTiltaksdeltakerJobb og bør ikke brukes noe annet
-    // sted siden vi mangler data for id, deltakelsesprosent og antallDagerPerUke i gammel vilkårsvurdering og dermed bruker noen defaultverdier
     val tiltaksdeltakelse = saksopplysninger.tiltaksdeltagelse
 
     /**
