@@ -14,7 +14,7 @@ import java.time.LocalDateTime
 data class SøknadDTO(
     val journalpostId: String,
     val tiltak: TiltaksdeltagelseFraSøknadDTO,
-    val barnetillegg: List<BarnetilleggFraSøknad>,
+    val barnetillegg: List<BarnetilleggFraSøknadDTO>,
     val opprettet: LocalDateTime,
     val tidsstempelHosOss: LocalDateTime,
     val kvp: PeriodeDTO?,
@@ -36,13 +36,27 @@ data class SøknadDTO(
         val typeKode: String,
         val typeNavn: String,
     )
+
+    data class BarnetilleggFraSøknadDTO(
+        val oppholderSegIEØS: JaNeiSpm,
+        val fornavn: String?,
+        val mellomnavn: String?,
+        val etternavn: String?,
+        val fødselsdato: LocalDate,
+        val kilde: BarnetilleggFraSøknadKilde,
+    )
+
+    enum class BarnetilleggFraSøknadKilde {
+        PDL,
+        Manuell,
+    }
 }
 
 fun Søknad.toDTO(): SøknadDTO {
     return SøknadDTO(
-        journalpostId = this.journalpostId.toString(),
+        journalpostId = this.journalpostId,
         tiltak = this.tiltak.toDTO(),
-        barnetillegg = this.barnetillegg,
+        barnetillegg = this.barnetillegg.toDTO(),
         opprettet = this.opprettet,
         tidsstempelHosOss = this.tidsstempelHosOss,
         kvp = this.kvp.toDTO(),
@@ -87,5 +101,19 @@ fun Søknadstiltak.toDTO(): SøknadDTO.TiltaksdeltagelseFraSøknadDTO {
         tilOgMed = this.deltakelseTom.toString(),
         typeKode = this.typeKode,
         typeNavn = this.typeNavn,
+    )
+}
+
+fun List<BarnetilleggFraSøknad>.toDTO(): List<SøknadDTO.BarnetilleggFraSøknadDTO> = this.map {
+    SøknadDTO.BarnetilleggFraSøknadDTO(
+        oppholderSegIEØS = it.oppholderSegIEØS,
+        fornavn = it.fornavn,
+        mellomnavn = it.mellomnavn,
+        etternavn = it.etternavn,
+        fødselsdato = it.fødselsdato,
+        kilde = when (it) {
+            is BarnetilleggFraSøknad.FraPdl -> SøknadDTO.BarnetilleggFraSøknadKilde.PDL
+            is BarnetilleggFraSøknad.Manuell -> SøknadDTO.BarnetilleggFraSøknadKilde.Manuell
+        },
     )
 }
