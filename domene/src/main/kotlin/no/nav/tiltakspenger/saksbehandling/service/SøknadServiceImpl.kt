@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.felles.Systembruker
 import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.ports.Oppgavebehov
@@ -18,7 +19,8 @@ class SøknadServiceImpl(
 
     override suspend fun nySøknad(søknad: Søknad, systembruker: Systembruker) {
         require(systembruker.roller.harLageHendelser()) { "Systembruker mangler rollen LAGE_HENDELSER. Systembrukers roller: ${systembruker.roller}" }
-        val oppgaveId = oppgaveGateway.opprettOppgave(søknad.fnr, JournalpostId(søknad.journalpostId), Oppgavebehov.NY_SOKNAD)
+        val oppgaveId =
+            oppgaveGateway.opprettOppgave(søknad.fnr, JournalpostId(søknad.journalpostId), Oppgavebehov.NY_SOKNAD)
         log.info { "Opprettet oppgave med id $oppgaveId for søknad med id ${søknad.id}" }
         søknadRepo.lagre(søknad.copy(oppgaveId = oppgaveId))
     }
@@ -28,6 +30,11 @@ class SøknadServiceImpl(
     }
 
     override fun hentSakIdForSoknad(søknadId: SøknadId): SakId {
-        return søknadRepo.hentSakIdForSoknad(søknadId) ?: throw IllegalStateException("Fant ikke sak for søknad med id $søknadId")
+        return søknadRepo.hentSakIdForSoknad(søknadId)
+            ?: throw IllegalStateException("Fant ikke sak for søknad med id $søknadId")
+    }
+
+    override fun lagreSøknad(søknad: Søknad, tx: TransactionContext) {
+        søknadRepo.lagre(søknad, tx)
     }
 }

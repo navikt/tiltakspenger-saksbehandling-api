@@ -5,6 +5,7 @@ package no.nav.tiltakspenger.saksbehandling.domene.behandling
 import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
@@ -35,6 +36,7 @@ data class Søknad(
     val sakId: SakId,
     val saksnummer: Saksnummer,
     val oppgaveId: OppgaveId?,
+    val avbrutt: Avbrutt?,
 ) {
     val kravdato: LocalDate = tidsstempelHosOss.toLocalDate()
 
@@ -43,6 +45,15 @@ data class Søknad(
     companion object {
         fun randomId() = SøknadId.random()
     }
+
+    // TODO - test
+    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Søknad = this.copy(
+        avbrutt = Avbrutt(
+            tidspunkt = tidspunkt,
+            saksbehandler = avbruttAv.navIdent,
+            begrunnelse = begrunnelse,
+        ),
+    )
 
     fun vurderingsperiode(): Periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom)
 

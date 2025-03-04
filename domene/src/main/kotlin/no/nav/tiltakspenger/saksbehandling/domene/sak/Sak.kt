@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.domene.sak
 import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.felles.min
+import no.nav.tiltakspenger.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -22,8 +23,10 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Vedtaksliste
+import no.nav.tiltakspenger.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.utbetaling.domene.Utbetalinger
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class Sak(
     val id: SakId,
@@ -117,5 +120,25 @@ data class Sak(
 
     fun erSisteVersjonAvMeldeperiode(meldeperiode: Meldeperiode): Boolean {
         return meldeperiodeKjeder.erSisteVersjonAvMeldeperiode(meldeperiode)
+    }
+
+    fun avbrytSøknadOgBehandling(
+        command: AvbrytSøknadOgBehandlingCommand,
+        avbruttTidspunkt: LocalDateTime,
+    ): Triple<Sak, Søknad, Behandling?> {
+        val søknad = this.soknader.single { it.id === command.søknadId }
+        val behandling = command.behandlingId?.let { this.hentBehandling(it) }
+            // verifiserer at en søknad ikke er knyttet til en behandling dersom behandlingId er null
+            // ideelt så sender man inn behandlingsId, og ikke søknadsId for å avslutte begge.
+            ?: behandlinger.behandlinger.singleOrNullOrThrow { it.søknad?.id == command.søknadId }
+
+        val avbruttBehandling = behandling?.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
+        val avbruttSøknad = behandling?.søknad ?: søknad.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
+
+        val oppdatertSak = this.copy(
+            soknader = this.soknader.map { if (it.id === command.søknadId) avbruttSøknad else it },
+            behandlinger = avbruttBehandling?.let { this.behandlinger.oppdaterBehandling(it) } ?: this.behandlinger,
+        )
+        return Triple(oppdatertSak, søknad, behandling)
     }
 }

@@ -40,4 +40,13 @@ internal class PostgresSøknadRepo(
         sessionFactory.withSession {
             SøknadDAO.finnSakIdForTiltaksdeltakelse(eksternId, it)
         }
+
+    override fun lagreAvbruttSøknad(søknad: Søknad, txContext: TransactionContext?) {
+        if (søknad.avbrutt == null) {
+            throw IllegalArgumentException("Kan ikke lagre en søknad som ikke er avbrutt")
+        }
+        sessionFactory.withTransaction(txContext) {
+            SøknadDAO.lagreAvbruttSøknad(søknad.id, søknad.avbrutt!!, it)
+        }
+    }
 }

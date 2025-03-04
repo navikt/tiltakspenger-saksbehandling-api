@@ -57,6 +57,7 @@ object SøknadDTOMapper {
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             oppgaveId = null,
+            avbrutt = null,
         )
 
     private fun mapPeriodeSpm(periodeSpmDTO: PeriodeSpmDTO): Søknad.PeriodeSpm =

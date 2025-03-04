@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
@@ -92,6 +93,7 @@ interface SøknadMother {
         jobbsjansen: Søknad.PeriodeSpm = periodeNei(),
         sak: Sak = ObjectMother.nySak(fnr = fnr),
         oppgaveId: OppgaveId? = ObjectMother.oppgaveId(),
+        avbrutt: Avbrutt? = null,
     ): Søknad =
         Søknad(
             versjon = versjon,
@@ -117,6 +119,7 @@ interface SøknadMother {
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             oppgaveId = oppgaveId,
+            avbrutt = avbrutt,
         )
 
     fun personSøknad(

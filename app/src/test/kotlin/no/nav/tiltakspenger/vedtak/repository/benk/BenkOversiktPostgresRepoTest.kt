@@ -38,7 +38,7 @@ class BenkOversiktPostgresRepoTest {
                                 status = BehandlingEllerSøknadForSaksoversikt.Status.Søknad,
                                 behandlingstype = BenkBehandlingstype.SØKNAD,
                                 fnr = søknad1.fnr,
-                                saksnummer = null,
+                                saksnummer = søknad1.saksnummer,
                                 saksbehandler = null,
                                 beslutter = null,
                                 sakId = sakId,

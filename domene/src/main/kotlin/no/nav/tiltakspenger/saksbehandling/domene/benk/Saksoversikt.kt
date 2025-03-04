@@ -30,11 +30,11 @@ data class BehandlingEllerSøknadForSaksoversikt(
     val kravtidspunkt: LocalDateTime?,
     val behandlingstype: BenkBehandlingstype,
     val fnr: Fnr,
-    val saksnummer: Saksnummer?,
+    val saksnummer: Saksnummer,
     val id: Ulid,
     val saksbehandler: String?,
     val beslutter: String?,
-    val sakId: SakId?,
+    val sakId: SakId,
     val opprettet: LocalDateTime,
 ) {
     sealed interface Status {

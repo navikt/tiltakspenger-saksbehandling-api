@@ -114,6 +114,7 @@ class SøknadRoutesTest {
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     oppgaveId = ObjectMother.oppgaveId(),
+                    avbrutt = null,
                 )
 
             tac.søknadContext.søknadRepo.hentSakIdForSoknad(søknadId) shouldBe sak.id
