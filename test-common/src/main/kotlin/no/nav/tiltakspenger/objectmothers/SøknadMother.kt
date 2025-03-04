@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.objectmothers
 
+import no.nav.tiltakspenger.common.januarDateTime
 import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.felles.januar
-import no.nav.tiltakspenger.felles.januarDateTime
 import no.nav.tiltakspenger.felles.juni
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId

@@ -2,10 +2,10 @@ package no.nav.tiltakspenger.objectmothers
 
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.common.TestApplicationContext
+import no.nav.tiltakspenger.common.januarDateTime
 import no.nav.tiltakspenger.felles.AttesteringId
 import no.nav.tiltakspenger.felles.Systembruker
 import no.nav.tiltakspenger.felles.januar
-import no.nav.tiltakspenger.felles.januarDateTime
 import no.nav.tiltakspenger.felles.mars
 import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.libs.common.CorrelationId

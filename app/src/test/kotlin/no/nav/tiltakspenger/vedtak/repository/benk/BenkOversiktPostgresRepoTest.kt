@@ -2,12 +2,12 @@ package no.nav.tiltakspenger.vedtak.repository.benk
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.tiltakspenger.common.januarDateTime
 import no.nav.tiltakspenger.db.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandling
 import no.nav.tiltakspenger.db.persisterOpprettetRevurderingDeprecated
 import no.nav.tiltakspenger.db.persisterSakOgSøknad
 import no.nav.tiltakspenger.db.withMigratedDb
-import no.nav.tiltakspenger.felles.januarDateTime
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
