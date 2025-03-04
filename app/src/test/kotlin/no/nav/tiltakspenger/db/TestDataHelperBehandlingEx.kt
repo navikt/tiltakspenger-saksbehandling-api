@@ -61,7 +61,8 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
-            sak = sak,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
         ),
     barnetillegg: Barnetillegg? = null,
 ): Pair<Sak, Søknad> {
@@ -120,7 +121,8 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
-            sak = sak,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
         ),
     correlationId: CorrelationId = CorrelationId.generate(),
 ): Pair<Sak, Rammevedtak> {
@@ -193,7 +195,8 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
-            sak = sak,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
         ),
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
 ): Pair<Sak, Behandling> {
@@ -256,7 +259,8 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
-            sak = sak,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
         ),
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
 ): Pair<Sak, Behandling> {
@@ -319,7 +323,8 @@ internal fun TestDataHelper.persisterBehandletRevurdering(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
-            sak = sak,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
         ),
     stansDato: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
     begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("fordi"),
@@ -386,7 +391,8 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
-            sak = sak,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
         ),
 ): Pair<Sak, MeldekortBehandling.MeldekortBehandlet> {
     val (sak, vedtak) = persisterIverksattFørstegangsbehandling(

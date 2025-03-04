@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.juni
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -12,10 +13,10 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 interface SøknadMother {
     fun søknadstiltak(
@@ -91,7 +92,8 @@ interface SøknadMother {
         supplerendeStønadAlder: Søknad.PeriodeSpm = periodeNei(),
         supplerendeStønadFlyktning: Søknad.PeriodeSpm = periodeNei(),
         jobbsjansen: Søknad.PeriodeSpm = periodeNei(),
-        sak: Sak = ObjectMother.nySak(fnr = fnr),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         oppgaveId: OppgaveId? = ObjectMother.oppgaveId(),
         avbrutt: Avbrutt? = null,
     ): Søknad =
@@ -116,8 +118,8 @@ interface SøknadMother {
             supplerendeStønadFlyktning = supplerendeStønadFlyktning,
             jobbsjansen = jobbsjansen,
             trygdOgPensjon = trygdOgPensjon,
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
+            sakId = sakId,
+            saksnummer = saksnummer,
             oppgaveId = oppgaveId,
             avbrutt = avbrutt,
         )

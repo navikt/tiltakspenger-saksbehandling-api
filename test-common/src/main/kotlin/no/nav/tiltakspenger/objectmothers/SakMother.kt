@@ -56,6 +56,8 @@ interface SakMother {
         saksbehandler: Saksbehandler = saksbehandler(),
         søknad: Søknad =
             nySøknad(
+                sakId = sakId,
+                saksnummer = saksnummer,
                 søknadstiltak =
                 søknadstiltak(
                     deltakelseFom = virkningsperiode.fraOgMed,
