@@ -23,8 +23,9 @@ fun Sak.toDTO() = SakDTO(
     sakId = id.toString(),
     fnr = fnr.verdi,
     behandlingsoversikt = (
-        behandlinger.toSaksoversiktDTO() +
-            this.soknader.filter { soknad -> behandlinger.none { it.søknad?.id == soknad.id } }
+        behandlinger.filterNot { it.erAvsluttet }.toSaksoversiktDTO() +
+            this.soknader.filterNot { it.erAvbrutt }
+                .filter { soknad -> behandlinger.none { it.søknad?.id == soknad.id } }
                 .toSaksoversiktDTO()
         ).sortedBy { it.opprettet },
     meldeperiodeKjeder = toMeldeperiodeKjederDTO(),

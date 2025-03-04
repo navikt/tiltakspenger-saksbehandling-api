@@ -34,7 +34,7 @@ class SøknadServiceImpl(
             ?: throw IllegalStateException("Fant ikke sak for søknad med id $søknadId")
     }
 
-    override fun lagreSøknad(søknad: Søknad, tx: TransactionContext) {
-        søknadRepo.lagre(søknad, tx)
+    override fun lagreAvbruttSøknad(søknad: Søknad, tx: TransactionContext) {
+        søknadRepo.lagreAvbruttSøknad(søknad, tx)
     }
 }

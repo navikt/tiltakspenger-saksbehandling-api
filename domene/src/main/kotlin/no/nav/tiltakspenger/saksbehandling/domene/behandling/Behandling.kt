@@ -63,6 +63,7 @@ data class Behandling(
     val barnetillegg: Barnetillegg?,
     val avbrutt: Avbrutt?,
 ) {
+    val erAvsluttet: Boolean by lazy { status == AVBRUTT || status == VEDTATT }
     val erUnderBehandling: Boolean = status == UNDER_BEHANDLING
 
     val erVedtatt: Boolean = status == VEDTATT

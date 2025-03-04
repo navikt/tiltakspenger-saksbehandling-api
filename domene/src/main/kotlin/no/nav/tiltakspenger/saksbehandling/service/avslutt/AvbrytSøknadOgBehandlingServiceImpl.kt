@@ -29,7 +29,7 @@ class AvbrytSøknadOgBehandlingServiceImpl(
         )
 
         sessionFactory.withTransactionContext { tx ->
-            søknadService.lagreSøknad(avbruttSøknad, tx)
+            søknadService.lagreAvbruttSøknad(avbruttSøknad, tx)
             avbruttBehandling?.let { behandlingService.lagreBehandling(it, tx) }
         }.also {
             return oppdatertSak.right()

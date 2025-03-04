@@ -39,7 +39,7 @@ data class Søknad(
     val avbrutt: Avbrutt?,
 ) {
     val kravdato: LocalDate = tidsstempelHosOss.toLocalDate()
-
+    val erAvbrutt: Boolean by lazy { avbrutt != null }
     val fnr: Fnr = personopplysninger.fnr
 
     companion object {
@@ -47,13 +47,18 @@ data class Søknad(
     }
 
     // TODO - test
-    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Søknad = this.copy(
-        avbrutt = Avbrutt(
-            tidspunkt = tidspunkt,
-            saksbehandler = avbruttAv.navIdent,
-            begrunnelse = begrunnelse,
-        ),
-    )
+    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Søknad {
+        if (this.avbrutt != null) {
+            throw IllegalStateException("Søknad er allerede avbrutt")
+        }
+        return this.copy(
+            avbrutt = Avbrutt(
+                tidspunkt = tidspunkt,
+                saksbehandler = avbruttAv.navIdent,
+                begrunnelse = begrunnelse,
+            ),
+        )
+    }
 
     fun vurderingsperiode(): Periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom)
 

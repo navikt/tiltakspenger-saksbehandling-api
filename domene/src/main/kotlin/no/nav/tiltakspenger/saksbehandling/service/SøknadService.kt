@@ -14,5 +14,5 @@ interface SøknadService {
 
     fun hentSakIdForSoknad(søknadId: SøknadId): SakId
 
-    fun lagreSøknad(søknad: Søknad, tx: TransactionContext)
+    fun lagreAvbruttSøknad(søknad: Søknad, tx: TransactionContext)
 }
