@@ -157,7 +157,7 @@ internal object SøknadDAO {
     ) {
         val oppdaterteRader = txSession.run(
             queryOf(
-                """update søknad set avbrutt = :avbrutt where id = :soknad_id""",
+                """update søknad set avbrutt = to_jsonb(:avbrutt::jsonb) where id = :soknad_id""",
                 mapOf(
                     "avbrutt" to avbrutt.toDbJson(),
                     "soknad_id" to søknadId.toString(),

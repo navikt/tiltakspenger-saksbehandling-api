@@ -126,19 +126,20 @@ data class Sak(
         command: AvbrytSøknadOgBehandlingCommand,
         avbruttTidspunkt: LocalDateTime,
     ): Triple<Sak, Søknad, Behandling?> {
-        val søknad = this.soknader.single { it.id === command.søknadId }
+        // TODO - håndter at command.søknadId can være null
+        val søknad = this.soknader.single { it.id == command.søknadId }
         val behandling = command.behandlingId?.let { this.hentBehandling(it) }
             // verifiserer at en søknad ikke er knyttet til en behandling dersom behandlingId er null
             // ideelt så sender man inn behandlingsId, og ikke søknadsId for å avslutte begge.
             ?: behandlinger.behandlinger.singleOrNullOrThrow { it.søknad?.id == command.søknadId }
 
         val avbruttBehandling = behandling?.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
-        val avbruttSøknad = behandling?.søknad ?: søknad.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
+        val avbruttSøknad = (behandling?.søknad ?: søknad).avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
 
         val oppdatertSak = this.copy(
-            soknader = this.soknader.map { if (it.id === command.søknadId) avbruttSøknad else it },
+            soknader = this.soknader.map { if (it.id == command.søknadId) avbruttSøknad else it },
             behandlinger = avbruttBehandling?.let { this.behandlinger.oppdaterBehandling(it) } ?: this.behandlinger,
         )
-        return Triple(oppdatertSak, søknad, behandling)
+        return Triple(oppdatertSak, avbruttSøknad, avbruttBehandling)
     }
 }

@@ -29,7 +29,7 @@ fun Route.avbrytSøknadOgBehandling(
     val logger = KotlinLogging.logger {}
     post("$SAK_PATH/{saksnummer}/avbryt-aktiv-behandling") {
         logger.debug { "Mottatt post-request på $SAK_PATH/{saksnummer}/avbryt-aktiv-behandling - Prøver å avslutte søknad og behandling" }
-        call.withSaksbehandler(tokenService) { saksbehandler ->
+        call.withSaksbehandler(tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSaksnummer { saksnummer ->
                 call.withBody<AvsluttSøknadOgBehandlingBody> { body ->
                     avbrytSøknadOgBehandlingService.avbrytSøknadOgBehandling(
