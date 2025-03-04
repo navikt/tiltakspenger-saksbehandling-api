@@ -15,7 +15,7 @@ private data class ValgteTiltaksdeltakelserDbJson(
 
 private data class TiltaksdeltakelsePeriodeMedVerdi(
     val periode: PeriodeDbJson,
-    val verdi: String,
+    val eksternDeltagelseId: String,
 )
 
 fun String.toValgteTiltaksdeltakelser(saksopplysninger: Saksopplysninger): ValgteTiltaksdeltakelser {
@@ -25,8 +25,8 @@ fun String.toValgteTiltaksdeltakelser(saksopplysninger: Saksopplysninger): Valgt
             valgteTiltaksdeltakelserDbJson.value.map {
                 PeriodeMedVerdi(
                     periode = it.periode.toDomain(),
-                    verdi = saksopplysninger.getTiltaksdeltagelse(it.verdi)
-                        ?: throw IllegalStateException("Fant ikke tiltaksdeltakelse med id ${it.verdi} fra saksopplysninger"),
+                    verdi = saksopplysninger.getTiltaksdeltagelse(it.eksternDeltagelseId)
+                        ?: throw IllegalStateException("Fant ikke tiltaksdeltakelse med id ${it.eksternDeltagelseId} fra saksopplysninger"),
                 )
             },
         ),
@@ -37,7 +37,7 @@ fun ValgteTiltaksdeltakelser.toDbJson(): String = ValgteTiltaksdeltakelserDbJson
     value = this.periodisering.perioderMedVerdi.map {
         TiltaksdeltakelsePeriodeMedVerdi(
             periode = it.periode.toDbJson(),
-            verdi = it.verdi.eksternDeltagelseId,
+            eksternDeltagelseId = it.verdi.eksternDeltagelseId,
         )
     },
 ).let { serialize(it) }

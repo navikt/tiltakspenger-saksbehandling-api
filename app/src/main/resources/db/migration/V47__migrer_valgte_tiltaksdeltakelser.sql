@@ -16,7 +16,7 @@ UPDATE behandling b
 SET valgte_tiltaksdeltakelser = jsonb_build_object(
   'value', jsonb_build_array(
     jsonb_build_object(
-      'verdi', e.tiltakid,
+      'eksternDeltagelseId', e.tiltakid,
       'periode', jsonb_build_object(
         'fraOgMed', e.virkningsperiode_fra_og_med,
         'tilOgMed', e.virkningsperiode_til_og_med
