@@ -80,8 +80,9 @@ data class Vedtaksliste(
         }
     }
 
+    // TODO: Her må vi bruke periodiseringen fra behandlingen når den er klar
     val tiltaksdeltagelseperioder: Periodisering<Tiltaksdeltagelse> by lazy {
-        saksopplysningerperiode.map { it.tiltaksdeltagelse }
+        saksopplysningerperiode.map { it.tiltaksdeltagelse.first() }
     }
 
     /** Tidslinje for antall barn. Første og siste periode vil være 1 eller flere. Kan inneholde hull med 0 barn. */

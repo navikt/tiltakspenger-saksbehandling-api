@@ -61,8 +61,7 @@ class OppdaterSaksopplysningerService(
         val overlappendeTiltak = alleRelevanteTiltak.filter { it.overlapperMedPeriode(saksopplysningsperiode) }
         return Saksopplysninger(
             fødselsdato = personopplysninger.fødselsdato,
-            // TODO John + Anders: Vurder på hvilket tidspunkt denne kan gjøres om til en liste. Kan det vente til vi har slettet vilkårssettet?
-            tiltaksdeltagelse = overlappendeTiltak.single(),
+            tiltaksdeltagelse = overlappendeTiltak,
         )
     }
 }

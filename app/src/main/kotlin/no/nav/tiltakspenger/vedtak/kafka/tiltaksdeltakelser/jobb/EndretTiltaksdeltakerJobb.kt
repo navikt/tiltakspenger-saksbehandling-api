@@ -32,7 +32,8 @@ class EndretTiltaksdeltakerJobb(
             }
             log.info { "Fant behandling ${nyesteIverksatteBehandling.id} for sakId ${it.sakId} og deltakerId ${it.id}" }
 
-            val tiltaksdeltakelseFraBehandling = nyesteIverksatteBehandling.tiltaksdeltakelse
+            val tiltaksdeltakelseFraBehandling = nyesteIverksatteBehandling.getTiltaksdeltagelse(it.id)
+                ?: throw IllegalStateException("Fant ikke deltaker med id ${it.id} på behandling ${nyesteIverksatteBehandling.id}, skal ikke kunne skje")
             if (it.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling)) {
                 log.info { "Tiltaksdeltakelse ${it.id} er endret, oppretter oppgave" }
                 val oppgaveId = oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(sak.fnr, Oppgavebehov.ENDRET_TILTAKDELTAKER)
@@ -62,9 +63,10 @@ class EndretTiltaksdeltakerJobb(
         }
     }
 
+    // TODO: Når behandlinger kan iverksettes med annet resultat enn at det innvilges tiltakspenger så må vi passe på å filtrere bort disse
     private fun finnNyesteIverksatteBehandlingForDeltakelse(sak: Sak, tiltaksdeltakerId: String): Behandling? {
         val iverksatteBehandlingerForDeltakelse =
-            sak.behandlinger.behandlinger.filter { it.tiltaksid == tiltaksdeltakerId && it.iverksattTidspunkt != null }
+            sak.behandlinger.behandlinger.filter { it.inneholderEksternDeltagelseId(tiltaksdeltakerId) && it.iverksattTidspunkt != null }
         return iverksatteBehandlingerForDeltakelse.maxByOrNull { it.iverksattTidspunkt!! }
     }
 }

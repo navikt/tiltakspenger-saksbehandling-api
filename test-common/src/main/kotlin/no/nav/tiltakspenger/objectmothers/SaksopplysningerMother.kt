@@ -11,7 +11,7 @@ interface SaksopplysningerMother {
     ): Saksopplysninger {
         return Saksopplysninger(
             fødselsdato = fødselsdato,
-            tiltaksdeltagelse = tiltaksdeltagelse,
+            tiltaksdeltagelse = listOf(tiltaksdeltagelse),
         )
     }
 }
