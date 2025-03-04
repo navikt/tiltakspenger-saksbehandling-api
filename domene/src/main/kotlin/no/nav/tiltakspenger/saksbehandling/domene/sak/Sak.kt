@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.domene.sak
 import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.felles.min
-import no.nav.tiltakspenger.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -122,24 +121,46 @@ data class Sak(
         return meldeperiodeKjeder.erSisteVersjonAvMeldeperiode(meldeperiode)
     }
 
+    // TODO - test
     fun avbrytSøknadOgBehandling(
         command: AvbrytSøknadOgBehandlingCommand,
         avbruttTidspunkt: LocalDateTime,
-    ): Triple<Sak, Søknad, Behandling?> {
-        // TODO - håndter at command.søknadId can være null
-        val søknad = this.soknader.single { it.id == command.søknadId }
-        val behandling = command.behandlingId?.let { this.hentBehandling(it) }
-            // verifiserer at en søknad ikke er knyttet til en behandling dersom behandlingId er null
-            // ideelt så sender man inn behandlingsId, og ikke søknadsId for å avslutte begge.
-            ?: behandlinger.behandlinger.singleOrNullOrThrow { it.søknad?.id == command.søknadId }
+    ): Triple<Sak, Søknad?, Behandling?> {
+        if (command.søknadId != null && command.behandlingId != null) {
+            return avbrytBehandling(command, avbruttTidspunkt)
+        }
+        if (command.søknadId != null) {
+            val (oppdatertSak, avbruttSøknad) = avbrytSøknad(command, avbruttTidspunkt)
+            return Triple(oppdatertSak, avbruttSøknad, null)
+        }
 
-        val avbruttBehandling = behandling?.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
-        val avbruttSøknad = (behandling?.søknad ?: søknad).avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
+        return avbrytBehandling(command, avbruttTidspunkt)
+    }
+
+    private fun avbrytBehandling(
+        command: AvbrytSøknadOgBehandlingCommand,
+        avbruttTidspunkt: LocalDateTime,
+    ): Triple<Sak, Søknad?, Behandling> {
+        val behandling = this.hentBehandling(command.behandlingId!!)!!
+        val avbruttBehandling = behandling.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
+        val avbruttSøknad = behandling.søknad?.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
 
         val oppdatertSak = this.copy(
-            soknader = this.soknader.map { if (it.id == command.søknadId) avbruttSøknad else it },
-            behandlinger = avbruttBehandling?.let { this.behandlinger.oppdaterBehandling(it) } ?: this.behandlinger,
+            soknader = if (avbruttSøknad != null) this.soknader.map { if (it.id == command.søknadId) avbruttSøknad else it } else this.soknader,
+            behandlinger = avbruttBehandling.let { this.behandlinger.oppdaterBehandling(it) },
         )
         return Triple(oppdatertSak, avbruttSøknad, avbruttBehandling)
+    }
+
+    private fun avbrytSøknad(
+        command: AvbrytSøknadOgBehandlingCommand,
+        avbruttTidspunkt: LocalDateTime,
+    ): Pair<Sak, Søknad> {
+        val søknad = this.soknader.single { it.id == command.søknadId }
+        val avbruttSøknad = søknad.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
+        val oppdatertSak = this.copy(
+            soknader = this.soknader.map { if (it.id == command.søknadId) avbruttSøknad else it },
+        )
+        return Pair(oppdatertSak, avbruttSøknad)
     }
 }
