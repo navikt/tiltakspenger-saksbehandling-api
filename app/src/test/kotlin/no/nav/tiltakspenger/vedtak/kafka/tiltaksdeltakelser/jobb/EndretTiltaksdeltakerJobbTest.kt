@@ -60,7 +60,8 @@ class EndretTiltaksdeltakerJobbTest {
                     søknad = ObjectMother.nySøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         søknadstiltak = ObjectMother.søknadstiltak(id = id),
-                        sak = sak,
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
                     ),
                 )
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id)
@@ -94,7 +95,8 @@ class EndretTiltaksdeltakerJobbTest {
                     søknad = ObjectMother.nySøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                         søknadstiltak = ObjectMother.søknadstiltak(id = id),
-                        sak = sak,
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
                     ),
                 )
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id)
@@ -134,7 +136,8 @@ class EndretTiltaksdeltakerJobbTest {
                             deltakelseFom = deltakelseFom,
                             deltakelseTom = deltakelsesTom,
                         ),
-                        sak = sak,
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
                     ),
                 )
                 val tiltaksdeltakerKafkaDb =
@@ -175,7 +178,8 @@ class EndretTiltaksdeltakerJobbTest {
                             deltakelseFom = deltakelseFom,
                             deltakelseTom = deltakelsesTom,
                         ),
-                        sak = sak,
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
                     ),
                 )
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
@@ -222,7 +226,8 @@ class EndretTiltaksdeltakerJobbTest {
                             deltakelseFom = deltakelseFom,
                             deltakelseTom = deltakelsesTom,
                         ),
-                        sak = sak,
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
                     ),
                 )
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
@@ -271,7 +276,8 @@ class EndretTiltaksdeltakerJobbTest {
                             deltakelseFom = deltakelseFom,
                             deltakelseTom = deltakelsesTom,
                         ),
-                        sak = sak,
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
                     ),
                 )
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
@@ -324,7 +330,8 @@ class EndretTiltaksdeltakerJobbTest {
                             deltakelseFom = deltakelseFom,
                             deltakelseTom = deltakelsesTom,
                         ),
-                        sak = sak,
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
                     ),
                 )
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(

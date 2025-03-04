@@ -75,7 +75,8 @@ suspend fun TestApplicationContext.nySøknad(
         ),
         intro = if (deltarPåIntroduksjonsprogram) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
         kvp = if (deltarPåKvp) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
-        sak = sak,
+        sakId = sak.id,
+        saksnummer = sak.saksnummer,
     ),
     systembruker: Systembruker = ObjectMother.systembrukerLageHendelser(),
 ): Søknad {
@@ -120,7 +121,8 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
         ),
         intro = if (deltarPåIntroduksjonsprogram) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
         kvp = if (deltarPåKvp) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
-        sak = sak,
+        sakId = sak.id,
+        saksnummer = sak.saksnummer,
     ),
     correlationId: CorrelationId = CorrelationId.generate(),
 ): Sak {

@@ -55,7 +55,8 @@ class TiltaksdeltakerServiceTest {
                 søknad = ObjectMother.nySøknad(
                     personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                     søknadstiltak = ObjectMother.søknadstiltak(id = id),
-                    sak = sak,
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
                 ),
             )
 
@@ -90,7 +91,8 @@ class TiltaksdeltakerServiceTest {
                 søknad = ObjectMother.nySøknad(
                     personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                     søknadstiltak = ObjectMother.søknadstiltak(id = id),
-                    sak = sak,
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
                 ),
             )
             val oppgaveSistSjekket = LocalDateTime.now()
@@ -155,7 +157,8 @@ class TiltaksdeltakerServiceTest {
                 søknad = ObjectMother.nySøknad(
                     personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                     søknadstiltak = ObjectMother.søknadstiltak(id = deltakerId.toString()),
-                    sak = sak,
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
                 ),
             )
 
@@ -190,7 +193,8 @@ class TiltaksdeltakerServiceTest {
                 søknad = ObjectMother.nySøknad(
                     personopplysninger = ObjectMother.personSøknad(fnr = fnr),
                     søknadstiltak = ObjectMother.søknadstiltak(id = deltakerId.toString()),
-                    sak = sak,
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
                 ),
             )
             val oppgaveSistSjekket = LocalDateTime.now()

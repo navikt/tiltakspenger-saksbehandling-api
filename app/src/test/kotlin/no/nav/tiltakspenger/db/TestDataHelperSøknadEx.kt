@@ -33,7 +33,8 @@ internal fun TestDataHelper.persisterSakOgSøknad(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
-            sak = sak,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
         ),
 ): Søknad {
     this.persisterSak(fnr, sak)
