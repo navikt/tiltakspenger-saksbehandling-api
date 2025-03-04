@@ -8,6 +8,7 @@ enum class BehandlingsstatusDTO {
     KLAR_TIL_BESLUTNING,
     UNDER_BESLUTNING,
     VEDTATT,
+    AVBRUTT,
 }
 
 fun Behandlingsstatus.toDTO(): BehandlingsstatusDTO {
@@ -17,5 +18,6 @@ fun Behandlingsstatus.toDTO(): BehandlingsstatusDTO {
         Behandlingsstatus.KLAR_TIL_BESLUTNING -> BehandlingsstatusDTO.KLAR_TIL_BESLUTNING
         Behandlingsstatus.UNDER_BESLUTNING -> BehandlingsstatusDTO.UNDER_BESLUTNING
         Behandlingsstatus.VEDTATT -> BehandlingsstatusDTO.VEDTATT
+        Behandlingsstatus.AVBRUTT -> BehandlingsstatusDTO.AVBRUTT
     }
 }

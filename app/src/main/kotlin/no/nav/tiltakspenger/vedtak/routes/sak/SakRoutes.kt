@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.vedtak.routes.sak
 
 import io.ktor.server.routing.Route
 import no.nav.tiltakspenger.libs.auth.core.TokenService
+import no.nav.tiltakspenger.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingService
 import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 
@@ -11,8 +12,10 @@ fun Route.sakRoutes(
     sakService: SakService,
     auditService: AuditService,
     tokenService: TokenService,
+    avbrytSøknadOgBehandlingService: AvbrytSøknadOgBehandlingService,
 ) {
     hentSakForFnrRoute(sakService, auditService, tokenService)
     hentSakForSaksnummerRoute(sakService, auditService, tokenService)
     hentEllerOpprettSakRoute(sakService, tokenService)
+    avbrytSøknadOgBehandling(tokenService, auditService, avbrytSøknadOgBehandlingService)
 }

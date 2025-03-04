@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.vedtak.routes.søknad
 
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.HttpClient
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
@@ -13,6 +14,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.felles.april
+import no.nav.tiltakspenger.libs.auth.test.core.JwtGenerator
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
@@ -27,6 +29,76 @@ import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.hentEllerOpprettSak
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+
+fun nySøknadPåEksisterendeSak(
+    fnr: Fnr,
+    deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+    client: HttpClient,
+    jwtGenerator: JwtGenerator,
+) {
+    val response = defaultRequest(
+        HttpMethod.Post,
+        "/sak",
+        jwt = jwtGenerator.createJwtForSystembruker(
+            roles = listOf("lage_hendelser"),
+        ),
+        client = client,
+    ) {
+        setBody("""{"fnr": "$fnr"}""")
+    }
+
+    response.status shouldBe HttpStatusCode.OK
+
+//    defaultRequest(
+//        HttpMethod.Post,
+//        url {
+//            protocol = URLProtocol.HTTPS
+//            path("/soknad")
+//        },
+//        jwt = jwtGenerator.createJwtForSystembruker(
+//            roles = listOf("lage_hendelser"),
+//        ),
+//        client = client,
+//    ) {
+//        setBody(
+//            createRequest(
+//                saksnummer = saksnummer.verdi,
+//                fnr = fnr.verdi,
+//                søknadId = søknadId.toString(),
+//                deltakelsesperiode = deltakelsesperiode,
+//            ),
+//        )
+//    }.apply {
+//        val bodyAsText = this.bodyAsText()
+//        withClue(
+//            "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
+//        ) {
+//            status shouldBe HttpStatusCode.OK
+//        }
+//        bodyAsText shouldBe "OK"
+//
+//        val personopplysningerForBrukerFraPdl = ObjectMother.personopplysningKjedeligFyr(
+//            fnr = fnr,
+//        )
+//        tac.leggTilPerson(
+//            fnr = fnr,
+//            personopplysningerForBruker = personopplysningerForBrukerFraPdl,
+//            tiltaksdeltagelse = Tiltaksdeltagelse(
+//                eksternDeltagelseId = "TA12345",
+//                gjennomføringId = null,
+//                typeNavn = "Testnavn",
+//                typeKode = TiltakstypeSomGirRett.JOBBKLUBB,
+//                rettPåTiltakspenger = true,
+//                deltagelseFraOgMed = deltakelsesperiode.fraOgMed,
+//                deltagelseTilOgMed = deltakelsesperiode.tilOgMed,
+//                deltakelseStatus = TiltakDeltakerstatus.Deltar,
+//                deltakelseProsent = 100.0f,
+//                antallDagerPerUke = 5.0f,
+//                kilde = Tiltakskilde.Arena,
+//            ),
+//        )
+//    }
+}
 
 /**
  * Gir mulighet til å motta en søknad via endepunktene våre.
@@ -101,15 +173,16 @@ interface MottaSøknadRouteBuilder {
             )
         }
     }
+}
 
-    private fun createRequest(
-        søknadId: String = SøknadId.random().toString(),
-        saksnummer: String = Saksnummer.genererSaknummer(løpenr = "0001").verdi,
-        journalpostId: String = "123456789",
-        fnr: String = Fnr.random().toString(),
-        deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
-    ): String {
-        return """
+private fun createRequest(
+    søknadId: String = SøknadId.random().toString(),
+    saksnummer: String = Saksnummer.genererSaknummer(løpenr = "0001").verdi,
+    journalpostId: String = "123456789",
+    fnr: String = Fnr.random().toString(),
+    deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+): String {
+    return """
         {
             "versjon": "4",
             "søknadId": "$søknadId",
@@ -185,6 +258,5 @@ interface MottaSøknadRouteBuilder {
             "opprettet": "${deltakelsesperiode.fraOgMed.atTime(0, 0, 0, 0)}",
             "saksnummer": "$saksnummer"
         }
-        """.trimIndent()
-    }
+    """.trimIndent()
 }

@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeHenteBehandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeTaBehandling
@@ -59,4 +60,6 @@ interface BehandlingService {
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): Either<KanIkkeTaBehandling, Behandling>
+
+    fun lagreBehandling(behandling: Behandling, tx: TransactionContext)
 }

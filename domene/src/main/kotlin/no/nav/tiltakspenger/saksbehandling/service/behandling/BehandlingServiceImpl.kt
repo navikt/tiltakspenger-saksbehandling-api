@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attestering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attesteringsstatus
@@ -103,6 +104,10 @@ class BehandlingServiceImpl(
         return behandling.taBehandling(saksbehandler).also {
             behandlingRepo.lagre(it)
         }.right()
+    }
+
+    override fun lagreBehandling(behandling: Behandling, tx: TransactionContext) {
+        behandlingRepo.lagre(behandling, tx)
     }
 
     private suspend fun sjekkTilgang(

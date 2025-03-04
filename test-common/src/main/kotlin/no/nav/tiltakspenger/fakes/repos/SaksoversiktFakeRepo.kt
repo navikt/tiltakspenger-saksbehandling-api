@@ -43,11 +43,11 @@ class SaksoversiktFakeRepo(
                 kravtidspunkt = søknad.opprettet,
                 behandlingstype = BenkBehandlingstype.SØKNAD,
                 fnr = søknad.fnr,
-                saksnummer = null,
+                saksnummer = søknad.saksnummer,
                 id = søknad.id,
                 saksbehandler = null,
                 beslutter = null,
-                sakId = null,
+                sakId = søknad.sakId,
                 opprettet = søknad.opprettet,
             )
         }

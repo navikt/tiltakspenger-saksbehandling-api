@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger
 
+import io.ktor.server.routing.Route
 import mu.KotlinLogging
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.start
@@ -15,9 +16,11 @@ fun main() {
 
     val log = KotlinLogging.logger {}
     log.info { "Starter lokal server. Bruker default postgres i docker og in-memory fakes." }
+    val localApplicationContext = LocalApplicationContext(usePdfGen = true)
     start(
         log = log,
         isNais = false,
-        applicationContext = LocalApplicationContext(usePdfGen = true),
+        applicationContext = localApplicationContext,
+        devRoutes = Route::localDevRoutes,
     )
 }

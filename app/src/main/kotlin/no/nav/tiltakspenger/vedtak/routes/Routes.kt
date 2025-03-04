@@ -11,7 +11,11 @@ import no.nav.tiltakspenger.vedtak.routes.sak.sakRoutes
 import no.nav.tiltakspenger.vedtak.routes.saksbehandler.saksbehandlerRoutes
 import no.nav.tiltakspenger.vedtak.routes.søknad.søknadRoutes
 
-fun Route.routes(applicationContext: ApplicationContext) {
+fun Route.routes(
+    applicationContext: ApplicationContext,
+    devRoutes: Route.(applicationContext: ApplicationContext) -> Unit = {},
+) {
+    devRoutes(applicationContext)
     healthRoutes()
     saksbehandlerRoutes(applicationContext.tokenService)
     behandlingRoutes(
@@ -44,6 +48,7 @@ fun Route.routes(applicationContext: ApplicationContext) {
         tokenService = applicationContext.tokenService,
         sakService = applicationContext.sakContext.sakService,
         auditService = applicationContext.personContext.auditService,
+        avbrytSøknadOgBehandlingService = applicationContext.avbrytSøknadOgBehandlingContext.avsluttSøknadOgBehandlingService,
     )
     meldekortRoutes(
         iverksettMeldekortService = applicationContext.meldekortContext.iverksettMeldekortService,
@@ -54,7 +59,11 @@ fun Route.routes(applicationContext: ApplicationContext) {
         tokenService = applicationContext.tokenService,
         mottaBrukerutfyltMeldekortService = applicationContext.mottaBrukerutfyltMeldekortService,
     )
-    søknadRoutes(applicationContext.søknadContext.søknadService, applicationContext.sakContext.sakService, tokenService = applicationContext.tokenService)
+    søknadRoutes(
+        applicationContext.søknadContext.søknadService,
+        applicationContext.sakContext.sakService,
+        tokenService = applicationContext.tokenService,
+    )
     staticResources(
         remotePath = "/",
         basePackage = "static",

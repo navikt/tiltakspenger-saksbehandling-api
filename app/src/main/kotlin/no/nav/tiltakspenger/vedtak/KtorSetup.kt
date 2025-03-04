@@ -12,6 +12,7 @@ import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.path
+import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
 import no.nav.tiltakspenger.vedtak.context.ApplicationContext
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.ExceptionHandler
@@ -21,6 +22,7 @@ const val CALL_ID_MDC_KEY = "call-id"
 
 internal fun Application.ktorSetup(
     applicationContext: ApplicationContext,
+    devRoutes: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {
     install(CallId)
     install(CallLogging) {
@@ -34,7 +36,7 @@ internal fun Application.ktorSetup(
     }
     jacksonSerialization()
     configureExceptions()
-    routing { routes(applicationContext) }
+    routing { routes(applicationContext, devRoutes) }
 }
 
 fun Application.jacksonSerialization() {

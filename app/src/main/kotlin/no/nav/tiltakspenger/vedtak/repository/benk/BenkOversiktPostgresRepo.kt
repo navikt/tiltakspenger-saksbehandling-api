@@ -73,11 +73,11 @@ class BenkOversiktPostgresRepo(
                             kravtidspunkt = kravtidspunkt,
                             behandlingstype = behandlingstype,
                             fnr = Fnr.fromString(row.string("fnr")),
-                            saksnummer = row.stringOrNull("saksnummer")?.let { Saksnummer(it) },
+                            saksnummer = Saksnummer(row.string("saksnummer")),
                             id = id,
                             saksbehandler = saksbehandler,
                             beslutter = beslutter,
-                            sakId = row.stringOrNull("sak_id")?.let { SakId.fromString(it) },
+                            sakId = SakId.fromString(row.string("sak_id")),
                             opprettet = row.localDateTime("opprettet"),
                         )
                     }.asList,
@@ -95,8 +95,9 @@ class BenkOversiktPostgresRepo(
                           søknad.fnr,
                           søknad.opprettet,
                           søknad.behandling_id,
-                          søknad.sak_id
-                        from søknad
+                          søknad.sak_id,
+                          sak.saksnummer
+                        from søknad join sak on søknad.sak_id = sak.id
                         where søknad.behandling_id is null
                         order by søknad.id
                         """.trimIndent(),
@@ -112,11 +113,11 @@ class BenkOversiktPostgresRepo(
                             kravtidspunkt = opprettet,
                             behandlingstype = behandlingstype,
                             fnr = Fnr.fromString(row.string("fnr")),
-                            saksnummer = null,
+                            saksnummer = Saksnummer(row.string("saksnummer")),
                             id = id,
                             saksbehandler = null,
                             beslutter = null,
-                            sakId = row.stringOrNull("sak_id")?.let { SakId.fromString(it) },
+                            sakId = SakId.fromString(row.string("sak_id")),
                             opprettet = opprettet,
                         )
                     }.asList,
