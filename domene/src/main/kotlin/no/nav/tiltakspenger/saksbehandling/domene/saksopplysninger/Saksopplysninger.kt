@@ -9,4 +9,7 @@ import java.time.LocalDate
 data class Saksopplysninger(
     val fødselsdato: LocalDate,
     val tiltaksdeltagelse: List<Tiltaksdeltagelse>,
-)
+) {
+    fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? =
+        tiltaksdeltagelse.find { it.eksternDeltagelseId == eksternDeltagelseId }
+}

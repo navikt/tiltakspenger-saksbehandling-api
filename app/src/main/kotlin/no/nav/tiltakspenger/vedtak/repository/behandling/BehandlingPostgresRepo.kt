@@ -166,6 +166,7 @@ class BehandlingPostgresRepo(
                             "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode?.fraOgMed,
                             "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode?.tilOgMed,
                             "barnetillegg" to behandling.barnetillegg?.toDbJson(),
+                            "valgte_tiltaksdeltakelser" to behandling.valgteTiltaksdeltakelser?.toDbJson(),
                         ),
                     ).asUpdate,
                 )
@@ -205,6 +206,7 @@ class BehandlingPostgresRepo(
                         "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode?.fraOgMed,
                         "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode?.tilOgMed,
                         "barnetillegg" to behandling.barnetillegg?.toDbJson(),
+                        "valgte_tiltaksdeltakelser" to behandling.valgteTiltaksdeltakelser?.toDbJson(),
                     ),
                 ).asUpdate,
             )
@@ -251,6 +253,8 @@ class BehandlingPostgresRepo(
             val saksopplysningsperiodeFraOgMed = localDateOrNull("saksopplysningsperiode_fra_og_med")
             val saksopplysningsperiodeTilOgMed = localDateOrNull("saksopplysningsperiode_til_og_med")
             val barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg()
+            val saksopplysninger = string("saksopplysninger").toSaksopplysninger()
+            val valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")?.toValgteTiltaksdeltakelser(saksopplysninger)
 
             return Behandling(
                 id = id,
@@ -259,7 +263,7 @@ class BehandlingPostgresRepo(
                 fnr = fnr,
                 søknad = søknad,
                 virkningsperiode = virkningsperiode,
-                saksopplysninger = string("saksopplysninger").toSaksopplysninger(),
+                saksopplysninger = saksopplysninger,
                 saksbehandler = saksbehandler,
                 sendtTilBeslutning = sendtTilBeslutning,
                 beslutter = beslutter,
@@ -285,6 +289,7 @@ class BehandlingPostgresRepo(
                 },
                 // TODO John + Anders: Må persisteres og hentes opp fra basen!
                 barnetillegg = barnetillegg,
+                valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
             )
         }
 
@@ -314,7 +319,8 @@ class BehandlingPostgresRepo(
                 saksopplysninger,
                 saksopplysningsperiode_fra_og_med,
                 saksopplysningsperiode_til_og_med,
-                barnetillegg
+                barnetillegg,
+                valgte_tiltaksdeltakelser
             ) values (
                 :id,
                 :sak_id,
@@ -338,7 +344,8 @@ class BehandlingPostgresRepo(
                 to_jsonb(:saksopplysninger::jsonb),
                 :saksopplysningsperiode_fra_og_med,
                 :saksopplysningsperiode_til_og_med,
-                to_jsonb(:barnetillegg::jsonb)
+                to_jsonb(:barnetillegg::jsonb),
+                to_jsonb(:valgte_tiltaksdeltakelser::jsonb)
             )
             """.trimIndent()
 
@@ -366,7 +373,8 @@ class BehandlingPostgresRepo(
                 saksopplysninger = to_jsonb(:saksopplysninger::jsonb),
                 saksopplysningsperiode_fra_og_med = :saksopplysningsperiode_fra_og_med,
                 saksopplysningsperiode_til_og_med = :saksopplysningsperiode_til_og_med,
-                barneTillegg = to_jsonb(:barnetillegg::jsonb)
+                barneTillegg = to_jsonb(:barnetillegg::jsonb),
+                valgte_tiltaksdeltakelser = to_jsonb(:valgte_tiltaksdeltakelser::jsonb)
             where id = :id
               and sist_endret = :sist_endret_old
             """.trimIndent()

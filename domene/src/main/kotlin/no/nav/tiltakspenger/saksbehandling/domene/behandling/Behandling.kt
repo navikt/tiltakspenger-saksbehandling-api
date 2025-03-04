@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingstype.REV
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode.RETT_TIL_TILTAKSPENGER
@@ -61,6 +62,7 @@ data class Behandling(
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     val saksopplysningsperiode: Periode?,
     val barnetillegg: Barnetillegg?,
+    val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
 ) {
     val erUnderBehandling: Boolean = status == UNDER_BEHANDLING
 
@@ -79,8 +81,7 @@ data class Behandling(
     fun inneholderEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
         saksopplysninger.tiltaksdeltagelse.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
 
-    fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? =
-        saksopplysninger.tiltaksdeltagelse.find { it.eksternDeltagelseId == eksternDeltagelseId }
+    fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? = saksopplysninger.getTiltaksdeltagelse(eksternDeltagelseId)
 
     /**
      * null dersom [virkningsperiode] ikke er satt enda. Typisk i stegene før til beslutning eller ved avslag.
@@ -147,6 +148,7 @@ data class Behandling(
                 oppgaveId = søknad.oppgaveId,
                 saksopplysningsperiode = saksopplysningsperiode,
                 barnetillegg = null,
+                valgteTiltaksdeltakelser = null,
             ).right()
         }
 
@@ -184,6 +186,7 @@ data class Behandling(
                 // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for førstegangsbehandling.
                 saksopplysningsperiode = saksopplysningsperiode,
                 barnetillegg = null,
+                valgteTiltaksdeltakelser = null,
             )
         }
     }
@@ -234,6 +237,7 @@ data class Behandling(
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             virkningsperiode = kommando.innvilgelsesperiode,
             barnetillegg = kommando.barnetillegg(),
+            valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(tiltaksdeltakelse, kommando.innvilgelsesperiode),
         )
     }
 
