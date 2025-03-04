@@ -14,7 +14,7 @@ import java.time.LocalDate
 
 private data class SaksopplysningerDbJson(
     val fødselsdato: String,
-    val tiltaksdeltagelse: TiltaksdeltagelseDbJson,
+    val tiltaksdeltagelse: List<TiltaksdeltagelseDbJson>,
 ) {
     data class TiltaksdeltagelseDbJson(
         val eksternDeltagelseId: String,
@@ -66,7 +66,7 @@ private fun Tiltaksdeltagelse.toDbJson(): TiltaksdeltagelseDbJson {
 fun Saksopplysninger.toDbJson(): String {
     return SaksopplysningerDbJson(
         fødselsdato = fødselsdato.toString(),
-        tiltaksdeltagelse = tiltaksdeltagelse.toDbJson(),
+        tiltaksdeltagelse = tiltaksdeltagelse.map { it.toDbJson() },
     ).let { serialize(it) }
 }
 
@@ -74,6 +74,6 @@ fun String.toSaksopplysninger(): Saksopplysninger {
     val dbJson = deserialize<SaksopplysningerDbJson>(this)
     return Saksopplysninger(
         fødselsdato = LocalDate.parse(dbJson.fødselsdato),
-        tiltaksdeltagelse = dbJson.tiltaksdeltagelse.toDomain(),
+        tiltaksdeltagelse = dbJson.tiltaksdeltagelse.map { it.toDomain() },
     )
 }

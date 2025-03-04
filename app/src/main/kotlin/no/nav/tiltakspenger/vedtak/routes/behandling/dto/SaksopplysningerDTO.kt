@@ -10,6 +10,6 @@ data class SaksopplysningerDTO(
 fun Saksopplysninger.toDTO(): SaksopplysningerDTO {
     return SaksopplysningerDTO(
         fødselsdato = this.fødselsdato.toString(),
-        tiltaksdeltagelse = listOf(this.tiltaksdeltagelse.toDTO()),
+        tiltaksdeltagelse = this.tiltaksdeltagelse.map { it.toDTO() },
     )
 }

@@ -65,7 +65,7 @@ interface SakMother {
         registrerteTiltak: List<Tiltaksdeltagelse> = listOf(søknad.tiltak.toTiltak()),
         saksopplysninger: Saksopplysninger = Saksopplysninger(
             fødselsdato = fødselsdato,
-            tiltaksdeltagelse = registrerteTiltak.single(),
+            tiltaksdeltagelse = registrerteTiltak,
         ),
         barnetillegg: Barnetillegg? = null,
     ): Sak {

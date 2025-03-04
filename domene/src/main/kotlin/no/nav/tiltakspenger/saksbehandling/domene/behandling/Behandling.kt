@@ -21,6 +21,8 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingstype.FØ
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingstype.REVURDERING
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode.RETT_TIL_TILTAKSPENGER
@@ -60,6 +62,7 @@ data class Behandling(
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     val saksopplysningsperiode: Periode?,
     val barnetillegg: Barnetillegg?,
+    val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
 ) {
     val erUnderBehandling: Boolean = status == UNDER_BEHANDLING
 
@@ -68,12 +71,17 @@ data class Behandling(
     /** John og Agnethe har kommet fram til at vi setter denne til 14 dager for meldeperiode i førsteomgang. Hvis det fører til mye feilutbetaling eller lignende må vi la saksbehandler periodisere dette selv, litt på samme måte som barnetillegg. */
     val maksDagerMedTiltakspengerForPeriode: Int = 14
 
-    val tiltaksnavn = saksopplysninger.tiltaksdeltagelse.typeNavn
-    val tiltakstype: TiltakstypeSomGirRett = saksopplysninger.tiltaksdeltagelse.typeKode
-    val tiltaksid: String = saksopplysninger.tiltaksdeltagelse.eksternDeltagelseId
-    val gjennomføringId: String? = saksopplysninger.tiltaksdeltagelse.gjennomføringId
+    // TODO: Når saksbehandler kan velge hvilken deltakelse som gjelder på hvilke dager må vi bruke det som er valgt, ikke bare den første
+    private val tiltaksdeltakelse = saksopplysninger.tiltaksdeltagelse.first()
+    val tiltaksnavn = tiltaksdeltakelse.typeNavn
+    val tiltakstype: TiltakstypeSomGirRett = tiltaksdeltakelse.typeKode
+    val tiltaksid: String = tiltaksdeltakelse.eksternDeltagelseId
+    val gjennomføringId: String? = tiltaksdeltakelse.gjennomføringId
 
-    val tiltaksdeltakelse = saksopplysninger.tiltaksdeltagelse
+    fun inneholderEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
+        saksopplysninger.tiltaksdeltagelse.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
+
+    fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? = saksopplysninger.getTiltaksdeltagelse(eksternDeltagelseId)
 
     /**
      * null dersom [virkningsperiode] ikke er satt enda. Typisk i stegene før til beslutning eller ved avslag.
@@ -140,6 +148,7 @@ data class Behandling(
                 oppgaveId = søknad.oppgaveId,
                 saksopplysningsperiode = saksopplysningsperiode,
                 barnetillegg = null,
+                valgteTiltaksdeltakelser = null,
             ).right()
         }
 
@@ -177,6 +186,7 @@ data class Behandling(
                 // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for førstegangsbehandling.
                 saksopplysningsperiode = saksopplysningsperiode,
                 barnetillegg = null,
+                valgteTiltaksdeltakelser = null,
             )
         }
     }
@@ -227,6 +237,7 @@ data class Behandling(
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             virkningsperiode = kommando.innvilgelsesperiode,
             barnetillegg = kommando.barnetillegg(),
+            valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(tiltaksdeltakelse, kommando.innvilgelsesperiode),
         )
     }
 
