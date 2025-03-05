@@ -66,17 +66,18 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
     barnetillegg: Barnetillegg? = null,
 ): Pair<Sak, Søknad> {
     this.persisterSakOgSøknad(
+        fnr = sak.fnr,
         søknad = søknad,
         sak = sak,
     )
     val sakMedBehandling =
         ObjectMother.sakMedOpprettetBehandling(
             søknad = søknad,
-            fnr = fnr,
+            fnr = sak.fnr,
             virkningsperiode = tiltaksOgVurderingsperiode,
             saksnummer = saksnummer,
             saksbehandler = saksbehandler,
-            sakId = sakId,
+            sakId = sak.id,
             barnetillegg = barnetillegg,
         )
     behandlingRepo.lagre(sakMedBehandling.førstegangsbehandling!!)
@@ -125,8 +126,8 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
     correlationId: CorrelationId = CorrelationId.generate(),
 ): Pair<Sak, Rammevedtak> {
     val (sak, _) = persisterOpprettetFørstegangsbehandling(
-        sakId = sakId,
-        fnr = fnr,
+        sakId = sak.id,
+        fnr = sak.fnr,
         deltakelseFom = deltakelseFom,
         deltakelseTom = deltakelseTom,
         journalpostId = journalpostId,
@@ -262,8 +263,8 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
 ): Pair<Sak, Behandling> {
     val (sak, _) = runBlocking {
         persisterIverksattFørstegangsbehandling(
-            sakId = sakId,
-            fnr = fnr,
+            sakId = sak.id,
+            fnr = sak.fnr,
             deltakelseFom = deltakelseFom,
             deltakelseTom = deltakelseTom,
             journalpostId = journalpostId,
@@ -326,8 +327,8 @@ internal fun TestDataHelper.persisterBehandletRevurdering(
 ): Pair<Sak, Behandling> {
     val (sak, behandling) = runBlocking {
         persisterOpprettetRevurdering(
-            sakId = sakId,
-            fnr = fnr,
+            sakId = sak.id,
+            fnr = sak.fnr,
             deltakelseFom = deltakelseFom,
             deltakelseTom = deltakelseTom,
             journalpostId = journalpostId,
@@ -359,7 +360,7 @@ internal fun TestDataHelper.persisterBehandletRevurdering(
 internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
-    deltakelseFom: LocalDate = 1.januar(2023),
+    deltakelseFom: LocalDate = 2.januar(2023),
     deltakelseTom: LocalDate = 31.mars(2023),
     journalpostId: String = random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
