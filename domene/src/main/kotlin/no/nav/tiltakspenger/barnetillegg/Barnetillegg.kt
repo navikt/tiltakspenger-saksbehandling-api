@@ -22,6 +22,16 @@ data class Barnetillegg(
         return periodisering.hentVerdiForDag(dato) ?: AntallBarn.ZERO
     }
 
+    /**
+     * Endrer ikke eksisterende periode.
+     */
+    fun utvidPeriode(utvidTil: Periode, antallBarn: AntallBarn): Barnetillegg {
+        return Barnetillegg(
+            periodisering = periodisering.utvid(antallBarn, utvidTil),
+            begrunnelse = begrunnelse,
+        )
+    }
+
     companion object {
         /**
          * Periodiserer og fyller ut hull med 0.
@@ -30,7 +40,7 @@ data class Barnetillegg(
         fun periodiserOgFyllUtHullMed0(
             perioder: List<Pair<Periode, AntallBarn>>,
             begrunnelse: BegrunnelseVilkårsvurdering?,
-            virkningsperiode: Periode,
+            virkningsperiode: Periode?,
         ): Barnetillegg {
             if (perioder.map { it.first }.inneholderOverlapp()) {
                 throw IllegalArgumentException("Periodene kan ikke overlappe")
@@ -39,7 +49,8 @@ data class Barnetillegg(
                 periodisering = perioder.fold(
                     Periodisering(
                         AntallBarn.ZERO,
-                        virkningsperiode,
+                        virkningsperiode ?: perioder.map { it.first }
+                            .let { Periode(it.minOf { it.fraOgMed }, it.maxOf { it.tilOgMed }) },
                     ),
                 ) { periodisering, (periode, antallBarn) ->
                     periodisering.setVerdiForDelPeriode(antallBarn, periode)

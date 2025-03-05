@@ -362,7 +362,6 @@ data class Behandling(
         if (!this.erUnderBehandling) {
             throw IllegalArgumentException("Kunne ikke oppdatere barnetillegg. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
         }
-        require(this.virkningsperiode != null) { "Kan ikke oppdatere barnetillegg uten virkningsperiode. sakId=$sakId, behandlingId=$id, status=$status" }
         return this.copy(
             barnetillegg = kommando.barnetillegg(this.virkningsperiode),
         )
@@ -385,10 +384,6 @@ data class Behandling(
     }
 
     init {
-        if (barnetillegg != null && virkningsperiode != null) {
-            val barnetilleggsperiode = barnetillegg.periodisering.totalePeriode
-            require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
-        }
         if (beslutter != null && saksbehandler != null) {
             require(beslutter != saksbehandler) { "Saksbehandler og beslutter kan ikke være samme person" }
         }
@@ -426,6 +421,11 @@ data class Behandling(
                     "Behandlingen kan ikke være tilknyttet en beslutter når status er KLAR_TIL_BESLUTNING"
                 }
                 require(iverksattTidspunkt == null)
+                require(virkningsperiode != null) { "Virkningsperiode må være satt for statusen KLAR_TIL_BESLUTNING" }
+                if (barnetillegg != null) {
+                    val barnetilleggsperiode = barnetillegg.periodisering.totalePeriode
+                    require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
+                }
             }
 
             UNDER_BESLUTNING -> {
@@ -433,6 +433,11 @@ data class Behandling(
                 requireNotNull(saksbehandler) { "Behandlingen må ha saksbehandler når status er UNDER_BESLUTNING" }
                 requireNotNull(beslutter) { "Behandlingen må tilknyttet en beslutter når status er UNDER_BESLUTNING" }
                 require(iverksattTidspunkt == null)
+                require(virkningsperiode != null) { "Virkningsperiode må være satt for statusen UNDER_BESLUTNING" }
+                if (barnetillegg != null) {
+                    val barnetilleggsperiode = barnetillegg.periodisering.totalePeriode
+                    require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
+                }
             }
 
             VEDTATT -> {
@@ -441,6 +446,11 @@ data class Behandling(
                 requireNotNull(saksbehandler) { "Behandlingen må ha saksbehandler når status er VEDTATT" }
                 requireNotNull(iverksattTidspunkt)
                 requireNotNull(sendtTilBeslutning)
+                require(virkningsperiode != null) { "Virkningsperiode må være satt for statusen VEDTATT" }
+                if (barnetillegg != null) {
+                    val barnetilleggsperiode = barnetillegg.periodisering.totalePeriode
+                    require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
+                }
             }
         }
     }

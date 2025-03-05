@@ -16,7 +16,7 @@ data class OppdaterBarnetilleggKommando(
     val begrunnelse: BegrunnelseVilkårsvurdering?,
     val perioder: List<Pair<Periode, AntallBarn>>,
 ) {
-    fun barnetillegg(virkningsperiode: Periode): Barnetillegg {
+    fun barnetillegg(virkningsperiode: Periode?): Barnetillegg {
         return Barnetillegg.periodiserOgFyllUtHullMed0(
             perioder = perioder,
             begrunnelse = begrunnelse,
