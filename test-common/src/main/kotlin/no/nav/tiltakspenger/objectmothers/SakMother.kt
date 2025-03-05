@@ -32,17 +32,19 @@ interface SakMother {
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+        søknader: List<Søknad> = emptyList(),
+        behandlinger: Behandlinger = Behandlinger(emptyList()),
     ): Sak = Sak(
         id = sakId,
         fnr = fnr,
         saksnummer = saksnummer,
-        behandlinger = Behandlinger(emptyList()),
+        behandlinger = behandlinger,
         vedtaksliste = Vedtaksliste.empty(),
         meldekortBehandlinger = MeldekortBehandlinger.empty(),
         utbetalinger = Utbetalinger(emptyList()),
         meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
         brukersMeldekort = emptyList(),
-        soknader = emptyList(),
+        soknader = søknader,
     )
 
     fun sakMedOpprettetBehandling(

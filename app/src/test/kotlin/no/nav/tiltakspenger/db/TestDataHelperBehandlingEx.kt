@@ -168,8 +168,8 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
 internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
-    deltakelseFom: LocalDate = ObjectMother.virningsperiode().fraOgMed,
-    deltakelseTom: LocalDate = ObjectMother.virningsperiode().tilOgMed,
+    deltakelseFom: LocalDate = ObjectMother.virkningsperiode().fraOgMed,
+    deltakelseTom: LocalDate = ObjectMother.virkningsperiode().tilOgMed,
     journalpostId: String = random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
@@ -232,8 +232,8 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
 internal fun TestDataHelper.persisterOpprettetRevurdering(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
-    deltakelseFom: LocalDate = ObjectMother.virningsperiode().fraOgMed,
-    deltakelseTom: LocalDate = ObjectMother.virningsperiode().tilOgMed,
+    deltakelseFom: LocalDate = ObjectMother.virkningsperiode().fraOgMed,
+    deltakelseTom: LocalDate = ObjectMother.virkningsperiode().tilOgMed,
     journalpostId: String = random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
@@ -296,8 +296,8 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
 internal fun TestDataHelper.persisterBehandletRevurdering(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
-    deltakelseFom: LocalDate = ObjectMother.virningsperiode().fraOgMed,
-    deltakelseTom: LocalDate = ObjectMother.virningsperiode().tilOgMed,
+    deltakelseFom: LocalDate = ObjectMother.virkningsperiode().fraOgMed,
+    deltakelseTom: LocalDate = ObjectMother.virkningsperiode().tilOgMed,
     journalpostId: String = random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),

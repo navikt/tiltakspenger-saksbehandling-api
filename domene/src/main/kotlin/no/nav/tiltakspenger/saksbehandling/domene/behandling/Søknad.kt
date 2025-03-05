@@ -46,7 +46,6 @@ data class Søknad(
         fun randomId() = SøknadId.random()
     }
 
-    // TODO - test
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Søknad {
         if (this.avbrutt != null) {
             throw IllegalStateException("Søknad er allerede avbrutt")

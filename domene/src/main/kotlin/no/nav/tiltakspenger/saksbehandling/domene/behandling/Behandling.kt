@@ -392,16 +392,20 @@ data class Behandling(
         return this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev)
     }
 
-    // TODO - test
-    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Behandling = this.copy(
-        status = AVBRUTT,
-        søknad = this.søknad?.avbryt(avbruttAv, begrunnelse, tidspunkt),
-        avbrutt = Avbrutt(
-            tidspunkt = tidspunkt,
-            saksbehandler = avbruttAv.navIdent,
-            begrunnelse = begrunnelse,
-        ),
-    )
+    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Behandling {
+        if (this.status == AVBRUTT || avbrutt != null) {
+            throw IllegalArgumentException("Behandlingen er allerede avbrutt")
+        }
+        return this.copy(
+            status = AVBRUTT,
+            søknad = this.søknad?.avbryt(avbruttAv, begrunnelse, tidspunkt),
+            avbrutt = Avbrutt(
+                tidspunkt = tidspunkt,
+                saksbehandler = avbruttAv.navIdent,
+                begrunnelse = begrunnelse,
+            ),
+        )
+    }
 
     init {
         if (beslutter != null && saksbehandler != null) {

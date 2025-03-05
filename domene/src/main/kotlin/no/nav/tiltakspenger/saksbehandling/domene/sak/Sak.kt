@@ -121,7 +121,6 @@ data class Sak(
         return meldeperiodeKjeder.erSisteVersjonAvMeldeperiode(meldeperiode)
     }
 
-    // TODO - test
     fun avbrytSøknadOgBehandling(
         command: AvbrytSøknadOgBehandlingCommand,
         avbruttTidspunkt: LocalDateTime,

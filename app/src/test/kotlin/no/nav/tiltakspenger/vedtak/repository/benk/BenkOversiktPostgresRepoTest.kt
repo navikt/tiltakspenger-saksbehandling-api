@@ -95,7 +95,7 @@ class BenkOversiktPostgresRepoTest {
                     Saksoversikt(
                         listOf(
                             BehandlingEllerSøknadForSaksoversikt(
-                                periode = ObjectMother.virningsperiode(),
+                                periode = ObjectMother.virkningsperiode(),
                                 status = BehandlingEllerSøknadForSaksoversikt.Status.Behandling(Behandlingsstatus.VEDTATT),
                                 behandlingstype = BenkBehandlingstype.FØRSTEGANGSBEHANDLING,
                                 fnr = søknad.fnr,
