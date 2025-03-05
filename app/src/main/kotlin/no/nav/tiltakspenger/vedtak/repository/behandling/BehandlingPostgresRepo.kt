@@ -292,7 +292,6 @@ class BehandlingPostgresRepo(
                         saksopplysningsperiodeTilOgMed!!,
                     )
                 },
-                // TODO John + Anders: Må persisteres og hentes opp fra basen!
                 barnetillegg = barnetillegg,
                 valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
                 avbrutt = avbrutt,

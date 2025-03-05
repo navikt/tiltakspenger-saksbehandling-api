@@ -21,19 +21,6 @@ enum class MeldekortDagStatusMotFrontendDTO {
     FRAVÆR_SYKT_BARN,
     FRAVÆR_VELFERD_GODKJENT_AV_NAV,
     FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV,
-
-    /*fun toDomain(): MeldekortDagStatus =
-        when (this) {
-            SPERRET -> MeldekortDagStatus.SPERRET
-            IKKE_UTFYLT -> MeldekortDagStatus.IKKE_UTFYLT
-            DELTATT_UTEN_LØNN_I_TILTAKET -> MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET
-            DELTATT_MED_LØNN_I_TILTAKET -> MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET
-            IKKE_DELTATT -> MeldekortDagStatus.IKKE_DELTATT
-            FRAVÆR_SYK -> MeldekortDagStatus.FRAVÆR_SYK
-            FRAVÆR_SYKT_BARN -> MeldekortDagStatus.FRAVÆR_SYKT_BARN
-            FRAVÆR_VELFERD_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-            FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-        }*/
 }
 
 fun MeldeperiodeBeregningDag.toStatusDTO(): MeldekortDagStatusMotFrontendDTO =
