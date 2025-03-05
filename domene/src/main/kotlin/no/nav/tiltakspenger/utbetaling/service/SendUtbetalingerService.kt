@@ -22,10 +22,8 @@ class SendUtbetalingerService(
                 val correlationId = CorrelationId.generate()
                 Either.catch {
                     val forrigeUtbetalingJson =
-                        utbetalingsvedtak.forrigeUtbetalingsvedtakId?.let {
-                            utbetalingsvedtakRepo.hentUtbetalingJsonForVedtakId(
-                                it,
-                            )
+                        utbetalingsvedtak.forrigeUtbetalingsvedtakId?.let { forrigeUtbetalingsvedtakId ->
+                            utbetalingsvedtakRepo.hentUtbetalingJsonForVedtakId(forrigeUtbetalingsvedtakId)
                         }
                     utbetalingsklient.iverksett(utbetalingsvedtak, forrigeUtbetalingJson, correlationId).onRight {
                         logger.info { "Utbetaling iverksatt for vedtak ${utbetalingsvedtak.id}" }
@@ -33,6 +31,7 @@ class SendUtbetalingerService(
                         logger.info { "Utbetaling markert som utbetalt for vedtak ${utbetalingsvedtak.id}" }
                     }.onLeft {
                         logger.error { "Utbetaling kunne ikke iverksettes. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
+                        utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(utbetalingsvedtak.id, it)
                     }
                 }.onLeft {
                     logger.error(it) { "Ukjent feil skjedde under iverksetting av utbetaling. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }

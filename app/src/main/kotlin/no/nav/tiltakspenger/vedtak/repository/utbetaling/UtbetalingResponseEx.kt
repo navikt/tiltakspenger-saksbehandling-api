@@ -2,14 +2,35 @@ package no.nav.tiltakspenger.vedtak.repository.utbetaling
 
 import com.fasterxml.jackson.databind.node.TextNode
 import no.nav.tiltakspenger.libs.json.objectMapper
+import no.nav.tiltakspenger.saksbehandling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.ports.SendtUtbetaling
 
 fun SendtUtbetaling.toJson(): String {
+    return serialiserRequestResponse(
+        request = this.request,
+        response = this.response,
+        responseStatus = this.responseStatus,
+    )
+}
+
+fun KunneIkkeUtbetale.toJson(): String {
+    return serialiserRequestResponse(
+        request = this.request,
+        response = this.response,
+        responseStatus = this.responseStatus,
+    )
+}
+
+private fun serialiserRequestResponse(
+    request: String?,
+    response: String?,
+    responseStatus: Int?,
+): String {
     return """
         {
-        "request": ${this.request.toValidJson()},
-        "response": ${this.response.toValidJson()},
-        "responseStatus": ${this.responseStatus}
+        "request": ${request?.toValidJson()},
+        "response": ${response?.toValidJson()},
+        "responseStatus": $responseStatus
         }
     """.trimIndent()
 }

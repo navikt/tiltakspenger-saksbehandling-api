@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.utbetaling.ports
 import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.saksbehandling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.utbetaling.domene.Utbetalingsvedtak
 import java.time.LocalDateTime
@@ -14,6 +15,11 @@ interface UtbetalingsvedtakRepo {
         vedtakId: VedtakId,
         tidspunkt: LocalDateTime,
         utbetalingsrespons: SendtUtbetaling,
+    )
+
+    fun lagreFeilResponsFraUtbetaling(
+        vedtakId: VedtakId,
+        utbetalingsrespons: KunneIkkeUtbetale,
     )
 
     fun markerJournalført(
