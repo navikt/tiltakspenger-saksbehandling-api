@@ -11,7 +11,7 @@ class SaksoversiktFakeRepo(
     private val behandlingFakeRepo: BehandlingFakeRepo,
 ) : SaksoversiktRepo {
 
-    override fun hentAlleBehandlinger(sessionContext: SessionContext?): List<BehandlingEllerSøknadForSaksoversikt> {
+    override fun hentÅpneBehandlinger(sessionContext: SessionContext?): List<BehandlingEllerSøknadForSaksoversikt> {
         return behandlingFakeRepo.alle.map { behandling ->
             val status = BehandlingEllerSøknadForSaksoversikt.Status.Behandling(behandling.status)
 
@@ -33,7 +33,7 @@ class SaksoversiktFakeRepo(
         }
     }
 
-    override fun hentAlleSøknader(sessionContext: SessionContext?): List<BehandlingEllerSøknadForSaksoversikt> {
+    override fun hentÅpneSøknader(sessionContext: SessionContext?): List<BehandlingEllerSøknadForSaksoversikt> {
         return søknadFakeRepo.alle.map { søknad ->
             val status = BehandlingEllerSøknadForSaksoversikt.Status.Søknad
             BehandlingEllerSøknadForSaksoversikt(

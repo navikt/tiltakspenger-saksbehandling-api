@@ -7,6 +7,6 @@ import no.nav.tiltakspenger.saksbehandling.domene.benk.BehandlingEllerSøknadFor
  * Custom spørringer for å vise en oversikt over søknader og behandlinger.
  */
 interface SaksoversiktRepo {
-    fun hentAlleBehandlinger(sessionContext: SessionContext? = null): List<BehandlingEllerSøknadForSaksoversikt>
-    fun hentAlleSøknader(sessionContext: SessionContext? = null): List<BehandlingEllerSøknadForSaksoversikt>
+    fun hentÅpneBehandlinger(sessionContext: SessionContext? = null): List<BehandlingEllerSøknadForSaksoversikt>
+    fun hentÅpneSøknader(sessionContext: SessionContext? = null): List<BehandlingEllerSøknadForSaksoversikt>
 }
