@@ -1,16 +1,21 @@
 package no.nav.tiltakspenger.objectmothers
 
 import kotlinx.coroutines.runBlocking
+import no.nav.tiltakspenger.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.common.januarDateTime
 import no.nav.tiltakspenger.felles.AttesteringId
+import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.felles.Systembruker
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.mars
 import no.nav.tiltakspenger.felles.nå
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -19,22 +24,30 @@ import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.objectmothers.ObjectMother.personSøknad
 import no.nav.tiltakspenger.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.objectmothers.ObjectMother.saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attestering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attesteringsstatus
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.ValgteTiltaksdeltakelser
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 interface BehandlingMother {
     /** Felles default vurderingsperiode for testdatatypene */
-    fun virningsperiode() = Periode(1.januar(2023), 31.mars(2023))
+    fun virkningsperiode() = Periode(1.januar(2023), 31.mars(2023))
     fun revurderingsperiode() = Periode(2.januar(2023), 31.mars(2023))
 
     fun godkjentAttestering(beslutter: Saksbehandler = beslutter()): Attestering = Attestering(
@@ -44,10 +57,64 @@ interface BehandlingMother {
         beslutter = beslutter.navIdent,
         tidspunkt = nå(),
     )
+
+    fun nyBehandling(
+        id: BehandlingId = BehandlingId.random(),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        fnr: Fnr = Fnr.random(),
+        virkningsperiode: Periode = virkningsperiode(),
+        søknad: Søknad = ObjectMother.nySøknad(),
+        saksbehandlerIdent: String = ObjectMother.saksbehandler().navIdent,
+        sendtTilBeslutning: LocalDateTime? = null,
+        beslutterIdent: String = ObjectMother.beslutter().navIdent,
+        saksopplysninger: Saksopplysninger = saksopplysninger(),
+        status: Behandlingsstatus = Behandlingsstatus.UNDER_BEHANDLING,
+        attesteringer: List<Attestering> = emptyList(),
+        opprettet: LocalDateTime = førsteNovember24,
+        iverksattTidspunkt: LocalDateTime? = null,
+        sendtTilDatadeling: LocalDateTime? = null,
+        sistEndret: LocalDateTime = førsteNovember24,
+        behandlingstype: Behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
+        oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
+        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering? = null,
+        saksopplysningsperiode: Periode = virkningsperiode(),
+        barnetillegg: Barnetillegg? = null,
+        valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = null,
+        avbrutt: Avbrutt? = null,
+    ): Behandling {
+        return Behandling(
+            id = id,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            virkningsperiode = virkningsperiode,
+            søknad = søknad,
+            saksbehandler = saksbehandlerIdent,
+            sendtTilBeslutning = sendtTilBeslutning,
+            beslutter = beslutterIdent,
+            saksopplysninger = saksopplysninger,
+            status = status,
+            attesteringer = attesteringer,
+            opprettet = opprettet,
+            iverksattTidspunkt = iverksattTidspunkt,
+            sendtTilDatadeling = sendtTilDatadeling,
+            sistEndret = sistEndret,
+            behandlingstype = behandlingstype,
+            oppgaveId = oppgaveId,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+            saksopplysningsperiode = saksopplysningsperiode,
+            barnetillegg = barnetillegg,
+            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
+            avbrutt = avbrutt,
+        )
+    }
 }
 
 suspend fun TestApplicationContext.nySøknad(
-    periode: Periode = ObjectMother.virningsperiode(),
+    periode: Periode = ObjectMother.virkningsperiode(),
     fnr: Fnr = Fnr.random(),
     fornavn: String = "Fornavn",
     etternavn: String = "Etternavn",
@@ -75,7 +142,8 @@ suspend fun TestApplicationContext.nySøknad(
         ),
         intro = if (deltarPåIntroduksjonsprogram) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
         kvp = if (deltarPåKvp) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
-        sak = sak,
+        sakId = sak.id,
+        saksnummer = sak.saksnummer,
     ),
     systembruker: Systembruker = ObjectMother.systembrukerLageHendelser(),
 ): Søknad {
@@ -89,7 +157,7 @@ suspend fun TestApplicationContext.nySøknad(
  * @param søknad Dersom du sender inn denne, bør du og sende inn tiltak+fnr for at de skal henge sammen.
  */
 suspend fun TestApplicationContext.startSøknadsbehandling(
-    periode: Periode = ObjectMother.virningsperiode(),
+    periode: Periode = ObjectMother.virkningsperiode(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     fødselsdato: LocalDate = 1.januar(2000),
@@ -120,7 +188,8 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
         ),
         intro = if (deltarPåIntroduksjonsprogram) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
         kvp = if (deltarPåKvp) Søknad.PeriodeSpm.Ja(periode) else Søknad.PeriodeSpm.Nei,
-        sak = sak,
+        sakId = sak.id,
+        saksnummer = sak.saksnummer,
     ),
     correlationId: CorrelationId = CorrelationId.generate(),
 ): Sak {
@@ -145,7 +214,7 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
 }
 
 suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
-    periode: Periode = ObjectMother.virningsperiode(),
+    periode: Periode = ObjectMother.virkningsperiode(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     correlationId: CorrelationId = CorrelationId.generate(),
@@ -179,7 +248,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
 }
 
 suspend fun TestApplicationContext.førstegangsbehandlingUnderBeslutning(
-    periode: Periode = ObjectMother.virningsperiode(),
+    periode: Periode = ObjectMother.virkningsperiode(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
@@ -203,7 +272,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingUnderBeslutning(
 }
 
 suspend fun TestApplicationContext.førstegangsbehandlingIverksatt(
-    periode: Periode = ObjectMother.virningsperiode(),
+    periode: Periode = ObjectMother.virkningsperiode(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
@@ -232,7 +301,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingIverksatt(
 }
 
 suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
-    periode: Periode = ObjectMother.virningsperiode(),
+    periode: Periode = ObjectMother.virkningsperiode(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
@@ -259,7 +328,7 @@ suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
 }
 
 suspend fun TestApplicationContext.meldekortTilBeslutter(
-    periode: Periode = ObjectMother.virningsperiode(),
+    periode: Periode = ObjectMother.virkningsperiode(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
@@ -285,7 +354,7 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
  * Genererer også utbetalingsvedtak, men sender ikke til utbetaling.
  */
 suspend fun TestApplicationContext.førsteMeldekortIverksatt(
-    periode: Periode = ObjectMother.virningsperiode(),
+    periode: Periode = ObjectMother.virkningsperiode(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
@@ -312,7 +381,7 @@ suspend fun TestApplicationContext.førsteMeldekortIverksatt(
 }
 
 suspend fun TestApplicationContext.andreMeldekortIverksatt(
-    periode: Periode = ObjectMother.virningsperiode(),
+    periode: Periode = ObjectMother.virkningsperiode(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),

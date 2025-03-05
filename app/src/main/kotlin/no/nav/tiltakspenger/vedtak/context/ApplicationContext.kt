@@ -194,4 +194,13 @@ open class ApplicationContext(
             brukersMeldekortRepo = meldekortContext.brukersMeldekortRepo,
         )
     }
+
+    val avbrytSøknadOgBehandlingContext by lazy {
+        AvbrytSøknadOgBehandlingContext(
+            sakService = sakContext.sakService,
+            søknadService = søknadContext.søknadService,
+            behandlingService = behandlingContext.behandlingService,
+            sessionFactory = sessionFactory,
+        )
+    }
 }

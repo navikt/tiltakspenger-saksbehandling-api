@@ -5,6 +5,7 @@ import arrow.core.right
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.server.routing.Route
 import io.ktor.util.AttributeKey
 import mu.KLogger
 import mu.KotlinLogging
@@ -35,6 +36,7 @@ internal fun start(
     applicationContext: ApplicationContext = ApplicationContext(
         gitHash = Configuration.gitHash(),
     ),
+    devRoutes: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {
     Thread.setDefaultUncaughtExceptionHandler { _, e ->
         log.error { e }
@@ -46,7 +48,7 @@ internal fun start(
     val server = embeddedServer(
         factory = Netty,
         port = port,
-        module = { ktorSetup(applicationContext) },
+        module = { ktorSetup(applicationContext, devRoutes) },
     )
     server.application.attributes.put(isReadyKey, true)
 

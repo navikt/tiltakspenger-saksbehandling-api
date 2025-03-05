@@ -30,6 +30,10 @@ class SøknadFakeRepo : SøknadRepo {
         return null
     }
 
+    override fun lagreAvbruttSøknad(søknad: Søknad, txContext: TransactionContext?) {
+        data.get()[søknad.id] = søknad
+    }
+
     fun hentForSakId(sakId: SakId): List<Søknad> {
         return data.get().filter { it.value.sakId == sakId }.values.toList()
     }

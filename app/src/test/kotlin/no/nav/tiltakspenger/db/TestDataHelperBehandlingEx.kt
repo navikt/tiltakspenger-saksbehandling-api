@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
@@ -30,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.opprettVedtak
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingRepoTest.Companion.random
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
     sakId: SakId = SakId.random(),
@@ -61,7 +63,8 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
-            sak = sak,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
         ),
     barnetillegg: Barnetillegg? = null,
 ): Pair<Sak, Søknad> {
@@ -85,6 +88,62 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
         sakRepo.hentForSakId(sakId)!!,
         søknadRepo.hentForSøknadId(søknad.id)!!,
     )
+}
+
+internal fun TestDataHelper.persisterAvbruttFørstegangsbehandling(
+    sakId: SakId = SakId.random(),
+    fnr: Fnr = Fnr.random(),
+    deltakelseFom: LocalDate = 1.januar(2023),
+    deltakelseTom: LocalDate = 31.mars(2023),
+    journalpostId: String = random.nextInt().toString(),
+    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    avbruttTidspunkt: LocalDateTime = førsteNovember24,
+    tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
+    sak: Sak = ObjectMother.nySak(
+        sakId = sakId,
+        fnr = fnr,
+        saksnummer = this.saksnummerGenerator.neste(),
+    ),
+    id: SøknadId = Søknad.randomId(),
+    søknad: Søknad =
+        ObjectMother.nySøknad(
+            periode = tiltaksOgVurderingsperiode,
+            journalpostId = journalpostId,
+            personopplysninger =
+            ObjectMother.personSøknad(
+                fnr = fnr,
+            ),
+            id = id,
+            søknadstiltak =
+            ObjectMother.søknadstiltak(
+                deltakelseFom = deltakelseFom,
+                deltakelseTom = deltakelseTom,
+            ),
+            barnetillegg = listOf(),
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+        ),
+): Pair<Sak, Behandling> {
+    val (sakMedFørstegangsbehandling, _) = persisterOpprettetFørstegangsbehandling(
+        sakId = sakId,
+        fnr = fnr,
+        deltakelseFom = deltakelseFom,
+        deltakelseTom = deltakelseTom,
+        journalpostId = journalpostId,
+        saksbehandler = saksbehandler,
+        tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
+        id = id,
+        søknad = søknad,
+        sak = sak,
+    )
+    val førstegangsbehandling = sakMedFørstegangsbehandling.førstegangsbehandling
+    val avbruttBehandling = førstegangsbehandling!!.avbryt(
+        saksbehandler,
+        "begrunnelse",
+        avbruttTidspunkt,
+    )
+    behandlingRepo.lagre(avbruttBehandling)
+    return sakRepo.hentForSakId(sakMedFørstegangsbehandling.id)!! to avbruttBehandling
 }
 
 /**
@@ -120,7 +179,8 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
-            sak = sak,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
         ),
     correlationId: CorrelationId = CorrelationId.generate(),
 ): Pair<Sak, Rammevedtak> {
@@ -166,8 +226,8 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
 internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
-    deltakelseFom: LocalDate = ObjectMother.virningsperiode().fraOgMed,
-    deltakelseTom: LocalDate = ObjectMother.virningsperiode().tilOgMed,
+    deltakelseFom: LocalDate = ObjectMother.virkningsperiode().fraOgMed,
+    deltakelseTom: LocalDate = ObjectMother.virkningsperiode().tilOgMed,
     journalpostId: String = random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
@@ -193,7 +253,8 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
-            sak = sak,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
         ),
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
 ): Pair<Sak, Behandling> {
@@ -229,8 +290,8 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
 internal fun TestDataHelper.persisterOpprettetRevurdering(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
-    deltakelseFom: LocalDate = ObjectMother.virningsperiode().fraOgMed,
-    deltakelseTom: LocalDate = ObjectMother.virningsperiode().tilOgMed,
+    deltakelseFom: LocalDate = ObjectMother.virkningsperiode().fraOgMed,
+    deltakelseTom: LocalDate = ObjectMother.virkningsperiode().tilOgMed,
     journalpostId: String = random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
@@ -256,7 +317,8 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
-            sak = sak,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
         ),
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
 ): Pair<Sak, Behandling> {
@@ -292,8 +354,8 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
 internal fun TestDataHelper.persisterBehandletRevurdering(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
-    deltakelseFom: LocalDate = ObjectMother.virningsperiode().fraOgMed,
-    deltakelseTom: LocalDate = ObjectMother.virningsperiode().tilOgMed,
+    deltakelseFom: LocalDate = ObjectMother.virkningsperiode().fraOgMed,
+    deltakelseTom: LocalDate = ObjectMother.virkningsperiode().tilOgMed,
     journalpostId: String = random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
@@ -319,7 +381,8 @@ internal fun TestDataHelper.persisterBehandletRevurdering(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
-            sak = sak,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
         ),
     stansDato: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
     begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("fordi"),
@@ -386,7 +449,8 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
                 deltakelseTom = deltakelseTom,
             ),
             barnetillegg = listOf(),
-            sak = sak,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
         ),
 ): Pair<Sak, MeldekortBehandling.MeldekortBehandlet> {
     val (sak, vedtak) = persisterIverksattFørstegangsbehandling(

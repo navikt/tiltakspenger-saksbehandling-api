@@ -45,7 +45,10 @@ fun Route.startBehandlingRoute(
                         {
                             when (it) {
                                 is KanIkkeStarteSøknadsbehandling.HarAlleredeStartetBehandlingen -> {
-                                    call.respond(HttpStatusCode.OK, it.behandling.toDTO())
+                                    call.respond400BadRequest(
+                                        "Finnes allerede en ikke-avbrutt førstegangsbehandling",
+                                        "finnes_allerede_en_ikke_avbrutt_førstegangsbehandling",
+                                    )
                                 }
 
                                 is KanIkkeStarteSøknadsbehandling.OppretteBehandling ->

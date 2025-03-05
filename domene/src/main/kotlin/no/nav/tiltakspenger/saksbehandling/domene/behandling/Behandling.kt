@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus.UNDER_BEHANDLING
@@ -63,7 +64,9 @@ data class Behandling(
     val saksopplysningsperiode: Periode?,
     val barnetillegg: Barnetillegg?,
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
+    val avbrutt: Avbrutt?,
 ) {
+    val erAvsluttet: Boolean by lazy { status == AVBRUTT || status == VEDTATT }
     val erUnderBehandling: Boolean = status == UNDER_BEHANDLING
 
     val erVedtatt: Boolean = status == VEDTATT
@@ -149,6 +152,7 @@ data class Behandling(
                 saksopplysningsperiode = saksopplysningsperiode,
                 barnetillegg = null,
                 valgteTiltaksdeltakelser = null,
+                avbrutt = null,
             ).right()
         }
 
@@ -187,6 +191,7 @@ data class Behandling(
                 saksopplysningsperiode = saksopplysningsperiode,
                 barnetillegg = null,
                 valgteTiltaksdeltakelser = null,
+                avbrutt = null,
             )
         }
     }
@@ -219,6 +224,10 @@ data class Behandling(
                     "Kan ikke ta behandling når behandlingen er VEDTATT. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
                 )
             }
+
+            AVBRUTT -> throw IllegalArgumentException(
+                "Kan ikke ta behandling når behandlingen er AVBRUTT. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
+            )
         }
     }
 
@@ -278,7 +287,7 @@ data class Behandling(
                 )
             }
 
-            KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, VEDTATT -> throw IllegalStateException(
+            KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, VEDTATT, AVBRUTT -> throw IllegalStateException(
                 "Må ha status UNDER_BESLUTNING for å iverksette. Behandlingsstatus: $status",
             )
         }
@@ -302,7 +311,7 @@ data class Behandling(
                 this.copy(status = UNDER_BEHANDLING, attesteringer = attesteringer + attestering)
             }
 
-            KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, VEDTATT -> throw IllegalStateException(
+            KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, VEDTATT, AVBRUTT -> throw IllegalStateException(
                 "Må ha status UNDER_BESLUTNING for å sende tilbake. Behandlingsstatus: $status",
             )
         }
@@ -383,6 +392,21 @@ data class Behandling(
         return this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev)
     }
 
+    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Behandling {
+        if (this.status == AVBRUTT || avbrutt != null) {
+            throw IllegalArgumentException("Behandlingen er allerede avbrutt")
+        }
+        return this.copy(
+            status = AVBRUTT,
+            søknad = this.søknad?.avbryt(avbruttAv, begrunnelse, tidspunkt),
+            avbrutt = Avbrutt(
+                tidspunkt = tidspunkt,
+                saksbehandler = avbruttAv.navIdent,
+                begrunnelse = begrunnelse,
+            ),
+        )
+    }
+
     init {
         if (beslutter != null && saksbehandler != null) {
             require(beslutter != saksbehandler) { "Saksbehandler og beslutter kan ikke være samme person" }
@@ -451,6 +475,10 @@ data class Behandling(
                     val barnetilleggsperiode = barnetillegg.periodisering.totalePeriode
                     require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
                 }
+            }
+
+            AVBRUTT -> {
+                requireNotNull(avbrutt)
             }
         }
     }

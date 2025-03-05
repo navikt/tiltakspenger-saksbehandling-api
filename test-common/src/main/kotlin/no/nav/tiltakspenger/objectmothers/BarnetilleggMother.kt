@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårs
 interface BarnetilleggMother {
     fun barnetillegg(
         begrunnelse: BegrunnelseVilkårsvurdering? = null,
-        periode: Periode = ObjectMother.virningsperiode(),
+        periode: Periode = ObjectMother.virkningsperiode(),
         antallBarn: AntallBarn = AntallBarn(1),
         periodiseringAntallBarn: Periodisering<AntallBarn> = barnetilleggsPerioder(
             periode = periode,
@@ -23,7 +23,7 @@ interface BarnetilleggMother {
     }
 
     fun barnetilleggsPerioder(
-        periode: Periode = ObjectMother.virningsperiode(),
+        periode: Periode = ObjectMother.virkningsperiode(),
         antallBarn: AntallBarn = AntallBarn(1),
         periodiseringAntallBarn: Periodisering<AntallBarn> = Periodisering(
             antallBarn,

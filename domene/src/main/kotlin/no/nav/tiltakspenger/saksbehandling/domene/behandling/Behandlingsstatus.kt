@@ -19,4 +19,7 @@ enum class Behandlingsstatus {
 
     /** En avsluttet, besluttet behandling. Brukes litt om hverandre med IVERKSATT. En alternativ avsluttet status vil være avbrutt og vil komme på et senere tidspunkt. */
     VEDTATT,
+
+    /** En saskbehandler har valgt at behandlingen ikke skal behandles videre */
+    AVBRUTT,
 }

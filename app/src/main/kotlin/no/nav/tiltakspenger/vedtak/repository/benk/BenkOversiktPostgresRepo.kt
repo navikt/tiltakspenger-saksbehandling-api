@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.vedtak.repository.behandling.toBehandlingstype
 class BenkOversiktPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : SaksoversiktRepo {
-    override fun hentAlleBehandlinger(sessionContext: SessionContext?): List<BehandlingEllerSøknadForSaksoversikt> =
+    override fun hentÅpneBehandlinger(sessionContext: SessionContext?): List<BehandlingEllerSøknadForSaksoversikt> =
         sessionFactory.withSession(sessionContext) { session ->
             session
                 .run(
@@ -44,7 +44,7 @@ class BenkOversiktPostgresRepo(
                         from behandling
                         left join sak on sak.id = behandling.sak_id
                         left join søknad on behandling.id = søknad.behandling_id
-                        where behandling.status != 'VEDTATT'
+                        where behandling.status != 'VEDTATT' and behandling.status != 'AVBRUTT'
                         order by sak.saksnummer, behandling.id
                         """.trimIndent(),
                     ).map { row ->
@@ -73,18 +73,18 @@ class BenkOversiktPostgresRepo(
                             kravtidspunkt = kravtidspunkt,
                             behandlingstype = behandlingstype,
                             fnr = Fnr.fromString(row.string("fnr")),
-                            saksnummer = row.stringOrNull("saksnummer")?.let { Saksnummer(it) },
+                            saksnummer = Saksnummer(row.string("saksnummer")),
                             id = id,
                             saksbehandler = saksbehandler,
                             beslutter = beslutter,
-                            sakId = row.stringOrNull("sak_id")?.let { SakId.fromString(it) },
+                            sakId = SakId.fromString(row.string("sak_id")),
                             opprettet = row.localDateTime("opprettet"),
                         )
                     }.asList,
                 )
         }
 
-    override fun hentAlleSøknader(sessionContext: SessionContext?): List<BehandlingEllerSøknadForSaksoversikt> =
+    override fun hentÅpneSøknader(sessionContext: SessionContext?): List<BehandlingEllerSøknadForSaksoversikt> =
         sessionFactory.withSession(sessionContext) { session ->
             session
                 .run(
@@ -95,9 +95,11 @@ class BenkOversiktPostgresRepo(
                           søknad.fnr,
                           søknad.opprettet,
                           søknad.behandling_id,
-                          søknad.sak_id
-                        from søknad
-                        where søknad.behandling_id is null
+                          søknad.sak_id,
+                          sak.saksnummer,
+                          søknad.avbrutt
+                        from søknad join sak on søknad.sak_id = sak.id
+                        where søknad.behandling_id is null and søknad.avbrutt is null
                         order by søknad.id
                         """.trimIndent(),
                     ).map { row ->
@@ -112,11 +114,11 @@ class BenkOversiktPostgresRepo(
                             kravtidspunkt = opprettet,
                             behandlingstype = behandlingstype,
                             fnr = Fnr.fromString(row.string("fnr")),
-                            saksnummer = null,
+                            saksnummer = Saksnummer(row.string("saksnummer")),
                             id = id,
                             saksbehandler = null,
                             beslutter = null,
-                            sakId = row.stringOrNull("sak_id")?.let { SakId.fromString(it) },
+                            sakId = SakId.fromString(row.string("sak_id")),
                             opprettet = opprettet,
                         )
                     }.asList,
