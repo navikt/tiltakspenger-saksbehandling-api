@@ -38,7 +38,6 @@ interface GenererInnvilgelsesvedtaksbrevGateway {
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,
-        tiltaksnavn: String,
         innvilgelsesperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
