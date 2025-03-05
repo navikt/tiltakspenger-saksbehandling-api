@@ -12,7 +12,11 @@ interface UtbetalingGateway {
     ): Either<KunneIkkeUtbetale, SendtUtbetaling>
 }
 
-object KunneIkkeUtbetale
+class KunneIkkeUtbetale(
+    val request: String? = null,
+    val response: String? = null,
+    val responseStatus: Int? = null,
+)
 
 data class SendtUtbetaling(
     val request: String,
