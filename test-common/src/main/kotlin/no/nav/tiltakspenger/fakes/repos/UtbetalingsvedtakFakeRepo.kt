@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.saksbehandling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.utbetaling.domene.Utbetalingsvedtak
@@ -24,6 +25,10 @@ class UtbetalingsvedtakFakeRepo : UtbetalingsvedtakRepo {
         utbetalingsrespons: SendtUtbetaling,
     ) {
         data.get()[vedtakId] = data.get()[vedtakId]!!.copy(sendtTilUtbetaling = tidspunkt)
+    }
+
+    override fun lagreFeilResponsFraUtbetaling(vedtakId: VedtakId, utbetalingsrespons: KunneIkkeUtbetale) {
+        data.get()[vedtakId] = data.get()[vedtakId]!!.copy(sendtTilUtbetaling = null)
     }
 
     override fun markerJournalført(
