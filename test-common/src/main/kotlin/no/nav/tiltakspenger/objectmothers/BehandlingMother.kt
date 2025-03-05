@@ -41,6 +41,7 @@ import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.ValgteTiltaksdeltakelser
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -80,6 +81,7 @@ interface BehandlingMother {
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering? = null,
         saksopplysningsperiode: Periode = virkningsperiode(),
         barnetillegg: Barnetillegg? = null,
+        valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = null,
         avbrutt: Avbrutt? = null,
     ): Behandling {
         return Behandling(
@@ -105,6 +107,7 @@ interface BehandlingMother {
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
             saksopplysningsperiode = saksopplysningsperiode,
             barnetillegg = barnetillegg,
+            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
             avbrutt = avbrutt,
         )
     }
