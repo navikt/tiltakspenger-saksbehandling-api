@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortBehandlet
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.utbetaling.domene.Utbetalingsvedtak
@@ -72,6 +73,28 @@ internal class UtbetalingsvedtakPostgresRepo(
                     mapOf(
                         "id" to vedtakId.toString(),
                         "tidspunkt" to tidspunkt,
+                        "metadata" to utbetalingsrespons.toJson(),
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
+    override fun lagreFeilResponsFraUtbetaling(
+        vedtakId: VedtakId,
+        utbetalingsrespons: KunneIkkeUtbetale,
+    ) {
+        sessionFactory.withSession { session ->
+            session.run(
+                queryOf(
+                    //language=SQL
+                    """
+                        update utbetalingsvedtak
+                        set utbetaling_metadata = to_jsonb(:metadata::jsonb)
+                        where id = :id
+                    """.trimIndent(),
+                    mapOf(
+                        "id" to vedtakId.toString(),
                         "metadata" to utbetalingsrespons.toJson(),
                     ),
                 ).asUpdate,
