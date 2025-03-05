@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.vedtak.clients.pdfgen.formattering.norskDatoFormatter
 import no.nav.tiltakspenger.vedtak.clients.pdfgen.formattering.norskTidspunktFormatter
@@ -15,10 +16,7 @@ private data class UtbetalingsvedtakDTO(
     val saksbehandler: SaksbehandlerDTO,
     val beslutter: SaksbehandlerDTO,
     val meldekortDager: List<MeldekortDagDTO>,
-    val tiltakstype: String,
-    val eksternDeltagelseId: String,
-    val eksternGjennomføringId: String?,
-    val tiltaksnavn: String,
+    val tiltak: List<TiltakDTO>,
     val iverksattTidspunkt: String,
     val fødselsnummer: String,
 ) {
@@ -28,7 +26,6 @@ private data class UtbetalingsvedtakDTO(
 
     data class SaksbehandlerDTO(
         val navn: String,
-        val navIdent: String,
     )
 
     data class PeriodeDTO(
@@ -38,21 +35,24 @@ private data class UtbetalingsvedtakDTO(
 
     data class MeldekortDagDTO(
         val dato: String,
-        val tiltakType: String,
         val status: String,
         val beløp: Int,
         val beløpBarnetillegg: Int,
         val prosent: Int,
         val reduksjon: String?,
     )
+
+    data class TiltakDTO(
+        val tiltakstypenavn: String,
+        val tiltakstype: String,
+        val eksternDeltagelseId: String,
+        val eksternGjennomføringId: String?,
+    )
 }
 
 suspend fun Utbetalingsvedtak.toJsonRequest(
     hentSaksbehandlersNavn: suspend (String) -> String,
-    tiltakstype: String,
-    tiltaksnavn: String,
-    eksternGjennomføringId: String?,
-    eksternDeltagelseId: String,
+    tiltaksdeltagelser: List<Tiltaksdeltagelse>,
 ): String {
     return UtbetalingsvedtakDTO(
         fødselsnummer = fnr.verdi,
@@ -67,7 +67,6 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
         meldekortDager = meldekortbehandling.beregning.dager.map { dag ->
             UtbetalingsvedtakDTO.MeldekortDagDTO(
                 dato = dag.dato.format(norskDatoFormatter),
-                tiltakType = dag.tiltakstype.toString(),
                 status = dag.toStatus(),
                 beløp = dag.beløp,
                 beløpBarnetillegg = dag.beløpBarnetillegg,
@@ -75,16 +74,21 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
                 reduksjon = dag.toReduksjon(),
             )
         },
-        eksternGjennomføringId = eksternGjennomføringId,
-        tiltakstype = tiltakstype,
-        tiltaksnavn = tiltaksnavn,
-        eksternDeltagelseId = eksternDeltagelseId,
+        tiltak = tiltaksdeltagelser.map { it.toTiltakDTO() },
         iverksattTidspunkt = opprettet.format(norskTidspunktFormatter),
     ).let { serialize(it) }
 }
 
+private fun Tiltaksdeltagelse.toTiltakDTO() =
+    UtbetalingsvedtakDTO.TiltakDTO(
+        tiltakstypenavn = typeNavn,
+        tiltakstype = typeKode.name,
+        eksternDeltagelseId = eksternDeltagelseId,
+        eksternGjennomføringId = gjennomføringId,
+    )
+
 private suspend fun tilSaksbehadlerDto(navIdent: String, hentSaksbehandlersNavn: suspend (String) -> String): UtbetalingsvedtakDTO.SaksbehandlerDTO {
-    return UtbetalingsvedtakDTO.SaksbehandlerDTO(navn = hentSaksbehandlersNavn(navIdent), navIdent = navIdent)
+    return UtbetalingsvedtakDTO.SaksbehandlerDTO(navn = hentSaksbehandlersNavn(navIdent))
 }
 
 private fun MeldeperiodeBeregningDag.toStatus(): String {

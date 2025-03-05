@@ -12,7 +12,7 @@ data class ValgteTiltaksdeltakelser(
     val periodisering: Periodisering<Tiltaksdeltagelse>,
 ) {
     companion object {
-        // TODO: Sett inn det saksbehandler faktisk valgte og sjekk at det ikke er huller eller overlapp
+        // TODO: Sett inn det saksbehandler faktisk valgte
         fun periodiser(
             tiltaksdeltagelse: Tiltaksdeltagelse,
             periode: Periode,

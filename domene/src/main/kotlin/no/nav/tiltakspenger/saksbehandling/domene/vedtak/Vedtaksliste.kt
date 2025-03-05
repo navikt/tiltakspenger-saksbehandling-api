@@ -34,6 +34,10 @@ data class Vedtaksliste(
         tidslinje.filter { it.verdi.vedtaksType == Vedtakstype.INNVILGELSE }.map { it.periode }
     }
 
+    val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
+        value.filter { it.vedtaksType == Vedtakstype.INNVILGELSE }.toTidslinje()
+    }
+
     val antallInnvilgelsesperioder: Int by lazy { innvilgelsesperioder.size }
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
@@ -80,9 +84,31 @@ data class Vedtaksliste(
         }
     }
 
-    // TODO: Her må vi bruke periodiseringen fra behandlingen når den er klar
-    val tiltaksdeltagelseperioder: Periodisering<Tiltaksdeltagelse> by lazy {
+    private val tiltaksdeltakelsesperioderFraSaksopplysninger: Periodisering<Tiltaksdeltagelse> by lazy {
         saksopplysningerperiode.map { it.tiltaksdeltagelse.first() }
+    }
+
+    // TODO: Blir dette riktig for revurdering og evt meldekort?
+    val valgteTiltaksdeltakelser: Periodisering<Tiltaksdeltagelse> by lazy {
+        innvilgetTidslinje.perioderMedVerdi.filter { it.verdi.behandling.valgteTiltaksdeltakelser != null }
+            .flatMap { it.verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(it.periode).perioderMedVerdi }.let {
+                Periodisering(it)
+            }
+    }
+
+    fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<Tiltaksdeltagelse> {
+        return valgteTiltaksdeltakelser.krymp(periode)
+    }
+
+    private val valgteTiltaksdeltakelserForForstegangsvedtak: Periodisering<Tiltaksdeltagelse> by lazy {
+        innvilgetTidslinje.perioderMedVerdi.filter { it.verdi.behandling.valgteTiltaksdeltakelser != null && it.verdi.erFørstegangsvedtak }
+            .flatMap { it.verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(it.periode).perioderMedVerdi }.let {
+                Periodisering(it)
+            }
+    }
+
+    fun valgteTiltaksdeltakelserForForstegangsvedtakOgPeriode(periode: Periode): List<Tiltaksdeltagelse> {
+        return valgteTiltaksdeltakelserForForstegangsvedtak.krymp(periode).perioderMedVerdi.map { it.verdi }
     }
 
     /** Tidslinje for antall barn. Første og siste periode vil være 1 eller flere. Kan inneholde hull med 0 barn. */
@@ -100,7 +126,7 @@ data class Vedtaksliste(
     }
 
     val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy {
-        tiltaksdeltagelseperioder.map { it.typeKode }
+        valgteTiltaksdeltakelser.map { it.typeKode }
     }
 
     fun antallBarnForDag(dag: LocalDate): AntallBarn {
@@ -115,30 +141,8 @@ data class Vedtaksliste(
         return copy(value = listOf(vedtak))
     }
 
-    /**
-     * @return null dersom vi ikke har noen rammevedtak, eller vi ikke har vedtak som overlapper med [periode].
-     * @throws NoSuchElementException eller [IllegalArgumentException] dersom mer enn 1 tiltak er gjeldende for perioden.
-     */
-    fun hentTiltaksdataForPeriode(periode: Periode): TiltaksdataForJournalføring? {
-        if (value.isEmpty()) return null
-        val tidslinje = Periodisering(
-            tidslinje.perioderMedVerdi.map {
-                PeriodeMedVerdi(
-                    it.verdi.krymp(it.periode).behandling,
-                    it.periode,
-                )
-            },
-        )
-        val overlappendePeriode = periode.overlappendePeriode(tidslinje.totalePeriode) ?: return null
-        return tidslinje.krymp(overlappendePeriode).map {
-            TiltaksdataForJournalføring(
-                // TODO Tia + John: Her bør vi på sikt sende inn tiltaksdeltagelse og mappe typen nærmere klienten?
-                tiltakstype = it.tiltakstype.name,
-                tiltaksnavn = it.tiltaksnavn,
-                eksternGjennomføringId = it.gjennomføringId,
-                eksternDeltagelseId = it.tiltaksid,
-            )
-        }.single().verdi
+    fun hentTiltaksdataForPeriode(periode: Periode): List<Tiltaksdeltagelse> {
+        return valgteTiltaksdeltakelserForPeriode(periode).perioderMedVerdi.map { it.verdi }
     }
 
     init {

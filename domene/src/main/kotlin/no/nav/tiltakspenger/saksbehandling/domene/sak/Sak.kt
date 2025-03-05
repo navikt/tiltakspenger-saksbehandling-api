@@ -64,7 +64,7 @@ data class Sak(
 
     val barnetilleggsperioder: Periodisering<AntallBarn> by lazy { vedtaksliste.barnetilleggsperioder }
 
-    val tiltaksdeltagelseperioder: Periodisering<Tiltaksdeltagelse> by lazy { vedtaksliste.tiltaksdeltagelseperioder }
+    val tiltaksdeltagelseperioder: Periodisering<Tiltaksdeltagelse> by lazy { vedtaksliste.valgteTiltaksdeltakelser }
 
     val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy { vedtaksliste.tiltakstypeperioder }
 
@@ -101,8 +101,8 @@ data class Sak(
     fun hentAntallDager(): Int? = vedtaksliste.førstegangsvedtak?.behandling?.maksDagerMedTiltakspengerForPeriode
     fun hentTynnSak(): TynnSak = TynnSak(this.id, this.fnr, this.saksnummer)
 
-    /** Den er kun trygg inntil vi støtter mer enn ett tiltak på én sak. */
-    fun hentTiltaksnavn(): String? = vedtaksliste.førstegangsvedtak?.behandling?.tiltaksnavn
+    fun hentTiltaksnavnForPeriode(periode: Periode): String? =
+        vedtaksliste.valgteTiltaksdeltakelserForForstegangsvedtakOgPeriode(periode).firstOrNull()?.typeNavn
 
     fun hentBehandling(behandlingId: BehandlingId): Behandling? = behandlinger.hentBehandling(behandlingId)
 

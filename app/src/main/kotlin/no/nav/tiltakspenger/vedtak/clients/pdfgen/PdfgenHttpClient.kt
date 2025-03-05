@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.Navn
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.ports.GenererStansvedtaksbrevGateway
@@ -131,20 +132,14 @@ internal class PdfgenHttpClient(
 
     override suspend fun genererUtbetalingsvedtak(
         utbetalingsvedtak: Utbetalingsvedtak,
-        tiltakstype: String,
-        tiltaksnavn: String,
-        eksternGjennomføringId: String?,
-        eksternDeltagelseId: String,
+        tiltaksdeltagelser: List<Tiltaksdeltagelse>,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
                 utbetalingsvedtak.toJsonRequest(
                     hentSaksbehandlersNavn,
-                    tiltakstype,
-                    tiltaksnavn,
-                    eksternGjennomføringId,
-                    eksternDeltagelseId,
+                    tiltaksdeltagelser,
                 )
             },
             errorContext = "SakId: ${utbetalingsvedtak.sakId}, saksnummer: ${utbetalingsvedtak.saksnummer}, vedtakId: ${utbetalingsvedtak.id}",
