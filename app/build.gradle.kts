@@ -3,7 +3,7 @@ val kotestVersion = "5.9.1"
 val felleslibVersion = "0.0.383"
 val mockkVersion = "1.13.17"
 val ktorVersion = "3.1.1"
-val testContainersVersion = "1.20.5"
+val testContainersVersion = "1.20.6"
 val poaoTilgangVersjon = "2025.03.03_11.15-706bb97e7558"
 val iverksettVersjon = "1.0_20241213145703_7ff5f9c"
 
