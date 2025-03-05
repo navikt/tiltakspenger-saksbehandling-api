@@ -13,10 +13,7 @@ class PdfgenHttpClientTest {
             val utbetalingsvedtak = ObjectMother.utbetalingsvedtak()
             PdfgenHttpClient("unused").genererUtbetalingsvedtak(
                 utbetalingsvedtak,
-                tiltakstype = "tiltakstype",
-                tiltaksnavn = "tiltaksnavn",
-                eksternDeltagelseId = "213-1232-2133-123",
-                eksternGjennomføringId = null,
+                tiltaksdeltagelser = listOf(ObjectMother.tiltaksdeltagelse()),
             ) { ObjectMother.saksbehandler().brukernavn }
         }
     }

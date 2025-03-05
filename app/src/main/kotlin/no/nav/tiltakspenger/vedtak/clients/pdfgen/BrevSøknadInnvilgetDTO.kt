@@ -16,7 +16,6 @@ import java.time.LocalDate
 @Suppress("unused")
 private data class BrevFørstegangsvedtakInnvilgelseDTO(
     val personalia: BrevPersonaliaDTO,
-    val tiltaksnavn: String,
     val rammevedtakFraDato: String,
     val rammevedtakTilDato: String,
     val saksnummer: String,
@@ -54,7 +53,6 @@ internal suspend fun Rammevedtak.toInnvilgetSøknadsbrev(
         fnr = fnr,
         saksbehandlerNavIdent = saksbehandlerNavIdent,
         beslutterNavIdent = beslutterNavIdent,
-        tiltaksnavn = this.behandling.tiltaksnavn,
         innvilgelsesperiode = this.periode,
         saksnummer = saksnummer,
         // finnes ikke noe forhåndsvisning for rammevedtak
@@ -71,7 +69,6 @@ internal suspend fun genererInnvilgetSøknadsbrev(
     fnr: Fnr,
     saksbehandlerNavIdent: String,
     beslutterNavIdent: String?,
-    tiltaksnavn: String,
     innvilgelsesperiode: Periode,
     saksnummer: Saksnummer,
     forhåndsvisning: Boolean,
@@ -86,9 +83,7 @@ internal suspend fun genererInnvilgetSøknadsbrev(
             ident = fnr.verdi,
             fornavn = brukersNavn.fornavn,
             etternavn = brukersNavn.mellomnavnOgEtternavn,
-            antallBarn = 0,
         ),
-        tiltaksnavn = tiltaksnavn,
         rammevedtakFraDato = innvilgelsesperiode.fraOgMed.format(norskDatoFormatter),
         rammevedtakTilDato = innvilgelsesperiode.tilOgMed.format(norskDatoFormatter),
         saksnummer = saksnummer.verdi,

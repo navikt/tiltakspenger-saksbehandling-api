@@ -26,7 +26,6 @@ interface GenererStansvedtaksbrevGateway {
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,
-        tiltaksnavn: String,
         stansperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
