@@ -19,4 +19,6 @@ interface SøknadRepo {
     fun hentSøknaderForFnr(fnr: Fnr): List<Søknad>
 
     fun finnSakIdForTiltaksdeltakelse(eksternId: String): SakId?
+
+    fun lagreAvbruttSøknad(søknad: Søknad, txContext: TransactionContext? = null)
 }

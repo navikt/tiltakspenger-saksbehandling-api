@@ -22,8 +22,10 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Vedtaksliste
+import no.nav.tiltakspenger.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.utbetaling.domene.Utbetalinger
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class Sak(
     val id: SakId,
@@ -117,5 +119,47 @@ data class Sak(
 
     fun erSisteVersjonAvMeldeperiode(meldeperiode: Meldeperiode): Boolean {
         return meldeperiodeKjeder.erSisteVersjonAvMeldeperiode(meldeperiode)
+    }
+
+    fun avbrytSøknadOgBehandling(
+        command: AvbrytSøknadOgBehandlingCommand,
+        avbruttTidspunkt: LocalDateTime,
+    ): Triple<Sak, Søknad?, Behandling?> {
+        if (command.søknadId != null && command.behandlingId != null) {
+            return avbrytBehandling(command, avbruttTidspunkt)
+        }
+        if (command.søknadId != null) {
+            val (oppdatertSak, avbruttSøknad) = avbrytSøknad(command, avbruttTidspunkt)
+            return Triple(oppdatertSak, avbruttSøknad, null)
+        }
+
+        return avbrytBehandling(command, avbruttTidspunkt)
+    }
+
+    private fun avbrytBehandling(
+        command: AvbrytSøknadOgBehandlingCommand,
+        avbruttTidspunkt: LocalDateTime,
+    ): Triple<Sak, Søknad?, Behandling> {
+        val behandling = this.hentBehandling(command.behandlingId!!)!!
+        val avbruttBehandling = behandling.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
+        val avbruttSøknad = behandling.søknad?.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
+
+        val oppdatertSak = this.copy(
+            soknader = if (avbruttSøknad != null) this.soknader.map { if (it.id == command.søknadId) avbruttSøknad else it } else this.soknader,
+            behandlinger = avbruttBehandling.let { this.behandlinger.oppdaterBehandling(it) },
+        )
+        return Triple(oppdatertSak, avbruttSøknad, avbruttBehandling)
+    }
+
+    private fun avbrytSøknad(
+        command: AvbrytSøknadOgBehandlingCommand,
+        avbruttTidspunkt: LocalDateTime,
+    ): Pair<Sak, Søknad> {
+        val søknad = this.soknader.single { it.id == command.søknadId }
+        val avbruttSøknad = søknad.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
+        val oppdatertSak = this.copy(
+            soknader = this.soknader.map { if (it.id == command.søknadId) avbruttSøknad else it },
+        )
+        return Pair(oppdatertSak, avbruttSøknad)
     }
 }

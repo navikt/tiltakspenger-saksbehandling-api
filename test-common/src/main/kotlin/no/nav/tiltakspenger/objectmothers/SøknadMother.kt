@@ -5,16 +5,18 @@ import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.juni
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 interface SøknadMother {
     fun søknadstiltak(
@@ -66,7 +68,7 @@ interface SøknadMother {
     fun personopplysningFødselsdato() = 1.januar(2000)
 
     fun nySøknad(
-        periode: Periode = ObjectMother.virningsperiode(),
+        periode: Periode = ObjectMother.virkningsperiode(),
         versjon: String = "1",
         id: SøknadId = Søknad.randomId(),
         journalpostId: String = "journalpostId",
@@ -90,8 +92,10 @@ interface SøknadMother {
         supplerendeStønadAlder: Søknad.PeriodeSpm = periodeNei(),
         supplerendeStønadFlyktning: Søknad.PeriodeSpm = periodeNei(),
         jobbsjansen: Søknad.PeriodeSpm = periodeNei(),
-        sak: Sak = ObjectMother.nySak(fnr = fnr),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         oppgaveId: OppgaveId? = ObjectMother.oppgaveId(),
+        avbrutt: Avbrutt? = null,
     ): Søknad =
         Søknad(
             versjon = versjon,
@@ -114,9 +118,10 @@ interface SøknadMother {
             supplerendeStønadFlyktning = supplerendeStønadFlyktning,
             jobbsjansen = jobbsjansen,
             trygdOgPensjon = trygdOgPensjon,
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
+            sakId = sakId,
+            saksnummer = saksnummer,
             oppgaveId = oppgaveId,
+            avbrutt = avbrutt,
         )
 
     fun personSøknad(

@@ -37,6 +37,8 @@ class ForhåndsvisVedtaksbrevService(
         val virkingsperiode = when (behandling.status) {
             Behandlingsstatus.KLAR_TIL_BEHANDLING,
             Behandlingsstatus.UNDER_BEHANDLING,
+            // gir det mening at man har lyst til å se innvilgelsesbrevet hvis behandlingen er avbrutt?
+            Behandlingsstatus.AVBRUTT,
             -> kommando.virkingsperiode ?: behandling.virkningsperiode!!
             Behandlingsstatus.KLAR_TIL_BESLUTNING,
             Behandlingsstatus.UNDER_BESLUTNING,

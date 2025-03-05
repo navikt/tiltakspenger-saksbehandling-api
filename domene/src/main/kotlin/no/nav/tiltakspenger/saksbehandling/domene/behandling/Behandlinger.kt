@@ -14,10 +14,9 @@ data class Behandlinger(
 
     constructor(behandling: Behandling) : this(listOf(behandling))
 
-    val revurderinger: Revurderinger = Revurderinger(behandlinger.drop(1))
-    val førstegangsbehandling: Behandling? = behandlinger.firstOrNull()?.also {
-        require(it.erFørstegangsbehandling)
-    }
+    val revurderinger: Revurderinger = Revurderinger(behandlinger.filter { it.erRevurdering })
+    val førstegangsBehandlinger = this.behandlinger.filter { it.erFørstegangsbehandling }
+    val førstegangsbehandling: Behandling? = førstegangsBehandlinger.filterNot { it.status == Behandlingsstatus.AVBRUTT }.singleOrNullOrThrow()
 
     fun leggTilRevurdering(
         revurdering: Behandling,

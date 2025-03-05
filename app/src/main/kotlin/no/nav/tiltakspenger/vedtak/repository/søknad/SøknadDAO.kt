@@ -10,8 +10,11 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.vedtak.repository.toAvbrutt
+import no.nav.tiltakspenger.vedtak.repository.toDbJson
 import org.intellij.lang.annotations.Language
 
 private const val KVP_FELT = "kvp"
@@ -147,6 +150,25 @@ internal object SøknadDAO {
         SøknadTiltakDAO.lagre(søknad.id, søknad.tiltak, txSession)
     }
 
+    fun lagreAvbruttSøknad(
+        søknadId: SøknadId,
+        avbrutt: Avbrutt,
+        txSession: TransactionalSession,
+    ) {
+        val oppdaterteRader = txSession.run(
+            queryOf(
+                """update søknad set avbrutt = to_jsonb(:avbrutt::jsonb) where id = :soknad_id""",
+                mapOf(
+                    "avbrutt" to avbrutt.toDbJson(),
+                    "soknad_id" to søknadId.toString(),
+                ),
+            ).asUpdate,
+        )
+        if (oppdaterteRader == 0) {
+            throw RuntimeException("Kunne ikke lagre avbrutt søknad.")
+        }
+    }
+
     private fun lagreSøknad(
         søknad: Søknad,
         session: Session,
@@ -226,6 +248,7 @@ internal object SøknadDAO {
         val supplerendeStønadFlyktning = periodeSpm(SUPPLERENDESTØNAD_FLYKTNING_FELT)
         val jobbsjansen = periodeSpm(JOBBSJANSEN_FELT)
         val trygdOgPensjon = periodeSpm(TRYGD_OG_PENSJON_FELT)
+        val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
         return Søknad(
             versjon = versjon,
             id = id,
@@ -255,6 +278,7 @@ internal object SøknadDAO {
             sakId = sakId,
             saksnummer = saksnummer,
             oppgaveId = oppgaveId,
+            avbrutt = avbrutt,
         )
     }
 

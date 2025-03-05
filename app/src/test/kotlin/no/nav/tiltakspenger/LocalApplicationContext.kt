@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.fakes.clients.GenererFakeUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.fakes.clients.GenererFakeVedtaksbrevGateway
 import no.nav.tiltakspenger.fakes.clients.JournalførFakeMeldekortGateway
 import no.nav.tiltakspenger.fakes.clients.JournalførFakeVedtaksbrevGateway
+import no.nav.tiltakspenger.fakes.clients.OppgaveFakeGateway
 import no.nav.tiltakspenger.fakes.clients.PersonFakeGateway
 import no.nav.tiltakspenger.fakes.clients.PoaoTilgangskontrollFake
 import no.nav.tiltakspenger.fakes.clients.TiltakFakeGateway
@@ -35,7 +36,6 @@ import no.nav.tiltakspenger.saksbehandling.ports.VeilarboppfolgingGateway
 import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.Profile
-import no.nav.tiltakspenger.vedtak.clients.oppgave.OppgaveHttpClient
 import no.nav.tiltakspenger.vedtak.clients.pdfgen.PdfgenHttpClient
 import no.nav.tiltakspenger.vedtak.clients.veilarboppfolging.VeilarboppfolgingHttpClient
 import no.nav.tiltakspenger.vedtak.context.ApplicationContext
@@ -92,12 +92,13 @@ class LocalApplicationContext(
         eksternTiltaksgjennomføringsId = "5667273f-784e-4521-89c3-75b0be8ee250",
         typeKode = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn = "Arbeidsmarkedsoppfølging gruppe",
-        fom = ObjectMother.virningsperiode().fraOgMed,
-        tom = ObjectMother.virningsperiode().tilOgMed,
+        fom = ObjectMother.virkningsperiode().fraOgMed,
+        tom = ObjectMother.virkningsperiode().tilOgMed,
         kilde = Tiltakskilde.Komet,
     )
     private val søknadstiltak = tiltaksdeltagelse.toSøknadstiltak()
 
+    override val oppgaveGateway: OppgaveGateway by lazy { OppgaveFakeGateway() }
     init {
         val sakRepo = SakPostgresRepo(
             sessionFactory = sessionFactory as PostgresSessionFactory,
@@ -107,16 +108,13 @@ class LocalApplicationContext(
             fnr = fnr,
             saksnummer = sakRepo.hentNesteSaksnummer(),
         ).also { sakRepo.opprettSak(it) }
-        val oppgaveGateway = OppgaveHttpClient(
-            baseUrl = Configuration.oppgaveUrl,
-            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.oppgaveScope) },
-        )
         val søknadContext = SøknadContext(sessionFactory, oppgaveGateway)
         val søknad = søknadContext.søknadRepo.hentForSøknadId(søknadId) ?: ObjectMother.nySøknad(
             fnr = fnr,
             id = søknadId,
             søknadstiltak = søknadstiltak,
-            sak = sak,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
             oppgaveId = ObjectMother.oppgaveId(),
         ).also { søknadContext.søknadRepo.lagre(it) }
         require(søknadstiltak == søknad.tiltak) {
@@ -147,13 +145,6 @@ class LocalApplicationContext(
         )
     }
     override val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingGateway) }
-
-    override val oppgaveGateway: OppgaveGateway by lazy {
-        OppgaveHttpClient(
-            baseUrl = Configuration.oppgaveUrl,
-            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.oppgaveScope) },
-        )
-    }
 
     override val personContext =
         object : PersonContext(sessionFactory, entraIdSystemtokenClient) {

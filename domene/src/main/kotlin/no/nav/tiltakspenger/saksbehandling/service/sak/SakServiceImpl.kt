@@ -151,8 +151,8 @@ class SakServiceImpl(
                 harRollene = saksbehandler.roller,
             ).left()
         }
-        val behandlinger = saksoversiktRepo.hentAlleBehandlinger()
-        val søknader = saksoversiktRepo.hentAlleSøknader()
+        val behandlinger = saksoversiktRepo.hentÅpneBehandlinger()
+        val søknader = saksoversiktRepo.hentÅpneSøknader()
         val benkOversikt = Saksoversikt(behandlinger + søknader)
 
         if (benkOversikt.isEmpty()) return benkOversikt.right()

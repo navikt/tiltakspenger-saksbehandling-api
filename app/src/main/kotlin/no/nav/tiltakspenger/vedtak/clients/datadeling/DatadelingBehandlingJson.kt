@@ -33,4 +33,5 @@ fun Behandlingsstatus.toDatadelingDTO(): DatadelingBehandlingDTO.Behandlingsstat
         Behandlingsstatus.KLAR_TIL_BESLUTNING -> DatadelingBehandlingDTO.Behandlingsstatus.KLAR_TIL_BESLUTNING
         Behandlingsstatus.UNDER_BESLUTNING -> DatadelingBehandlingDTO.Behandlingsstatus.UNDER_BESLUTNING
         Behandlingsstatus.VEDTATT -> DatadelingBehandlingDTO.Behandlingsstatus.VEDTATT
+        Behandlingsstatus.AVBRUTT -> DatadelingBehandlingDTO.Behandlingsstatus.AVBRUTT
     }

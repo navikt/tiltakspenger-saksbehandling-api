@@ -24,6 +24,8 @@ import no.nav.tiltakspenger.saksbehandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.vedtak.repository.behandling.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.vedtak.repository.behandling.attesteringer.toDbJson
 import no.nav.tiltakspenger.vedtak.repository.søknad.SøknadDAO
+import no.nav.tiltakspenger.vedtak.repository.toAvbrutt
+import no.nav.tiltakspenger.vedtak.repository.toDbJson
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 
@@ -167,6 +169,7 @@ class BehandlingPostgresRepo(
                             "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode?.tilOgMed,
                             "barnetillegg" to behandling.barnetillegg?.toDbJson(),
                             "valgte_tiltaksdeltakelser" to behandling.valgteTiltaksdeltakelser?.toDbJson(),
+                            "avbrutt" to behandling.avbrutt?.toDbJson(),
                         ),
                     ).asUpdate,
                 )
@@ -207,6 +210,7 @@ class BehandlingPostgresRepo(
                         "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode?.tilOgMed,
                         "barnetillegg" to behandling.barnetillegg?.toDbJson(),
                         "valgte_tiltaksdeltakelser" to behandling.valgteTiltaksdeltakelser?.toDbJson(),
+                        "avbrutt" to behandling.avbrutt?.toDbJson(),
                     ),
                 ).asUpdate,
             )
@@ -255,6 +259,7 @@ class BehandlingPostgresRepo(
             val barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg()
             val saksopplysninger = string("saksopplysninger").toSaksopplysninger()
             val valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")?.toValgteTiltaksdeltakelser(saksopplysninger)
+            val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
 
             return Behandling(
                 id = id,
@@ -287,9 +292,9 @@ class BehandlingPostgresRepo(
                         saksopplysningsperiodeTilOgMed!!,
                     )
                 },
-                // TODO John + Anders: Må persisteres og hentes opp fra basen!
                 barnetillegg = barnetillegg,
                 valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
+                avbrutt = avbrutt,
             )
         }
 
@@ -320,7 +325,8 @@ class BehandlingPostgresRepo(
                 saksopplysningsperiode_fra_og_med,
                 saksopplysningsperiode_til_og_med,
                 barnetillegg,
-                valgte_tiltaksdeltakelser
+                valgte_tiltaksdeltakelser,
+                avbrutt
             ) values (
                 :id,
                 :sak_id,
@@ -345,7 +351,8 @@ class BehandlingPostgresRepo(
                 :saksopplysningsperiode_fra_og_med,
                 :saksopplysningsperiode_til_og_med,
                 to_jsonb(:barnetillegg::jsonb),
-                to_jsonb(:valgte_tiltaksdeltakelser::jsonb)
+                to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
+                to_jsonb(:avbrutt::jsonb)
             )
             """.trimIndent()
 
@@ -374,7 +381,8 @@ class BehandlingPostgresRepo(
                 saksopplysningsperiode_fra_og_med = :saksopplysningsperiode_fra_og_med,
                 saksopplysningsperiode_til_og_med = :saksopplysningsperiode_til_og_med,
                 barneTillegg = to_jsonb(:barnetillegg::jsonb),
-                valgte_tiltaksdeltakelser = to_jsonb(:valgte_tiltaksdeltakelser::jsonb)
+                valgte_tiltaksdeltakelser = to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
+                avbrutt = to_jsonb(:avbrutt::jsonb)
             where id = :id
               and sist_endret = :sist_endret_old
             """.trimIndent()
