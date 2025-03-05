@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.vedtak.clients.datadeling
 
 import no.nav.tiltakspenger.libs.datadeling.DatadelingBehandlingDTO
-import no.nav.tiltakspenger.libs.datadeling.DatadelingTiltakDTO
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
@@ -19,11 +18,6 @@ fun Behandling.toBehandlingJson(): String {
         saksbehandler = saksbehandler,
         beslutter = beslutter,
         iverksattTidspunkt = iverksattTidspunkt,
-        tiltak = DatadelingTiltakDTO(
-            tiltakNavn = tiltaksnavn,
-            eksternTiltakdeltakerId = tiltaksid,
-            gjennomføringId = gjennomføringId,
-        ),
         fnr = fnr.verdi,
         // Skal kun kalles for førstegangsbehandlinger, men det skal sjekkes lenger ut.
         søknadJournalpostId = søknad!!.journalpostId,
