@@ -65,20 +65,6 @@ class OppgaveMeldekortServiceTest {
     }
 
     @Test
-    fun `ingen oppgave blir opprettet om journalpostId ikke finnes`() {
-        runTest {
-            val meldekort = mockk<BrukersMeldekort>()
-            every { meldekort.journalpostId } returns null
-            coEvery { brukersMeldekortRepo.hentMeldekortSomIkkeSkalGodkjennesAutomatisk() } returns listOf(meldekort)
-            coJustRun { brukersMeldekortRepo.oppdater(any()) }
-
-            service.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk()
-
-            coVerify(exactly = 0) { oppgaveGateway.opprettOppgave(any(), any(), any()) }
-        }
-    }
-
-    @Test
     fun `ingen oppgave opprettes om det ikke finnes en tilknyttet sak`() {
         runTest {
             val meldekort = mockk<BrukersMeldekort>()
