@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.domene.behandling
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.felles.OppgaveId
@@ -128,6 +129,13 @@ data class Behandling(
                 val tilOgMed = fraOgMed.plusYears(100)
                 Periode(fraOgMed, tilOgMed)
             }
+
+            val saksopplysninger = hentSaksopplysninger(saksopplysningsperiode)
+
+            if (saksopplysninger.tiltaksdeltagelse.isEmpty()) {
+                return KanIkkeOppretteBehandling.IngenRelevanteTiltak.left()
+            }
+
             return Behandling(
                 id = BehandlingId.random(),
                 saksnummer = saksnummer,
@@ -135,7 +143,7 @@ data class Behandling(
                 fnr = fnr,
                 søknad = søknad,
                 virkningsperiode = null,
-                saksopplysninger = hentSaksopplysninger(saksopplysningsperiode),
+                saksopplysninger = saksopplysninger,
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
                 saksbehandler = saksbehandler.navIdent,

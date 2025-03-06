@@ -76,6 +76,10 @@ suspend fun ApplicationCall.respondError(status: HttpStatusCode, errorJson: Erro
     )
 }
 
+suspend fun ApplicationCall.respond501NotImplemented(melding: String, kode: String) {
+    this.respondError(HttpStatusCode.NotImplemented, ErrorJson(melding, kode))
+}
+
 suspend fun ApplicationCall.respond501NotImplemented(errorJson: ErrorJson) {
     this.respondError(HttpStatusCode.NotImplemented, errorJson)
 }

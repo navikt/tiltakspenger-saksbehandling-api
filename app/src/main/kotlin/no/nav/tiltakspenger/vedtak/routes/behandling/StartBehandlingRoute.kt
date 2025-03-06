@@ -7,20 +7,17 @@ import io.ktor.server.routing.post
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling.FantIkkeTiltak
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling.StøtterKunInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeOppretteBehandling
 import no.nav.tiltakspenger.saksbehandling.service.behandling.StartSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeStarteSøknadsbehandling
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.correlationId
-import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.fantIkkeTiltak
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.ikkeTilgang
-import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.støtterIkkeDelvisEllerAvslag
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond400BadRequest
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond403Forbidden
-import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond500InternalServerError
+import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond501NotImplemented
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 import no.nav.tiltakspenger.vedtak.routes.withSøknadId
 
@@ -53,11 +50,9 @@ fun Route.startBehandlingRoute(
 
                                 is KanIkkeStarteSøknadsbehandling.OppretteBehandling ->
                                     when (it.underliggende) {
-                                        FantIkkeTiltak ->
-                                            call.respond500InternalServerError(fantIkkeTiltak())
-
-                                        is StøtterKunInnvilgelse -> call.respond400BadRequest(
-                                            støtterIkkeDelvisEllerAvslag(),
+                                        is KanIkkeOppretteBehandling.IngenRelevanteTiltak -> call.respond501NotImplemented(
+                                            melding = "Ingen relevante tiltak for denne søknaden - dette støtter vi ikke ennå",
+                                            kode = "",
                                         )
                                     }
 
