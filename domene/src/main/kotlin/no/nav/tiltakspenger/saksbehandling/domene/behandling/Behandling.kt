@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus.KLAR_TIL_BESLUTNING
@@ -75,12 +74,8 @@ data class Behandling(
     /** John og Agnethe har kommet fram til at vi setter denne til 14 dager for meldeperiode i førsteomgang. Hvis det fører til mye feilutbetaling eller lignende må vi la saksbehandler periodisere dette selv, litt på samme måte som barnetillegg. */
     val maksDagerMedTiltakspengerForPeriode: Int = 14
 
-    // TODO: Når saksbehandler kan velge hvilken deltakelse som gjelder på hvilke dager må vi bruke det som er valgt, ikke bare den første
+    // TODO: Brukes bare for å angi deltakelse frem til saksbehandler setter den selv via input. Skal fjernes når det er på plass.
     private val tiltaksdeltakelse = saksopplysninger.tiltaksdeltagelse.first()
-    val tiltaksnavn = tiltaksdeltakelse.typeNavn
-    val tiltakstype: TiltakstypeSomGirRett = tiltaksdeltakelse.typeKode
-    val tiltaksid: String = tiltaksdeltakelse.eksternDeltagelseId
-    val gjennomføringId: String? = tiltaksdeltakelse.gjennomføringId
 
     fun inneholderEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
         saksopplysninger.tiltaksdeltagelse.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
@@ -458,6 +453,9 @@ data class Behandling(
                     val barnetilleggsperiode = barnetillegg.periodisering.totalePeriode
                     require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
                 }
+                if (behandlingstype == FØRSTEGANGSBEHANDLING) {
+                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
+                }
             }
 
             UNDER_BESLUTNING -> {
@@ -469,6 +467,9 @@ data class Behandling(
                 if (barnetillegg != null) {
                     val barnetilleggsperiode = barnetillegg.periodisering.totalePeriode
                     require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
+                }
+                if (behandlingstype == FØRSTEGANGSBEHANDLING) {
+                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
                 }
             }
 
@@ -482,6 +483,9 @@ data class Behandling(
                 if (barnetillegg != null) {
                     val barnetilleggsperiode = barnetillegg.periodisering.totalePeriode
                     require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
+                }
+                if (behandlingstype == FØRSTEGANGSBEHANDLING) {
+                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
                 }
             }
 

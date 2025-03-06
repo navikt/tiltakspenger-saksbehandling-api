@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode
 import java.time.LocalDate
@@ -32,6 +31,15 @@ data class Vedtaksliste(
     /** Nåtilstand. De periodene som gir rett til tiltakspenger. Vil kunne være hull. */
     val innvilgelsesperioder: List<Periode> by lazy {
         tidslinje.filter { it.verdi.vedtaksType == Vedtakstype.INNVILGELSE }.map { it.periode }
+    }
+
+    val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
+        tidslinje.perioderMedVerdi.filter { it.verdi.vedtaksType == Vedtakstype.INNVILGELSE }.map {
+            PeriodeMedVerdi(
+                periode = it.periode,
+                verdi = it.verdi,
+            )
+        }.let { Periodisering(it) }
     }
 
     val antallInnvilgelsesperioder: Int by lazy { innvilgelsesperioder.size }
@@ -74,15 +82,19 @@ data class Vedtaksliste(
         }.let { Periodisering(it) }
     }
 
-    val saksopplysningerperiode: Periodisering<Saksopplysninger> by lazy {
-        tidslinje.perioderMedVerdi.map { PeriodeMedVerdi(it.verdi.behandling.saksopplysninger, it.periode) }.let {
-            Periodisering(it)
-        }
+    // Denne fungerer bare for førstegangsvedtak der man har valgte tiltaksdeltakelser
+    val valgteTiltaksdeltakelser: Periodisering<Tiltaksdeltagelse> by lazy {
+        innvilgetTidslinje.perioderMedVerdi.filter { it.verdi.behandling.valgteTiltaksdeltakelser != null }
+            .flatMap { it.verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(it.periode).perioderMedVerdi }.let {
+                Periodisering(it)
+            }
     }
 
-    // TODO: Her må vi bruke periodiseringen fra behandlingen når den er klar
-    val tiltaksdeltagelseperioder: Periodisering<Tiltaksdeltagelse> by lazy {
-        saksopplysningerperiode.map { it.tiltaksdeltagelse.first() }
+    // TODO: Lag en overlapp-metode i libs
+    fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<Tiltaksdeltagelse> {
+        return valgteTiltaksdeltakelser.perioderMedVerdi
+            .filter { it.periode.overlapperMed(periode) }
+            .let { Periodisering(it) }
     }
 
     /** Tidslinje for antall barn. Første og siste periode vil være 1 eller flere. Kan inneholde hull med 0 barn. */
@@ -100,7 +112,7 @@ data class Vedtaksliste(
     }
 
     val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy {
-        tiltaksdeltagelseperioder.map { it.typeKode }
+        valgteTiltaksdeltakelser.map { it.typeKode }
     }
 
     fun antallBarnForDag(dag: LocalDate): AntallBarn {
@@ -115,30 +127,8 @@ data class Vedtaksliste(
         return copy(value = listOf(vedtak))
     }
 
-    /**
-     * @return null dersom vi ikke har noen rammevedtak, eller vi ikke har vedtak som overlapper med [periode].
-     * @throws NoSuchElementException eller [IllegalArgumentException] dersom mer enn 1 tiltak er gjeldende for perioden.
-     */
-    fun hentTiltaksdataForPeriode(periode: Periode): TiltaksdataForJournalføring? {
-        if (value.isEmpty()) return null
-        val tidslinje = Periodisering(
-            tidslinje.perioderMedVerdi.map {
-                PeriodeMedVerdi(
-                    it.verdi.krymp(it.periode).behandling,
-                    it.periode,
-                )
-            },
-        )
-        val overlappendePeriode = periode.overlappendePeriode(tidslinje.totalePeriode) ?: return null
-        return tidslinje.krymp(overlappendePeriode).map {
-            TiltaksdataForJournalføring(
-                // TODO Tia + John: Her bør vi på sikt sende inn tiltaksdeltagelse og mappe typen nærmere klienten?
-                tiltakstype = it.tiltakstype.name,
-                tiltaksnavn = it.tiltaksnavn,
-                eksternGjennomføringId = it.gjennomføringId,
-                eksternDeltagelseId = it.tiltaksid,
-            )
-        }.single().verdi
+    fun hentTiltaksdataForPeriode(periode: Periode): List<Tiltaksdeltagelse> {
+        return valgteTiltaksdeltakelserForPeriode(periode).perioderMedVerdi.map { it.verdi }
     }
 
     init {

@@ -56,8 +56,6 @@ class ForhåndsvisVedtaksbrevService(
                     fnr = sak.fnr,
                     saksbehandlerNavIdent = behandling.saksbehandler,
                     beslutterNavIdent = behandling.beslutter,
-                    // TODO John + Tia: Hva gjør vi med tiltaksnavn her?
-                    tiltaksnavn = behandling.tiltaksnavn,
                     innvilgelsesperiode = virkingsperiode,
                     saksnummer = sak.saksnummer,
                     sakId = sak.id,
@@ -77,7 +75,6 @@ class ForhåndsvisVedtaksbrevService(
                     fnr = sak.fnr,
                     saksbehandlerNavIdent = behandling.saksbehandler,
                     beslutterNavIdent = behandling.beslutter,
-                    tiltaksnavn = behandling.tiltaksnavn,
                     stansperiode = virkingsperiode,
                     saksnummer = sak.saksnummer,
                     sakId = sak.id,

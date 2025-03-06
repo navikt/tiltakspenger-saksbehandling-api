@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.Navn
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.ports.GenererStansvedtaksbrevGateway
@@ -102,7 +103,6 @@ internal class PdfgenHttpClient(
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,
-        tiltaksnavn: String,
         innvilgelsesperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
@@ -119,7 +119,6 @@ internal class PdfgenHttpClient(
                     fnr = fnr,
                     saksbehandlerNavIdent = saksbehandlerNavIdent,
                     beslutterNavIdent = beslutterNavIdent,
-                    tiltaksnavn = tiltaksnavn,
                     innvilgelsesperiode = innvilgelsesperiode,
                     saksnummer = saksnummer,
                     forhåndsvisning = forhåndsvisning,
@@ -133,20 +132,14 @@ internal class PdfgenHttpClient(
 
     override suspend fun genererUtbetalingsvedtak(
         utbetalingsvedtak: Utbetalingsvedtak,
-        tiltakstype: String,
-        tiltaksnavn: String,
-        eksternGjennomføringId: String?,
-        eksternDeltagelseId: String,
+        tiltaksdeltagelser: List<Tiltaksdeltagelse>,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
                 utbetalingsvedtak.toJsonRequest(
                     hentSaksbehandlersNavn,
-                    tiltakstype,
-                    tiltaksnavn,
-                    eksternGjennomføringId,
-                    eksternDeltagelseId,
+                    tiltaksdeltagelser,
                 )
             },
             errorContext = "SakId: ${utbetalingsvedtak.sakId}, saksnummer: ${utbetalingsvedtak.saksnummer}, vedtakId: ${utbetalingsvedtak.id}",
@@ -174,7 +167,6 @@ internal class PdfgenHttpClient(
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,
-        tiltaksnavn: String,
         stansperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
@@ -189,7 +181,6 @@ internal class PdfgenHttpClient(
                     fnr = fnr,
                     saksbehandlerNavIdent = saksbehandlerNavIdent,
                     beslutterNavIdent = beslutterNavIdent,
-                    tiltaksnavn = tiltaksnavn,
                     stansperiode = stansperiode,
                     saksnummer = saksnummer,
                     forhåndsvisning = forhåndsvisning,

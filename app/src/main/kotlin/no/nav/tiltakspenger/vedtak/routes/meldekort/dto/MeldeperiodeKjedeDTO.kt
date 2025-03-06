@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 
+// TODO: fjerne tiltaksnavn fra responsen, eller la det være en liste
 data class MeldeperiodeKjedeDTO(
     val kjedeId: String,
     val periode: PeriodeDTO,
@@ -18,7 +19,7 @@ fun Sak.toMeldeperiodeKjedeDTO(meldeperiodeKjedeId: MeldeperiodeKjedeId): Meldep
     return MeldeperiodeKjedeDTO(
         kjedeId = meldeperiodeKjede.kjedeId.toString(),
         periode = meldeperiodeKjede.periode.toDTO(),
-        tiltaksnavn = this.hentTiltaksnavn(),
+        tiltaksnavn = this.vedtaksliste.valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode).map { it.typeNavn }.joinToString { it.verdi },
         meldeperioder = meldeperiodeKjede.map { toMeldeperiodeDTO(it) },
     )
 }
@@ -28,7 +29,7 @@ fun Sak.toMeldeperiodeKjederDTO(): List<MeldeperiodeKjedeDTO> {
         MeldeperiodeKjedeDTO(
             kjedeId = meldeperiodeKjede.kjedeId.toString(),
             periode = meldeperiodeKjede.periode.toDTO(),
-            tiltaksnavn = this.hentTiltaksnavn(),
+            tiltaksnavn = this.vedtaksliste.valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode).map { it.typeNavn }.joinToString { it.verdi },
             meldeperioder = meldeperiodeKjede.map { toMeldeperiodeDTO(it) },
         )
     }

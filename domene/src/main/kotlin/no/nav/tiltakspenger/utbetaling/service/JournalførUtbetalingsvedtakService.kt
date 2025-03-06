@@ -32,15 +32,12 @@ class JournalførUtbetalingsvedtakService(
                 log.info { "Journalfører utbetalingsvedtak. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
                 Either.catch {
                     val sak = sakRepo.hentForSakId(utbetalingsvedtak.sakId)!!
-                    val tiltak = sak.vedtaksliste.hentTiltaksdataForPeriode(utbetalingsvedtak.periode)!!
+                    val tiltak = sak.vedtaksliste.hentTiltaksdataForPeriode(utbetalingsvedtak.periode)
                     val pdfOgJson =
                         genererUtbetalingsvedtakGateway.genererUtbetalingsvedtak(
                             utbetalingsvedtak,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-                            tiltakstype = tiltak.tiltakstype,
-                            tiltaksnavn = tiltak.tiltaksnavn,
-                            eksternDeltagelseId = tiltak.eksternDeltagelseId,
-                            eksternGjennomføringId = tiltak.eksternGjennomføringId,
+                            tiltaksdeltagelser = tiltak,
                         ).getOrElse { return@forEach }
                     log.info { "Pdf generert for utbetalingsvedtak. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
                     val journalpostId = journalførMeldekortGateway.journalførMeldekortBehandling(
