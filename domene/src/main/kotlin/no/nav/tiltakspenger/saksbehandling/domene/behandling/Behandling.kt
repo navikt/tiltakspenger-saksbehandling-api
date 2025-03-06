@@ -445,6 +445,9 @@ data class Behandling(
                     val barnetilleggsperiode = barnetillegg.periodisering.totalePeriode
                     require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
                 }
+                if (behandlingstype == FØRSTEGANGSBEHANDLING) {
+                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
+                }
             }
 
             UNDER_BESLUTNING -> {
@@ -456,6 +459,9 @@ data class Behandling(
                 if (barnetillegg != null) {
                     val barnetilleggsperiode = barnetillegg.periodisering.totalePeriode
                     require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
+                }
+                if (behandlingstype == FØRSTEGANGSBEHANDLING) {
+                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
                 }
             }
 
@@ -469,6 +475,9 @@ data class Behandling(
                 if (barnetillegg != null) {
                     val barnetilleggsperiode = barnetillegg.periodisering.totalePeriode
                     require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
+                }
+                if (behandlingstype == FØRSTEGANGSBEHANDLING) {
+                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
                 }
             }
 

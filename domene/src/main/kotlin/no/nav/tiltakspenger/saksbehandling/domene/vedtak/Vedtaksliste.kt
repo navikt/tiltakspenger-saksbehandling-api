@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Utfallsperiode
 import java.time.LocalDate
@@ -35,7 +34,12 @@ data class Vedtaksliste(
     }
 
     val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
-        value.filter { it.vedtaksType == Vedtakstype.INNVILGELSE }.toTidslinje()
+        tidslinje.perioderMedVerdi.filter { it.verdi.vedtaksType == Vedtakstype.INNVILGELSE }.map {
+            PeriodeMedVerdi(
+                periode = it.periode,
+                verdi = it.verdi,
+            )
+        }.let { Periodisering(it) }
     }
 
     val antallInnvilgelsesperioder: Int by lazy { innvilgelsesperioder.size }
@@ -78,17 +82,7 @@ data class Vedtaksliste(
         }.let { Periodisering(it) }
     }
 
-    val saksopplysningerperiode: Periodisering<Saksopplysninger> by lazy {
-        tidslinje.perioderMedVerdi.map { PeriodeMedVerdi(it.verdi.behandling.saksopplysninger, it.periode) }.let {
-            Periodisering(it)
-        }
-    }
-
-    private val tiltaksdeltakelsesperioderFraSaksopplysninger: Periodisering<Tiltaksdeltagelse> by lazy {
-        saksopplysningerperiode.map { it.tiltaksdeltagelse.first() }
-    }
-
-    // TODO: Blir dette riktig for revurdering og evt meldekort?
+    // Denne fungerer bare for førstegangsvedtak der man har valgte tiltaksdeltakelser
     val valgteTiltaksdeltakelser: Periodisering<Tiltaksdeltagelse> by lazy {
         innvilgetTidslinje.perioderMedVerdi.filter { it.verdi.behandling.valgteTiltaksdeltakelser != null }
             .flatMap { it.verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(it.periode).perioderMedVerdi }.let {
@@ -96,21 +90,11 @@ data class Vedtaksliste(
             }
     }
 
+    // TODO: Lag en overlapp-metode i libs
     fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<Tiltaksdeltagelse> {
-        return valgteTiltaksdeltakelser.krymp(periode)
-    }
-
-    private val valgteTiltaksdeltakelserForForstegangsvedtak: Periodisering<Tiltaksdeltagelse> by lazy {
-        innvilgetTidslinje.perioderMedVerdi.filter { it.verdi.behandling.valgteTiltaksdeltakelser != null && it.verdi.erFørstegangsvedtak }
-            .flatMap { it.verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(it.periode).perioderMedVerdi }.let {
-                Periodisering(it)
-            }
-    }
-
-    fun valgteTiltaksdeltakelserForForstegangsvedtakOverlapperMedPeriode(periode: Periode): List<Tiltaksdeltagelse> {
-        return valgteTiltaksdeltakelserForForstegangsvedtak.perioderMedVerdi
+        return valgteTiltaksdeltakelser.perioderMedVerdi
             .filter { it.periode.overlapperMed(periode) }
-            .map { it.verdi }
+            .let { Periodisering(it) }
     }
 
     /** Tidslinje for antall barn. Første og siste periode vil være 1 eller flere. Kan inneholde hull med 0 barn. */

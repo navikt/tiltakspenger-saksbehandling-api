@@ -20,7 +20,6 @@ import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.utbetaling.domene.Utbetalinger
@@ -66,8 +65,6 @@ data class Sak(
 
     val barnetilleggsperioder: Periodisering<AntallBarn> by lazy { vedtaksliste.barnetilleggsperioder }
 
-    val tiltaksdeltagelseperioder: Periodisering<Tiltaksdeltagelse> by lazy { vedtaksliste.valgteTiltaksdeltakelser }
-
     val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy { vedtaksliste.tiltakstypeperioder }
 
     fun antallBarnForDag(dag: LocalDate): AntallBarn {
@@ -102,9 +99,6 @@ data class Sak(
     /** Den er kun trygg inntil vi revurderer antall dager. */
     fun hentAntallDager(): Int? = vedtaksliste.førstegangsvedtak?.behandling?.maksDagerMedTiltakspengerForPeriode
     fun hentTynnSak(): TynnSak = TynnSak(this.id, this.fnr, this.saksnummer)
-
-    fun hentTiltaksnavnForMeldeperiode(periode: Periode): String? =
-        vedtaksliste.valgteTiltaksdeltakelserForForstegangsvedtakOverlapperMedPeriode(periode).firstOrNull()?.typeNavn
 
     fun hentBehandling(behandlingId: BehandlingId): Behandling? = behandlinger.hentBehandling(behandlingId)
 
