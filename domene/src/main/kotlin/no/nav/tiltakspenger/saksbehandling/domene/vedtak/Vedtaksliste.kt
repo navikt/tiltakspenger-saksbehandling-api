@@ -107,8 +107,10 @@ data class Vedtaksliste(
             }
     }
 
-    fun valgteTiltaksdeltakelserForForstegangsvedtakOgPeriode(periode: Periode): List<Tiltaksdeltagelse> {
-        return valgteTiltaksdeltakelserForForstegangsvedtak.krymp(periode).perioderMedVerdi.map { it.verdi }
+    fun valgteTiltaksdeltakelserForForstegangsvedtakOverlapperMedPeriode(periode: Periode): List<Tiltaksdeltagelse> {
+        return valgteTiltaksdeltakelserForForstegangsvedtak.perioderMedVerdi
+            .filter { it.periode.overlapperMed(periode) }
+            .map { it.verdi }
     }
 
     /** Tidslinje for antall barn. Første og siste periode vil være 1 eller flere. Kan inneholde hull med 0 barn. */

@@ -103,8 +103,8 @@ data class Sak(
     fun hentAntallDager(): Int? = vedtaksliste.førstegangsvedtak?.behandling?.maksDagerMedTiltakspengerForPeriode
     fun hentTynnSak(): TynnSak = TynnSak(this.id, this.fnr, this.saksnummer)
 
-    fun hentTiltaksnavnForPeriode(periode: Periode): String? =
-        vedtaksliste.valgteTiltaksdeltakelserForForstegangsvedtakOgPeriode(periode).firstOrNull()?.typeNavn
+    fun hentTiltaksnavnForMeldeperiode(periode: Periode): String? =
+        vedtaksliste.valgteTiltaksdeltakelserForForstegangsvedtakOverlapperMedPeriode(periode).firstOrNull()?.typeNavn
 
     fun hentBehandling(behandlingId: BehandlingId): Behandling? = behandlinger.hentBehandling(behandlingId)
 
