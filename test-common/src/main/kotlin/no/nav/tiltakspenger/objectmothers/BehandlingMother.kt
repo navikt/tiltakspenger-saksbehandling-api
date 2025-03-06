@@ -134,7 +134,7 @@ interface BehandlingMother {
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering? = null,
         saksopplysningsperiode: Periode = virkningsperiode(),
         barnetillegg: Barnetillegg? = null,
-        valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = null,
+        valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = ValgteTiltaksdeltakelser.periodiser(saksopplysninger.tiltaksdeltagelse.first(), virkningsperiode),
     ): Behandling {
         return nyBehandling(
             id = id,
