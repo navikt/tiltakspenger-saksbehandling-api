@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.vedtak.routes.behandling.dto
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingstype
 
 internal data class BehandlingDTO(
@@ -21,6 +22,8 @@ internal data class BehandlingDTO(
     val fritekstTilVedtaksbrev: String?,
     val begrunnelseVilkårsvurdering: String?,
     val barnetillegg: BarnetilleggDTO?,
+    val avbrutt: AvbruttDTO?,
+    val iverksattTidspunkt: String?,
 //    Denne burde være med på revurderinger for client-side validering
 //    val førsteLovligeStansdato: LocalDate?,
 )
@@ -42,5 +45,9 @@ internal fun Behandling.toDTO(): BehandlingDTO {
         fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
         begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
         barnetillegg = this.barnetillegg?.toDTO(),
+        avbrutt = this.avbrutt?.toDTO(),
+        iverksattTidspunkt = this.iverksattTidspunkt?.toString(),
     )
 }
+
+internal fun Behandlinger.toDTO() = this.map { it.toDTO() }

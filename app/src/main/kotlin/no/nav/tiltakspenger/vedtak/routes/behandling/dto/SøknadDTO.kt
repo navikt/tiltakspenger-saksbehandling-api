@@ -11,7 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class SøknadDTO(
+internal data class SøknadDTO(
+    val id: String,
     val journalpostId: String,
     val tiltak: TiltaksdeltagelseFraSøknadDTO,
     val barnetillegg: List<BarnetilleggFraSøknadDTO>,
@@ -29,6 +30,7 @@ data class SøknadDTO(
     val jobbsjansen: PeriodeDTO?,
     val trygdOgPensjon: PeriodeDTO?,
     val antallVedlegg: Int,
+    val avbrutt: AvbruttDTO?,
 ) {
     data class TiltaksdeltagelseFraSøknadDTO(
         val fraOgMed: String?,
@@ -52,8 +54,9 @@ data class SøknadDTO(
     }
 }
 
-fun Søknad.toDTO(): SøknadDTO {
+internal fun Søknad.toDTO(): SøknadDTO {
     return SøknadDTO(
+        id = this.id.toString(),
         journalpostId = this.journalpostId,
         tiltak = this.tiltak.toDTO(),
         barnetillegg = this.barnetillegg.toDTO(),
@@ -71,8 +74,12 @@ fun Søknad.toDTO(): SøknadDTO {
         jobbsjansen = this.jobbsjansen.toDTO(),
         trygdOgPensjon = this.trygdOgPensjon.toDTO(),
         antallVedlegg = this.vedlegg,
+        avbrutt = avbrutt?.toDTO(),
     )
 }
+
+@JvmName("søknadToDTO")
+internal fun List<Søknad>.toDTO() = this.map { it.toDTO() }
 
 fun JaNeiSpm.toDTO(): Boolean {
     return when (this) {
@@ -95,7 +102,7 @@ fun PeriodeSpm.toDTO(): PeriodeDTO? {
     }
 }
 
-fun Søknadstiltak.toDTO(): SøknadDTO.TiltaksdeltagelseFraSøknadDTO {
+internal fun Søknadstiltak.toDTO(): SøknadDTO.TiltaksdeltagelseFraSøknadDTO {
     return SøknadDTO.TiltaksdeltagelseFraSøknadDTO(
         fraOgMed = this.deltakelseFom.toString(),
         tilOgMed = this.deltakelseTom.toString(),
@@ -104,7 +111,7 @@ fun Søknadstiltak.toDTO(): SøknadDTO.TiltaksdeltagelseFraSøknadDTO {
     )
 }
 
-fun List<BarnetilleggFraSøknad>.toDTO(): List<SøknadDTO.BarnetilleggFraSøknadDTO> = this.map {
+internal fun List<BarnetilleggFraSøknad>.toDTO(): List<SøknadDTO.BarnetilleggFraSøknadDTO> = this.map {
     SøknadDTO.BarnetilleggFraSøknadDTO(
         oppholderSegIEØS = it.oppholderSegIEØS,
         fornavn = it.fornavn,

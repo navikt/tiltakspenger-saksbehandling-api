@@ -30,6 +30,10 @@ data class Behandlinger(
         return behandlinger.singleOrNullOrThrow { it.id == behandlingId }
     }
 
+    fun hentÅpneBehandlinger(): List<Behandling> {
+        return behandlinger.filterNot { it.erAvsluttet }
+    }
+
     fun oppdaterBehandling(behandling: Behandling): Behandlinger {
         behandlinger.single { it.id == behandling.id }
         val behandlinger = this.behandlinger.map { if (it.id == behandling.id) behandling else it }

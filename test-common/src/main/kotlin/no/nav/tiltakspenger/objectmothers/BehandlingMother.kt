@@ -111,6 +111,58 @@ interface BehandlingMother {
             avbrutt = avbrutt,
         )
     }
+
+    fun nyVedtattBehandling(
+        id: BehandlingId = BehandlingId.random(),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        fnr: Fnr = Fnr.random(),
+        virkningsperiode: Periode = virkningsperiode(),
+        søknad: Søknad = ObjectMother.nySøknad(),
+        saksbehandlerIdent: String = ObjectMother.saksbehandler().navIdent,
+        sendtTilBeslutning: LocalDateTime = førsteNovember24,
+        beslutterIdent: String = ObjectMother.beslutter().navIdent,
+        saksopplysninger: Saksopplysninger = saksopplysninger(),
+        attesteringer: List<Attestering> = emptyList(),
+        opprettet: LocalDateTime = førsteNovember24,
+        iverksattTidspunkt: LocalDateTime = førsteNovember24,
+        sendtTilDatadeling: LocalDateTime? = null,
+        sistEndret: LocalDateTime = førsteNovember24,
+        behandlingstype: Behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
+        oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nyVedtattBehandling()"),
+        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering? = null,
+        saksopplysningsperiode: Periode = virkningsperiode(),
+        barnetillegg: Barnetillegg? = null,
+        valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = null,
+    ): Behandling {
+        return nyBehandling(
+            id = id,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            virkningsperiode = virkningsperiode,
+            søknad = søknad,
+            saksbehandlerIdent = saksbehandlerIdent,
+            sendtTilBeslutning = sendtTilBeslutning,
+            beslutterIdent = beslutterIdent,
+            saksopplysninger = saksopplysninger,
+            status = Behandlingsstatus.VEDTATT,
+            attesteringer = attesteringer,
+            opprettet = opprettet,
+            iverksattTidspunkt = iverksattTidspunkt,
+            sendtTilDatadeling = sendtTilDatadeling,
+            sistEndret = sistEndret,
+            behandlingstype = behandlingstype,
+            oppgaveId = oppgaveId,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+            saksopplysningsperiode = saksopplysningsperiode,
+            barnetillegg = barnetillegg,
+            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
+            avbrutt = null,
+        )
+    }
 }
 
 suspend fun TestApplicationContext.nySøknad(
