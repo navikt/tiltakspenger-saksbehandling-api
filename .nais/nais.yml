@@ -54,6 +54,10 @@ spec:
         flags:
           - name: cloudsql.logical_decoding
             value: "on"
+          - name: "cloudsql.enable_pgaudit"
+            value: "on"
+          - name: "pgaudit.log"
+            value: "write"
         databases:
           - name: saksbehandling
             envVarPrefix: DB
