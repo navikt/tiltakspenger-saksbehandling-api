@@ -20,6 +20,7 @@ private data class BrevFørstegangsvedtakInnvilgelseDTO(
     val rammevedtakTilDato: String,
     val saksnummer: String,
     val antallBarn: List<AntallBarnPerPeriodeDTO>,
+    val barnetilleggTekst: String?,
     val antallBarnHvis1PeriodeIHeleInnvilgelsesperiode: Int?,
     val saksbehandlerNavn: String,
     val beslutterNavn: String?,
@@ -34,6 +35,7 @@ private data class BrevFørstegangsvedtakInnvilgelseDTO(
 
     data class AntallBarnPerPeriodeDTO(
         val antallBarn: Int,
+        val antallBarnTekst: String,
         val fraOgMed: String,
         val tilOgMed: String,
     )
@@ -78,6 +80,27 @@ internal suspend fun genererInnvilgetSøknadsbrev(
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
     val besluttersNavn = beslutterNavIdent?.let { hentSaksbehandlersNavn(it) }
 
+    val antallBarn = barnetilleggsPerioder?.perioderMedVerdi?.filter {
+        it.verdi.value > 0
+    }?.map {
+        BrevFørstegangsvedtakInnvilgelseDTO.AntallBarnPerPeriodeDTO(
+            antallBarn = it.verdi.value,
+            antallBarnTekst = it.verdi.toTekst(),
+            fraOgMed = it.periode.fraOgMed.format(norskDatoFormatter),
+            tilOgMed = it.periode.tilOgMed.format(norskDatoFormatter),
+        )
+    } ?: emptyList()
+
+    val barnetilleggTekst = if (antallBarn.isNotEmpty()) {
+        "Du får barnetillegg for ${
+            antallBarn.joinToString(" og ") {
+                "${it.antallBarnTekst} barn fra ${it.fraOgMed} til og med ${it.tilOgMed}"
+            }
+        }."
+    } else {
+        null
+    }
+
     return BrevFørstegangsvedtakInnvilgelseDTO(
         personalia = BrevPersonaliaDTO(
             ident = fnr.verdi,
@@ -97,17 +120,36 @@ internal suspend fun genererInnvilgetSøknadsbrev(
         satsBarn = Satser.sats(innvilgelsesperiode.fraOgMed).satsBarnetillegg,
         tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
-        antallBarn = barnetilleggsPerioder?.perioderMedVerdi?.map {
-            BrevFørstegangsvedtakInnvilgelseDTO.AntallBarnPerPeriodeDTO(
-                antallBarn = it.verdi.value,
-                fraOgMed = it.periode.fraOgMed.format(norskDatoFormatter),
-                tilOgMed = it.periode.tilOgMed.format(norskDatoFormatter),
-            )
-        } ?: emptyList(),
+        antallBarn = antallBarn,
+        barnetilleggTekst = barnetilleggTekst,
         antallBarnHvis1PeriodeIHeleInnvilgelsesperiode = when {
             barnetilleggsPerioder?.size != 1 -> null
             barnetilleggsPerioder.first().periode == innvilgelsesperiode -> barnetilleggsPerioder.first().verdi.value
             else -> null
         },
     ).let { serialize(it) }
+}
+
+/**
+ * https://sprakradet.no/godt-og-korrekt-sprak/rettskriving-og-grammatikk/tall-tid-dato/
+ */
+private fun AntallBarn.toTekst(): String {
+    return when (this.value) {
+        1 -> "ett"
+        2 -> "to"
+        3 -> "tre"
+        4 -> "fire"
+        5 -> "fem"
+        6 -> "seks"
+        7 -> "syv"
+        8 -> "åtte"
+        9 -> "ni"
+        10 -> "ti"
+        11 -> "elleve"
+        12 -> "tolv"
+        13 -> "tretten"
+        14 -> "fjorten"
+        15 -> "femten"
+        else -> this.value.toString()
+    }
 }

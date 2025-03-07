@@ -60,7 +60,7 @@ class ForhåndsvisVedtaksbrevService(
                     saksnummer = sak.saksnummer,
                     sakId = sak.id,
                     forhåndsvisning = true,
-                    barnetilleggsPerioder = behandling.barnetillegg?.periodisering,
+                    barnetilleggsPerioder = kommando.barnetillegg.let { if (it.isEmpty()) null else it },
                 ).fold(
                     ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
                     ifRight = { it.pdf },
