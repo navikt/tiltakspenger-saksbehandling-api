@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.fakes.clients.PersonFakeGateway
 import no.nav.tiltakspenger.fakes.clients.PoaoTilgangskontrollFake
 import no.nav.tiltakspenger.fakes.clients.TiltakFakeGateway
 import no.nav.tiltakspenger.fakes.clients.UtbetalingFakeGateway
+import no.nav.tiltakspenger.fakes.clients.VeilarboppfolgingFakeGateway
 import no.nav.tiltakspenger.libs.auth.test.core.EntraIdSystemtokenFakeClient
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -34,10 +35,8 @@ import no.nav.tiltakspenger.saksbehandling.ports.GenererStansvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.ports.VeilarboppfolgingGateway
 import no.nav.tiltakspenger.utbetaling.service.NavkontorService
-import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.Profile
 import no.nav.tiltakspenger.vedtak.clients.pdfgen.PdfgenHttpClient
-import no.nav.tiltakspenger.vedtak.clients.veilarboppfolging.VeilarboppfolgingHttpClient
 import no.nav.tiltakspenger.vedtak.context.ApplicationContext
 import no.nav.tiltakspenger.vedtak.context.DokumentContext
 import no.nav.tiltakspenger.vedtak.context.FørstegangsbehandlingContext
@@ -99,6 +98,7 @@ class LocalApplicationContext(
     private val søknadstiltak = tiltaksdeltagelse.toSøknadstiltak()
 
     override val oppgaveGateway: OppgaveGateway by lazy { OppgaveFakeGateway() }
+
     init {
         val sakRepo = SakPostgresRepo(
             sessionFactory = sessionFactory as PostgresSessionFactory,
@@ -139,11 +139,9 @@ class LocalApplicationContext(
     override val entraIdSystemtokenClient = EntraIdSystemtokenFakeClient()
 
     override val veilarboppfolgingGateway: VeilarboppfolgingGateway by lazy {
-        VeilarboppfolgingHttpClient(
-            baseUrl = Configuration.veilarboppfolgingUrl,
-            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.veilarboppfolgingScope) },
-        )
+        VeilarboppfolgingFakeGateway()
     }
+
     override val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingGateway) }
 
     override val personContext =

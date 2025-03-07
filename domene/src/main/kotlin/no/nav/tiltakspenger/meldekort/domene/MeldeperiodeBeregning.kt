@@ -57,7 +57,20 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
             }
         }
 
-        fun beregnTotalbeløp(): Int = dager.sumOf { it.beregningsdag?.beløp ?: 0 }
+        /**
+         * Ordinær stønad, ikke med barnetillegg
+         */
+        fun beregnTotalOrdinærBeløp(): Int = dager.sumOf { it.beregningsdag?.beløp ?: 0 }
+
+        /**
+         * Barnetillegg uten ordinær stønad
+         */
+        fun beregnTotalBarnetiillegg(): Int = dager.sumOf { it.beregningsdag?.beløpBarnetillegg ?: 0 }
+
+        /**
+         * Ordinær stønad + barnetillegg
+         */
+        fun beregnTotaltBeløp(): Int = beregnTotalOrdinærBeløp() + beregnTotalBarnetiillegg()
     }
 
     /**

@@ -5,7 +5,8 @@ import no.nav.tiltakspenger.meldekort.domene.Beregningsdag
 data class BeregningsdagDTO(
     val beløp: Int,
     val prosent: Int,
+    val barnetillegg: Int,
 )
 
 fun Beregningsdag.toDTO(): BeregningsdagDTO =
-    BeregningsdagDTO(beløp = beløp, prosent = prosent)
+    BeregningsdagDTO(beløp = beløp, prosent = prosent, barnetillegg = beløpBarnetillegg)

@@ -52,6 +52,9 @@ sealed interface MeldekortBehandling {
     /** Totalsummen for meldeperioden */
     val beløpTotal: Int?
 
+    val ordinærBeløp: Int?
+    val barnetilleggBeløp: Int?
+
     val meldeperiodeKjedeId: MeldeperiodeKjedeId get() = meldeperiode.meldeperiodeKjedeId
 
     fun settIkkeRettTilTiltakspenger(periode: Periode, tidspunkt: LocalDateTime): MeldekortBehandling
@@ -204,7 +207,9 @@ sealed interface MeldekortBehandling {
             )
         }
 
-        override val beløpTotal: Int = beregning.beregnTotalbeløp()
+        override val beløpTotal: Int = beregning.beregnTotaltBeløp()
+        override val ordinærBeløp: Int = beregning.beregnTotalOrdinærBeløp()
+        override val barnetilleggBeløp: Int = beregning.beregnTotalBarnetiillegg()
 
         /** Finner den siste dagen i meldekortet som har beløp > 0. */
         val sisteUtbetalingsdag: LocalDate? by lazy {
@@ -229,6 +234,8 @@ sealed interface MeldekortBehandling {
         override val sendtTilBeslutning = null
 
         override val beløpTotal = null
+        override val ordinærBeløp = null
+        override val barnetilleggBeløp = null
         override val status =
             if (ikkeRettTilTiltakspengerTidspunkt == null) IKKE_BEHANDLET else IKKE_RETT_TIL_TILTAKSPENGER
 

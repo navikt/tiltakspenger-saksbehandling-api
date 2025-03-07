@@ -28,7 +28,9 @@ data class Utbetalingsvedtak(
     val journalføringstidspunkt: LocalDateTime?,
 ) {
     val periode = meldekortbehandling.periode
-    val beløpTotal = meldekortbehandling.beløpTotal
+    val ordinærBeløp = meldekortbehandling.beløpTotal
+    val barnetilleggBeløp = meldekortbehandling.barnetilleggBeløp
+    val totalBeløp = ordinærBeløp + barnetilleggBeløp
     val meldekortId = meldekortbehandling.id
     val meldeperiodeKjedeId = meldekortbehandling.meldeperiodeKjedeId
     val saksbehandler: String = meldekortbehandling.saksbehandler
@@ -60,7 +62,9 @@ fun Utbetalingsvedtak.tilStatistikk(): StatistikkUtbetalingDTO =
         id = this.id.toString(),
         sakId = this.sakId.toString(),
         saksnummer = this.saksnummer.toString(),
-        beløp = this.beløpTotal,
+        ordinærBeløp = this.ordinærBeløp,
+        barnetilleggBeløp = this.barnetilleggBeløp,
+        totalBeløp = this.totalBeløp,
         beløpBeskrivelse = "",
         årsak = "",
         // TODO post-mvp jah: Vi oppretter vedtaket før og statistikken før vi sender til helved/utbetaling. Bør vi opprette statistikken etter vi har sendt til helved/utbetaling?
