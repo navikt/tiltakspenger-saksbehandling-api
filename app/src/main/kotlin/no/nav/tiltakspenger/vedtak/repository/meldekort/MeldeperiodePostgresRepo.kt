@@ -55,7 +55,7 @@ internal class MeldeperiodePostgresRepo(
                     """,
                     "id" to meldeperiode.id.toString(),
                     "versjon" to meldeperiode.versjon.value,
-                    "kjede_id" to meldeperiode.meldeperiodeKjedeId.toString(),
+                    "kjede_id" to meldeperiode.kjedeId.toString(),
                     "sak_id" to meldeperiode.sakId.toString(),
                     "opprettet" to meldeperiode.opprettet,
                     "fra_og_med" to meldeperiode.periode.fraOgMed,
@@ -76,9 +76,9 @@ internal class MeldeperiodePostgresRepo(
         }
     }
 
-    override fun hentForMeldeperiodeId(id: MeldeperiodeId, sessionContext: SessionContext?): Meldeperiode? {
+    override fun hentForMeldeperiodeId(meldeperiodeId: MeldeperiodeId, sessionContext: SessionContext?): Meldeperiode? {
         return sessionFactory.withSession(sessionContext) { session ->
-            hentForMeldeperiodeId(id, session)
+            hentForMeldeperiodeId(meldeperiodeId, session)
         }
     }
 
@@ -173,7 +173,7 @@ internal class MeldeperiodePostgresRepo(
 
         private fun fromRow(row: Row): Meldeperiode {
             return Meldeperiode(
-                meldeperiodeKjedeId = MeldeperiodeKjedeId(row.string("kjede_id")),
+                kjedeId = MeldeperiodeKjedeId(row.string("kjede_id")),
                 versjon = HendelseVersjon(row.int("versjon")),
                 id = MeldeperiodeId.fromString(row.string("id")),
                 sakId = SakId.fromString(row.string("sak_id")),

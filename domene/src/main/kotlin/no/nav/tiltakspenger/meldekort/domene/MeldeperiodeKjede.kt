@@ -19,7 +19,7 @@ data class MeldeperiodeKjede(
     val periode: Periode = meldeperioder.map { it.periode }.distinct().single()
     val saksnummer: Saksnummer = meldeperioder.map { it.saksnummer }.distinct().single()
     val fnr: Fnr = meldeperioder.map { it.fnr }.distinct().single()
-    val kjedeId: MeldeperiodeKjedeId = meldeperioder.map { it.meldeperiodeKjedeId }.distinct().single()
+    val kjedeId: MeldeperiodeKjedeId = meldeperioder.map { it.kjedeId }.distinct().single()
 
     val siste = meldeperioder.last()
 
@@ -48,7 +48,7 @@ data class MeldeperiodeKjede(
         val erFullstendigStans = stansperiode.inneholderHele(this.periode)
         return if (stansperiode.overlapperMed(this.periode)) {
             val oppdatertMeldeperiode = Meldeperiode(
-                meldeperiodeKjedeId = kjedeId,
+                kjedeId = kjedeId,
                 id = MeldeperiodeId.random(),
                 versjon = siste.versjon.inc(),
                 periode = this.periode,

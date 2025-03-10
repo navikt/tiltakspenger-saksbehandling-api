@@ -12,8 +12,8 @@ data class MeldeperiodeKjedeDTO(
     val meldeperioder: List<MeldeperiodeDTO>,
 )
 
-fun Sak.toMeldeperiodeKjedeDTO(meldeperiodeKjedeId: MeldeperiodeKjedeId): MeldeperiodeKjedeDTO? {
-    val meldeperiodeKjede = this.meldeperiodeKjeder.find { it.kjedeId == meldeperiodeKjedeId } ?: return null
+fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKjedeDTO? {
+    val meldeperiodeKjede = this.meldeperiodeKjeder.find { it.kjedeId == kjedeId } ?: return null
 
     return MeldeperiodeKjedeDTO(
         kjedeId = meldeperiodeKjede.kjedeId.toString(),

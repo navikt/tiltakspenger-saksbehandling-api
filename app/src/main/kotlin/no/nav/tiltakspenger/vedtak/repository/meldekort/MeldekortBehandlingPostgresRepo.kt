@@ -67,7 +67,7 @@ class MeldekortBehandlingPostgresRepo(
                     )
                     """,
                     "id" to meldekortBehandling.id.toString(),
-                    "meldeperiode_kjede_id" to meldekortBehandling.meldeperiodeKjedeId.toString(),
+                    "meldeperiode_kjede_id" to meldekortBehandling.kjedeId.toString(),
                     "meldeperiode_id" to meldekortBehandling.meldeperiode.id.toString(),
                     "sak_id" to meldekortBehandling.sakId.toString(),
                     "opprettet" to meldekortBehandling.opprettet,

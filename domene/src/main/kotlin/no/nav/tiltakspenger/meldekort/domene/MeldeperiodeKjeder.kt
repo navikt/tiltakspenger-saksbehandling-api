@@ -62,14 +62,14 @@ data class MeldeperiodeKjeder(
     }
 
     fun erSisteVersjonAvMeldeperiode(meldeperiode: Meldeperiode): Boolean {
-        val meldeperiodeKjede = meldeperiodeKjeder.single { it.kjedeId == meldeperiode.meldeperiodeKjedeId }
+        val meldeperiodeKjede = meldeperiodeKjeder.single { it.kjedeId == meldeperiode.kjedeId }
         return meldeperiode == meldeperiodeKjede.last()
     }
 
     companion object {
         fun fraMeldeperioder(meldeperioder: List<Meldeperiode>): MeldeperiodeKjeder {
             return meldeperioder
-                .groupBy { it.meldeperiodeKjedeId }
+                .groupBy { it.kjedeId }
                 .values.mapNotNull { meldeperioderForKjede ->
                     meldeperioderForKjede
                         .sortedBy { it.versjon }

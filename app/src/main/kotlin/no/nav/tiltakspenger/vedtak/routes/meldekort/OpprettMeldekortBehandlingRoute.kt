@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.withMeldeperiodeKjedeId
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 
-private const val PATH = "sak/{sakId}/meldeperiode/{meldeperiodeKjedeId}/opprettBehandling"
+private const val PATH = "sak/{sakId}/meldeperiode/{kjedeId}/opprettBehandling"
 
 fun Route.opprettMeldekortBehandlingRoute(
     opprettMeldekortBehandlingService: OpprettMeldekortBehandlingService,
@@ -33,11 +33,11 @@ fun Route.opprettMeldekortBehandlingRoute(
         logger.debug { "Mottatt post-request på $PATH - oppretter meldekort-behandling" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
-                call.withMeldeperiodeKjedeId { meldeperiodeKjedeId ->
+                call.withMeldeperiodeKjedeId { kjedeId ->
                     val correlationId = call.correlationId()
 
                     opprettMeldekortBehandlingService.opprettBehandling(
-                        meldeperiodeKjedeId = meldeperiodeKjedeId,
+                        kjedeId = kjedeId,
                         sakId = sakId,
                         saksbehandler = saksbehandler,
                         correlationId = correlationId,
@@ -50,12 +50,12 @@ fun Route.opprettMeldekortBehandlingRoute(
                                 )
 
                                 is KanIkkeOppretteMeldekortBehandling.BehandlingFinnes -> call.respond409Conflict(
-                                    melding = "Behandling finnes allerede for meldeperiode $meldeperiodeKjedeId på sak $sakId",
+                                    melding = "Behandling finnes allerede for meldeperiode $kjedeId på sak $sakId",
                                     kode = "",
                                 )
 
                                 is KanIkkeOppretteMeldekortBehandling.IngenMeldeperiode -> call.respond400BadRequest(
-                                    melding = "Fant ikke meldeperioden med id $meldeperiodeKjedeId på sak $sakId",
+                                    melding = "Fant ikke meldeperioden med id $kjedeId på sak $sakId",
                                     kode = "",
                                 )
 

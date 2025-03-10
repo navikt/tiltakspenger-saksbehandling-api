@@ -29,7 +29,7 @@ class OpprettMeldekortBehandlingService(
     private val logger = KotlinLogging.logger {}
 
     suspend fun opprettBehandling(
-        meldeperiodeKjedeId: MeldeperiodeKjedeId,
+        kjedeId: MeldeperiodeKjedeId,
         sakId: SakId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
@@ -38,13 +38,13 @@ class OpprettMeldekortBehandlingService(
             logger.error { "Kunne ikke hente sak med id $sakId" }
             return KanIkkeOppretteMeldekortBehandling.IkkeTilgangTilSak.left()
         }.also {
-            if (it.hentMeldekortBehandlingForMeldeperiodeKjedeId(meldeperiodeKjedeId).isNotEmpty()) {
-                logger.error { "Det finnes allerede en behandling av $meldeperiodeKjedeId: ${it.id}" }
+            if (it.hentMeldekortBehandlingForMeldeperiodeKjedeId(kjedeId).isNotEmpty()) {
+                logger.error { "Det finnes allerede en behandling av $kjedeId: ${it.id}" }
                 return KanIkkeOppretteMeldekortBehandling.BehandlingFinnes.left()
             }
         }
 
-        val meldeperiode: Meldeperiode = sak.hentMeldeperiodeForKjedeId(meldeperiodeKjedeId = meldeperiodeKjedeId)
+        val meldeperiode: Meldeperiode = sak.hentMeldeperiodeForKjedeId(kjedeId = kjedeId)
 
         val navkontor = Either.catch {
             navkontorService.hentOppfolgingsenhet(sak.fnr)
@@ -69,7 +69,7 @@ class OpprettMeldekortBehandlingService(
             meldekortBehandlingRepo.lagre(meldekortBehandling, tx)
         }
 
-        logger.info { "Opprettet behandling ${meldekortBehandling.id} på meldeperiode kjede $meldeperiodeKjedeId for sak $sakId" }
+        logger.info { "Opprettet behandling ${meldekortBehandling.id} på meldeperiode kjede $kjedeId for sak $sakId" }
 
         return meldekortBehandling.right()
     }
