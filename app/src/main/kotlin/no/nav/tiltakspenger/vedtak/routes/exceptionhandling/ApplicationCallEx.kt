@@ -3,11 +3,7 @@ package no.nav.tiltakspenger.vedtak.routes.exceptionhandling
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.response.respond
-
-data class ErrorJson(
-    val melding: String,
-    val kode: String,
-)
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 
 suspend fun ApplicationCall.respond403Forbidden(melding: String, kode: String) {
     this.respondError(

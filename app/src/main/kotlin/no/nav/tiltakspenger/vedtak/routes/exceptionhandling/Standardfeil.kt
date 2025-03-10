@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.vedtak.routes.exceptionhandling
 
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
+
 object Standardfeil {
 
     fun fantIkkeFnr(): ErrorJson = ErrorJson(
