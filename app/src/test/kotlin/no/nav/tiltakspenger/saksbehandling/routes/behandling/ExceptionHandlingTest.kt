@@ -16,12 +16,12 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.auth.core.TokenService
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.benk.behandlingBenkRoutes
-import no.nav.tiltakspenger.saksbehandling.routes.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.BehandlingServiceImpl
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
 import org.junit.jupiter.api.Test

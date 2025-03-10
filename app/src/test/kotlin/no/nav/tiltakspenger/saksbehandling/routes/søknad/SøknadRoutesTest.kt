@@ -13,10 +13,10 @@ import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.felles.april
 import no.nav.tiltakspenger.saksbehandling.jacksonSerialization
-import no.nav.tiltakspenger.saksbehandling.routes.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.routes.routes
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
