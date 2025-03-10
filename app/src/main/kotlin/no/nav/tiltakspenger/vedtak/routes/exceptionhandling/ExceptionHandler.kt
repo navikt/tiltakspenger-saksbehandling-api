@@ -8,6 +8,11 @@ import no.nav.tiltakspenger.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.felles.exceptions.IkkeImplementertException
 import no.nav.tiltakspenger.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.felles.sikkerlogg
+import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
+import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
+import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
+import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
+import no.nav.tiltakspenger.libs.ktor.common.respond501NotImplemented
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.ikkeFunnet
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.ikkeImplementert
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.ikkeTilgang
@@ -29,7 +34,7 @@ object ExceptionHandler {
             }
 
             is ContentTransformationException -> {
-                call.respond400BadRequest(ugyldigRequest())
+                call.run { respond400BadRequest(errorJson = ugyldigRequest()) }
             }
 
             is TilgangException -> {
