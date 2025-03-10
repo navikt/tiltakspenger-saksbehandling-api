@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
 fun Meldeperiode.tilBrukerDTO(): MeldeperiodeDTO {
     return MeldeperiodeDTO(
         id = this.id.toString(),
-        meldeperiodeKjedeId = this.kjedeId.toString(),
+        kjedeId = this.kjedeId.toString(),
         versjon = this.versjon.value,
         fnr = this.fnr.verdi,
         saksnummer = this.saksnummer.toString(),
