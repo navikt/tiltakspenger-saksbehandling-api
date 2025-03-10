@@ -209,7 +209,7 @@ class StatistikkStønadPostgresRepo(
         saksnummer,
         beløp,
         ordinær_beløp,
-        barnetiillegg_beløp,
+        barnetillegg_beløp,
         beløp_beskrivelse,
         årsak,
         posteringsdato,

@@ -90,11 +90,8 @@ data class Vedtaksliste(
             }
     }
 
-    // TODO: Lag en overlapp-metode i libs
     fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<Tiltaksdeltagelse> {
-        return valgteTiltaksdeltakelser.perioderMedVerdi
-            .filter { it.periode.overlapperMed(periode) }
-            .let { Periodisering(it) }
+        return valgteTiltaksdeltakelser.overlapperMed(periode)
     }
 
     /** Tidslinje for antall barn. Første og siste periode vil være 1 eller flere. Kan inneholde hull med 0 barn. */
