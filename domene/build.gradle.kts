@@ -1,6 +1,6 @@
 val kotlinxCoroutinesVersion = "1.10.1"
 val kotestVersion = "5.9.1"
-val felleslibVersion = "0.0.395"
+val felleslibVersion = "0.0.396"
 val mockkVersion = "1.13.17"
 val jacksonVersion = "2.18.3"
 
@@ -24,7 +24,7 @@ dependencies {
     implementation("com.github.navikt.tiltakspenger-libs:personklient-domene:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:auth-core:$felleslibVersion")
 
-    implementation("io.arrow-kt:arrow-core:1.2.4")
+    implementation("io.arrow-kt:arrow-core:2.0.1")
 
     testImplementation(platform("org.junit:junit-bom:5.12.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
