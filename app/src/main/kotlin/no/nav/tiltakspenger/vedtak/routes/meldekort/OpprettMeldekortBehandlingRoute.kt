@@ -11,10 +11,10 @@ import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.ktor.common.respond409Conflict
 import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
-import no.nav.tiltakspenger.meldekort.service.KanIkkeOppretteMeldekortBehandling
-import no.nav.tiltakspenger.meldekort.service.OpprettMeldekortBehandlingService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
+import no.nav.tiltakspenger.vedtak.meldekort.service.KanIkkeOppretteMeldekortBehandling
+import no.nav.tiltakspenger.vedtak.meldekort.service.OpprettMeldekortBehandlingService
 import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.withMeldeperiodeKjedeId

@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.dto
 
-import no.nav.tiltakspenger.saksbehandling.domene.benk.BenkBehandlingstype
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.benk.BenkBehandlingstype
 
 enum class BehandlingstypeDTO {
     SØKNAD,

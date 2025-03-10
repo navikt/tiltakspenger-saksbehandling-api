@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.dto
 
-import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.saksopplysninger.Saksopplysninger
 
 data class SaksopplysningerDTO(
     val fødselsdato: String,

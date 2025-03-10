@@ -16,11 +16,11 @@ import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.sendFørstegangsbehandlingTilBeslutning
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.taBehanding
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Sak
 
 interface SendTilbakeBuilder {
 

@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.dto
 
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Avbrutt
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Avbrutt
 
 internal data class AvbruttDTO(
     val avbruttAv: String,

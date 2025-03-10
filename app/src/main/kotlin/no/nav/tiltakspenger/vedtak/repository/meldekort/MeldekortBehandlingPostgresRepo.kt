@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.vedtak.repository.meldekort
 import arrow.core.toNonEmptyListOrNull
 import kotliquery.Row
 import kotliquery.Session
-import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
@@ -12,14 +11,15 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortBehandlet
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortUnderBehandling
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
-import no.nav.tiltakspenger.meldekort.domene.tilMeldekortperioder
-import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.vedtak.felles.Navkontor
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandling.MeldekortBehandlet
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandling.MeldekortUnderBehandling
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.vedtak.meldekort.domene.tilMeldekortperioder
+import no.nav.tiltakspenger.vedtak.meldekort.ports.MeldekortBehandlingRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saksnummer
 
 class MeldekortBehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,

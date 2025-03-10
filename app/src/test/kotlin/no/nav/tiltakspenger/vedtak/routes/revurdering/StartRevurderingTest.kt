@@ -6,10 +6,10 @@ import io.kotest.matchers.shouldBe
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.startRevurdering
 import no.nav.tiltakspenger.vedtak.routes.routes
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Behandlingsstatus
 import org.junit.jupiter.api.Test
 
 internal class StartRevurderingTest {

@@ -3,10 +3,10 @@ package no.nav.tiltakspenger.vedtak.clients.pdfgen
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.Navn
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.vedtak.clients.pdfgen.formattering.norskDatoFormatter
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.personopplysninger.Navn
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.vedtak.Rammevedtak
 import java.time.LocalDate
 
 @Suppress("unused")

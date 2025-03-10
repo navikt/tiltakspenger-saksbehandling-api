@@ -1,16 +1,16 @@
 package no.nav.tiltakspenger.vedtak.context
 
-import no.nav.tiltakspenger.distribusjon.ports.DokdistGateway
 import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
-import no.nav.tiltakspenger.meldekort.ports.GenererUtbetalingsvedtakGateway
-import no.nav.tiltakspenger.meldekort.ports.JournalførMeldekortGateway
-import no.nav.tiltakspenger.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
-import no.nav.tiltakspenger.saksbehandling.ports.GenererStansvedtaksbrevGateway
-import no.nav.tiltakspenger.saksbehandling.ports.JournalførVedtaksbrevGateway
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.clients.dokdist.DokdistHttpClient
 import no.nav.tiltakspenger.vedtak.clients.joark.JoarkHttpClient
 import no.nav.tiltakspenger.vedtak.clients.pdfgen.PdfgenHttpClient
+import no.nav.tiltakspenger.vedtak.distribusjon.ports.DokdistGateway
+import no.nav.tiltakspenger.vedtak.meldekort.ports.GenererUtbetalingsvedtakGateway
+import no.nav.tiltakspenger.vedtak.meldekort.ports.JournalførMeldekortGateway
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.GenererStansvedtaksbrevGateway
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.JournalførVedtaksbrevGateway
 
 open class DokumentContext(
     private val entraIdSystemtokenClient: EntraIdSystemtokenClient,

@@ -2,12 +2,12 @@ package no.nav.tiltakspenger.vedtak.clients.pdfgen
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.vedtak.clients.pdfgen.formattering.norskDatoFormatter
 import no.nav.tiltakspenger.vedtak.clients.pdfgen.formattering.norskTidspunktFormatter
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldeperiodeBeregningDag
+import no.nav.tiltakspenger.vedtak.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.vedtak.utbetaling.domene.Utbetalingsvedtak
 
 private data class UtbetalingsvedtakDTO(
     val meldekortId: String,

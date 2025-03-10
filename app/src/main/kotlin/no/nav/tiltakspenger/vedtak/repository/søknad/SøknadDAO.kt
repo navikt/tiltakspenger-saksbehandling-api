@@ -4,17 +4,17 @@ import kotliquery.Row
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
-import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.vedtak.felles.OppgaveId
 import no.nav.tiltakspenger.vedtak.repository.toAvbrutt
 import no.nav.tiltakspenger.vedtak.repository.toDbJson
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Avbrutt
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saksnummer
 import org.intellij.lang.annotations.Language
 
 private const val KVP_FELT = "kvp"

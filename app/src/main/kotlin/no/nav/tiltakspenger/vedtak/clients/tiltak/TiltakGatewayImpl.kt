@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.vedtak.clients.tiltak
 
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.ports.TiltakGateway
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.TiltakGateway
 
 class TiltakGatewayImpl(
     private val tiltakClient: TiltakClient,

@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.dto
 
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import java.time.LocalDate
 
 data class TiltaksdeltagelseDTO(

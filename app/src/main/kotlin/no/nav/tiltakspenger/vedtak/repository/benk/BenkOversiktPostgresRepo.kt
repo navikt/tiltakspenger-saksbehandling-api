@@ -8,14 +8,14 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
-import no.nav.tiltakspenger.saksbehandling.domene.benk.BenkBehandlingstype
-import no.nav.tiltakspenger.saksbehandling.domene.benk.toBenkBehandlingstype
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.ports.SaksoversiktRepo
 import no.nav.tiltakspenger.vedtak.repository.behandling.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.vedtak.repository.behandling.toBehandlingsstatus
 import no.nav.tiltakspenger.vedtak.repository.behandling.toBehandlingstype
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.benk.BenkBehandlingstype
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.benk.toBenkBehandlingstype
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.SaksoversiktRepo
 
 class BenkOversiktPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,

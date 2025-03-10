@@ -12,21 +12,21 @@ import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.common.TestApplicationContext
-import no.nav.tiltakspenger.felles.april
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
+import no.nav.tiltakspenger.vedtak.felles.april
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.hentEllerOpprettSak
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltakskilde
 
 /**
  * Gir mulighet til å motta en søknad via endepunktene våre.

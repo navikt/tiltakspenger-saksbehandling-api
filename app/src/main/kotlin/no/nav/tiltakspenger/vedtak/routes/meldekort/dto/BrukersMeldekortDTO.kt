@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.vedtak.routes.meldekort.dto
 
-import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.meldekort.domene.InnmeldtStatus
+import no.nav.tiltakspenger.vedtak.meldekort.domene.BrukersMeldekort
+import no.nav.tiltakspenger.vedtak.meldekort.domene.InnmeldtStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
 

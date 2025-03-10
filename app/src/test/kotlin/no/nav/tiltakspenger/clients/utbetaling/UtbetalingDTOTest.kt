@@ -3,16 +3,16 @@ package no.nav.tiltakspenger.clients.utbetaling
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.vedtak.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.vedtak.clients.utbetaling.toDTO
+import no.nav.tiltakspenger.vedtak.felles.januar
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saksnummer
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 

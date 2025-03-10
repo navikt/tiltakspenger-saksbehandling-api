@@ -9,11 +9,12 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.common.JournalpostIdGenerator
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekortRepo
-import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
-import no.nav.tiltakspenger.saksbehandling.ports.Oppgavebehov
-import no.nav.tiltakspenger.saksbehandling.ports.SakRepo
+import no.nav.tiltakspenger.vedtak.meldekort.domene.BrukersMeldekort
+import no.nav.tiltakspenger.vedtak.meldekort.domene.BrukersMeldekortRepo
+import no.nav.tiltakspenger.vedtak.meldekort.service.OppgaveMeldekortService
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.Oppgavebehov
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.SakRepo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 

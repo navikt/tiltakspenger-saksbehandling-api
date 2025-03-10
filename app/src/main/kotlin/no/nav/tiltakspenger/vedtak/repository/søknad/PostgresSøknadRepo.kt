@@ -5,8 +5,8 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.ports.SøknadRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.SøknadRepo
 
 internal class PostgresSøknadRepo(
     private val sessionFactory: PostgresSessionFactory,

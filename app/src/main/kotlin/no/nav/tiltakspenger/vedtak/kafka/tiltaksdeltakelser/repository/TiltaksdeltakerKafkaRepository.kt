@@ -2,10 +2,10 @@ package no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
+import no.nav.tiltakspenger.vedtak.felles.OppgaveId
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 

@@ -4,9 +4,9 @@ import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.service.statistikk.sak.StatistikkSakDTO
-import no.nav.tiltakspenger.saksbehandling.service.statistikk.sak.VilkårStatistikkDTO
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.statistikk.sak.StatistikkSakDTO
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.statistikk.sak.VilkårStatistikkDTO
 import org.intellij.lang.annotations.Language
 
 internal class StatistikkSakRepoImpl(

@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.vedtak.repository.utbetaling
 
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.saksbehandling.ports.SendtUtbetaling
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.SendtUtbetaling
 import org.junit.jupiter.api.Test
 
 internal class SendtUtbetalingExTest {

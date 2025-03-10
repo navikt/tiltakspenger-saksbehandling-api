@@ -3,21 +3,21 @@ package no.nav.tiltakspenger.vedtak.repository.utbetaling
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
-import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortBehandlet
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.ports.KunneIkkeUtbetale
-import no.nav.tiltakspenger.saksbehandling.ports.SendtUtbetaling
-import no.nav.tiltakspenger.utbetaling.domene.Utbetalinger
-import no.nav.tiltakspenger.utbetaling.domene.Utbetalingsvedtak
-import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
+import no.nav.tiltakspenger.vedtak.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandling.MeldekortBehandlet
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortBehandlingPostgresRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.KunneIkkeUtbetale
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.SendtUtbetaling
+import no.nav.tiltakspenger.vedtak.utbetaling.domene.Utbetalinger
+import no.nav.tiltakspenger.vedtak.utbetaling.domene.Utbetalingsvedtak
+import no.nav.tiltakspenger.vedtak.utbetaling.ports.UtbetalingsvedtakRepo
 import java.time.LocalDateTime
 
 internal class UtbetalingsvedtakPostgresRepo(

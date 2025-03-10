@@ -4,7 +4,6 @@ import mu.KotlinLogging
 import no.nav.tiltakspenger.common.TestSaksnummerGenerator
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
-import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaRepository
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.benk.BenkOversiktPostgresRepo
@@ -18,6 +17,7 @@ import no.nav.tiltakspenger.vedtak.repository.statistikk.stønad.StatistikkStøn
 import no.nav.tiltakspenger.vedtak.repository.søknad.PostgresSøknadRepo
 import no.nav.tiltakspenger.vedtak.repository.utbetaling.UtbetalingsvedtakPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.vedtak.RammevedtakPostgresRepo
+import no.nav.tiltakspenger.vedtak.utbetaling.ports.UtbetalingsvedtakRepo
 import javax.sql.DataSource
 
 internal class TestDataHelper(

@@ -6,17 +6,17 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import mu.KotlinLogging
-import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.logging.sikkerlogg
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
-import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
-import no.nav.tiltakspenger.meldekort.domene.InnmeldtStatus
-import no.nav.tiltakspenger.meldekort.domene.NyttBrukersMeldekort
-import no.nav.tiltakspenger.meldekort.service.MottaBrukerutfyltMeldekortService
+import no.nav.tiltakspenger.vedtak.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.vedtak.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
+import no.nav.tiltakspenger.vedtak.meldekort.domene.InnmeldtStatus
+import no.nav.tiltakspenger.vedtak.meldekort.domene.NyttBrukersMeldekort
+import no.nav.tiltakspenger.vedtak.meldekort.service.MottaBrukerutfyltMeldekortService
 
 private const val PATH = "/meldekort/motta"
 

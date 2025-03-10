@@ -5,12 +5,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
-import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.jobber.RunCheckFactory
 import no.nav.tiltakspenger.libs.jobber.StoppableJob
 import no.nav.tiltakspenger.libs.jobber.startStoppableJob
 import no.nav.tiltakspenger.vedtak.CALL_ID_MDC_KEY
+import no.nav.tiltakspenger.vedtak.felles.sikkerlogg
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds

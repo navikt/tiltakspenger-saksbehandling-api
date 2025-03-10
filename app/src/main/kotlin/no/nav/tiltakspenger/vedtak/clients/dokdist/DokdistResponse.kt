@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.vedtak.clients.dokdist
 
 import arrow.core.Either
 import mu.KLogger
-import no.nav.tiltakspenger.distribusjon.domene.DistribusjonId
-import no.nav.tiltakspenger.distribusjon.ports.KunneIkkeDistribuereDokument
 import no.nav.tiltakspenger.libs.json.deserialize
+import no.nav.tiltakspenger.vedtak.distribusjon.domene.DistribusjonId
+import no.nav.tiltakspenger.vedtak.distribusjon.ports.KunneIkkeDistribuereDokument
 
 private data class DokdistResponse(
     val bestillingsId: String,

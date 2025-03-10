@@ -4,12 +4,12 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.saksbehandling.ports.SøknadRepo
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena.ArenaKafkaMessage
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.komet.DeltakerV1Dto
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaRepository
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.SøknadRepo
 import java.util.UUID
 
 class TiltaksdeltakerService(

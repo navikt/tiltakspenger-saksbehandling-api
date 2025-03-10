@@ -1,14 +1,14 @@
 package no.nav.tiltakspenger.vedtak.clients.utbetaling
 
-import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
-import no.nav.tiltakspenger.utbetaling.domene.Utbetalingsvedtak
+import no.nav.tiltakspenger.vedtak.felles.Navkontor
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldeperiodeBeregningDag
+import no.nav.tiltakspenger.vedtak.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
+import no.nav.tiltakspenger.vedtak.utbetaling.domene.Utbetalingsvedtak
 import no.nav.utsjekk.kontrakter.felles.Personident
 import no.nav.utsjekk.kontrakter.felles.Satstype
 import no.nav.utsjekk.kontrakter.felles.StønadTypeTiltakspenger

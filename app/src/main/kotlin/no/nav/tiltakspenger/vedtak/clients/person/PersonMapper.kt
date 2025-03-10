@@ -21,7 +21,7 @@ import no.nav.tiltakspenger.libs.personklient.pdl.dto.PdlPerson
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.avklarFødsel
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.avklarGradering
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.avklarNavn
-import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 
 /**
  * Kopiert fra no.nav.tiltakspenger.vedtak.routes.rivers.PersonopplysningerRoutes.kt

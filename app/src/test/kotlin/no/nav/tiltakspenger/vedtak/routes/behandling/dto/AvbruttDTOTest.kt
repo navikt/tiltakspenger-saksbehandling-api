@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.vedtak.routes.behandling.dto
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.førsteNovember24
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Avbrutt
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Avbrutt
 import org.junit.jupiter.api.Test
 
 class AvbruttDTOTest {

@@ -10,10 +10,10 @@ import no.nav.tiltakspenger.db.persisterOpprettetRevurderingDeprecated
 import no.nav.tiltakspenger.db.persisterSakOgSøknad
 import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
-import no.nav.tiltakspenger.saksbehandling.domene.benk.BenkBehandlingstype
-import no.nav.tiltakspenger.saksbehandling.domene.benk.Saksoversikt
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Behandlingsstatus
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.benk.BenkBehandlingstype
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.benk.Saksoversikt
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 

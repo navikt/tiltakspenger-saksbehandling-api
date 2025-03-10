@@ -2,11 +2,11 @@ package no.nav.tiltakspenger.vedtak.context
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
-import no.nav.tiltakspenger.saksbehandling.ports.SøknadRepo
-import no.nav.tiltakspenger.saksbehandling.service.SøknadService
-import no.nav.tiltakspenger.saksbehandling.service.SøknadServiceImpl
 import no.nav.tiltakspenger.vedtak.repository.søknad.PostgresSøknadRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.SøknadRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.SøknadService
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.SøknadServiceImpl
 
 open class SøknadContext(
     sessionFactory: SessionFactory,

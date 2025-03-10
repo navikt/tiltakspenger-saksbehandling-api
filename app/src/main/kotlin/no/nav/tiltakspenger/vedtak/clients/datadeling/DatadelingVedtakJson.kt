@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.vedtak.clients.datadeling
 
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Vedtakstype
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.vedtak.Rammevedtak
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.vedtak.Vedtakstype
 import java.time.LocalDate
 
 private data class DatadelingVedtakJson(

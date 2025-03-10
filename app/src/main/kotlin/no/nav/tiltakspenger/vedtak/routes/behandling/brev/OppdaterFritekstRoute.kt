@@ -7,8 +7,6 @@ import io.ktor.server.routing.patch
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
@@ -16,6 +14,8 @@ import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.withBehandlingId
 import no.nav.tiltakspenger.vedtak.routes.withBody
 import no.nav.tiltakspenger.vedtak.routes.withSakId
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 
 private data class FritekstBody(
     val fritekst: String,

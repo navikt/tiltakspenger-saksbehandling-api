@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.personopplysninger
 
-import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.EnkelPersonMedSkjerming
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.personopplysninger.EnkelPersonMedSkjerming
 
 data class EnkelPersonDTO(
     val fnr: String,

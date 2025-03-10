@@ -4,9 +4,9 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.db.persisterOpprettetRevurdering
 import no.nav.tiltakspenger.db.persisterRammevedtakMedBehandletMeldekort
 import no.nav.tiltakspenger.db.withMigratedDb
-import no.nav.tiltakspenger.felles.januar
-import no.nav.tiltakspenger.felles.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.vedtak.felles.januar
+import no.nav.tiltakspenger.vedtak.felles.mars
 import org.junit.jupiter.api.Test
 
 class PersonPostgresRepoTest {

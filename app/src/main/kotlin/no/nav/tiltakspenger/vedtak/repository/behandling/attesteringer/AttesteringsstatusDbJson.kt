@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.vedtak.repository.behandling.attesteringer
 
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attesteringsstatus
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Attesteringsstatus
 
 internal enum class AttesteringsstatusDbJson {
     GODKJENT,

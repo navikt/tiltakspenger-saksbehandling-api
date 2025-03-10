@@ -17,20 +17,20 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.VENTE
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.VURDERES
 import no.nav.tiltakspenger.libs.tiltak.TiltakTilSaksbehandlingDTO
 import no.nav.tiltakspenger.libs.tiltak.toTiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Deltar
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Feilregistrert
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Fullført
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.HarSluttet
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.IkkeAktuell
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.PåbegyntRegistrering
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.SøktInn
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Venteliste
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.VenterPåOppstart
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Vurderes
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Avbrutt
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Deltar
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Feilregistrert
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Fullført
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus.HarSluttet
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus.IkkeAktuell
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus.PåbegyntRegistrering
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus.SøktInn
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Venteliste
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus.VenterPåOppstart
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Vurderes
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltakskilde
 
 internal fun mapTiltak(
     tiltakDTOListe: List<TiltakTilSaksbehandlingDTO>,

@@ -2,14 +2,14 @@ package no.nav.tiltakspenger.vedtak.repository.behandling
 
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.saksbehandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.vedtak.repository.behandling.SaksopplysningerDbJson.TiltaksdeltagelseDbJson
 import no.nav.tiltakspenger.vedtak.repository.behandling.tiltakDeltagelse.toDb
 import no.nav.tiltakspenger.vedtak.repository.behandling.tiltakDeltagelse.toTiltakDeltakerstatus
 import no.nav.tiltakspenger.vedtak.repository.behandling.tiltakDeltagelse.toTiltakskilde
 import no.nav.tiltakspenger.vedtak.repository.tiltak.toDb
 import no.nav.tiltakspenger.vedtak.repository.tiltak.toTiltakstypeSomGirRett
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import java.time.LocalDate
 
 private data class SaksopplysningerDbJson(

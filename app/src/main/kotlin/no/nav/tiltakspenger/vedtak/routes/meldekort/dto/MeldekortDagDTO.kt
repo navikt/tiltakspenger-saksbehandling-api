@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.vedtak.routes.meldekort.dto
 
-import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeBeregning
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldeperiodeBeregning
 import java.time.LocalDate
 
 data class MeldekortDagDTO(

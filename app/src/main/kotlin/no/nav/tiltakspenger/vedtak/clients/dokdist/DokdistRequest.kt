@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.vedtak.clients.dokdist
 
-import no.nav.tiltakspenger.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.vedtak.felles.journalføring.JournalpostId
 
 private data class DokdistRequest(
     val journalpostId: String,

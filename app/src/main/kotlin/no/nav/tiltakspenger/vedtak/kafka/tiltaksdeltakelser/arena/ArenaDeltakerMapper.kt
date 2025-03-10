@@ -4,9 +4,9 @@ import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.arena.tiltak.ArenaDeltakerStatusType
 import no.nav.tiltakspenger.libs.arena.tiltak.toDTO
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import no.nav.tiltakspenger.vedtak.clients.tiltak.toDomain
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaDb
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException

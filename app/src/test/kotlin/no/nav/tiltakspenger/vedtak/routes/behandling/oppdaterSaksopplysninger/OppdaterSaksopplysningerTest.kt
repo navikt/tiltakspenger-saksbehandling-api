@@ -4,17 +4,17 @@ import io.kotest.matchers.shouldBe
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.common.TestApplicationContext
-import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
+import no.nav.tiltakspenger.vedtak.felles.januar
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.startBehandling
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.taBehanding
 import no.nav.tiltakspenger.vedtak.routes.routes
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltakskilde
 import org.junit.jupiter.api.Test
 
 internal class OppdaterSaksopplysningerTest {

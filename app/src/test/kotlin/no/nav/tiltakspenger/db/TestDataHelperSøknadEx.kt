@@ -1,14 +1,14 @@
 package no.nav.tiltakspenger.db
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.felles.januar
-import no.nav.tiltakspenger.felles.mars
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.vedtak.felles.januar
+import no.nav.tiltakspenger.vedtak.felles.mars
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingRepoTest.Companion.random
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Sak
 import java.time.LocalDate
 
 internal fun TestDataHelper.persisterSakOgSøknad(

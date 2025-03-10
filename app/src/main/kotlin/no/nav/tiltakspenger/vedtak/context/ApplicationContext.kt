@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.vedtak.context
 
 import mu.KotlinLogging
-import no.nav.tiltakspenger.datadeling.service.SendTilDatadelingService
 import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
 import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenHttpClient
 import no.nav.tiltakspenger.libs.auth.core.MicrosoftEntraIdTokenService
@@ -12,15 +11,12 @@ import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
-import no.nav.tiltakspenger.meldekort.service.MottaBrukerutfyltMeldekortService
-import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
-import no.nav.tiltakspenger.saksbehandling.ports.VeilarboppfolgingGateway
-import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.auth.systembrukerMapper
 import no.nav.tiltakspenger.vedtak.clients.datadeling.DatadelingHttpClient
 import no.nav.tiltakspenger.vedtak.clients.oppgave.OppgaveHttpClient
 import no.nav.tiltakspenger.vedtak.clients.veilarboppfolging.VeilarboppfolgingHttpClient
+import no.nav.tiltakspenger.vedtak.datadeling.service.SendTilDatadelingService
 import no.nav.tiltakspenger.vedtak.db.DataSourceSetup
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.TiltaksdeltakerService
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena.ArenaDeltakerMapper
@@ -28,6 +24,10 @@ import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena.Tiltaksdeltake
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.jobb.EndretTiltaksdeltakerJobb
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.komet.TiltaksdeltakerKometConsumer
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaRepository
+import no.nav.tiltakspenger.vedtak.meldekort.service.MottaBrukerutfyltMeldekortService
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.VeilarboppfolgingGateway
+import no.nav.tiltakspenger.vedtak.utbetaling.service.NavkontorService
 
 /**
  * Inneholder alle klienter, repoer og servicer.

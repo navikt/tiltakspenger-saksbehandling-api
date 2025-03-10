@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.vedtak.routes.meldekort.dto
 
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandlinger
 
 data class MeldekortBehandlingDTO(
     val id: String,

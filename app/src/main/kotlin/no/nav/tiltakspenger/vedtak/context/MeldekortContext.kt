@@ -4,26 +4,26 @@ import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekortRepo
-import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
-import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
-import no.nav.tiltakspenger.meldekort.service.IverksettMeldekortService
-import no.nav.tiltakspenger.meldekort.service.OppgaveMeldekortService
-import no.nav.tiltakspenger.meldekort.service.OpprettMeldekortBehandlingService
-import no.nav.tiltakspenger.meldekort.service.SendMeldekortTilBeslutningService
-import no.nav.tiltakspenger.meldekort.service.SendMeldeperiodeTilBrukerService
-import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
-import no.nav.tiltakspenger.saksbehandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
-import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
-import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
-import no.nav.tiltakspenger.utbetaling.ports.UtbetalingsvedtakRepo
-import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.Configuration
 import no.nav.tiltakspenger.vedtak.clients.meldekort.MeldekortApiHttpClient
+import no.nav.tiltakspenger.vedtak.meldekort.domene.BrukersMeldekortRepo
+import no.nav.tiltakspenger.vedtak.meldekort.ports.MeldekortBehandlingRepo
+import no.nav.tiltakspenger.vedtak.meldekort.ports.MeldeperiodeRepo
+import no.nav.tiltakspenger.vedtak.meldekort.service.IverksettMeldekortService
+import no.nav.tiltakspenger.vedtak.meldekort.service.OppgaveMeldekortService
+import no.nav.tiltakspenger.vedtak.meldekort.service.OpprettMeldekortBehandlingService
+import no.nav.tiltakspenger.vedtak.meldekort.service.SendMeldekortTilBeslutningService
+import no.nav.tiltakspenger.vedtak.meldekort.service.SendMeldeperiodeTilBrukerService
 import no.nav.tiltakspenger.vedtak.repository.meldekort.BrukersMeldekortPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldeperiodePostgresRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.SakRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.StatistikkStønadRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.person.PersonService
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.sak.SakService
+import no.nav.tiltakspenger.vedtak.utbetaling.ports.UtbetalingsvedtakRepo
+import no.nav.tiltakspenger.vedtak.utbetaling.service.NavkontorService
 
 /**
  * Åpen så den kan overstyres i test

@@ -3,11 +3,11 @@ package no.nav.tiltakspenger.vedtak.repository.meldekort
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.db.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.db.withMigratedDb
-import no.nav.tiltakspenger.felles.januar
-import no.nav.tiltakspenger.felles.mars
-import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.objectmothers.ObjectMother
+import no.nav.tiltakspenger.vedtak.felles.januar
+import no.nav.tiltakspenger.vedtak.felles.mars
+import no.nav.tiltakspenger.vedtak.meldekort.domene.BrukersMeldekort
+import no.nav.tiltakspenger.vedtak.meldekort.domene.opprettFørsteMeldeperiode
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 

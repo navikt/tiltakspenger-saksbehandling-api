@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.vedtak.repository.sats
 
-import no.nav.tiltakspenger.utbetaling.domene.Sats
 import no.nav.tiltakspenger.vedtak.repository.felles.PeriodeDbJson
 import no.nav.tiltakspenger.vedtak.repository.felles.toDbJson
+import no.nav.tiltakspenger.vedtak.utbetaling.domene.Sats
 
 data class SatsDbJson(
     val periode: PeriodeDbJson,

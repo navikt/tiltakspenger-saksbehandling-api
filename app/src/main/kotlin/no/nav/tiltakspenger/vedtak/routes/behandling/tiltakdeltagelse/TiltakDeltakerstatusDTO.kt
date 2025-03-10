@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.tiltakdeltagelse
 
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 
 private enum class TiltakDeltakerstatusDTO {
     VenterPåOppstart,

@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KotlinLogging
-import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.AdressebeskyttelseGradering
@@ -12,7 +11,8 @@ import no.nav.tiltakspenger.libs.personklient.pdl.dto.Navn
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.PdlPerson
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.avklarGradering
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.avklarNavn
-import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.EnkelPerson
+import no.nav.tiltakspenger.vedtak.felles.sikkerlogg
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.personopplysninger.EnkelPerson
 
 internal data class PdlResponse(
     val hentPerson: PdlPerson,

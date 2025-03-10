@@ -7,8 +7,6 @@ import io.ktor.server.routing.patch
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
@@ -16,6 +14,8 @@ import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.withBehandlingId
 import no.nav.tiltakspenger.vedtak.routes.withBody
 import no.nav.tiltakspenger.vedtak.routes.withSakId
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
 
 private data class BegrunnelseBody(
     val begrunnelse: String,

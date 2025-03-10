@@ -2,17 +2,17 @@ package no.nav.tiltakspenger.vedtak.repository.meldekort
 
 import kotliquery.Row
 import kotliquery.Session
-import no.nav.tiltakspenger.felles.OppgaveId
-import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekortRepo
-import no.nav.tiltakspenger.meldekort.domene.NyttBrukersMeldekort
+import no.nav.tiltakspenger.vedtak.felles.OppgaveId
+import no.nav.tiltakspenger.vedtak.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.vedtak.meldekort.domene.BrukersMeldekort
+import no.nav.tiltakspenger.vedtak.meldekort.domene.BrukersMeldekortRepo
+import no.nav.tiltakspenger.vedtak.meldekort.domene.NyttBrukersMeldekort
 
 class BrukersMeldekortPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,

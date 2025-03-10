@@ -2,17 +2,17 @@ package no.nav.tiltakspenger.vedtak.repository.behandling
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.tiltakspenger.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.db.persisterBehandletRevurdering
 import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandling
 import no.nav.tiltakspenger.db.withMigratedDb
-import no.nav.tiltakspenger.felles.januar
-import no.nav.tiltakspenger.felles.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.vedtak.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.vedtak.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.vedtak.felles.januar
+import no.nav.tiltakspenger.vedtak.felles.mars
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 import org.junit.jupiter.api.Test
 import java.util.Random
 

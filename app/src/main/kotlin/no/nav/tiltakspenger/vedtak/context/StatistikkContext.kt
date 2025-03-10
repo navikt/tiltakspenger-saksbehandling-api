@@ -2,10 +2,10 @@ package no.nav.tiltakspenger.vedtak.context
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.vedtak.repository.statistikk.sak.StatistikkSakRepoImpl
 import no.nav.tiltakspenger.vedtak.repository.statistikk.stønad.StatistikkStønadPostgresRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.StatistikkStønadRepo
 
 open class StatistikkContext(
     sessionFactory: SessionFactory,

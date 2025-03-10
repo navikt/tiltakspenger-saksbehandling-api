@@ -23,18 +23,8 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringServiceImpl
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.objectmothers.toSøknadstiltak
-import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
-import no.nav.tiltakspenger.saksbehandling.domene.sak.SaksnummerGenerator
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
-import no.nav.tiltakspenger.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
-import no.nav.tiltakspenger.saksbehandling.ports.GenererStansvedtaksbrevGateway
-import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
-import no.nav.tiltakspenger.saksbehandling.ports.VeilarboppfolgingGateway
-import no.nav.tiltakspenger.utbetaling.service.NavkontorService
 import no.nav.tiltakspenger.vedtak.Profile
 import no.nav.tiltakspenger.vedtak.clients.pdfgen.PdfgenHttpClient
 import no.nav.tiltakspenger.vedtak.context.ApplicationContext
@@ -46,7 +36,17 @@ import no.nav.tiltakspenger.vedtak.context.SakContext
 import no.nav.tiltakspenger.vedtak.context.SøknadContext
 import no.nav.tiltakspenger.vedtak.context.TiltakContext
 import no.nav.tiltakspenger.vedtak.context.UtbetalingContext
+import no.nav.tiltakspenger.vedtak.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.vedtak.repository.sak.SakPostgresRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.SaksnummerGenerator
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltakskilde
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.GenererStansvedtaksbrevGateway
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.VeilarboppfolgingGateway
+import no.nav.tiltakspenger.vedtak.utbetaling.service.NavkontorService
 
 /**
  * Oppretter en tom ApplicationContext for bruk i tester.

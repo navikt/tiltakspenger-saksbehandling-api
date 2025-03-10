@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.vedtak.repository.behandling.attesteringer
 
-import no.nav.tiltakspenger.felles.AttesteringId.Companion.fromString
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attestering
+import no.nav.tiltakspenger.vedtak.felles.AttesteringId.Companion.fromString
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Attestering
 import java.time.LocalDateTime
 
 internal data class AttesteringDbJson(

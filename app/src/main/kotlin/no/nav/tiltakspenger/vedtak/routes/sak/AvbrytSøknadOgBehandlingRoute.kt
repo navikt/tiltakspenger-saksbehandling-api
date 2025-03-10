@@ -11,15 +11,15 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
-import no.nav.tiltakspenger.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingService
-import no.nav.tiltakspenger.saksbehandling.service.avslutt.KunneIkkeAvbryteSøknadOgBehandling
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.withBody
 import no.nav.tiltakspenger.vedtak.routes.withSaksnummer
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingService
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.avslutt.KunneIkkeAvbryteSøknadOgBehandling
 
 fun Route.avbrytSøknadOgBehandling(
     tokenService: TokenService,

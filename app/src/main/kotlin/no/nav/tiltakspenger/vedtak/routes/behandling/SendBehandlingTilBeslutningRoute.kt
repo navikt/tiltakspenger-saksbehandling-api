@@ -5,7 +5,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import mu.KotlinLogging
-import no.nav.tiltakspenger.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -14,13 +13,9 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter.MåVæreSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
+import no.nav.tiltakspenger.vedtak.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.vedtak.routes.behandling.dto.BarnetilleggDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.correlationId
@@ -28,6 +23,11 @@ import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil
 import no.nav.tiltakspenger.vedtak.routes.withBehandlingId
 import no.nav.tiltakspenger.vedtak.routes.withBody
 import no.nav.tiltakspenger.vedtak.routes.withSakId
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter.MåVæreSaksbehandler
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.behandling.SendBehandlingTilBeslutningService
 
 private data class SendTilBeslutningBody(
     val fritekstTilVedtaksbrev: String?,

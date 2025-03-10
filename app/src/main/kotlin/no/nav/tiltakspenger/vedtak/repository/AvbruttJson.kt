@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.vedtak.repository
 
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Avbrutt
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Avbrutt
 import java.time.LocalDateTime
 
 data class AvbruttJson(

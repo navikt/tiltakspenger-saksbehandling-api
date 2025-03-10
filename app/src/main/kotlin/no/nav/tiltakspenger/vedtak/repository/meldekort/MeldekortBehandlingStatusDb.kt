@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.vedtak.repository.meldekort
 
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandlingStatus
 
 /**
  * @see MeldekortBehandlingStatus

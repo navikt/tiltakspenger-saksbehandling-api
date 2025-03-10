@@ -9,13 +9,13 @@ import io.ktor.server.routing.Route
 import io.ktor.util.AttributeKey
 import mu.KLogger
 import mu.KotlinLogging
-import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.jobber.LeaderPodLookup
 import no.nav.tiltakspenger.libs.jobber.LeaderPodLookupClient
 import no.nav.tiltakspenger.libs.jobber.LeaderPodLookupFeil
 import no.nav.tiltakspenger.libs.jobber.RunCheckFactory
 import no.nav.tiltakspenger.vedtak.Configuration.httpPort
 import no.nav.tiltakspenger.vedtak.context.ApplicationContext
+import no.nav.tiltakspenger.vedtak.felles.sikkerlogg
 import no.nav.tiltakspenger.vedtak.jobber.TaskExecutor
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds

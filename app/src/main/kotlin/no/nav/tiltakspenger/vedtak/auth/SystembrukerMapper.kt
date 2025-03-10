@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.vedtak.auth
 
 import mu.KotlinLogging
-import no.nav.tiltakspenger.felles.Systembruker
-import no.nav.tiltakspenger.felles.Systembrukerrolle
-import no.nav.tiltakspenger.felles.Systembrukerroller
+import no.nav.tiltakspenger.vedtak.felles.Systembruker
+import no.nav.tiltakspenger.vedtak.felles.Systembrukerrolle
+import no.nav.tiltakspenger.vedtak.felles.Systembrukerroller
 
 private val logger = KotlinLogging.logger { }
 

@@ -1,12 +1,12 @@
 package no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.jobb
 
 import mu.KotlinLogging
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.ports.OppgaveGateway
-import no.nav.tiltakspenger.saksbehandling.ports.Oppgavebehov
-import no.nav.tiltakspenger.saksbehandling.ports.SakRepo
 import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaRepository
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.Oppgavebehov
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.SakRepo
 
 class EndretTiltaksdeltakerJobb(
     private val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository,

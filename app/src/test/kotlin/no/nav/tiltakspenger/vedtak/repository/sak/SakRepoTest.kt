@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.db.persisterSak
 import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Saker
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saker
 import org.junit.jupiter.api.Test
 
 internal class SakRepoTest {

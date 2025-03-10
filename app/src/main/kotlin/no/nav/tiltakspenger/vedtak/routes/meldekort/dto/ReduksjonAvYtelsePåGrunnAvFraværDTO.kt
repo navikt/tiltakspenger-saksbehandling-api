@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.vedtak.routes.meldekort.dto
 
-import no.nav.tiltakspenger.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
+import no.nav.tiltakspenger.vedtak.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 
 enum class ReduksjonAvYtelsePåGrunnAvFraværDTO {
     INGEN_REDUKSJON,

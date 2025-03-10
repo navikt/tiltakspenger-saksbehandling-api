@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.vedtak.repository.meldekort
 
-import no.nav.tiltakspenger.meldekort.domene.Satsdag
+import no.nav.tiltakspenger.vedtak.meldekort.domene.Satsdag
 import java.time.LocalDate
 
 data class SatsdagDbJson(

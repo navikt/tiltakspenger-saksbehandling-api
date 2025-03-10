@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingsstatusDb.KLA
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingsstatusDb.UNDER_BEHANDLING
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingsstatusDb.UNDER_BESLUTNING
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingsstatusDb.VEDTATT
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus as BehandlingsstatusDomain
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Behandlingsstatus as BehandlingsstatusDomain
 
 /**
  * @see BehandlingsstatusDomain

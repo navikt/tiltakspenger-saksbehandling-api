@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository
 
-import no.nav.tiltakspenger.felles.OppgaveId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.vedtak.felles.OppgaveId
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import java.time.LocalDate
 import java.time.LocalDateTime
 

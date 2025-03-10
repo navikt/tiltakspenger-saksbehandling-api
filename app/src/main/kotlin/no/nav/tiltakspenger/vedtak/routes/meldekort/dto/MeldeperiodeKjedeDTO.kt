@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.vedtak.routes.meldekort.dto
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Sak
 
 data class MeldeperiodeKjedeDTO(
     val kjedeId: String,

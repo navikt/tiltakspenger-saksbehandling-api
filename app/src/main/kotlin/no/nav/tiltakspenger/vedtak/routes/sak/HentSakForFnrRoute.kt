@@ -15,14 +15,14 @@ import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
 import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
-import no.nav.tiltakspenger.saksbehandling.service.sak.KunneIkkeHenteSakForFnr
-import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.ikkeTilgang
 import no.nav.tiltakspenger.vedtak.routes.withBody
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.sak.KunneIkkeHenteSakForFnr
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.sak.SakService
 
 fun Route.hentSakForFnrRoute(
     sakService: SakService,

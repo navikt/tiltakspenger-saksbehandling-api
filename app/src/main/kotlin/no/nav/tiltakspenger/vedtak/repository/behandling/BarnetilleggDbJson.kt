@@ -1,14 +1,14 @@
 package no.nav.tiltakspenger.vedtak.repository.behandling
 
-import no.nav.tiltakspenger.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.vedtak.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.vedtak.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.vedtak.repository.felles.PeriodeDbJson
 import no.nav.tiltakspenger.vedtak.repository.felles.toDbJson
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 
 private data class BarnetilleggDbJson(
     val value: List<BarnetilleggPeriodeMedVerdi>,

@@ -18,16 +18,16 @@ import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.contentType
 import mu.KotlinLogging
-import no.nav.tiltakspenger.felles.journalføring.JournalpostId
-import no.nav.tiltakspenger.felles.journalføring.PdfOgJson
-import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.meldekort.ports.JournalførMeldekortGateway
-import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.ports.JournalførVedtaksbrevGateway
 import no.nav.tiltakspenger.vedtak.clients.httpClientWithRetry
+import no.nav.tiltakspenger.vedtak.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.vedtak.felles.journalføring.PdfOgJson
+import no.nav.tiltakspenger.vedtak.felles.sikkerlogg
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.vedtak.meldekort.ports.JournalførMeldekortGateway
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.vedtak.Rammevedtak
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.JournalførVedtaksbrevGateway
 
 internal const val JOARK_PATH = "rest/journalpostapi/v1/journalpost"
 

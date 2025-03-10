@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.dto
 
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attestering
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attesteringsstatus
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Attestering
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Attesteringsstatus
 import java.time.LocalDateTime
 
 data class AttesteringDTO(

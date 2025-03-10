@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.dto
 
-import no.nav.tiltakspenger.saksbehandling.domene.vilkår.Lovreferanse
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.vilkår.Lovreferanse
 
 data class LovreferanseDTO(
     val lovverk: String,

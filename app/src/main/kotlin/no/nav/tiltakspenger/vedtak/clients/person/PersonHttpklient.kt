@@ -3,14 +3,14 @@ package no.nav.tiltakspenger.vedtak.clients.person
 import arrow.core.getOrElse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklient
-import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.EnkelPerson
-import no.nav.tiltakspenger.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
-import no.nav.tiltakspenger.saksbehandling.ports.PersonGateway
+import no.nav.tiltakspenger.vedtak.felles.sikkerlogg
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.personopplysninger.EnkelPerson
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.PersonGateway
 
 class PersonHttpklient(
     endepunkt: String,

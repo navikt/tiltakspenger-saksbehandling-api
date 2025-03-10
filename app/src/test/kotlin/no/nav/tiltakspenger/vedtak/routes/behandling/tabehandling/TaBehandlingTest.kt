@@ -5,12 +5,12 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.sendFørstegangsbehandlingTilBeslutning
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.startBehandling
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.taBehanding
 import no.nav.tiltakspenger.vedtak.routes.routes
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Behandlingsstatus
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 

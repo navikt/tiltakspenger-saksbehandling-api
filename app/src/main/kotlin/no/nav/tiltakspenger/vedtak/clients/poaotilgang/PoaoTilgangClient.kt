@@ -9,11 +9,11 @@ import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.poao_tilgang.client.PoaoTilgangClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
-import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.saksbehandling.ports.PoaoTilgangGateway
+import no.nav.tiltakspenger.vedtak.felles.sikkerlogg
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.PoaoTilgangGateway
 
 class PoaoTilgangClient(
     baseUrl: String,

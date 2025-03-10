@@ -4,12 +4,12 @@ import arrow.core.Either
 import arrow.core.left
 import kotlinx.coroutines.future.await
 import mu.KotlinLogging
-import no.nav.tiltakspenger.felles.sikkerlogg
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.meldekort.ports.FeilVedSendingTilMeldekortApi
-import no.nav.tiltakspenger.meldekort.ports.MeldekortApiHttpClientGateway
+import no.nav.tiltakspenger.vedtak.felles.sikkerlogg
+import no.nav.tiltakspenger.vedtak.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.vedtak.meldekort.ports.FeilVedSendingTilMeldekortApi
+import no.nav.tiltakspenger.vedtak.meldekort.ports.MeldekortApiHttpClientGateway
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse

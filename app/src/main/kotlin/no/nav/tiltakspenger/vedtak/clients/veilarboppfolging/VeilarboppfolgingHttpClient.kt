@@ -3,11 +3,11 @@ package no.nav.tiltakspenger.vedtak.clients.veilarboppfolging
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.future.await
 import mu.KotlinLogging
-import no.nav.tiltakspenger.felles.Navkontor
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.saksbehandling.ports.VeilarboppfolgingGateway
+import no.nav.tiltakspenger.vedtak.felles.Navkontor
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.VeilarboppfolgingGateway
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse

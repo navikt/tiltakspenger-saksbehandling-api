@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.vedtak.routes.behandling.dto
 
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Behandlingsstatus
 
 enum class BehandlingsstatusDTO {
     KLAR_TIL_BEHANDLING,

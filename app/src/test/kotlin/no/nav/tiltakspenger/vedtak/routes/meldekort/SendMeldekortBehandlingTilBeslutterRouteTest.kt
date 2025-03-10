@@ -21,11 +21,11 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning
-import no.nav.tiltakspenger.meldekort.service.SendMeldekortTilBeslutningService
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
+import no.nav.tiltakspenger.vedtak.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning
+import no.nav.tiltakspenger.vedtak.meldekort.service.SendMeldekortTilBeslutningService
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
 import org.junit.jupiter.api.Test
 

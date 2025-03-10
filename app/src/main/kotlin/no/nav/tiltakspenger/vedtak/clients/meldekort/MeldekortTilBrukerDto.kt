@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.vedtak.clients.meldekort
 
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeDTO
-import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.vedtak.meldekort.domene.Meldeperiode
 
 fun Meldeperiode.tilBrukerDTO(): MeldeperiodeDTO {
     return MeldeperiodeDTO(

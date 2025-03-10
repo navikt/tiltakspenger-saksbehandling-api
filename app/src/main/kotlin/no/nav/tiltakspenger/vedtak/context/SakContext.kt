@@ -3,16 +3,16 @@ package no.nav.tiltakspenger.vedtak.context
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.saksbehandling.domene.sak.SaksnummerGenerator
-import no.nav.tiltakspenger.saksbehandling.ports.PoaoTilgangGateway
-import no.nav.tiltakspenger.saksbehandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.ports.SaksoversiktRepo
-import no.nav.tiltakspenger.saksbehandling.service.person.PersonService
-import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.service.sak.SakServiceImpl
 import no.nav.tiltakspenger.vedtak.Profile
 import no.nav.tiltakspenger.vedtak.repository.benk.BenkOversiktPostgresRepo
 import no.nav.tiltakspenger.vedtak.repository.sak.SakPostgresRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.SaksnummerGenerator
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.PoaoTilgangGateway
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.SakRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.SaksoversiktRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.person.PersonService
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.sak.SakService
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.sak.SakServiceImpl
 
 open class SakContext(
     sessionFactory: SessionFactory,

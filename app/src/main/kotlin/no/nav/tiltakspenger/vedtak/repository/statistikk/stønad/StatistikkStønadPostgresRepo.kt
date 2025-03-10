@@ -2,12 +2,12 @@ package no.nav.tiltakspenger.vedtak.repository.statistikk.stønad
 
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
-import no.nav.tiltakspenger.felles.nå
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.ports.StatistikkStønadRepo
-import no.nav.tiltakspenger.saksbehandling.service.statistikk.stønad.StatistikkStønadDTO
-import no.nav.tiltakspenger.saksbehandling.service.statistikk.stønad.StatistikkUtbetalingDTO
+import no.nav.tiltakspenger.vedtak.felles.nå
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.StatistikkStønadRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.statistikk.stønad.StatistikkStønadDTO
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.statistikk.stønad.StatistikkUtbetalingDTO
 import org.intellij.lang.annotations.Language
 
 class StatistikkStønadPostgresRepo(

@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.vedtak.repository.behandling.tiltakDeltagelse
 
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltakskilde
 
 enum class TiltakskildeDb {
     Arena,

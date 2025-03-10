@@ -4,11 +4,11 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.db.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.db.withMigratedDb
-import no.nav.tiltakspenger.felles.januar
-import no.nav.tiltakspenger.felles.mars
-import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjede
-import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjeder
-import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
+import no.nav.tiltakspenger.vedtak.felles.januar
+import no.nav.tiltakspenger.vedtak.felles.mars
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldeperiodeKjede
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.vedtak.meldekort.domene.opprettFørsteMeldeperiode
 import org.junit.jupiter.api.Test
 
 class MeldeperiodePostgresRepoTest {

@@ -13,10 +13,10 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjeder
-import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.vedtak.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.vedtak.meldekort.ports.MeldeperiodeRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saksnummer
 import java.time.LocalDate
 import java.time.LocalDateTime
 

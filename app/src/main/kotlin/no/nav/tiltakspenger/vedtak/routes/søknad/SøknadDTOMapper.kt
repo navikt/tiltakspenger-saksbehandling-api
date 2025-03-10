@@ -10,10 +10,10 @@ import no.nav.tiltakspenger.libs.soknad.PeriodeSpmDTO
 import no.nav.tiltakspenger.libs.soknad.SpmSvarDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadsTiltakDTO
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.BarnetilleggFraSøknad
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Søknadstiltak
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Sak
 import java.time.LocalDateTime
 
 object SøknadDTOMapper {

@@ -14,8 +14,8 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saksnummer
 import org.json.JSONObject
 
 interface OpprettSakRouteBuilder {

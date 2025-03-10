@@ -13,20 +13,20 @@ import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.common.TestApplicationContext
-import no.nav.tiltakspenger.felles.januar
-import no.nav.tiltakspenger.felles.mars
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.vedtak.felles.januar
+import no.nav.tiltakspenger.vedtak.felles.mars
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.oppdaterBegrunnelseForBehandlingId
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.oppdaterFritekstForBehandlingId
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.startBehandling
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.taBehanding
 import no.nav.tiltakspenger.vedtak.routes.defaultRequest
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Sak
 
 interface SendFørstegangsbehandlingTilBeslutningBuilder {
 

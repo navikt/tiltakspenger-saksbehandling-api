@@ -9,9 +9,6 @@ import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
-import no.nav.tiltakspenger.saksbehandling.service.behandling.BehandlingService
-import no.nav.tiltakspenger.saksbehandling.service.sak.KanIkkeHenteSaksoversikt
-import no.nav.tiltakspenger.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.behandling.BEHANDLINGER_PATH
@@ -22,6 +19,9 @@ import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.ikkeTil
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.måVæreSaksbehandlerEllerBeslutter
 import no.nav.tiltakspenger.vedtak.routes.sak.toDTO
 import no.nav.tiltakspenger.vedtak.routes.withBehandlingId
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.behandling.BehandlingService
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.sak.KanIkkeHenteSaksoversikt
+import no.nav.tiltakspenger.vedtak.saksbehandling.service.sak.SakService
 
 private const val TA_BEHANDLING_PATH = "$BEHANDLING_PATH/tabehandling/{behandlingId}"
 

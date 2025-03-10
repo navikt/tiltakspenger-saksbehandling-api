@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.vedtak.clients.oppgave
 
-import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.vedtak.felles.journalføring.JournalpostId
 import java.time.DayOfWeek
 import java.time.LocalDate
 

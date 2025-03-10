@@ -7,17 +7,17 @@ import arrow.core.toNonEmptyListOrNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.common.TestApplicationContext
-import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager.Dag
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.IKKE_DELTATT
-import no.nav.tiltakspenger.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.SPERRET
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.objectmothers.meldekortBehandlingOpprettet
+import no.nav.tiltakspenger.vedtak.felles.januar
+import no.nav.tiltakspenger.vedtak.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning
+import no.nav.tiltakspenger.vedtak.meldekort.domene.SendMeldekortTilBeslutningKommando
+import no.nav.tiltakspenger.vedtak.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager.Dag
+import no.nav.tiltakspenger.vedtak.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
+import no.nav.tiltakspenger.vedtak.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.IKKE_DELTATT
+import no.nav.tiltakspenger.vedtak.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.SPERRET
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 

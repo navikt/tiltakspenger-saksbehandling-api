@@ -1,14 +1,14 @@
 package no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.felles.OppgaveId
-import no.nav.tiltakspenger.felles.april
-import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.domene.tiltak.Tiltakskilde
+import no.nav.tiltakspenger.vedtak.felles.OppgaveId
+import no.nav.tiltakspenger.vedtak.felles.april
+import no.nav.tiltakspenger.vedtak.felles.januar
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltakskilde
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime

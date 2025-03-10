@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.vedtak.repository.meldekort
 
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.meldekort.domene.InnmeldtStatus
-import no.nav.tiltakspenger.meldekort.domene.NyttBrukersMeldekort
+import no.nav.tiltakspenger.vedtak.meldekort.domene.BrukersMeldekort
+import no.nav.tiltakspenger.vedtak.meldekort.domene.InnmeldtStatus
+import no.nav.tiltakspenger.vedtak.meldekort.domene.NyttBrukersMeldekort
 import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.toDTO
 import java.time.LocalDate
 

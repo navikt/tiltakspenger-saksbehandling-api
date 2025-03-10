@@ -6,11 +6,11 @@ import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.objectmothers.ObjectMother.saksbehandler
-import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.vedtak.jacksonSerialization
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.sendFørstegangsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.vedtak.routes.RouteBuilder.startBehandling
 import no.nav.tiltakspenger.vedtak.routes.routes
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Behandlingsstatus
 import org.junit.jupiter.api.Test
 
 class SendFørstegangsbehandlingTilBeslutterTest {

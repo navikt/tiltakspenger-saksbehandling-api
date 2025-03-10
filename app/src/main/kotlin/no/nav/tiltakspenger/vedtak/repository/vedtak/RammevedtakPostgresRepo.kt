@@ -3,9 +3,6 @@ package no.nav.tiltakspenger.vedtak.repository.vedtak
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
-import no.nav.tiltakspenger.distribusjon.domene.DistribusjonId
-import no.nav.tiltakspenger.distribusjon.domene.VedtakSomSkalDistribueres
-import no.nav.tiltakspenger.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
@@ -13,11 +10,14 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Vedtaksliste
-import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Vedtakstype
-import no.nav.tiltakspenger.saksbehandling.ports.RammevedtakRepo
+import no.nav.tiltakspenger.vedtak.distribusjon.domene.DistribusjonId
+import no.nav.tiltakspenger.vedtak.distribusjon.domene.VedtakSomSkalDistribueres
+import no.nav.tiltakspenger.vedtak.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingPostgresRepo
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.vedtak.Rammevedtak
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.vedtak.Vedtaksliste
+import no.nav.tiltakspenger.vedtak.saksbehandling.domene.vedtak.Vedtakstype
+import no.nav.tiltakspenger.vedtak.saksbehandling.ports.RammevedtakRepo
 import java.time.LocalDate
 import java.time.LocalDateTime
 
