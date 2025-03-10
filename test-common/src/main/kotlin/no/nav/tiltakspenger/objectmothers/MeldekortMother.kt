@@ -52,7 +52,7 @@ interface MeldekortMother {
             sakId = sakId,
             periode = periode,
         ),
-        meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(meldekortperiode.periode),
+        kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(meldekortperiode.periode),
         saksbehandler: String = "saksbehandler",
         beslutter: String = "beslutter",
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
@@ -62,7 +62,7 @@ interface MeldekortMother {
     ): MeldekortBehandling.MeldekortUnderBehandling {
         val meldeperiode = meldeperiode(
             periode = periode,
-            meldeperiodeKjedeId = meldeperiodeKjedeId,
+            kjedeId = kjedeId,
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -90,11 +90,11 @@ interface MeldekortMother {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         fnr: Fnr = Fnr.random(),
         periode: Periode,
-        meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
+        kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
         opprettet: LocalDateTime = nå(),
         meldeperiode: Meldeperiode = meldeperiode(
             periode = periode,
-            meldeperiodeKjedeId = meldeperiodeKjedeId,
+            kjedeId = kjedeId,
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -284,7 +284,7 @@ interface MeldekortMother {
                 sakId = sakId,
                 fnr = fnr,
                 kommando = kommandoer.first(),
-                meldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommandoer.first().periode),
+                kjedeId = MeldeperiodeKjedeId.fraPeriode(kommandoer.first().periode),
             ).first,
         ) { meldekortperioder, kommando ->
             meldekortperioder.beregnNesteMeldekort(kommando, fnr, barnetilleggsPerioder = barnetilleggsPerioder)
@@ -302,13 +302,13 @@ interface MeldekortMother {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         fnr: Fnr = Fnr.random(),
         opprettet: LocalDateTime = nå(),
-        meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
+        kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
     ): Pair<MeldekortBehandlinger, MeldekortBehandling.MeldekortBehandlet> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
-            meldeperiodeKjedeId = meldeperiodeKjedeId,
+            kjedeId = kjedeId,
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -346,7 +346,7 @@ interface MeldekortMother {
         kommando: SendMeldekortTilBeslutningKommando,
         fnr: Fnr,
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
-        meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
+        kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
         opprettet: LocalDateTime = nå(),
         barnetilleggsPerioder: Periodisering<AntallBarn>,
@@ -359,7 +359,7 @@ interface MeldekortMother {
         val sakId = kommando.sakId
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
-            meldeperiodeKjedeId = meldeperiodeKjedeId,
+            kjedeId = kjedeId,
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -393,7 +393,7 @@ interface MeldekortMother {
     fun meldeperiode(
         id: MeldeperiodeId = MeldeperiodeId.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
-        meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
+        kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
         sakId: SakId = SakId.random(),
         versjon: HendelseVersjon = HendelseVersjon.ny(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
@@ -416,7 +416,7 @@ interface MeldekortMother {
             }
         },
     ): Meldeperiode = Meldeperiode(
-        meldeperiodeKjedeId = meldeperiodeKjedeId,
+        kjedeId = kjedeId,
         id = id,
         versjon = versjon,
         sakId = sakId,

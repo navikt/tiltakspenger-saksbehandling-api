@@ -88,8 +88,8 @@ data class MeldekortBehandlinger(
     }
 
     /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
-    fun hentMeldekortBehandlingForMeldeperiodeKjedeId(meldeperiodeKjedeId: MeldeperiodeKjedeId): List<MeldekortBehandling> {
-        return verdi.filter { it.meldeperiodeKjedeId == meldeperiodeKjedeId }
+    fun hentMeldekortBehandlingForMeldeperiodeKjedeId(kjedeId: MeldeperiodeKjedeId): List<MeldekortBehandling> {
+        return verdi.filter { it.kjedeId == kjedeId }
     }
 
     /**
@@ -102,7 +102,7 @@ data class MeldekortBehandlinger(
         return verdi.filter { it.erÅpen() }
             .fold(Pair(this, emptyList())) { acc, meldekortBehandling ->
                 val meldeperiode = oppdaterteKjeder.hentSisteMeldeperiodeForKjedeId(
-                    kjedeId = meldekortBehandling.meldeperiode.meldeperiodeKjedeId,
+                    kjedeId = meldekortBehandling.meldeperiode.kjedeId,
                 )
                 meldekortBehandling.oppdaterMeldeperiode(meldeperiode, tiltakstypePerioder)?.let {
                     Pair(

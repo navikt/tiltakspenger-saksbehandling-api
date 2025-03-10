@@ -383,7 +383,7 @@ suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
     )
     tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
         sakId = sak.id,
-        meldeperiodeKjedeId = sak.meldeperiodeKjeder.hentSisteMeldeperiode().meldeperiodeKjedeId,
+        kjedeId = sak.meldeperiodeKjeder.hentSisteMeldeperiode().kjedeId,
         saksbehandler = saksbehandler,
         correlationId = correlationId,
     )
@@ -464,7 +464,7 @@ suspend fun TestApplicationContext.andreMeldekortIverksatt(
 
     tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
         sakId = sak.id,
-        meldeperiodeKjedeId = sak.meldeperiodeKjeder.hentSisteMeldeperiode().meldeperiodeKjedeId,
+        kjedeId = sak.meldeperiodeKjeder.hentSisteMeldeperiode().kjedeId,
         saksbehandler = saksbehandler,
         correlationId = correlationId,
     )

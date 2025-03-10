@@ -28,7 +28,7 @@ data class BrukersMeldekort(
     val journalpostId: JournalpostId,
     val oppgaveId: OppgaveId?,
 ) {
-    val meldeperiodeKjedeId: MeldeperiodeKjedeId = meldeperiode.meldeperiodeKjedeId
+    val kjedeId: MeldeperiodeKjedeId = meldeperiode.kjedeId
     val meldeperiodeVersjon: HendelseVersjon = meldeperiode.versjon
     val periode: Periode = meldeperiode.periode
 

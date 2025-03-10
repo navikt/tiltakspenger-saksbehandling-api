@@ -1,6 +1,6 @@
 val kotlinxCoroutinesVersion = "1.10.1"
 val kotestVersion = "5.9.1"
-val felleslibVersion = "0.0.393"
+val felleslibVersion = "0.0.396"
 
 dependencies {
     api(project(":domene"))
@@ -21,12 +21,11 @@ dependencies {
     api("com.github.navikt.tiltakspenger-libs:logging:$felleslibVersion")
     api("com.github.navikt.tiltakspenger-libs:json:$felleslibVersion")
     api("com.github.navikt.tiltakspenger-libs:tiltak-dtos:$felleslibVersion")
-    api("io.arrow-kt:arrow-core:1.2.4")
+    api("io.arrow-kt:arrow-core:2.0.1")
     api("io.kotest:kotest-assertions-core:$kotestVersion")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
     api("org.wiremock:wiremock:3.12.1")
     api("com.marcinziolo:kotlin-wiremock:2.1.1")
     api("io.kotest.extensions:kotest-extensions-wiremock:3.1.0")
-    api("io.kotest.extensions:kotest-assertions-arrow:1.4.0")
     api("io.github.serpro69:kotlin-faker:1.16.0")
 }

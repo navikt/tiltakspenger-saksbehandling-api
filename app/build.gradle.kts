@@ -1,6 +1,6 @@
 val kotlinxCoroutinesVersion = "1.10.1"
 val kotestVersion = "5.9.1"
-val felleslibVersion = "0.0.393"
+val felleslibVersion = "0.0.396"
 val mockkVersion = "1.13.17"
 val ktorVersion = "3.1.1"
 val testContainersVersion = "1.20.6"
@@ -101,7 +101,7 @@ dependencies {
 
     // DIV
     // Arrow
-    implementation("io.arrow-kt:arrow-core:1.2.4")
+    implementation("io.arrow-kt:arrow-core:2.0.1")
 
     // Caffeine
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")

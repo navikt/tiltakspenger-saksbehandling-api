@@ -55,7 +55,7 @@ sealed interface MeldekortBehandling {
     val ordinærBeløp: Int?
     val barnetilleggBeløp: Int?
 
-    val meldeperiodeKjedeId: MeldeperiodeKjedeId get() = meldeperiode.meldeperiodeKjedeId
+    val kjedeId: MeldeperiodeKjedeId get() = meldeperiode.kjedeId
 
     fun settIkkeRettTilTiltakspenger(periode: Periode, tidspunkt: LocalDateTime): MeldekortBehandling
 
@@ -74,8 +74,8 @@ sealed interface MeldekortBehandling {
         meldeperiode: Meldeperiode,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
     ): MeldekortBehandling? {
-        require(meldeperiode.meldeperiodeKjedeId == meldeperiodeKjedeId) {
-            "MeldekortBehandling: Kan ikke oppdatere meldeperiode med annen kjede id. ${meldeperiode.meldeperiodeKjedeId} != $meldeperiodeKjedeId"
+        require(meldeperiode.kjedeId == kjedeId) {
+            "MeldekortBehandling: Kan ikke oppdatere meldeperiode med annen kjede id. ${meldeperiode.kjedeId} != $kjedeId"
         }
         if (erAvsluttet) return null
         if (meldeperiode.versjon <= this.meldeperiode.versjon) return null

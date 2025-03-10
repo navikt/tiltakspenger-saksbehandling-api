@@ -21,7 +21,7 @@ import no.nav.tiltakspenger.vedtak.routes.meldekort.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.vedtak.routes.withMeldeperiodeKjedeId
 import no.nav.tiltakspenger.vedtak.routes.withSakId
 
-private const val PATH = "/sak/{sakId}/meldeperiode/{meldeperiodeKjedeId}"
+private const val PATH = "/sak/{sakId}/meldeperiode/{kjedeId}"
 
 fun Route.hentMeldekortRoute(
     sakService: SakService,
@@ -34,7 +34,7 @@ fun Route.hentMeldekortRoute(
         logger.debug { "Mottatt get-request på $PATH" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
-                call.withMeldeperiodeKjedeId { meldeperiodeKjedeId ->
+                call.withMeldeperiodeKjedeId { kjedeId ->
                     val correlationId = call.correlationId()
 
                     val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId = correlationId).getOrElse {
@@ -49,7 +49,7 @@ fun Route.hentMeldekortRoute(
                     }
 
                     val meldeperiodeKjedeDTO =
-                        sak.toMeldeperiodeKjedeDTO(meldeperiodeKjedeId = meldeperiodeKjedeId)
+                        sak.toMeldeperiodeKjedeDTO(kjedeId = kjedeId)
                             ?: return@withMeldeperiodeKjedeId call.respond404NotFound(fantIkkeMeldekort())
 
                     auditService.logMedSakId(

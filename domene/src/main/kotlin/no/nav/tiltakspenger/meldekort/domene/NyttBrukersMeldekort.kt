@@ -15,7 +15,7 @@ import java.time.LocalDateTime
  * Merk at vi ikke validerer disse dataene før vi lagrer de, siden vi stoler på at meldekort-api har gjort det.
  *
  * @param id Unik id (ULID/UUID) for dette meldekortet
- * @param meldeperiodeId En unik versjon av meldeperioden. Alternativ til å sende meldeperiodeKjedeId+versjon.
+ * @param meldeperiodeId En unik versjon av meldeperioden. Alternativ til å sende kjedeId+versjon.
  */
 data class NyttBrukersMeldekort(
     val id: MeldekortId,

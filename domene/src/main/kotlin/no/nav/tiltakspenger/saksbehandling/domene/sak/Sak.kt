@@ -90,8 +90,8 @@ data class Sak(
         return meldeperiodeKjeder.hentMeldeperiode(id)
     }
 
-    fun hentMeldeperiodeForKjedeId(meldeperiodeKjedeId: MeldeperiodeKjedeId): Meldeperiode {
-        return meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(meldeperiodeKjedeId)
+    fun hentMeldeperiodeForKjedeId(kjedeId: MeldeperiodeKjedeId): Meldeperiode {
+        return meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
     }
 
     fun hentMeldekortUnderBehandling(): MeldekortBehandling? = meldekortBehandlinger.meldekortUnderBehandling
