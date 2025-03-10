@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.libs.jobber.LeaderPodLookup
 import no.nav.tiltakspenger.libs.jobber.LeaderPodLookupClient
 import no.nav.tiltakspenger.libs.jobber.LeaderPodLookupFeil
 import no.nav.tiltakspenger.libs.jobber.RunCheckFactory
-import no.nav.tiltakspenger.vedtak.Configuration.applicationProfile
 import no.nav.tiltakspenger.vedtak.Configuration.httpPort
 import no.nav.tiltakspenger.vedtak.context.ApplicationContext
 import no.nav.tiltakspenger.vedtak.jobber.TaskExecutor
@@ -43,8 +42,6 @@ internal fun start(
         sikkerlogg.error(e) { e.message }
     }
 
-    val applicationProfile = applicationProfile()
-
     val server = embeddedServer(
         factory = Netty,
         port = port,
@@ -72,7 +69,7 @@ internal fun start(
         )
     }
 
-    val stoppableTasks = TaskExecutor.startJob(
+    TaskExecutor.startJob(
         initialDelay = if (isNais) 1.minutes else 1.seconds,
         runCheckFactory = runCheckFactory,
         tasks = listOf {
@@ -80,14 +77,11 @@ internal fun start(
             applicationContext.utbetalingContext.journalførUtbetalingsvedtakService.journalfør()
             applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør()
             applicationContext.behandlingContext.distribuerVedtaksbrevService.distribuer()
-            applicationContext.sendTilDatadelingService.send(Configuration.isNais())
             applicationContext.meldekortContext.oppgaveMeldekortService.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk()
             if (Configuration.isNais()) {
                 applicationContext.endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
                 applicationContext.endretTiltaksdeltakerJobb.opprydning()
-            }
-
-            if (applicationProfile == Profile.DEV) {
+                applicationContext.sendTilDatadelingService.send()
                 applicationContext.meldekortContext.sendMeldeperiodeTilBrukerService.send()
             }
         },

@@ -16,13 +16,9 @@ class SendTilDatadelingService(
 ) {
     val logger = KotlinLogging.logger { }
 
-    suspend fun send(
-        erNais: Boolean,
-    ) {
-        if (erNais) {
-            sendBehandlinger()
-            sendVedtak()
-        }
+    suspend fun send() {
+        sendBehandlinger()
+        sendVedtak()
     }
 
     private suspend fun sendVedtak() {
