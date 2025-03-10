@@ -72,6 +72,7 @@ interface SakMother {
             tiltaksdeltagelse = registrerteTiltak,
         ),
         barnetillegg: Barnetillegg? = null,
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = listOf(Pair(virkningsperiode, registrerteTiltak.first().eksternDeltagelseId)),
     ): Sak {
         val førstegangsbehandling =
             runBlocking {
@@ -98,6 +99,7 @@ interface SakMother {
                             fritekstTilVedtaksbrev = null,
                             begrunnelseVilkårsvurdering = null,
                             innvilgelsesperiode = virkningsperiode,
+                            tiltaksdeltakelser = valgteTiltaksdeltakelser,
                         ),
                     )
                 }

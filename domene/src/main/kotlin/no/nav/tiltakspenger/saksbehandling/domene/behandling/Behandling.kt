@@ -249,7 +249,7 @@ data class Behandling(
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             virkningsperiode = kommando.innvilgelsesperiode,
             barnetillegg = kommando.barnetillegg(),
-            valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(tiltaksdeltakelse, kommando.innvilgelsesperiode),
+            valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
         )
     }
 

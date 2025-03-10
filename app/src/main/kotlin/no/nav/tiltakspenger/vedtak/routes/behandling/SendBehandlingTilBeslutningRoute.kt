@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilB
 import no.nav.tiltakspenger.vedtak.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.behandling.dto.BarnetilleggDTO
+import no.nav.tiltakspenger.vedtak.routes.behandling.dto.ValgteTiltaksdeltakelserDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil
@@ -34,6 +35,7 @@ private data class SendTilBeslutningBody(
     val begrunnelseVilkårsvurdering: String?,
     val innvilgelsesperiode: PeriodeDTO,
     val barnetillegg: BarnetilleggDTO?,
+    val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelserDTO,
 ) {
     fun toDomain(
         sakId: SakId,
@@ -52,6 +54,9 @@ private data class SendTilBeslutningBody(
             begrunnelse = barnetillegg?.begrunnelse?.let { BegrunnelseVilkårsvurdering(it) },
             perioder = barnetillegg?.perioder?.map {
                 Pair(it.periode.toDomain(), AntallBarn(it.antallBarn))
+            },
+            tiltaksdeltakelser = valgteTiltaksdeltakelser.valgteTiltaksdeltakelser.map {
+                Pair(it.periode.toDomain(), it.eksternDeltagelseId)
             },
         )
     }

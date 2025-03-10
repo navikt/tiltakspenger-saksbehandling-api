@@ -211,6 +211,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
                     innvilgelsesperiode = tiltaksOgVurderingsperiode,
                     begrunnelse = null,
                     perioder = null,
+                    tiltaksdeltakelser = listOf(Pair(tiltaksOgVurderingsperiode, førstegangsbehandling.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId)),
                 ),
             )
             .taBehandling(beslutter)
