@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.objectmothers
 
-import no.nav.tiltakspenger.vedtak.felles.Navkontor
-import no.nav.tiltakspenger.vedtak.felles.OppgaveId
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.personopplysninger.Navn
+import no.nav.tiltakspenger.saksbehandling.felles.Navkontor
+import no.nav.tiltakspenger.saksbehandling.felles.OppgaveId
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.Navn
 
 object ObjectMother :
     SaksbehandlerMother,

@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.objectmothers
 
 import arrow.core.nonEmptyListOf
-import no.nav.tiltakspenger.vedtak.felles.Systembruker
-import no.nav.tiltakspenger.vedtak.felles.Systembrukerrolle
-import no.nav.tiltakspenger.vedtak.felles.Systembrukerroller
+import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
+import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerrolle
+import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerroller
 
 interface SystembrukerMother {
     fun systembrukerHenteData(

@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.fakes.repos
 
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.StatistikkStønadRepo
-import no.nav.tiltakspenger.vedtak.saksbehandling.service.statistikk.stønad.StatistikkStønadDTO
-import no.nav.tiltakspenger.vedtak.saksbehandling.service.statistikk.stønad.StatistikkUtbetalingDTO
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.StatistikkStønadRepo
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.stønad.StatistikkStønadDTO
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.stønad.StatistikkUtbetalingDTO
 
 class StatistikkStønadFakeRepo : StatistikkStønadRepo {
 

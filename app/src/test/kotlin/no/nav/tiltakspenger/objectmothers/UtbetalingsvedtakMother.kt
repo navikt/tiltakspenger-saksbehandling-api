@@ -6,13 +6,13 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.vedtak.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.vedtak.felles.januar
-import no.nav.tiltakspenger.vedtak.felles.journalføring.JournalpostId
-import no.nav.tiltakspenger.vedtak.felles.nå
-import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.vedtak.utbetaling.domene.Utbetalingsvedtak
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.felles.januar
+import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.felles.nå
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import java.time.LocalDate
 import java.time.LocalDateTime
 

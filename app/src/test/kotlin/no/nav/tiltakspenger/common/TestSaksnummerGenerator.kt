@@ -1,8 +1,10 @@
+@file:Suppress("UnusedImport")
+
 package no.nav.tiltakspenger.common
 
 import arrow.atomic.Atomic
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.SaksnummerGenerator
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.SaksnummerGenerator
 import java.time.LocalDate
 
 /**

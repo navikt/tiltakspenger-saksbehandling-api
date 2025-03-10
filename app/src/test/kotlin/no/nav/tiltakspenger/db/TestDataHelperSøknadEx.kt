@@ -4,11 +4,11 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.vedtak.felles.januar
-import no.nav.tiltakspenger.vedtak.felles.mars
-import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingRepoTest.Companion.random
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.felles.januar
+import no.nav.tiltakspenger.saksbehandling.felles.mars
+import no.nav.tiltakspenger.saksbehandling.repository.behandling.BehandlingRepoTest.Companion.random
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import java.time.LocalDate
 
 internal fun TestDataHelper.persisterSakOgSøknad(

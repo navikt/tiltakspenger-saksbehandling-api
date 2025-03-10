@@ -9,11 +9,11 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusType
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.TiltaksdeltakerService
-import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.arena.ArenaDeltakerMapper
-import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.komet.DeltakerV1Dto
-import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaDb
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.TiltaksdeltakerService
+import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.arena.ArenaDeltakerMapper
+import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.komet.DeltakerV1Dto
+import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaDb
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime

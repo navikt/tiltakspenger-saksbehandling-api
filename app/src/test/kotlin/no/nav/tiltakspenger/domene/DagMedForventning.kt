@@ -5,9 +5,9 @@ import arrow.core.flatten
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.vedtak.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
-import no.nav.tiltakspenger.vedtak.meldekort.domene.SendMeldekortTilBeslutningKommando
-import no.nav.tiltakspenger.vedtak.meldekort.domene.SendMeldekortTilBeslutningKommando.Status
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Status
 import java.time.LocalDate
 
 internal data class DagMedForventning(

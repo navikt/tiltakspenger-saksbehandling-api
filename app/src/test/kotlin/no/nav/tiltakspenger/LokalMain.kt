@@ -2,8 +2,8 @@ package no.nav.tiltakspenger
 
 import io.ktor.server.routing.Route
 import mu.KotlinLogging
-import no.nav.tiltakspenger.vedtak.Configuration
-import no.nav.tiltakspenger.vedtak.start
+import no.nav.tiltakspenger.saksbehandling.Configuration
+import no.nav.tiltakspenger.saksbehandling.start
 
 /**
  * Starter opp serveren lokalt med postgres og auth i docker og in-memory fakes.

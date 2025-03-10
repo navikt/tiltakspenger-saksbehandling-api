@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
-import no.nav.tiltakspenger.vedtak.felles.Systembrukerroller
+import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerroller
 
 interface SaksbehandlerMother {
     fun saksbehandler(

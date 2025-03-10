@@ -1,13 +1,15 @@
+@file:Suppress("UnusedImport")
+
 package no.nav.tiltakspenger.fakes.clients
 
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.common.JournalpostIdGenerator
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.vedtak.felles.journalføring.JournalpostId
-import no.nav.tiltakspenger.vedtak.felles.journalføring.PdfOgJson
-import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.vedtak.meldekort.ports.JournalførMeldekortGateway
+import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.felles.journalføring.PdfOgJson
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortGateway
 
 class JournalførFakeMeldekortGateway(
     private val journalpostIdGenerator: JournalpostIdGenerator,

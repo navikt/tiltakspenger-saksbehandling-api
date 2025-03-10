@@ -5,11 +5,11 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.vedtak.context.ApplicationContext
-import no.nav.tiltakspenger.vedtak.repository.felles.PeriodeDbJson
-import no.nav.tiltakspenger.vedtak.routes.søknad.nySakMedNySøknad
-import no.nav.tiltakspenger.vedtak.routes.søknad.nySøknadForFnr
-import no.nav.tiltakspenger.vedtak.routes.withBody
+import no.nav.tiltakspenger.saksbehandling.context.ApplicationContext
+import no.nav.tiltakspenger.saksbehandling.repository.felles.PeriodeDbJson
+import no.nav.tiltakspenger.saksbehandling.routes.søknad.nySakMedNySøknad
+import no.nav.tiltakspenger.saksbehandling.routes.søknad.nySøknadForFnr
+import no.nav.tiltakspenger.saksbehandling.routes.withBody
 
 internal const val DEV_ROUTE = "/dev"
 

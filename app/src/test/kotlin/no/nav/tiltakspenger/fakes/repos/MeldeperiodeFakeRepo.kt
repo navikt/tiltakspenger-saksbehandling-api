@@ -4,9 +4,9 @@ import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import no.nav.tiltakspenger.vedtak.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldeperiodeKjeder
-import no.nav.tiltakspenger.vedtak.meldekort.ports.MeldeperiodeRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import java.time.LocalDateTime
 
 class MeldeperiodeFakeRepo : MeldeperiodeRepo {

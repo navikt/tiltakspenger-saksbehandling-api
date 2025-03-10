@@ -6,12 +6,12 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.vedtak.distribusjon.domene.DistribusjonId
-import no.nav.tiltakspenger.vedtak.distribusjon.domene.VedtakSomSkalDistribueres
-import no.nav.tiltakspenger.vedtak.felles.journalføring.JournalpostId
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.vedtak.Rammevedtak
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.vedtak.Vedtaksliste
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.RammevedtakRepo
+import no.nav.tiltakspenger.saksbehandling.distribusjon.domene.DistribusjonId
+import no.nav.tiltakspenger.saksbehandling.distribusjon.domene.VedtakSomSkalDistribueres
+import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.RammevedtakRepo
 import java.time.LocalDate
 import java.time.LocalDateTime
 

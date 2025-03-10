@@ -1,12 +1,14 @@
+@file:Suppress("UnusedImport")
+
 package no.nav.tiltakspenger.fakes.clients
 
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.objectmothers.toTiltak
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.SøknadRepo
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.TiltakGateway
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SøknadRepo
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.TiltakGateway
 
 class TiltakFakeGateway(private val søknadRepo: SøknadRepo) : TiltakGateway {
     private val data = Atomic(mutableMapOf<Fnr, List<Tiltaksdeltagelse>>())

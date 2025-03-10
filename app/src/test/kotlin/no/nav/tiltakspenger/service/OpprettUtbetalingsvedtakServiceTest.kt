@@ -8,8 +8,8 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.objectmothers.andreMeldekortIverksatt
 import no.nav.tiltakspenger.objectmothers.tilSendMeldekortTilBeslutterKommando
-import no.nav.tiltakspenger.vedtak.meldekort.domene.IverksettMeldekortKommando
-import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import org.junit.jupiter.api.Test
 
 internal class OpprettUtbetalingsvedtakServiceTest {

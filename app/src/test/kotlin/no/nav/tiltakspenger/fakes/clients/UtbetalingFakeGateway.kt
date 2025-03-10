@@ -1,3 +1,5 @@
+@file:Suppress("UnusedImport")
+
 package no.nav.tiltakspenger.fakes.clients
 
 import arrow.atomic.Atomic
@@ -5,10 +7,10 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.KunneIkkeUtbetale
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.SendtUtbetaling
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.UtbetalingGateway
-import no.nav.tiltakspenger.vedtak.utbetaling.domene.Utbetalingsvedtak
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.KunneIkkeUtbetale
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SendtUtbetaling
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.UtbetalingGateway
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 
 class UtbetalingFakeGateway : UtbetalingGateway {
     private val utbetalinger = Atomic(mutableMapOf<VedtakId, Utbetaling>())

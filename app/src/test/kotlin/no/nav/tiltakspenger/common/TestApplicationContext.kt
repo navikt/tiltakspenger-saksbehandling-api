@@ -36,22 +36,22 @@ import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
-import no.nav.tiltakspenger.vedtak.Profile
-import no.nav.tiltakspenger.vedtak.auth.systembrukerMapper
-import no.nav.tiltakspenger.vedtak.context.ApplicationContext
-import no.nav.tiltakspenger.vedtak.context.DokumentContext
-import no.nav.tiltakspenger.vedtak.context.FørstegangsbehandlingContext
-import no.nav.tiltakspenger.vedtak.context.MeldekortContext
-import no.nav.tiltakspenger.vedtak.context.PersonContext
-import no.nav.tiltakspenger.vedtak.context.SakContext
-import no.nav.tiltakspenger.vedtak.context.StatistikkContext
-import no.nav.tiltakspenger.vedtak.context.SøknadContext
-import no.nav.tiltakspenger.vedtak.context.TiltakContext
-import no.nav.tiltakspenger.vedtak.context.UtbetalingContext
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.OppgaveGateway
-import no.nav.tiltakspenger.vedtak.utbetaling.service.NavkontorService
+import no.nav.tiltakspenger.saksbehandling.Profile
+import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
+import no.nav.tiltakspenger.saksbehandling.context.ApplicationContext
+import no.nav.tiltakspenger.saksbehandling.context.DokumentContext
+import no.nav.tiltakspenger.saksbehandling.context.FørstegangsbehandlingContext
+import no.nav.tiltakspenger.saksbehandling.context.MeldekortContext
+import no.nav.tiltakspenger.saksbehandling.context.PersonContext
+import no.nav.tiltakspenger.saksbehandling.context.SakContext
+import no.nav.tiltakspenger.saksbehandling.context.StatistikkContext
+import no.nav.tiltakspenger.saksbehandling.context.SøknadContext
+import no.nav.tiltakspenger.saksbehandling.context.TiltakContext
+import no.nav.tiltakspenger.saksbehandling.context.UtbetalingContext
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.NavkontorService
 
 /**
  * Oppretter en tom ApplicationContext for bruk i tester.

@@ -6,9 +6,9 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Avbrutt
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Behandlinger
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingsstatus
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 

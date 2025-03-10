@@ -8,11 +8,11 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.KunneIkkeUtbetale
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.SendtUtbetaling
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.UtbetalingGateway
-import no.nav.tiltakspenger.vedtak.utbetaling.ports.UtbetalingsvedtakRepo
-import no.nav.tiltakspenger.vedtak.utbetaling.service.SendUtbetalingerService
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.KunneIkkeUtbetale
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SendtUtbetaling
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.UtbetalingGateway
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SendUtbetalingerService
 import org.junit.jupiter.api.Test
 
 internal class SendUtbetalingerServiceTest {

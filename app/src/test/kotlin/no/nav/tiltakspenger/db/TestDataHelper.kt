@@ -4,20 +4,20 @@ import mu.KotlinLogging
 import no.nav.tiltakspenger.common.TestSaksnummerGenerator
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
-import no.nav.tiltakspenger.vedtak.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaRepository
-import no.nav.tiltakspenger.vedtak.repository.behandling.BehandlingPostgresRepo
-import no.nav.tiltakspenger.vedtak.repository.benk.BenkOversiktPostgresRepo
-import no.nav.tiltakspenger.vedtak.repository.meldekort.BrukersMeldekortPostgresRepo
-import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldekortBehandlingPostgresRepo
-import no.nav.tiltakspenger.vedtak.repository.meldekort.MeldeperiodePostgresRepo
-import no.nav.tiltakspenger.vedtak.repository.person.PersonPostgresRepo
-import no.nav.tiltakspenger.vedtak.repository.sak.SakPostgresRepo
-import no.nav.tiltakspenger.vedtak.repository.statistikk.sak.StatistikkSakRepoImpl
-import no.nav.tiltakspenger.vedtak.repository.statistikk.stønad.StatistikkStønadPostgresRepo
-import no.nav.tiltakspenger.vedtak.repository.søknad.PostgresSøknadRepo
-import no.nav.tiltakspenger.vedtak.repository.utbetaling.UtbetalingsvedtakPostgresRepo
-import no.nav.tiltakspenger.vedtak.repository.vedtak.RammevedtakPostgresRepo
-import no.nav.tiltakspenger.vedtak.utbetaling.ports.UtbetalingsvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaRepository
+import no.nav.tiltakspenger.saksbehandling.repository.behandling.BehandlingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.repository.benk.BenkOversiktPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.repository.meldekort.BrukersMeldekortPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.repository.meldekort.MeldekortBehandlingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.repository.meldekort.MeldeperiodePostgresRepo
+import no.nav.tiltakspenger.saksbehandling.repository.person.PersonPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.repository.sak.SakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.repository.statistikk.sak.StatistikkSakRepoImpl
+import no.nav.tiltakspenger.saksbehandling.repository.statistikk.stønad.StatistikkStønadPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.repository.søknad.PostgresSøknadRepo
+import no.nav.tiltakspenger.saksbehandling.repository.utbetaling.UtbetalingsvedtakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.repository.vedtak.RammevedtakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import javax.sql.DataSource
 
 internal class TestDataHelper(

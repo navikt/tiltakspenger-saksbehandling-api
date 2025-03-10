@@ -3,14 +3,14 @@ package no.nav.tiltakspenger.objectmothers
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.objectmothers.ObjectMother.tiltaksdeltagelse
-import no.nav.tiltakspenger.vedtak.felles.januar
-import no.nav.tiltakspenger.vedtak.felles.mars
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Søknadstiltak
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Deltar
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltakskilde
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltakskilde.Komet
+import no.nav.tiltakspenger.saksbehandling.felles.januar
+import no.nav.tiltakspenger.saksbehandling.felles.mars
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.TiltakDeltakerstatus.Deltar
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltakskilde.Komet
 import java.time.LocalDate
 import java.util.UUID
 

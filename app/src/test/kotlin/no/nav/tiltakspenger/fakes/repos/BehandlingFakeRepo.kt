@@ -6,9 +6,9 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Behandlinger
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.BehandlingRepo
 import java.time.LocalDateTime
 
 class BehandlingFakeRepo : BehandlingRepo {

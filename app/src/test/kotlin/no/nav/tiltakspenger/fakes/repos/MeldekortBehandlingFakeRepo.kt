@@ -6,9 +6,9 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandlinger
-import no.nav.tiltakspenger.vedtak.meldekort.ports.MeldekortBehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 
 class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
     private val data = Atomic(mutableMapOf<MeldekortId, MeldekortBehandling>())

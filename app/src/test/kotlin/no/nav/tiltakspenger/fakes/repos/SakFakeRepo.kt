@@ -6,11 +6,11 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandlinger
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saker
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.SakRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saker
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SakRepo
 import java.time.LocalDate
 
 class SakFakeRepo(

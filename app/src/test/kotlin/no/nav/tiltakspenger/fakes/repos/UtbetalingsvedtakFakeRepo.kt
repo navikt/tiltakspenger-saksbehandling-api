@@ -4,12 +4,12 @@ import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.vedtak.felles.journalføring.JournalpostId
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.KunneIkkeUtbetale
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.SendtUtbetaling
-import no.nav.tiltakspenger.vedtak.utbetaling.domene.Utbetalinger
-import no.nav.tiltakspenger.vedtak.utbetaling.domene.Utbetalingsvedtak
-import no.nav.tiltakspenger.vedtak.utbetaling.ports.UtbetalingsvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.KunneIkkeUtbetale
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SendtUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import java.time.LocalDateTime
 
 class UtbetalingsvedtakFakeRepo : UtbetalingsvedtakRepo {

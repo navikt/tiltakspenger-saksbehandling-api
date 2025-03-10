@@ -9,10 +9,10 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.objectmothers.ObjectMother
-import no.nav.tiltakspenger.vedtak.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.vedtak.clients.utbetaling.toDTO
-import no.nav.tiltakspenger.vedtak.felles.januar
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.clients.utbetaling.toDTO
+import no.nav.tiltakspenger.saksbehandling.felles.januar
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 

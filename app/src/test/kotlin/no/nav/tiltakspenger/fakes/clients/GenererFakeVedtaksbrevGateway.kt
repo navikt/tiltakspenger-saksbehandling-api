@@ -6,16 +6,16 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.vedtak.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.vedtak.felles.KunneIkkeGenererePdf
-import no.nav.tiltakspenger.vedtak.felles.PdfA
-import no.nav.tiltakspenger.vedtak.felles.journalføring.PdfOgJson
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.personopplysninger.Navn
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.vedtak.Rammevedtak
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.GenererStansvedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.felles.KunneIkkeGenererePdf
+import no.nav.tiltakspenger.saksbehandling.felles.PdfA
+import no.nav.tiltakspenger.saksbehandling.felles.journalføring.PdfOgJson
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.Navn
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.GenererStansvedtaksbrevGateway
 import java.time.LocalDate
 
 class GenererFakeVedtaksbrevGateway :

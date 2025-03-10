@@ -1,9 +1,11 @@
+@file:Suppress("UnusedImport")
+
 package no.nav.tiltakspenger.fakes.clients
 
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.PoaoTilgangGateway
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.PoaoTilgangGateway
 
 class PoaoTilgangskontrollFake : PoaoTilgangGateway {
 

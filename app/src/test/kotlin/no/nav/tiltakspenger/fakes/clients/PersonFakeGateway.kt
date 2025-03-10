@@ -1,12 +1,14 @@
+@file:Suppress("UnusedImport")
+
 package no.nav.tiltakspenger.fakes.clients
 
 import arrow.atomic.Atomic
 import io.github.serpro69.kfaker.faker
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.personopplysninger.EnkelPerson
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
-import no.nav.tiltakspenger.vedtak.saksbehandling.ports.PersonGateway
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.PersonGateway
 
 class PersonFakeGateway : PersonGateway {
     private val data = Atomic(mutableMapOf<Fnr, PersonopplysningerSøker>())

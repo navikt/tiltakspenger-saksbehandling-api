@@ -11,20 +11,20 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.objectmothers.ObjectMother.nySøknad
 import no.nav.tiltakspenger.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.objectmothers.ObjectMother.søknadstiltak
-import no.nav.tiltakspenger.vedtak.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.vedtak.felles.januar
-import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldekortBehandlinger
-import no.nav.tiltakspenger.vedtak.meldekort.domene.MeldeperiodeKjeder
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Behandlinger
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.vedtak.saksbehandling.domene.vedtak.Vedtaksliste
-import no.nav.tiltakspenger.vedtak.utbetaling.domene.Utbetalinger
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.felles.januar
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import java.time.LocalDate
 
 interface SakMother {

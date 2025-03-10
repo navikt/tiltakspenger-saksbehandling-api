@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.common
 
-import no.nav.tiltakspenger.vedtak.distribusjon.domene.DistribusjonId
+import no.nav.tiltakspenger.saksbehandling.distribusjon.domene.DistribusjonId
 import java.util.concurrent.atomic.AtomicLong
 
 /**
