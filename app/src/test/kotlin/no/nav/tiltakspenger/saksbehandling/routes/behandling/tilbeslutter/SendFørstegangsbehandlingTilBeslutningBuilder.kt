@@ -86,17 +86,15 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
                     "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
                     "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
                 },
-                "valgteTiltaksdeltakelser": {
-                    "valgteTiltaksdeltakelser": [
-                        {
-                            "eksternDeltagelseId": "$eksternDeltagelseId",
-                            "periode": {
-                                "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
-                                "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
-                            }
+                "valgteTiltaksdeltakelser": [
+                    {
+                        "eksternDeltagelseId": "$eksternDeltagelseId",
+                        "periode": {
+                            "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
+                            "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
                         }
-                    ]
-                }
+                    }
+                ]
             }
                 """.trimIndent(),
             )
