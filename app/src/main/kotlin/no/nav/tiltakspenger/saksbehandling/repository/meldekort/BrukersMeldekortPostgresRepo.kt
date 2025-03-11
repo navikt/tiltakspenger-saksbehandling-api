@@ -12,13 +12,13 @@ import no.nav.tiltakspenger.saksbehandling.felles.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.NyttBrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 
 class BrukersMeldekortPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : BrukersMeldekortRepo {
     override fun lagre(
-        brukersMeldekort: NyttBrukersMeldekort,
+        brukersMeldekort: LagreBrukersMeldekortKommando,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->

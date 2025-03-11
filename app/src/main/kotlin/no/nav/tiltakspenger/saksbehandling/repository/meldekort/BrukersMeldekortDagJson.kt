@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.NyttBrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto.toDTO
 import java.time.LocalDate
 
@@ -13,7 +13,7 @@ data class BrukersMeldekortDagJson(
     val status: String,
 )
 
-fun NyttBrukersMeldekort.toDagerJson(): String {
+fun LagreBrukersMeldekortKommando.toDagerJson(): String {
     return dager.map {
         BrukersMeldekortDagJson(
             dato = it.dato,
