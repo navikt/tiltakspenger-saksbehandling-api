@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandling
 import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.mars
+import no.nav.tiltakspenger.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -29,7 +30,7 @@ internal class BehandlingRepoTest {
 
             val (sak, _) = testDataHelper.persisterOpprettetFørstegangsbehandling()
             sakRepo.hentForSakId(sak.id) shouldBe sak
-            behandlingRepo.hent(sak.førstegangsbehandling!!.id) shouldBe sak.førstegangsbehandling
+            behandlingRepo.hent(sak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.id) shouldBe sak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()
         }
     }
 
@@ -52,8 +53,8 @@ internal class BehandlingRepoTest {
                 ),
             )
             sakRepo.hentForSakId(sak.id) shouldBe sak
-            behandlingRepo.hent(sak.førstegangsbehandling!!.id).also {
-                it shouldBe sak.førstegangsbehandling
+            behandlingRepo.hent(sak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.id).also {
+                it shouldBe sak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()
                 it.barnetillegg shouldNotBe null
             }
         }
@@ -79,8 +80,8 @@ internal class BehandlingRepoTest {
             val (sak1, _) = testDataHelper.persisterOpprettetFørstegangsbehandling()
             val (sak2, _) = testDataHelper.persisterOpprettetFørstegangsbehandling()
 
-            behandlingRepo.hentAlleForFnr(sak1.fnr) shouldBe listOf(sak1.førstegangsbehandling)
-            behandlingRepo.hentAlleForFnr(sak2.fnr) shouldBe listOf(sak2.førstegangsbehandling)
+            behandlingRepo.hentAlleForFnr(sak1.fnr) shouldBe sak1.ikkeAvbruttFørstegangsbehandlinger
+            behandlingRepo.hentAlleForFnr(sak2.fnr) shouldBe sak2.ikkeAvbruttFørstegangsbehandlinger
         }
     }
 }

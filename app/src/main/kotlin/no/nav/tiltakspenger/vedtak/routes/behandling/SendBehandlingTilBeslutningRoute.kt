@@ -12,9 +12,11 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter.MåVæreSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.service.behandling.SendBehandlingTilBeslutningService
@@ -24,7 +26,6 @@ import no.nav.tiltakspenger.vedtak.routes.behandling.dto.BarnetilleggDTO
 import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil
-import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond403Forbidden
 import no.nav.tiltakspenger.vedtak.routes.withBehandlingId
 import no.nav.tiltakspenger.vedtak.routes.withBody
 import no.nav.tiltakspenger.vedtak.routes.withSakId
@@ -79,9 +80,8 @@ fun Route.sendBehandlingTilBeslutningRoute(
                                 correlationId = correlationId,
                             ),
                         ).onLeft {
-                            when (it) {
-                                is MåVæreSaksbehandler -> call.respond403Forbidden(Standardfeil.måVæreSaksbehandler())
-                            }
+                            val error = it.toErrorJson()
+                            call.respond(error.first, error.second)
                         }.onRight {
                             auditService.logMedBehandlingId(
                                 behandlingId = behandlingId,
@@ -96,5 +96,15 @@ fun Route.sendBehandlingTilBeslutningRoute(
                 }
             }
         }
+    }
+}
+
+internal fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, no.nav.tiltakspenger.vedtak.routes.exceptionhandling.ErrorJson> {
+    return when (this) {
+        MåVæreSaksbehandler -> HttpStatusCode.Forbidden to Standardfeil.måVæreSaksbehandler()
+        KanIkkeSendeTilBeslutter.PeriodenOverlapperEllerTilstøterMedAnnenBehandling -> HttpStatusCode.BadRequest to no.nav.tiltakspenger.vedtak.routes.exceptionhandling.ErrorJson(
+            "Innvilgelsesperioden overlapper/tilstøter med eksisterende perioder på saken",
+            "innvilgelsesperiode_overlapper_eller_tilstøter_med_eksisternede_perioder",
+        )
     }
 }

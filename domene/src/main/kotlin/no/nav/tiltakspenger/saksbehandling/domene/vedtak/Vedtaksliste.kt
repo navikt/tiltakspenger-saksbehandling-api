@@ -19,7 +19,7 @@ data class Vedtaksliste(
 
     val tidslinje: Periodisering<Rammevedtak> by lazy { value.toTidslinje() }
 
-    val førstegangsvedtak: Rammevedtak? by lazy { value.singleOrNullOrThrow { it.erFørstegangsvedtak } }
+    val førstegangsvedtak: List<Rammevedtak> by lazy { value.filter { it.erFørstegangsvedtak } }
 
     /** Nåtilstand. Dette er sakens totale vedtaksperiode. Vær veldig obs når du bruker denne, fordi den sier ikke noe om antall perioder, om de gir rett eller ikke. */
     val vedtaksperiode: Periode? by lazy { tidslinje.ifEmpty { null }?.totalePeriode }
@@ -31,6 +31,10 @@ data class Vedtaksliste(
     /** Nåtilstand. De periodene som gir rett til tiltakspenger. Vil kunne være hull. */
     val innvilgelsesperioder: List<Periode> by lazy {
         tidslinje.filter { it.verdi.vedtaksType == Vedtakstype.INNVILGELSE }.map { it.periode }
+    }
+
+    val innvilgelsesperiode: Periode? by lazy {
+        innvilgelsesperioder.ifEmpty { null }?.let { Periode(it.minOf { it.fraOgMed }, it.maxOf { it.tilOgMed }) }
     }
 
     val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
@@ -53,6 +57,16 @@ data class Vedtaksliste(
     val sisteDagSomGirRett: LocalDate? by lazy {
         innvilgelsesperioder.maxOfOrNull { it.tilOgMed }
     }
+
+    /** Den er kun trygg inntil vi revurderer antall dager. */
+    fun hentAntallDager(periode: Periode): Int? =
+        if (this.isEmpty()) {
+            null
+        } else {
+            // her håper vi på at noe magisk vil skje. Kanskje det fungerer i starten, med brekker når det er flere vedtak
+            this.tidslinje.krymp(periode).distinctBy { it.periode }
+                .single().verdi.antallDagerPerMeldeperiode
+        }
 
     /**
      * Perioden må være innenfor tidslinjen
@@ -116,13 +130,7 @@ data class Vedtaksliste(
         return barnetilleggsperioder.singleOrNullOrThrow { it.periode.inneholder(dag) }?.verdi ?: AntallBarn.ZERO
     }
 
-    fun leggTilFørstegangsVedtak(vedtak: Rammevedtak): Vedtaksliste {
-        when (vedtak.vedtaksType) {
-            Vedtakstype.INNVILGELSE -> require(this.isEmpty()) { "Vedtaksliste must not be empty." }
-            Vedtakstype.STANS -> Unit
-        }
-        return copy(value = listOf(vedtak))
-    }
+    fun leggTilFørstegangsVedtak(vedtak: Rammevedtak): Vedtaksliste = copy(value = listOf(vedtak))
 
     fun hentTiltaksdataForPeriode(periode: Periode): List<Tiltaksdeltagelse> {
         return valgteTiltaksdeltakelserForPeriode(periode).perioderMedVerdi.map { it.verdi }

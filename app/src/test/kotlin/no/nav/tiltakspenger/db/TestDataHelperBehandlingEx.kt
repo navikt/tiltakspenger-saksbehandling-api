@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.mars
+import no.nav.tiltakspenger.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
@@ -13,7 +14,7 @@ import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
+import no.nav.tiltakspenger.meldekort.domene.opprettManglendeMeldeperioder
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
@@ -83,7 +84,7 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
             sakId = sak.id,
             barnetillegg = barnetillegg,
         )
-    behandlingRepo.lagre(sakMedBehandling.førstegangsbehandling!!)
+    behandlingRepo.lagre(sakMedBehandling.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!)
 
     return Pair(
         sakRepo.hentForSakId(sakId)!!,
@@ -137,8 +138,8 @@ internal fun TestDataHelper.persisterAvbruttFørstegangsbehandling(
         søknad = søknad,
         sak = sak,
     )
-    val førstegangsbehandling = sakMedFørstegangsbehandling.førstegangsbehandling
-    val avbruttBehandling = førstegangsbehandling!!.avbryt(
+    val førstegangsbehandling = sakMedFørstegangsbehandling.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!
+    val avbruttBehandling = førstegangsbehandling.avbryt(
         saksbehandler,
         "begrunnelse",
         avbruttTidspunkt,
@@ -197,9 +198,9 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
         søknad = søknad,
         sak = sak,
     )
-    val førstegangsbehandling = sak.førstegangsbehandling
+    val førstegangsbehandling = sak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!
     val oppdatertFørstegangsbehandling =
-        førstegangsbehandling!!
+        førstegangsbehandling
             .tilBeslutning(
                 SendSøknadsbehandlingTilBeslutningKommando(
                     sakId = sakId,
@@ -467,16 +468,17 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         beslutter = beslutter,
         sak = sak,
     )
-    val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
+    val (sak2, meldeperioder) = sak.opprettManglendeMeldeperioder(vedtak)
     val behandletMeldekort = ObjectMother.meldekortBehandlet(
-        sakId = sak.id,
-        fnr = sak.fnr,
-        saksnummer = sak.saksnummer,
-        antallDagerForMeldeperiode = vedtak.antallDagerPerMeldeperiode,
-        meldeperiode = førsteMeldeperiode,
-        periode = førsteMeldeperiode.periode,
+        sakId = sak2.id,
+        fnr = sak2.fnr,
+        saksnummer = sak2.saksnummer,
+        meldeperiode = meldeperioder.first(),
+        periode = meldeperioder.first().periode,
     )
-    meldeperiodeRepo.lagre(behandletMeldekort.meldeperiode)
+    meldeperioder.forEach {
+        meldeperiodeRepo.lagre(it)
+    }
     meldekortRepo.lagre(behandletMeldekort)
     return Pair(sakRepo.hentForSakId(sakId)!!, behandletMeldekort)
 }

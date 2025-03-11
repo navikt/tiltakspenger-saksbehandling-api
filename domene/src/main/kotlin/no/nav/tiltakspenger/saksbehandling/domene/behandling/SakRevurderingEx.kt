@@ -32,9 +32,9 @@ suspend fun Sak.startRevurdering(
         "Kan kun opprette en stansrevurdering dersom vi har en sammenhengende innvilgelsesperiode. sakId=${this.id}"
     }
 
-    requireNotNull(this.førstegangsbehandling) { "Kan ikke opprette revurdering uten en førstegangsbehandling" }
+    requireNotNull(this.ikkeAvbruttFørstegangsbehandlinger) { "Kan ikke opprette revurdering uten en førstegangsbehandling" }
 
-    val saksopplysningsperiode = this.saksopplysningsperiode!!
+    val saksopplysningsperiode = this.førsteSaksopplysningsperiode!!
 
     val revurdering = Behandling.opprettRevurdering(
         sakId = this.id,

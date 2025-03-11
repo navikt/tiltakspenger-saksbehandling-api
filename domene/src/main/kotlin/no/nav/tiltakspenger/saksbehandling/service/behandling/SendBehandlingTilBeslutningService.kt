@@ -23,6 +23,7 @@ class SendBehandlingTilBeslutningService(
             sakService.hentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId).getOrElse {
                 throw IllegalStateException("Saksbehandler ${kommando.saksbehandler.navIdent} har ikke tilgang til sak ${kommando.sakId}")
             }
+
         return sak.sendFørstegangsbehandlingTilBeslutning(kommando).map { (_, behandling) -> behandling }.onRight {
             behandlingRepo.lagre(it)
         }

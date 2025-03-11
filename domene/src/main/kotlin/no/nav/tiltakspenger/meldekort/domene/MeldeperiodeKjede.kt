@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.meldekort.domene
 
 import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -75,4 +76,6 @@ data class MeldeperiodeKjede(
     fun leggTilMeldeperiode(meldeperiode: Meldeperiode): MeldeperiodeKjede {
         return MeldeperiodeKjede(meldeperioder + meldeperiode)
     }
+
+    fun nesteVersjon(): HendelseVersjon = this.meldeperioder.last().versjon.inc()
 }

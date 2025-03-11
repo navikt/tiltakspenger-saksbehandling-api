@@ -12,6 +12,7 @@ import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.common.TestApplicationContext
+import no.nav.tiltakspenger.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -32,7 +33,7 @@ interface StartRevurderingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, Behandling, Behandling> {
         val (sak, søknad, førstegangsbehandling) = iverksett(tac)
-        val revurdering = startRevurderingForSakId(tac, sak.id, sak.førstegangsbehandling!!.virkningsperiode!!.fraOgMed)
+        val revurdering = startRevurderingForSakId(tac, sak.id, sak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.virkningsperiode!!.fraOgMed)
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
         return Tuple4(
             oppdatertSak,

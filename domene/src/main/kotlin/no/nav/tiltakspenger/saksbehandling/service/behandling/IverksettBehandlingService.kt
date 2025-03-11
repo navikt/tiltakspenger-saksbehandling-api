@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.meldekort.domene.opprettFørsteMeldeperiode
+import no.nav.tiltakspenger.meldekort.domene.opprettManglendeMeldeperioder
 import no.nav.tiltakspenger.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Attestering
@@ -128,7 +128,7 @@ class IverksettBehandlingService(
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ) {
-        val førsteMeldeperiode = this.opprettFørsteMeldeperiode()
+        val (_, meldeperioder) = this.opprettManglendeMeldeperioder(vedtak)
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
         // Dersom denne endres til søknadsbehandling og vi kan ha mer enn 1 for en sak og den kan overlappe den eksistrende saksperioden, må den legge til nye versjoner av meldeperiodene her.
@@ -137,7 +137,9 @@ class IverksettBehandlingService(
             rammevedtakRepo.lagre(vedtak, tx)
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
-            meldeperiodeRepo.lagre(førsteMeldeperiode, tx)
+            meldeperioder.forEach {
+                meldeperiodeRepo.lagre(it, tx)
+            }
         }
     }
 

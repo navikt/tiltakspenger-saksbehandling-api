@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.vedtak.auditlog.AuditService
 import no.nav.tiltakspenger.vedtak.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.vedtak.routes.correlationId
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.Standardfeil.ikkeTilgang
-import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond400BadRequest
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond403Forbidden
 import no.nav.tiltakspenger.vedtak.routes.exceptionhandling.respond501NotImplemented
 import no.nav.tiltakspenger.vedtak.routes.withSakId
@@ -41,13 +40,6 @@ fun Route.startBehandlingRoute(
                     ).fold(
                         {
                             when (it) {
-                                is KanIkkeStarteSøknadsbehandling.HarAlleredeStartetBehandlingen -> {
-                                    call.respond400BadRequest(
-                                        "Finnes allerede en ikke-avbrutt førstegangsbehandling",
-                                        "finnes_allerede_en_ikke_avbrutt_førstegangsbehandling",
-                                    )
-                                }
-
                                 is KanIkkeStarteSøknadsbehandling.OppretteBehandling ->
                                     when (it.underliggende) {
                                         is KanIkkeOppretteBehandling.IngenRelevanteTiltak -> call.respond501NotImplemented(
@@ -72,7 +64,7 @@ fun Route.startBehandlingRoute(
                                 correlationId = correlationId,
                             )
 
-                            call.respond(HttpStatusCode.OK, it.førstegangsbehandling!!.toDTO())
+                            call.respond(HttpStatusCode.OK, it.toDTO())
                         },
                     )
                 }

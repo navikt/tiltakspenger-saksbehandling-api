@@ -115,7 +115,6 @@ interface MeldekortMother {
         status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT,
         iverksattTidspunkt: LocalDateTime? = nå(),
         navkontor: Navkontor = ObjectMother.navkontor(),
-        antallDagerForMeldeperiode: Int = 14,
         sendtTilBeslutning: LocalDateTime = nå(),
     ): MeldekortBehandling.MeldekortBehandlet {
         return MeldekortBehandling.MeldekortBehandlet(
