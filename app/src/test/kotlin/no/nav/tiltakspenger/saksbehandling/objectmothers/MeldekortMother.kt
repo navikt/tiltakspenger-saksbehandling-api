@@ -33,6 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregnin
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vilkår.Utfallsperiode
 import java.time.LocalDate
@@ -145,7 +146,7 @@ interface MeldekortMother {
         startDato: LocalDate = LocalDate.of(2023, 1, 2),
         meldekortId: MeldekortId = MeldekortId.random(),
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
-        maksDagerMedTiltakspengerForPeriode: Int = 14,
+        maksDagerMedTiltakspengerForPeriode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
     ): MeldeperiodeBeregning.UtfyltMeldeperiode {
         return MeldeperiodeBeregning.UtfyltMeldeperiode(
@@ -172,7 +173,7 @@ interface MeldekortMother {
             TiltakstypeSomGirRett.GRUPPE_AMO,
             periode,
         ),
-        maksDagerMedTiltakspengerForPeriode: Int = 14,
+        maksDagerMedTiltakspengerForPeriode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     ): MeldeperiodeBeregning.IkkeUtfyltMeldeperiode {
         val meldeperiode = meldeperiode(
             periode = periode,
