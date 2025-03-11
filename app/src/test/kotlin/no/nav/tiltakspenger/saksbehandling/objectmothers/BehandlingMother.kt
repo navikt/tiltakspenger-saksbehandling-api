@@ -12,6 +12,8 @@ import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.OppgaveId
@@ -134,7 +136,14 @@ interface BehandlingMother {
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering? = null,
         saksopplysningsperiode: Periode = virkningsperiode(),
         barnetillegg: Barnetillegg? = null,
-        valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = ValgteTiltaksdeltakelser.periodiser(saksopplysninger.tiltaksdeltagelse.first(), virkningsperiode),
+        valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = ValgteTiltaksdeltakelser(
+            Periodisering(
+                PeriodeMedVerdi(
+                    saksopplysninger.tiltaksdeltagelse.first(),
+                    virkningsperiode,
+                ),
+            ),
+        ),
     ): Behandling {
         return nyBehandling(
             id = id,
@@ -290,6 +299,12 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
             innvilgelsesperiode = periode,
             begrunnelse = null,
             perioder = null,
+            tiltaksdeltakelser = listOf(
+                Pair(
+                    periode,
+                    sakMedFørstegangsbehandling.førstegangsbehandling!!.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
+                ),
+            ),
         ),
     ).getOrFail()
     return this.sakContext.sakService.hentForSakId(

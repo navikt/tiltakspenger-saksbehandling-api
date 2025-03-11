@@ -51,6 +51,7 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
                 behandlingId,
                 saksbehandler,
                 innvilgelsesperiode = søknad.vurderingsperiode(),
+                eksternDeltagelseId = søknad.tiltak.id,
             ),
         )
     }
@@ -64,6 +65,7 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
         fritekstTilVedtaksbrev: String = "fritekst",
         begrunnelseVilkårsvurdering: String = "begrunnelse",
         innvilgelsesperiode: Periode = Periode(1.januar(2023), 31.mars(2023)),
+        eksternDeltagelseId: String,
     ): String {
         defaultRequest(
             HttpMethod.Post,
@@ -83,7 +85,16 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
                 "innvilgelsesperiode": {
                     "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
                     "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
-                }
+                },
+                "valgteTiltaksdeltakelser": [
+                    {
+                        "eksternDeltagelseId": "$eksternDeltagelseId",
+                        "periode": {
+                            "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
+                            "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
+                        }
+                    }
+                ]
             }
                 """.trimIndent(),
             )

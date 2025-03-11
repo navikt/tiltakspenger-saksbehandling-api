@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.ValgteTiltaksdeltakelser
 
 data class SendSøknadsbehandlingTilBeslutningKommando(
     val sakId: SakId,
@@ -18,6 +19,7 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
     val innvilgelsesperiode: Periode,
     val begrunnelse: BegrunnelseVilkårsvurdering?,
     val perioder: List<Pair<Periode, AntallBarn>>?,
+    val tiltaksdeltakelser: List<Pair<Periode, String>>,
 ) {
     fun barnetillegg(): Barnetillegg? {
         return perioder?.let {
@@ -27,5 +29,12 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
                 virkningsperiode = innvilgelsesperiode,
             )
         }
+    }
+
+    fun valgteTiltaksdeltakelser(behandling: Behandling): ValgteTiltaksdeltakelser {
+        return ValgteTiltaksdeltakelser.periodiser(
+            tiltaksdeltakelser = tiltaksdeltakelser,
+            behandling = behandling,
+        )
     }
 }

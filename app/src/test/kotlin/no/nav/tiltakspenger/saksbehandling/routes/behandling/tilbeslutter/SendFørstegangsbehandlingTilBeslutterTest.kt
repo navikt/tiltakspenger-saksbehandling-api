@@ -37,11 +37,15 @@ class SendFørstegangsbehandlingTilBeslutterTest {
                     behandlingId,
                     saksbehandler,
                     innvilgelsesperiode = søknad.vurderingsperiode(),
+                    eksternDeltagelseId = søknad.tiltak.id,
                 )
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Behandlingsstatus.KLAR_TIL_BESLUTNING
                     it.saksbehandler shouldBe saksbehandler.navIdent
                     it.beslutter shouldBe null
+                    it.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.size shouldBe 1
+                    it.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.firstOrNull()?.verdi?.eksternDeltagelseId shouldBe søknad.tiltak.id
+                    it.valgteTiltaksdeltakelser?.periodisering?.totalePeriode shouldBe søknad.vurderingsperiode()
                 }
             }
         }
