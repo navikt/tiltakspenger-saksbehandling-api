@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.libs.personklient.pdl.dto.avklarNavn
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 
 /**
- * Kopiert fra no.nav.tiltakspenger.vedtak.routes.rivers.PersonopplysningerRoutes.kt
+ * Kopiert fra no.nav.tiltakspenger.saksbehandling.routes.rivers.PersonopplysningerRoutes.kt
  */
 internal fun mapPersonopplysninger(
     json: String,

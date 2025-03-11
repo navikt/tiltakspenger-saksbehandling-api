@@ -64,7 +64,8 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
             fom = periode.fraOgMed.format(norskDatoFormatter),
             tom = periode.tilOgMed.format(norskDatoFormatter),
         ),
-        meldekortDager = meldekortbehandling.beregning.dager.map { dag ->
+        // TODO Bug i arrow gjør at map ikke fungerer på NonEmptyList, konverterer til standard kotlin List før mapping
+        meldekortDager = meldekortbehandling.beregning.dager.toList().map { dag ->
             UtbetalingsvedtakDTO.MeldekortDagDTO(
                 dato = dag.dato.format(norskDatoFormatter),
                 status = dag.toStatus(),
