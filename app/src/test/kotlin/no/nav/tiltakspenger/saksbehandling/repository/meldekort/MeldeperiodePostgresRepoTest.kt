@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.repository.meldekort
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.db.persisterIverksattFørstegangsbehandling
-import no.nav.tiltakspenger.db.withMigratedDb
+import no.nav.tiltakspenger.saksbehandling.db.persisterIverksattFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.felles.januar
 import no.nav.tiltakspenger.saksbehandling.felles.mars
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjede

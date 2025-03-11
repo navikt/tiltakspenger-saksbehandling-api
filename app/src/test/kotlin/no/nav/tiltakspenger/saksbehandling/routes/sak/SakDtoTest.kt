@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.routes.sak
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.BehandlingstypeDTO
 import org.junit.jupiter.api.Test
 

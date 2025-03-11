@@ -1,11 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.repository.sak
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.db.persisterOpprettetFørstegangsbehandling
-import no.nav.tiltakspenger.db.persisterSak
-import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.saksbehandling.db.persisterOpprettetFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.db.persisterSak
+import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saker
 import org.junit.jupiter.api.Test
 

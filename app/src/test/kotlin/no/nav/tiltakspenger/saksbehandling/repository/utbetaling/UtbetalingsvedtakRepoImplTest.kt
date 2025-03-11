@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.repository.utbetaling
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.db.persisterRammevedtakMedBehandletMeldekort
-import no.nav.tiltakspenger.db.withMigratedDb
+import no.nav.tiltakspenger.saksbehandling.db.persisterRammevedtakMedBehandletMeldekort
+import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.felles.april
 import no.nav.tiltakspenger.saksbehandling.felles.januar
 import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId

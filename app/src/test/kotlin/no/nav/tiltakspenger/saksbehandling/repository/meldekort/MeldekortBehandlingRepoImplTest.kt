@@ -1,10 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.repository.meldekort
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.db.persisterIverksattFørstegangsbehandling
-import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.libs.common.getOrFail
-import no.nav.tiltakspenger.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.db.persisterIverksattFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.felles.april
 import no.nav.tiltakspenger.saksbehandling.felles.januar
 import no.nav.tiltakspenger.saksbehandling.felles.mars
@@ -12,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinge
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettNesteMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
 class MeldekortBehandlingRepoImplTest {

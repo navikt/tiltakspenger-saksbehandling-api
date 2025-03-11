@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
-import no.nav.tiltakspenger.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendFørstegangsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad

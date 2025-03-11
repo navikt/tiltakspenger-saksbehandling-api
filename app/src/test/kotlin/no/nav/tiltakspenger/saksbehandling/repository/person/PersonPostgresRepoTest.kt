@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.repository.person
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.db.persisterOpprettetRevurdering
-import no.nav.tiltakspenger.db.persisterRammevedtakMedBehandletMeldekort
-import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.db.persisterOpprettetRevurdering
+import no.nav.tiltakspenger.saksbehandling.db.persisterRammevedtakMedBehandletMeldekort
+import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.felles.januar
 import no.nav.tiltakspenger.saksbehandling.felles.mars
 import org.junit.jupiter.api.Test

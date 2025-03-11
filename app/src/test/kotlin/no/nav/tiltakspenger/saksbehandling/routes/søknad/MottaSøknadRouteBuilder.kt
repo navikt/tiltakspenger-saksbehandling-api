@@ -18,8 +18,8 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.felles.april
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.hentEllerOpprettSak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak

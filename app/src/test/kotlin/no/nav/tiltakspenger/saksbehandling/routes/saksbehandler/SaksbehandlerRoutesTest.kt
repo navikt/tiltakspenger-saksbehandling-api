@@ -16,8 +16,8 @@ import io.ktor.server.util.url
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
-import no.nav.tiltakspenger.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.jacksonSerialization
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode

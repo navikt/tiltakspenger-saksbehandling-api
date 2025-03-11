@@ -5,8 +5,8 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.common.TestApplicationContext
-import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.jacksonSerialization
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendTilbake
 import no.nav.tiltakspenger.saksbehandling.routes.routes
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Attestering
