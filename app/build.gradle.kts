@@ -12,7 +12,7 @@ plugins {
 }
 
 application {
-    mainClass.set("no.nav.tiltakspenger.vedtak.AppKt")
+    mainClass.set("no.nav.tiltakspenger.saksbehandling.AppKt")
 }
 
 tasks {
@@ -20,7 +20,7 @@ tasks {
         dependsOn(configurations.runtimeClasspath)
 
         manifest {
-            attributes["Main-Class"] = "no.nav.tiltakspenger.vedtak.AppKt"
+            attributes["Main-Class"] = "no.nav.tiltakspenger.saksbehandling.AppKt"
             attributes["Class-Path"] = configurations.runtimeClasspath
                 .get()
                 .joinToString(separator = " ") { file -> file.name }
