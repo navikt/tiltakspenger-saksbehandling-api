@@ -31,6 +31,7 @@ internal data class SøknadDTO(
     val trygdOgPensjon: PeriodeDTO?,
     val antallVedlegg: Int,
     val avbrutt: AvbruttDTO?,
+    val visVedlegg: Boolean,
 ) {
     data class TiltaksdeltagelseFraSøknadDTO(
         val fraOgMed: String?,
@@ -75,6 +76,7 @@ internal fun Søknad.toDTO(): SøknadDTO {
         trygdOgPensjon = this.trygdOgPensjon.toDTO(),
         antallVedlegg = this.vedlegg,
         avbrutt = avbrutt?.toDTO(),
+        visVedlegg = this.barnetillegg.any { it is BarnetilleggFraSøknad.Manuell },
     )
 }
 
