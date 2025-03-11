@@ -1,6 +1,6 @@
 val kotlinxCoroutinesVersion = "1.10.1"
 val kotestVersion = "5.9.1"
-val felleslibVersion = "0.0.396"
+val felleslibVersion = "0.0.398"
 val mockkVersion = "1.13.17"
 val ktorVersion = "3.1.1"
 val testContainersVersion = "1.20.6"
@@ -29,7 +29,6 @@ tasks {
 }
 
 dependencies {
-    implementation(project(":domene"))
     // Align versions of all Kotlin components
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation(kotlin("stdlib"))
@@ -58,6 +57,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.17")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
+    implementation("com.aallam.ulid:ulid-kotlin:1.3.0")
 
     implementation("io.ktor:ktor-server-call-id:$ktorVersion")
     implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
@@ -124,7 +124,9 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
     // need quarkus-junit-4-mock because of https://github.com/testcontainers/testcontainers-java/issues/970
     testImplementation("io.quarkus:quarkus-junit4-mock:3.19.2")
-    testApi(project(":test-common"))
+    testImplementation("io.github.serpro69:kotlin-faker:1.16.0")
+    testApi("com.github.navikt.tiltakspenger-libs:ktor-test-common:$felleslibVersion")
+    testApi("com.github.navikt.tiltakspenger-libs:auth-test-core:$felleslibVersion")
     testApi("com.github.navikt.tiltakspenger-libs:test-common:$felleslibVersion")
     testApi("com.github.navikt.tiltakspenger-libs:common:$felleslibVersion")
     testApi("com.github.navikt.tiltakspenger-libs:persistering-domene:$felleslibVersion")

@@ -12,7 +12,7 @@
     <logger name="com.zaxxer" level="WARN"/>
     <logger name="io.ktor.auth.jwt" level="TRACE"/>
     <!-- Slå den på ved behov for logglinjer -->
-    <logger name="no.nav.tiltakspenger.vedtak.clients" level="WARN"/>
+    <logger name="no.nav.tiltakspenger.saksbehandling.clients" level="WARN"/>
 
     <logger name="tjenestekall" level="DEBUG" additivity="false">
         <appender-ref ref="STDOUT"/>
