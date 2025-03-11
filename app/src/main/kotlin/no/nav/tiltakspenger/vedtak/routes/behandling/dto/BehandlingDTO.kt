@@ -24,6 +24,7 @@ internal data class BehandlingDTO(
     val barnetillegg: BarnetilleggDTO?,
     val avbrutt: AvbruttDTO?,
     val iverksattTidspunkt: String?,
+    val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelserDTO?,
 //    Denne burde være med på revurderinger for client-side validering
 //    val førsteLovligeStansdato: LocalDate?,
 )
@@ -47,6 +48,7 @@ internal fun Behandling.toDTO(): BehandlingDTO {
         barnetillegg = this.barnetillegg?.toDTO(),
         avbrutt = this.avbrutt?.toDTO(),
         iverksattTidspunkt = this.iverksattTidspunkt?.toString(),
+        valgteTiltaksdeltakelser = this.valgteTiltaksdeltakelser?.toDTO(),
     )
 }
 
