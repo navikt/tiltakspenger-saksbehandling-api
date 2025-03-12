@@ -74,9 +74,6 @@ data class Behandling(
     /** John og Agnethe har kommet fram til at vi setter denne til 14 dager for meldeperiode i førsteomgang. Hvis det fører til mye feilutbetaling eller lignende må vi la saksbehandler periodisere dette selv, litt på samme måte som barnetillegg. */
     val maksDagerMedTiltakspengerForPeriode: Int = 14
 
-    // TODO: Brukes bare for å angi deltakelse frem til saksbehandler setter den selv via input. Skal fjernes når det er på plass.
-    private val tiltaksdeltakelse = saksopplysninger.tiltaksdeltagelse.first()
-
     fun inneholderEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
         saksopplysninger.tiltaksdeltagelse.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
 
@@ -455,6 +452,7 @@ data class Behandling(
                 }
                 if (behandlingstype == FØRSTEGANGSBEHANDLING) {
                     require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
+                    require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
                 }
             }
 
@@ -470,6 +468,7 @@ data class Behandling(
                 }
                 if (behandlingstype == FØRSTEGANGSBEHANDLING) {
                     require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
+                    require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
                 }
             }
 
@@ -486,6 +485,7 @@ data class Behandling(
                 }
                 if (behandlingstype == FØRSTEGANGSBEHANDLING) {
                     require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
+                    require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
                 }
             }
 

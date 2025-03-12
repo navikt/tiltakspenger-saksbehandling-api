@@ -108,4 +108,50 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
             return bodyAsText
         }
     }
+
+    suspend fun ApplicationTestBuilder.sendFørstegangsbehandlingTilBeslutningSomFeiler(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        behandlingId: BehandlingId,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        fritekstTilVedtaksbrev: String = "fritekst",
+        begrunnelseVilkårsvurdering: String = "begrunnelse",
+        innvilgelsesperiode: Periode = Periode(1.januar(2023), 31.mars(2023)),
+        eksternDeltagelseId: String,
+    ): HttpStatusCode {
+        defaultRequest(
+            HttpMethod.Post,
+            url {
+                protocol = URLProtocol.HTTPS
+                path("/sak/$sakId/behandling/$behandlingId/sendtilbeslutning")
+            },
+            jwt = tac.jwtGenerator.createJwtForSaksbehandler(
+                saksbehandler = saksbehandler,
+            ),
+        ) {
+            setBody(
+                """
+            {
+                "fritekstTilVedtaksbrev": "$fritekstTilVedtaksbrev",
+                "begrunnelseVilkårsvurdering": "$begrunnelseVilkårsvurdering",
+                "innvilgelsesperiode": {
+                    "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
+                    "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
+                },
+                "valgteTiltaksdeltakelser": [
+                    {
+                        "eksternDeltagelseId": "$eksternDeltagelseId",
+                        "periode": {
+                            "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
+                            "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
+                        }
+                    }
+                ]
+            }
+                """.trimIndent(),
+            )
+        }.apply {
+            return this.status
+        }
+    }
 }
