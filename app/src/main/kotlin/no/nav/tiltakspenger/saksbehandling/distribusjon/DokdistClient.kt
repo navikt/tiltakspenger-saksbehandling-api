@@ -1,8 +1,7 @@
-package no.nav.tiltakspenger.saksbehandling.distribusjon.ports
+package no.nav.tiltakspenger.saksbehandling.distribusjon
 
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.saksbehandling.distribusjon.domene.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
 
 interface DokdistGateway {

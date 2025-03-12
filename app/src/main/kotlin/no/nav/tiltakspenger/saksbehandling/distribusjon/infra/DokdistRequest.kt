@@ -1,5 +1,6 @@
-package no.nav.tiltakspenger.saksbehandling.clients.dokdist
+package no.nav.tiltakspenger.saksbehandling.distribusjon.infra
 
+import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
 
 private data class DokdistRequest(
@@ -25,6 +26,6 @@ fun JournalpostId.toDokdistRequest(): String {
     return DokdistRequest(
         journalpostId = this.toString(),
     ).let {
-        no.nav.tiltakspenger.libs.json.serialize(it)
+        serialize(it)
     }
 }
