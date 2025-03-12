@@ -1,9 +1,9 @@
-package no.nav.tiltakspenger.saksbehandling.clients.joark
+package no.nav.tiltakspenger.saksbehandling.journalføring.infra
 
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.saksbehandling.clients.joark.JoarkRequest.JournalpostDokument.DokumentVariant.ArkivPDF
-import no.nav.tiltakspenger.saksbehandling.clients.joark.JoarkRequest.JournalpostDokument.DokumentVariant.OriginalJson
 import no.nav.tiltakspenger.saksbehandling.felles.journalføring.PdfOgJson
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.JoarkRequest.JournalpostDokument.DokumentVariant.ArkivPDF
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.JoarkRequest.JournalpostDokument.DokumentVariant.OriginalJson
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak
 
 internal fun Rammevedtak.utgåendeJournalpostRequest(
@@ -15,22 +15,6 @@ internal fun Rammevedtak.utgåendeJournalpostRequest(
         // Når vi distribuerer en utgående journalpost skal kanal være null. https://nav-it.slack.com/archives/C6W9E5GPJ/p1736327853663619 Hvis vi skal distribuere den selv, må vi se på dette igjen.
         kanal = null,
         avsenderMottaker = JoarkRequest.AvsenderMottaker(this.fnr.verdi),
-    )
-}
-
-/**
- * Kommentar jah: Ikke sikkert vi får bruk for notat av rammevedtak. Kan i så fall bare slettes.
- */
-internal fun Rammevedtak.notatJournalpostRequest(
-    pdfOgJson: PdfOgJson,
-): String {
-    return toJournalpostRequest(
-        pdfOgJson = pdfOgJson,
-        journalPostType = JoarkRequest.JournalPostType.NOTAT,
-        // Fra doccen: "Kanal skal ikke settes for notater."
-        kanal = null,
-        // Fra doccen: "avsenderMottaker skal ikke settes for journalposttype NOTAT."
-        avsenderMottaker = null,
     )
 }
 

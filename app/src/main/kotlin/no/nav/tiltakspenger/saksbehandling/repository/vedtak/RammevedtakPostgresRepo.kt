@@ -10,8 +10,8 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.distribusjon.domene.DistribusjonId
-import no.nav.tiltakspenger.saksbehandling.distribusjon.domene.VedtakSomSkalDistribueres
+import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
+import no.nav.tiltakspenger.saksbehandling.distribusjon.VedtakSomSkalDistribueres
 import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.repository.behandling.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak

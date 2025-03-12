@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.saksbehandling.distribusjon.ports.DokdistGateway
+import no.nav.tiltakspenger.saksbehandling.distribusjon.DokdistGateway
 import no.nav.tiltakspenger.saksbehandling.felles.nå
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.RammevedtakRepo

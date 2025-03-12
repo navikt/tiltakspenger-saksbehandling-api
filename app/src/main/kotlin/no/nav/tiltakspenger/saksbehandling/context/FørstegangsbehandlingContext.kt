@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.context
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.saksbehandling.distribusjon.ports.DokdistGateway
+import no.nav.tiltakspenger.saksbehandling.distribusjon.DokdistGateway
 import no.nav.tiltakspenger.saksbehandling.felles.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo

@@ -1,3 +1,5 @@
+@file:Suppress("UnusedImport")
+
 package no.nav.tiltakspenger.saksbehandling.fakes.repos
 
 import arrow.atomic.Atomic
@@ -6,8 +8,8 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.saksbehandling.distribusjon.domene.DistribusjonId
-import no.nav.tiltakspenger.saksbehandling.distribusjon.domene.VedtakSomSkalDistribueres
+import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
+import no.nav.tiltakspenger.saksbehandling.distribusjon.VedtakSomSkalDistribueres
 import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste

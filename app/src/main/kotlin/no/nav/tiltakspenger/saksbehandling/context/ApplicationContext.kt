@@ -13,10 +13,10 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.saksbehandling.Configuration
 import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
-import no.nav.tiltakspenger.saksbehandling.clients.datadeling.DatadelingHttpClient
 import no.nav.tiltakspenger.saksbehandling.clients.oppgave.OppgaveHttpClient
 import no.nav.tiltakspenger.saksbehandling.clients.veilarboppfolging.VeilarboppfolgingHttpClient
-import no.nav.tiltakspenger.saksbehandling.datadeling.service.SendTilDatadelingService
+import no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService
+import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient
 import no.nav.tiltakspenger.saksbehandling.db.DataSourceSetup
 import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.TiltaksdeltakerService
 import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.arena.ArenaDeltakerMapper
@@ -185,7 +185,7 @@ open class ApplicationContext(
         SendTilDatadelingService(
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
             behandlingRepo = behandlingContext.behandlingRepo,
-            datadelingGateway = datadelingGateway,
+            datadelingClient = datadelingGateway,
         )
     }
 

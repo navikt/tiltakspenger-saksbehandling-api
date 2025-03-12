@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package no.nav.tiltakspenger.saksbehandling.clients.joark
+package no.nav.tiltakspenger.saksbehandling.journalføring.infra
 
 /**
  * @param eksternReferanseId Brukes som dedup-nøkkel.
