@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortperioder
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 
 class MeldekortBehandlingPostgresRepo(
@@ -180,7 +181,7 @@ class MeldekortBehandlingPostgresRepo(
             val navkontorEnhetsnummer = row.string("navkontor")
             val navkontorNavn = row.stringOrNull("navkontor_navn")
             val fnr = Fnr.fromString(row.string("fnr"))
-            val maksDagerMedTiltakspengerForPeriode = 14
+            val maksDagerMedTiltakspengerForPeriode = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
             val opprettet = row.localDateTime("opprettet")
 
             val meldeperiodeId = MeldeperiodeId.fromString(row.string("meldeperiode_id"))

@@ -22,7 +22,7 @@ class MeldekortBrukerPostgresRepoTest {
             val meldeperiode = sak.opprettFørsteMeldeperiode()
             testDataHelper.meldeperiodeRepo.lagre(meldeperiode)
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
-            val nyttBrukersMeldekort = ObjectMother.nyttBrukersMeldekort(
+            val nyttBrukersMeldekort = ObjectMother.lagreBrukersMeldekortKommando(
                 meldeperiodeId = meldeperiode.id,
                 mottatt = meldeperiode.opprettet.plus(1, ChronoUnit.MILLIS),
                 sakId = meldeperiode.sakId,

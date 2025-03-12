@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 
 interface BrukersMeldekortRepo {
     fun lagre(
-        brukersMeldekort: NyttBrukersMeldekort,
+        brukersMeldekort: LagreBrukersMeldekortKommando,
         sessionContext: SessionContext? = null,
     )
 

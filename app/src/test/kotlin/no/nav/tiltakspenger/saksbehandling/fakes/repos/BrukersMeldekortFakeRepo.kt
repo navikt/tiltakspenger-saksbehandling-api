@@ -7,15 +7,16 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.NyttBrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 
-class BrukersMeldekortFakeRepo(val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) : BrukersMeldekortRepo {
+class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) : BrukersMeldekortRepo {
     private val data = Atomic(mutableMapOf<MeldekortId, BrukersMeldekort>())
 
-    override fun lagre(brukersMeldekort: NyttBrukersMeldekort, sessionContext: SessionContext?) {
+    override fun lagre(brukersMeldekort: LagreBrukersMeldekortKommando, sessionContext: SessionContext?) {
         val meldeperiode = meldeperiodeFakeRepo.hentForMeldeperiodeId(brukersMeldekort.meldeperiodeId)
 
         requireNotNull(meldeperiode) { "Ingen meldeperiode for ${brukersMeldekort.meldeperiodeId}" }
+        require(data.get()[brukersMeldekort.id] == null) { "Meldekortet ${brukersMeldekort.id} er allerede lagret" }
 
         data.get()[brukersMeldekort.id] = BrukersMeldekort(
             id = brukersMeldekort.id,

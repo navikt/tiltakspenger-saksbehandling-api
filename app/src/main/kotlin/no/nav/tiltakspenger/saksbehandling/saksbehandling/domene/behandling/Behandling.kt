@@ -71,8 +71,7 @@ data class Behandling(
 
     val erVedtatt: Boolean = status == VEDTATT
 
-    /** John og Agnethe har kommet fram til at vi setter denne til 14 dager for meldeperiode i førsteomgang. Hvis det fører til mye feilutbetaling eller lignende må vi la saksbehandler periodisere dette selv, litt på samme måte som barnetillegg. */
-    val maksDagerMedTiltakspengerForPeriode: Int = 14
+    val maksDagerMedTiltakspengerForPeriode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 
     fun inneholderEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
         saksopplysninger.tiltaksdeltagelse.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
@@ -102,6 +101,8 @@ data class Behandling(
     val kravfrist = søknad?.tidsstempelHosOss
 
     companion object {
+        /** Hardkoder denne til 10 for nå. På sikt vil vi la saksbehandler periodisere dette selv, litt på samme måte som barnetillegg. */
+        const val MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
 
         suspend fun opprettSøknadsbehandling(
             sakId: SakId,

@@ -36,6 +36,6 @@ class MeldeperiodeFakeRepo : MeldeperiodeRepo {
     }
 
     override fun hentForMeldeperiodeId(meldeperiodeId: MeldeperiodeId, sessionContext: SessionContext?): Meldeperiode? {
-        TODO("Not yet implemented")
+        return data.get()[meldeperiodeId]
     }
 }

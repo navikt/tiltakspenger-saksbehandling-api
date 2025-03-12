@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.routes.meldekort.frameldekortapi
 
-import arrow.core.Either
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -10,17 +9,17 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.ktor.common.withBody
-import no.nav.tiltakspenger.libs.logging.sikkerlogg
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.NyttBrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeLagreBrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMeldekortService
 
 private const val PATH = "/meldekort/motta"
 
-fun Route.mottaMeldekortRoutes(
+internal fun Route.mottaMeldekortRoutes(
     mottaBrukerutfyltMeldekortService: MottaBrukerutfyltMeldekortService,
 ) {
     val logger = KotlinLogging.logger { }
@@ -30,26 +29,32 @@ fun Route.mottaMeldekortRoutes(
         call.withBody<BrukerutfyltMeldekortDTO> { meldekort ->
             logger.info { "Mottatt meldekort fra bruker: ${meldekort.id} - meldeperiode: ${meldekort.meldeperiodeId}" }
 
-            Either.catch {
-                mottaBrukerutfyltMeldekortService.mottaBrukerutfyltMeldekort(meldekort.toDomain())
+            mottaBrukerutfyltMeldekortService.mottaBrukerutfyltMeldekort(meldekort.toDomain()).onRight {
                 call.respond(HttpStatusCode.OK)
-            }.mapLeft { ex ->
-                with("Kunne ikke lagre brukers meldekort ${meldekort.id}") {
-                    logger.error { this }
-                    sikkerlogg.error(ex) { "$this - ${ex.message}" }
-                }
+            }.onLeft {
+                when (it) {
+                    is KanIkkeLagreBrukersMeldekort.AlleredeLagretUtenDiff -> call.respond(
+                        status = HttpStatusCode.OK,
+                        message = "Meldekort med id ${meldekort.id} var allerede lagret med samme data",
+                    )
 
-                call.respond(
-                    status = HttpStatusCode.InternalServerError,
-                    message = "Kunne ikke lagre brukers meldekort",
-                )
+                    is KanIkkeLagreBrukersMeldekort.AlleredeLagretMedDiff -> call.respond(
+                        status = HttpStatusCode.Conflict,
+                        message = "Meldekort med id ${meldekort.id} var allerede lagret med andre data!",
+                    )
+
+                    is KanIkkeLagreBrukersMeldekort.UkjentFeil -> call.respond(
+                        status = HttpStatusCode.InternalServerError,
+                        message = "Kunne ikke lagre brukers meldekort - Ukjent feil",
+                    )
+                }
             }
         }
     }
 }
 
-private fun BrukerutfyltMeldekortDTO.toDomain(): NyttBrukersMeldekort {
-    return NyttBrukersMeldekort(
+private fun BrukerutfyltMeldekortDTO.toDomain(): LagreBrukersMeldekortKommando {
+    return LagreBrukersMeldekortKommando(
         id = MeldekortId.fromString(this.id),
         mottatt = this.mottatt,
         meldeperiodeId = MeldeperiodeId.fromString(this.meldeperiodeId),

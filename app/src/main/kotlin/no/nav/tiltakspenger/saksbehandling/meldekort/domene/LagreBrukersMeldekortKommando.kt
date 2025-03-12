@@ -17,7 +17,7 @@ import java.time.LocalDateTime
  * @param id Unik id (ULID/UUID) for dette meldekortet
  * @param meldeperiodeId En unik versjon av meldeperioden. Alternativ til å sende kjedeId+versjon.
  */
-data class NyttBrukersMeldekort(
+data class LagreBrukersMeldekortKommando(
     val id: MeldekortId,
     val mottatt: LocalDateTime,
     val meldeperiodeId: MeldeperiodeId,

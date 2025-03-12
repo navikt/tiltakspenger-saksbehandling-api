@@ -24,15 +24,16 @@ import no.nav.tiltakspenger.saksbehandling.felles.nå
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.NyttBrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vilkår.Utfallsperiode
 import java.time.LocalDate
@@ -145,7 +146,7 @@ interface MeldekortMother {
         startDato: LocalDate = LocalDate.of(2023, 1, 2),
         meldekortId: MeldekortId = MeldekortId.random(),
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
-        maksDagerMedTiltakspengerForPeriode: Int = 14,
+        maksDagerMedTiltakspengerForPeriode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
     ): MeldeperiodeBeregning.UtfyltMeldeperiode {
         return MeldeperiodeBeregning.UtfyltMeldeperiode(
@@ -172,7 +173,7 @@ interface MeldekortMother {
             TiltakstypeSomGirRett.GRUPPE_AMO,
             periode,
         ),
-        maksDagerMedTiltakspengerForPeriode: Int = 14,
+        maksDagerMedTiltakspengerForPeriode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     ): MeldeperiodeBeregning.IkkeUtfyltMeldeperiode {
         val meldeperiode = meldeperiode(
             periode = periode,
@@ -392,7 +393,7 @@ interface MeldekortMother {
 
     fun meldeperiode(
         id: MeldeperiodeId = MeldeperiodeId.random(),
-        periode: Periode = ObjectMother.virkningsperiode(),
+        periode: Periode = Periode(LocalDate.of(2025, 1, 6), LocalDate.of(2025, 1, 19)),
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
         sakId: SakId = SakId.random(),
         versjon: HendelseVersjon = HendelseVersjon.ny(),
@@ -408,7 +409,7 @@ interface MeldekortMother {
             (perUke until 7).forEach { day ->
                 put(periode.fraOgMed.plusDays(day.toLong()), false)
             }
-            (8 until antallDagerForPeriode).forEach { day ->
+            (7 until antallDagerForPeriode).forEach { day ->
                 put(periode.fraOgMed.plusDays(day.toLong()), true)
             }
             (antallDagerForPeriode until 14).forEach { day ->
@@ -460,7 +461,7 @@ interface MeldekortMother {
         )
     }
 
-    fun nyttBrukersMeldekort(
+    fun lagreBrukersMeldekortKommando(
         id: MeldekortId = MeldekortId.random(),
         mottatt: LocalDateTime = LocalDateTime.now(),
         sakId: SakId = SakId.random(),
@@ -474,8 +475,8 @@ interface MeldekortMother {
             addAll(dagerFraPeriode.subList(7, 12).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT, it) })
             addAll(dagerFraPeriode.subList(12, 14).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
         },
-    ): NyttBrukersMeldekort {
-        return NyttBrukersMeldekort(
+    ): LagreBrukersMeldekortKommando {
+        return LagreBrukersMeldekortKommando(
             id = id,
             mottatt = mottatt,
             meldeperiodeId = meldeperiodeId,
