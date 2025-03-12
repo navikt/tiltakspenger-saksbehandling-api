@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.meldekort.domene.opprettManglendeMeldeperioder
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.domene.behandling.Behandling
@@ -455,7 +454,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
             saksnummer = sak.saksnummer,
         ),
 ): Pair<Sak, MeldekortBehandling.MeldekortBehandlet> {
-    val (sak, vedtak) = persisterIverksattFørstegangsbehandling(
+    val (sak) = persisterIverksattFørstegangsbehandling(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,
@@ -468,11 +467,11 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         beslutter = beslutter,
         sak = sak,
     )
-    val (sak2, meldeperioder) = sak.opprettManglendeMeldeperioder(vedtak)
+    val (_, meldeperioder) = sak.meldeperiodeKjeder.genererMeldeperioder(sak.vedtaksliste)
     val behandletMeldekort = ObjectMother.meldekortBehandlet(
-        sakId = sak2.id,
-        fnr = sak2.fnr,
-        saksnummer = sak2.saksnummer,
+        sakId = sak.id,
+        fnr = sak.fnr,
+        saksnummer = sak.saksnummer,
         meldeperiode = meldeperioder.first(),
         periode = meldeperioder.first().periode,
     )

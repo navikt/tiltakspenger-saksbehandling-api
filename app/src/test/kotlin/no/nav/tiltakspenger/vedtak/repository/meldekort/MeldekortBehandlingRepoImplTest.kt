@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.mars
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.meldekort.domene.MeldekortBehandlinger
-import no.nav.tiltakspenger.meldekort.domene.opprettManglendeMeldeperioder
 import no.nav.tiltakspenger.meldekort.domene.opprettMeldekortBehandling
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
@@ -18,12 +17,12 @@ class MeldekortBehandlingRepoImplTest {
     @Test
     fun `kan lagre og hente`() {
         withMigratedDb { testDataHelper ->
-            val (sak, vedtak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
 
-            val (_, meldeperioder) = sak.opprettManglendeMeldeperioder(vedtak)
+            val (_, meldeperioder) = sak.meldeperiodeKjeder.genererMeldeperioder(sak.vedtaksliste)
             val meldekort = ObjectMother.meldekortBehandlet(
                 sakId = sak.id,
                 fnr = sak.fnr,
@@ -48,7 +47,7 @@ class MeldekortBehandlingRepoImplTest {
 
             val oppdatertSak = sakRepo.hentForSakId(sak.id)!!
 
-            val (_, nesteMeldeperioder) = oppdatertSak.opprettManglendeMeldeperioder(vedtak)
+            val (_, nesteMeldeperioder) = sak.meldeperiodeKjeder.genererMeldeperioder(sak.vedtaksliste)
             val nesteMeldekort = oppdatertSak.opprettMeldekortBehandling(
                 nesteMeldeperioder.first(),
                 ObjectMother.navkontor(),
@@ -73,11 +72,11 @@ class MeldekortBehandlingRepoImplTest {
     @Test
     fun `kan oppdatere`() {
         withMigratedDb { testDataHelper ->
-            val (sak, vedtak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
                 deltakelseFom = 1.januar(2024),
                 deltakelseTom = 31.mars(2024),
             )
-            val (_, meldeperioder) = sak.opprettManglendeMeldeperioder(vedtak)
+            val (_, meldeperioder) = sak.meldeperiodeKjeder.genererMeldeperioder(sak.vedtaksliste)
             val meldekortBehandling = sak.opprettMeldekortBehandling(
                 meldeperioder.first(),
                 ObjectMother.navkontor(),

@@ -10,9 +10,7 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.domene.vedtak.Vedtaksliste
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -94,44 +92,50 @@ data class MeldeperiodeKjeder(
         return meldeperiode == meldeperiodeKjede.last()
     }
 
-    fun leggTilNyKjede(meldeperiode: Meldeperiode): MeldeperiodeKjeder {
-        return MeldeperiodeKjeder(this.meldeperiodeKjeder + listOf(MeldeperiodeKjede(nonEmptyListOf(meldeperiode))))
+    fun oppdaterEllerLeggTilNy(meldeperiode: Meldeperiode): Pair<MeldeperiodeKjeder, Meldeperiode?> {
+        val kjede = hentMeldeperiodeKjedeForPeriode(meldeperiode.periode)
+            ?: return MeldeperiodeKjeder(
+                (this.meldeperiodeKjeder.plus(listOf(MeldeperiodeKjede(nonEmptyListOf(meldeperiode))))).sorted(),
+            ) to meldeperiode
+
+        val (oppdatertKjede, oppdatertMeldeperiode) = kjede.leggTilMeldeperiode(meldeperiode)
+
+        return MeldeperiodeKjeder(
+            this.meldeperiodeKjeder.map {
+                if (it.kjedeId == oppdatertKjede.kjedeId) {
+                    oppdatertKjede
+                } else {
+                    it
+                }
+            },
+        ) to oppdatertMeldeperiode
     }
 
-    fun leggTilNyKjede(meldeperioder: List<Meldeperiode>): MeldeperiodeKjeder = MeldeperiodeKjeder(
-        this.meldeperiodeKjeder + meldeperioder.map {
-            MeldeperiodeKjede(nonEmptyListOf(it))
-        },
-    )
-
-    /**
-     * this.hentMeldeperiodeKjedeForPeriode(nærmesteMeldeperiode)?.let {
-     *                 it.leggTilMeldeperiode(oppdatertMeldeperiode)
-     *             } ?: MeldeperiodeKjede(nonEmptyListOf(oppdatertMeldeperiode))
-     */
-    fun leggTilMeldeperiode(meldeperiode: Meldeperiode): MeldeperiodeKjeder {
-        TODO()
-    }
-
-    fun genererMeldeperioder(vedtaksliste: Vedtaksliste): Pair<MeldeperiodeKjeder, List<Meldeperiode>> {
-        if (meldeperioder.isEmpty()) {
-            return genererMeldeperioder(vedtaksliste)
+    fun oppdaterEllerLeggTilNy(meldeperioder: List<Meldeperiode>): Pair<MeldeperiodeKjeder, List<Meldeperiode>> =
+        meldeperioder.fold(this to listOf()) { acc, m ->
+            val ny = acc.first.oppdaterEllerLeggTilNy(m)
+            Pair(ny.first, listOfNotNull(ny.second).plus(acc.second).sorted())
         }
-        TODO()
-    }
+
+//    fun genererMeldeperioder(vedtaksliste: Vedtaksliste): Pair<MeldeperiodeKjeder, List<Meldeperiode>> {
+//        if (meldeperioder.isEmpty()) {
+//            return genererMeldeperioder(vedtaksliste)
+//        }
+//        TODO()
+//    }
 
     fun genererMeldeperioder(
         vedtaksliste: Vedtaksliste,
-        fnr: Fnr,
-        saksnummer: Saksnummer,
-        sakId: SakId,
     ): Pair<MeldeperiodeKjeder, List<Meldeperiode>> {
+        if (vedtaksliste.isEmpty()) {
+            require(this.isEmpty()) { "Forventet ingen meldeperioder ved tom vedtaksliste" }
+            return this to emptyList()
+        }
         val innvilgelsesperioder = vedtaksliste.innvilgelsesperioder
         val vedtaksperiode = innvilgelsesperioder.first().fraOgMed
         var nærmesteMeldeperiode = Companion.finnNærmesteMeldeperiode(vedtaksperiode)
 
-        val mutMeldePeriodeList: MutableList<Meldeperiode> = mutableListOf()
-        val kjeder = MeldeperiodeKjeder(emptyList())
+        val potensielleNyeMeldeperioder = mutableListOf<Meldeperiode>()
 
         // før eller samme dag
         while (!nærmesteMeldeperiode.etter(innvilgelsesperioder.last().tilOgMed)) {
@@ -141,27 +145,21 @@ data class MeldeperiodeKjeder(
             }
 
             val kjede = this.hentMeldeperiodeKjedeForPeriode(nærmesteMeldeperiode)
-
             val versjon = kjede?.nesteVersjon() ?: HendelseVersjon.ny()
-
-            val oppdatertMeldeperiode = Meldeperiode.opprettMeldeperiode(
+            // Hvis den er lik den forrige meldeperioden, blir den ikke lagt til
+            val potensiellNyMeldeperiode = Meldeperiode.opprettMeldeperiode(
                 periode = nærmesteMeldeperiode,
-                utfallsperioder = vedtaksliste.utfallsperioder.krymp(nærmesteMeldeperiode),
-                fnr = fnr,
-                saksnummer = saksnummer,
-                sakId = sakId,
+                utfallsperioder = vedtaksliste.utfallForPeriode(nærmesteMeldeperiode),
+                fnr = vedtaksliste.fnr!!,
+                saksnummer = vedtaksliste.saksnummer!!,
+                sakId = vedtaksliste.sakId!!,
                 antallDagerForPeriode = vedtaksliste.hentAntallDager(nærmesteMeldeperiode)!!,
                 versjon = versjon,
             )
-
-            val meldeperiodekjede = kjede?.leggTilMeldeperiode(oppdatertMeldeperiode) ?: MeldeperiodeKjede(
-                nonEmptyListOf(oppdatertMeldeperiode),
-            )
-
-            kjeder.leggTilNyKjede(meldeperiodekjede)
+            potensielleNyeMeldeperioder.add(potensiellNyMeldeperiode)
             nærmesteMeldeperiode = nærmesteMeldeperiode.nesteMeldeperiode()
         }
-        return kjeder to mutMeldePeriodeList
+        return this.oppdaterEllerLeggTilNy(potensielleNyeMeldeperioder)
     }
 
     // TODO - test
@@ -197,41 +195,40 @@ data class MeldeperiodeKjeder(
         /**
          * Skal kun kalles/brukes på en sak som aldri har hatt en meldeperiode før
          */
-        fun genererMeldeperioder(
-            vedtaksliste: Vedtaksliste,
-            fnr: Fnr,
-            saksnummer: Saksnummer,
-            sakId: SakId,
-        ): Pair<MeldeperiodeKjeder, List<Meldeperiode>> {
-            val innvilgelsesperioder = vedtaksliste.innvilgelsesperioder
-            val vedtaksperiode = innvilgelsesperioder.first().fraOgMed
-            var nærmesteMeldeperiode = finnNærmesteMeldeperiode(vedtaksperiode)
-
-            val mutMeldePeriodeList: MutableList<Meldeperiode> = mutableListOf()
-//            var kjede: MeldeperiodeKjeder = MeldeperiodeKjeder(emptyList())
-
-            // før eller samme dag
-            while (!nærmesteMeldeperiode.etter(innvilgelsesperioder.last().tilOgMed)) {
-                if (!innvilgelsesperioder.overlapper(nærmesteMeldeperiode)) {
-                    // Dette vil bare fungere hvis det ikke finnes noen meldeperioder fra før
-                    nærmesteMeldeperiode = nærmesteMeldeperiode.nesteMeldeperiode()
-                    continue
-                }
-
-                mutMeldePeriodeList.add(
-                    Meldeperiode.opprettMeldeperiode(
-                        periode = nærmesteMeldeperiode,
-                        utfallsperioder = vedtaksliste.utfallsperioder.krymp(nærmesteMeldeperiode),
-                        fnr = fnr,
-                        saksnummer = saksnummer,
-                        sakId = sakId,
-                        antallDagerForPeriode = vedtaksliste.hentAntallDager(nærmesteMeldeperiode)!!,
-                    ),
-                )
-                nærmesteMeldeperiode = nærmesteMeldeperiode.nesteMeldeperiode()
-            }
-            return MeldeperiodeKjeder(listOf(MeldeperiodeKjede(mutMeldePeriodeList.toNonEmptyListOrNull()!!))) to mutMeldePeriodeList
-        }
+//        fun genererMeldeperioder(
+//            vedtaksliste: Vedtaksliste,
+//            fnr: Fnr,
+//            saksnummer: Saksnummer,
+//            sakId: SakId,
+//        ): Pair<MeldeperiodeKjeder, List<Meldeperiode>> {
+//            val innvilgelsesperioder = vedtaksliste.innvilgelsesperioder
+//            val vedtaksperiode = innvilgelsesperioder.first().fraOgMed
+//            var nærmesteMeldeperiode = finnNærmesteMeldeperiode(vedtaksperiode)
+//
+//            val mutMeldePeriodeList: MutableList<Meldeperiode> = mutableListOf()
+//
+//            // før eller samme dag
+//            while (!nærmesteMeldeperiode.etter(innvilgelsesperioder.last().tilOgMed)) {
+//                if (!innvilgelsesperioder.overlapper(nærmesteMeldeperiode)) {
+//                    // Dette vil bare fungere hvis det ikke finnes noen meldeperioder fra før
+//                    nærmesteMeldeperiode = nærmesteMeldeperiode.nesteMeldeperiode()
+//                    continue
+//                }
+//
+//                mutMeldePeriodeList.add(
+//                    Meldeperiode.opprettMeldeperiode(
+//                        periode = nærmesteMeldeperiode,
+//                        utfallsperioder = vedtaksliste.utfallsperioder.krymp(nærmesteMeldeperiode),
+//                        fnr = fnr,
+//                        saksnummer = saksnummer,
+//                        sakId = sakId,
+//                        antallDagerForPeriode = vedtaksliste.hentAntallDager(nærmesteMeldeperiode)!!,
+//                    ),
+//                )
+//                nærmesteMeldeperiode = nærmesteMeldeperiode.nesteMeldeperiode()
+//            }
+//            return MeldeperiodeKjeder(listOf(MeldeperiodeKjede(mutMeldePeriodeList.toNonEmptyListOrNull()!!))) to mutMeldePeriodeList
+//        }
 
         fun List<Periode>.overlapper(periode: Periode): Boolean = this.any { it.overlapperMed(periode) }
 
@@ -280,50 +277,50 @@ fun Periode.nesteMeldeperiode(): Periode = Periode(
 //    return appendNyMeldeperiode(rammevedtak)
 // }
 
-private fun Sak.appendNyMeldeperiode(rammevedtak: Rammevedtak): Pair<Sak, List<Meldeperiode>> {
-    require(this.meldeperiodeKjeder.periode!!.overlapperMed(rammevedtak.periode)) {
-        "Kan ikke legge til ny periode som overlapper med eksisterende periode"
-    }
-    val periode = this.finnNærmesteMeldeperiode(rammevedtak.periode.fraOgMed)
-
-    if (this.meldeperiodeKjeder.periode.fraOgMed.isAfter(periode.tilOgMed)) {
-        val mutList = mutableListOf<Meldeperiode>()
-        var mutPeriode = periode
-
-        while (mutPeriode.overlapperMed(rammevedtak.periode)) {
-            val utfallsperioder = this.vedtaksliste.utfallsperioder.krymp(mutPeriode)
-            val nyMeldeperiode = Meldeperiode.opprettMeldeperiode(
-                periode = mutPeriode,
-                utfallsperioder = utfallsperioder,
-                fnr = fnr,
-                saksnummer = saksnummer,
-                sakId = rammevedtak.sakId,
-                antallDagerForPeriode = rammevedtak.antallDagerPerMeldeperiode,
-            )
-            mutList.add(nyMeldeperiode)
-            mutPeriode = mutPeriode.nesteMeldeperiode()
-        }
-
-        val sak = this.copy(
-            meldeperiodeKjeder = this.meldeperiodeKjeder.leggTilNyKjede(mutList),
-        )
-        return sak to mutList
-    }
-
-    val utfallsperioder = this.vedtaksliste.utfallsperioder.krymp(periode)
-
-    val nyMeldeperiode = Meldeperiode.opprettMeldeperiode(
-        periode = periode,
-        utfallsperioder = utfallsperioder,
-        fnr = fnr,
-        saksnummer = saksnummer,
-        sakId = rammevedtak.sakId,
-        antallDagerForPeriode = rammevedtak.antallDagerPerMeldeperiode,
-    )
-
-    val sak = this.copy(
-        meldeperiodeKjeder = this.meldeperiodeKjeder.leggTilNyKjede(nyMeldeperiode),
-    )
-
-    return sak to listOf(nyMeldeperiode)
-}
+// private fun Sak.appendNyMeldeperiode(rammevedtak: Rammevedtak): Pair<Sak, List<Meldeperiode>> {
+//    require(this.meldeperiodeKjeder.periode!!.overlapperMed(rammevedtak.periode)) {
+//        "Kan ikke legge til ny periode som overlapper med eksisterende periode"
+//    }
+//    val periode = this.finnNærmesteMeldeperiode(rammevedtak.periode.fraOgMed)
+//
+//    if (this.meldeperiodeKjeder.periode.fraOgMed.isAfter(periode.tilOgMed)) {
+//        val mutList = mutableListOf<Meldeperiode>()
+//        var mutPeriode = periode
+//
+//        while (mutPeriode.overlapperMed(rammevedtak.periode)) {
+//            val utfallsperioder = this.vedtaksliste.utfallsperioder.krymp(mutPeriode)
+//            val nyMeldeperiode = Meldeperiode.opprettMeldeperiode(
+//                periode = mutPeriode,
+//                utfallsperioder = utfallsperioder,
+//                fnr = fnr,
+//                saksnummer = saksnummer,
+//                sakId = rammevedtak.sakId,
+//                antallDagerForPeriode = rammevedtak.antallDagerPerMeldeperiode,
+//            )
+//            mutList.add(nyMeldeperiode)
+//            mutPeriode = mutPeriode.nesteMeldeperiode()
+//        }
+//
+//        val sak = this.copy(
+//            meldeperiodeKjeder = this.meldeperiodeKjeder.oppdaterEllerLeggTilNy(mutList),
+//        )
+//        return sak to mutList
+//    }
+//
+//    val utfallsperioder = this.vedtaksliste.utfallsperioder.krymp(periode)
+//
+//    val nyMeldeperiode = Meldeperiode.opprettMeldeperiode(
+//        periode = periode,
+//        utfallsperioder = utfallsperioder,
+//        fnr = fnr,
+//        saksnummer = saksnummer,
+//        sakId = rammevedtak.sakId,
+//        antallDagerForPeriode = rammevedtak.antallDagerPerMeldeperiode,
+//    )
+//
+//    val sak = this.copy(
+//        meldeperiodeKjeder = this.meldeperiodeKjeder.oppdaterEllerLeggTilNy(nyMeldeperiode),
+//    )
+//
+//    return sak to listOf(nyMeldeperiode)
+// }

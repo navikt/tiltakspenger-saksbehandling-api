@@ -17,6 +17,10 @@ data class Vedtaksliste(
     @Suppress("unused")
     constructor(value: Rammevedtak) : this(listOf(value))
 
+    val fnr = value.distinctBy { it.fnr }.map { it.fnr }.singleOrNullOrThrow()
+    val sakId = value.distinctBy { it.sakId }.map { it.sakId }.singleOrNullOrThrow()
+    val saksnummer = value.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
+
     val tidslinje: Periodisering<Rammevedtak> by lazy { value.toTidslinje() }
 
     val førstegangsvedtak: List<Rammevedtak> by lazy { value.filter { it.erFørstegangsvedtak } }
@@ -58,14 +62,16 @@ data class Vedtaksliste(
         innvilgelsesperioder.maxOfOrNull { it.tilOgMed }
     }
 
+    val antallDagerPerioder: Periodisering<Int> by lazy {
+        TODO()
+    }
+
     /** Den er kun trygg inntil vi revurderer antall dager. */
     fun hentAntallDager(periode: Periode): Int? =
         if (this.isEmpty()) {
             null
         } else {
-            // her håper vi på at noe magisk vil skje. Kanskje det fungerer i starten, med brekker når det er flere vedtak
-            this.tidslinje.krymp(periode).distinctBy { it.periode }
-                .single().verdi.antallDagerPerMeldeperiode
+            this.tidslinje.overlapperMed(periode).utvid(0, periode)
         }
 
     /**
@@ -96,10 +102,15 @@ data class Vedtaksliste(
         }.let { Periodisering(it) }
     }
 
+    fun utfallForPeriode(periode: Periode): Periodisering<Utfallsperiode> {
+        return utfallsperioder.overlapperMed(periode).utvid(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, periode)
+    }
+
     // Denne fungerer bare for førstegangsvedtak der man har valgte tiltaksdeltakelser
     val valgteTiltaksdeltakelser: Periodisering<Tiltaksdeltagelse> by lazy {
         innvilgetTidslinje.perioderMedVerdi.filter { it.verdi.behandling.valgteTiltaksdeltakelser != null }
-            .flatMap { it.verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(it.periode).perioderMedVerdi }.let {
+            .flatMap { it.verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(it.periode).perioderMedVerdi }
+            .let {
                 Periodisering(it)
             }
     }

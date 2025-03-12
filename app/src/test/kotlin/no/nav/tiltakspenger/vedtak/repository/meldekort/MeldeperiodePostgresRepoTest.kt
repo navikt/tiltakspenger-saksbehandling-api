@@ -8,18 +8,17 @@ import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.mars
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjede
 import no.nav.tiltakspenger.meldekort.domene.MeldeperiodeKjeder
-import no.nav.tiltakspenger.meldekort.domene.opprettManglendeMeldeperioder
 import org.junit.jupiter.api.Test
 
 class MeldeperiodePostgresRepoTest {
     @Test
     fun `kan lagre og hente`() {
         withMigratedDb { testDataHelper ->
-            val (sak, vedtak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
                 deltakelseFom = 1.januar(2024),
                 deltakelseTom = 31.mars(2024),
             )
-            val (_, meldeperioder) = sak.opprettManglendeMeldeperioder(vedtak)
+            val (_, meldeperioder) = sak.meldeperiodeKjeder.genererMeldeperioder(sak.vedtaksliste)
             val meldeperiodeRepo = testDataHelper.meldeperiodeRepo
             meldeperiodeRepo.lagre(meldeperioder.first())
 

@@ -27,7 +27,7 @@ data class Meldeperiode(
     val antallDagerForPeriode: Int,
     val girRett: Map<LocalDate, Boolean>,
     val sendtTilMeldekortApi: LocalDateTime?,
-) {
+) : Comparable<Meldeperiode> {
     fun helePeriodenErSperret(): Boolean {
         return girRett.values.toList().all { !it }
     }
@@ -35,6 +35,10 @@ data class Meldeperiode(
     // TODO Anders: når skal vi tillate at meldekortet fylles ut? Siste fredag i perioden?
     fun erKlarTilUtfylling(): Boolean {
         return periode.fraOgMed <= nå().toLocalDate()
+    }
+
+    fun erLik(meldeperiode: Meldeperiode): Boolean {
+        return this.meldeperiodeKjedeId == meldeperiode.meldeperiodeKjedeId && this.sakId == meldeperiode.sakId && this.saksnummer == meldeperiode.saksnummer && this.fnr == meldeperiode.fnr && this.periode == meldeperiode.periode && this.antallDagerForPeriode == meldeperiode.antallDagerForPeriode && this.girRett == meldeperiode.girRett
     }
 
     val ingenDagerGirRett = girRett.values.none { it }
@@ -67,5 +71,10 @@ data class Meldeperiode(
 
             return meldeperiode
         }
+    }
+
+    override fun compareTo(other: Meldeperiode): Int {
+        require(!this.periode.overlapperMed(other.periode)) { "Meldeperiodene kan ikke overlappe" }
+        return this.periode.fraOgMed.compareTo(other.periode.fraOgMed)
     }
 }

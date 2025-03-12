@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.db.withMigratedDb
 import no.nav.tiltakspenger.felles.januar
 import no.nav.tiltakspenger.felles.mars
 import no.nav.tiltakspenger.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.meldekort.domene.opprettManglendeMeldeperioder
 import no.nav.tiltakspenger.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
@@ -15,11 +14,11 @@ class MeldekortBrukerPostgresRepoTest {
     @Test
     fun `kan lagre og hente`() {
         withMigratedDb { testDataHelper ->
-            val (sak, vedtak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
                 deltakelseFom = 1.januar(2024),
                 deltakelseTom = 31.mars(2024),
             )
-            val (_, meldeperioder) = sak.opprettManglendeMeldeperioder(vedtak)
+            val (_, meldeperioder) = sak.meldeperiodeKjeder.genererMeldeperioder(sak.vedtaksliste)
             testDataHelper.meldeperiodeRepo.lagre(meldeperioder.first())
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
             val nyttBrukersMeldekort = ObjectMother.nyttBrukersMeldekort(
