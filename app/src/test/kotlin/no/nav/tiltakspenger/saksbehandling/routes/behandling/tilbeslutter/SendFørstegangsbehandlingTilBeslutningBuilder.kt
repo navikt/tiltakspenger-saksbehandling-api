@@ -109,7 +109,7 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
         }
     }
 
-    suspend fun ApplicationTestBuilder.sendFørstegangsbehandlingTilBeslutningSomFeiler(
+    suspend fun ApplicationTestBuilder.sendFørstegangsbehandlingTilBeslutningReturnerResponskode(
         tac: TestApplicationContext,
         sakId: SakId,
         behandlingId: BehandlingId,

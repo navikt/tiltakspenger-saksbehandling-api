@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendFørstegangsbehandlingTilBeslutningForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendFørstegangsbehandlingTilBeslutningSomFeiler
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendFørstegangsbehandlingTilBeslutningReturnerResponskode
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.routes
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingsstatus
@@ -74,7 +74,7 @@ class SendFørstegangsbehandlingTilBeslutterTest {
                 val tiltaksdeltakelseFom = behandling.saksopplysninger.tiltaksdeltagelse.first().deltagelseFraOgMed!!
                 val tiltaksdeltakelseTom = behandling.saksopplysninger.tiltaksdeltagelse.first().deltagelseTilOgMed!!
 
-                val responskode = sendFørstegangsbehandlingTilBeslutningSomFeiler(
+                val responskode = sendFørstegangsbehandlingTilBeslutningReturnerResponskode(
                     tac,
                     sak.id,
                     behandlingId,
