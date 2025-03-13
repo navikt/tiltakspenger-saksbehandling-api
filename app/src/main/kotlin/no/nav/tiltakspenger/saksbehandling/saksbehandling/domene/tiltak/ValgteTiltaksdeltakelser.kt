@@ -32,18 +32,11 @@ data class ValgteTiltaksdeltakelser(
 
     init {
         periodisering.perioderMedVerdi.forEach {
-            if (it.verdi.deltagelseFraOgMed != null && it.verdi.deltagelseTilOgMed != null) {
-                require(Periode(it.verdi.deltagelseFraOgMed!!, it.verdi.deltagelseTilOgMed!!).inneholderHele(it.periode)) {
-                    "Valgt periode for tiltak med id ${it.verdi.eksternDeltagelseId} må være innenfor deltakelsesperioden"
-                }
-            } else if (it.verdi.deltagelseTilOgMed == null && it.verdi.deltagelseFraOgMed != null) {
-                require(!it.periode.fraOgMed.isBefore(it.verdi.deltagelseFraOgMed)) {
-                    "Valgt periode for tiltak med id ${it.verdi.eksternDeltagelseId} kan ikke starte før deltakelsesperioden"
-                }
-            } else if (it.verdi.deltagelseFraOgMed == null && it.verdi.deltagelseTilOgMed != null) {
-                require(!it.periode.tilOgMed.isAfter(it.verdi.deltagelseTilOgMed)) {
-                    "Valgt periode for tiltak med id ${it.verdi.eksternDeltagelseId} kan ikke slutte etter deltakelsesperioden"
-                }
+            require(it.verdi.deltagelseFraOgMed != null && it.verdi.deltagelseTilOgMed != null) {
+                "Kan ikke velge tiltaksdeltakelse med id ${it.verdi.eksternDeltagelseId} som mangler start- eller sluttdato"
+            }
+            require(Periode(it.verdi.deltagelseFraOgMed!!, it.verdi.deltagelseTilOgMed!!).inneholderHele(it.periode)) {
+                "Valgt periode for tiltak med id ${it.verdi.eksternDeltagelseId} må være innenfor deltakelsesperioden"
             }
         }
     }
