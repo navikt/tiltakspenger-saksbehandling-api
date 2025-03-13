@@ -11,10 +11,10 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.routes.correlationId
 import no.nav.tiltakspenger.saksbehandling.routes.withBehandlingId
@@ -24,31 +24,21 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Begr
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.OppdaterBarnetilleggKommando
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.OppdaterBarnetilleggService
 
-private data class OppdaterBarnetilleggBody(
-    val barnetilleggForPeriode: List<BarnetilleggForPeriode>,
-    val begrunnelse: String?,
-) {
-    data class BarnetilleggForPeriode(
-        val periode: PeriodeDTO,
-        val antallBarn: Int,
-    )
-
-    fun toDomain(
-        sakId: SakId,
-        behandlingId: BehandlingId,
-        correlationId: CorrelationId,
-        saksbehandler: Saksbehandler,
-    ): OppdaterBarnetilleggKommando = OppdaterBarnetilleggKommando(
-        sakId = sakId,
-        behandlingId = behandlingId,
-        correlationId = correlationId,
-        saksbehandler = saksbehandler,
-        begrunnelse = begrunnelse?.let { BegrunnelseVilkårsvurdering(it) },
-        perioder = barnetilleggForPeriode.map {
-            Pair(it.periode.toDomain(), AntallBarn(it.antallBarn))
-        },
-    )
-}
+private fun BarnetilleggDTO.toDomain(
+    sakId: SakId,
+    behandlingId: BehandlingId,
+    correlationId: CorrelationId,
+    saksbehandler: Saksbehandler,
+): OppdaterBarnetilleggKommando = OppdaterBarnetilleggKommando(
+    sakId = sakId,
+    behandlingId = behandlingId,
+    correlationId = correlationId,
+    saksbehandler = saksbehandler,
+    begrunnelse = begrunnelse?.let { BegrunnelseVilkårsvurdering(it) },
+    perioder = perioder.map {
+        Pair(it.periode.toDomain(), AntallBarn(it.antallBarn))
+    },
+)
 
 fun Route.oppdaterBarnetilleggRoute(
     tokenService: TokenService,
@@ -61,7 +51,7 @@ fun Route.oppdaterBarnetilleggRoute(
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<OppdaterBarnetilleggBody> { body ->
+                    call.withBody<BarnetilleggDTO> { body ->
                         val correlationId = call.correlationId()
                         oppdaterBarnetilleggService.oppdaterBarnetillegg(
                             body.toDomain(

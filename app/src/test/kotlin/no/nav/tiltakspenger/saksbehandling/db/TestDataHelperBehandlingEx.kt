@@ -209,8 +209,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
                     fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("fritekstTilVedtaksbrev"),
                     begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("begrunnelseVilkårsvurdering"),
                     innvilgelsesperiode = tiltaksOgVurderingsperiode,
-                    begrunnelse = null,
-                    perioder = null,
+                    barnetillegg = null,
                     tiltaksdeltakelser = listOf(Pair(tiltaksOgVurderingsperiode, førstegangsbehandling.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId)),
                 ),
             )

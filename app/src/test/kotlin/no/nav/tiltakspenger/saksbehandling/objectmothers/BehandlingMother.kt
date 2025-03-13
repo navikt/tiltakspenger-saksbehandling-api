@@ -297,8 +297,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
             innvilgelsesperiode = periode,
-            begrunnelse = null,
-            perioder = null,
+            barnetillegg = null,
             tiltaksdeltakelser = listOf(
                 Pair(
                     periode,

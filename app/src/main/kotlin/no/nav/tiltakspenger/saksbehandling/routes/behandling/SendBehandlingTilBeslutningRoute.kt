@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.TiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toDTO
@@ -43,6 +42,8 @@ private data class SendTilBeslutningBody(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): SendSøknadsbehandlingTilBeslutningKommando {
+        val innvilgelsesperiode = innvilgelsesperiode.toDomain()
+
         return SendSøknadsbehandlingTilBeslutningKommando(
             sakId = sakId,
             behandlingId = behandlingId,
@@ -50,11 +51,8 @@ private data class SendTilBeslutningBody(
             correlationId = correlationId,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(it) },
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { BegrunnelseVilkårsvurdering(it) },
-            innvilgelsesperiode = innvilgelsesperiode.toDomain(),
-            begrunnelse = barnetillegg?.begrunnelse?.let { BegrunnelseVilkårsvurdering(it) },
-            perioder = barnetillegg?.perioder?.map {
-                Pair(it.periode.toDomain(), AntallBarn(it.antallBarn))
-            },
+            innvilgelsesperiode = innvilgelsesperiode,
+            barnetillegg = barnetillegg?.tilBarnetillegg(innvilgelsesperiode),
             tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
                 Pair(it.periode.toDomain(), it.eksternDeltagelseId)
             },

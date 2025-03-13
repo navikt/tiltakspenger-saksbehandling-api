@@ -246,7 +246,7 @@ data class Behandling(
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             virkningsperiode = kommando.innvilgelsesperiode,
-            barnetillegg = kommando.barnetillegg(),
+            barnetillegg = kommando.barnetillegg,
             valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
         )
     }

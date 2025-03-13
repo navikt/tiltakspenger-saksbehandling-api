@@ -33,30 +33,40 @@ data class Barnetillegg(
     }
 
     companion object {
-        /**
-         * Periodiserer og fyller ut hull med 0.
-         * @throws IllegalArgumentException Dersom periodene er utenfor virkningsperioden eller overlapper.
-         */
         fun periodiserOgFyllUtHullMed0(
-            perioder: List<Pair<Periode, AntallBarn>>,
+            perioder: BarnetilleggPerioder,
             begrunnelse: BegrunnelseVilkårsvurdering?,
             virkningsperiode: Periode?,
-        ): Barnetillegg {
-            if (perioder.map { it.first }.inneholderOverlapp()) {
-                throw IllegalArgumentException("Periodene kan ikke overlappe")
-            }
-            return Barnetillegg(
-                periodisering = perioder.fold(
-                    Periodisering(
-                        AntallBarn.ZERO,
-                        virkningsperiode ?: perioder.map { it.first }
-                            .let { Periode(it.minOf { it.fraOgMed }, it.maxOf { it.tilOgMed }) },
-                    ),
-                ) { periodisering, (periode, antallBarn) ->
-                    periodisering.setVerdiForDelPeriode(antallBarn, periode)
+        ) = Barnetillegg(
+            periodisering = perioder.periodiserOgFyllUtHullMed0(virkningsperiode),
+            begrunnelse = begrunnelse,
+        )
+    }
+}
+
+typealias BarnetilleggPerioder = List<Pair<Periode, AntallBarn>>
+
+/**
+ * Periodiserer og fyller ut hull med 0.
+ * @throws IllegalArgumentException Dersom periodene er utenfor virkningsperioden eller overlapper.
+ */
+internal fun BarnetilleggPerioder.periodiserOgFyllUtHullMed0(virkningsperiode: Periode?): Periodisering<AntallBarn> {
+    if (this.map { it.first }.inneholderOverlapp()) {
+        throw IllegalArgumentException("Periodene kan ikke overlappe")
+    }
+
+    return this.fold(
+        Periodisering(
+            AntallBarn.ZERO,
+            virkningsperiode ?: this.map { it.first }
+                .let { perioder ->
+                    Periode(
+                        perioder.minOf { it.fraOgMed },
+                        perioder.maxOf { it.tilOgMed },
+                    )
                 },
-                begrunnelse = begrunnelse,
-            )
-        }
+        ),
+    ) { periodisering, (periode, antallBarn) ->
+        periodisering.setVerdiForDelPeriode(antallBarn, periode)
     }
 }

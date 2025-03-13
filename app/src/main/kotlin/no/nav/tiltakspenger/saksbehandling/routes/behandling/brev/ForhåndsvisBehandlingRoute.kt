@@ -12,12 +12,10 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.BarnetilleggPeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.tilPeriodisering
 import no.nav.tiltakspenger.saksbehandling.routes.correlationId
 import no.nav.tiltakspenger.saksbehandling.routes.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.withBody
@@ -36,22 +34,19 @@ internal data class ForhåndsvisBehandlingBody(
         behandlingId: BehandlingId,
         correlationId: CorrelationId,
         saksbehandler: Saksbehandler,
-    ) = ForhåndsvisVedtaksbrevKommando(
-        fritekstTilVedtaksbrev = FritekstTilVedtaksbrev(fritekst),
-        sakId = sakId,
-        behandlingId = behandlingId,
-        correlationId = correlationId,
-        saksbehandler = saksbehandler,
-        virkingsperiode = virkningsperiode?.toDomain(),
-        barnetillegg = Periodisering(
-            barnetillegg.map {
-                PeriodeMedVerdi(
-                    verdi = AntallBarn(it.antallBarn),
-                    periode = it.periode.toDomain(),
-                )
-            },
-        ),
-    )
+    ): ForhåndsvisVedtaksbrevKommando {
+        val virkningsperiode = virkningsperiode?.toDomain()
+
+        return ForhåndsvisVedtaksbrevKommando(
+            fritekstTilVedtaksbrev = FritekstTilVedtaksbrev(fritekst),
+            sakId = sakId,
+            behandlingId = behandlingId,
+            correlationId = correlationId,
+            saksbehandler = saksbehandler,
+            virkingsperiode = virkningsperiode,
+            barnetillegg = barnetillegg.tilPeriodisering(virkningsperiode),
+        )
+    }
 }
 
 fun Route.forhåndsvisVedtaksbrevRoute(

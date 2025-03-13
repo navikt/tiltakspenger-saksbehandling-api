@@ -1,24 +1,21 @@
 package no.nav.tiltakspenger.saksbehandling.routes.behandling.dto
 
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.periodiserOgFyllUtHullMed0
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 
 internal data class BarnetilleggDTO(
     val perioder: List<BarnetilleggPeriodeDTO>,
     val begrunnelse: String?,
 ) {
-    fun tilBarnetillegg(): Barnetillegg = Barnetillegg(
+    fun tilBarnetillegg(virkningsperiode: Periode?): Barnetillegg = Barnetillegg.periodiserOgFyllUtHullMed0(
         begrunnelse = begrunnelse?.let { (BegrunnelseVilkårsvurdering(it)) },
-        periodisering = Periodisering(
-            perioder.map {
-                PeriodeMedVerdi(AntallBarn(it.antallBarn), it.periode.toDomain())
-            },
-        ),
+        perioder = perioder.map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) },
+        virkningsperiode = virkningsperiode,
     )
 }
 
@@ -28,11 +25,15 @@ internal data class BarnetilleggPeriodeDTO(
 )
 
 internal fun Barnetillegg.toDTO(): BarnetilleggDTO = BarnetilleggDTO(
-    perioder = periodisering.perioderMedVerdi.map { it.tilBarnetilleggPeriodeDTO() },
+    perioder = periodisering.perioderMedVerdi.map {
+        BarnetilleggPeriodeDTO(
+            antallBarn = it.verdi.value,
+            periode = it.periode.toDTO(),
+        )
+    },
     begrunnelse = begrunnelse?.verdi,
 )
 
-internal fun PeriodeMedVerdi<AntallBarn>.tilBarnetilleggPeriodeDTO(): BarnetilleggPeriodeDTO = BarnetilleggPeriodeDTO(
-    antallBarn = verdi.value,
-    periode = periode.toDTO(),
-)
+internal fun List<BarnetilleggPeriodeDTO>.tilPeriodisering(virkningsperiode: Periode?) =
+    this.map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) }
+        .periodiserOgFyllUtHullMed0(virkningsperiode)
