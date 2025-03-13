@@ -38,8 +38,8 @@ data class MeldekortBehandlinger(
      */
     fun sendTilBeslutter(
         kommando: SendMeldekortTilBeslutningKommando,
-        barnetilleggsPerioder: Periodisering<AntallBarn>,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+        barnetilleggsPerioder: Periodisering<AntallBarn?>,
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
     ): Either<KanIkkeSendeMeldekortTilBeslutning, Pair<MeldekortBehandlinger, MeldekortBehandlet>> {
         val meldekortId = kommando.meldekortId
 
@@ -108,7 +108,7 @@ data class MeldekortBehandlinger(
      */
     fun oppdaterMedNyeKjeder(
         oppdaterteKjeder: MeldeperiodeKjeder,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
     ): Pair<MeldekortBehandlinger, List<MeldekortBehandling>> {
         return verdi.filter { it.erÅpen() }
             .fold(Pair(this, emptyList())) { acc, meldekortBehandling ->

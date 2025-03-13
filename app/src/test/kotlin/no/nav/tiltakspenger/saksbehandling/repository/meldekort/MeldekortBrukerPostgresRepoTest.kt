@@ -18,7 +18,7 @@ class MeldekortBrukerPostgresRepoTest {
                 deltakelseFom = 1.januar(2024),
                 deltakelseTom = 31.mars(2024),
             )
-            val (_, meldeperioder) = sak.meldeperiodeKjeder.genererMeldeperioder(sak.vedtaksliste)
+            val (_, meldeperioder) = sak.genererMeldeperioder()
             testDataHelper.meldeperiodeRepo.lagre(meldeperioder.first())
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
 

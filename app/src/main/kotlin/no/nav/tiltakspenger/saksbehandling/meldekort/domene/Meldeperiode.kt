@@ -50,7 +50,7 @@ data class Meldeperiode(
     companion object {
         fun opprettMeldeperiode(
             periode: Periode,
-            utfallsperioder: Periodisering<Utfallsperiode>,
+            utfallsperioder: Periodisering<Utfallsperiode?>,
             fnr: Fnr,
             saksnummer: Saksnummer,
             sakId: SakId,

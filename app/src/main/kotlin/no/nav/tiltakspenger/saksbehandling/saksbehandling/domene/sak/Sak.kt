@@ -23,8 +23,10 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søk
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.TemporalAdjusters
 
 data class Sak(
     val id: SakId,
@@ -64,9 +66,9 @@ data class Sak(
         meldekortBehandlinger.sisteGodkjenteMeldekort?.navkontor
     }
 
-    val barnetilleggsperioder: Periodisering<AntallBarn> by lazy { vedtaksliste.barnetilleggsperioder }
+    val barnetilleggsperioder: Periodisering<AntallBarn?> by lazy { vedtaksliste.barnetilleggsperioder }
 
-    val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy { vedtaksliste.tiltakstypeperioder }
+    val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett?> by lazy { vedtaksliste.tiltakstypeperioder }
 
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
         return meldekortBehandlinger.hentMeldekortBehandling(meldekortId)
@@ -155,8 +157,18 @@ data class Sak(
         return Pair(oppdatertSak, avbruttSøknad)
     }
 
+    // TODO - test
     fun genererMeldeperioder(): Pair<Sak, List<Meldeperiode>> {
-        return this.meldeperiodeKjeder.genererMeldeperioder(this.vedtaksliste).let {
+        val dag = LocalDate.now()
+        val ukedag = dag.dayOfWeek.value
+        val ikkeGenererEtter = if (ukedag > 4) {
+            dag.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+        } else {
+            dag.with(
+                TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY),
+            )
+        }
+        return this.meldeperiodeKjeder.genererMeldeperioder(this.vedtaksliste, ikkeGenererEtter).let {
             this.copy(meldeperiodeKjeder = it.first) to it.second
         }
     }

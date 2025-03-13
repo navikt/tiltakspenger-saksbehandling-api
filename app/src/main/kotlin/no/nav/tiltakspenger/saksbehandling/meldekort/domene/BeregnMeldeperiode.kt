@@ -49,8 +49,8 @@ private data class MeldekortBeregning(
     fun beregn(
         kommando: SendMeldekortTilBeslutningKommando,
         eksisterendeMeldekortPåSaken: MeldekortBehandlinger,
-        barnetilleggsPerioder: Periodisering<AntallBarn>,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+        barnetilleggsPerioder: Periodisering<AntallBarn?>,
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
     ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
         val meldekortId = kommando.meldekortId
 
@@ -469,8 +469,8 @@ private enum class SykTilstand {
 
 fun SendMeldekortTilBeslutningKommando.beregn(
     eksisterendeMeldekortBehandlinger: MeldekortBehandlinger,
-    barnetilleggsPerioder: Periodisering<AntallBarn>,
-    tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+    barnetilleggsPerioder: Periodisering<AntallBarn?>,
+    tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
 ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
     return MeldekortBeregning(
         utløsendeMeldekortId = this.meldekortId,

@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 
 data class MeldeperiodeKjeder(
@@ -35,8 +36,13 @@ data class MeldeperiodeKjeder(
             require(a.periode.fraOgMed <= b.periode.fraOgMed) {
                 "Meldeperiodekjedene må være sortert på periode - ${a.kjedeId} og ${b.kjedeId} var i feil rekkefølge (sak ${a.sakId})"
             }
-            require(a.periode.tilOgMed.plusDays(1) == b.periode.fraOgMed) {
-                "Meldeperiodekjedene må være sammenhengende - feilet for ${a.kjedeId} og ${b.kjedeId} (sak ${a.sakId})"
+            require(ChronoUnit.DAYS.between(a.periode.fraOgMed, b.periode.fraOgMed) % 14 == 0L) {
+                """
+                    Meldeperiodekjedene må følge meldesyklus - feilet for ${a.kjedeId} og ${b.kjedeId} (sak ${a.sakId})
+                        Første periode: ${a.periode}.
+                        Neste periode: ${b.periode}.
+                        Antall dager mellom: ${ChronoUnit.DAYS.between(a.periode.fraOgMed, b.periode.fraOgMed)}.
+                """.trimIndent()
             }
         }
     }
@@ -120,15 +126,10 @@ data class MeldeperiodeKjeder(
             Pair(ny.first, listOfNotNull(ny.second).plus(acc.second).sorted())
         }
 
-//    fun genererMeldeperioder(vedtaksliste: Vedtaksliste): Pair<MeldeperiodeKjeder, List<Meldeperiode>> {
-//        if (meldeperioder.isEmpty()) {
-//            return genererMeldeperioder(vedtaksliste)
-//        }
-//        TODO()
-//    }
-
+    // TODO - test
     fun genererMeldeperioder(
         vedtaksliste: Vedtaksliste,
+        ikkeGenererEtter: LocalDate,
     ): Pair<MeldeperiodeKjeder, List<Meldeperiode>> {
         if (vedtaksliste.isEmpty()) {
             require(this.isEmpty()) { "Forventet ingen meldeperioder ved tom vedtaksliste" }
@@ -141,7 +142,7 @@ data class MeldeperiodeKjeder(
         val potensielleNyeMeldeperioder = mutableListOf<Meldeperiode>()
 
         // før eller samme dag
-        while (!nærmesteMeldeperiode.etter(innvilgelsesperioder.last().tilOgMed)) {
+        while (!nærmesteMeldeperiode.etter(innvilgelsesperioder.last().tilOgMed) && !ikkeGenererEtter.isBefore(nærmesteMeldeperiode.tilOgMed)) {
             if (!innvilgelsesperioder.overlapper(nærmesteMeldeperiode) && !this.harMeldeperiode(nærmesteMeldeperiode)) {
                 // hvis perioden ikke overlapper, og den ikke finnes fra før, så skal ikke vi oppdatere noe
                 continue

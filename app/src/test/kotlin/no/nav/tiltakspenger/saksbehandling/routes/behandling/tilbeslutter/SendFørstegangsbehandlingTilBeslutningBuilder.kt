@@ -14,10 +14,13 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.felles.april
 import no.nav.tiltakspenger.saksbehandling.felles.januar
 import no.nav.tiltakspenger.saksbehandling.felles.mars
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -33,9 +36,11 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
     /** Oppretter ny sak, søknad og behandling. */
     suspend fun ApplicationTestBuilder.sendFørstegangsbehandlingTilBeslutning(
         tac: TestApplicationContext,
+        fnr: Fnr = Fnr.random(),
+        virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
-        val (sak, søknad, behandling) = startBehandling(tac)
+        val (sak, søknad, behandling) = startBehandling(tac, fnr, virkingsperiode)
         val sakId = sak.id
         val behandlingId = behandling.id
         oppdaterFritekstForBehandlingId(tac, sakId, behandlingId, saksbehandler)

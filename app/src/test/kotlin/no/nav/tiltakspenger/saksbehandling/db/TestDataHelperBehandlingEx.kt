@@ -474,7 +474,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         beslutter = beslutter,
         sak = sak,
     )
-    val (_, meldeperioder) = sak.meldeperiodeKjeder.genererMeldeperioder(sak.vedtaksliste)
+    val (_, meldeperioder) = sak.genererMeldeperioder()
     val behandletMeldekort = ObjectMother.meldekortBehandlet(
         sakId = sak.id,
         fnr = sak.fnr,
