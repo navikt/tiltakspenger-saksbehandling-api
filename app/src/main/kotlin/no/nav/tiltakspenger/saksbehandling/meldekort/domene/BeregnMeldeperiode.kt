@@ -49,8 +49,8 @@ private data class MeldekortBeregning(
     fun beregn(
         kommando: SendMeldekortTilBeslutningKommando,
         eksisterendeMeldekortPåSaken: MeldekortBehandlinger,
-        barnetilleggsPerioder: Periodisering<AntallBarn>,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+        barnetilleggsPerioder: Periodisering<AntallBarn?>,
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
     ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
         require(eksisterendeMeldekortPåSaken.sakId == kommando.sakId) {
             "SakId på eksisterende meldekortperiode ${eksisterendeMeldekortPåSaken.sakId} er ikke likt sakId på kommando ${kommando.sakId}"
@@ -466,8 +466,8 @@ private enum class SykTilstand {
 
 fun SendMeldekortTilBeslutningKommando.beregn(
     eksisterendeMeldekortBehandlinger: MeldekortBehandlinger,
-    barnetilleggsPerioder: Periodisering<AntallBarn>,
-    tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+    barnetilleggsPerioder: Periodisering<AntallBarn?>,
+    tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
 ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
     return MeldekortBeregning(
         utløsendeMeldekortId = this.meldekortId,

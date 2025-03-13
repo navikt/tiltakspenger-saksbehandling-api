@@ -76,7 +76,7 @@ class MeldekortBehandlingRepoImplTest {
                 deltakelseFom = 1.januar(2024),
                 deltakelseTom = 31.mars(2024),
             )
-            val (_, meldeperioder) = sak.meldeperiodeKjeder.genererMeldeperioder(sak.vedtaksliste)
+            val (_, meldeperioder) = sak.genererMeldeperioder()
             val meldekortBehandling = sak.opprettMeldekortBehandling(
                 meldeperioder.first(),
                 ObjectMother.navkontor(),

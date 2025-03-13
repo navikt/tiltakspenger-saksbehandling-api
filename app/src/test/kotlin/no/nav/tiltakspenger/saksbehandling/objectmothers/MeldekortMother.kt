@@ -169,7 +169,7 @@ interface MeldekortMother {
         periode: Periode,
         startDato: LocalDate = LocalDate.of(2023, 1, 2),
         meldekortId: MeldekortId = MeldekortId.random(),
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett> = Periodisering(
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?> = Periodisering(
             TiltakstypeSomGirRett.GRUPPE_AMO,
             periode,
         ),
@@ -185,9 +185,7 @@ interface MeldekortMother {
             meldekortId = meldekortId,
             sakId = sakId,
             maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-
             tiltakstypePerioder = tiltakstypePerioder,
-
         )
     }
 
@@ -263,7 +261,7 @@ interface MeldekortMother {
             totalePeriode = vurderingsperiode,
         ),
         navkontor: Navkontor = ObjectMother.navkontor(),
-        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
+        barnetilleggsPerioder: Periodisering<AntallBarn?> = Periodisering.empty(),
     ): MeldekortBehandlinger {
         val kommandoer = meldeperioder.map { meldeperiode ->
             SendMeldekortTilBeslutningKommando(
@@ -294,7 +292,7 @@ interface MeldekortMother {
 
     fun førsteBeregnetMeldekort(
         kommando: SendMeldekortTilBeslutningKommando,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett> = Periodisering(
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?> = Periodisering(
             TiltakstypeSomGirRett.GRUPPE_AMO,
             kommando.periode,
         ),
@@ -305,7 +303,7 @@ interface MeldekortMother {
         opprettet: LocalDateTime = nå(),
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
-        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
+        barnetilleggsPerioder: Periodisering<AntallBarn?> = Periodisering.empty(),
     ): Pair<MeldekortBehandlinger, MeldekortBehandling.MeldekortBehandlet> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
@@ -350,8 +348,8 @@ interface MeldekortMother {
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
         opprettet: LocalDateTime = nå(),
-        barnetilleggsPerioder: Periodisering<AntallBarn>,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett> = Periodisering(
+        barnetilleggsPerioder: Periodisering<AntallBarn?>,
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?> = Periodisering(
             TiltakstypeSomGirRett.GRUPPE_AMO,
             kommando.periode,
         ),

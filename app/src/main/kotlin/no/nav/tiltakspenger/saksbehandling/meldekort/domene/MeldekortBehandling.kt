@@ -72,7 +72,7 @@ sealed interface MeldekortBehandling {
     /** Oppdaterer meldeperioden til [meldeperiode] dersom den har samme kjede id, den er nyere enn den eksisterende og dette ikke er avsluttet meldekortbehandling. */
     fun oppdaterMeldeperiode(
         meldeperiode: Meldeperiode,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
     ): MeldekortBehandling? {
         require(meldeperiode.kjedeId == kjedeId) {
             "MeldekortBehandling: Kan ikke oppdatere meldeperiode med annen kjede id. ${meldeperiode.kjedeId} != $kjedeId"
@@ -183,7 +183,7 @@ sealed interface MeldekortBehandling {
         fun tilUnderBehandling(
             nyMeldeperiode: Meldeperiode?,
             ikkeRettTilTiltakspengerTidspunkt: LocalDateTime? = null,
-            tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+            tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
         ): MeldekortUnderBehandling {
             val meldeperiode = nyMeldeperiode ?: this.meldeperiode
             return MeldekortUnderBehandling(
@@ -333,7 +333,7 @@ fun Sak.opprettMeldekortBehandling(
 
     // TODO jah: Behandlingen må ta inn periodisert antall dager og ikke bruke tidligere vedtak her. Tror ikke maksDagerMedTiltakspengerForPeriode brukes til noe; kanskje den bør bort fra beregningen?
     val vedtak = this.vedtaksliste.tidslinjeForPeriode(overlappendePeriode).single().verdi
-    val maksDagerMedTiltakspengerForPeriode = vedtak.behandling.maksDagerMedTiltakspengerForPeriode
+    val maksDagerMedTiltakspengerForPeriode = vedtak?.behandling?.maksDagerMedTiltakspengerForPeriode
 
     return MeldekortBehandling.MeldekortUnderBehandling(
         id = meldekortId,
@@ -350,7 +350,7 @@ fun Sak.opprettMeldekortBehandling(
             meldeperiode = meldeperiode,
             meldekortId = meldekortId,
             sakId = this.id,
-            maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
+            maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode!!,
             tiltakstypePerioder = this.vedtaksliste.tiltakstypeperioder,
         ),
     )

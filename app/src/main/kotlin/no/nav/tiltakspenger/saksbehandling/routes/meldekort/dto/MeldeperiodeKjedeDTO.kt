@@ -18,7 +18,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKjedeD
     return MeldeperiodeKjedeDTO(
         kjedeId = meldeperiodeKjede.kjedeId.toString(),
         periode = meldeperiodeKjede.periode.toDTO(),
-        tiltaksnavn = this.vedtaksliste.valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode).perioderMedVerdi.map { it.verdi.typeNavn },
+        tiltaksnavn = this.vedtaksliste.valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode).perioderMedVerdi.mapNotNull { it.verdi?.typeNavn },
         meldeperioder = meldeperiodeKjede.map { toMeldeperiodeDTO(it) },
     )
 }
@@ -28,7 +28,7 @@ fun Sak.toMeldeperiodeKjederDTO(): List<MeldeperiodeKjedeDTO> {
         MeldeperiodeKjedeDTO(
             kjedeId = meldeperiodeKjede.kjedeId.toString(),
             periode = meldeperiodeKjede.periode.toDTO(),
-            tiltaksnavn = this.vedtaksliste.valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode).perioderMedVerdi.map { it.verdi.typeNavn },
+            tiltaksnavn = this.vedtaksliste.valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode).perioderMedVerdi.mapNotNull { it.verdi?.typeNavn },
             meldeperioder = meldeperiodeKjede.map { toMeldeperiodeDTO(it) },
         )
     }

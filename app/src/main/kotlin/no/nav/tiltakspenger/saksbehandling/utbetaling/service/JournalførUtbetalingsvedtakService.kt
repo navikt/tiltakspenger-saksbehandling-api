@@ -37,7 +37,7 @@ class JournalførUtbetalingsvedtakService(
                         genererUtbetalingsvedtakGateway.genererUtbetalingsvedtak(
                             utbetalingsvedtak,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-                            tiltaksdeltagelser = tiltak,
+                            tiltaksdeltagelser = tiltak.mapNotNull { it }.ifEmpty { throw IllegalStateException("Forventet at et det skal finnes tilbaksdeltagelse for utbetalingsvedtaksperioden") },
                         ).getOrElse { return@forEach }
                     log.info { "Pdf generert for utbetalingsvedtak. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
                     val journalpostId = journalførMeldekortGateway.journalførMeldekortBehandling(

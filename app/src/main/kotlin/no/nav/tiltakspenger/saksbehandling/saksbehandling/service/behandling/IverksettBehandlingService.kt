@@ -127,7 +127,7 @@ class IverksettBehandlingService(
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ) {
-        val (_, meldeperioder) = this.meldeperiodeKjeder.genererMeldeperioder(this.vedtaksliste)
+        val (_, meldeperioder) = this.genererMeldeperioder()
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
         // Dersom denne endres til søknadsbehandling og vi kan ha mer enn 1 for en sak og den kan overlappe den eksistrende saksperioden, må den legge til nye versjoner av meldeperiodene her.

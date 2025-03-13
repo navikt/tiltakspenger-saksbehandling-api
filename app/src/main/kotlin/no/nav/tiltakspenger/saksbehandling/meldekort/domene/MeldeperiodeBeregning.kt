@@ -128,7 +128,7 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
                 meldekortId: MeldekortId,
                 sakId: SakId,
                 maksDagerMedTiltakspengerForPeriode: Int,
-                tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+                tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
             ): IkkeUtfyltMeldeperiode {
                 val dager =
                     meldeperiode.periode.tilDager().map { dag ->
