@@ -52,10 +52,11 @@ data class Sak(
      * En sak kan kun ha en førstegangsbehandling, dersom perioden til den vedtatte førstegangsbehandlingen skal utvides eller minskes (den må fortsatt være sammenhengende) må vi revurdere/omgjøre, ikke førstegangsbehandle på nytt.
      * Dersom den nye søknaden ikke overlapper eller tilstøter den gamle perioden, må vi opprette en ny sak som får en ny førstegangsbehandling.
      */
-    val førstegangsbehandling: Behandling? = behandlinger.førstegangsbehandling
+    val ikkeAvbruttFørstegangsbehandlinger: List<Behandling> = behandlinger.ikkeAvbrutteFørstegangsbehandlinger
     val revurderinger = behandlinger.revurderinger
 
-    val saksopplysningsperiode: Periode? = førstegangsbehandling?.saksopplysningsperiode
+    val førsteSaksopplysningsperiode: Periode? =
+        ikkeAvbruttFørstegangsbehandlinger.firstOrNull()?.saksopplysningsperiode
 
     /** Henter fra siste godkjente meldekort */
     @Suppress("unused")
@@ -92,7 +93,8 @@ data class Sak(
     }
 
     /** Den er kun trygg inntil vi revurderer antall dager. */
-    fun hentAntallDager(): Int? = vedtaksliste.førstegangsvedtak?.behandling?.maksDagerMedTiltakspengerForPeriode
+    fun hentAntallDager(periode: Periode): Int? = vedtaksliste.hentAntallDager(periode)
+    fun hentTynnSak(): TynnSak = TynnSak(this.id, this.fnr, this.saksnummer)
 
     fun hentBehandling(behandlingId: BehandlingId): Behandling? = behandlinger.hentBehandling(behandlingId)
 
@@ -108,6 +110,8 @@ data class Sak(
     fun erSisteVersjonAvMeldeperiode(meldeperiode: Meldeperiode): Boolean {
         return meldeperiodeKjeder.erSisteVersjonAvMeldeperiode(meldeperiode)
     }
+
+    fun finnNærmesteMeldeperiode(dato: LocalDate): Periode = meldeperiodeKjeder.finnNærmesteMeldeperiode(dato)
 
     fun avbrytSøknadOgBehandling(
         command: AvbrytSøknadOgBehandlingCommand,
@@ -149,5 +153,11 @@ data class Sak(
             soknader = this.soknader.map { if (it.id == command.søknadId) avbruttSøknad else it },
         )
         return Pair(oppdatertSak, avbruttSøknad)
+    }
+
+    fun genererMeldeperioder(): Pair<Sak, List<Meldeperiode>> {
+        return this.meldeperiodeKjeder.genererMeldeperioder(this.vedtaksliste).let {
+            this.copy(meldeperiodeKjeder = it.first) to it.second
+        }
     }
 }

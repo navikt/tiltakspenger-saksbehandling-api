@@ -16,7 +16,8 @@ data class Behandlinger(
 
     val revurderinger: Revurderinger = Revurderinger(behandlinger.filter { it.erRevurdering })
     val førstegangsBehandlinger = this.behandlinger.filter { it.erFørstegangsbehandling }
-    val førstegangsbehandling: Behandling? = førstegangsBehandlinger.filterNot { it.status == Behandlingsstatus.AVBRUTT }.singleOrNullOrThrow()
+    val ikkeAvbrutteFørstegangsbehandlinger: List<Behandling> =
+        førstegangsBehandlinger.filterNot { it.status == Behandlingsstatus.AVBRUTT }
 
     fun leggTilRevurdering(
         revurdering: Behandling,
@@ -47,5 +48,17 @@ data class Behandlinger(
         require(behandlinger.distinctBy { it.saksnummer }.size <= 1) { "Behandlinger inneholder behandlinger for ulike saksnummer: ${behandlinger.map { it.saksnummer.toString() }}" }
         behandlinger.map { it.opprettet }
             .zipWithNext { a, b -> require(a < b) { "Behandlinger er ikke sortert på opprettet-tidspunkt" } }
+
+        /**
+         * En antagelse er at førstegangsbehandlinger ikke kan ha tilstøtende perioder. Ved utvidelse av perioden vil lage en revurdering
+         * Det vil si at det 'alltid' skal være hull mmellom periodene til alle førstegangsbehandlingene
+         */
+        behandlinger.filter { it.erFørstegangsbehandling }.map { it.virkningsperiode }
+            .zipWithNext { a, b ->
+                if (a != null && b != null) {
+                    require(!a.overlapperMed(b)) { "Førstegangsbehandlinger kan ikke ha overlappende virkningsperiode" }
+                    require(!a.tilstøter(b)) { "Førstegangsbehandlinger kan ikke tilstøte hverandre (må ha hull i mellom)" }
+                }
+            }
     }
 }

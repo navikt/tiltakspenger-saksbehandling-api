@@ -35,8 +35,9 @@ data class ValgteTiltaksdeltakelser(
             require(it.verdi.deltagelseFraOgMed != null && it.verdi.deltagelseTilOgMed != null) {
                 "Kan ikke velge tiltaksdeltakelse med id ${it.verdi.eksternDeltagelseId} som mangler start- eller sluttdato"
             }
-            require(Periode(it.verdi.deltagelseFraOgMed!!, it.verdi.deltagelseTilOgMed!!).inneholderHele(it.periode)) {
-                "Valgt periode for tiltak med id ${it.verdi.eksternDeltagelseId} må være innenfor deltakelsesperioden"
+            val deltagelsesperiode = Periode(it.verdi.deltagelseFraOgMed!!, it.verdi.deltagelseTilOgMed!!)
+            require(deltagelsesperiode.inneholderHele(it.periode)) {
+                "Valgt periode ${it.periode} for tiltak med id ${it.verdi.eksternDeltagelseId} må være innenfor deltakelsesperioden $deltagelsesperiode"
             }
         }
     }

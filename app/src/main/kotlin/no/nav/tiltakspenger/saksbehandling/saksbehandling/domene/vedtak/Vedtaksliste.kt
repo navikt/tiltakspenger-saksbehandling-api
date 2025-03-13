@@ -17,12 +17,20 @@ data class Vedtaksliste(
     @Suppress("unused")
     constructor(value: Rammevedtak) : this(listOf(value))
 
+    val fnr = value.distinctBy { it.fnr }.map { it.fnr }.singleOrNullOrThrow()
+    val sakId = value.distinctBy { it.sakId }.map { it.sakId }.singleOrNullOrThrow()
+    val saksnummer = value.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
+
     val tidslinje: Periodisering<Rammevedtak> by lazy { value.toTidslinje() }
 
-    val førstegangsvedtak: Rammevedtak? by lazy { value.singleOrNullOrThrow { it.erFørstegangsvedtak } }
+    val førstegangsvedtak: List<Rammevedtak> by lazy { value.filter { it.erFørstegangsvedtak } }
 
     /** Nåtilstand. Dette er sakens totale vedtaksperiode. Vær veldig obs når du bruker denne, fordi den sier ikke noe om antall perioder, om de gir rett eller ikke. */
     val vedtaksperiode: Periode? by lazy { tidslinje.ifEmpty { null }?.totalePeriode }
+
+    val innvilgelsesperiode: Periode? by lazy {
+        innvilgelsesperioder.ifEmpty { null }?.let { Periode(it.minOf { it.fraOgMed }, it.maxOf { it.tilOgMed }) }
+    }
 
     /** Nåtilstand. Sakens totale vedtaksperioder. Vil kunne ha hull dersom det f.eks. er opphold mellom 2 tiltaksdeltagelsesperioder. Avslag og delvis avslag vil ikke være med her. */
     @Suppress("unused")
@@ -54,6 +62,18 @@ data class Vedtaksliste(
         innvilgelsesperioder.maxOfOrNull { it.tilOgMed }
     }
 
+    val antallDagerPerioder: Periodisering<Int> by lazy {
+        tidslinje.map { pmvVedtak ->
+            pmvVedtak.antallDagerPerMeldeperiode
+        }
+    }
+
+    /** Den er kun trygg inntil vi revurderer antall dager.
+     * @param meldeperiode må stemme med meldeperiode-syklusen på saken
+     */
+    fun hentAntallDager(meldeperiode: Periode): Int? =
+        antallDagerPerioder.overlapperMed(meldeperiode).singleOrNullOrThrow()?.verdi
+
     /**
      * Perioden må være innenfor tidslinjen
      *
@@ -82,10 +102,15 @@ data class Vedtaksliste(
         }.let { Periodisering(it) }
     }
 
+    fun utfallForPeriode(periode: Periode): Periodisering<Utfallsperiode> {
+        return utfallsperioder.overlapperMed(periode).utvid(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, periode)
+    }
+
     // Denne fungerer bare for førstegangsvedtak der man har valgte tiltaksdeltakelser
     val valgteTiltaksdeltakelser: Periodisering<Tiltaksdeltagelse> by lazy {
         innvilgetTidslinje.perioderMedVerdi.filter { it.verdi.behandling.valgteTiltaksdeltakelser != null }
-            .flatMap { it.verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(it.periode).perioderMedVerdi }.let {
+            .flatMap { it.verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(it.periode).perioderMedVerdi }
+            .let {
                 Periodisering(it)
             }
     }
@@ -116,13 +141,7 @@ data class Vedtaksliste(
         return barnetilleggsperioder.singleOrNullOrThrow { it.periode.inneholder(dag) }?.verdi ?: AntallBarn.ZERO
     }
 
-    fun leggTilFørstegangsVedtak(vedtak: Rammevedtak): Vedtaksliste {
-        when (vedtak.vedtaksType) {
-            Vedtakstype.INNVILGELSE -> require(this.isEmpty()) { "Vedtaksliste must not be empty." }
-            Vedtakstype.STANS -> Unit
-        }
-        return copy(value = listOf(vedtak))
-    }
+    fun leggTilFørstegangsVedtak(vedtak: Rammevedtak): Vedtaksliste = copy(value = listOf(vedtak))
 
     fun hentTiltaksdataForPeriode(periode: Periode): List<Tiltaksdeltagelse> {
         return valgteTiltaksdeltakelserForPeriode(periode).perioderMedVerdi.map { it.verdi }

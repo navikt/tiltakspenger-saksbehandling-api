@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.januar
 import no.nav.tiltakspenger.saksbehandling.felles.mars
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettMeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettNesteMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
@@ -18,26 +17,25 @@ class MeldekortBehandlingRepoImplTest {
     @Test
     fun `kan lagre og hente`() {
         withMigratedDb { testDataHelper ->
-            val (sak, vedtak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
 
-            val førsteMeldeperiode = sak.meldeperiodeKjeder.hentSisteMeldeperiode()
-
+            val (_, meldeperioder) = sak.genererMeldeperioder()
             val meldekort = ObjectMother.meldekortBehandlet(
                 sakId = sak.id,
                 fnr = sak.fnr,
                 saksnummer = sak.saksnummer,
-                antallDagerForMeldeperiode = vedtak.antallDagerPerMeldeperiode,
-                meldeperiode = førsteMeldeperiode,
-                periode = førsteMeldeperiode.periode,
+                meldeperiode = meldeperioder.first(),
+                periode = meldeperioder.first().periode,
             )
 
             val meldeperiodeRepo = testDataHelper.meldeperiodeRepo
             val meldekortRepo = testDataHelper.meldekortRepo
             val sakRepo = testDataHelper.sakRepo
 
+            meldeperiodeRepo.lagre(meldekort.meldeperiode)
             meldekortRepo.lagre(meldekort)
 
             testDataHelper.sessionFactory.withSession {
@@ -47,15 +45,16 @@ class MeldekortBehandlingRepoImplTest {
                 )
             }
 
-            val nesteMeldeperiode = sakRepo.hentForSakId(sak.id)!!.opprettNesteMeldeperiode()!!
-            meldeperiodeRepo.lagre(nesteMeldeperiode)
+            val oppdatertSak = sakRepo.hentForSakId(sak.id)!!
 
-            val nesteMeldekort = sakRepo.hentForSakId(sak.id)!!.opprettMeldekortBehandling(
-                nesteMeldeperiode.kjedeId,
+            val (oppdatertSak2, nesteMeldeperioder) = oppdatertSak.genererMeldeperioder()
+            val nesteMeldekort = oppdatertSak2.opprettMeldekortBehandling(
+                nesteMeldeperioder.first().kjedeId,
                 ObjectMother.navkontor(),
                 ObjectMother.saksbehandler(),
             )
 
+            meldeperiodeRepo.lagre(nesteMeldeperioder.first())
             meldekortRepo.lagre(nesteMeldekort)
 
             val hentForMeldekortId2 =
@@ -72,21 +71,21 @@ class MeldekortBehandlingRepoImplTest {
     @Test
     fun `kan oppdatere`() {
         withMigratedDb { testDataHelper ->
-            val (sak, _) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
                 deltakelseFom = 1.januar(2024),
                 deltakelseTom = 31.mars(2024),
             )
-
-            val kjedeId = sak.meldeperiodeKjeder.hentSisteMeldeperiode().kjedeId
-
+            val (_, meldeperioder) = sak.meldeperiodeKjeder.genererMeldeperioder(sak.vedtaksliste)
             val meldekortBehandling = sak.opprettMeldekortBehandling(
-                kjedeId,
+                meldeperioder.first().kjedeId,
                 ObjectMother.navkontor(),
                 ObjectMother.saksbehandler(),
             )
 
             val meldekortRepo = testDataHelper.meldekortRepo
+            val meldeperiodeRepo = testDataHelper.meldeperiodeRepo
 
+            meldeperiodeRepo.lagre(meldeperioder.first())
             meldekortRepo.lagre(meldekortBehandling)
 
             val oppdatertMeldekortBehandling = meldekortBehandling.sendTilBeslutter(

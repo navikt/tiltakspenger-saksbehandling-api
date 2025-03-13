@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.KanIkkeOppretteBehandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.Saksoversikt
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.EnkelPersonMedSkjerming
@@ -61,10 +60,6 @@ interface SakService {
 }
 
 sealed interface KanIkkeStarteSøknadsbehandling {
-    data class HarAlleredeStartetBehandlingen(
-        val behandling: Behandling,
-    ) : KanIkkeStarteSøknadsbehandling
-
     data class OppretteBehandling(
         val underliggende: KanIkkeOppretteBehandling,
     ) : KanIkkeStarteSøknadsbehandling
