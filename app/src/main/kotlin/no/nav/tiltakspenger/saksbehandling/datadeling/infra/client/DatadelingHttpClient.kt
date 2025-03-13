@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.clients.datadeling
+package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
 import arrow.core.Either
 import arrow.core.left
@@ -6,12 +6,13 @@ import kotlinx.coroutines.future.await
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.saksbehandling.datadeling.ports.DatadelingGateway
-import no.nav.tiltakspenger.saksbehandling.datadeling.ports.FeilVedSendingTilDatadeling
+import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
+import no.nav.tiltakspenger.saksbehandling.datadeling.FeilVedSendingTilDatadeling
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak
 import java.net.URI
+import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import kotlin.time.Duration
@@ -23,13 +24,13 @@ class DatadelingHttpClient(
     val getToken: suspend () -> AccessToken,
     connectTimeout: Duration = 1.seconds,
     private val timeout: Duration = 1.seconds,
-) : DatadelingGateway {
+) : DatadelingClient {
     private val log = KotlinLogging.logger {}
 
-    private val client = java.net.http.HttpClient
+    private val client = HttpClient
         .newBuilder()
         .connectTimeout(connectTimeout.toJavaDuration())
-        .followRedirects(java.net.http.HttpClient.Redirect.NEVER)
+        .followRedirects(HttpClient.Redirect.NEVER)
         .build()
 
     private val behandlingsUri = URI.create("$baseUrl/behandling")

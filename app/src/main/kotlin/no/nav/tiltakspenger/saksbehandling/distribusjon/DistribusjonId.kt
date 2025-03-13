@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.distribusjon.domene
+package no.nav.tiltakspenger.saksbehandling.distribusjon
 
 @JvmInline
 value class DistribusjonId(

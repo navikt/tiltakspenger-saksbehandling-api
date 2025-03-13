@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.clients.joark
+package no.nav.tiltakspenger.saksbehandling.journalføring.infra
 
 import arrow.core.Either
 import arrow.core.getOrElse

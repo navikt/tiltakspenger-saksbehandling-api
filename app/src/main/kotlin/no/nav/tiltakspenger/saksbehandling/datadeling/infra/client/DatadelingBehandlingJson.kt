@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.clients.datadeling
+package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
 import no.nav.tiltakspenger.libs.datadeling.DatadelingBehandlingDTO
 import no.nav.tiltakspenger.libs.json.serialize

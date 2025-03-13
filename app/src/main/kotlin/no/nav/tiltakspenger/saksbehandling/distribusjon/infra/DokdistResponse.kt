@@ -1,10 +1,10 @@
-package no.nav.tiltakspenger.saksbehandling.clients.dokdist
+package no.nav.tiltakspenger.saksbehandling.distribusjon.infra
 
 import arrow.core.Either
 import mu.KLogger
 import no.nav.tiltakspenger.libs.json.deserialize
-import no.nav.tiltakspenger.saksbehandling.distribusjon.domene.DistribusjonId
-import no.nav.tiltakspenger.saksbehandling.distribusjon.ports.KunneIkkeDistribuereDokument
+import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
+import no.nav.tiltakspenger.saksbehandling.distribusjon.KunneIkkeDistribuereDokument
 
 private data class DokdistResponse(
     val bestillingsId: String,

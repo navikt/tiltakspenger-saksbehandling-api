@@ -1,10 +1,10 @@
-package no.nav.tiltakspenger.saksbehandling.clients.joark
+package no.nav.tiltakspenger.saksbehandling.journalføring.infra
 
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.clients.joark.JoarkRequest.JournalpostDokument.DokumentVariant.ArkivPDF
-import no.nav.tiltakspenger.saksbehandling.clients.joark.JoarkRequest.JournalpostDokument.DokumentVariant.OriginalJson
 import no.nav.tiltakspenger.saksbehandling.felles.journalføring.PdfOgJson
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.JoarkRequest.JournalpostDokument.DokumentVariant.ArkivPDF
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.JoarkRequest.JournalpostDokument.DokumentVariant.OriginalJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields

@@ -2,10 +2,10 @@ package no.nav.tiltakspenger.saksbehandling.context
 
 import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
 import no.nav.tiltakspenger.saksbehandling.Configuration
-import no.nav.tiltakspenger.saksbehandling.clients.dokdist.DokdistHttpClient
-import no.nav.tiltakspenger.saksbehandling.clients.joark.JoarkHttpClient
 import no.nav.tiltakspenger.saksbehandling.clients.pdfgen.PdfgenHttpClient
-import no.nav.tiltakspenger.saksbehandling.distribusjon.ports.DokdistGateway
+import no.nav.tiltakspenger.saksbehandling.distribusjon.DokdistGateway
+import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokdistHttpClient
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.JoarkHttpClient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway

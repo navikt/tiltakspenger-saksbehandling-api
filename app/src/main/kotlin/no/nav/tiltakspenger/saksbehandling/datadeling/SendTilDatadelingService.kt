@@ -1,10 +1,9 @@
-package no.nav.tiltakspenger.saksbehandling.datadeling.service
+package no.nav.tiltakspenger.saksbehandling.datadeling
 
 import arrow.core.Either
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.saksbehandling.datadeling.ports.DatadelingGateway
-import no.nav.tiltakspenger.saksbehandling.felles.nå
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.RammevedtakRepo
@@ -12,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.RammevedtakRepo
 class SendTilDatadelingService(
     private val rammevedtakRepo: RammevedtakRepo,
     private val behandlingRepo: BehandlingRepo,
-    private val datadelingGateway: DatadelingGateway,
+    private val datadelingClient: DatadelingClient,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -26,7 +25,7 @@ class SendTilDatadelingService(
             rammevedtakRepo.hentRammevedtakTilDatadeling().forEach { rammevedtak ->
                 val correlationId = CorrelationId.generate()
                 Either.catch {
-                    datadelingGateway.send(rammevedtak, correlationId).onRight {
+                    datadelingClient.send(rammevedtak, correlationId).onRight {
                         logger.info { "Vedtak sendt til datadeling. VedtakId: ${rammevedtak.id}" }
                         rammevedtakRepo.markerSendtTilDatadeling(rammevedtak.id, nå())
                         logger.info { "Vedtak markert som sendt til datadeling. VedtakId: ${rammevedtak.id}" }
@@ -49,7 +48,7 @@ class SendTilDatadelingService(
             behandlingRepo.hentFørstegangsbehandlingerTilDatadeling().forEach { behandling ->
                 val correlationId = CorrelationId.generate()
                 Either.catch {
-                    datadelingGateway.send(behandling, correlationId).onRight {
+                    datadelingClient.send(behandling, correlationId).onRight {
                         logger.info { "Behandling sendt til datadeling. Saksnummer: ${behandling.saksnummer}, sakId: ${behandling.sakId}, behandlingId: ${behandling.id}" }
                         behandlingRepo.markerSendtTilDatadeling(behandling.id, nå())
                         logger.info { "Behandling markert som sendt til datadeling. Saksnummer: ${behandling.saksnummer}, sakId: ${behandling.sakId}, behandlingId: ${behandling.id}" }
