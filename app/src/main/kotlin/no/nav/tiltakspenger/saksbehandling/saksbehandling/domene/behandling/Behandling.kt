@@ -73,9 +73,6 @@ data class Behandling(
 
     val maksDagerMedTiltakspengerForPeriode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 
-    // TODO: Brukes bare for å angi deltakelse frem til saksbehandler setter den selv via input. Skal fjernes når det er på plass.
-    private val tiltaksdeltakelse = saksopplysninger.tiltaksdeltagelse.first()
-
     fun inneholderEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
         saksopplysninger.tiltaksdeltagelse.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
 
@@ -456,6 +453,7 @@ data class Behandling(
                 }
                 if (behandlingstype == FØRSTEGANGSBEHANDLING) {
                     require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
+                    require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
                 }
             }
 
@@ -471,6 +469,7 @@ data class Behandling(
                 }
                 if (behandlingstype == FØRSTEGANGSBEHANDLING) {
                     require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
+                    require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
                 }
             }
 
@@ -487,6 +486,7 @@ data class Behandling(
                 }
                 if (behandlingstype == FØRSTEGANGSBEHANDLING) {
                     require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
+                    require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
                 }
             }
 
