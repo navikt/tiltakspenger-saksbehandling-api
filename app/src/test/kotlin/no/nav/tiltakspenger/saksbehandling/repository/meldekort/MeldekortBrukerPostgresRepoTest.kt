@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.felles.januar
 import no.nav.tiltakspenger.saksbehandling.felles.mars
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
@@ -15,26 +14,26 @@ class MeldekortBrukerPostgresRepoTest {
     @Test
     fun `kan lagre og hente`() {
         withMigratedDb { testDataHelper ->
-            val (sak, _) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
                 deltakelseFom = 1.januar(2024),
                 deltakelseTom = 31.mars(2024),
             )
-            val meldeperiode = sak.opprettFørsteMeldeperiode()
-            testDataHelper.meldeperiodeRepo.lagre(meldeperiode)
+            val (_, meldeperioder) = sak.meldeperiodeKjeder.genererMeldeperioder(sak.vedtaksliste)
+            testDataHelper.meldeperiodeRepo.lagre(meldeperioder.first())
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
             val nyttBrukersMeldekort = ObjectMother.lagreBrukersMeldekortKommando(
-                meldeperiodeId = meldeperiode.id,
-                mottatt = meldeperiode.opprettet.plus(1, ChronoUnit.MILLIS),
-                sakId = meldeperiode.sakId,
-                periode = meldeperiode.periode,
+                meldeperiodeId = meldeperioder.first().id,
+                mottatt = meldeperioder.first().opprettet.plus(1, ChronoUnit.MILLIS),
+                sakId = meldeperioder.first().sakId,
+                periode = meldeperioder.first().periode,
             )
             meldekortBrukerRepo.lagre(nyttBrukersMeldekort)
 
-            meldekortBrukerRepo.hentForSakId(meldeperiode.sakId) shouldBe listOf(
+            meldekortBrukerRepo.hentForSakId(meldeperioder.first().sakId) shouldBe listOf(
                 BrukersMeldekort(
                     id = nyttBrukersMeldekort.id,
                     mottatt = nyttBrukersMeldekort.mottatt,
-                    meldeperiode = meldeperiode,
+                    meldeperiode = meldeperioder.first(),
                     sakId = nyttBrukersMeldekort.sakId,
                     dager = nyttBrukersMeldekort.dager,
                     journalpostId = nyttBrukersMeldekort.journalpostId,

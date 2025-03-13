@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 
 fun Sak.sendFørstegangsbehandlingTilBeslutning(
@@ -13,9 +14,17 @@ fun Sak.sendFørstegangsbehandlingTilBeslutning(
     }
     val behandling: Behandling = this.hentBehandling(kommando.behandlingId)!!
     require(behandling.erFørstegangsbehandling) { "Behandlingen må være en førstegangsbehandling, men var: ${behandling.behandlingstype}" }
+    if (overlapperEllerTilstøterNyInnvilgelsesperiodeMedEksisterende(kommando.innvilgelsesperiode)) {
+        return KanIkkeSendeTilBeslutter.PeriodenOverlapperEllerTilstøterMedAnnenBehandling.left()
+    }
     val oppdatertBehandling = behandling.tilBeslutning(kommando)
     return (this.copy(behandlinger = this.behandlinger.oppdaterBehandling(oppdatertBehandling)) to oppdatertBehandling).right()
 }
+
+private fun Sak.overlapperEllerTilstøterNyInnvilgelsesperiodeMedEksisterende(innvilgelsesperiode: Periode): Boolean =
+    this.behandlinger.førstegangsBehandlinger.mapNotNull { it.virkningsperiode }.let { eksisterendePerioder ->
+        eksisterendePerioder.any { it.overlapperMed(innvilgelsesperiode) || it.tilstøter(innvilgelsesperiode) }
+    }
 
 fun Sak.sendRevurderingTilBeslutning(
     kommando: SendRevurderingTilBeslutningKommando,

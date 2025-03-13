@@ -12,8 +12,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.felles.januar
 import no.nav.tiltakspenger.saksbehandling.felles.mars
+import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.repository.behandling.BehandlingRepoTest.Companion.random
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
@@ -83,7 +83,7 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
             sakId = sak.id,
             barnetillegg = barnetillegg,
         )
-    behandlingRepo.lagre(sakMedBehandling.førstegangsbehandling!!)
+    behandlingRepo.lagre(sakMedBehandling.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!)
 
     return Pair(
         sakRepo.hentForSakId(sakId)!!,
@@ -137,8 +137,8 @@ internal fun TestDataHelper.persisterAvbruttFørstegangsbehandling(
         søknad = søknad,
         sak = sak,
     )
-    val førstegangsbehandling = sakMedFørstegangsbehandling.førstegangsbehandling
-    val avbruttBehandling = førstegangsbehandling!!.avbryt(
+    val førstegangsbehandling = sakMedFørstegangsbehandling.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!
+    val avbruttBehandling = førstegangsbehandling.avbryt(
         saksbehandler,
         "begrunnelse",
         avbruttTidspunkt,
@@ -197,9 +197,9 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
         søknad = søknad,
         sak = sak,
     )
-    val førstegangsbehandling = sak.førstegangsbehandling
+    val førstegangsbehandling = sak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!
     val oppdatertFørstegangsbehandling =
-        førstegangsbehandling!!
+        førstegangsbehandling
             .tilBeslutning(
                 SendSøknadsbehandlingTilBeslutningKommando(
                     sakId = sakId,
@@ -454,7 +454,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
             saksnummer = sak.saksnummer,
         ),
 ): Pair<Sak, MeldekortBehandling.MeldekortBehandlet> {
-    val (sak, vedtak) = persisterIverksattFørstegangsbehandling(
+    val (sak) = persisterIverksattFørstegangsbehandling(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,
@@ -467,16 +467,17 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         beslutter = beslutter,
         sak = sak,
     )
-    val førsteMeldeperiode = sak.opprettFørsteMeldeperiode()
+    val (_, meldeperioder) = sak.meldeperiodeKjeder.genererMeldeperioder(sak.vedtaksliste)
     val behandletMeldekort = ObjectMother.meldekortBehandlet(
         sakId = sak.id,
         fnr = sak.fnr,
         saksnummer = sak.saksnummer,
-        antallDagerForMeldeperiode = vedtak.antallDagerPerMeldeperiode,
-        meldeperiode = førsteMeldeperiode,
-        periode = førsteMeldeperiode.periode,
+        meldeperiode = meldeperioder.first(),
+        periode = meldeperioder.first().periode,
     )
-    meldeperiodeRepo.lagre(behandletMeldekort.meldeperiode)
+    meldeperioder.forEach {
+        meldeperiodeRepo.lagre(it)
+    }
     meldekortRepo.lagre(behandletMeldekort)
     return Pair(sakRepo.hentForSakId(sakId)!!, behandletMeldekort)
 }

@@ -15,8 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeIverksetteMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettNesteMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.StatistikkStønadRepo
@@ -61,15 +59,6 @@ class IverksettMeldekortService(
             throw IllegalStateException("Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: $sakId, meldekortId: $meldekortId")
         }
 
-        val nesteMeldeperiode: Meldeperiode? = sak.opprettNesteMeldeperiode()?.let {
-            if (meldekortBehandling.periode.tilOgMed.plusDays(1) != it.periode.fraOgMed) {
-                log.info { "Neste meldeperiode (${it.periode}) er ikke sammenhengende med det vedtatte meldekortet sin meldeperiode (${meldekortBehandling.periode}). Oppretter ikke ny meldeperiode. behandlingId: ${meldekortBehandling.id}, sakId: ${meldekortBehandling.sakId}, saksnummer: ${meldekortBehandling.saksnummer}" }
-                null
-            } else {
-                it
-            }
-        }
-
         return meldekortBehandling.iverksettMeldekort(kommando.beslutter).onRight { iverksattMeldekort ->
             val eksisterendeUtbetalingsvedtak = sak.utbetalinger
             val utbetalingsvedtak = iverksattMeldekort.opprettUtbetalingsvedtak(
@@ -81,8 +70,6 @@ class IverksettMeldekortService(
 
             sessionFactory.withTransactionContext { tx ->
                 meldekortBehandlingRepo.oppdater(iverksattMeldekort, tx)
-                // TODO John og Anders: På et tidspunkt bør vi kanskje flytte generering av meldeperioder ut i en jobb?
-                nesteMeldeperiode?.also { meldeperiodeRepo.lagre(it, tx) }
                 utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
                 statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             }

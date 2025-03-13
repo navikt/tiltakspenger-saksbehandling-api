@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.StatistikkSakRepo
@@ -41,7 +40,7 @@ class StartSøknadsbehandlingService(
         sakId: SakId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<KanIkkeStarteSøknadsbehandling, Sak> {
+    ): Either<KanIkkeStarteSøknadsbehandling, Behandling> {
         if (!saksbehandler.erSaksbehandler()) {
             logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å opprette behandling for fnr" }
             return KanIkkeStarteSøknadsbehandling.HarIkkeTilgang(
@@ -53,10 +52,6 @@ class StartSøknadsbehandlingService(
         val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId)
             .getOrElse { throw IllegalStateException("Fant ikke sak") }
         val fnr = sak.fnr
-
-        if (sak.førstegangsbehandling != null) {
-            return KanIkkeStarteSøknadsbehandling.HarAlleredeStartetBehandlingen(sak.førstegangsbehandling).left()
-        }
 
         val soknad = sak.soknader.single { it.id == søknadId }
         val adressebeskyttelseGradering: List<AdressebeskyttelseGradering>? =
@@ -94,8 +89,7 @@ class StartSøknadsbehandlingService(
             behandlingRepo.lagre(førstegangsbehandling, tx)
             statistikkSakRepo.lagre(statistikk, tx)
         }
-        val oppdatertSak = sakService.hentForSakId(sakId, saksbehandler, correlationId)
-            .getOrElse { throw IllegalStateException("Fant ikke sak med id $sakId som vi nettopp opprettet førstegangsbehandling for") }
-        return oppdatertSak.right()
+
+        return førstegangsbehandling.right()
     }
 }

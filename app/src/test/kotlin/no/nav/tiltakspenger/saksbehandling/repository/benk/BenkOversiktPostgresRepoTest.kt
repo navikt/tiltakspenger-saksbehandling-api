@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.db.persisterOpprettetFørstegangsbeha
 import no.nav.tiltakspenger.saksbehandling.db.persisterOpprettetRevurderingDeprecated
 import no.nav.tiltakspenger.saksbehandling.db.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
+import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
@@ -54,13 +55,13 @@ class BenkOversiktPostgresRepoTest {
                                 behandlingstype = BenkBehandlingstype.FØRSTEGANGSBEHANDLING,
                                 fnr = førstegangsBehandling.fnr,
                                 saksnummer = førstegangsBehandlingSak.saksnummer,
-                                saksbehandler = førstegangsBehandlingSak.førstegangsbehandling!!.saksbehandler!!,
+                                saksbehandler = førstegangsBehandlingSak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.saksbehandler!!,
                                 beslutter = null,
                                 sakId = førstegangsBehandlingSak.id,
                                 underkjent = false,
                                 kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
-                                id = førstegangsBehandlingSak.førstegangsbehandling!!.id,
-                                opprettet = førstegangsBehandlingSak.førstegangsbehandling!!.opprettet,
+                                id = førstegangsBehandlingSak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.id,
+                                opprettet = førstegangsBehandlingSak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.opprettet,
                             ),
                             BehandlingEllerSøknadForSaksoversikt(
                                 periode = null,
@@ -68,7 +69,7 @@ class BenkOversiktPostgresRepoTest {
                                 behandlingstype = BenkBehandlingstype.REVURDERING,
                                 fnr = revurdering.fnr,
                                 saksnummer = revurderingSak.saksnummer,
-                                saksbehandler = revurderingSak.førstegangsbehandling!!.saksbehandler!!,
+                                saksbehandler = revurderingSak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.saksbehandler!!,
                                 beslutter = null,
                                 sakId = revurderingSak.id,
                                 underkjent = false,
@@ -107,13 +108,13 @@ class BenkOversiktPostgresRepoTest {
                                 behandlingstype = BenkBehandlingstype.FØRSTEGANGSBEHANDLING,
                                 fnr = søknad.fnr,
                                 saksnummer = sakMedAvbruttBehandling.saksnummer,
-                                saksbehandler = sakMedAvbruttBehandling.førstegangsbehandling!!.saksbehandler!!,
+                                saksbehandler = sakMedAvbruttBehandling.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.saksbehandler!!,
                                 beslutter = null,
                                 sakId = sakMedAvbruttBehandling.id,
                                 underkjent = false,
                                 kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
-                                id = sakMedAvbruttBehandling.førstegangsbehandling!!.id,
-                                opprettet = sakMedAvbruttBehandling.førstegangsbehandling!!.opprettet,
+                                id = sakMedAvbruttBehandling.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.id,
+                                opprettet = sakMedAvbruttBehandling.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.opprettet,
                             ),
                             BehandlingEllerSøknadForSaksoversikt(
                                 periode = ObjectMother.virkningsperiode(),
