@@ -42,7 +42,7 @@ data class Vedtaksliste(
     }
 
     val innvilgetTidslinje: Periodisering<Rammevedtak?> by lazy {
-        tidslinje.perioderMedVerdi.filter { it.verdi?.vedtaksType == Vedtakstype.INNVILGELSE }.map {
+        tidslinje.perioderMedVerdi.filter { it.verdi == null || it.verdi?.vedtaksType == Vedtakstype.INNVILGELSE }.map {
             PeriodeMedVerdi(
                 periode = it.periode,
                 verdi = it.verdi,
@@ -68,7 +68,7 @@ data class Vedtaksliste(
         }
     }
 
-    /** Den er kun trygg inntil vi revurderer antall dager.
+    /**
      * @param meldeperiode må stemme med meldeperiode-syklusen på saken
      */
     fun hentAntallDager(meldeperiode: Periode): Int? =
