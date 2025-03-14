@@ -28,6 +28,7 @@ data class Meldeperiode(
     val sendtTilMeldekortApi: LocalDateTime?,
 ) : Comparable<Meldeperiode> {
     val ingenDagerGirRett = girRett.values.none { it }
+    val antallDagerSomGirRett = girRett.values.count { it }
 
     fun helePeriodenErSperret(): Boolean {
         return girRett.values.toList().all { !it }
@@ -45,6 +46,19 @@ data class Meldeperiode(
     override fun compareTo(other: Meldeperiode): Int {
         require(!this.periode.overlapperMed(other.periode)) { "Meldeperiodene kan ikke overlappe" }
         return this.periode.fraOgMed.compareTo(other.periode.fraOgMed)
+    }
+
+    init {
+        if (ingenDagerGirRett) {
+            require(antallDagerForPeriode == 0) { "Dersom ingen dager gir rett, må antallDagerForPeriode være 0" }
+        }
+        require(antallDagerForPeriode <= antallDagerSomGirRett) {
+            """
+            Antall dager som gir rett kan ikke være mindre enn antall dager for periode
+                antallDagerForPeriode: $antallDagerForPeriode
+                antallDagerSomGirRett: $antallDagerSomGirRett
+            """.trimIndent()
+        }
     }
 
     companion object {
