@@ -29,7 +29,7 @@ class ToBehandlingerIT {
                     }
                     val fnr = Fnr.random()
                     val førsteVirkningsperiode = Periode(1.mars(2024), 15.mars(2024))
-                    val andreVirkningsperiode = Periode(7.april(2024), 21.april(2024))
+                    val andreVirkningsperiode = Periode(16.april(2024), 21.april(2024))
                     val (sak) = this.iverksett(tac, fnr, førsteVirkningsperiode)
 
                     sak.let {
@@ -43,7 +43,8 @@ class ToBehandlingerIT {
                     sakEtterAndreFørstegangsbehandling.let {
                         it.soknader.size shouldBe 2
                         it.behandlinger.size shouldBe 2
-                        it.meldeperiodeKjeder.size shouldBe 4
+                        it.meldeperiodeKjeder.size shouldBe 3
+                        it.meldeperiodeKjeder[2].periode shouldBe Periode(8.april(2024), 21.april(2024))
                     }
                 }
             }
