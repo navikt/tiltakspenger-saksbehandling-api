@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.Opp
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.OppdaterSaksopplysningerService
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.OppdaterValgtHjemmelService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.StartSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
@@ -30,6 +31,7 @@ fun Route.behandlingRoutes(
     auditService: AuditService,
     startSøknadsbehandlingService: StartSøknadsbehandlingService,
     oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
+    oppdaterValgtHjemmelService: OppdaterValgtHjemmelService,
     oppdaterBegrunnelseVilkårsvurderingService: OppdaterBegrunnelseVilkårsvurderingService,
     oppdaterFritekstTilVedtaksbrevService: OppdaterFritekstTilVedtaksbrevService,
     iverksettBehandlingService: IverksettBehandlingService,
@@ -42,6 +44,7 @@ fun Route.behandlingRoutes(
     hentBehandlingRoute(tokenService, behandlingService, auditService)
     startBehandlingRoute(tokenService, startSøknadsbehandlingService, auditService)
     oppdaterSaksopplysningerRoute(tokenService, auditService, oppdaterSaksopplysningerService)
+    oppdaterValgtHjemmelRoute(tokenService, auditService, oppdaterValgtHjemmelService)
     oppdaterBegrunnelseVilkårsvurderingRoute(tokenService, auditService, oppdaterBegrunnelseVilkårsvurderingService)
     oppdaterFritekstTilVedtaksbrevRoute(tokenService, auditService, oppdaterFritekstTilVedtaksbrevService)
     iverksettBehandlingRoute(iverksettBehandlingService, auditService, tokenService)

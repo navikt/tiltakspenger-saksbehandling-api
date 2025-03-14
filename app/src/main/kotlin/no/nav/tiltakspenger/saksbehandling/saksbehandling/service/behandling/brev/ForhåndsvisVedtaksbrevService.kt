@@ -40,6 +40,7 @@ class ForhåndsvisVedtaksbrevService(
             // gir det mening at man har lyst til å se innvilgelsesbrevet hvis behandlingen er avbrutt?
             Behandlingsstatus.AVBRUTT,
             -> kommando.virkingsperiode ?: behandling.virkningsperiode!!
+
             Behandlingsstatus.KLAR_TIL_BESLUTNING,
             Behandlingsstatus.UNDER_BESLUTNING,
             Behandlingsstatus.VEDTATT,
@@ -75,10 +76,11 @@ class ForhåndsvisVedtaksbrevService(
                     fnr = sak.fnr,
                     saksbehandlerNavIdent = behandling.saksbehandler,
                     beslutterNavIdent = behandling.beslutter,
-                    stansperiode = virkingsperiode,
+                    virkningsperiode = virkingsperiode,
                     saksnummer = sak.saksnummer,
                     sakId = sak.id,
                     forhåndsvisning = true,
+                    barnetillegg = behandling.barnetillegg != null,
                 ).fold(
                     ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
                     ifRight = { it.pdf },

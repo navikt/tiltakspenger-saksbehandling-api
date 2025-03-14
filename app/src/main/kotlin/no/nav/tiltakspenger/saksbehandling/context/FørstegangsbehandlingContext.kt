@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.Opp
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.OppdaterSaksopplysningerService
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.OppdaterValgtHjemmelService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.StartSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
@@ -87,6 +88,14 @@ open class FørstegangsbehandlingContext(
             behandlingRepo = behandlingRepo,
         )
     }
+
+    val oppdaterValgtHjemmelService by lazy {
+        OppdaterValgtHjemmelService(
+            sakService = sakService,
+            behandlingRepo = behandlingRepo,
+        )
+    }
+
     val oppdaterFritekstTilVedtaksbrevService by lazy {
         OppdaterFritekstTilVedtaksbrevService(
             sakService = sakService,

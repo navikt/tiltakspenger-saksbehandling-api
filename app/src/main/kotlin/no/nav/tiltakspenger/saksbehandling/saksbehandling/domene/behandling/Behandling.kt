@@ -60,6 +60,7 @@ data class Behandling(
     val sistEndret: LocalDateTime,
     val behandlingstype: Behandlingstype,
     val oppgaveId: OppgaveId?,
+    val valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelHarIkkeRettighet>,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     val saksopplysningsperiode: Periode?,
@@ -77,7 +78,8 @@ data class Behandling(
     fun inneholderEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
         saksopplysninger.tiltaksdeltagelse.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
 
-    fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? = saksopplysninger.getTiltaksdeltagelse(eksternDeltagelseId)
+    fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? =
+        saksopplysninger.getTiltaksdeltagelse(eksternDeltagelseId)
 
     /**
      * null dersom [virkningsperiode] ikke er satt enda. Typisk i stegene før til beslutning eller ved avslag.
@@ -138,6 +140,7 @@ data class Behandling(
                 søknad = søknad,
                 virkningsperiode = null,
                 saksopplysninger = saksopplysninger,
+                valgtHjemmelHarIkkeRettighet = emptyList(),
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
                 saksbehandler = saksbehandler.navIdent,
@@ -178,6 +181,7 @@ data class Behandling(
                 sendtTilBeslutning = null,
                 beslutter = null,
                 saksopplysninger = hentSaksopplysninger(),
+                valgtHjemmelHarIkkeRettighet = emptyList(),
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
                 status = UNDER_BEHANDLING,
@@ -363,6 +367,23 @@ data class Behandling(
         return this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering)
     }
 
+    fun oppdaterValgtHjemmelHarIkkeRettighet(
+        saksbehandler: Saksbehandler,
+        valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelHarIkkeRettighet>,
+    ): Behandling {
+        if (!saksbehandler.erSaksbehandler()) {
+            throw IllegalArgumentException("Kunne ikke oppdatere valgt hjemmel. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
+        }
+        if (this.saksbehandler != saksbehandler.navIdent) {
+            throw IllegalArgumentException("Kunne ikke oppdatere valgt hjemmel. Saksbehandler er ikke satt på behandlingen. sakId=$sakId, behandlingId=$id")
+        }
+        if (!this.erUnderBehandling) {
+            throw IllegalArgumentException("Kunne ikke oppdatere valgt hjemmel. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
+        }
+
+        return this.copy(valgtHjemmelHarIkkeRettighet = valgtHjemmelHarIkkeRettighet)
+    }
+
     fun oppdaterBarnetillegg(kommando: OppdaterBarnetilleggKommando): Behandling {
         if (!kommando.saksbehandler.erSaksbehandler()) {
             throw IllegalArgumentException("Kunne ikke oppdatere barnetillegg. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
@@ -421,6 +442,10 @@ data class Behandling(
             REVURDERING -> {
                 require(søknad == null) { "Søknad kan ikke være satt for revurdering" }
             }
+        }
+
+        require(valgtHjemmelHarIkkeRettighet.map { it.type }.distinct().size <= 1) {
+            "Valgte hjemler for en behandling kan bare være av en type"
         }
 
         when (status) {

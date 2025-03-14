@@ -162,6 +162,7 @@ class BehandlingPostgresRepo(
                             "sendt_til_datadeling" to behandling.sendtTilDatadeling,
                             "behandlingstype" to behandling.behandlingstype.toDbValue(),
                             "oppgave_id" to behandling.oppgaveId?.toString(),
+                            "valgt_hjemmel_har_ikke_rettighet" to behandling.valgtHjemmelHarIkkeRettighet.toDbJson(),
                             "fritekst_vedtaksbrev" to behandling.fritekstTilVedtaksbrev?.verdi,
                             "begrunnelse_vilkarsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
                             "saksopplysninger" to behandling.saksopplysninger.toDbJson(),
@@ -204,6 +205,7 @@ class BehandlingPostgresRepo(
                         "sist_endret" to behandling.sistEndret,
                         "behandlingstype" to behandling.behandlingstype.toDbValue(),
                         "oppgave_id" to behandling.oppgaveId?.toString(),
+                        "valgt_hjemmel_har_ikke_rettighet" to behandling.valgtHjemmelHarIkkeRettighet.toDbJson(),
                         "fritekst_vedtaksbrev" to behandling.fritekstTilVedtaksbrev?.verdi,
                         "begrunnelse_vilkarsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
                         "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode?.fraOgMed,
@@ -258,7 +260,8 @@ class BehandlingPostgresRepo(
             val saksopplysningsperiodeTilOgMed = localDateOrNull("saksopplysningsperiode_til_og_med")
             val barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg()
             val saksopplysninger = string("saksopplysninger").toSaksopplysninger()
-            val valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")?.toValgteTiltaksdeltakelser(saksopplysninger)
+            val valgteTiltaksdeltakelser =
+                stringOrNull("valgte_tiltaksdeltakelser")?.toValgteTiltaksdeltakelser(saksopplysninger)
             val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
 
             return Behandling(
@@ -280,6 +283,7 @@ class BehandlingPostgresRepo(
                 sistEndret = sistEndret,
                 behandlingstype = string("behandlingstype").toBehandlingstype(),
                 oppgaveId = oppgaveId,
+                valgtHjemmelHarIkkeRettighet = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.toValgtHjemmelHarIkkeRettighet() ?: emptyList(),
                 fritekstTilVedtaksbrev = stringOrNull("fritekst_vedtaksbrev")?.let { FritekstTilVedtaksbrev(it) },
                 begrunnelseVilkårsvurdering = stringOrNull("begrunnelse_vilkårsvurdering")?.let {
                     BegrunnelseVilkårsvurdering(
@@ -319,6 +323,7 @@ class BehandlingPostgresRepo(
                 sendt_til_datadeling,
                 behandlingstype,
                 oppgave_id,
+                valgt_hjemmel_har_ikke_rettighet,
                 fritekst_vedtaksbrev,
                 begrunnelse_vilkårsvurdering,
                 saksopplysninger,
@@ -345,6 +350,7 @@ class BehandlingPostgresRepo(
                 :sendt_til_datadeling,
                 :behandlingstype,
                 :oppgave_id,
+                to_jsonb(:valgt_hjemmel_har_ikke_rettighet::jsonb),
                 :fritekst_vedtaksbrev,
                 :begrunnelse_vilkarsvurdering,
                 to_jsonb(:saksopplysninger::jsonb),
@@ -375,6 +381,7 @@ class BehandlingPostgresRepo(
                 sendt_til_datadeling = :sendt_til_datadeling,
                 behandlingstype = :behandlingstype,
                 oppgave_id = :oppgave_id,
+                valgt_hjemmel_har_ikke_rettighet = to_json(:valgt_hjemmel_har_ikke_rettighet::jsonb),
                 fritekst_vedtaksbrev = :fritekst_vedtaksbrev,
                 begrunnelse_vilkårsvurdering = :begrunnelse_vilkarsvurdering,
                 saksopplysninger = to_jsonb(:saksopplysninger::jsonb),

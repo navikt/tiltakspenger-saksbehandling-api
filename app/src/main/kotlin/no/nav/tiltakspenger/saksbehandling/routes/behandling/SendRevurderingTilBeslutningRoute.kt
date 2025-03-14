@@ -25,6 +25,7 @@ import java.time.LocalDate
 
 private data class SendRevurderingTilBeslutningBody(
     val begrunnelse: String,
+    val fritekst: String?,
     val stansDato: LocalDate,
 ) {
     fun toDomain(
