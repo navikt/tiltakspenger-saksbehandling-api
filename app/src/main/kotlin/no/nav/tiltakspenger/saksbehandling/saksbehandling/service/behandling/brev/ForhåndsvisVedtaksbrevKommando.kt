@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
+import java.time.LocalDate
 
 data class ForhåndsvisVedtaksbrevKommando(
     val sakId: SakId,
@@ -15,6 +16,8 @@ data class ForhåndsvisVedtaksbrevKommando(
     val correlationId: CorrelationId,
     val saksbehandler: Saksbehandler,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev,
+    val valgteHjemler: List<String>,
     val virkingsperiode: Periode?,
-    val barnetillegg: Periodisering<AntallBarn>,
+    val barnetillegg: Periodisering<AntallBarn>?,
+    val stansDato: LocalDate?,
 )

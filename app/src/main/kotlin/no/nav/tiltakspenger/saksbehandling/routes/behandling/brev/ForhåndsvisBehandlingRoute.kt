@@ -23,11 +23,14 @@ import no.nav.tiltakspenger.saksbehandling.routes.withSakId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.brev.ForhåndsvisVedtaksbrevKommando
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
+import java.time.LocalDate
 
 internal data class ForhåndsvisBehandlingBody(
     val fritekst: String,
     val virkningsperiode: PeriodeDTO?,
-    val barnetillegg: List<BarnetilleggPeriodeDTO>,
+    val stansDato: LocalDate?,
+    val valgteHjemler: List<String>?,
+    val barnetillegg: List<BarnetilleggPeriodeDTO>?,
 ) {
     fun toDomain(
         sakId: SakId,
@@ -44,7 +47,9 @@ internal data class ForhåndsvisBehandlingBody(
             correlationId = correlationId,
             saksbehandler = saksbehandler,
             virkingsperiode = virkningsperiode,
-            barnetillegg = barnetillegg.tilPeriodisering(virkningsperiode),
+            valgteHjemler = valgteHjemler ?: emptyList(),
+            stansDato = stansDato,
+            barnetillegg = barnetillegg?.tilPeriodisering(virkningsperiode),
         )
     }
 }
@@ -62,7 +67,7 @@ fun Route.forhåndsvisVedtaksbrevRoute(
                 call.withBehandlingId { behandlingId ->
                     call.withBody<ForhåndsvisBehandlingBody> { body ->
                         val correlationId = call.correlationId()
-                        forhåndsvisVedtaksbrevService.forhåndsvisInnvilgelsesvedtaksbrev(
+                        forhåndsvisVedtaksbrevService.forhåndsvisVedtaksbrev(
                             body.toDomain(
                                 sakId = sakId,
                                 behandlingId = behandlingId,

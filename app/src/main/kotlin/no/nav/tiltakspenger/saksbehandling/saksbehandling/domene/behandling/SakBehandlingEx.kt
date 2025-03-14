@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import java.time.Clock
+import java.time.LocalDate
 
 fun Sak.sendFørstegangsbehandlingTilBeslutning(
     kommando: SendSøknadsbehandlingTilBeslutningKommando,
@@ -38,6 +39,20 @@ fun Sak.sendRevurderingTilBeslutning(
     }
 
     val stansDato = kommando.stansDato
+    this.validerStansDato(stansDato)
+
+    val behandling: Behandling = this.hentBehandling(kommando.behandlingId)!!
+    require(behandling.erRevurdering) { "Finnes egen funksjon for å sende til førstegangbehandling til beslutning" }
+    val oppdatertBehandling =
+        behandling.sendRevurderingTilBeslutning(kommando, this.vedtaksliste.sisteDagSomGirRett!!, clock)
+
+    return oppdatertBehandling.right()
+}
+
+fun Sak.validerStansDato(stansDato: LocalDate?) {
+    if (stansDato == null) {
+        throw IllegalArgumentException("Stansdato er ikke satt")
+    }
 
     this.førsteLovligeStansdato()?.also {
         if (stansDato.isBefore(it)) {
@@ -52,10 +67,4 @@ fun Sak.sendRevurderingTilBeslutning(
     if (stansDato.isAfter(this.sisteDagSomGirRett)) {
         throw IllegalArgumentException("Kan ikke starte revurdering med stansdato ($stansDato) etter siste innvilgetdato (${this.sisteDagSomGirRett})")
     }
-
-    val behandling: Behandling = this.hentBehandling(kommando.behandlingId)!!
-    require(behandling.erRevurdering) { "Finnes egen funksjon for å sende til førstegangbehandling til beslutning" }
-    val oppdatertBehandling = behandling.sendRevurderingTilBeslutning(kommando, this.vedtaksliste.sisteDagSomGirRett!!, clock)
-
-    return oppdatertBehandling.right()
 }

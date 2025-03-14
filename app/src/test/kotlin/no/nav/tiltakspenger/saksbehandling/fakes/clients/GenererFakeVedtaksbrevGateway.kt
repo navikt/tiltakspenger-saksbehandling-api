@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.felles.PdfA
 import no.nav.tiltakspenger.saksbehandling.felles.journalføring.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.Navn
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak
@@ -74,10 +75,12 @@ class GenererFakeVedtaksbrevGateway :
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,
-        stansperiode: Periode,
+        virkningsperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
         forhåndsvisning: Boolean,
+        barnetillegg: Boolean,
+        valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelHarIkkeRettighet>,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
     }

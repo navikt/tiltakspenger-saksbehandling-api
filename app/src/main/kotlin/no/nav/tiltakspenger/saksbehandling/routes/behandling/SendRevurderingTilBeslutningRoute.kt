@@ -25,6 +25,8 @@ import java.time.LocalDate
 
 private data class SendRevurderingTilBeslutningBody(
     val begrunnelse: String,
+    val fritekst: String?,
+    val valgteHjemler: List<String>,
     val stansDato: LocalDate,
 ) {
     fun toDomain(
@@ -40,6 +42,7 @@ private data class SendRevurderingTilBeslutningBody(
             correlationId = correlationId,
             begrunnelse = BegrunnelseVilkårsvurdering(begrunnelse),
             stansDato = stansDato,
+            valgteHjemler = valgteHjemler,
         )
     }
 }

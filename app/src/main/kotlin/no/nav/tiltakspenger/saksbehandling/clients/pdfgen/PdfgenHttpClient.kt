@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.journalføring.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.Navn
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
@@ -154,7 +155,13 @@ internal class PdfgenHttpClient(
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
-            jsonPayload = { vedtak.toRevurderingStans(hentBrukersNavn, hentSaksbehandlersNavn, vedtaksdato) },
+            jsonPayload = {
+                vedtak.toRevurderingStans(
+                    hentBrukersNavn,
+                    hentSaksbehandlersNavn,
+                    vedtaksdato,
+                )
+            },
             errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
             uri = stansvedtakUri,
         )
@@ -167,10 +174,12 @@ internal class PdfgenHttpClient(
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,
-        stansperiode: Periode,
+        virkningsperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
         forhåndsvisning: Boolean,
+        barnetillegg: Boolean,
+        valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelHarIkkeRettighet>,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -181,9 +190,11 @@ internal class PdfgenHttpClient(
                     fnr = fnr,
                     saksbehandlerNavIdent = saksbehandlerNavIdent,
                     beslutterNavIdent = beslutterNavIdent,
-                    stansperiode = stansperiode,
+                    virkningsperiode = virkningsperiode,
                     saksnummer = saksnummer,
                     forhåndsvisning = forhåndsvisning,
+                    barnetillegg = barnetillegg,
+                    valgteHjemler = valgtHjemmelHarIkkeRettighet,
                 )
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",

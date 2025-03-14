@@ -12,5 +12,6 @@ data class SendRevurderingTilBeslutningKommando(
     val saksbehandler: Saksbehandler,
     val correlationId: CorrelationId,
     val begrunnelse: BegrunnelseVilkårsvurdering,
+    val valgteHjemler: List<String>,
     val stansDato: LocalDate,
 )
