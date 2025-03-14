@@ -11,6 +11,8 @@ data class SendRevurderingTilBeslutningKommando(
     val behandlingId: BehandlingId,
     val saksbehandler: Saksbehandler,
     val correlationId: CorrelationId,
+    val fritekst: FritekstTilVedtaksbrev?,
     val begrunnelse: BegrunnelseVilkårsvurdering,
+    val årsaksgrunn: Årsaksgrunn?, // TODO Midlertidig nullable for å unngå breaking change
     val stansDato: LocalDate,
 )

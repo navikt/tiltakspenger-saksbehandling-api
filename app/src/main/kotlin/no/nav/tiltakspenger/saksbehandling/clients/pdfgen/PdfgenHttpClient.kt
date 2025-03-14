@@ -167,7 +167,7 @@ internal class PdfgenHttpClient(
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,
-        stansperiode: Periode,
+        virkningsperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
         forhåndsvisning: Boolean,
@@ -181,7 +181,7 @@ internal class PdfgenHttpClient(
                     fnr = fnr,
                     saksbehandlerNavIdent = saksbehandlerNavIdent,
                     beslutterNavIdent = beslutterNavIdent,
-                    stansperiode = stansperiode,
+                    virkningsperiode = virkningsperiode,
                     saksnummer = saksnummer,
                     forhåndsvisning = forhåndsvisning,
                 )

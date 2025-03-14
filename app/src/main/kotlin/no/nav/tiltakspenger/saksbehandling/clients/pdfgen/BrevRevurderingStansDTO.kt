@@ -15,8 +15,12 @@ private class BrevRevurderingStansDTO(
     val saksnummer: String,
     val datoForUtsending: String,
     val barnetillegg: Boolean = false,
+    @Deprecated("rammevedtakFraDato er renamet til virkningsperiodeFraDato, beholdes frem til pdfgen har fjernet bruken")
     val rammevedtakFraDato: String,
+    @Deprecated("rammevedtakTilDato er renamet til virkvirkningsperiodeTilDatoningsperiodeFraDato, beholdes til pdfgen har fjernet bruken")
     val rammevedtakTilDato: String,
+    val virkningsperiodeFraDato: String,
+    val virkningsperiodeTilDato: String,
     val kontor: String,
     val beslutterNavn: String?,
     val saksbehandlerNavn: String,
@@ -35,7 +39,7 @@ internal suspend fun Rammevedtak.toRevurderingStans(
         fnr = fnr,
         saksbehandlerNavIdent = saksbehandlerNavIdent,
         beslutterNavIdent = beslutterNavIdent,
-        stansperiode = this.periode,
+        virkningsperiode = this.periode,
         saksnummer = saksnummer,
         // finnes ikke noe forhåndsvisning for Rammevedtak
         forhåndsvisning = false,
@@ -49,7 +53,7 @@ internal suspend fun genererStansbrev(
     fnr: Fnr,
     saksbehandlerNavIdent: String,
     beslutterNavIdent: String?,
-    stansperiode: Periode,
+    virkningsperiode: Periode,
     saksnummer: Saksnummer,
     forhåndsvisning: Boolean,
 ): String {
@@ -63,8 +67,10 @@ internal suspend fun genererStansbrev(
             fornavn = brukersNavn.fornavn,
             etternavn = brukersNavn.mellomnavnOgEtternavn,
         ),
-        rammevedtakFraDato = stansperiode.fraOgMed.format(norskDatoFormatter),
-        rammevedtakTilDato = stansperiode.tilOgMed.format(norskDatoFormatter),
+        rammevedtakFraDato = virkningsperiode.fraOgMed.format(norskDatoFormatter),
+        rammevedtakTilDato = virkningsperiode.tilOgMed.format(norskDatoFormatter),
+        virkningsperiodeFraDato = virkningsperiode.fraOgMed.format(norskDatoFormatter),
+        virkningsperiodeTilDato = virkningsperiode.tilOgMed.format(norskDatoFormatter),
         saksnummer = saksnummer.verdi,
         barnetillegg = false,
         saksbehandlerNavn = saksbehandlersNavn,

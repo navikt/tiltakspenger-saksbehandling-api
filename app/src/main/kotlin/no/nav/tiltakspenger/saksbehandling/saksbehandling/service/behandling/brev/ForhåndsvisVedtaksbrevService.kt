@@ -75,7 +75,7 @@ class ForhåndsvisVedtaksbrevService(
                     fnr = sak.fnr,
                     saksbehandlerNavIdent = behandling.saksbehandler,
                     beslutterNavIdent = behandling.beslutter,
-                    stansperiode = virkingsperiode,
+                    virkningsperiode = virkingsperiode,
                     saksnummer = sak.saksnummer,
                     sakId = sak.id,
                     forhåndsvisning = true,
