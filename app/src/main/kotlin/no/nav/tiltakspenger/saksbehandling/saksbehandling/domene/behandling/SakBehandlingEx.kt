@@ -47,7 +47,7 @@ fun Sak.sendRevurderingTilBeslutning(
 
     val behandling: Behandling = this.hentBehandling(kommando.behandlingId)!!
     require(behandling.erRevurdering) { "Finnes egen funksjon for å sende til førstegangbehandling til beslutning" }
-    val oppdatertBehandling = behandling.sendRevurderingTilBeslutning(kommando, this.vedtaksperiode!!)
+    val oppdatertBehandling = behandling.sendRevurderingTilBeslutning(kommando, this.vedtaksliste.sisteDagSomGirRett!!)
 
     return oppdatertBehandling.right()
 }

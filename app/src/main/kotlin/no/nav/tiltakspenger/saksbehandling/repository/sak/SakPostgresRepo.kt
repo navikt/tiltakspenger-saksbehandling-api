@@ -200,9 +200,7 @@ internal class SakPostgresRepo(
             return sessionContext.withSession { session ->
                 val behandlinger = BehandlingPostgresRepo.hentForSakId(id, session)
                 val vedtaksliste: Vedtaksliste = RammevedtakPostgresRepo.hentForSakId(id, session)
-                val meldekortBehandlinger = vedtaksliste.førstegangsvedtak?.let {
-                    MeldekortBehandlingPostgresRepo.hentForSakId(id, session)
-                } ?: MeldekortBehandlinger.empty()
+                val meldekortBehandlinger = MeldekortBehandlingPostgresRepo.hentForSakId(id, session) ?: MeldekortBehandlinger.empty()
                 val meldeperioder = MeldeperiodePostgresRepo.hentForSakId(id, session)
                 val soknader = SøknadDAO.hentForSakId(id, session)
                 Sak(

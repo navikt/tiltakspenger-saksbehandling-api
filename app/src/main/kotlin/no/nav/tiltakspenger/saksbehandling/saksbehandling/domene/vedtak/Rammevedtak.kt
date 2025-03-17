@@ -114,7 +114,7 @@ fun Sak.utledVedtakstype(behandling: Behandling): Vedtakstype {
         Behandlingstype.REVURDERING -> {
             // Kommentar jah: Dette er en førsteimplementasjon for å avgjøre om dette er et stansvedtak. Ved andre typer revurderinger må vi utvide denne.
             if (behandling.virkningsperiode!!.tilOgMed != this.utfallsperioder().totalePeriode.tilOgMed) {
-                throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - revurderingens tilOgMed (${behandling.virkningsperiode.tilOgMed}) må være lik sakens tilOgMed (${this.vedtaksperiode!!.tilOgMed})")
+                throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - revurderingens tilOgMed (${behandling.virkningsperiode.tilOgMed}) må være lik sakens tilOgMed (${this.utfallsperioder().totalePeriode.tilOgMed})")
             }
 
             if (this.sisteUtbetalteMeldekortDag() == null || this.sisteUtbetalteMeldekortDag()!! < behandling.virkningsperiode.fraOgMed) {

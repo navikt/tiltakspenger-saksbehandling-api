@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
-import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksett
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
@@ -33,7 +32,7 @@ interface StartRevurderingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, Behandling, Behandling> {
         val (sak, søknad, førstegangsbehandling) = iverksett(tac)
-        val revurdering = startRevurderingForSakId(tac, sak.id, sak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.virkningsperiode!!.fraOgMed)
+        val revurdering = startRevurderingForSakId(tac, sak.id, sak.vedtaksliste.innvilgelsesperiode!!.fraOgMed)
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
         return Tuple4(
             oppdatertSak,

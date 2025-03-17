@@ -297,7 +297,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
     this.behandlingContext.sendBehandlingTilBeslutningService.sendFørstegangsbehandlingTilBeslutning(
         SendSøknadsbehandlingTilBeslutningKommando(
             sakId = sakMedFørstegangsbehandling.id,
-            behandlingId = sakMedFørstegangsbehandling.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.id,
+            behandlingId = sakMedFørstegangsbehandling.behandlinger.singleOrNullOrThrow()!!.id,
             saksbehandler = saksbehandler,
             correlationId = correlationId,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
@@ -307,7 +307,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
             tiltaksdeltakelser = listOf(
                 Pair(
                     periode,
-                    sakMedFørstegangsbehandling.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
+                    sakMedFørstegangsbehandling.behandlinger.singleOrNullOrThrow()!!.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
                 ),
             ),
         ),
@@ -332,7 +332,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingUnderBeslutning(
         saksbehandler = saksbehandler,
     )
     this.behandlingContext.behandlingService.taBehandling(
-        vilkårsvurdert.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.id,
+        vilkårsvurdert.behandlinger.singleOrNullOrThrow()!!.id,
         beslutter,
         correlationId = correlationId,
     )
@@ -359,7 +359,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingIverksatt(
     )
     runBlocking {
         tac.behandlingContext.iverksettBehandlingService.iverksett(
-            behandlingId = underBeslutning.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.id,
+            behandlingId = underBeslutning.behandlinger.singleOrNullOrThrow()!!.id,
             beslutter = beslutter,
             correlationId = correlationId,
             sakId = underBeslutning.id,

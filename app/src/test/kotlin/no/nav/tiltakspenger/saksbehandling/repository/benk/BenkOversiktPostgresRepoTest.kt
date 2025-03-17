@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.db.persisterOpprettetFørstegangsbeha
 import no.nav.tiltakspenger.saksbehandling.db.persisterOpprettetRevurderingDeprecated
 import no.nav.tiltakspenger.saksbehandling.db.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
-import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
@@ -55,13 +54,13 @@ class BenkOversiktPostgresRepoTest {
                                 behandlingstype = BenkBehandlingstype.FØRSTEGANGSBEHANDLING,
                                 fnr = førstegangsBehandling.fnr,
                                 saksnummer = førstegangsBehandlingSak.saksnummer,
-                                saksbehandler = førstegangsBehandlingSak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.saksbehandler!!,
+                                saksbehandler = førstegangsBehandling.saksbehandler!!,
                                 beslutter = null,
                                 sakId = førstegangsBehandlingSak.id,
                                 underkjent = false,
                                 kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
-                                id = førstegangsBehandlingSak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.id,
-                                opprettet = førstegangsBehandlingSak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.opprettet,
+                                id = førstegangsBehandling.id,
+                                opprettet = førstegangsBehandling.opprettet,
                             ),
                             BehandlingEllerSøknadForSaksoversikt(
                                 periode = null,
@@ -69,13 +68,13 @@ class BenkOversiktPostgresRepoTest {
                                 behandlingstype = BenkBehandlingstype.REVURDERING,
                                 fnr = revurdering.fnr,
                                 saksnummer = revurderingSak.saksnummer,
-                                saksbehandler = revurderingSak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.saksbehandler!!,
+                                saksbehandler = revurdering.saksbehandler!!,
                                 beslutter = null,
-                                sakId = revurderingSak.id,
+                                sakId = revurdering.sakId,
                                 underkjent = false,
                                 kravtidspunkt = null,
-                                id = revurderingSak.revurderinger.first().id,
-                                opprettet = revurderingSak.revurderinger.first().opprettet,
+                                id = revurdering.id,
+                                opprettet = revurdering.opprettet,
                             ),
                         ),
                     )
@@ -88,7 +87,7 @@ class BenkOversiktPostgresRepoTest {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val repo = testDataHelper.saksoversiktRepo
             val (sak, søknad) = testDataHelper.persisterAvbruttFørstegangsbehandling()
-            val (sakMedAvbruttBehandling, behandling) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sakMedAvbruttBehandling, vedtak, behandling) = testDataHelper.persisterIverksattFørstegangsbehandling(
                 sakId = sak.id,
                 fnr = søknad.fnr,
                 sak = sak,
@@ -108,13 +107,13 @@ class BenkOversiktPostgresRepoTest {
                                 behandlingstype = BenkBehandlingstype.FØRSTEGANGSBEHANDLING,
                                 fnr = søknad.fnr,
                                 saksnummer = sakMedAvbruttBehandling.saksnummer,
-                                saksbehandler = sakMedAvbruttBehandling.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.saksbehandler!!,
+                                saksbehandler = behandling.saksbehandler!!,
                                 beslutter = null,
                                 sakId = sakMedAvbruttBehandling.id,
                                 underkjent = false,
                                 kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
-                                id = sakMedAvbruttBehandling.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.id,
-                                opprettet = sakMedAvbruttBehandling.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!.opprettet,
+                                id = behandling.id,
+                                opprettet = behandling.opprettet,
                             ),
                             BehandlingEllerSøknadForSaksoversikt(
                                 periode = ObjectMother.virkningsperiode(),
@@ -122,13 +121,13 @@ class BenkOversiktPostgresRepoTest {
                                 behandlingstype = BenkBehandlingstype.FØRSTEGANGSBEHANDLING,
                                 fnr = søknad.fnr,
                                 saksnummer = sakMedAvbruttBehandling.saksnummer,
-                                saksbehandler = behandling.saksbehandlerNavIdent,
+                                saksbehandler = vedtak.saksbehandlerNavIdent,
                                 beslutter = null,
                                 sakId = sakMedAvbruttBehandling.id,
                                 underkjent = false,
                                 kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
-                                id = behandling.id,
-                                opprettet = behandling.opprettet,
+                                id = vedtak.id,
+                                opprettet = vedtak.opprettet,
                             ),
 
                         ),

@@ -23,17 +23,11 @@ data class Vedtaksliste(
 
     val tidslinje: Periodisering<Rammevedtak?> by lazy { value.toTidslinjeMedHull() }
 
-    val førstegangsvedtak: List<Rammevedtak> by lazy { value.filter { it.erFørstegangsvedtak } }
-
-    /** Nåtilstand. Dette er sakens totale vedtaksperiode. Vær veldig obs når du bruker denne, fordi den sier ikke noe om antall perioder, om de gir rett eller ikke. */
-    val vedtaksperiode: Periode? by lazy { tidslinje.ifEmpty { null }?.totalePeriode }
-
     val innvilgelsesperiode: Periode? by lazy {
         innvilgelsesperioder.ifEmpty { null }?.let { Periode(it.minOf { it.fraOgMed }, it.maxOf { it.tilOgMed }) }
     }
 
     /** Nåtilstand. Sakens totale vedtaksperioder. Vil kunne ha hull dersom det f.eks. er opphold mellom 2 tiltaksdeltagelsesperioder. Avslag og delvis avslag vil ikke være med her. */
-    @Suppress("unused")
     val vedtaksperioder: List<Periode> by lazy { tidslinje.perioder }
 
     /** Nåtilstand. De periodene som gir rett til tiltakspenger. Vil kunne være hull. */

@@ -67,7 +67,7 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
             saksnummer = sak.saksnummer,
         ),
     barnetillegg: Barnetillegg? = null,
-): Pair<Sak, Søknad> {
+): Triple<Sak, Behandling, Søknad> {
     this.persisterSakOgSøknad(
         fnr = sak.fnr,
         søknad = søknad,
@@ -83,10 +83,11 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
             sakId = sak.id,
             barnetillegg = barnetillegg,
         )
-    behandlingRepo.lagre(sakMedBehandling.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!)
+    behandlingRepo.lagre(sakMedBehandling.behandlinger.singleOrNullOrThrow()!!)
 
-    return Pair(
+    return Triple(
         sakRepo.hentForSakId(sakId)!!,
+        sakMedBehandling.behandlinger.singleOrNullOrThrow()!!,
         søknadRepo.hentForSøknadId(søknad.id)!!,
     )
 }
@@ -137,7 +138,7 @@ internal fun TestDataHelper.persisterAvbruttFørstegangsbehandling(
         søknad = søknad,
         sak = sak,
     )
-    val førstegangsbehandling = sakMedFørstegangsbehandling.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!
+    val førstegangsbehandling = sakMedFørstegangsbehandling.behandlinger.singleOrNullOrThrow()!!
     val avbruttBehandling = førstegangsbehandling.avbryt(
         saksbehandler,
         "begrunnelse",
@@ -184,8 +185,8 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
             saksnummer = sak.saksnummer,
         ),
     correlationId: CorrelationId = CorrelationId.generate(),
-): Pair<Sak, Rammevedtak> {
-    val (sak, _) = persisterOpprettetFørstegangsbehandling(
+): Triple<Sak, Rammevedtak, Behandling> {
+    val (sak, førstegangsbehandling) = persisterOpprettetFørstegangsbehandling(
         sakId = sak.id,
         fnr = sak.fnr,
         deltakelseFom = deltakelseFom,
@@ -197,7 +198,6 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
         søknad = søknad,
         sak = sak,
     )
-    val førstegangsbehandling = sak.ikkeAvbruttFørstegangsbehandlinger.singleOrNullOrThrow()!!
     val oppdatertFørstegangsbehandling =
         førstegangsbehandling
             .tilBeslutning(
@@ -210,7 +210,12 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
                     begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("begrunnelseVilkårsvurdering"),
                     innvilgelsesperiode = tiltaksOgVurderingsperiode,
                     barnetillegg = null,
-                    tiltaksdeltakelser = listOf(Pair(tiltaksOgVurderingsperiode, førstegangsbehandling.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId)),
+                    tiltaksdeltakelser = listOf(
+                        Pair(
+                            tiltaksOgVurderingsperiode,
+                            førstegangsbehandling.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
+                        ),
+                    ),
                 ),
             )
             .taBehandling(beslutter)
@@ -224,8 +229,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
     meldeperioder.forEach {
         meldeperiodeRepo.lagre(it)
     }
-
-    return sakRepo.hentForSakId(sakId)!! to vedtak
+    return Triple(sakRepo.hentForSakId(sakId)!!, vedtak, oppdatertFørstegangsbehandling)
 }
 
 /**

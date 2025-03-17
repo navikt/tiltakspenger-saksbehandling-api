@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.overlapperIkke
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
@@ -206,9 +207,6 @@ data class MeldeperiodeKjeder(
     }
 
     companion object {
-        fun List<Periode>.overlapper(periode: Periode): Boolean = this.any { it.overlapperMed(periode) }
-        fun List<Periode>.overlapperIkke(periode: Periode): Boolean = !this.any { it.overlapperMed(periode) }
-
         /**
          * Skal kun kalles/brukes på en sak som aldri har hatt en meldeperiode før
          */
