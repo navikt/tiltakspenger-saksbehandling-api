@@ -3,8 +3,11 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.felles.april
+import no.nav.tiltakspenger.saksbehandling.felles.desember
 import no.nav.tiltakspenger.saksbehandling.felles.februar
 import no.nav.tiltakspenger.saksbehandling.felles.januar
+import no.nav.tiltakspenger.saksbehandling.felles.mars
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
 import org.junit.jupiter.api.Nested
@@ -22,11 +25,21 @@ class MeldeperiodeKjederTest {
         }
 
         @Test
-        fun `angitt dato er før meldeperioden`() {
+        fun `angitt dato er 1 meldeperiode før kjedens meldeperiode`() {
             val kjeder = MeldeperiodeKjeder(
                 MeldeperiodeKjede(ObjectMother.meldeperiode(periode = Periode(20.januar(2025), 2.februar(2025)))),
             )
-            kjeder.finnNærmesteMeldeperiode(14.januar(2025)) shouldBe Periode(6.januar(2025), 19.januar(2025))
+            kjeder.finnNærmesteMeldeperiode(6.januar(2025)) shouldBe Periode(6.januar(2025), 19.januar(2025))
+            kjeder.finnNærmesteMeldeperiode(19.januar(2025)) shouldBe Periode(6.januar(2025), 19.januar(2025))
+        }
+
+        @Test
+        fun `angitt dato er 2 meldeperiode før kjedens meldeperiode`() {
+            val kjeder = MeldeperiodeKjeder(
+                MeldeperiodeKjede(ObjectMother.meldeperiode(periode = Periode(20.januar(2025), 2.februar(2025)))),
+            )
+            kjeder.finnNærmesteMeldeperiode(23.desember(2024)) shouldBe Periode(23.desember(2024), 5.januar(2025))
+            kjeder.finnNærmesteMeldeperiode(5.januar(2025)) shouldBe Periode(23.desember(2024), 5.januar(2025))
         }
 
         @Test
@@ -41,11 +54,45 @@ class MeldeperiodeKjederTest {
         }
 
         @Test
+        fun `angitt dato er 1 meldeperiode etter kjedens-meldeperioden`() {
+            val kjeder = MeldeperiodeKjeder(
+                MeldeperiodeKjede(ObjectMother.meldeperiode(periode = Periode(20.januar(2025), 2.februar(2025)))),
+            )
+            kjeder.finnNærmesteMeldeperiode(3.februar(2025)) shouldBe Periode(3.februar(2025), 16.februar(2025))
+            kjeder.finnNærmesteMeldeperiode(16.februar(2025)) shouldBe Periode(3.februar(2025), 16.februar(2025))
+        }
+
+        @Test
+        fun `angitt dato er 2 meldeperiode etter kjedens-meldeperioden`() {
+            val kjeder = MeldeperiodeKjeder(
+                MeldeperiodeKjede(ObjectMother.meldeperiode(periode = Periode(20.januar(2025), 2.februar(2025)))),
+            )
+            kjeder.finnNærmesteMeldeperiode(17.februar(2025)) shouldBe Periode(17.februar(2025), 2.mars(2025))
+            kjeder.finnNærmesteMeldeperiode(2.mars(2025)) shouldBe Periode(17.februar(2025), 2.mars(2025))
+        }
+
+        @Test
         fun `angitt dato er innenfor meldeperioden`() {
             val kjeder = MeldeperiodeKjeder(
                 MeldeperiodeKjede(ObjectMother.meldeperiode(periode = Periode(6.januar(2025), 19.januar(2025)))),
             )
-            kjeder.finnNærmesteMeldeperiode(8.januar(2025)) shouldBe Periode(6.januar(2025), 19.januar(2025))
+            kjeder.finnNærmesteMeldeperiode(6.januar(2025)) shouldBe Periode(6.januar(2025), 19.januar(2025))
+            kjeder.finnNærmesteMeldeperiode(19.januar(2025)) shouldBe Periode(6.januar(2025), 19.januar(2025))
+        }
+
+        @Test
+        fun `starten av en kjede for en sak`() {
+            MeldeperiodeKjeder.finnNærmesteMeldeperiode(7.april(2024)) shouldBe Periode(1.april(2024), 14.april(2024))
+
+            MeldeperiodeKjeder.finnNærmesteMeldeperiode(8.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024))
+            MeldeperiodeKjeder.finnNærmesteMeldeperiode(9.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024))
+            MeldeperiodeKjeder.finnNærmesteMeldeperiode(10.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024))
+            MeldeperiodeKjeder.finnNærmesteMeldeperiode(11.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024))
+            MeldeperiodeKjeder.finnNærmesteMeldeperiode(12.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024))
+            MeldeperiodeKjeder.finnNærmesteMeldeperiode(13.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024))
+            MeldeperiodeKjeder.finnNærmesteMeldeperiode(14.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024))
+
+            MeldeperiodeKjeder.finnNærmesteMeldeperiode(15.april(2024)) shouldBe Periode(15.april(2024), 28.april(2024))
         }
     }
 

@@ -27,6 +27,8 @@ object ObjectMother :
     val saksId = SakId.random()
     val saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1111")
     val fnr = Fnr.random()
+    val saksbehandler = this.saksbehandler()
+    val beslutter = this.beslutter()
 
     fun navn() = Navn("Fornavn", "Mellomnavn", "Etternavn")
     fun navkontor() = Navkontor(kontornummer = "0220", kontornavn = "Nav Asker")

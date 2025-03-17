@@ -157,7 +157,6 @@ data class Sak(
         return Pair(oppdatertSak, avbruttSøknad)
     }
 
-    // TODO - test
     fun genererMeldeperioder(): Pair<Sak, List<Meldeperiode>> {
         val dag = LocalDate.now()
         val ukedag = dag.dayOfWeek.value

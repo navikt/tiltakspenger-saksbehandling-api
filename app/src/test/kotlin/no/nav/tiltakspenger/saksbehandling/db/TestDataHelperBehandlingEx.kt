@@ -73,7 +73,7 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
         søknad = søknad,
         sak = sak,
     )
-    val sakMedBehandling =
+    val (sakMedBehandling) =
         ObjectMother.sakMedOpprettetBehandling(
             søknad = søknad,
             fnr = sak.fnr,
