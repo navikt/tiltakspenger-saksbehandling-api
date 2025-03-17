@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
 import no.nav.tiltakspenger.libs.json.serialize
+import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtakstype
 import java.time.LocalDate
@@ -15,7 +17,17 @@ private data class DatadelingVedtakJson(
     val rettighet: String,
     val fnr: String,
     val opprettet: String,
-)
+    val barnetillegg: Barnetillegg?,
+) {
+    data class Barnetillegg(
+        val perioder: List<BarnetilleggPeriode>,
+    )
+
+    data class BarnetilleggPeriode(
+        val antallBarn: Int,
+        val periode: Periode,
+    )
+}
 
 fun Rammevedtak.toDatadelingJson(): String {
     return DatadelingVedtakJson(
@@ -26,10 +38,27 @@ fun Rammevedtak.toDatadelingJson(): String {
         tom = periode.tilOgMed,
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         rettighet = when (this.vedtaksType) {
-            Vedtakstype.INNVILGELSE -> "TILTAKSPENGER"
+            Vedtakstype.INNVILGELSE -> {
+                if (barnetillegg != null) {
+                    "TILTAKSPENGER_OG_BARNETILLEGG"
+                } else {
+                    "TILTAKSPENGER"
+                }
+            }
             Vedtakstype.STANS -> "INGENTING"
         },
         fnr = fnr.verdi,
         opprettet = opprettet.toString(),
+        barnetillegg = barnetillegg?.toDatadelingBarnetillegg(),
     ).let { serialize(it) }
 }
+
+private fun Barnetillegg.toDatadelingBarnetillegg() =
+    DatadelingVedtakJson.Barnetillegg(
+        perioder = this.periodisering.perioderMedVerdi.map {
+            DatadelingVedtakJson.BarnetilleggPeriode(
+                antallBarn = it.verdi.value,
+                periode = it.periode,
+            )
+        },
+    )
