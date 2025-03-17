@@ -6,7 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -24,7 +24,7 @@ class OpprettMeldekortKorrigeringService(
     private val logger = KotlinLogging.logger {}
 
     suspend fun opprettKorrigering(
-        meldekortId: MeldekortId,
+        kjedeId: MeldeperiodeKjedeId,
         sakId: SakId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
@@ -34,26 +34,26 @@ class OpprettMeldekortKorrigeringService(
             return KanIkkeOppretteMeldekortKorrigering.IkkeTilgangTilSak.left()
         }
 
-        val meldekortBehandling = sak.hentMeldekortBehandling(meldekortId) ?: run {
-            logger.error { "Fant ikke meldekortbehandlingen $meldekortId på sak $sakId" }
-            return KanIkkeOppretteMeldekortKorrigering.BehandlingenFinnesIkke.left()
+        val meldekortBehandling = sak.hentSisteMeldekortBehandlingForKjede(kjedeId) ?: run {
+            logger.error { "Fant ingen meldekortbehandlinger (kjede $kjedeId på sak $sakId)" }
+            return KanIkkeOppretteMeldekortKorrigering.IngenBehandlinger.left()
         }
 
         if (meldekortBehandling.status != MeldekortBehandlingStatus.GODKJENT) {
-            logger.error { "Behandlingen for meldekortet $meldekortId må være godkjent for å opprette korrigering" }
-            return KanIkkeOppretteMeldekortKorrigering.BehandlingenIkkeGodkjent.left()
+            logger.error { "Siste behandling i kjeden må være godkjent for å opprette en ny korrigering (kjede $kjedeId på sak $sakId)" }
+            return KanIkkeOppretteMeldekortKorrigering.SisteBehandlingIkkeGodkjent.left()
         }
 
         val meldekortKorrigering = sak.opprettMeldekortKorrigering(
             saksbehandler = saksbehandler,
-            meldekortBehandling = meldekortBehandling,
+            forrigeBehandling = meldekortBehandling,
         )
 
-//        sessionFactory.withTransactionContext { tx ->
-//            meldekortBehandlingRepo.lagre(meldekortKorrigering, tx)
-//        }
+        sessionFactory.withTransactionContext { tx ->
+            meldekortBehandlingRepo.lagre(meldekortKorrigering, tx)
+        }
 
-        logger.info { "Opprettet korrigering av meldekort ${meldekortBehandling.id} på kjede ${meldekortBehandling.kjedeId} for sak $sakId" }
+        logger.info { "Opprettet korrigering av meldekort ${meldekortKorrigering.id} for kjede ${meldekortBehandling.kjedeId} på sak $sakId" }
 
         return meldekortKorrigering.right()
     }
@@ -61,6 +61,6 @@ class OpprettMeldekortKorrigeringService(
 
 sealed interface KanIkkeOppretteMeldekortKorrigering {
     data object IkkeTilgangTilSak : KanIkkeOppretteMeldekortKorrigering
-    data object BehandlingenFinnesIkke : KanIkkeOppretteMeldekortKorrigering
-    data object BehandlingenIkkeGodkjent : KanIkkeOppretteMeldekortKorrigering
+    data object IngenBehandlinger : KanIkkeOppretteMeldekortKorrigering
+    data object SisteBehandlingIkkeGodkjent : KanIkkeOppretteMeldekortKorrigering
 }

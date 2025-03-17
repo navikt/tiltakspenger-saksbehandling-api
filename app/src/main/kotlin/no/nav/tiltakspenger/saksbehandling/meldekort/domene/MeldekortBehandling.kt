@@ -32,6 +32,7 @@ sealed interface MeldekortBehandling {
     val opprettet: LocalDateTime
     val beregning: MeldeperiodeBeregning
     val meldeperiode: Meldeperiode
+    val type: MeldekortBehandlingType
 
     /** Vil kunne være null dersom vi ikke har mottatt et meldekort via vår digitale flate. Bør på sikt kunne være en liste? */
     val brukersMeldekort: BrukersMeldekort?
@@ -125,6 +126,7 @@ sealed interface MeldekortBehandling {
         override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
         override val brukersMeldekort: BrukersMeldekort?,
         override val meldeperiode: Meldeperiode,
+        override val type: MeldekortBehandlingType,
     ) : MeldekortBehandling {
 
         init {
@@ -204,6 +206,7 @@ sealed interface MeldekortBehandling {
                 ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                 brukersMeldekort = brukersMeldekort,
                 meldeperiode = meldeperiode,
+                type = type,
             )
         }
 
@@ -229,6 +232,7 @@ sealed interface MeldekortBehandling {
         override val brukersMeldekort: BrukersMeldekort?,
         override val meldeperiode: Meldeperiode,
         override val saksbehandler: String,
+        override val type: MeldekortBehandlingType,
     ) : MeldekortBehandling {
         override val iverksattTidspunkt = null
         override val sendtTilBeslutning = null
@@ -273,6 +277,7 @@ sealed interface MeldekortBehandling {
                 ikkeRettTilTiltakspengerTidspunkt = null,
                 brukersMeldekort = brukersMeldekort,
                 meldeperiode = meldeperiode,
+                type = type,
             ).right()
         }
 
@@ -346,6 +351,7 @@ fun Sak.opprettMeldekortBehandling(
         brukersMeldekort = brukersMeldekort,
         meldeperiode = meldeperiode,
         saksbehandler = saksbehandler.navIdent,
+        type = MeldekortBehandlingType.FØRSTE_BEHANDLING,
         beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
             meldeperiode = meldeperiode,
             meldekortId = meldekortId,
@@ -358,10 +364,10 @@ fun Sak.opprettMeldekortBehandling(
 
 fun Sak.opprettMeldekortKorrigering(
     saksbehandler: Saksbehandler,
-    meldekortBehandling: MeldekortBehandling,
+    forrigeBehandling: MeldekortBehandling,
 ): MeldekortBehandling.MeldekortUnderBehandling {
     val meldekortId = MeldekortId.random()
-    val meldeperiode = meldekortBehandling.meldeperiode
+    val meldeperiode = hentSisteMeldeperiodeForKjede(forrigeBehandling.kjedeId)
 
     return MeldekortBehandling.MeldekortUnderBehandling(
         id = meldekortId,
@@ -369,16 +375,21 @@ fun Sak.opprettMeldekortKorrigering(
         saksnummer = this.saksnummer,
         fnr = this.fnr,
         opprettet = nå(),
-        navkontor = meldekortBehandling.navkontor,
-        ikkeRettTilTiltakspengerTidspunkt = null,
-        brukersMeldekort = meldekortBehandling.brukersMeldekort,
+        // TODO: bør navkontor hentes på nytt? Kan den være endret innenfor samme periode?
+        navkontor = forrigeBehandling.navkontor,
+        ikkeRettTilTiltakspengerTidspunkt = forrigeBehandling.ikkeRettTilTiltakspengerTidspunkt,
+        // TODO: må kunne sette et annet bruker-meldekort når vi skal støtte korrigering fra bruker
+        brukersMeldekort = forrigeBehandling.brukersMeldekort,
         meldeperiode = meldeperiode,
         saksbehandler = saksbehandler.navIdent,
+        type = MeldekortBehandlingType.KORRIGERING,
+        // TODO: forhåndsutfylle denne fra forrige meldekortbehandling?
         beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
             meldeperiode = meldeperiode,
             meldekortId = meldekortId,
             sakId = this.id,
-            maksDagerMedTiltakspengerForPeriode = meldekortBehandling.beregning.maksDagerMedTiltakspengerForPeriode,
+            // TODO: dette er kanskje også en variabel som saksbehandler kan korrigere? (På sikt?)
+            maksDagerMedTiltakspengerForPeriode = forrigeBehandling.beregning.maksDagerMedTiltakspengerForPeriode,
             tiltakstypePerioder = this.vedtaksliste.tiltakstypeperioder,
         ),
     )

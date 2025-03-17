@@ -15,10 +15,10 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeld
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortKorrigeringService
 import no.nav.tiltakspenger.saksbehandling.routes.correlationId
 import no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto.toDTO
-import no.nav.tiltakspenger.saksbehandling.routes.withMeldekortId
+import no.nav.tiltakspenger.saksbehandling.routes.withMeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.routes.withSakId
 
-private const val PATH = "sak/{sakId}/meldeperiode/{meldekortId}/opprettKorrigering"
+private const val PATH = "sak/{sakId}/meldeperiode/{meldeperiodeKjedeId}/opprettKorrigering"
 
 fun Route.opprettMeldekortKorrigeringRoute(
     opprettMeldekortKorrigeringService: OpprettMeldekortKorrigeringService,
@@ -31,11 +31,11 @@ fun Route.opprettMeldekortKorrigeringRoute(
         logger.debug { "Mottatt post-request på $PATH - oppretter korrigering av meldekort-behandling" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
-                call.withMeldekortId { meldekortId ->
+                call.withMeldeperiodeKjedeId { kjedeId ->
                     val correlationId = call.correlationId()
 
                     opprettMeldekortKorrigeringService.opprettKorrigering(
-                        meldekortId = meldekortId,
+                        kjedeId = kjedeId,
                         sakId = sakId,
                         saksbehandler = saksbehandler,
                         correlationId = correlationId,
@@ -47,13 +47,13 @@ fun Route.opprettMeldekortKorrigeringRoute(
                                     kode = "",
                                 )
 
-                                is KanIkkeOppretteMeldekortKorrigering.BehandlingenFinnesIkke -> call.respond400BadRequest(
-                                    melding = "Fant ikke meldekortbehandlingen $meldekortId på sak $sakId",
+                                is KanIkkeOppretteMeldekortKorrigering.IngenBehandlinger -> call.respond400BadRequest(
+                                    melding = "Fant ingen meldekortbehandlinger på kjede $kjedeId for sak $sakId",
                                     kode = "",
                                 )
 
-                                is KanIkkeOppretteMeldekortKorrigering.BehandlingenIkkeGodkjent -> call.respond400BadRequest(
-                                    melding = "Meldekortbehandlingen $meldekortId på sak $sakId er ikke godkjent",
+                                is KanIkkeOppretteMeldekortKorrigering.SisteBehandlingIkkeGodkjent -> call.respond400BadRequest(
+                                    melding = "Siste meldekortbehandling på kjede $kjedeId for sak $sakId er ikke godkjent",
                                     kode = "",
                                 )
                             }
