@@ -4,7 +4,7 @@ val felleslibVersion = "0.0.402"
 val mockkVersion = "1.13.17"
 val ktorVersion = "3.1.1"
 val testContainersVersion = "1.20.6"
-val poaoTilgangVersjon = "2025.03.13_07.56-7dfa21d32098"
+val poaoTilgangVersjon = "2025.03.14_11.59-7f919ddcb786"
 val iverksettVersjon = "1.0_20241213145703_7ff5f9c"
 
 plugins {
