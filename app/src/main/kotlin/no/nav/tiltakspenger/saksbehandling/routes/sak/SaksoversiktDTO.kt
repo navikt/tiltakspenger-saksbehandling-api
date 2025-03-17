@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søk
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.Saksoversikt
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.toBenkBehandlingstype
+import java.time.LocalDateTime
 
 /**
  * @property periode Null dersom det er en søknad.
@@ -19,7 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.toBenkBeha
 data class SaksoversiktDTO(
     val periode: PeriodeDTO?,
     val status: String,
-    val kravtidspunkt: String?,
+    val kravtidspunkt: LocalDateTime?,
     val underkjent: Boolean?,
     val typeBehandling: BehandlingstypeDTO,
     val fnr: String,
@@ -28,7 +29,7 @@ data class SaksoversiktDTO(
     val sakId: String,
     val saksbehandler: String?,
     val beslutter: String?,
-    val opprettet: String,
+    val opprettet: LocalDateTime,
 )
 
 internal fun Saksoversikt.toDTO(): List<SaksoversiktDTO> = this.map { it.toSaksoversiktDTO() }
@@ -41,7 +42,7 @@ fun BehandlingEllerSøknadForSaksoversikt.toSaksoversiktDTO() = SaksoversiktDTO(
         is BehandlingEllerSøknadForSaksoversikt.Status.Behandling -> s.behandlingsstatus.toDTO().toString()
     },
     underkjent = underkjent,
-    kravtidspunkt = kravtidspunkt?.toString(),
+    kravtidspunkt = kravtidspunkt,
     typeBehandling = behandlingstype.toDTO(),
     fnr = fnr.verdi,
     saksnummer = saksnummer.toString(),
@@ -49,7 +50,7 @@ fun BehandlingEllerSøknadForSaksoversikt.toSaksoversiktDTO() = SaksoversiktDTO(
     saksbehandler = saksbehandler,
     beslutter = beslutter,
     sakId = sakId.toString(),
-    opprettet = this.opprettet.toString(),
+    opprettet = opprettet,
 )
 
 fun List<Behandling>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
@@ -62,7 +63,7 @@ fun List<Søknad>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
 fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
     periode = virkningsperiode?.toDTO(),
     status = status.toDTO().toString(),
-    kravtidspunkt = this.kravfrist?.toString(),
+    kravtidspunkt = kravtidspunkt,
     underkjent = attesteringer.any { attestering -> attestering.isUnderkjent() },
     typeBehandling = behandlingstype.toBenkBehandlingstype().toDTO(),
     fnr = fnr.verdi,
@@ -71,20 +72,20 @@ fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
     sakId = sakId.toString(),
     saksbehandler = saksbehandler,
     beslutter = beslutter,
-    opprettet = this.opprettet.toString(),
+    opprettet = opprettet,
 )
 
 fun Søknad.toSaksoversiktDTO() = SaksoversiktDTO(
     periode = null,
     status = "SØKNAD",
-    kravtidspunkt = null,
+    kravtidspunkt = tidsstempelHosOss,
     underkjent = null,
     typeBehandling = BehandlingstypeDTO.SØKNAD,
     fnr = fnr.verdi,
-    id = this.id.toString(),
-    saksnummer = this.saksnummer.toString(),
-    sakId = this.sakId.toString(),
+    id = id.toString(),
+    saksnummer = saksnummer.toString(),
+    sakId = sakId.toString(),
     saksbehandler = null,
     beslutter = null,
-    opprettet = this.opprettet.toString(),
+    opprettet = opprettet,
 )

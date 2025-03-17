@@ -98,7 +98,7 @@ data class Behandling(
     val erRevurdering: Boolean = behandlingstype == REVURDERING
 
     /** Påkrevd ved førstegangsbehandling/søknadsbehandling, men kan være null ved revurdering. */
-    val kravfrist = søknad?.tidsstempelHosOss
+    val kravtidspunkt = søknad?.tidsstempelHosOss
 
     companion object {
         /** Hardkoder denne til 10 for nå. På sikt vil vi la saksbehandler periodisere dette selv, litt på samme måte som barnetillegg. */

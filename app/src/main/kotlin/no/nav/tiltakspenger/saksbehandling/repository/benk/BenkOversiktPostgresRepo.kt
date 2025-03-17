@@ -96,6 +96,7 @@ class BenkOversiktPostgresRepo(
                           søknad.opprettet,
                           søknad.behandling_id,
                           søknad.sak_id,
+                          søknad.tidsstempel_hos_oss as kravtidspunkt,
                           sak.saksnummer,
                           søknad.avbrutt
                         from søknad join sak on søknad.sak_id = sak.id
@@ -105,13 +106,15 @@ class BenkOversiktPostgresRepo(
                     ).map { row ->
                         val id = row.string("søknad_id").let { SøknadId.fromString(row.string("søknad_id")) }
                         val opprettet = row.localDateTime("opprettet")
+                        val kravtidspunkt = row.localDateTime("kravtidspunkt")
                         val behandlingstype = BenkBehandlingstype.SØKNAD
                         val status = BehandlingEllerSøknadForSaksoversikt.Status.Søknad
+
                         BehandlingEllerSøknadForSaksoversikt(
                             periode = null,
                             status = status,
                             underkjent = false,
-                            kravtidspunkt = opprettet,
+                            kravtidspunkt = kravtidspunkt,
                             behandlingstype = behandlingstype,
                             fnr = Fnr.fromString(row.string("fnr")),
                             saksnummer = Saksnummer(row.string("saksnummer")),
