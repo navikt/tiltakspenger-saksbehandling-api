@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtakstype
@@ -26,7 +25,12 @@ private data class DatadelingVedtakJson(
     data class BarnetilleggPeriode(
         val antallBarn: Int,
         val periode: Periode,
-    )
+    ) {
+        data class Periode(
+            val fraOgMed: LocalDate,
+            val tilOgMed: LocalDate,
+        )
+    }
 }
 
 fun Rammevedtak.toDatadelingJson(): String {
@@ -58,7 +62,10 @@ private fun Barnetillegg.toDatadelingBarnetillegg() =
         perioder = this.periodisering.perioderMedVerdi.map {
             DatadelingVedtakJson.BarnetilleggPeriode(
                 antallBarn = it.verdi.value,
-                periode = it.periode,
+                periode = DatadelingVedtakJson.BarnetilleggPeriode.Periode(
+                    fraOgMed = it.periode.fraOgMed,
+                    tilOgMed = it.periode.tilOgMed,
+                ),
             )
         },
     )
