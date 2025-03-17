@@ -38,13 +38,13 @@ class OpprettMeldekortBehandlingService(
             logger.error { "Kunne ikke hente sak med id $sakId" }
             return KanIkkeOppretteMeldekortBehandling.IkkeTilgangTilSak.left()
         }.also {
-            if (it.hentMeldekortBehandlingForMeldeperiodeKjedeId(kjedeId).isNotEmpty()) {
+            if (it.hentMeldekortBehandlingerForKjede(kjedeId).isNotEmpty()) {
                 logger.error { "Det finnes allerede en behandling av $kjedeId: ${it.id}" }
                 return KanIkkeOppretteMeldekortBehandling.BehandlingFinnes.left()
             }
         }
 
-        val meldeperiode: Meldeperiode = sak.hentMeldeperiodeForKjedeId(kjedeId = kjedeId)
+        val meldeperiode: Meldeperiode = sak.hentSisteMeldeperiodeForKjede(kjedeId = kjedeId)
 
         val navkontor = Either.catch {
             navkontorService.hentOppfolgingsenhet(sak.fnr)
@@ -78,6 +78,5 @@ class OpprettMeldekortBehandlingService(
 sealed interface KanIkkeOppretteMeldekortBehandling {
     data object IkkeTilgangTilSak : KanIkkeOppretteMeldekortBehandling
     data object BehandlingFinnes : KanIkkeOppretteMeldekortBehandling
-    data object IngenMeldeperiode : KanIkkeOppretteMeldekortBehandling
     data object HenteNavkontorFeilet : KanIkkeOppretteMeldekortBehandling
 }

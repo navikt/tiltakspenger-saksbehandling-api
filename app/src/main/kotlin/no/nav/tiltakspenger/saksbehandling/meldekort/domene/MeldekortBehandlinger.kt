@@ -78,18 +78,22 @@ data class MeldekortBehandlinger(
             }
     }
 
-    fun hentMeldekortBehandlingForMeldekortBehandlingId(meldekortId: MeldekortId): MeldekortBehandling? {
+    fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
         return verdi.singleOrNullOrThrow { it.id == meldekortId }
     }
 
     /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
-    fun hentMeldekortBehandlingForMeldeperiodeId(id: MeldeperiodeId): List<MeldekortBehandling> {
+    fun hentMeldekortBehandlingerForMeldeperiode(id: MeldeperiodeId): List<MeldekortBehandling> {
         return this.filter { it.meldeperiode.id == id }
     }
 
     /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
-    fun hentMeldekortBehandlingForMeldeperiodeKjedeId(kjedeId: MeldeperiodeKjedeId): List<MeldekortBehandling> {
+    fun hentMeldekortBehandlingerForKjede(kjedeId: MeldeperiodeKjedeId): List<MeldekortBehandling> {
         return verdi.filter { it.kjedeId == kjedeId }
+    }
+
+    fun hentSisteMeldekortBehandlingForKjede(kjedeId: MeldeperiodeKjedeId): MeldekortBehandling? {
+        return hentMeldekortBehandlingerForKjede(kjedeId).lastOrNull()
     }
 
     /**
@@ -101,7 +105,7 @@ data class MeldekortBehandlinger(
     ): Pair<MeldekortBehandlinger, List<MeldekortBehandling>> {
         return verdi.filter { it.erÅpen() }
             .fold(Pair(this, emptyList())) { acc, meldekortBehandling ->
-                val meldeperiode = oppdaterteKjeder.hentSisteMeldeperiodeForKjedeId(
+                val meldeperiode = oppdaterteKjeder.hentSisteMeldeperiodeForKjede(
                     kjedeId = meldekortBehandling.meldeperiode.kjedeId,
                 )
                 meldekortBehandling.oppdaterMeldeperiode(meldeperiode, tiltakstypePerioder)?.let {
@@ -115,7 +119,7 @@ data class MeldekortBehandlinger(
 
     val periode: Periode by lazy { Periode(verdi.first().fraOgMed, verdi.last().tilOgMed) }
 
-    val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
+    private val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
 
     val godkjenteMeldekort: List<MeldekortBehandlet> by lazy { behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
 

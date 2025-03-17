@@ -32,7 +32,7 @@ fun Sak.toMeldeperiodeDTO(meldeperiode: Meldeperiode): MeldeperiodeDTO {
         antallDager = meldeperiode.antallDagerForPeriode,
         girRett = meldeperiode.girRett,
         meldekortBehandling = this.meldekortBehandlinger
-            .hentMeldekortBehandlingForMeldeperiodeKjedeId(meldeperiode.kjedeId).lastOrNull()?.toDTO(),
+            .hentMeldekortBehandlingerForKjede(meldeperiode.kjedeId).lastOrNull()?.toDTO(),
         brukersMeldekort = this.brukersMeldekort
             .find { it.kjedeId == meldeperiode.kjedeId }
             ?.toDTO(),

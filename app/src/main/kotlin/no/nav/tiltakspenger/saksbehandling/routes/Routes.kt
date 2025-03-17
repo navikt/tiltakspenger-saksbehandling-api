@@ -54,6 +54,7 @@ fun Route.routes(
         iverksettMeldekortService = applicationContext.meldekortContext.iverksettMeldekortService,
         sendMeldekortTilBeslutterService = applicationContext.meldekortContext.sendMeldekortTilBeslutterService,
         opprettMeldekortBehandlingService = applicationContext.meldekortContext.opprettMeldekortBehandlingService,
+        opprettMeldekortKorrigeringService = applicationContext.meldekortContext.opprettMeldekortKorrigeringService,
         auditService = applicationContext.personContext.auditService,
         sakService = applicationContext.sakContext.sakService,
         tokenService = applicationContext.tokenService,

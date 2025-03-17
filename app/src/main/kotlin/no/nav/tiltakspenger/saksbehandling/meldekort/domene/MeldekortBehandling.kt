@@ -355,3 +355,31 @@ fun Sak.opprettMeldekortBehandling(
         ),
     )
 }
+
+fun Sak.opprettMeldekortKorrigering(
+    saksbehandler: Saksbehandler,
+    meldekortBehandling: MeldekortBehandling,
+): MeldekortBehandling.MeldekortUnderBehandling {
+    val meldekortId = MeldekortId.random()
+    val meldeperiode = meldekortBehandling.meldeperiode
+
+    return MeldekortBehandling.MeldekortUnderBehandling(
+        id = meldekortId,
+        sakId = this.id,
+        saksnummer = this.saksnummer,
+        fnr = this.fnr,
+        opprettet = nå(),
+        navkontor = meldekortBehandling.navkontor,
+        ikkeRettTilTiltakspengerTidspunkt = null,
+        brukersMeldekort = meldekortBehandling.brukersMeldekort,
+        meldeperiode = meldeperiode,
+        saksbehandler = saksbehandler.navIdent,
+        beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
+            meldeperiode = meldeperiode,
+            meldekortId = meldekortId,
+            sakId = this.id,
+            maksDagerMedTiltakspengerForPeriode = meldekortBehandling.beregning.maksDagerMedTiltakspengerForPeriode,
+            tiltakstypePerioder = this.vedtaksliste.tiltakstypeperioder,
+        ),
+    )
+}
