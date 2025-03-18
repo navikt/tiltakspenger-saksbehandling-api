@@ -197,21 +197,22 @@ internal class PdfgenHttpClient(
         uri: URI,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return withContext(Dispatchers.IO) {
+            val payload = jsonPayload()
             Either.catch {
-                val request = createPdfgenRequest(jsonPayload(), uri)
+                val request = createPdfgenRequest(payload, uri)
                 val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray()).await()
                 val jsonResponse = httpResponse.body()
                 val status = httpResponse.statusCode()
                 if (status != 200) {
                     log.error { "Feil ved kall til pdfgen. $errorContext. Status: $status. uri: $uri. Se sikkerlogg for detaljer." }
-                    sikkerlogg.error { "Feil ved kall til pdfgen. $errorContext. uri: $uri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
+                    sikkerlogg.error { "Feil ved kall til pdfgen. $errorContext. uri: $uri. jsonResponse: $jsonResponse. jsonPayload: $payload." }
                     return@withContext KunneIkkeGenererePdf.left()
                 }
-                PdfOgJson(PdfA(jsonResponse), jsonPayload())
+                PdfOgJson(PdfA(jsonResponse), payload)
             }.mapLeft {
                 // Either.catch slipper igjennom CancellationException som er ønskelig.
                 log.error(it) { "Feil ved kall til pdfgen. $errorContext. Se sikkerlogg for detaljer." }
-                sikkerlogg.error(it) { "Feil ved kall til pdfgen. $errorContext. jsonPayload: $jsonPayload, uri: $uri" }
+                sikkerlogg.error(it) { "Feil ved kall til pdfgen. $errorContext. jsonPayload: $payload, uri: $uri" }
                 KunneIkkeGenererePdf
             }
         }
