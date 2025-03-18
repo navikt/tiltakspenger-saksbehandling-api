@@ -26,7 +26,7 @@ private data class BrevFørstegangsvedtakInnvilgelseDTO(
     val beslutterNavn: String?,
     val kontor: String,
     val datoForUtsending: String,
-    val sats: Int,
+    val sats: List<Any>,
     val satsBarn: Int,
     val tilleggstekst: String? = null,
     val forhandsvisning: Boolean,
@@ -116,7 +116,13 @@ internal suspend fun genererInnvilgetSøknadsbrev(
         kontor = "Nav Tiltak Øst-Viken",
         // Dette er vår dato, det brukes typisk når bruker klager på vedtaksbrev på dato ...
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
-        sats = Satser.sats(innvilgelsesperiode.fraOgMed).sats,
+        sats = Satser.satser.filter { it.periode.overlapperMed(innvilgelsesperiode) }.map {
+            object {
+                val år = it.periode.fraOgMed.year
+                val ordinær = it.sats
+                val barnetillegg = it.satsBarnetillegg
+            }
+        },
         satsBarn = Satser.sats(innvilgelsesperiode.fraOgMed).satsBarnetillegg,
         tilleggstekst = tilleggstekst?.verdi,
         forhandsvisning = forhåndsvisning,
