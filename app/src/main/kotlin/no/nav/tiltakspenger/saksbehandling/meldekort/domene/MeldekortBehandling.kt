@@ -32,6 +32,8 @@ sealed interface MeldekortBehandling {
     val opprettet: LocalDateTime
     val beregning: MeldeperiodeBeregning
     val meldeperiode: Meldeperiode
+
+    // TODO abn: vi trenger kanskje ikke denne?
     val type: MeldekortBehandlingType
 
     /** Vil kunne være null dersom vi ikke har mottatt et meldekort via vår digitale flate. Bør på sikt kunne være en liste? */
@@ -316,19 +318,26 @@ sealed interface MeldekortBehandling {
 }
 
 /**
- * (TODO'er fra tidligere implementasjon!)
  * TODO post-mvp jah: Ved revurderinger av rammevedtaket, så må vi basere oss på både forrige meldekort og revurderingsvedtaket. Dette løser vi å flytte mer logikk til Sak.kt.
  * TODO post-mvp jah: Når vi implementerer delvis innvilgelse vil hele meldekortperioder kunne bli SPERRET.
  */
 fun Sak.opprettMeldekortBehandling(
-    meldeperiode: Meldeperiode,
+    kjedeId: MeldeperiodeKjedeId,
     navkontor: Navkontor,
     saksbehandler: Saksbehandler,
-    brukersMeldekort: BrukersMeldekort?,
 ): MeldekortBehandling.MeldekortUnderBehandling {
-    val meldekortId = MeldekortId.random()
+    require(this.vedtaksliste.innvilgelsesperioder.isNotEmpty()) {
+        "Må ha minst én periode som gir rett til tiltakspenger for å opprette meldekortbehandling"
+    }
 
-    require(this.vedtaksliste.innvilgelsesperioder.isNotEmpty()) { "Må ha minst én periode som gir rett til tiltakspegner for å opprette meldekortbehandling" }
+    val forrigeMeldekortBehandling = hentSisteMeldekortBehandlingForKjede(kjedeId)?.also {
+        require(it.status == GODKJENT) {
+            "Forrige meldekortbehandling i kjeden må være godkjent for å opprette en ny behandling/korrigering (kjede $kjedeId på sak ${this.id})"
+        }
+    }
+
+    val meldekortId = MeldekortId.random()
+    val meldeperiode = hentSisteMeldeperiodeForKjede(kjedeId)
 
     val overlappendePeriode = this.vedtaksliste.innvilgelsesperioder.overlappendePerioder(
         listOf(meldeperiode.periode),
@@ -336,50 +345,12 @@ fun Sak.opprettMeldekortBehandling(
 
     requireNotNull(overlappendePeriode) { "Meldeperioden må overlappe med innvilgelsesperioden(e)" }
 
-    // TODO jah: Behandlingen må ta inn periodisert antall dager og ikke bruke tidligere vedtak her. Tror ikke maksDagerMedTiltakspengerForPeriode brukes til noe; kanskje den bør bort fra beregningen?
-    val vedtak = this.vedtaksliste.tidslinjeForPeriode(overlappendePeriode).single().verdi
-    val maksDagerMedTiltakspengerForPeriode = vedtak.behandling.maksDagerMedTiltakspengerForPeriode
-
-    return MeldekortBehandling.MeldekortUnderBehandling(
-        id = meldekortId,
-        sakId = this.id,
-        saksnummer = this.saksnummer,
-        fnr = this.fnr,
-        opprettet = nå(),
-        navkontor = navkontor,
-        ikkeRettTilTiltakspengerTidspunkt = null,
-        brukersMeldekort = brukersMeldekort,
-        meldeperiode = meldeperiode,
-        saksbehandler = saksbehandler.navIdent,
-        type = MeldekortBehandlingType.FØRSTE_BEHANDLING,
-        beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
-            meldeperiode = meldeperiode,
-            meldekortId = meldekortId,
-            sakId = this.id,
-            maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-            tiltakstypePerioder = this.vedtaksliste.tiltakstypeperioder,
-        ),
-    )
-}
-
-fun Sak.opprettMeldekortKorrigering(
-    saksbehandler: Saksbehandler,
-    kjedeId: MeldeperiodeKjedeId,
-    navkontor: Navkontor,
-): MeldekortBehandling.MeldekortUnderBehandling {
-    val forrigeBehandling = hentSisteMeldekortBehandlingForKjede(kjedeId)
-
-    requireNotNull(forrigeBehandling) {
-        "Må ha en tidligere meldekortbehandling for å opprette korrigering (kjede $kjedeId på sak ${this.id})"
-    }
-    require(forrigeBehandling.status == GODKJENT) {
-        "Siste meldekortbehandling i kjeden må være godkjent for å opprette en korrigering (kjede $kjedeId på sak ${this.id})"
-    }
-
-    val meldekortId = MeldekortId.random()
-    val meldeperiode = hentSisteMeldeperiodeForKjede(kjedeId)
+    // TODO abn: må støtte flere brukers meldekort på samme kjede før vi åpner for korrigering fra bruker
     val brukersMeldekort = this.brukersMeldekort.find { it.kjedeId == kjedeId }
 
+    val type =
+        if (forrigeMeldekortBehandling == null) MeldekortBehandlingType.FØRSTE_BEHANDLING else MeldekortBehandlingType.KORRIGERING
+
     return MeldekortBehandling.MeldekortUnderBehandling(
         id = meldekortId,
         sakId = this.id,
@@ -391,12 +362,12 @@ fun Sak.opprettMeldekortKorrigering(
         brukersMeldekort = brukersMeldekort,
         meldeperiode = meldeperiode,
         saksbehandler = saksbehandler.navIdent,
-        type = MeldekortBehandlingType.KORRIGERING,
-        // TODO: forhåndsutfylle denne fra forrige meldekortbehandling
+        type = type,
         beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
             meldeperiode = meldeperiode,
             meldekortId = meldekortId,
             sakId = this.id,
+            // TODO jah: Behandlingen må ta inn periodisert antall dager og ikke bruke tidligere vedtak her. Tror ikke maksDagerMedTiltakspengerForPeriode brukes til noe; kanskje den bør bort fra beregningen?
             maksDagerMedTiltakspengerForPeriode = meldeperiode.antallDagerForPeriode,
             tiltakstypePerioder = this.vedtaksliste.tiltakstypeperioder,
         ),

@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppgaveMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortBehandlingService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortKorrigeringService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldeperiodeTilBrukerService
 import no.nav.tiltakspenger.saksbehandling.repository.meldekort.BrukersMeldekortPostgresRepo
@@ -81,17 +80,8 @@ open class MeldekortContext(
     val opprettMeldekortBehandlingService by lazy {
         OpprettMeldekortBehandlingService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
-            brukersMeldekortRepo = brukersMeldekortRepo,
             sakService = sakService,
             navkontorService = navkontorService,
-            sessionFactory = sessionFactory,
-        )
-    }
-    val opprettMeldekortKorrigeringService by lazy {
-        OpprettMeldekortKorrigeringService(
-            meldekortBehandlingRepo = meldekortBehandlingRepo,
-            navkontorService = navkontorService,
-            sakService = sakService,
             sessionFactory = sessionFactory,
         )
     }

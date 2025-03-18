@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.felles.januar
 import no.nav.tiltakspenger.saksbehandling.felles.mars
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
@@ -19,9 +18,10 @@ class MeldekortBrukerPostgresRepoTest {
                 deltakelseFom = 1.januar(2024),
                 deltakelseTom = 31.mars(2024),
             )
-            val meldeperiode = sak.opprettFørsteMeldeperiode()
-            testDataHelper.meldeperiodeRepo.lagre(meldeperiode)
+
+            val meldeperiode = sak.meldeperiodeKjeder.hentSisteMeldeperiode()
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
+
             val nyttBrukersMeldekort = ObjectMother.lagreBrukersMeldekortKommando(
                 meldeperiodeId = meldeperiode.id,
                 mottatt = meldeperiode.opprettet.plus(1, ChronoUnit.MILLIS),
