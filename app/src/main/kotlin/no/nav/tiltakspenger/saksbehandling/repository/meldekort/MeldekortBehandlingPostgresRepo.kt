@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortperioder
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
@@ -85,7 +84,7 @@ class MeldekortBehandlingPostgresRepo(
                     "iverksatt_tidspunkt" to meldekortBehandling.iverksattTidspunkt,
                     "sendt_til_beslutning" to meldekortBehandling.sendtTilBeslutning,
                     "navkontor_navn" to meldekortBehandling.navkontor.kontornavn,
-                    "type" to meldekortBehandling.type.toString(),
+                    "type" to meldekortBehandling.type.tilDb(),
                 ).asUpdate,
             )
         }
