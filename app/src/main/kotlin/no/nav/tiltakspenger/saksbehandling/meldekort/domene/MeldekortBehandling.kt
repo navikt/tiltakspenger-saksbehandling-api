@@ -378,6 +378,7 @@ fun Sak.opprettMeldekortKorrigering(
 
     val meldekortId = MeldekortId.random()
     val meldeperiode = hentSisteMeldeperiodeForKjede(forrigeBehandling.kjedeId)
+    val brukersMeldekort = this.brukersMeldekort.find { it.kjedeId == kjedeId }
 
     return MeldekortBehandling.MeldekortUnderBehandling(
         id = meldekortId,
@@ -387,18 +388,16 @@ fun Sak.opprettMeldekortKorrigering(
         opprettet = nå(),
         navkontor = navkontor,
         ikkeRettTilTiltakspengerTidspunkt = null,
-        // TODO: må kunne sette et annet bruker-meldekort når vi skal støtte korrigering fra bruker
-        brukersMeldekort = forrigeBehandling.brukersMeldekort,
+        brukersMeldekort = brukersMeldekort,
         meldeperiode = meldeperiode,
         saksbehandler = saksbehandler.navIdent,
         type = MeldekortBehandlingType.KORRIGERING,
-        // TODO: forhåndsutfylle denne fra forrige meldekortbehandling?
+        // TODO: forhåndsutfylle denne fra forrige meldekortbehandling
         beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
             meldeperiode = meldeperiode,
             meldekortId = meldekortId,
             sakId = this.id,
-            // TODO: dette er kanskje også en variabel som saksbehandler kan korrigere? (På sikt?)
-            maksDagerMedTiltakspengerForPeriode = forrigeBehandling.beregning.maksDagerMedTiltakspengerForPeriode,
+            maksDagerMedTiltakspengerForPeriode = meldeperiode.antallDagerForPeriode,
             tiltakstypePerioder = this.vedtaksliste.tiltakstypeperioder,
         ),
     )

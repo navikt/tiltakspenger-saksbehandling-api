@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.routes.withMeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.routes.withSakId
 
-private const val PATH = "sak/{sakId}/meldeperiode/{meldeperiodeKjedeId}/opprettKorrigering"
+private const val PATH = "sak/{sakId}/meldeperiode/{kjedeId}/opprettKorrigering"
 
 fun Route.opprettMeldekortKorrigeringRoute(
     opprettMeldekortKorrigeringService: OpprettMeldekortKorrigeringService,
