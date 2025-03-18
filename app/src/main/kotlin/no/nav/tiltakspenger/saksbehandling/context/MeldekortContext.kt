@@ -90,6 +90,7 @@ open class MeldekortContext(
     val opprettMeldekortKorrigeringService by lazy {
         OpprettMeldekortKorrigeringService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
+            navkontorService = navkontorService,
             sakService = sakService,
             sessionFactory = sessionFactory,
         )

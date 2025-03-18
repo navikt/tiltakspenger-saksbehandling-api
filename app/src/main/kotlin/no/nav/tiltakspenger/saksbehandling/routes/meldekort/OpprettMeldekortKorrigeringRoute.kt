@@ -7,8 +7,8 @@ import io.ktor.server.routing.post
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
-import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
+import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortKorrigering
@@ -46,14 +46,8 @@ fun Route.opprettMeldekortKorrigeringRoute(
                                     melding = "Du har ikke tilgang til sak $sakId",
                                     kode = "",
                                 )
-
-                                is KanIkkeOppretteMeldekortKorrigering.IngenBehandlinger -> call.respond400BadRequest(
-                                    melding = "Fant ingen tidligere meldekortbehandling på kjede $kjedeId for sak $sakId",
-                                    kode = "",
-                                )
-
-                                is KanIkkeOppretteMeldekortKorrigering.SisteBehandlingIkkeGodkjent -> call.respond400BadRequest(
-                                    melding = "Siste meldekortbehandling på kjede $kjedeId for sak $sakId er ikke godkjent",
+                                is KanIkkeOppretteMeldekortKorrigering.HenteNavkontorFeilet -> call.respond500InternalServerError(
+                                    melding = "Kunne ikke hente Nav-kontor for brukeren",
                                     kode = "",
                                 )
                             }

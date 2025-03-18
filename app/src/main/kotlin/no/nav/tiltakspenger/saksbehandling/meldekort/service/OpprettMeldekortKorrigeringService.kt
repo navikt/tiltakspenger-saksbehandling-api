@@ -10,15 +10,17 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettMeldekortKorrigering
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.NavkontorService
 
 class OpprettMeldekortKorrigeringService(
     val sakService: SakService,
     val meldekortBehandlingRepo: MeldekortBehandlingRepo,
+    val navkontorService: NavkontorService,
     val sessionFactory: SessionFactory,
 ) {
     private val logger = KotlinLogging.logger {}
@@ -34,26 +36,27 @@ class OpprettMeldekortKorrigeringService(
             return KanIkkeOppretteMeldekortKorrigering.IkkeTilgangTilSak.left()
         }
 
-        val sisteMeldekortBehandling = sak.hentSisteMeldekortBehandlingForKjede(kjedeId) ?: run {
-            logger.error { "Fant ingen meldekortbehandlinger (kjede $kjedeId på sak $sakId)" }
-            return KanIkkeOppretteMeldekortKorrigering.IngenBehandlinger.left()
-        }
-
-        if (sisteMeldekortBehandling.status != MeldekortBehandlingStatus.GODKJENT) {
-            logger.error { "Siste behandling i kjeden må være godkjent for å opprette en korrigering (kjede $kjedeId på sak $sakId)" }
-            return KanIkkeOppretteMeldekortKorrigering.SisteBehandlingIkkeGodkjent.left()
+        val navkontor = Either.catch {
+            navkontorService.hentOppfolgingsenhet(sak.fnr)
+        }.getOrElse {
+            with("Kunne ikke hente navkontor for sak $sakId") {
+                logger.error { this }
+                sikkerlogg.error(it) { "$this - fnr ${sak.fnr.verdi}" }
+            }
+            return KanIkkeOppretteMeldekortKorrigering.HenteNavkontorFeilet.left()
         }
 
         val meldekortKorrigering = sak.opprettMeldekortKorrigering(
             saksbehandler = saksbehandler,
-            forrigeBehandling = sisteMeldekortBehandling,
+            navkontor = navkontor,
+            kjedeId = kjedeId,
         )
 
         sessionFactory.withTransactionContext { tx ->
             meldekortBehandlingRepo.lagre(meldekortKorrigering, tx)
         }
 
-        logger.info { "Opprettet korrigering av meldekort ${meldekortKorrigering.id} for kjede ${sisteMeldekortBehandling.kjedeId} på sak $sakId" }
+        logger.info { "Opprettet korrigering av meldekort: ${meldekortKorrigering.id} for kjede $kjedeId på sak $sakId" }
 
         return meldekortKorrigering.right()
     }
@@ -61,6 +64,5 @@ class OpprettMeldekortKorrigeringService(
 
 sealed interface KanIkkeOppretteMeldekortKorrigering {
     data object IkkeTilgangTilSak : KanIkkeOppretteMeldekortKorrigering
-    data object IngenBehandlinger : KanIkkeOppretteMeldekortKorrigering
-    data object SisteBehandlingIkkeGodkjent : KanIkkeOppretteMeldekortKorrigering
+    data object HenteNavkontorFeilet : KanIkkeOppretteMeldekortKorrigering
 }
