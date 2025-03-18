@@ -34,26 +34,26 @@ class OpprettMeldekortKorrigeringService(
             return KanIkkeOppretteMeldekortKorrigering.IkkeTilgangTilSak.left()
         }
 
-        val meldekortBehandling = sak.hentSisteMeldekortBehandlingForKjede(kjedeId) ?: run {
+        val sisteMeldekortBehandling = sak.hentSisteMeldekortBehandlingForKjede(kjedeId) ?: run {
             logger.error { "Fant ingen meldekortbehandlinger (kjede $kjedeId på sak $sakId)" }
             return KanIkkeOppretteMeldekortKorrigering.IngenBehandlinger.left()
         }
 
-        if (meldekortBehandling.status != MeldekortBehandlingStatus.GODKJENT) {
-            logger.error { "Siste behandling i kjeden må være godkjent for å opprette en ny korrigering (kjede $kjedeId på sak $sakId)" }
+        if (sisteMeldekortBehandling.status != MeldekortBehandlingStatus.GODKJENT) {
+            logger.error { "Siste behandling i kjeden må være godkjent for å opprette en korrigering (kjede $kjedeId på sak $sakId)" }
             return KanIkkeOppretteMeldekortKorrigering.SisteBehandlingIkkeGodkjent.left()
         }
 
         val meldekortKorrigering = sak.opprettMeldekortKorrigering(
             saksbehandler = saksbehandler,
-            forrigeBehandling = meldekortBehandling,
+            forrigeBehandling = sisteMeldekortBehandling,
         )
 
         sessionFactory.withTransactionContext { tx ->
             meldekortBehandlingRepo.lagre(meldekortKorrigering, tx)
         }
 
-        logger.info { "Opprettet korrigering av meldekort ${meldekortKorrigering.id} for kjede ${meldekortBehandling.kjedeId} på sak $sakId" }
+        logger.info { "Opprettet korrigering av meldekort ${meldekortKorrigering.id} for kjede ${sisteMeldekortBehandling.kjedeId} på sak $sakId" }
 
         return meldekortKorrigering.right()
     }

@@ -366,6 +366,10 @@ fun Sak.opprettMeldekortKorrigering(
     saksbehandler: Saksbehandler,
     forrigeBehandling: MeldekortBehandling,
 ): MeldekortBehandling.MeldekortUnderBehandling {
+    require(this.meldekortBehandlinger.contains(forrigeBehandling)) {
+        "Forrige behandling ${forrigeBehandling.id} tilhører ikke denne saken"
+    }
+
     val meldekortId = MeldekortId.random()
     val meldeperiode = hentSisteMeldeperiodeForKjede(forrigeBehandling.kjedeId)
 
@@ -375,7 +379,7 @@ fun Sak.opprettMeldekortKorrigering(
         saksnummer = this.saksnummer,
         fnr = this.fnr,
         opprettet = nå(),
-        // TODO: bør navkontor hentes på nytt? Kan den være endret innenfor samme periode?
+        // TODO: bør navkontor hentes på nytt? Kan den være endret innenfor samme meldeperiode?
         navkontor = forrigeBehandling.navkontor,
         ikkeRettTilTiltakspengerTidspunkt = forrigeBehandling.ikkeRettTilTiltakspengerTidspunkt,
         // TODO: må kunne sette et annet bruker-meldekort når vi skal støtte korrigering fra bruker

@@ -28,7 +28,7 @@ fun Route.opprettMeldekortKorrigeringRoute(
     val logger = KotlinLogging.logger { }
 
     post(PATH) {
-        logger.debug { "Mottatt post-request på $PATH - oppretter korrigering av meldekort-behandling" }
+        logger.debug { "Mottatt post-request på $PATH - oppretter korrigering av meldekort" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withMeldeperiodeKjedeId { kjedeId ->
@@ -48,7 +48,7 @@ fun Route.opprettMeldekortKorrigeringRoute(
                                 )
 
                                 is KanIkkeOppretteMeldekortKorrigering.IngenBehandlinger -> call.respond400BadRequest(
-                                    melding = "Fant ingen meldekortbehandlinger på kjede $kjedeId for sak $sakId",
+                                    melding = "Fant ingen tidligere meldekortbehandling på kjede $kjedeId for sak $sakId",
                                     kode = "",
                                 )
 
