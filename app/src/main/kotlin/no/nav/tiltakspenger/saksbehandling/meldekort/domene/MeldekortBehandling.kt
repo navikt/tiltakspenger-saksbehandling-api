@@ -386,7 +386,7 @@ fun Sak.opprettMeldekortKorrigering(
         fnr = this.fnr,
         opprettet = nå(),
         navkontor = navkontor,
-        ikkeRettTilTiltakspengerTidspunkt = forrigeBehandling.ikkeRettTilTiltakspengerTidspunkt,
+        ikkeRettTilTiltakspengerTidspunkt = null,
         // TODO: må kunne sette et annet bruker-meldekort når vi skal støtte korrigering fra bruker
         brukersMeldekort = forrigeBehandling.brukersMeldekort,
         meldeperiode = meldeperiode,
