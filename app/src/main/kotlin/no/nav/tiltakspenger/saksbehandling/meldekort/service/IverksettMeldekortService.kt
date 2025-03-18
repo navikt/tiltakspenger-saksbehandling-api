@@ -83,7 +83,7 @@ class IverksettMeldekortService(
         )
         val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()
 
-        //TODO - Denne finnes ikke i vår implementasjon. Denne ble merget fra en annen branch
+        // TODO - Denne finnes ikke i vår implementasjon. Denne ble merget fra en annen branch
 //        val nesteMeldeperiode = sak.opprettNesteMeldeperiode()?.let {
 //            if (meldekort.periode.tilOgMed.plusDays(1) != it.periode.fraOgMed) {
 //                log.info { "Neste meldeperiode (${it.periode}) er ikke sammenhengende med det vedtatte meldekortet sin meldeperiode (${meldekort.periode}). Oppretter ikke ny meldeperiode. behandlingId: ${meldekort.id}, sakId: ${meldekort.sakId}" }

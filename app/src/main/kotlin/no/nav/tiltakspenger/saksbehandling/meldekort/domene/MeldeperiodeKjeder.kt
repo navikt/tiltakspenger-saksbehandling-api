@@ -144,7 +144,8 @@ data class MeldeperiodeKjeder(
         val potensielleNyeMeldeperioder = mutableListOf<Meldeperiode>()
 
         // før eller samme dag
-        while (!nærmesteMeldeperiode.etter(vedtaksperioder.last().tilOgMed) && !ikkeGenererEtter.isBefore(
+        while (!nærmesteMeldeperiode.etter(vedtaksperioder.last().tilOgMed) &&
+            !ikkeGenererEtter.isBefore(
                 nærmesteMeldeperiode.tilOgMed,
             )
         ) {
