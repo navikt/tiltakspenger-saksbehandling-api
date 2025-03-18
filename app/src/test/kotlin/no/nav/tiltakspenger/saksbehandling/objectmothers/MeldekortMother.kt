@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
@@ -60,6 +61,7 @@ interface MeldekortMother {
         status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT,
         navkontor: Navkontor = ObjectMother.navkontor(),
         opprettet: LocalDateTime = nå(),
+        type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
     ): MeldekortBehandling.MeldekortUnderBehandling {
         val meldeperiode = meldeperiode(
             periode = periode,
@@ -82,6 +84,7 @@ interface MeldekortMother {
             meldeperiode = meldeperiode,
             brukersMeldekort = null,
             saksbehandler = saksbehandler,
+            type = type,
         )
     }
 
@@ -118,6 +121,8 @@ interface MeldekortMother {
         navkontor: Navkontor = ObjectMother.navkontor(),
         antallDagerForMeldeperiode: Int = 14,
         sendtTilBeslutning: LocalDateTime = nå(),
+        erFørsteBehandlingForPerioden: Boolean = true,
+        type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
     ): MeldekortBehandling.MeldekortBehandlet {
         return MeldekortBehandling.MeldekortBehandlet(
             id = id,
@@ -135,6 +140,7 @@ interface MeldekortMother {
             ikkeRettTilTiltakspengerTidspunkt = null,
             meldeperiode = meldeperiode,
             brukersMeldekort = null,
+            type = type,
         )
     }
 
@@ -337,6 +343,7 @@ interface MeldekortMother {
                     meldeperiode = meldeperiode,
                     brukersMeldekort = null,
                     saksbehandler = kommando.saksbehandler.navIdent,
+                    type = MeldekortBehandlingType.FØRSTE_BEHANDLING,
                 ),
             ),
         )
@@ -387,6 +394,7 @@ interface MeldekortMother {
                 meldeperiode = meldeperiode,
                 brukersMeldekort = null,
                 saksbehandler = kommando.saksbehandler.navIdent,
+                type = MeldekortBehandlingType.FØRSTE_BEHANDLING,
             ),
         ).sendTilBeslutter(kommando, barnetilleggsPerioder, tiltakstypePerioder).getOrFail().first
     }

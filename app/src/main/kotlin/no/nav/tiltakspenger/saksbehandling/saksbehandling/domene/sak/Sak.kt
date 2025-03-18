@@ -71,27 +71,28 @@ data class Sak(
         return vedtaksliste.antallBarnForDag(dag)
     }
 
-    fun hentMeldekortBehandlingForMeldekortBehandlingId(meldekortId: MeldekortId): MeldekortBehandling? {
-        return meldekortBehandlinger.hentMeldekortBehandlingForMeldekortBehandlingId(meldekortId)
+    fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
+        return meldekortBehandlinger.hentMeldekortBehandling(meldekortId)
     }
 
     /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
     @Suppress("unused")
-    fun hentMeldekortBehandlingForMeldeperiodeId(meldeperiodeId: MeldeperiodeId): List<MeldekortBehandling> {
-        return meldekortBehandlinger.hentMeldekortBehandlingForMeldeperiodeId(meldeperiodeId)
-    }
+    fun hentMeldekortBehandlingerForMeldeperiode(meldeperiodeId: MeldeperiodeId) =
+        meldekortBehandlinger.hentMeldekortBehandlingerForMeldeperiode(meldeperiodeId)
 
     /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
-    fun hentMeldekortBehandlingForMeldeperiodeKjedeId(id: MeldeperiodeKjedeId): List<MeldekortBehandling> {
-        return meldekortBehandlinger.hentMeldekortBehandlingForMeldeperiodeKjedeId(id)
-    }
+    fun hentMeldekortBehandlingerForKjede(id: MeldeperiodeKjedeId) =
+        meldekortBehandlinger.hentMeldekortBehandlingerForKjede(id)
+
+    fun hentSisteMeldekortBehandlingForKjede(id: MeldeperiodeKjedeId) =
+        meldekortBehandlinger.hentSisteMeldekortBehandlingForKjede(id)
 
     fun hentMeldeperiode(id: MeldeperiodeId): Meldeperiode? {
         return meldeperiodeKjeder.hentMeldeperiode(id)
     }
 
-    fun hentMeldeperiodeForKjedeId(kjedeId: MeldeperiodeKjedeId): Meldeperiode {
-        return meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
+    fun hentSisteMeldeperiodeForKjede(kjedeId: MeldeperiodeKjedeId): Meldeperiode {
+        return meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(kjedeId)
     }
 
     fun hentMeldekortUnderBehandling(): MeldekortBehandling? = meldekortBehandlinger.meldekortUnderBehandling

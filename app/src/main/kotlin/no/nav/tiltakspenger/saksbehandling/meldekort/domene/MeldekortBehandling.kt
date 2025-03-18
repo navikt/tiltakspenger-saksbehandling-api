@@ -32,6 +32,7 @@ sealed interface MeldekortBehandling {
     val opprettet: LocalDateTime
     val beregning: MeldeperiodeBeregning
     val meldeperiode: Meldeperiode
+    val type: MeldekortBehandlingType
 
     /** Vil kunne være null dersom vi ikke har mottatt et meldekort via vår digitale flate. Bør på sikt kunne være en liste? */
     val brukersMeldekort: BrukersMeldekort?
@@ -125,6 +126,7 @@ sealed interface MeldekortBehandling {
         override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
         override val brukersMeldekort: BrukersMeldekort?,
         override val meldeperiode: Meldeperiode,
+        override val type: MeldekortBehandlingType,
     ) : MeldekortBehandling {
 
         init {
@@ -204,6 +206,7 @@ sealed interface MeldekortBehandling {
                 ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                 brukersMeldekort = brukersMeldekort,
                 meldeperiode = meldeperiode,
+                type = type,
             )
         }
 
@@ -229,6 +232,7 @@ sealed interface MeldekortBehandling {
         override val brukersMeldekort: BrukersMeldekort?,
         override val meldeperiode: Meldeperiode,
         override val saksbehandler: String,
+        override val type: MeldekortBehandlingType,
     ) : MeldekortBehandling {
         override val iverksattTidspunkt = null
         override val sendtTilBeslutning = null
@@ -273,6 +277,7 @@ sealed interface MeldekortBehandling {
                 ikkeRettTilTiltakspengerTidspunkt = null,
                 brukersMeldekort = brukersMeldekort,
                 meldeperiode = meldeperiode,
+                type = type,
             ).right()
         }
 
@@ -346,11 +351,53 @@ fun Sak.opprettMeldekortBehandling(
         brukersMeldekort = brukersMeldekort,
         meldeperiode = meldeperiode,
         saksbehandler = saksbehandler.navIdent,
+        type = MeldekortBehandlingType.FØRSTE_BEHANDLING,
         beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
             meldeperiode = meldeperiode,
             meldekortId = meldekortId,
             sakId = this.id,
             maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
+            tiltakstypePerioder = this.vedtaksliste.tiltakstypeperioder,
+        ),
+    )
+}
+
+fun Sak.opprettMeldekortKorrigering(
+    saksbehandler: Saksbehandler,
+    kjedeId: MeldeperiodeKjedeId,
+    navkontor: Navkontor,
+): MeldekortBehandling.MeldekortUnderBehandling {
+    val forrigeBehandling = hentSisteMeldekortBehandlingForKjede(kjedeId)
+
+    requireNotNull(forrigeBehandling) {
+        "Må ha en tidligere meldekortbehandling for å opprette korrigering (kjede $kjedeId på sak ${this.id})"
+    }
+    require(forrigeBehandling.status == GODKJENT) {
+        "Siste meldekortbehandling i kjeden må være godkjent for å opprette en korrigering (kjede $kjedeId på sak ${this.id})"
+    }
+
+    val meldekortId = MeldekortId.random()
+    val meldeperiode = hentSisteMeldeperiodeForKjede(kjedeId)
+    val brukersMeldekort = this.brukersMeldekort.find { it.kjedeId == kjedeId }
+
+    return MeldekortBehandling.MeldekortUnderBehandling(
+        id = meldekortId,
+        sakId = this.id,
+        saksnummer = this.saksnummer,
+        fnr = this.fnr,
+        opprettet = nå(),
+        navkontor = navkontor,
+        ikkeRettTilTiltakspengerTidspunkt = null,
+        brukersMeldekort = brukersMeldekort,
+        meldeperiode = meldeperiode,
+        saksbehandler = saksbehandler.navIdent,
+        type = MeldekortBehandlingType.KORRIGERING,
+        // TODO: forhåndsutfylle denne fra forrige meldekortbehandling
+        beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
+            meldeperiode = meldeperiode,
+            meldekortId = meldekortId,
+            sakId = this.id,
+            maksDagerMedTiltakspengerForPeriode = meldeperiode.antallDagerForPeriode,
             tiltakstypePerioder = this.vedtaksliste.tiltakstypeperioder,
         ),
     )

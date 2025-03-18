@@ -49,7 +49,7 @@ data class MeldeperiodeKjeder(
         return meldeperiodeKjeder.asSequence().flatten().find { it.id == id }
     }
 
-    fun hentSisteMeldeperiodeForKjedeId(kjedeId: MeldeperiodeKjedeId): Meldeperiode {
+    fun hentSisteMeldeperiodeForKjede(kjedeId: MeldeperiodeKjedeId): Meldeperiode {
         return meldeperiodeKjeder.single { it.kjedeId == kjedeId }.last()
     }
 

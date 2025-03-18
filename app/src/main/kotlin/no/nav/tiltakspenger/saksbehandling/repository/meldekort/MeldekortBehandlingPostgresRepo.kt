@@ -48,7 +48,8 @@ class MeldekortBehandlingPostgresRepo(
                         navkontor,
                         iverksatt_tidspunkt,
                         sendt_til_beslutning,
-                        navkontor_navn
+                        navkontor_navn,
+                        type
                     ) values (
                         :id,
                         :meldeperiode_kjede_id,
@@ -64,7 +65,8 @@ class MeldekortBehandlingPostgresRepo(
                         :navkontor,
                         :iverksatt_tidspunkt,
                         :sendt_til_beslutning,
-                        :navkontor_navn
+                        :navkontor_navn,
+                        :type
                     )
                     """,
                     "id" to meldekortBehandling.id.toString(),
@@ -82,6 +84,7 @@ class MeldekortBehandlingPostgresRepo(
                     "iverksatt_tidspunkt" to meldekortBehandling.iverksattTidspunkt,
                     "sendt_til_beslutning" to meldekortBehandling.sendtTilBeslutning,
                     "navkontor_navn" to meldekortBehandling.navkontor.kontornavn,
+                    "type" to meldekortBehandling.type.tilDb(),
                 ).asUpdate,
             )
         }
@@ -183,6 +186,7 @@ class MeldekortBehandlingPostgresRepo(
             val fnr = Fnr.fromString(row.string("fnr"))
             val maksDagerMedTiltakspengerForPeriode = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
             val opprettet = row.localDateTime("opprettet")
+            val type = row.string("type").tilMeldekortBehandlingType()
 
             val meldeperiodeId = MeldeperiodeId.fromString(row.string("meldeperiode_id"))
             val meldeperiode = MeldeperiodePostgresRepo.hentForMeldeperiodeId(meldeperiodeId, session)
@@ -222,6 +226,7 @@ class MeldekortBehandlingPostgresRepo(
                         ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt"),
                         brukersMeldekort = brukersMeldekort,
                         meldeperiode = meldeperiode,
+                        type = type,
                     )
                 }
                 // TODO jah: Her blander vi sammen behandlingsstatus og om man har rett/ikke-rett. Det er mulig at man har startet en meldekortbehandling også endres statusen til IKKE_RETT_TIL_TILTAKSPENGER. Da vil behandlingen sånn som koden er nå implisitt avsluttes. Det kan hende vi bør endre dette når vi skiller grunnlag, innsending og behandling.
@@ -243,6 +248,7 @@ class MeldekortBehandlingPostgresRepo(
                         brukersMeldekort = brukersMeldekort,
                         meldeperiode = meldeperiode,
                         saksbehandler = saksbehandler,
+                        type = type,
                     )
                 }
             }
