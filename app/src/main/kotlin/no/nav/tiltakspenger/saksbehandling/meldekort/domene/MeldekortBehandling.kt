@@ -377,7 +377,7 @@ fun Sak.opprettMeldekortKorrigering(
     }
 
     val meldekortId = MeldekortId.random()
-    val meldeperiode = hentSisteMeldeperiodeForKjede(forrigeBehandling.kjedeId)
+    val meldeperiode = hentSisteMeldeperiodeForKjede(kjedeId)
     val brukersMeldekort = this.brukersMeldekort.find { it.kjedeId == kjedeId }
 
     return MeldekortBehandling.MeldekortUnderBehandling(
