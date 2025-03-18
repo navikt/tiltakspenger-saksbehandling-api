@@ -46,11 +46,15 @@ class OpprettMeldekortKorrigeringService(
             return KanIkkeOppretteMeldekortKorrigering.HenteNavkontorFeilet.left()
         }
 
-        val meldekortKorrigering = sak.opprettMeldekortKorrigering(
-            saksbehandler = saksbehandler,
-            navkontor = navkontor,
-            kjedeId = kjedeId,
-        )
+        val meldekortKorrigering = Either.catch {
+            sak.opprettMeldekortKorrigering(
+                saksbehandler = saksbehandler,
+                navkontor = navkontor,
+                kjedeId = kjedeId,
+            )
+        }.getOrElse {
+            return KanIkkeOppretteMeldekortKorrigering.KanIkkeKorrigerePåKjede.left()
+        }
 
         sessionFactory.withTransactionContext { tx ->
             meldekortBehandlingRepo.lagre(meldekortKorrigering, tx)
@@ -65,4 +69,5 @@ class OpprettMeldekortKorrigeringService(
 sealed interface KanIkkeOppretteMeldekortKorrigering {
     data object IkkeTilgangTilSak : KanIkkeOppretteMeldekortKorrigering
     data object HenteNavkontorFeilet : KanIkkeOppretteMeldekortKorrigering
+    data object KanIkkeKorrigerePåKjede : KanIkkeOppretteMeldekortKorrigering
 }

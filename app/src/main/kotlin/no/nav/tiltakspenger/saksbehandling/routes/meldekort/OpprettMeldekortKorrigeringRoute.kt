@@ -7,6 +7,7 @@ import io.ktor.server.routing.post
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
+import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -46,8 +47,14 @@ fun Route.opprettMeldekortKorrigeringRoute(
                                     melding = "Du har ikke tilgang til sak $sakId",
                                     kode = "",
                                 )
+
                                 is KanIkkeOppretteMeldekortKorrigering.HenteNavkontorFeilet -> call.respond500InternalServerError(
                                     melding = "Kunne ikke hente Nav-kontor for brukeren",
+                                    kode = "",
+                                )
+
+                                is KanIkkeOppretteMeldekortKorrigering.KanIkkeKorrigerePåKjede -> call.respond400BadRequest(
+                                    melding = "Meldeperiodekjeden er ikke i en tilstand som tillater ny korrigering",
                                     kode = "",
                                 )
                             }
