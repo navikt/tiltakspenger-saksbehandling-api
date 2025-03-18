@@ -453,7 +453,7 @@ data class Behandling(
                 }
                 if (behandlingstype == FØRSTEGANGSBEHANDLING) {
                     require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
-                    require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
+                    require(valgteTiltaksdeltakelser.periodisering.totalePeriode.inneholderHele(virkningsperiode)) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må inneholde virkningsperioden ($virkningsperiode)" }
                 }
             }
 
@@ -469,7 +469,7 @@ data class Behandling(
                 }
                 if (behandlingstype == FØRSTEGANGSBEHANDLING) {
                     require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
-                    require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
+                    require(valgteTiltaksdeltakelser.periodisering.totalePeriode.inneholderHele(virkningsperiode)) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må inneholde virkningsperioden ($virkningsperiode)" }
                 }
             }
 
@@ -486,7 +486,7 @@ data class Behandling(
                 }
                 if (behandlingstype == FØRSTEGANGSBEHANDLING) {
                     require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
-                    require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
+                    require(valgteTiltaksdeltakelser.periodisering.totalePeriode.inneholderHele(virkningsperiode)) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må inneholde virkningsperioden ($virkningsperiode)" }
                 }
             }
 

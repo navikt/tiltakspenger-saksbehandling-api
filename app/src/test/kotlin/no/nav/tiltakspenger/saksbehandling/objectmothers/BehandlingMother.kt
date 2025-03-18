@@ -69,7 +69,7 @@ interface BehandlingMother {
         søknad: Søknad = ObjectMother.nySøknad(),
         saksbehandlerIdent: String = ObjectMother.saksbehandler().navIdent,
         sendtTilBeslutning: LocalDateTime? = null,
-        beslutterIdent: String = ObjectMother.beslutter().navIdent,
+        beslutterIdent: String? = null,
         saksopplysninger: Saksopplysninger = saksopplysninger(),
         status: Behandlingsstatus = Behandlingsstatus.UNDER_BEHANDLING,
         attesteringer: List<Attestering> = emptyList(),
