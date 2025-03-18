@@ -15,10 +15,11 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeIverksetteMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettNesteMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
@@ -61,32 +62,43 @@ class IverksettMeldekortService(
             throw IllegalStateException("Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: $sakId, meldekortId: $meldekortId")
         }
 
-        val nesteMeldeperiode: Meldeperiode? = sak.opprettNesteMeldeperiode()?.let {
-            if (meldekortBehandling.periode.tilOgMed.plusDays(1) != it.periode.fraOgMed) {
-                log.info { "Neste meldeperiode (${it.periode}) er ikke sammenhengende med det vedtatte meldekortet sin meldeperiode (${meldekortBehandling.periode}). Oppretter ikke ny meldeperiode. behandlingId: ${meldekortBehandling.id}, sakId: ${meldekortBehandling.sakId}, saksnummer: ${meldekortBehandling.saksnummer}" }
+        return meldekortBehandling.iverksettMeldekort(kommando.beslutter).onRight {
+            when (it.type) {
+                MeldekortBehandlingType.FØRSTE_BEHANDLING -> persisterFørsteBehandling(it, sak)
+                MeldekortBehandlingType.KORRIGERING -> persisterKorrigering(it, sak)
+            }
+        }
+    }
+
+    private fun persisterFørsteBehandling(meldekort: MeldekortBehandling.MeldekortBehandlet, sak: Sak) {
+        val eksisterendeUtbetalingsvedtak = sak.utbetalinger
+        val utbetalingsvedtak = meldekort.opprettUtbetalingsvedtak(
+            saksnummer = sak.saksnummer,
+            fnr = sak.fnr,
+            eksisterendeUtbetalingsvedtak.lastOrNull()?.id,
+        )
+        val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()
+
+        val nesteMeldeperiode = sak.opprettNesteMeldeperiode()?.let {
+            if (meldekort.periode.tilOgMed.plusDays(1) != it.periode.fraOgMed) {
+                log.info { "Neste meldeperiode (${it.periode}) er ikke sammenhengende med det vedtatte meldekortet sin meldeperiode (${meldekort.periode}). Oppretter ikke ny meldeperiode. behandlingId: ${meldekort.id}, sakId: ${meldekort.sakId}" }
                 null
             } else {
                 it
             }
         }
 
-        return meldekortBehandling.iverksettMeldekort(kommando.beslutter).onRight { iverksattMeldekort ->
-            val eksisterendeUtbetalingsvedtak = sak.utbetalinger
-            val utbetalingsvedtak = iverksattMeldekort.opprettUtbetalingsvedtak(
-                saksnummer = sak.saksnummer,
-                fnr = sak.fnr,
-                eksisterendeUtbetalingsvedtak.lastOrNull()?.id,
-            )
-            val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()
-
-            sessionFactory.withTransactionContext { tx ->
-                meldekortBehandlingRepo.oppdater(iverksattMeldekort, tx)
-                // TODO John og Anders: På et tidspunkt bør vi kanskje flytte generering av meldeperioder ut i en jobb?
-                nesteMeldeperiode?.also { meldeperiodeRepo.lagre(it, tx) }
-                utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
-                statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
-            }
+        sessionFactory.withTransactionContext { tx ->
+            meldekortBehandlingRepo.oppdater(meldekort, tx)
+            // TODO John og Anders: På et tidspunkt bør vi kanskje flytte generering av meldeperioder ut i en jobb?
+            nesteMeldeperiode?.also { meldeperiodeRepo.lagre(it, tx) }
+            utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
+            statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
         }
+    }
+
+    private fun persisterKorrigering(meldekort: MeldekortBehandling.MeldekortBehandlet, sak: Sak) {
+        TODO("Har ikke implementert iverksetting av korrigering ennå!")
     }
 
     private suspend fun kastHvisIkkeTilgangTilPerson(
