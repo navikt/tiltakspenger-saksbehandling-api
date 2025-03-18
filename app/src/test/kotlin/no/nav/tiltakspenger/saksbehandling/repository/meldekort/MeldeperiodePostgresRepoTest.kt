@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.januar
 import no.nav.tiltakspenger.saksbehandling.felles.mars
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjede
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettFørsteMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettNesteMeldeperiode
 import org.junit.jupiter.api.Test
 
 class MeldeperiodePostgresRepoTest {
@@ -19,12 +19,17 @@ class MeldeperiodePostgresRepoTest {
                 deltakelseFom = 1.januar(2024),
                 deltakelseTom = 31.mars(2024),
             )
-            val meldeperiode = sak.opprettFørsteMeldeperiode()
-            val meldeperiodeRepo = testDataHelper.meldeperiodeRepo
-            meldeperiodeRepo.lagre(meldeperiode)
 
-            meldeperiodeRepo.hentForSakId(meldeperiode.sakId) shouldBe MeldeperiodeKjeder(
-                listOf(MeldeperiodeKjede(nonEmptyListOf(meldeperiode))),
+            val førsteMeldeperiode = sak.meldeperiodeKjeder.hentSisteMeldeperiode()
+            val meldeperiodeRepo = testDataHelper.meldeperiodeRepo
+            val nesteMeldeperiode = sak.opprettNesteMeldeperiode()!!
+            meldeperiodeRepo.lagre(nesteMeldeperiode)
+
+            meldeperiodeRepo.hentForSakId(førsteMeldeperiode.sakId) shouldBe MeldeperiodeKjeder(
+                listOf(
+                    MeldeperiodeKjede(nonEmptyListOf(førsteMeldeperiode)),
+                    MeldeperiodeKjede(nonEmptyListOf(nesteMeldeperiode)),
+                ),
             )
         }
     }

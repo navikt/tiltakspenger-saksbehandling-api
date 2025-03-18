@@ -7,8 +7,8 @@ import io.ktor.server.routing.post
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
+import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
-import no.nav.tiltakspenger.libs.ktor.common.respond409Conflict
 import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
@@ -48,13 +48,13 @@ fun Route.opprettMeldekortBehandlingRoute(
                                     kode = "",
                                 )
 
-                                is KanIkkeOppretteMeldekortBehandling.BehandlingFinnes -> call.respond409Conflict(
-                                    melding = "Behandling finnes allerede for meldeperiode $kjedeId på sak $sakId",
+                                is KanIkkeOppretteMeldekortBehandling.HenteNavkontorFeilet -> call.respond500InternalServerError(
+                                    melding = "Kunne ikke hente Nav-kontor for brukeren",
                                     kode = "",
                                 )
 
-                                is KanIkkeOppretteMeldekortBehandling.HenteNavkontorFeilet -> call.respond500InternalServerError(
-                                    melding = "Kunne ikke hente Nav-kontor for brukeren",
+                                is KanIkkeOppretteMeldekortBehandling.KanIkkeOpprettePåKjede -> call.respond400BadRequest(
+                                    melding = "Meldeperiodekjeden er ikke i en tilstand som tillater å opprette en behandling",
                                     kode = "",
                                 )
                             }

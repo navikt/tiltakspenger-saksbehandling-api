@@ -45,6 +45,7 @@ class IverksettMeldekortService(
         if (!kommando.beslutter.erBeslutter()) {
             return KanIkkeIverksetteMeldekort.MåVæreBeslutter(kommando.beslutter.roller).left()
         }
+
         val meldekortId = kommando.meldekortId
         val sakId = kommando.sakId
         kastHvisIkkeTilgangTilPerson(kommando.beslutter, meldekortId, kommando.correlationId)
@@ -53,13 +54,17 @@ class IverksettMeldekortService(
             .getOrElse { return KanIkkeIverksetteMeldekort.KunneIkkeHenteSak(it).left() }
         val meldekortBehandling: MeldekortBehandling = sak.hentMeldekortBehandling(meldekortId)
             ?: throw IllegalArgumentException("Fant ikke meldekort med id $meldekortId i sak $sakId")
-        meldekortBehandling as MeldekortBehandling.MeldekortBehandlet
+
+        require(meldekortBehandling is MeldekortBehandling.MeldekortBehandlet) {
+            "Meldekortet må være behandlet for å iverksettes"
+        }
         require(meldekortBehandling.beslutter == null && meldekortBehandling.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING) {
             "Meldekort $meldekortId er allerede iverksatt"
         }
+
         val meldeperiode = meldekortBehandling.meldeperiode
-        if (!sak.erSisteVersjonAvMeldeperiode(meldeperiode)) {
-            throw IllegalStateException("Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: $sakId, meldekortId: $meldekortId")
+        check(sak.erSisteVersjonAvMeldeperiode(meldeperiode)) {
+            "Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: $sakId, meldekortId: $meldekortId"
         }
 
         return meldekortBehandling.iverksettMeldekort(kommando.beslutter).onRight {
