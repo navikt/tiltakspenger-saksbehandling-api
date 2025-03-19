@@ -60,8 +60,8 @@ fun Route.avbrytSøknadOgBehandling(
     }
 }
 
-fun KunneIkkeAvbryteSøknadOgBehandling.toStatusAndMessage(): Pair<HttpStatusCode, String> {
-    TODO()
+fun KunneIkkeAvbryteSøknadOgBehandling.toStatusAndMessage(): Pair<HttpStatusCode, String> = when (this) {
+    KunneIkkeAvbryteSøknadOgBehandling.Feil -> HttpStatusCode.InternalServerError to "Ukjent feil ved avbrytelse av søknad (og behandling)"
 }
 
 data class AvsluttSøknadOgBehandlingBody(
