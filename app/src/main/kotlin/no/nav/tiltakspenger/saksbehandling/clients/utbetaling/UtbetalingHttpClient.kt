@@ -109,7 +109,7 @@ class UtbetalingHttpClient(
                 val token = getToken()
                 val request = HttpRequest
                     .newBuilder()
-                    .uri(URI.create("""$baseUrl/api/iverksetting/${saksnummer.verdi}/$vedtakId/status"""))
+                    .uri(URI.create("""$baseUrl/api/iverksetting/${saksnummer.verdi}/${vedtakId.uuidPart()}/status"""))
                     .timeout(timeout.toJavaDuration())
                     .header("Authorization", "Bearer $token")
                     .header("Accept", "application/json")
