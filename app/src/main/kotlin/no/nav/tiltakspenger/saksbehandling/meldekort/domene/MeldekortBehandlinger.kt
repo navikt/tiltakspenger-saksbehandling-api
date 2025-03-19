@@ -41,14 +41,21 @@ data class MeldekortBehandlinger(
         barnetilleggsPerioder: Periodisering<AntallBarn>,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
     ): Either<KanIkkeSendeMeldekortTilBeslutning, Pair<MeldekortBehandlinger, MeldekortBehandlet>> {
-        val meldekortUnderBehandling = this.meldekortUnderBehandling!!
+        val meldekortId = kommando.meldekortId
 
-        require(meldekortUnderBehandling.id == kommando.meldekortId) {
-            "MeldekortId i kommando (${kommando.meldekortId}) samsvarer ikke med siste meldekortperiode (${meldekortUnderBehandling.id})"
+        val meldekortUnderBehandling = hentMeldekortBehandling(meldekortId)
+
+        requireNotNull(meldekortUnderBehandling) {
+            "Fant ikke innsendt meldekort $meldekortId på saken"
         }
+        require(meldekortUnderBehandling is MeldekortUnderBehandling) {
+            "Innsendt meldekort $meldekortId er ikke under behandling"
+        }
+
         if (kommando.periode != meldekortUnderBehandling.periode) {
             return InnsendteDagerMåMatcheMeldeperiode.left()
         }
+
         kommando.dager.dager.zip(meldekortUnderBehandling.beregning.dager).forEach { (dagA, dagB) ->
             if (dagA.status == Status.SPERRET && dagB !is MeldeperiodeBeregningDag.Utfylt.Sperret) {
                 log.error { "Kan ikke endre dag til sperret. Nåværende tilstand: $utfylteDager. Innsendte dager: ${kommando.dager}" }
@@ -121,6 +128,11 @@ data class MeldekortBehandlinger(
 
     private val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
 
+    /** Under behandling er ikke-avsluttede meldekortbehandlinger som ikke er til beslutning. */
+    val meldekortUnderBehandling: List<MeldekortUnderBehandling> by lazy {
+        verdi.filterIsInstance<MeldekortUnderBehandling>()
+    }
+
     val godkjenteMeldekort: List<MeldekortBehandlet> by lazy { behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
 
     val sisteGodkjenteMeldekort: MeldekortBehandlet? by lazy { godkjenteMeldekort.lastOrNull() }
@@ -135,11 +147,6 @@ data class MeldekortBehandlinger(
 
     /** Vil kun returnere hele meldekortperioder som er utfylt. Dersom siste meldekortperiode er delvis utfylt, vil ikke disse komme med. */
     val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy { behandledeMeldekort.flatMap { it.beregning.dager } }
-
-    /** Under behandling er ikke-avsluttede meldekortbehandlinger som ikke er til beslutning. */
-    val meldekortUnderBehandling: MeldekortUnderBehandling? by lazy {
-        verdi.filterIsInstance<MeldekortUnderBehandling>().singleOrNullOrThrow()
-    }
 
     val sakId: SakId by lazy { verdi.first().sakId }
 

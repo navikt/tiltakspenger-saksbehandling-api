@@ -67,10 +67,6 @@ data class Sak(
 
     val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy { vedtaksliste.tiltakstypeperioder }
 
-    fun antallBarnForDag(dag: LocalDate): AntallBarn {
-        return vedtaksliste.antallBarnForDag(dag)
-    }
-
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
         return meldekortBehandlinger.hentMeldekortBehandling(meldekortId)
     }
@@ -95,11 +91,8 @@ data class Sak(
         return meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(kjedeId)
     }
 
-    fun hentMeldekortUnderBehandling(): MeldekortBehandling? = meldekortBehandlinger.meldekortUnderBehandling
-
     /** Den er kun trygg inntil vi revurderer antall dager. */
     fun hentAntallDager(): Int? = vedtaksliste.førstegangsvedtak?.behandling?.maksDagerMedTiltakspengerForPeriode
-    fun hentTynnSak(): TynnSak = TynnSak(this.id, this.fnr, this.saksnummer)
 
     fun hentBehandling(behandlingId: BehandlingId): Behandling? = behandlinger.hentBehandling(behandlingId)
 

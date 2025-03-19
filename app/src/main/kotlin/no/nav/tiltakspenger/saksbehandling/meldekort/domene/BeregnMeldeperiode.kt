@@ -52,24 +52,27 @@ private data class MeldekortBeregning(
         barnetilleggsPerioder: Periodisering<AntallBarn>,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
     ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
+        val meldekortId = kommando.meldekortId
+
         require(eksisterendeMeldekortPåSaken.sakId == kommando.sakId) {
             "SakId på eksisterende meldekortperiode ${eksisterendeMeldekortPåSaken.sakId} er ikke likt sakId på kommando ${kommando.sakId}"
         }
-        val meldekortSomSkalUtfylles: MeldekortBehandling.MeldekortUnderBehandling =
-            eksisterendeMeldekortPåSaken.meldekortUnderBehandling?.also {
-                require(it.id == kommando.meldekortId) {
-                    "Innsendt meldekort ${kommando.meldekortId} er ikke likt meldekortSomSkalUtfylles ${it.id}"
-                }
-            } ?: throw IllegalStateException("Fant ingen meldekort som skal utfylles.")
 
-        require(meldekortSomSkalUtfylles.id == kommando.meldekortId) {
-            "Innsendt meldekort ${kommando.meldekortId} er ikke likt meldekortSomSkalUtfylles ${meldekortSomSkalUtfylles.id}"
+        val meldekortSomSkalUtfylles = eksisterendeMeldekortPåSaken.hentMeldekortBehandling(meldekortId)
+
+        requireNotNull(meldekortSomSkalUtfylles) {
+            "Fant ikke innsendt meldekort $meldekortId på saken"
+        }
+        require(meldekortSomSkalUtfylles is MeldekortBehandling.MeldekortUnderBehandling) {
+            "Innsendt meldekort $meldekortId er ikke under behandling"
         }
 
-        val meldekortId = kommando.meldekortId
         eksisterendeMeldekortPåSaken.utfylteDager.map { meldekortdag ->
             // Vi ønsker ikke endre tidligere utfylte dager.
-            val tiltakstype: TiltakstypeSomGirRett by lazy { meldekortdag.tiltakstype ?: throw IllegalStateException("Tidligere meldekortdag.tiltakstype var null for meldekortdag $meldekortdag") }
+            val tiltakstype: TiltakstypeSomGirRett by lazy {
+                meldekortdag.tiltakstype
+                    ?: throw IllegalStateException("Tidligere meldekortdag.tiltakstype var null for meldekortdag $meldekortdag")
+            }
 
             val dag = meldekortdag.dato
             val antallBarn: AntallBarn = barnetilleggsPerioder.hentVerdiForDag(dag) ?: AntallBarn.ZERO

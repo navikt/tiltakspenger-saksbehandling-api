@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.SaksnummerGenerator
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.TynnSak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SakRepo
 import org.intellij.lang.annotations.Language
@@ -219,15 +218,6 @@ internal class SakPostgresRepo(
                     soknader = soknader,
                 )
             }
-        }
-
-        private fun Row.toSakDetaljer(): TynnSak {
-            val id = SakId.fromString(string("id"))
-            return TynnSak(
-                id = id,
-                fnr = Fnr.fromString(string("fnr")),
-                saksnummer = Saksnummer(verdi = string("saksnummer")),
-            )
         }
 
         private fun Row.toFnr(): Fnr {
