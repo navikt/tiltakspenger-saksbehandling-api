@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
+import java.time.LocalDate
 
 interface SakRepo {
     fun hentForFnr(fnr: Fnr): Saker
@@ -34,4 +35,15 @@ interface SakRepo {
     ): Fnr?
 
     fun hentForSøknadId(søknadId: SøknadId): Sak?
+
+    /**
+     * @param sisteDagSomGirRett er ikke masterdata - bruk vedtak & tidslinje på sak for å finne sisteDagSomGirRett.
+     *
+     * Ment for å optimalisere db-spørringer (generering av meldeperioder)
+     */
+    fun oppdaterSisteDagSomGirRett(
+        sakId: SakId,
+        sisteDagSomGirRett: LocalDate?,
+        sessionContext: SessionContext? = null,
+    )
 }

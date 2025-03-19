@@ -5,12 +5,19 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 interface MeldeperiodeRepo {
 
     fun lagre(
         meldeperiode: Meldeperiode,
+        sessionContext: SessionContext? = null,
+    )
+
+    fun lagre(
+        meldeperioder: List<Meldeperiode>,
         sessionContext: SessionContext? = null,
     )
 
@@ -27,4 +34,6 @@ interface MeldeperiodeRepo {
         meldeperiodeId: MeldeperiodeId,
         sessionContext: SessionContext? = null,
     ): Meldeperiode?
+
+    fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate): List<Sak>
 }

@@ -152,17 +152,23 @@ data class Sak(
     }
 
     fun genererMeldeperioder(): Pair<Sak, List<Meldeperiode>> {
-        val dag = LocalDate.now()
-        val ukedag = dag.dayOfWeek.value
-        val ikkeGenererEtter = if (ukedag > 4) {
-            dag.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
-        } else {
-            dag.with(
-                TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY),
-            )
-        }
+        val ikkeGenererEtter = ikkeGenererEtter()
         return this.meldeperiodeKjeder.genererMeldeperioder(this.vedtaksliste, ikkeGenererEtter).let {
             this.copy(meldeperiodeKjeder = it.first) to it.second
+        }
+    }
+
+    companion object {
+        fun ikkeGenererEtter(): LocalDate {
+            val dag = LocalDate.now()
+            val ukedag = dag.dayOfWeek.value
+            return if (ukedag > 4) {
+                dag.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+            } else {
+                dag.with(
+                    TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY),
+                )
+            }
         }
     }
 }

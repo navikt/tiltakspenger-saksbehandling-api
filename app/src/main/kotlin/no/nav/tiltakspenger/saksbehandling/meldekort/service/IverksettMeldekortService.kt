@@ -83,20 +83,8 @@ class IverksettMeldekortService(
         )
         val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()
 
-        // TODO - Denne finnes ikke i vår implementasjon. Denne ble merget fra en annen branch
-//        val nesteMeldeperiode = sak.opprettNesteMeldeperiode()?.let {
-//            if (meldekort.periode.tilOgMed.plusDays(1) != it.periode.fraOgMed) {
-//                log.info { "Neste meldeperiode (${it.periode}) er ikke sammenhengende med det vedtatte meldekortet sin meldeperiode (${meldekort.periode}). Oppretter ikke ny meldeperiode. behandlingId: ${meldekort.id}, sakId: ${meldekort.sakId}" }
-//                null
-//            } else {
-//                it
-//            }
-//        }
-
         sessionFactory.withTransactionContext { tx ->
             meldekortBehandlingRepo.oppdater(meldekort, tx)
-            // TODO John og Anders: På et tidspunkt bør vi kanskje flytte generering av meldeperioder ut i en jobb?
-//            nesteMeldeperiode?.also { meldeperiodeRepo.lagre(it, tx) }
             utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
             statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
         }

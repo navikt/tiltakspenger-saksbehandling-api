@@ -136,6 +136,7 @@ class IverksettBehandlingService(
         // Dersom denne endres til søknadsbehandling og vi kan ha mer enn 1 for en sak og den kan overlappe den eksistrende saksperioden, må den legge til nye versjoner av meldeperiodene her.
         sessionFactory.withTransactionContext { tx ->
             behandlingRepo.lagre(vedtak.behandling, tx)
+            sakService.oppdaterSisteDagSomGirRett(oppdatertSak.id, oppdatertSak.sisteDagSomGirRett, tx)
             rammevedtakRepo.lagre(vedtak, tx)
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
@@ -144,7 +145,7 @@ class IverksettBehandlingService(
                 meldeperiodeRepo.lagre(it, tx)
             }
         }
-        return this.copy(meldeperiodeKjeder = oppdatertSak.meldeperiodeKjeder, meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
+        return oppdatertSak.copy(meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
     }
 
     private fun Sak.iverksettRevurdering(
@@ -158,12 +159,13 @@ class IverksettBehandlingService(
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
             behandlingRepo.lagre(vedtak.behandling, tx)
+            sakService.oppdaterSisteDagSomGirRett(oppdatertSak.id, oppdatertSak.sisteDagSomGirRett, tx)
             rammevedtakRepo.lagre(vedtak, tx)
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
             oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, tx) }
             oppdaterteMeldeperioder.forEach { meldeperiodeRepo.lagre(it, tx) }
         }
-        return this.copy(meldeperiodeKjeder = oppdatertSak.meldeperiodeKjeder, meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
+        return oppdatertSak.copy(meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
     }
 }

@@ -87,4 +87,10 @@ class SakFakeRepo(
         }?.id ?: return null
         return hentSak(sakId)
     }
+
+    override fun oppdaterSisteDagSomGirRett(
+        sakId: SakId,
+        sisteDagSomGirRett: LocalDate?,
+        sessionContext: SessionContext?,
+    ) {}
 }

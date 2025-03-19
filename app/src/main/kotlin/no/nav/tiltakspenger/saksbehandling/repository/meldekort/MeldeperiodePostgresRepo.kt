@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.repository.meldekort
 import com.fasterxml.jackson.core.type.TypeReference
 import kotliquery.Row
 import kotliquery.Session
+import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
@@ -11,11 +12,14 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
+import no.nav.tiltakspenger.saksbehandling.repository.sak.SakPostgresRepo.Companion.toSak
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -67,6 +71,10 @@ internal class MeldeperiodePostgresRepo(
         }
     }
 
+    override fun lagre(meldeperioder: List<Meldeperiode>, sessionContext: SessionContext?) {
+        meldeperioder.forEach(::lagre)
+    }
+
     override fun hentForSakId(
         sakId: SakId,
         sessionContext: SessionContext?,
@@ -79,6 +87,26 @@ internal class MeldeperiodePostgresRepo(
     override fun hentForMeldeperiodeId(meldeperiodeId: MeldeperiodeId, sessionContext: SessionContext?): Meldeperiode? {
         return sessionFactory.withSession(sessionContext) { session ->
             hentForMeldeperiodeId(meldeperiodeId, session)
+        }
+    }
+
+    override fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate): List<Sak> {
+        return sessionFactory.withSessionContext { sessionContext ->
+            sessionContext.withSession { session ->
+                session.run(
+                    queryOf(
+                        """
+                            with temp as (
+                                select s.*, max(m.til_og_med) as til_og_med from sak s join meldeperiode m on s.id = m.sak_id
+                                group by s.id)
+                                     select * from temp where til_og_med < siste_dag_som_gir_rett and til_og_med < :ikkeGenererEtter;
+                        """.trimIndent(),
+                        mapOf("ikkeGenererEtter" to ikkeGenererEtter),
+                    ).map {
+                        it.toSak(sessionContext)
+                    }.asList,
+                )
+            }
         }
     }
 

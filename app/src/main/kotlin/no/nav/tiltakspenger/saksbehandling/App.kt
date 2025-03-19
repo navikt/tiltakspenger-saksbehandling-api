@@ -85,6 +85,7 @@ internal fun start(
                 applicationContext.meldekortContext.sendMeldeperiodeTilBrukerService.send()
                 applicationContext.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
             }
+            applicationContext.genererMeldeperioderService.genererMeldeperioderForSaker()
         },
     )
 

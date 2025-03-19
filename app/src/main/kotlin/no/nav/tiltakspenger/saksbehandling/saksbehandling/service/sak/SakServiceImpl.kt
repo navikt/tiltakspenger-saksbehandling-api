@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
@@ -31,6 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SaksoversiktRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.KunneIkkeHenteEnkelPerson
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
+import java.time.LocalDate
 
 class SakServiceImpl(
     private val sakRepo: SakRepo,
@@ -189,12 +191,34 @@ class SakServiceImpl(
         }
         val fnr = sakRepo.hentFnrForSakId(sakId) ?: return KunneIkkeHenteEnkelPerson.FantIkkeSakId.left()
         val erSkjermet = poaoTilgangGateway.erSkjermet(fnr, correlationId)
-        val person = personService.hentEnkelPersonFnr(fnr).getOrElse { return KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl.left() }
+        val person = personService.hentEnkelPersonFnr(fnr)
+            .getOrElse { return KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl.left() }
         val personMedSkjerming = EnkelPersonMedSkjerming(person, erSkjermet)
         return personMedSkjerming.right()
     }
 
-    private suspend fun sjekkTilgangTilPerson(sakId: SakId, saksbehandler: Saksbehandler, correlationId: CorrelationId) {
+    /**
+     * @param sisteDagSomGirRett er ikke masterdata - bruk vedtak & tidslinje på sak for å finne sisteDagSomGirRett.
+     *
+     * Ment for å optimalisere db-spørringer (generering av meldeperioder)
+     */
+    override fun oppdaterSisteDagSomGirRett(
+        sakId: SakId,
+        sisteDagSomGirRett: LocalDate?,
+        sessionContext: SessionContext,
+    ) {
+        sakRepo.oppdaterSisteDagSomGirRett(
+            sakId = sakId,
+            sisteDagSomGirRett = sisteDagSomGirRett,
+            sessionContext = sessionContext,
+        )
+    }
+
+    private suspend fun sjekkTilgangTilPerson(
+        sakId: SakId,
+        saksbehandler: Saksbehandler,
+        correlationId: CorrelationId,
+    ) {
         val fnr = personService.hentFnrForSakId(sakId)
         tilgangsstyringService
             .harTilgangTilPerson(
