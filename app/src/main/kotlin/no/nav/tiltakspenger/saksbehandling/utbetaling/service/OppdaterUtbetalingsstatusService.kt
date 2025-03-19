@@ -25,6 +25,7 @@ class OppdaterUtbetalingsstatusService(
         Either.catch {
             if (harFeilet.get()) return
             utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor().forEach {
+                if (harFeilet.get()) return
                 oppdaterEnkel(it)
             }
         }.onLeft {

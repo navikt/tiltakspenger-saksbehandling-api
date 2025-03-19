@@ -34,7 +34,7 @@ private val log = KotlinLogging.logger {}
  * https://navikt.github.io/utsjekk-docs/
  */
 class UtbetalingHttpClient(
-    baseUrl: String,
+    private val baseUrl: String,
     private val getToken: suspend () -> AccessToken,
     connectTimeout: Duration = 1.seconds,
     private val timeout: Duration = 1.seconds,
@@ -109,7 +109,7 @@ class UtbetalingHttpClient(
                 val token = getToken()
                 val request = HttpRequest
                     .newBuilder()
-                    .uri(URI.create("""/api/iverksetting/${saksnummer.verdi}/$vedtakId/status"""))
+                    .uri(URI.create("""$baseUrl/api/iverksetting/${saksnummer.verdi}/$vedtakId/status"""))
                     .timeout(timeout.toJavaDuration())
                     .header("Authorization", "Bearer $token")
                     .header("Accept", "application/json")
