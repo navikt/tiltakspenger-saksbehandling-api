@@ -10,11 +10,16 @@ import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.UtbetalingGateway
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
+import no.nav.utsjekk.kontrakter.iverksett.IverksettStatus
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -42,22 +47,22 @@ class UtbetalingHttpClient(
             .followRedirects(HttpClient.Redirect.NEVER)
             .build()
 
-    private val uri = URI.create("$baseUrl/api/iverksetting/v2")
+    private val iverksettUri = URI.create("$baseUrl/api/iverksetting/v2")
 
     override suspend fun iverksett(
         vedtak: Utbetalingsvedtak,
         forrigeUtbetalingJson: String?,
         correlationId: CorrelationId,
-    ): Either<KunneIkkeUtbetale, SendtUtbetaling> =
-        withContext(Dispatchers.IO) {
+    ): Either<KunneIkkeUtbetale, SendtUtbetaling> {
+        return withContext(Dispatchers.IO) {
             Either.catch {
                 val token = getToken()
                 val jsonPayload = vedtak.toDTO(forrigeUtbetalingJson)
-                val request = createRequest(correlationId, jsonPayload, token.token)
+                val request = createIverksettRequest(correlationId, jsonPayload, token.token)
 
                 val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
                 val jsonResponse = httpResponse.body()
-                mapStatus(
+                mapIverksettStatus(
                     status = httpResponse.statusCode(),
                     vedtak = vedtak,
                     request = jsonPayload,
@@ -71,15 +76,16 @@ class UtbetalingHttpClient(
                 KunneIkkeUtbetale()
             }.flatten()
         }
+    }
 
-    private fun createRequest(
+    private fun createIverksettRequest(
         correlationId: CorrelationId,
         jsonPayload: String,
         token: String,
     ): HttpRequest? {
         return HttpRequest
             .newBuilder()
-            .uri(uri)
+            .uri(iverksettUri)
             .timeout(timeout.toJavaDuration())
             .header("Authorization", "Bearer $token")
             .header("Accept", "application/json")
@@ -89,9 +95,48 @@ class UtbetalingHttpClient(
             .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
             .build()
     }
+
+    /**
+     * Nåværende versjon: https://helved-docs.intern.dev.nav.no/v2/doc/status
+     * Neste versjon: https://helved-docs.intern.dev.nav.no/v3/doc/sjekk_status_pa_en_utbetaling
+     */
+    override suspend fun hentUtbetalingsstatus(
+        utbetaling: UtbetalingDetSkalHentesStatusFor,
+    ): Either<KunneIkkeHenteUtbetalingsstatus, Utbetalingsstatus> {
+        return withContext(Dispatchers.IO) {
+            val (sakId, vedtakId, saksnummer) = utbetaling
+            Either.catch {
+                val token = getToken()
+                val request = HttpRequest
+                    .newBuilder()
+                    .uri(URI.create("""/api/iverksetting/${saksnummer.verdi}/$vedtakId/status"""))
+                    .timeout(timeout.toJavaDuration())
+                    .header("Authorization", "Bearer $token")
+                    .header("Accept", "application/json")
+                    .GET()
+                    .build()
+
+                val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
+                val jsonResponse = httpResponse.body()
+                when (deserialize<IverksettStatus?>(jsonResponse)) {
+                    IverksettStatus.SENDT_TIL_OPPDRAG -> Utbetalingsstatus.SendtTilOppdrag.right()
+                    IverksettStatus.FEILET_MOT_OPPDRAG -> Utbetalingsstatus.FeiletMotOppdrag.right()
+                    IverksettStatus.OK -> Utbetalingsstatus.Ok.right()
+                    IverksettStatus.IKKE_PÅBEGYNT -> Utbetalingsstatus.IkkePåbegynt.right()
+                    IverksettStatus.OK_UTEN_UTBETALING -> Utbetalingsstatus.OkUtenUtbetaling.right()
+                    null -> KunneIkkeHenteUtbetalingsstatus.left()
+                }
+            }.mapLeft {
+                // Either.catch slipper igjennom CancellationException som er ønskelig.
+                log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ukjent feil ved henting av utbetalingsstatus for vedtakId $vedtakId. Saksnummer $saksnummer, sakId: $sakId" }
+                sikkerlogg.error(it) { "Ukjent feil ved henting av utbetalingsstatus vedtakId $vedtakId. Saksnummer $saksnummer, sakId: $sakId" }
+                KunneIkkeHenteUtbetalingsstatus
+            }.flatten()
+        }
+    }
 }
 
-private fun mapStatus(
+private fun mapIverksettStatus(
     status: Int,
     vedtak: Utbetalingsvedtak,
     request: String,

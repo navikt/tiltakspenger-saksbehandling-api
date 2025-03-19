@@ -2,6 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.saksbehandling.ports
 
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 
 interface UtbetalingGateway {
@@ -10,6 +13,10 @@ interface UtbetalingGateway {
         forrigeUtbetalingJson: String?,
         correlationId: CorrelationId,
     ): Either<KunneIkkeUtbetale, SendtUtbetaling>
+
+    suspend fun hentUtbetalingsstatus(
+        utbetaling: UtbetalingDetSkalHentesStatusFor,
+    ): Either<KunneIkkeHenteUtbetalingsstatus, Utbetalingsstatus>
 }
 
 class KunneIkkeUtbetale(

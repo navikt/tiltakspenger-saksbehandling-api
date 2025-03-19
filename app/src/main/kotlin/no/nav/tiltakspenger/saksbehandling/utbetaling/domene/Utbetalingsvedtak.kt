@@ -26,6 +26,7 @@ data class Utbetalingsvedtak(
     val sendtTilUtbetaling: LocalDateTime?,
     val journalpostId: JournalpostId?,
     val journalføringstidspunkt: LocalDateTime?,
+    val status: Utbetalingsstatus?,
 ) {
     val periode = meldekortbehandling.periode
     val ordinærBeløp = meldekortbehandling.beløpTotal
@@ -36,6 +37,10 @@ data class Utbetalingsvedtak(
     val saksbehandler: String = meldekortbehandling.saksbehandler
     val beslutter: String = meldekortbehandling.beslutter!!
     val brukerNavkontor: Navkontor = meldekortbehandling.navkontor
+
+    fun oppdaterStatus(status: Utbetalingsstatus?): Utbetalingsvedtak {
+        return this.copy(status = status)
+    }
 }
 
 fun MeldekortBehandling.MeldekortBehandlet.opprettUtbetalingsvedtak(
@@ -54,6 +59,7 @@ fun MeldekortBehandling.MeldekortBehandlet.opprettUtbetalingsvedtak(
         sendtTilUtbetaling = null,
         journalpostId = null,
         journalføringstidspunkt = null,
+        status = null,
     )
 
 fun Utbetalingsvedtak.tilStatistikk(): StatistikkUtbetalingDTO =

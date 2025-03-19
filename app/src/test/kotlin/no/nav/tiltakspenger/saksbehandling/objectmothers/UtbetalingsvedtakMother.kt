@@ -48,6 +48,7 @@ interface UtbetalingsvedtakMother {
             sendtTilUtbetaling = sendtTilUtbetaling,
             journalpostId = journalpostId,
             journalføringstidspunkt = journalføringstidspunkt,
+            status = null,
         )
     }
 }

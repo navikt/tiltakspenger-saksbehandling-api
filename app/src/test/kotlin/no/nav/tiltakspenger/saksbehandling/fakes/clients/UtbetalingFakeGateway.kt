@@ -10,6 +10,9 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.UtbetalingGateway
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 
 class UtbetalingFakeGateway : UtbetalingGateway {
@@ -24,6 +27,12 @@ class UtbetalingFakeGateway : UtbetalingGateway {
         val utbetaling = Utbetaling(vedtak, correlationId, response)
         utbetalinger.get()[vedtak.id] = utbetaling
         return response.right()
+    }
+
+    override suspend fun hentUtbetalingsstatus(
+        utbetaling: UtbetalingDetSkalHentesStatusFor,
+    ): Either<KunneIkkeHenteUtbetalingsstatus, Utbetalingsstatus> {
+        return Utbetalingsstatus.Ok.right()
     }
 
     data class Utbetaling(

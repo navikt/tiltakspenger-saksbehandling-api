@@ -9,6 +9,8 @@ import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.felles.nå
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SendtUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.opprettUtbetalingsvedtak
 import org.junit.jupiter.api.Test
 
@@ -68,6 +70,64 @@ class UtbetalingsvedtakRepoImplTest {
             )
             utbetalingsvedtakRepo.hentUtbetalingJsonForVedtakId(utbetalingsvedtak.id) shouldBe "myFailedReq"
             utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk() shouldBe listOf(utbetalingsvedtak)
+        }
+    }
+
+    @Test
+    fun utbetalingsstatus() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val (sak, meldekort) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
+                deltakelseFom = 2.januar(2023),
+                deltakelseTom = 2.april(2023),
+            )
+            val utbetalingsvedtakRepo = testDataHelper.utbetalingsvedtakRepo as UtbetalingsvedtakPostgresRepo
+            // Utbetaling
+            val utbetalingsvedtak = meldekort.opprettUtbetalingsvedtak(sak.saksnummer, sak.fnr, null)
+            utbetalingsvedtakRepo.lagre(utbetalingsvedtak)
+
+            val exptected = listOf(
+                UtbetalingDetSkalHentesStatusFor(
+                    sakId = utbetalingsvedtak.sakId,
+                    vedtakId = utbetalingsvedtak.id,
+                    saksnummer = utbetalingsvedtak.saksnummer,
+                ),
+            )
+            testDataHelper.sessionFactory.withSession {
+                UtbetalingsvedtakPostgresRepo.hentForSakId(sak.id, it).single().status shouldBe null
+            }
+            utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe exptected
+            utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
+                vedtakId = utbetalingsvedtak.id,
+                status = Utbetalingsstatus.IkkePåbegynt,
+            )
+            testDataHelper.sessionFactory.withSession {
+                UtbetalingsvedtakPostgresRepo.hentForSakId(sak.id, it).single().status shouldBe Utbetalingsstatus.IkkePåbegynt
+            }
+            utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe exptected
+
+            utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
+                vedtakId = utbetalingsvedtak.id,
+                status = Utbetalingsstatus.SendtTilOppdrag,
+            )
+            utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe exptected
+
+            utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
+                vedtakId = utbetalingsvedtak.id,
+                status = Utbetalingsstatus.FeiletMotOppdrag,
+            )
+            utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe emptyList()
+
+            utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
+                vedtakId = utbetalingsvedtak.id,
+                status = Utbetalingsstatus.OkUtenUtbetaling,
+            )
+            utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe emptyList()
+
+            utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
+                vedtakId = utbetalingsvedtak.id,
+                status = Utbetalingsstatus.Ok,
+            )
+            utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe emptyList()
         }
     }
 }

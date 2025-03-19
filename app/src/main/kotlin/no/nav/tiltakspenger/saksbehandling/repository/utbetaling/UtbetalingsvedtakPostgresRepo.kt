@@ -15,7 +15,9 @@ import no.nav.tiltakspenger.saksbehandling.repository.meldekort.MeldekortBehandl
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SendtUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import java.time.LocalDateTime
@@ -23,6 +25,7 @@ import java.time.LocalDateTime
 internal class UtbetalingsvedtakPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : UtbetalingsvedtakRepo {
+
     override fun lagre(vedtak: Utbetalingsvedtak, context: TransactionContext?) {
         sessionFactory.withSession(context) { session ->
             session.run(
@@ -145,21 +148,21 @@ internal class UtbetalingsvedtakPostgresRepo(
         }
     }
 
-    override fun hentUtbetalingsvedtakForUtsjekk(limit: Int): List<Utbetalingsvedtak> =
-        sessionFactory.withSession { session ->
+    override fun hentUtbetalingsvedtakForUtsjekk(limit: Int): List<Utbetalingsvedtak> {
+        return sessionFactory.withSession { session ->
             session.run(
                 queryOf(
                     //language=SQL
                     """
-                        select u.*, s.fnr, s.saksnummer
-                        from utbetalingsvedtak u
-                        join sak s on s.id = u.sak_id
-                        left join utbetalingsvedtak parent on parent.id = u.forrige_vedtak_id
-                          and parent.sak_id = u.sak_id
-                        where u.sendt_til_utbetaling_tidspunkt is null
-                          and (u.forrige_vedtak_id is null or parent.sendt_til_utbetaling_tidspunkt is not null)
-                        order by u.opprettet
-                        limit :limit
+                            select u.*, s.fnr, s.saksnummer
+                            from utbetalingsvedtak u
+                            join sak s on s.id = u.sak_id
+                            left join utbetalingsvedtak parent on parent.id = u.forrige_vedtak_id
+                              and parent.sak_id = u.sak_id
+                            where u.sendt_til_utbetaling_tidspunkt is null
+                              and (u.forrige_vedtak_id is null or parent.sendt_til_utbetaling_tidspunkt is not null)
+                            order by u.opprettet
+                            limit :limit
                     """.trimIndent(),
                     mapOf("limit" to limit),
                 ).map { row ->
@@ -167,18 +170,19 @@ internal class UtbetalingsvedtakPostgresRepo(
                 }.asList,
             )
         }
+    }
 
-    override fun hentDeSomSkalJournalføres(limit: Int): List<Utbetalingsvedtak> =
-        sessionFactory.withSession { session ->
+    override fun hentDeSomSkalJournalføres(limit: Int): List<Utbetalingsvedtak> {
+        return sessionFactory.withSession { session ->
             session.run(
                 queryOf(
                     //language=SQL
                     """
-                        select u.*, s.fnr, s.saksnummer 
-                        from utbetalingsvedtak u 
-                        join sak s on s.id = u.sak_id 
-                        where u.journalpost_id is null
-                        limit :limit
+                            select u.*, s.fnr, s.saksnummer 
+                            from utbetalingsvedtak u 
+                            join sak s on s.id = u.sak_id 
+                            where u.journalpost_id is null
+                            limit :limit
                     """.trimIndent(),
                     mapOf("limit" to limit),
                 ).map { row ->
@@ -186,6 +190,54 @@ internal class UtbetalingsvedtakPostgresRepo(
                 }.asList,
             )
         }
+    }
+
+    override fun oppdaterUtbetalingsstatus(
+        vedtakId: VedtakId,
+        status: Utbetalingsstatus,
+        context: TransactionContext?,
+    ) {
+        sessionFactory.withSession(context) { session ->
+            session.run(
+                queryOf(
+                    //language=SQL
+                    """
+                        update utbetalingsvedtak
+                        set status = :status
+                        where id = :id
+                    """.trimIndent(),
+                    mapOf(
+                        "id" to vedtakId.toString(),
+                        "status" to status.toDbType(),
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
+    override fun hentDeSomSkalHentesUtbetalingsstatusFor(limit: Int): List<UtbetalingDetSkalHentesStatusFor> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                queryOf(
+                    //language=SQL
+                    """
+                            select u.id, u.sak_id, s.saksnummer 
+                            from utbetalingsvedtak u 
+                            join sak s on s.id = u.sak_id 
+                            where u.status is null or u.status IN ('IKKE_PÅBEGYNT', 'SENDT_TIL_OPPDRAG')
+                            limit :limit
+                    """.trimIndent(),
+                    mapOf("limit" to limit),
+                ).map { row ->
+                    UtbetalingDetSkalHentesStatusFor(
+                        saksnummer = Saksnummer(row.string("saksnummer")),
+                        sakId = SakId.fromString(row.string("sak_id")),
+                        vedtakId = VedtakId.fromString(row.string("id")),
+                    )
+                }.asList,
+            )
+        }
+    }
 
     companion object {
         fun hentForSakId(sakId: SakId, session: Session): Utbetalinger {
@@ -224,6 +276,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                 journalpostId = stringOrNull("journalpost_id")?.let { JournalpostId(it) },
                 journalføringstidspunkt = localDateTimeOrNull("journalføringstidspunkt"),
                 opprettet = localDateTime("opprettet"),
+                status = stringOrNull("status").toUtbetalingsstatus(),
             )
         }
     }

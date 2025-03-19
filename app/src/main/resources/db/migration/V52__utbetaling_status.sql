@@ -1,0 +1,1 @@
+ALTER TABLE utbetalingsvedtak ADD COLUMN status VARCHAR;

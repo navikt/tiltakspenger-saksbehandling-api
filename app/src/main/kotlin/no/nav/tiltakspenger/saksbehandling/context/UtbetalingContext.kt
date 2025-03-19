@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.UtbetalingGateway
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.JournalførUtbetalingsvedtakService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsstatusService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SendUtbetalingerService
 
 open class UtbetalingContext(
@@ -47,6 +48,13 @@ open class UtbetalingContext(
             genererUtbetalingsvedtakGateway = genererUtbetalingsvedtakGateway,
             navIdentClient = navIdentClient,
             sakRepo = sakRepo,
+        )
+    }
+
+    val oppdaterUtbetalingsstatusService by lazy {
+        OppdaterUtbetalingsstatusService(
+            utbetalingsvedtakRepo = utbetalingsvedtakRepo,
+            utbetalingGateway = utbetalingGateway,
         )
     }
 }
