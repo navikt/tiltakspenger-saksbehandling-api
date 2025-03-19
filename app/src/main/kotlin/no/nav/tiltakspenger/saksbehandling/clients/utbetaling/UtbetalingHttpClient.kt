@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.clients.utbetaling
 
 import arrow.core.Either
 import arrow.core.flatten
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import kotlinx.coroutines.Dispatchers
@@ -118,16 +119,21 @@ class UtbetalingHttpClient(
 
                 val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
                 val jsonResponse = httpResponse.body()
-                when (deserialize<IverksettStatus?>(jsonResponse)) {
-                    IverksettStatus.SENDT_TIL_OPPDRAG -> Utbetalingsstatus.SendtTilOppdrag.right()
-                    IverksettStatus.FEILET_MOT_OPPDRAG -> Utbetalingsstatus.FeiletMotOppdrag.right()
-                    IverksettStatus.OK -> Utbetalingsstatus.Ok.right()
-                    IverksettStatus.IKKE_PÅBEGYNT -> Utbetalingsstatus.IkkePåbegynt.right()
-                    IverksettStatus.OK_UTEN_UTBETALING -> Utbetalingsstatus.OkUtenUtbetaling.right()
-                    null -> KunneIkkeHenteUtbetalingsstatus.left()
+                Either.catch {
+                    when (deserialize<IverksettStatus?>(jsonResponse)) {
+                        IverksettStatus.SENDT_TIL_OPPDRAG -> Utbetalingsstatus.SendtTilOppdrag.right()
+                        IverksettStatus.FEILET_MOT_OPPDRAG -> Utbetalingsstatus.FeiletMotOppdrag.right()
+                        IverksettStatus.OK -> Utbetalingsstatus.Ok.right()
+                        IverksettStatus.IKKE_PÅBEGYNT -> Utbetalingsstatus.IkkePåbegynt.right()
+                        IverksettStatus.OK_UTEN_UTBETALING -> Utbetalingsstatus.OkUtenUtbetaling.right()
+                        null -> KunneIkkeHenteUtbetalingsstatus.left()
+                    }
+                }.getOrElse {
+                    log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved deserialisering av utbetalingsstatus. Se sikkerlogg for mer kontekst. vedtakId: $vedtakId, Saksnummer $saksnummer, sakId: $sakId" }
+                    sikkerlogg.error(it) { "Feil ved deserialisering av utbetalingsstatus. vedtakId: $vedtakId, Saksnummer $saksnummer, sakId: $sakId, jsonResponse: $jsonResponse" }
+                    KunneIkkeHenteUtbetalingsstatus.left()
                 }
             }.mapLeft {
-                // Either.catch slipper igjennom CancellationException som er ønskelig.
                 log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ukjent feil ved henting av utbetalingsstatus for vedtakId $vedtakId. Saksnummer $saksnummer, sakId: $sakId" }
                 sikkerlogg.error(it) { "Ukjent feil ved henting av utbetalingsstatus vedtakId $vedtakId. Saksnummer $saksnummer, sakId: $sakId" }
                 KunneIkkeHenteUtbetalingsstatus
