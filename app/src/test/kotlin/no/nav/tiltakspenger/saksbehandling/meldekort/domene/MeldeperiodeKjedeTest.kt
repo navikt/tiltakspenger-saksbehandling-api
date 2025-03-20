@@ -52,6 +52,7 @@ class MeldeperiodeKjedeTest {
                 fnr = fnr,
                 versjon = m1.versjon.inc(),
                 antallDagerForPeriode = 12,
+                opprettet = m1.opprettet.plusDays(1),
             )
 
         val (nyKjede) = kjede.leggTilMeldeperiode(m2)
