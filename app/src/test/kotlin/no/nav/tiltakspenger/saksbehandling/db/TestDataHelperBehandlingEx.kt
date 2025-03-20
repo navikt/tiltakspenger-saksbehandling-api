@@ -226,9 +226,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
 
     val oppdatertSak = sakRepo.hentForSakId(sakId)!!
     val (_, meldeperioder) = oppdatertSak.genererMeldeperioder()
-    meldeperioder.forEach {
-        meldeperiodeRepo.lagre(it)
-    }
+    meldeperiodeRepo.lagre(meldeperioder)
     return Triple(sakRepo.hentForSakId(sakId)!!, vedtak, oppdatertFørstegangsbehandling)
 }
 
@@ -478,7 +476,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         beslutter = beslutter,
         sak = sak,
     )
-    val (_, meldeperioder) = sak.genererMeldeperioder()
+    val meldeperioder = sak.meldeperiodeKjeder.meldeperioder
     val behandletMeldekort = ObjectMother.meldekortBehandlet(
         sakId = sak.id,
         fnr = sak.fnr,
@@ -486,9 +484,6 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         meldeperiode = meldeperioder.first(),
         periode = meldeperioder.first().periode,
     )
-    meldeperioder.forEach {
-        meldeperiodeRepo.lagre(it)
-    }
     meldekortRepo.lagre(behandletMeldekort)
     return Pair(sakRepo.hentForSakId(sakId)!!, behandletMeldekort)
 }

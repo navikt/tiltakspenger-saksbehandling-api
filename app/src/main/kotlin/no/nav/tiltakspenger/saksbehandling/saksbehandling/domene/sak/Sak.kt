@@ -84,7 +84,6 @@ data class Sak(
 
     /** Den er kun trygg inntil vi revurderer antall dager. */
     fun hentAntallDager(periode: Periode): Int? = vedtaksliste.hentAntallDager(periode)
-    fun hentTynnSak(): TynnSak = TynnSak(this.id, this.fnr, this.saksnummer)
 
     fun hentBehandling(behandlingId: BehandlingId): Behandling? = behandlinger.hentBehandling(behandlingId)
 
