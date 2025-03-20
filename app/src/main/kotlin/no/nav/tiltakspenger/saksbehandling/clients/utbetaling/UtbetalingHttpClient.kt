@@ -118,12 +118,13 @@ class UtbetalingHttpClient(
                     .GET()
                     .build()
 
+                val headers = request.headers().map().filterKeys { it != "Authorization" }
                 val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
                 val jsonResponse = httpResponse.body()
                 val status = httpResponse.statusCode()
                 if (status != 200) {
                     log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved henting av utbetalingsstatus. Status var ulik 200. Se sikkerlogg for mer kontekst. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
-                    sikkerlogg.error { "Feil ved henting av utbetalingsstatus. Status var ulik 200. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, jsonResponse: $jsonResponse, path: $path, status: $status" }
+                    sikkerlogg.error { "Feil ved henting av utbetalingsstatus. Status var ulik 200. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, jsonResponse: $jsonResponse, path: $path, status: $status, headers: $headers" }
                     return@catch KunneIkkeHenteUtbetalingsstatus.left()
                 }
                 Either.catch {
