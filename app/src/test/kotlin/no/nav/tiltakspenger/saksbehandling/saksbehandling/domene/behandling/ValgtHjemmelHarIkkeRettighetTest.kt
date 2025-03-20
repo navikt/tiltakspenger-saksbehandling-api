@@ -14,9 +14,11 @@ class ValgtHjemmelHarIkkeRettighetTest {
 
     @Test
     fun `deserialiserer ValgtHjemmelForStans`() {
+        // Syntax highlighting
+        // language=JSON
         val json = """
             [
-                {"kode": "DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK", "type": "STANS", "beskrivelse": "tiltakspengeforskriften § 2 - ingen deltagelse"}
+                {"kode": "DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK", "type": "STANS"}
             ]
         """.trimIndent()
 
@@ -28,9 +30,11 @@ class ValgtHjemmelHarIkkeRettighetTest {
 
     @Test
     fun `deserialiserer ValgtHjemmelForAvslag`() {
+        // Syntax highlighting
+        // language=JSON
         val json = """
             [
-                {"kode": "ALDER", "type": "AVSLAG", "beskrivelse": "tiltakspengeforskriften § 3 - alder"}
+                {"kode": "ALDER", "type": "AVSLAG"}
             ]
         """.trimIndent()
 
@@ -42,10 +46,12 @@ class ValgtHjemmelHarIkkeRettighetTest {
 
     @Test
     fun `deserialiserer flere ValgtHjemmelForAvslag`() {
+        // Syntax highlighting
+        // language=JSON
         val json = """
             [
-                {"kode": "ALDER", "type": "AVSLAG", "beskrivelse": "tiltakspengeforskriften § 3 - alder"},
-                {"kode": "INSTITUSJONSOPPHOLD", "type": "AVSLAG", "beskrivelse": "tiltakspengeforskriften § 9 - institusjonsopphold"}
+                {"kode": "ALDER", "type": "AVSLAG"},
+                {"kode": "INSTITUSJONSOPPHOLD", "type": "AVSLAG"}
             ]
         """.trimIndent()
 
@@ -63,9 +69,11 @@ class ValgtHjemmelHarIkkeRettighetTest {
 
     @Test
     fun `kaster exception om koden ikke finnes`() {
+        // Syntax highlighting
+        // language=JSON
         val json = """
             [
-                {"kode": "DENNE_KODEN_FINNES_IKKE", "type": "STANS", "beskrivelse": "beskrivelse"}
+                {"kode": "DENNE_KODEN_FINNES_IKKE", "type": "STANS"}
             ]
         """.trimIndent()
 
@@ -88,7 +96,7 @@ class ValgtHjemmelHarIkkeRettighetTest {
         val list = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak)
         val json = list.toDbJson()
         val expectedJson = """
-            [{"kode":"DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK","type":"STANS","beskrivelse":"tiltakspengeforskriften § 2 - ingen deltagelse"}]
+            [{"kode":"DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK","type":"STANS"}]
         """.trimIndent()
 
         JSONAssert.assertEquals(expectedJson, json, JSONCompareMode.LENIENT)
@@ -99,7 +107,7 @@ class ValgtHjemmelHarIkkeRettighetTest {
         val list = listOf(ValgtHjemmelForAvslag.Alder)
         val json = list.toDbJson()
         val expectedJson = """
-            [{"kode":"ALDER","type":"AVSLAG","beskrivelse":"tiltakspengeforskriften § 3 - alder"}]
+            [{"kode":"ALDER","type":"AVSLAG"}]
         """.trimIndent()
 
         JSONAssert.assertEquals(expectedJson, json, JSONCompareMode.LENIENT)
@@ -113,8 +121,10 @@ class ValgtHjemmelHarIkkeRettighetTest {
         )
         val json = list.toDbJson()
         val expectedJson = """
-            [{"kode":"DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK","type":"AVSLAG","beskrivelse":"tiltakspengeforskriften § 2 - ingen deltagelse"},
-             {"kode":"ALDER","type":"AVSLAG","beskrivelse":"tiltakspengeforskriften § 3 - alder"}]
+            [
+              {"kode":"DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK","type":"AVSLAG"},
+              {"kode":"ALDER","type":"AVSLAG"}
+            ]
         """.trimIndent()
 
         JSONAssert.assertEquals(expectedJson, json, JSONCompareMode.LENIENT)

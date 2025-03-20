@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Valg
 class ValgtHjemmelHarIkkeRettighetDb(
     val kode: String,
     val type: ValgtHjemmelTypeDb,
-    val beskrivelse: String,
 )
 
 fun List<ValgtHjemmelHarIkkeRettighet>.toDbJson(): String {
@@ -22,7 +21,6 @@ fun List<ValgtHjemmelHarIkkeRettighet>.toDbJson(): String {
         ValgtHjemmelHarIkkeRettighetDb(
             kode = it.kode,
             type = it.type.toDb(),
-            beskrivelse = it.beskrivelse,
         )
     }.let { serialize(it) }
 }
