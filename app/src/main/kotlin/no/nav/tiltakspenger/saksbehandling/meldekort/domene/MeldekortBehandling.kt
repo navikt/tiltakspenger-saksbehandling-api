@@ -32,8 +32,6 @@ sealed interface MeldekortBehandling {
     val opprettet: LocalDateTime
     val beregning: MeldeperiodeBeregning
     val meldeperiode: Meldeperiode
-
-    // TODO abn: vi trenger kanskje ikke denne?
     val type: MeldekortBehandlingType
 
     /** Vil kunne være null dersom vi ikke har mottatt et meldekort via vår digitale flate. Bør på sikt kunne være en liste? */
@@ -213,11 +211,6 @@ sealed interface MeldekortBehandling {
         override val beløpTotal: Int = beregning.beregnTotaltBeløp()
         override val ordinærBeløp: Int = beregning.beregnTotalOrdinærBeløp()
         override val barnetilleggBeløp: Int = beregning.beregnTotalBarnetiillegg()
-
-        /** Finner den siste dagen i meldekortet som har beløp > 0. */
-        val sisteUtbetalingsdag: LocalDate? by lazy {
-            beregning.dager.filter { it.beløp > 0 }.maxOfOrNull { it.dato }
-        }
     }
 
     data class MeldekortUnderBehandling(

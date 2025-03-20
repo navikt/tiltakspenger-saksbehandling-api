@@ -29,7 +29,7 @@ internal class MeldekortberegningKorrigeringTest {
         (0L..13L).map { index ->
             val dag = førsteDag.plusDays(index)
             val status = when (dag.dayOfWeek) {
-                DayOfWeek.SATURDAY, DayOfWeek.SUNDAY -> SendMeldekortTilBeslutningKommando.Status.IKKE_DELTATT
+                DayOfWeek.SATURDAY, DayOfWeek.SUNDAY -> SendMeldekortTilBeslutningKommando.Status.SPERRET
                 else -> SendMeldekortTilBeslutningKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
             }
 
@@ -43,7 +43,7 @@ internal class MeldekortberegningKorrigeringTest {
         (0L..13L).map { index ->
             val dag = førsteDag.plusDays(index)
             val status = when (dag.dayOfWeek) {
-                DayOfWeek.SATURDAY, DayOfWeek.SUNDAY -> SendMeldekortTilBeslutningKommando.Status.IKKE_DELTATT
+                DayOfWeek.SATURDAY, DayOfWeek.SUNDAY -> SendMeldekortTilBeslutningKommando.Status.SPERRET
                 else -> if (index > 6) {
                     SendMeldekortTilBeslutningKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
                 } else {
@@ -65,7 +65,7 @@ internal class MeldekortberegningKorrigeringTest {
         val tiltakstypePerioder = Periodisering<TiltakstypeSomGirRett?>(
             PeriodeMedVerdi(
                 periode = Periode(fraOgMed = førsteDag, tilOgMed = førsteDag.plusDays(100)),
-                verdi = TiltakstypeSomGirRett.JOBBKLUBB,
+                verdi = TiltakstypeSomGirRett.GRUPPE_AMO,
             ),
         )
 
