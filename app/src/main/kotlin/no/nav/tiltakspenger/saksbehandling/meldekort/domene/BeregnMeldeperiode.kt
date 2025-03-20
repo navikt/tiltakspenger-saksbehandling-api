@@ -58,6 +58,12 @@ private data class MeldekortBeregning(
             "SakId på eksisterende meldekortperiode ${eksisterendeMeldekortPåSaken.sakId} er ikke likt sakId på kommando ${kommando.sakId}"
         }
 
+        eksisterendeMeldekortPåSaken.utfylteDager.forEach {
+            require(it.tiltakstype != null) {
+                "Tidligere meldekortdag.tiltakstype var null for meldekortdag $it"
+            }
+        }
+
         val meldekortSomSkalUtfylles = eksisterendeMeldekortPåSaken.hentMeldekortBehandling(meldekortId)
 
         requireNotNull(meldekortSomSkalUtfylles) {
@@ -65,6 +71,10 @@ private data class MeldekortBeregning(
         }
         require(meldekortSomSkalUtfylles is MeldekortBehandling.MeldekortUnderBehandling) {
             "Innsendt meldekort $meldekortId er ikke under behandling"
+        }
+
+        if (meldekortSomSkalUtfylles.type == MeldekortBehandlingType.KORRIGERING) {
+            return beregnKorrigering(kommando, eksisterendeMeldekortPåSaken, barnetilleggsPerioder, tiltakstypePerioder)
         }
 
         eksisterendeMeldekortPåSaken.utfylteDager.map { meldekortdag ->
@@ -88,6 +98,58 @@ private data class MeldekortBeregning(
             }
         }
         kommando.dager.map { meldekortdag ->
+            val tiltakstype: TiltakstypeSomGirRett by lazy {
+                tiltakstypePerioder.hentVerdiForDag(meldekortdag.dag) ?: run {
+                    throw IllegalStateException("Fant ingen tiltakstype for dag ${meldekortdag.dag}. tiltakstypeperiode: ${tiltakstypePerioder.totalePeriode}")
+                }
+            }
+            val dag = meldekortdag.dag
+            val antallBarn: AntallBarn = barnetilleggsPerioder.hentVerdiForDag(dag) ?: AntallBarn.ZERO
+
+            when (meldekortdag.status) {
+                SPERRET -> sperret(meldekortId, dag, true)
+                DELTATT_UTEN_LØNN_I_TILTAKET -> deltattUtenLønn(meldekortId, tiltakstype, dag, true, antallBarn)
+                DELTATT_MED_LØNN_I_TILTAKET -> deltattMedLønn(meldekortId, tiltakstype, dag, true, antallBarn)
+                IKKE_DELTATT -> ikkeDeltatt(meldekortId, tiltakstype, dag, true, antallBarn)
+                FRAVÆR_SYK -> fraværSyk(meldekortId, tiltakstype, dag, true, antallBarn)
+                FRAVÆR_SYKT_BARN -> fraværSykBarn(meldekortId, tiltakstype, dag, true, antallBarn)
+                FRAVÆR_VELFERD_GODKJENT_AV_NAV -> gyldigFravær(meldekortId, tiltakstype, dag, true, antallBarn)
+                FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> ugyldigFravær(meldekortId, tiltakstype, dag, true, antallBarn)
+            }
+        }
+        return utbetalingDager.toNonEmptyListOrNull()!!
+    }
+
+    private fun beregnKorrigering(
+        kommando: SendMeldekortTilBeslutningKommando,
+        eksisterendeMeldekortPåSaken: MeldekortBehandlinger,
+        barnetilleggsPerioder: Periodisering<AntallBarn>,
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+    ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
+        val meldekortId = kommando.meldekortId
+        val eksisterendeDager = eksisterendeMeldekortPåSaken.utfylteDager
+        val oppdaterteDager = kommando.dager
+
+        eksisterendeDager
+            .filter { eksisterendeDag -> !oppdaterteDager.any { it.dag == eksisterendeDag.dato } }
+            .forEach { meldekortdag ->
+                val tiltakstype = meldekortdag.tiltakstype!!
+
+                val dag = meldekortdag.dato
+                val antallBarn: AntallBarn = barnetilleggsPerioder.hentVerdiForDag(dag) ?: AntallBarn.ZERO
+                when (meldekortdag) {
+                    is Sperret -> sperret(meldekortId, dag, false)
+                    is VelferdGodkjentAvNav -> gyldigFravær(meldekortId, tiltakstype, dag, false, antallBarn)
+                    is VelferdIkkeGodkjentAvNav -> ugyldigFravær(meldekortId, tiltakstype, dag, false, antallBarn)
+                    is SyktBarn -> fraværSykBarn(meldekortId, tiltakstype, dag, false, antallBarn)
+                    is SykBruker -> fraværSyk(meldekortId, tiltakstype, dag, false, antallBarn)
+                    is IkkeDeltatt -> ikkeDeltatt(meldekortId, tiltakstype, dag, false, antallBarn)
+                    is DeltattMedLønnITiltaket -> deltattMedLønn(meldekortId, tiltakstype, dag, false, antallBarn)
+                    is DeltattUtenLønnITiltaket -> deltattUtenLønn(meldekortId, tiltakstype, dag, false, antallBarn)
+                }
+            }
+
+        oppdaterteDager.forEach { meldekortdag ->
             val tiltakstype: TiltakstypeSomGirRett by lazy {
                 tiltakstypePerioder.hentVerdiForDag(meldekortdag.dag) ?: run {
                     throw IllegalStateException("Fant ingen tiltakstype for dag ${meldekortdag.dag}. tiltakstypeperiode: ${tiltakstypePerioder.totalePeriode}")
