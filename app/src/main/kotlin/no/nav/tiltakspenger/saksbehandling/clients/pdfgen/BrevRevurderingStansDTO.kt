@@ -94,45 +94,70 @@ internal suspend fun genererStansbrev(
 }
 
 private fun ValgtHjemmelHarIkkeRettighet.tekstVedtaksbrev(barnetillegg: Boolean): String {
-    val ogBarnetillegg = "{og barnetillegg}"
-    val barnetilleggTekst = if (barnetillegg) " og barnetillegg" else ""
-
-    val tekstVedtaksbrev = when (this.kode) {
+    return when (this.kode) {
         ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak.kode ->
-            "du ikke lenger deltar på tiltak. Deltakere som ikke deltar på tiltak, har ikke rett til tiltakspenger $ogBarnetillegg etter tiltakspengeforskriften §2."
+            if (barnetillegg) {
+                "du ikke lenger deltar på tiltak. Du må være deltaker i et arbeidsmarkedstiltak for å ha rett til tiltakspenger og barnetillegg. Dette kommer frem av arbeidsmarkedsloven § 13, tiltakspengeforskriften §§ 2 og 3."
+            } else {
+                "du ikke lenger deltar på tiltak. Deltakere som ikke deltar på tiltak, har ikke rett til tiltakspenger etter tiltakspengeforskriften §2. Dette kommer frem av arbeidsmarkedsloven § 13 og tiltakspengeforskriften § 2."
+            }
 
         ValgtHjemmelForStans.Alder.kode ->
-            // TODO - få inn korrekt tekst når den er klar https://confluence.adeo.no/x/qAJ7K
-            "du ikke oppfyller tiltakspengeforskriften § 3 - alder"
+            "du ikke har fylt 18 år. Du må være fylt 18 år for å ha rett til å få tiltakspenger. Det kommer frem av tiltakspengeforskriften § 3."
 
         ValgtHjemmelForStans.Livsoppholdytelser.kode ->
-            "du mottar en annen stønad til livsopphold. Deltakere som mottar andre stønader til livsopphold, har ikke rett til tiltakspenger $ogBarnetillegg etter forskrift om tiltakspenger § 7."
+            if (barnetillegg) {
+                "du mottar en annen stønad til livsopphold. Deltakere som har rett til andre stønader til livsopphold har ikke samtidig rett til å få tiltakspenger og barnetillegg. Dette kommer frem av arbeidsmarkedsloven § 13 første ledd og tiltakspengeforskriften §§ 7 og 3."
+            } else {
+                "du mottar en annen stønad til livsopphold. Deltakere som har rett til andre stønader til livsopphold, har ikke samtidig rett til å få tiltakspenger. Dette kommer frem av arbeidsmarkedsloven § 13 første ledd og tiltakspengeforskriften § 7."
+            }
 
         ValgtHjemmelForStans.Kvalifiseringsprogrammet.kode ->
-            "du deltar på kvalifiseringsprogram. Deltakere i kvalifiseringsprogram, har ikke rett til tiltakspenger $ogBarnetillegg etter forskrift om tiltakspenger § 7, tredje ledd."
+            if (barnetillegg) {
+                "du deltar på kvalifiseringsprogram. Deltakere i kvalifiseringsprogram, har ikke rett til tiltakspenger og barnetillegg. Dette kommer frem av tiltakspengeforskriften §§ 7, tredje ledd og 3"
+            } else {
+                "du deltar på kvalifiseringsprogram. Deltakere i kvalifiseringsprogram, har ikke rett til tiltakspenger. Dette kommer frem av tiltakspengeforskriften § 7, tredje ledd."
+            }
 
         ValgtHjemmelForStans.Introduksjonsprogrammet.kode ->
-            "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger $ogBarnetillegg etter forskrift om tiltakspenger § 7, tredje ledd."
+            if (barnetillegg) {
+                "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger og barnetillegg. Dette kommer frem av tiltakspengeforskriften §§ 7, tredje ledd og 3."
+            } else {
+                "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram, har ikke rett til tiltakspenger. Dette kommer frem av tiltakspengeforskriften § 7, tredje ledd."
+            }
 
         ValgtHjemmelForStans.LønnFraTiltaksarrangør.kode ->
-            // TODO - få inn korrekt tekst når den er klar https://confluence.adeo.no/x/qAJ7K
-            "du ikke oppfyller tiltakspengeforskriften § 8 - lønn fra tiltaksarrangør"
+            if (barnetillegg) {
+                "du mottar lønn fra tiltaksarrangør for tiden i arbeidsmarkedstiltaket Deltakere som mottar lønn fra tiltaksarrangør for tid i arbeidsmarkedstiltaket, har ikke rett til tiltakspenger og barnetillegg. Dette kommer frem av tiltakspengeforskriften §§ 8 og 3."
+            } else {
+                "du mottar lønn fra tiltaksarrangør for tiden i arbeidsmarkedstiltaket. Deltakere som mottar lønn fra tiltaksarrangør for tid i arbeidsmarkedstiltaket, har ikke rett til tiltakspenger. Dette kommer frem av tiltakspengeforskriften §8."
+            }
 
         ValgtHjemmelForStans.LønnFraAndre.kode ->
-            // TODO - få inn korrekt tekst når den er klar https://confluence.adeo.no/x/qAJ7K
-            "du ikke oppfyller arbeidsmarkedsloven § 13 - lønn fra andre"
+            """
+                du mottar lønn for arbeid som er en del av tiltaksdeltakelsen og du derfor har dekning av utgifter til livsopphold.
+                Deltaker i arbeidsmarkedstiltak som har rett til å få dekket utgifter til livsopphold på annen måte har ikke rett til tiltakspenger. Lønn anses som dekning av utgifter til livsopphold på annen måte, når du får lønnen for arbeid som er en del av tiltaksdeltakelsen.
+                Lønn fra arbeid utenom tiltaksdeltakelsen har ikke betydning for din rett til tiltakspenger.
+                Dette kommer frem av arbeidsmarkedsloven § 13 og tiltakspengeforskriften § 8 andre ledd.
+            """.trimIndent()
 
         ValgtHjemmelForStans.Institusjonsopphold.kode ->
-            "du oppholder deg i institusjon med fri kost og losji. Deltakere som har opphold i institusjon, fengsel mv. med fri kost og losji under gjennomføringen av tiltaket, kan ikke samtidig motta tiltakspenger etter tiltakspengeforskriften §9 "
-
-        ValgtHjemmelForStans.Annet.kode ->
-            // TODO - få inn korrekt tekst når den er klar https://confluence.adeo.no/x/qAJ7K
-            "du oppfyller ikke kriteriene for å få tiltakspenger. Se avsnittet \"Slik har vi vurdert saken din\" for mer informasjon."
+            if (barnetillegg) {
+                """
+                    du oppholder deg på en institusjon med gratis opphold, mat og drikke. 
+                    Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke. under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger og barnetillegg.
+                    Det er gjort unntak for opphold i barneverns-institusjoner. Dette kommer frem av tiltakspengeforskriften §§ 9 og 3. 
+                """.trimIndent()
+            } else {
+                """
+                    du oppholder deg på en institusjon med gratis opphold, mat og drikke. 
+                    Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke. under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger.
+                    Det er gjort unntak for opphold i barneverns-institusjoner. Dette kommer frem av tiltakspengeforskriften §9 
+                """.trimIndent()
+            }
 
         else -> {
             throw IllegalStateException("Ukjent valgt hjemmel: $this")
         }
     }
-
-    return tekstVedtaksbrev.replace(" $ogBarnetillegg", barnetilleggTekst)
 }

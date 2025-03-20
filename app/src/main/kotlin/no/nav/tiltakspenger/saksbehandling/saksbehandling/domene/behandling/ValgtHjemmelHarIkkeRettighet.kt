@@ -43,10 +43,6 @@ sealed class ValgtHjemmelForStans(
     data object Institusjonsopphold : ValgtHjemmelForStans(
         kode = "INSTITUSJONSOPPHOLD",
     )
-
-    data object Annet : ValgtHjemmelForStans(
-        kode = "ANNET",
-    )
 }
 
 sealed class ValgtHjemmelForAvslag(
@@ -84,10 +80,6 @@ sealed class ValgtHjemmelForAvslag(
 
     data object Institusjonsopphold : ValgtHjemmelForAvslag(
         kode = "INSTITUSJONSOPPHOLD",
-    )
-
-    data object Annet : ValgtHjemmelForAvslag(
-        kode = "ANNET",
     )
 }
 
