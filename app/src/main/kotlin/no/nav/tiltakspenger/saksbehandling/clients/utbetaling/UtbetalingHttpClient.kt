@@ -108,7 +108,7 @@ class UtbetalingHttpClient(
             val (sakId, vedtakId, saksnummer) = utbetaling
             val path = "$baseUrl/api/iverksetting/${saksnummer.verdi}/${vedtakId.uuidPart()}/status"
             Either.catch {
-                val token = getToken()
+                val token = getToken().token
                 val request = HttpRequest
                     .newBuilder()
                     .uri(URI.create(path))
