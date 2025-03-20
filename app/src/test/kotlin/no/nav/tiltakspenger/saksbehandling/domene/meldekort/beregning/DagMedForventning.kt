@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.domene
+package no.nav.tiltakspenger.saksbehandling.domene.meldekort.beregning
 
 import arrow.core.NonEmptyList
 import arrow.core.flatten

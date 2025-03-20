@@ -33,6 +33,36 @@ data class MeldekortBehandlinger(
 
     val log = KotlinLogging.logger { }
 
+    val periode: Periode by lazy { Periode(verdi.first().fraOgMed, verdi.last().tilOgMed) }
+    val sakId: SakId by lazy { verdi.first().sakId }
+
+    private val førsteBehandlinger: List<MeldekortBehandling> by lazy { verdi.filter { it.type == MeldekortBehandlingType.FØRSTE_BEHANDLING } }
+    private val korrigeringer: List<MeldekortBehandling> by lazy { verdi.filter { it.type == MeldekortBehandlingType.KORRIGERING } }
+
+    private val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
+
+    /** Under behandling er ikke-avsluttede meldekortbehandlinger som ikke er til beslutning. */
+    val meldekortUnderBehandling: List<MeldekortUnderBehandling> by lazy {
+        verdi.filterIsInstance<MeldekortUnderBehandling>()
+    }
+
+    val godkjenteMeldekort: List<MeldekortBehandlet> by lazy { behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
+
+    val sisteGodkjenteMeldekort: MeldekortBehandlet? by lazy { godkjenteMeldekort.lastOrNull() }
+
+    @Suppress("unused")
+    val sisteGodkjenteMeldekortDag: LocalDate? by lazy { sisteGodkjenteMeldekort?.periode?.tilOgMed }
+
+    /** Merk at denne går helt tilbake til siste godkjente, utbetalte dag. Dette er ikke nødvendigvis den siste godkjente meldeperioden. */
+    val sisteUtbetalteMeldekortDag: LocalDate? by lazy {
+        godkjenteMeldekort.flatMap { it.beregning.dager }.lastOrNull { it.beløp > 0 }?.dato
+    }
+
+    /** Vil kun returnere hele meldekortperioder som er utfylt. Dersom siste meldekortperiode er delvis utfylt, vil ikke disse komme med. */
+    val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy { behandledeMeldekort.flatMap { it.beregning.dager } }
+
+    val finnesÅpenMeldekortBehandling: Boolean by lazy { meldekortUnderBehandling.isNotEmpty() }
+
     /**
      * @throws NullPointerException Dersom det ikke er noen meldekort-behandling som kan sendes til beslutter. Eller siste meldekort ikke er i tilstanden 'under behandling'.
      * @throws IllegalArgumentException Dersom innsendt meldekortid ikke samsvarer med siste meldekortperiode.
@@ -127,34 +157,6 @@ data class MeldekortBehandlinger(
             }
     }
 
-    val periode: Periode by lazy { Periode(verdi.first().fraOgMed, verdi.last().tilOgMed) }
-
-    private val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
-
-    /** Under behandling er ikke-avsluttede meldekortbehandlinger som ikke er til beslutning. */
-    val meldekortUnderBehandling: List<MeldekortUnderBehandling> by lazy {
-        verdi.filterIsInstance<MeldekortUnderBehandling>()
-    }
-
-    val godkjenteMeldekort: List<MeldekortBehandlet> by lazy { behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
-
-    val sisteGodkjenteMeldekort: MeldekortBehandlet? by lazy { godkjenteMeldekort.lastOrNull() }
-
-    @Suppress("unused")
-    val sisteGodkjenteMeldekortDag: LocalDate? by lazy { sisteGodkjenteMeldekort?.periode?.tilOgMed }
-
-    /** Merk at denne går helt tilbake til siste godkjente, utbetalte dag. Dette er ikke nødvendigvis den siste godkjente meldeperioden. */
-    val sisteUtbetalteMeldekortDag: LocalDate? by lazy {
-        godkjenteMeldekort.flatMap { it.beregning.dager }.lastOrNull { it.beløp > 0 }?.dato
-    }
-
-    /** Vil kun returnere hele meldekortperioder som er utfylt. Dersom siste meldekortperiode er delvis utfylt, vil ikke disse komme med. */
-    val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy { behandledeMeldekort.flatMap { it.beregning.dager } }
-
-    val sakId: SakId by lazy { verdi.first().sakId }
-
-    val finnesÅpenMeldekortBehandling: Boolean by lazy { meldekortUnderBehandling.isNotEmpty() }
-
     /**
      * Erstatt eksisterende meldekortbehandling med ny meldekortbehandling.
      */
@@ -177,13 +179,13 @@ data class MeldekortBehandlinger(
     }
 
     init {
-        verdi.zipWithNext { a, b ->
+        førsteBehandlinger.zipWithNext { a, b ->
             require(a.tilOgMed < b.fraOgMed) {
                 "Meldekortperiodene må være sammenhengende og sortert, men var ${verdi.map { it.periode }}"
             }
         }
-        require(verdi.dropLast(1).all { it is MeldekortBehandlet }) {
-            "Kun det siste meldekortet kan være i tilstanden 'under behandling', de N første må være 'behandlet'."
+        require(førsteBehandlinger.dropLast(1).all { it is MeldekortBehandlet }) {
+            "Kun den siste førstegangsbehandlingen av meldeperiodene kan være i tilstanden 'under behandling', de N første må være 'behandlet'."
         }
         require(verdi.map { it.sakId }.distinct().size <= 1) {
             "Alle meldekortperioder må tilhøre samme sak."
