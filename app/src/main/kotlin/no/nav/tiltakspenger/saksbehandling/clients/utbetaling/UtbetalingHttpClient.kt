@@ -118,17 +118,18 @@ class UtbetalingHttpClient(
                     .GET()
                     .build()
 
-                val headers = request.headers().map().filterKeys { it != "Authorization" }
+                val requestHeaders = request.headers().map().filterKeys { it != "Authorization" }
                 val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-                val jsonResponse = httpResponse.body()
+                val httpResponseBody = httpResponse.body()
                 val status = httpResponse.statusCode()
+                val responseHeaders = httpResponse.headers().map()
                 if (status != 200) {
                     log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved henting av utbetalingsstatus. Status var ulik 200. Se sikkerlogg for mer kontekst. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
-                    sikkerlogg.error { "Feil ved henting av utbetalingsstatus. Status var ulik 200. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, jsonResponse: $jsonResponse, path: $path, status: $status, headers: $headers" }
+                    sikkerlogg.error { "Feil ved henting av utbetalingsstatus. Status var ulik 200. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, httpResponseBody: $httpResponseBody, path: $path, status: $status, requestHeaders: $requestHeaders, responseHeaders: $responseHeaders" }
                     return@catch KunneIkkeHenteUtbetalingsstatus.left()
                 }
                 Either.catch {
-                    when (deserialize<IverksettStatus?>(jsonResponse)) {
+                    when (deserialize<IverksettStatus?>(httpResponseBody)) {
                         IverksettStatus.SENDT_TIL_OPPDRAG -> Utbetalingsstatus.SendtTilOppdrag.right()
                         IverksettStatus.FEILET_MOT_OPPDRAG -> Utbetalingsstatus.FeiletMotOppdrag.right()
                         IverksettStatus.OK -> Utbetalingsstatus.Ok.right()
@@ -138,7 +139,7 @@ class UtbetalingHttpClient(
                     }
                 }.getOrElse {
                     log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved deserialisering av utbetalingsstatus. Se sikkerlogg for mer kontekst. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
-                    sikkerlogg.error(it) { "Feil ved deserialisering av utbetalingsstatus. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, jsonResponse: $jsonResponse, path: $path, status: $status" }
+                    sikkerlogg.error(it) { "Feil ved deserialisering av utbetalingsstatus. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, jsonResponse: $httpResponseBody, path: $path, status: $status" }
                     KunneIkkeHenteUtbetalingsstatus.left()
                 }
             }.mapLeft {
