@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.routing.Route
-import mu.KotlinLogging
 
 /**
  * Starter opp serveren lokalt med postgres og auth i docker og in-memory fakes.

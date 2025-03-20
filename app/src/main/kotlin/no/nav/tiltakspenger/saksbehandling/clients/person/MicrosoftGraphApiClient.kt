@@ -4,12 +4,12 @@ import arrow.core.Either
 import arrow.core.flatten
 import arrow.core.getOrElse
 import arrow.core.right
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
 import io.ktor.http.encodedPath
 import io.ktor.http.toURI
 import kotlinx.coroutines.future.await
-import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.saksbehandling.Configuration
@@ -89,9 +89,9 @@ class MicrosoftGraphApiClient(
             val jsonResponse = deserialize<ListOfMicrosoftGraphResponse>(body)
             jsonResponse.let { response ->
                 if (response.value.size != 1) {
-                    log.error("Fant ingen eller flere brukere for navIdent $navIdent: ${response.value.size}. Se sikker logg dersom vi fant flere.")
+                    log.error { "Fant ingen eller flere brukere for navIdent $navIdent: ${response.value.size}. Se sikker logg dersom vi fant flere." }
                     if (response.value.isNotEmpty()) {
-                        sikkerlogg.error("Fant ingen eller flere brukere for navIdent $navIdent: ${response.value}")
+                        sikkerlogg.error { "Fant ingen eller flere brukere for navIdent $navIdent: ${response.value}" }
                     }
                     throw RuntimeException("Fant ikke bruker for navident: $navIdent")
                 } else {

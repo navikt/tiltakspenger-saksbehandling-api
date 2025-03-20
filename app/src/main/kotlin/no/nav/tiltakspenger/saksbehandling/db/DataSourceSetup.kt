@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.db
 
 import com.zaxxer.hikari.HikariDataSource
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val LOG = KotlinLogging.logger {}
 

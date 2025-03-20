@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.apache.Apache
@@ -15,7 +16,6 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.jackson.jackson
-import mu.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import java.time.Duration
 
@@ -67,8 +67,8 @@ private fun HttpClient.config(timeout: Long) =
             logger =
                 object : Logger {
                     override fun log(message: String) {
-                        LOG.info("HttpClient detaljer logget til securelog")
-                        sikkerlogg.info(message)
+                        LOG.info { "HttpClient detaljer logget til securelog" }
+                        sikkerlogg.info { message }
                     }
                 }
             level = LogLevel.INFO

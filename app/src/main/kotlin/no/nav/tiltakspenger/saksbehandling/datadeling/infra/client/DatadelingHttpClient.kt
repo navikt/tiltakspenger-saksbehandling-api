@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
 import arrow.core.Either
 import arrow.core.left
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.future.await
-import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient

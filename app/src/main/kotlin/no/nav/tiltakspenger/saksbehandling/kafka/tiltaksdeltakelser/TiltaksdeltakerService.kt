@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.arena.ArenaDeltakerMapper

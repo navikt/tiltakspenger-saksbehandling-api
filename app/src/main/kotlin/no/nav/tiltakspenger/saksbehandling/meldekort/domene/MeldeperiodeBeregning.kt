@@ -85,8 +85,6 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
 
         override val meldekortId = dager.first().meldekortId
 
-        private val log = mu.KotlinLogging.logger {}
-
         fun settPeriodeTilSperret(periode: Periode): IkkeUtfyltMeldeperiode {
             return this.copy(
                 dager = this.dager.map {

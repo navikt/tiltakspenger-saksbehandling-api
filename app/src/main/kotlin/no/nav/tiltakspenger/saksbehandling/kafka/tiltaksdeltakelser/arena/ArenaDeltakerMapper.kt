@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.arena
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.arena.tiltak.ArenaDeltakerStatusType
 import no.nav.tiltakspenger.libs.arena.tiltak.toDTO
 import no.nav.tiltakspenger.libs.common.SakId

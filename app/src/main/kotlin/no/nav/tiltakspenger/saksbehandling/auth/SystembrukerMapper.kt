@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.auth
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerrolle
 import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerroller

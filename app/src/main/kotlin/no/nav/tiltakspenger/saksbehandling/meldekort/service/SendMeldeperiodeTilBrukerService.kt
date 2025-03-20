@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiHttpClientGateway
@@ -20,7 +20,7 @@ class SendMeldeperiodeTilBrukerService(
         Either.catch {
             val usendteMeldeperioder = meldeperiodeRepo.hentUsendteTilBruker()
 
-            logger.debug("Fant ${usendteMeldeperioder.count()} meldekort for sending til meldekort-api")
+            logger.debug { "Fant ${usendteMeldeperioder.count()} meldekort for sending til meldekort-api" }
 
             usendteMeldeperioder.forEach { meldeperiode ->
                 meldekortApiHttpClient.sendMeldeperiode(meldeperiode).onRight {

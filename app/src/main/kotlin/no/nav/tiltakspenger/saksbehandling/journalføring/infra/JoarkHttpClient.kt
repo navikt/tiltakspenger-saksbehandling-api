@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.journalføring.infra
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
@@ -17,7 +18,6 @@ import io.ktor.http.HttpStatusCode.Companion.Conflict
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.contentType
-import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.saksbehandling.clients.httpClientWithRetry
@@ -71,7 +71,7 @@ internal class JoarkHttpClient(
             throw RuntimeException("Kunne ikke hente token for journalføring. Se sikkerlogg for mer kontekst.")
         }
         try {
-            log.info("Starter journalføring av dokument")
+            log.info { "Starter journalføring av dokument" }
 
             val res = client.post("$baseUrl/$JOARK_PATH") {
                 accept(ContentType.Application.Json)
@@ -86,25 +86,25 @@ internal class JoarkHttpClient(
             when (res.status) {
                 HttpStatusCode.Created -> {
                     val response = res.call.body<JoarkResponse>()
-                    log.info(response.toString())
+                    log.info { response.toString() }
 
                     val journalpostId = if (response.journalpostId.isNullOrEmpty()) {
-                        log.error("Kallet til Joark gikk ok, men vi fikk ingen journalpostId fra Joark")
+                        log.error { "Kallet til Joark gikk ok, men vi fikk ingen journalpostId fra Joark" }
                         throw IllegalStateException("Kallet til Joark gikk ok, men vi fikk ingen journalpostId fra Joark")
                     } else {
                         response.journalpostId
                     }
 
                     if ((response.journalpostferdigstilt == null) || (response.journalpostferdigstilt == false)) {
-                        log.error("Kunne ikke ferdigstille journalføring for journalpostId: $journalpostId. response=$response")
+                        log.error { "Kunne ikke ferdigstille journalføring for journalpostId: $journalpostId. response=$response" }
                     }
 
-                    log.info("Vi har opprettet journalpost med id : $journalpostId")
+                    log.info { "Vi har opprettet journalpost med id : $journalpostId" }
                     return JournalpostId(journalpostId)
                 }
 
                 else -> {
-                    log.error("Kallet til joark feilet ${res.status} ${res.status.description}")
+                    log.error { "Kallet til joark feilet ${res.status} ${res.status.description}" }
                     throw RuntimeException("Feil i kallet til joark")
                 }
             }
@@ -116,7 +116,7 @@ internal class JoarkHttpClient(
                     token.invaliderCache()
                 }
                 if (status == Conflict) {
-                    log.warn("Har allerede blitt journalført (409 Conflict)")
+                    log.warn { "Har allerede blitt journalført (409 Conflict)" }
                     val response = throwable.response.call.body<JoarkResponse>()
                     return JournalpostId(response.journalpostId.orEmpty())
                 }

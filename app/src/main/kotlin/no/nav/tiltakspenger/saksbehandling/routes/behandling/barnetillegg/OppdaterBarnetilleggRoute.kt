@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.routes.behandling.barnetillegg
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
-import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -47,7 +47,7 @@ fun Route.oppdaterBarnetilleggRoute(
 ) {
     val logger = KotlinLogging.logger {}
     patch("/sak/{sakId}/behandling/{behandlingId}/barnetillegg") {
-        logger.debug("Mottatt patch-request på '/sak/{sakId}/behandling/{behandlingId}/barnetillegg' - oppdaterer barnetillegg")
+        logger.debug { "Mottatt patch-request på '/sak/{sakId}/behandling/{behandlingId}/barnetillegg' - oppdaterer barnetillegg" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->

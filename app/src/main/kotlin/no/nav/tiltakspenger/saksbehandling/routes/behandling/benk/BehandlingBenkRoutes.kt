@@ -1,11 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.routes.behandling.benk
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
@@ -34,7 +34,7 @@ fun Route.behandlingBenkRoutes(
     val logger = KotlinLogging.logger {}
 
     get(BEHANDLINGER_PATH) {
-        logger.debug("Mottatt get-request på $BEHANDLINGER_PATH for å hente alle behandlinger på benken")
+        logger.debug { "Mottatt get-request på $BEHANDLINGER_PATH for å hente alle behandlinger på benken" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             sakService.hentBenkOversikt(
                 saksbehandler = saksbehandler,

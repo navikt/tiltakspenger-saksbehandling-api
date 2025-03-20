@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
