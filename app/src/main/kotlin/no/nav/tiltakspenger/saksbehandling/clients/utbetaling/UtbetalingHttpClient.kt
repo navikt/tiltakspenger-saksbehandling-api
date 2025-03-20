@@ -106,7 +106,7 @@ class UtbetalingHttpClient(
     ): Either<KunneIkkeHenteUtbetalingsstatus, Utbetalingsstatus> {
         return withContext(Dispatchers.IO) {
             val (sakId, vedtakId, saksnummer) = utbetaling
-            val path = """$baseUrl/api/iverksetting/${saksnummer.verdi}/${vedtakId.uuidPart()}/status"""
+            val path = "$baseUrl/api/iverksetting/${saksnummer.verdi}/${vedtakId.uuidPart()}/status"
             Either.catch {
                 val token = getToken()
                 val request = HttpRequest
@@ -120,6 +120,12 @@ class UtbetalingHttpClient(
 
                 val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
                 val jsonResponse = httpResponse.body()
+                val status = httpResponse.statusCode()
+                if (status != 200) {
+                    log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved henting av utbetalingsstatus. Status var ulik 200. Se sikkerlogg for mer kontekst. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
+                    sikkerlogg.error { "Feil ved henting av utbetalingsstatus. Status var ulik 200. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, jsonResponse: $jsonResponse, path: $path, status: $status" }
+                    return@catch KunneIkkeHenteUtbetalingsstatus.left()
+                }
                 Either.catch {
                     when (deserialize<IverksettStatus?>(jsonResponse)) {
                         IverksettStatus.SENDT_TIL_OPPDRAG -> Utbetalingsstatus.SendtTilOppdrag.right()
@@ -130,13 +136,13 @@ class UtbetalingHttpClient(
                         null -> KunneIkkeHenteUtbetalingsstatus.left()
                     }
                 }.getOrElse {
-                    log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved deserialisering av utbetalingsstatus. Se sikkerlogg for mer kontekst. vedtakId: $vedtakId, Saksnummer $saksnummer, sakId: $sakId, path: $path" }
-                    sikkerlogg.error(it) { "Feil ved deserialisering av utbetalingsstatus. vedtakId: $vedtakId, Saksnummer $saksnummer, sakId: $sakId, jsonResponse: $jsonResponse, path: $path" }
+                    log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved deserialisering av utbetalingsstatus. Se sikkerlogg for mer kontekst. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
+                    sikkerlogg.error(it) { "Feil ved deserialisering av utbetalingsstatus. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, jsonResponse: $jsonResponse, path: $path, status: $status" }
                     KunneIkkeHenteUtbetalingsstatus.left()
                 }
             }.mapLeft {
-                log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ukjent feil ved henting av utbetalingsstatus for vedtakId $vedtakId. Saksnummer $saksnummer, sakId: $sakId, path: $path" }
-                sikkerlogg.error(it) { "Ukjent feil ved henting av utbetalingsstatus vedtakId $vedtakId. Saksnummer $saksnummer, sakId: $sakId, path: $path" }
+                log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ukjent feil ved henting av utbetalingsstatus. Se sikkerlogg for mer kontekst. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
+                sikkerlogg.error(it) { "Ukjent feil ved henting av utbetalingsstatus. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
                 KunneIkkeHenteUtbetalingsstatus
             }.flatten()
         }
