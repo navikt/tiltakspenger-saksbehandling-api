@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
@@ -106,12 +105,11 @@ data class MeldekortBehandlinger(
         val utfyltMeldeperiode = meldekortUnderBehandling.beregning.tilUtfyltMeldeperiode(meldekortdager).getOrElse {
             return it.left()
         }
+
         return meldekortUnderBehandling.sendTilBeslutter(utfyltMeldeperiode, kommando.meldekortbehandlingBegrunnelse, kommando.saksbehandler, clock)
             .map {
                 Pair(
-                    MeldekortBehandlinger(
-                        verdi = (verdi.dropLast(1) + it).toNonEmptyListOrNull()!!,
-                    ),
+                    oppdaterMeldekortbehandling(it),
                     it,
                 )
             }
