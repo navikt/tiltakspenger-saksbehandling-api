@@ -84,8 +84,13 @@ class UtbetalingsvedtakRepoImplTest {
             // Utbetaling
             val utbetalingsvedtak = meldekort.opprettUtbetalingsvedtak(sak.saksnummer, sak.fnr, null)
             utbetalingsvedtakRepo.lagre(utbetalingsvedtak)
+            utbetalingsvedtakRepo.markerSendtTilUtbetaling(
+                vedtakId = utbetalingsvedtak.id,
+                tidspunkt = nå(),
+                utbetalingsrespons = SendtUtbetaling("myReq", "myRes", 202),
+            )
 
-            val exptected = listOf(
+            val expected = listOf(
                 UtbetalingDetSkalHentesStatusFor(
                     sakId = utbetalingsvedtak.sakId,
                     vedtakId = utbetalingsvedtak.id,
@@ -95,7 +100,7 @@ class UtbetalingsvedtakRepoImplTest {
             testDataHelper.sessionFactory.withSession {
                 UtbetalingsvedtakPostgresRepo.hentForSakId(sak.id, it).single().status shouldBe null
             }
-            utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe exptected
+            utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe expected
             utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
                 vedtakId = utbetalingsvedtak.id,
                 status = Utbetalingsstatus.IkkePåbegynt,
@@ -103,13 +108,13 @@ class UtbetalingsvedtakRepoImplTest {
             testDataHelper.sessionFactory.withSession {
                 UtbetalingsvedtakPostgresRepo.hentForSakId(sak.id, it).single().status shouldBe Utbetalingsstatus.IkkePåbegynt
             }
-            utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe exptected
+            utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe expected
 
             utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
                 vedtakId = utbetalingsvedtak.id,
                 status = Utbetalingsstatus.SendtTilOppdrag,
             )
-            utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe exptected
+            utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe expected
 
             utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
                 vedtakId = utbetalingsvedtak.id,
