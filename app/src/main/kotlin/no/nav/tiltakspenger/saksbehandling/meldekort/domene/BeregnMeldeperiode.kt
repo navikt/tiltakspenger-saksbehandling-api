@@ -37,8 +37,6 @@ private data class MeldekortBeregning(
     val barnetilleggsPerioder: Periodisering<AntallBarn?>,
     val tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
 ) {
-    private val utbetalingDager = mutableListOf<MeldeperiodeBeregningDag.Utfylt>()
-
     private val meldekortId = kommando.meldekortId
 
     private var sykTilstand: SykTilstand = SykTilstand.FullUtbetaling
@@ -67,14 +65,15 @@ private data class MeldekortBeregning(
         }
     }
 
-    fun beregn(): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
+    /** Returnerer beregnede dager fra kommando, og (om-)beregning for alle dager på saken  */
+    fun beregn(): Pair<NonEmptyList<MeldeperiodeBeregningDag.Utfylt>, List<MeldeperiodeBeregningDag.Utfylt>> {
         val oppdaterteDager = kommando.dager
         val eksisterendeDager = eksisterendeMeldekortPåSaken.utfylteDager
             .filter { eksisterendeDag ->
                 !oppdaterteDager.any { it.dag == eksisterendeDag.dato }
             }
 
-        eksisterendeDager.forEach { meldekortdag ->
+        val eksisterendeDagerBeregnet = eksisterendeDager.map { meldekortdag ->
             val tiltakstype: TiltakstypeSomGirRett by lazy {
                 meldekortdag.tiltakstype
                     ?: throw IllegalStateException("Tidligere meldekortdag.tiltakstype var null for meldekortdag $meldekortdag")
@@ -84,18 +83,18 @@ private data class MeldekortBeregning(
             val antallBarn: AntallBarn = barnetilleggsPerioder.hentVerdiForDag(dag) ?: AntallBarn.ZERO
 
             when (meldekortdag) {
-                is Sperret -> sperret(dag, false)
-                is VelferdGodkjentAvNav -> gyldigFravær(tiltakstype, dag, false, antallBarn)
-                is VelferdIkkeGodkjentAvNav -> ugyldigFravær(tiltakstype, dag, false, antallBarn)
-                is SyktBarn -> fraværSykBarn(tiltakstype, dag, false, antallBarn)
-                is SykBruker -> fraværSyk(tiltakstype, dag, false, antallBarn)
-                is IkkeDeltatt -> ikkeDeltatt(tiltakstype, dag, false, antallBarn)
-                is DeltattMedLønnITiltaket -> deltattMedLønn(tiltakstype, dag, false, antallBarn)
-                is DeltattUtenLønnITiltaket -> deltattUtenLønn(tiltakstype, dag, false, antallBarn)
+                is Sperret -> sperret(dag)
+                is VelferdGodkjentAvNav -> gyldigFravær(tiltakstype, dag, antallBarn)
+                is VelferdIkkeGodkjentAvNav -> ugyldigFravær(tiltakstype, dag, antallBarn)
+                is SyktBarn -> fraværSykBarn(tiltakstype, dag, antallBarn)
+                is SykBruker -> fraværSyk(tiltakstype, dag, antallBarn)
+                is IkkeDeltatt -> ikkeDeltatt(tiltakstype, dag, antallBarn)
+                is DeltattMedLønnITiltaket -> deltattMedLønn(tiltakstype, dag, antallBarn)
+                is DeltattUtenLønnITiltaket -> deltattUtenLønn(tiltakstype, dag, antallBarn)
             }
         }
 
-        oppdaterteDager.forEach { meldekortdag ->
+        val oppdaterteDagerBeregnet = oppdaterteDager.map { meldekortdag ->
             val tiltakstype: TiltakstypeSomGirRett by lazy {
                 tiltakstypePerioder.hentVerdiForDag(meldekortdag.dag) ?: run {
                     throw IllegalStateException("Fant ingen tiltakstype for dag ${meldekortdag.dag}. tiltakstypeperiode: ${tiltakstypePerioder.totalePeriode}")
@@ -106,217 +105,171 @@ private data class MeldekortBeregning(
             val antallBarn: AntallBarn = barnetilleggsPerioder.hentVerdiForDag(dag) ?: AntallBarn.ZERO
 
             when (meldekortdag.status) {
-                SPERRET -> sperret(dag, true)
-                DELTATT_UTEN_LØNN_I_TILTAKET -> deltattUtenLønn(tiltakstype, dag, true, antallBarn)
-                DELTATT_MED_LØNN_I_TILTAKET -> deltattMedLønn(tiltakstype, dag, true, antallBarn)
-                IKKE_DELTATT -> ikkeDeltatt(tiltakstype, dag, true, antallBarn)
-                FRAVÆR_SYK -> fraværSyk(tiltakstype, dag, true, antallBarn)
-                FRAVÆR_SYKT_BARN -> fraværSykBarn(tiltakstype, dag, true, antallBarn)
-                FRAVÆR_VELFERD_GODKJENT_AV_NAV -> gyldigFravær(tiltakstype, dag, true, antallBarn)
-                FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> ugyldigFravær(tiltakstype, dag, true, antallBarn)
+                SPERRET -> sperret(dag)
+                DELTATT_UTEN_LØNN_I_TILTAKET -> deltattUtenLønn(tiltakstype, dag, antallBarn)
+                DELTATT_MED_LØNN_I_TILTAKET -> deltattMedLønn(tiltakstype, dag, antallBarn)
+                IKKE_DELTATT -> ikkeDeltatt(tiltakstype, dag, antallBarn)
+                FRAVÆR_SYK -> fraværSyk(tiltakstype, dag, antallBarn)
+                FRAVÆR_SYKT_BARN -> fraværSykBarn(tiltakstype, dag, antallBarn)
+                FRAVÆR_VELFERD_GODKJENT_AV_NAV -> gyldigFravær(tiltakstype, dag, antallBarn)
+                FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> ugyldigFravær(tiltakstype, dag, antallBarn)
             }
         }
 
-        val duplikateDager = utbetalingDager.nonDistinctBy {
+        val alleDagerBeregnet = (eksisterendeDagerBeregnet + oppdaterteDagerBeregnet).sortedBy { it.dato }
+
+        val duplikateDager = alleDagerBeregnet.nonDistinctBy {
             it.dato
         }
 
         check(duplikateDager.isEmpty()) {
-            "Utbetalingsdagene har duplikate dager - $duplikateDager"
+            "Beregnede utbetalingsdager har duplikate dager - $duplikateDager"
         }
 
-        return utbetalingDager.toNonEmptyListOrNull()!!
+        return oppdaterteDagerBeregnet.toNonEmptyListOrNull()!! to alleDagerBeregnet
     }
 
     private fun deltattUtenLønn(
         tiltakstype: TiltakstypeSomGirRett,
         dag: LocalDate,
-        skalLeggeTilDag: Boolean,
         antallBarn: AntallBarn,
-    ) {
+    ): DeltattUtenLønnITiltaket {
         sjekkSykKarantene(dag)
         sjekkSykBarnKarantene(dag)
-
-        if (skalLeggeTilDag) {
-            utbetalingDager.add(
-                DeltattUtenLønnITiltaket.create(
-                    meldekortId = meldekortId,
-                    dato = dag,
-                    tiltakstype = tiltakstype,
-                    antallBarn = antallBarn,
-                ),
-            )
-        }
+        return DeltattUtenLønnITiltaket.create(
+            meldekortId = meldekortId,
+            dato = dag,
+            tiltakstype = tiltakstype,
+            antallBarn = antallBarn,
+        )
     }
 
     private fun gyldigFravær(
         tiltakstype: TiltakstypeSomGirRett,
         dag: LocalDate,
-        skalLeggeTilDag: Boolean,
         antallBarn: AntallBarn,
-    ) {
+    ): VelferdGodkjentAvNav {
         sjekkSykKarantene(dag)
         sjekkSykBarnKarantene(dag)
-        if (skalLeggeTilDag) {
-            utbetalingDager.add(
-                VelferdGodkjentAvNav.create(
-                    meldekortId = meldekortId,
-                    dato = dag,
-                    tiltakstype = tiltakstype,
-                    antallBarn = antallBarn,
-                ),
-            )
-        }
+        return VelferdGodkjentAvNav.create(
+            meldekortId = meldekortId,
+            dato = dag,
+            tiltakstype = tiltakstype,
+            antallBarn = antallBarn,
+        )
     }
 
     private fun ugyldigFravær(
         tiltakstype: TiltakstypeSomGirRett,
         dag: LocalDate,
-        skalLeggeTilDag: Boolean,
         antallBarn: AntallBarn,
-    ) {
+    ): VelferdIkkeGodkjentAvNav {
         sjekkSykKarantene(dag)
         sjekkSykBarnKarantene(dag)
-        if (skalLeggeTilDag) {
-            utbetalingDager.add(
-                VelferdIkkeGodkjentAvNav.create(
-                    meldekortId = meldekortId,
-                    dato = dag,
-                    tiltakstype = tiltakstype,
-                    antallBarn = antallBarn,
-                ),
-            )
-        }
+        return VelferdIkkeGodkjentAvNav.create(
+            meldekortId = meldekortId,
+            dato = dag,
+            tiltakstype = tiltakstype,
+            antallBarn = antallBarn,
+        )
     }
 
     private fun sperret(
         dag: LocalDate,
-        skalLeggeTilDag: Boolean,
-    ) {
+    ): Sperret {
         sjekkSykKarantene(dag)
         sjekkSykBarnKarantene(dag)
-        if (skalLeggeTilDag) {
-            utbetalingDager.add(
-                Sperret(
-                    meldekortId = meldekortId,
-                    dato = dag,
-                ),
-            )
-        }
+        return Sperret(
+            meldekortId = meldekortId,
+            dato = dag,
+        )
     }
 
     private fun ikkeDeltatt(
         tiltakstype: TiltakstypeSomGirRett,
         dag: LocalDate,
-        skalLeggeTilDag: Boolean,
         antallBarn: AntallBarn,
-    ) {
+    ): IkkeDeltatt {
         sjekkSykKarantene(dag)
         sjekkSykBarnKarantene(dag)
-        if (skalLeggeTilDag) {
-            utbetalingDager.add(
-                IkkeDeltatt.create(
-                    meldekortId = meldekortId,
-                    dato = dag,
-                    tiltakstype = tiltakstype,
-                    antallBarn = antallBarn,
-                ),
-            )
-        }
+        return IkkeDeltatt.create(
+            meldekortId = meldekortId,
+            dato = dag,
+            tiltakstype = tiltakstype,
+            antallBarn = antallBarn,
+        )
     }
 
     private fun deltattMedLønn(
         tiltakstype: TiltakstypeSomGirRett,
         dag: LocalDate,
-        skalLeggeTilDag: Boolean,
         antallBarn: AntallBarn,
-    ) {
+    ): DeltattMedLønnITiltaket {
         sjekkSykKarantene(dag)
         sjekkSykBarnKarantene(dag)
-        if (skalLeggeTilDag) {
-            utbetalingDager.add(
-                DeltattMedLønnITiltaket.create(
-                    meldekortId = meldekortId,
-                    dato = dag,
-                    tiltakstype = tiltakstype,
-                    antallBarn = antallBarn,
-                ),
-            )
-        }
+        return DeltattMedLønnITiltaket.create(
+            meldekortId = meldekortId,
+            dato = dag,
+            tiltakstype = tiltakstype,
+            antallBarn = antallBarn,
+        )
     }
 
     private fun fraværSyk(
         tiltakstype: TiltakstypeSomGirRett,
         dag: LocalDate,
-        skalLeggeTilDag: Boolean,
         antallBarn: AntallBarn,
-    ) {
+    ): SykBruker {
         sisteSykedag = dag
         when (sykTilstand) {
             SykTilstand.FullUtbetaling -> {
                 if (egenmeldingsdagerSyk > 0) {
                     egenmeldingsdagerSyk--
-                    if (skalLeggeTilDag) {
-                        utbetalingDager.add(
-                            SykBruker.create(
-                                meldekortId = meldekortId,
-                                dato = dag,
-                                tiltakstype = tiltakstype,
-                                reduksjon = IngenReduksjon,
-                                antallBarn = antallBarn,
-                            ),
-                        )
-                    }
+                    return SykBruker.create(
+                        meldekortId = meldekortId,
+                        dato = dag,
+                        tiltakstype = tiltakstype,
+                        reduksjon = IngenReduksjon,
+                        antallBarn = antallBarn,
+                    )
                 } else {
                     egenmeldingsdagerSyk = ANTALL_ARBEIDSGIVERDAGER
                     egenmeldingsdagerSyk--
                     sykTilstand = SykTilstand.DelvisUtbetaling
-                    if (skalLeggeTilDag) {
-                        utbetalingDager.add(
-                            SykBruker.create(
-                                meldekortId = meldekortId,
-                                dato = dag,
-                                tiltakstype = tiltakstype,
-                                reduksjon = Reduksjon,
-                                antallBarn = antallBarn,
-                            ),
-                        )
-                    }
+                    return SykBruker.create(
+                        meldekortId = meldekortId,
+                        dato = dag,
+                        tiltakstype = tiltakstype,
+                        reduksjon = Reduksjon,
+                        antallBarn = antallBarn,
+                    )
                 }
             }
 
             SykTilstand.DelvisUtbetaling -> {
                 if (egenmeldingsdagerSyk > 0) {
                     egenmeldingsdagerSyk--
-                    if (skalLeggeTilDag) {
-                        utbetalingDager.add(
-                            SykBruker.create(
-                                meldekortId = meldekortId,
-                                dato = dag,
-                                tiltakstype = tiltakstype,
-                                reduksjon = Reduksjon,
-                                antallBarn = antallBarn,
-                            ),
-                        )
-                    }
                     if (egenmeldingsdagerSyk == 0) {
                         sykTilstand = SykTilstand.Karantene
                         sykKaranteneDag = dag.plusDays(DAGER_KARANTENE)
                     }
+                    return SykBruker.create(
+                        meldekortId = meldekortId,
+                        dato = dag,
+                        tiltakstype = tiltakstype,
+                        reduksjon = Reduksjon,
+                        antallBarn = antallBarn,
+                    )
                 } else {
                     sykTilstand = SykTilstand.Karantene
                     sykKaranteneDag = dag.plusDays(DAGER_KARANTENE)
-                    if (skalLeggeTilDag) {
-                        utbetalingDager.add(
-                            SykBruker.create(
-                                meldekortId = meldekortId,
-                                dato = dag,
-                                tiltakstype = tiltakstype,
-                                reduksjon = YtelsenFallerBort,
-                                antallBarn = antallBarn,
-                            ),
-                        )
-                    }
+                    return SykBruker.create(
+                        meldekortId = meldekortId,
+                        dato = dag,
+                        tiltakstype = tiltakstype,
+                        reduksjon = YtelsenFallerBort,
+                        antallBarn = antallBarn,
+                    )
                 }
             }
 
@@ -324,17 +277,13 @@ private data class MeldekortBeregning(
                 sjekkSykKarantene(dag)
                 sjekkSykBarnKarantene(dag)
                 sykKaranteneDag = dag.plusDays(DAGER_KARANTENE)
-                if (skalLeggeTilDag) {
-                    utbetalingDager.add(
-                        SykBruker.create(
-                            meldekortId = meldekortId,
-                            dato = dag,
-                            tiltakstype = tiltakstype,
-                            reduksjon = YtelsenFallerBort,
-                            antallBarn = antallBarn,
-                        ),
-                    )
-                }
+                return SykBruker.create(
+                    meldekortId = meldekortId,
+                    dato = dag,
+                    tiltakstype = tiltakstype,
+                    reduksjon = YtelsenFallerBort,
+                    antallBarn = antallBarn,
+                )
             }
         }
     }
@@ -342,92 +291,71 @@ private data class MeldekortBeregning(
     private fun fraværSykBarn(
         tiltakstype: TiltakstypeSomGirRett,
         dag: LocalDate,
-        skalLeggeTilDag: Boolean,
         antallBarn: AntallBarn,
-    ) {
+    ): SyktBarn {
         sisteSykedag = dag
         when (syktBarnTilstand) {
             SykTilstand.FullUtbetaling -> {
                 if (egenmeldingsdagerSyktBarn > 0) {
                     egenmeldingsdagerSyktBarn--
-                    if (skalLeggeTilDag) {
-                        utbetalingDager.add(
-                            SyktBarn.create(
-                                meldekortId = meldekortId,
-                                dag = dag,
-                                tiltakstype = tiltakstype,
-                                reduksjon = IngenReduksjon,
-                                antallBarn = antallBarn,
-                            ),
-                        )
-                    }
+                    return SyktBarn.create(
+                        meldekortId = meldekortId,
+                        dag = dag,
+                        tiltakstype = tiltakstype,
+                        reduksjon = IngenReduksjon,
+                        antallBarn = antallBarn,
+                    )
                 } else {
                     egenmeldingsdagerSyktBarn = ANTALL_ARBEIDSGIVERDAGER
                     egenmeldingsdagerSyktBarn--
                     syktBarnTilstand = SykTilstand.DelvisUtbetaling
-                    if (skalLeggeTilDag) {
-                        utbetalingDager.add(
-                            SyktBarn.create(
-                                meldekortId = meldekortId,
-                                dag = dag,
-                                tiltakstype = tiltakstype,
-                                reduksjon = Reduksjon,
-                                antallBarn = antallBarn,
-                            ),
-                        )
-                    }
+                    return SyktBarn.create(
+                        meldekortId = meldekortId,
+                        dag = dag,
+                        tiltakstype = tiltakstype,
+                        reduksjon = Reduksjon,
+                        antallBarn = antallBarn,
+                    )
                 }
             }
 
             SykTilstand.DelvisUtbetaling -> {
                 if (egenmeldingsdagerSyktBarn > 0) {
                     egenmeldingsdagerSyktBarn--
-                    if (skalLeggeTilDag) {
-                        utbetalingDager.add(
-                            SyktBarn.create(
-                                meldekortId = meldekortId,
-                                dag = dag,
-                                tiltakstype = tiltakstype,
-                                reduksjon = Reduksjon,
-                                antallBarn = antallBarn,
-                            ),
-                        )
-                    }
                     if (egenmeldingsdagerSyktBarn == 0) {
                         syktBarnTilstand = SykTilstand.Karantene
                         syktBarnKaranteneDag = dag.plusDays(DAGER_KARANTENE)
                     }
+                    return SyktBarn.create(
+                        meldekortId = meldekortId,
+                        dag = dag,
+                        tiltakstype = tiltakstype,
+                        reduksjon = Reduksjon,
+                        antallBarn = antallBarn,
+                    )
                 } else {
                     syktBarnTilstand = SykTilstand.Karantene
                     syktBarnKaranteneDag = dag.plusDays(DAGER_KARANTENE)
-                    if (skalLeggeTilDag) {
-                        utbetalingDager.add(
-                            SyktBarn.create(
-                                meldekortId = meldekortId,
-                                dag = dag,
-                                tiltakstype = tiltakstype,
-                                reduksjon = YtelsenFallerBort,
-                                antallBarn = antallBarn,
-                            ),
-                        )
-                    }
+                    return SyktBarn.create(
+                        meldekortId = meldekortId,
+                        dag = dag,
+                        tiltakstype = tiltakstype,
+                        reduksjon = YtelsenFallerBort,
+                        antallBarn = antallBarn,
+                    )
                 }
             }
 
             SykTilstand.Karantene -> {
                 sjekkSykKarantene(dag)
                 sjekkSykBarnKarantene(dag)
-                if (skalLeggeTilDag) {
-                    utbetalingDager.add(
-                        SyktBarn.create(
-                            meldekortId = meldekortId,
-                            dag = dag,
-                            tiltakstype = tiltakstype,
-                            reduksjon = YtelsenFallerBort,
-                            antallBarn = antallBarn,
-                        ),
-                    )
-                }
+                return SyktBarn.create(
+                    meldekortId = meldekortId,
+                    dag = dag,
+                    tiltakstype = tiltakstype,
+                    reduksjon = YtelsenFallerBort,
+                    antallBarn = antallBarn,
+                )
             }
         }
     }
@@ -481,11 +409,9 @@ fun SendMeldekortTilBeslutningKommando.beregn(
     eksisterendeMeldekortBehandlinger: MeldekortBehandlinger,
     barnetilleggsPerioder: Periodisering<AntallBarn?>,
     tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
-): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
-    return MeldekortBeregning(
-        kommando = this,
-        barnetilleggsPerioder = barnetilleggsPerioder,
-        tiltakstypePerioder = tiltakstypePerioder,
-        eksisterendeMeldekortPåSaken = eksisterendeMeldekortBehandlinger,
-    ).beregn()
-}
+) = MeldekortBeregning(
+    kommando = this,
+    barnetilleggsPerioder = barnetilleggsPerioder,
+    tiltakstypePerioder = tiltakstypePerioder,
+    eksisterendeMeldekortPåSaken = eksisterendeMeldekortBehandlinger,
+).beregn()

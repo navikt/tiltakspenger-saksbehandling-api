@@ -36,7 +36,6 @@ data class MeldekortBehandlinger(
     val sakId: SakId by lazy { verdi.first().sakId }
 
     private val førsteBehandlinger: List<MeldekortBehandling> by lazy { verdi.filter { it.type == MeldekortBehandlingType.FØRSTE_BEHANDLING } }
-    private val korrigeringer: List<MeldekortBehandling> by lazy { verdi.filter { it.type == MeldekortBehandlingType.KORRIGERING } }
 
     private val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
 
@@ -97,7 +96,7 @@ data class MeldekortBehandlinger(
                 return KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagFraSperret.left()
             }
         }
-        val meldekortdager = kommando.beregn(
+        val (meldekortdager) = kommando.beregn(
             eksisterendeMeldekortBehandlinger = this,
             barnetilleggsPerioder = barnetilleggsPerioder,
             tiltakstypePerioder = tiltakstypePerioder,
