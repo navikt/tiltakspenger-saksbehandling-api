@@ -19,7 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortperioder
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 
 class MeldekortBehandlingPostgresRepo(
@@ -179,7 +178,7 @@ class MeldekortBehandlingPostgresRepo(
             session: Session,
         ): MeldekortBehandling {
             val meldeperiodeId = MeldeperiodeId.fromString(row.string("meldeperiode_id"))
-            val meldeperiode = MeldeperiodePostgresRepo.hentForMeldeperiodeId(meldeperiodeId, session)
+            val meldeperiode = MeldeperiodePostgresRepo.hentForMeldeperiodeId(meldeperiodeId, session)!!
 
             val id = MeldekortId.fromString(row.string("id"))
             val sakId = SakId.fromString(row.string("sak_id"))
@@ -187,7 +186,7 @@ class MeldekortBehandlingPostgresRepo(
             val navkontorEnhetsnummer = row.string("navkontor")
             val navkontorNavn = row.stringOrNull("navkontor_navn")
             val fnr = Fnr.fromString(row.string("fnr"))
-            val maksDagerMedTiltakspengerForPeriode = meldeperiode?.antallDagerForPeriode ?: Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+            val maksDagerMedTiltakspengerForPeriode = meldeperiode.antallDagerForPeriode
             val opprettet = row.localDateTime("opprettet")
             val type = row.string("type").tilMeldekortBehandlingType()
 
@@ -199,8 +198,6 @@ class MeldekortBehandlingPostgresRepo(
                 meldeperiodeId,
                 session,
             )
-
-            requireNotNull(meldeperiode) { "Fant ingen meldeperiode for $meldeperiodeId tilknyttet meldekortbehandling $id" }
 
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.GODKJENT, MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> {
