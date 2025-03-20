@@ -125,8 +125,7 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
                 meldeperiode: Meldeperiode,
                 meldekortId: MeldekortId,
                 sakId: SakId,
-                maksDagerMedTiltakspengerForPeriode: Int,
-                tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+                tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
             ): IkkeUtfyltMeldeperiode {
                 val dager =
                     meldeperiode.periode.tilDager().map { dag ->
@@ -144,7 +143,7 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
                         }
                     }
                 return if (dager.any { it is MeldeperiodeBeregningDag.IkkeUtfylt }) {
-                    IkkeUtfyltMeldeperiode(sakId, maksDagerMedTiltakspengerForPeriode, dager.toNonEmptyListOrNull()!!)
+                    IkkeUtfyltMeldeperiode(sakId, meldeperiode.antallDagerForPeriode, dager.toNonEmptyListOrNull()!!)
                 } else {
                     throw IllegalStateException("Alle dagene i en meldekortperiode er SPERRET. Dette har vi ikke støtte for i MVP.")
                 }

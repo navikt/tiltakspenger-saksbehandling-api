@@ -7,7 +7,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
-import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.ktor.common.respond501NotImplemented
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -15,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.routes.correlationId
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.ikkeTilgang
+import no.nav.tiltakspenger.saksbehandling.routes.sak.toDTO
 import no.nav.tiltakspenger.saksbehandling.routes.withSakId
 import no.nav.tiltakspenger.saksbehandling.routes.withSøknadId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.KanIkkeOppretteBehandling
@@ -41,13 +41,6 @@ fun Route.startBehandlingRoute(
                     ).fold(
                         {
                             when (it) {
-                                is KanIkkeStarteSøknadsbehandling.HarAlleredeStartetBehandlingen -> {
-                                    call.respond400BadRequest(
-                                        "Finnes allerede en ikke-avbrutt førstegangsbehandling",
-                                        "finnes_allerede_en_ikke_avbrutt_førstegangsbehandling",
-                                    )
-                                }
-
                                 is KanIkkeStarteSøknadsbehandling.OppretteBehandling ->
                                     when (it.underliggende) {
                                         is KanIkkeOppretteBehandling.IngenRelevanteTiltak -> call.respond501NotImplemented(
@@ -72,7 +65,7 @@ fun Route.startBehandlingRoute(
                                 correlationId = correlationId,
                             )
 
-                            call.respond(HttpStatusCode.OK, it.førstegangsbehandling!!.toDTO())
+                            call.respond(HttpStatusCode.OK, it.toDTO())
                         },
                     )
                 }

@@ -4,9 +4,12 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.førsteNovember24
+import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.felles.april
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 class SakTest {
@@ -53,5 +56,30 @@ class SakTest {
         avbruttBehandling?.avbrutt shouldNotBe null
         sakMedAvbruttsøknad.soknader.size shouldBe 1
         sakMedAvbruttsøknad.behandlinger.size shouldBe 1
+    }
+
+    @Nested
+    inner class GenerererMeldeperioder {
+        @Test
+        fun `for en ny sak som er tom`() {
+            val sak = ObjectMother.nySak()
+            val actual = sak.genererMeldeperioder()
+
+            actual.let {
+                it.first.meldeperiodeKjeder.size shouldBe 0
+                it.second.size shouldBe 0
+            }
+        }
+
+        @Test
+        fun `for en sak med et vedtak`() {
+            val virkningsperiode = Periode(9.april(2024), 16.april(2024))
+            val (sak) = ObjectMother.nySakMedVedtak(virkningsperiode = virkningsperiode)
+            val actual = sak.genererMeldeperioder()
+
+            actual.let {
+                it.first.meldeperiodeKjeder.single() shouldBe it.second
+            }
+        }
     }
 }

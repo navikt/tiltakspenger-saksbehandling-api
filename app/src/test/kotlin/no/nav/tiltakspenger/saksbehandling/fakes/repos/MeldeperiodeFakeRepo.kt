@@ -7,6 +7,8 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class MeldeperiodeFakeRepo : MeldeperiodeRepo {
@@ -17,6 +19,10 @@ class MeldeperiodeFakeRepo : MeldeperiodeRepo {
         sessionContext: SessionContext?,
     ) {
         data.get()[meldeperiode.id] = meldeperiode
+    }
+
+    override fun lagre(meldeperioder: List<Meldeperiode>, sessionContext: SessionContext?) {
+        meldeperioder.forEach(::lagre)
     }
 
     override fun hentUsendteTilBruker(): List<Meldeperiode> {
@@ -37,5 +43,9 @@ class MeldeperiodeFakeRepo : MeldeperiodeRepo {
 
     override fun hentForMeldeperiodeId(meldeperiodeId: MeldeperiodeId, sessionContext: SessionContext?): Meldeperiode? {
         return data.get()[meldeperiodeId]
+    }
+
+    override fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate): List<Sak> {
+        TODO("????")
     }
 }

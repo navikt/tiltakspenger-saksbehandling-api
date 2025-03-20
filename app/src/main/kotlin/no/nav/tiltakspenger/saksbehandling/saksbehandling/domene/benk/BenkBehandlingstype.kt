@@ -12,5 +12,4 @@ fun Behandlingstype.toBenkBehandlingstype(): BenkBehandlingstype =
     when (this) {
         Behandlingstype.FØRSTEGANGSBEHANDLING -> BenkBehandlingstype.FØRSTEGANGSBEHANDLING
         Behandlingstype.REVURDERING -> BenkBehandlingstype.REVURDERING
-        else -> BenkBehandlingstype.SØKNAD
     }

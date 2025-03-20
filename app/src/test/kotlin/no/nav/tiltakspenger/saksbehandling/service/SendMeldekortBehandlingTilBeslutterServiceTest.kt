@@ -8,6 +8,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.januar
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning
@@ -203,20 +204,21 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                         dager = SendMeldekortTilBeslutningKommando.Dager(
                             dager = dager(
                                 førsteDag,
+                                // Denne linjen skal gi oss feil
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
-                                SPERRET,
-                                SPERRET,
-                                SPERRET,
-                                SPERRET,
-                                SPERRET,
-                                SPERRET,
-                                SPERRET,
-                                SPERRET,
-                                SPERRET,
-                                SPERRET,
-                                SPERRET,
-                                SPERRET,
-                                SPERRET,
+                                DELTATT_UTEN_LØNN_I_TILTAKET,
+                                DELTATT_UTEN_LØNN_I_TILTAKET,
+                                DELTATT_UTEN_LØNN_I_TILTAKET,
+                                DELTATT_UTEN_LØNN_I_TILTAKET,
+                                DELTATT_UTEN_LØNN_I_TILTAKET,
+                                DELTATT_UTEN_LØNN_I_TILTAKET,
+                                DELTATT_UTEN_LØNN_I_TILTAKET,
+                                DELTATT_UTEN_LØNN_I_TILTAKET,
+                                DELTATT_UTEN_LØNN_I_TILTAKET,
+                                DELTATT_UTEN_LØNN_I_TILTAKET,
+                                DELTATT_UTEN_LØNN_I_TILTAKET,
+                                DELTATT_UTEN_LØNN_I_TILTAKET,
+                                DELTATT_UTEN_LØNN_I_TILTAKET,
                             ),
                         ),
                     ),
@@ -263,7 +265,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                             ),
                         ),
                     ),
-                ).getOrNull()!!
+                ).getOrFail()
             }
         }
     }

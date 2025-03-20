@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.arena.Tiltak
 import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.jobb.EndretTiltaksdeltakerJobb
 import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.komet.TiltaksdeltakerKometConsumer
 import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaRepository
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.GenererMeldeperioderService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMeldekortService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.VeilarboppfolgingGateway
@@ -200,6 +201,14 @@ open class ApplicationContext(
             sakService = sakContext.sakService,
             søknadService = søknadContext.søknadService,
             behandlingService = behandlingContext.behandlingService,
+            sessionFactory = sessionFactory,
+        )
+    }
+
+    val genererMeldeperioderService by lazy {
+        GenererMeldeperioderService(
+            sakRepo = sakContext.sakRepo,
+            meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
             sessionFactory = sessionFactory,
         )
     }

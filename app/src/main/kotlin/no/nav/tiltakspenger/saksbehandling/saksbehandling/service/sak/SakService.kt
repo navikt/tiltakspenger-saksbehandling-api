@@ -6,14 +6,15 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
+import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.KanIkkeOppretteBehandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.Saksoversikt
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.EnkelPersonMedSkjerming
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.KunneIkkeHenteEnkelPerson
+import java.time.LocalDate
 
 interface SakService {
     suspend fun hentEllerOpprettSak(
@@ -58,13 +59,20 @@ interface SakService {
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): Either<KunneIkkeHenteEnkelPerson, EnkelPersonMedSkjerming>
+
+    /**
+     * @param sisteDagSomGirRett er ikke masterdata - bruk vedtak & tidslinje på sak for å finne sisteDagSomGirRett.
+     *
+     * Ment for å optimalisere db-spørringer (generering av meldeperioder)
+     */
+    fun oppdaterSisteDagSomGirRett(
+        sakId: SakId,
+        sisteDagSomGirRett: LocalDate?,
+        sessionContext: SessionContext,
+    )
 }
 
 sealed interface KanIkkeStarteSøknadsbehandling {
-    data class HarAlleredeStartetBehandlingen(
-        val behandling: Behandling,
-    ) : KanIkkeStarteSøknadsbehandling
-
     data class OppretteBehandling(
         val underliggende: KanIkkeOppretteBehandling,
     ) : KanIkkeStarteSøknadsbehandling

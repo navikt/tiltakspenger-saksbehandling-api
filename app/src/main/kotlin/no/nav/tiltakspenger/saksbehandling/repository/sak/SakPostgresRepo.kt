@@ -185,6 +185,28 @@ internal class SakPostgresRepo(
             }
         }
 
+    override fun oppdaterSisteDagSomGirRett(
+        sakId: SakId,
+        sisteDagSomGirRett: LocalDate?,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSessionContext { sc ->
+            sc.withSession { session ->
+                session.run(
+                    queryOf(
+                        """
+                        update sak set siste_dag_som_gir_rett = :siste_dag_som_gir_rett where id = :sak_id
+                        """.trimIndent(),
+                        mapOf(
+                            "siste_dag_som_gir_rett" to sisteDagSomGirRett,
+                            "sak_id" to sakId.toString(),
+                        ),
+                    ).asUpdate,
+                )
+            }
+        }
+    }
+
     private fun sakFinnes(
         sakId: SakId,
         session: Session,
@@ -195,14 +217,13 @@ internal class SakPostgresRepo(
 
     companion object {
 
-        private fun Row.toSak(sessionContext: SessionContext): Sak {
+        fun Row.toSak(sessionContext: SessionContext): Sak {
             val id = SakId.fromString(string("id"))
             return sessionContext.withSession { session ->
                 val behandlinger = BehandlingPostgresRepo.hentForSakId(id, session)
                 val vedtaksliste: Vedtaksliste = RammevedtakPostgresRepo.hentForSakId(id, session)
-                val meldekortBehandlinger = vedtaksliste.førstegangsvedtak?.let {
-                    MeldekortBehandlingPostgresRepo.hentForSakId(id, session)
-                } ?: MeldekortBehandlinger.empty()
+                val meldekortBehandlinger =
+                    MeldekortBehandlingPostgresRepo.hentForSakId(id, session) ?: MeldekortBehandlinger.empty()
                 val meldeperioder = MeldeperiodePostgresRepo.hentForSakId(id, session)
                 val soknader = SøknadDAO.hentForSakId(id, session)
                 Sak(

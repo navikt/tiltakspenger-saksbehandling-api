@@ -75,7 +75,7 @@ sealed interface MeldekortBehandling {
     /** Oppdaterer meldeperioden til [meldeperiode] dersom den har samme kjede id, den er nyere enn den eksisterende og dette ikke er avsluttet meldekortbehandling. */
     fun oppdaterMeldeperiode(
         meldeperiode: Meldeperiode,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
     ): MeldekortBehandling? {
         require(meldeperiode.kjedeId == kjedeId) {
             "MeldekortBehandling: Kan ikke oppdatere meldeperiode med annen kjede id. ${meldeperiode.kjedeId} != $kjedeId"
@@ -98,7 +98,6 @@ sealed interface MeldekortBehandling {
                     meldeperiode = meldeperiode,
                     meldekortId = this.id,
                     sakId = this.sakId,
-                    maksDagerMedTiltakspengerForPeriode = meldeperiode.antallDagerForPeriode,
                     tiltakstypePerioder = tiltakstypePerioder,
                 ),
             )
@@ -187,7 +186,7 @@ sealed interface MeldekortBehandling {
         fun tilUnderBehandling(
             nyMeldeperiode: Meldeperiode?,
             ikkeRettTilTiltakspengerTidspunkt: LocalDateTime? = null,
-            tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+            tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
         ): MeldekortUnderBehandling {
             val meldeperiode = nyMeldeperiode ?: this.meldeperiode
             return MeldekortUnderBehandling(
@@ -201,7 +200,6 @@ sealed interface MeldekortBehandling {
                     tiltakstypePerioder = tiltakstypePerioder,
                     meldekortId = this.id,
                     sakId = this.sakId,
-                    maksDagerMedTiltakspengerForPeriode = meldeperiode.antallDagerForPeriode,
                 ),
                 saksbehandler = saksbehandler,
                 navkontor = this.navkontor,
@@ -335,7 +333,6 @@ fun Sak.opprettMeldekortBehandling(
             "Forrige meldekortbehandling i kjeden må være godkjent for å opprette en ny behandling/korrigering (kjede $kjedeId på sak ${this.id})"
         }
     }
-
     val meldekortId = MeldekortId.random()
     val meldeperiode = hentSisteMeldeperiodeForKjede(kjedeId)
 
@@ -367,8 +364,6 @@ fun Sak.opprettMeldekortBehandling(
             meldeperiode = meldeperiode,
             meldekortId = meldekortId,
             sakId = this.id,
-            // TODO jah: Behandlingen må ta inn periodisert antall dager og ikke bruke tidligere vedtak her. Tror ikke maksDagerMedTiltakspengerForPeriode brukes til noe; kanskje den bør bort fra beregningen?
-            maksDagerMedTiltakspengerForPeriode = meldeperiode.antallDagerForPeriode,
             tiltakstypePerioder = this.vedtaksliste.tiltakstypeperioder,
         ),
     )

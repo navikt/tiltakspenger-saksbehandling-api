@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.toTidslinje
+import no.nav.tiltakspenger.libs.periodisering.toTidslinjeMedHull
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
@@ -17,24 +17,26 @@ data class Vedtaksliste(
     @Suppress("unused")
     constructor(value: Rammevedtak) : this(listOf(value))
 
-    val tidslinje: Periodisering<Rammevedtak> by lazy { value.toTidslinje() }
+    val fnr = value.distinctBy { it.fnr }.map { it.fnr }.singleOrNullOrThrow()
+    val sakId = value.distinctBy { it.sakId }.map { it.sakId }.singleOrNullOrThrow()
+    val saksnummer = value.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
 
-    val førstegangsvedtak: Rammevedtak? by lazy { value.singleOrNullOrThrow { it.erFørstegangsvedtak } }
+    val tidslinje: Periodisering<Rammevedtak?> by lazy { value.toTidslinjeMedHull() }
 
-    /** Nåtilstand. Dette er sakens totale vedtaksperiode. Vær veldig obs når du bruker denne, fordi den sier ikke noe om antall perioder, om de gir rett eller ikke. */
-    val vedtaksperiode: Periode? by lazy { tidslinje.ifEmpty { null }?.totalePeriode }
+    val innvilgelsesperiode: Periode? by lazy {
+        innvilgelsesperioder.ifEmpty { null }?.let { Periode(it.minOf { it.fraOgMed }, it.maxOf { it.tilOgMed }) }
+    }
 
     /** Nåtilstand. Sakens totale vedtaksperioder. Vil kunne ha hull dersom det f.eks. er opphold mellom 2 tiltaksdeltagelsesperioder. Avslag og delvis avslag vil ikke være med her. */
-    @Suppress("unused")
     val vedtaksperioder: List<Periode> by lazy { tidslinje.perioder }
 
     /** Nåtilstand. De periodene som gir rett til tiltakspenger. Vil kunne være hull. */
     val innvilgelsesperioder: List<Periode> by lazy {
-        tidslinje.filter { it.verdi.vedtaksType == Vedtakstype.INNVILGELSE }.map { it.periode }
+        tidslinje.filter { it.verdi?.vedtaksType == Vedtakstype.INNVILGELSE }.map { it.periode }
     }
 
-    val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
-        tidslinje.perioderMedVerdi.filter { it.verdi.vedtaksType == Vedtakstype.INNVILGELSE }.map {
+    val innvilgetTidslinje: Periodisering<Rammevedtak?> by lazy {
+        tidslinje.perioderMedVerdi.filter { it.verdi == null || it.verdi?.vedtaksType == Vedtakstype.INNVILGELSE }.map {
             PeriodeMedVerdi(
                 periode = it.periode,
                 verdi = it.verdi,
@@ -54,11 +56,27 @@ data class Vedtaksliste(
         innvilgelsesperioder.maxOfOrNull { it.tilOgMed }
     }
 
+    val antallDagerPerioder: Periodisering<Int?> by lazy {
+        tidslinje.map { pmvVedtak ->
+            pmvVedtak?.antallDagerPerMeldeperiode
+        }
+    }
+
+    /**
+     * @param meldeperiode må stemme med meldeperiode-syklusen på saken
+     */
+    fun hentAntallDager(meldeperiode: Periode): Int? =
+        antallDagerPerioder.filter {
+            it.periode.overlapperMed(meldeperiode)
+        }.mapNotNull {
+            it.verdi
+        }.singleOrNullOrThrow()
+
     /**
      * Perioden må være innenfor tidslinjen
      *
      * **/
-    fun tidslinjeForPeriode(periode: Periode): Periodisering<Rammevedtak> {
+    fun tidslinjeForPeriode(periode: Periode): Periodisering<Rammevedtak?> {
         return tidslinje.krymp(periode)
     }
 
@@ -69,62 +87,66 @@ data class Vedtaksliste(
      * Utfallsperioder: 01.01.2021 - 02.01.2021 Oppfylt (fra vedtak 1)
      *                  03.01.2021 - 04.01.2021 Ikke Oppfylt (fra vedtak 2)
      */
-    val utfallsperioder: Periodisering<Utfallsperiode> by lazy {
-        tidslinje.perioderMedVerdi.flatMap { pmvVedtak ->
-            pmvVedtak.verdi.utfallsperioder!!.perioderMedVerdi.mapNotNull {
-                it.periode.overlappendePeriode(pmvVedtak.periode)?.let { overlappendePeriode ->
-                    PeriodeMedVerdi(
-                        periode = overlappendePeriode,
-                        verdi = it.verdi,
-                    )
-                }
+    @Suppress("UNCHECKED_CAST")
+    val utfallsperioder: Periodisering<Utfallsperiode?> by lazy {
+        tidslinje.perioderMedVerdi.flatMap {
+            if (it.verdi == null) {
+                listOf(PeriodeMedVerdi<Utfallsperiode?>(null, it.periode))
+            } else {
+                it.verdi!!.utfallsperioder!!.krymp(it.periode).perioderMedVerdi as List<PeriodeMedVerdi<Utfallsperiode?>>
             }
         }.let { Periodisering(it) }
     }
 
+    fun utfallForPeriode(periode: Periode): Periodisering<Utfallsperiode?> {
+        return utfallsperioder.overlapperMed(periode).utvid(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, periode)
+    }
+
     // Denne fungerer bare for førstegangsvedtak der man har valgte tiltaksdeltakelser
-    val valgteTiltaksdeltakelser: Periodisering<Tiltaksdeltagelse> by lazy {
-        innvilgetTidslinje.perioderMedVerdi.filter { it.verdi.behandling.valgteTiltaksdeltakelser != null }
-            .flatMap { it.verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(it.periode).perioderMedVerdi }.let {
+    @Suppress("UNCHECKED_CAST")
+    val valgteTiltaksdeltakelser: Periodisering<Tiltaksdeltagelse?> by lazy {
+        innvilgetTidslinje.perioderMedVerdi
+            .flatMap {
+                if (it.verdi == null) {
+                    listOf(PeriodeMedVerdi<Tiltaksdeltagelse?>(null, it.periode))
+                } else {
+                    it.verdi!!.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(it.periode).perioderMedVerdi as List<PeriodeMedVerdi<Tiltaksdeltagelse?>>
+                }
+            }
+            .let {
                 Periodisering(it)
             }
     }
 
-    fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<Tiltaksdeltagelse> {
+    fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<Tiltaksdeltagelse?> {
         return valgteTiltaksdeltakelser.overlapperMed(periode)
     }
 
     /** Tidslinje for antall barn. Første og siste periode vil være 1 eller flere. Kan inneholde hull med 0 barn. */
-    val barnetilleggsperioder: Periodisering<AntallBarn> by lazy {
-        tidslinje.perioderMedVerdi.flatMap { pmvVedtak ->
-            (pmvVedtak.verdi.barnetillegg?.periodisering?.perioderMedVerdi ?: emptyList()).mapNotNull {
-                it.periode.overlappendePeriode(pmvVedtak.periode)?.let { overlappendePeriode ->
-                    PeriodeMedVerdi(
-                        periode = overlappendePeriode,
-                        verdi = it.verdi,
-                    )
-                }
+    @Suppress("UNCHECKED_CAST")
+    val barnetilleggsperioder: Periodisering<AntallBarn?> by lazy {
+        tidslinje.perioderMedVerdi.flatMap {
+            if (it.verdi == null) {
+                listOf(PeriodeMedVerdi<AntallBarn?>(null, it.periode))
+            } else {
+                it.verdi?.barnetillegg?.periodisering?.krymp(it.periode)?.perioderMedVerdi?.let {
+                    it as List<PeriodeMedVerdi<AntallBarn?>>
+                } ?: listOf(PeriodeMedVerdi<AntallBarn?>(null, it.periode))
             }
         }.let { Periodisering(it) }
     }
 
-    val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy {
-        valgteTiltaksdeltakelser.map { it.typeKode }
+    val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett?> by lazy {
+        valgteTiltaksdeltakelser.map { it?.typeKode }
     }
 
     fun antallBarnForDag(dag: LocalDate): AntallBarn {
         return barnetilleggsperioder.singleOrNullOrThrow { it.periode.inneholder(dag) }?.verdi ?: AntallBarn.ZERO
     }
 
-    fun leggTilFørstegangsVedtak(vedtak: Rammevedtak): Vedtaksliste {
-        when (vedtak.vedtaksType) {
-            Vedtakstype.INNVILGELSE -> require(this.isEmpty()) { "Vedtaksliste must not be empty." }
-            Vedtakstype.STANS -> Unit
-        }
-        return copy(value = listOf(vedtak))
-    }
+    fun leggTilFørstegangsVedtak(vedtak: Rammevedtak): Vedtaksliste = copy(value = this.value.plus(vedtak))
 
-    fun hentTiltaksdataForPeriode(periode: Periode): List<Tiltaksdeltagelse> {
+    fun hentTiltaksdataForPeriode(periode: Periode): List<Tiltaksdeltagelse?> {
         return valgteTiltaksdeltakelserForPeriode(periode).perioderMedVerdi.map { it.verdi }
     }
 

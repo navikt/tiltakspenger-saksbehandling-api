@@ -15,6 +15,7 @@ object ObjectMother :
     PersonMother,
     MeldekortMother,
     UtbetalingsvedtakMother,
+    RammevedtakMother,
     TiltakMother,
     SaksopplysningerMother,
     BarnetilleggMother {

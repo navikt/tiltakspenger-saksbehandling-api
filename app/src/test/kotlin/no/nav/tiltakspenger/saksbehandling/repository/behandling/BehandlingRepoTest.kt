@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.db.persisterOpprettetFørstegangsbeha
 import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.felles.januar
 import no.nav.tiltakspenger.saksbehandling.felles.mars
+import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 import org.junit.jupiter.api.Test
 import java.util.Random
@@ -29,7 +30,7 @@ internal class BehandlingRepoTest {
 
             val (sak, _) = testDataHelper.persisterOpprettetFørstegangsbehandling()
             sakRepo.hentForSakId(sak.id) shouldBe sak
-            behandlingRepo.hent(sak.førstegangsbehandling!!.id) shouldBe sak.førstegangsbehandling
+            behandlingRepo.hent(sak.behandlinger.singleOrNullOrThrow()!!.id) shouldBe sak.behandlinger.singleOrNullOrThrow()
         }
     }
 
@@ -52,8 +53,8 @@ internal class BehandlingRepoTest {
                 ),
             )
             sakRepo.hentForSakId(sak.id) shouldBe sak
-            behandlingRepo.hent(sak.førstegangsbehandling!!.id).also {
-                it shouldBe sak.førstegangsbehandling
+            behandlingRepo.hent(sak.behandlinger.singleOrNullOrThrow()!!.id).also {
+                it shouldBe sak.behandlinger.singleOrNullOrThrow()
                 it.barnetillegg shouldNotBe null
             }
         }
@@ -79,8 +80,8 @@ internal class BehandlingRepoTest {
             val (sak1, _) = testDataHelper.persisterOpprettetFørstegangsbehandling()
             val (sak2, _) = testDataHelper.persisterOpprettetFørstegangsbehandling()
 
-            behandlingRepo.hentAlleForFnr(sak1.fnr) shouldBe listOf(sak1.førstegangsbehandling)
-            behandlingRepo.hentAlleForFnr(sak2.fnr) shouldBe listOf(sak2.førstegangsbehandling)
+            behandlingRepo.hentAlleForFnr(sak1.fnr) shouldBe sak1.behandlinger
+            behandlingRepo.hentAlleForFnr(sak2.fnr) shouldBe sak2.behandlinger
         }
     }
 }

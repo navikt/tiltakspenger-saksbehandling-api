@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.felles.Navkontor
-import no.nav.tiltakspenger.saksbehandling.felles.min
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
@@ -23,8 +22,10 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søk
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.TemporalAdjusters
 
 data class Sak(
     val id: SakId,
@@ -38,9 +39,6 @@ data class Sak(
     val utbetalinger: Utbetalinger,
     val soknader: List<Søknad>,
 ) {
-    /** Nåtilstand. Dette er sakens totale vedtaksperiode. Vær veldig obs når du bruker denne, fordi den sier ikke noe om antall perioder, om de gir rett eller ikke. */
-    val vedtaksperiode: Periode? = vedtaksliste.vedtaksperiode
-
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
     val førsteDagSomGirRett = vedtaksliste.førsteDagSomGirRett
 
@@ -48,14 +46,7 @@ data class Sak(
     @Suppress("unused")
     val sisteDagSomGirRett = vedtaksliste.sisteDagSomGirRett
 
-    /**
-     * En sak kan kun ha en førstegangsbehandling, dersom perioden til den vedtatte førstegangsbehandlingen skal utvides eller minskes (den må fortsatt være sammenhengende) må vi revurdere/omgjøre, ikke førstegangsbehandle på nytt.
-     * Dersom den nye søknaden ikke overlapper eller tilstøter den gamle perioden, må vi opprette en ny sak som får en ny førstegangsbehandling.
-     */
-    val førstegangsbehandling: Behandling? = behandlinger.førstegangsbehandling
     val revurderinger = behandlinger.revurderinger
-
-    val saksopplysningsperiode: Periode? = førstegangsbehandling?.saksopplysningsperiode
 
     /** Henter fra siste godkjente meldekort */
     @Suppress("unused")
@@ -63,9 +54,9 @@ data class Sak(
         meldekortBehandlinger.sisteGodkjenteMeldekort?.navkontor
     }
 
-    val barnetilleggsperioder: Periodisering<AntallBarn> by lazy { vedtaksliste.barnetilleggsperioder }
+    val barnetilleggsperioder: Periodisering<AntallBarn?> by lazy { vedtaksliste.barnetilleggsperioder }
 
-    val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy { vedtaksliste.tiltakstypeperioder }
+    val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett?> by lazy { vedtaksliste.tiltakstypeperioder }
 
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
         return meldekortBehandlinger.hentMeldekortBehandling(meldekortId)
@@ -92,22 +83,30 @@ data class Sak(
     }
 
     /** Den er kun trygg inntil vi revurderer antall dager. */
-    fun hentAntallDager(): Int? = vedtaksliste.førstegangsvedtak?.behandling?.maksDagerMedTiltakspengerForPeriode
+    fun hentAntallDager(periode: Periode): Int? = vedtaksliste.hentAntallDager(periode)
 
     fun hentBehandling(behandlingId: BehandlingId): Behandling? = behandlinger.hentBehandling(behandlingId)
 
     fun sisteUtbetalteMeldekortDag(): LocalDate? = meldekortBehandlinger.sisteUtbetalteMeldekortDag
 
-    /**
-     * Vil være innenfor [vedtaksperiode]. Dersom vi ikke har et vedtak, vil den være null.
-     */
-    fun førsteLovligeStansdato(): LocalDate? = sisteUtbetalteMeldekortDag()?.plusDays(1)?.let {
-        min(it, vedtaksperiode!!.tilOgMed)
-    } ?: vedtaksperiode?.fraOgMed
+    fun førsteLovligeStansdato(): LocalDate? {
+        val innvilgelsesperioder = this.vedtaksliste.innvilgelsesperioder
+        if (innvilgelsesperioder.isEmpty()) return null
+        val førsteDagSomIkkeErUtbetalt =
+            sisteUtbetalteMeldekortDag()?.plusDays(1) ?: innvilgelsesperioder.first().fraOgMed
+
+        return innvilgelsesperioder.firstOrNull {
+            it.tilOgMed >= førsteDagSomIkkeErUtbetalt
+        }?.tilDager()?.firstOrNull {
+            it >= førsteDagSomIkkeErUtbetalt
+        }
+    }
 
     fun erSisteVersjonAvMeldeperiode(meldeperiode: Meldeperiode): Boolean {
         return meldeperiodeKjeder.erSisteVersjonAvMeldeperiode(meldeperiode)
     }
+
+    fun finnNærmesteMeldeperiode(dato: LocalDate): Periode = meldeperiodeKjeder.finnNærmesteMeldeperiode(dato)
 
     fun avbrytSøknadOgBehandling(
         command: AvbrytSøknadOgBehandlingCommand,
@@ -149,5 +148,26 @@ data class Sak(
             soknader = this.soknader.map { if (it.id == command.søknadId) avbruttSøknad else it },
         )
         return Pair(oppdatertSak, avbruttSøknad)
+    }
+
+    fun genererMeldeperioder(): Pair<Sak, List<Meldeperiode>> {
+        val ikkeGenererEtter = ikkeGenererEtter()
+        return this.meldeperiodeKjeder.genererMeldeperioder(this.vedtaksliste, ikkeGenererEtter).let {
+            this.copy(meldeperiodeKjeder = it.first) to it.second
+        }
+    }
+
+    companion object {
+        fun ikkeGenererEtter(): LocalDate {
+            val dag = LocalDate.now()
+            val ukedag = dag.dayOfWeek.value
+            return if (ukedag > 4) {
+                dag.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+            } else {
+                dag.with(
+                    TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY),
+                )
+            }
+        }
     }
 }

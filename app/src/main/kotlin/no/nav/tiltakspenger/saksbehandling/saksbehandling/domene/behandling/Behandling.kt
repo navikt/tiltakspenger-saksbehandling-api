@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.ValgteTi
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vilkår.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vilkår.Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vilkår.Utfallsperiode.RETT_TIL_TILTAKSPENGER
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
@@ -253,7 +254,7 @@ data class Behandling(
 
     fun sendRevurderingTilBeslutning(
         kommando: SendRevurderingTilBeslutningKommando,
-        vedtaksperiode: Periode,
+        sisteDagSomGirRett: LocalDate,
     ): Behandling {
         check(status == UNDER_BEHANDLING) {
             "Behandlingen må være under behandling, det innebærer også at en saksbehandler må ta saken før den kan sendes til beslutter. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}"
@@ -264,7 +265,7 @@ data class Behandling(
             status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
             sendtTilBeslutning = nå(),
             begrunnelseVilkårsvurdering = kommando.begrunnelse,
-            virkningsperiode = Periode(kommando.stansDato, vedtaksperiode.tilOgMed),
+            virkningsperiode = Periode(kommando.stansDato, sisteDagSomGirRett),
         )
     }
 

@@ -13,10 +13,14 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.felles.april
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
@@ -29,9 +33,11 @@ interface StartBehandlingBuilder {
     /** Oppretter ny sak, søknad og behandling. */
     suspend fun ApplicationTestBuilder.startBehandling(
         tac: TestApplicationContext,
+        fnr: Fnr = Fnr.random(),
+        virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, Behandling, String> {
-        val (sak, søknad) = opprettSakOgSøknad(tac)
+        val (sak, søknad) = opprettSakOgSøknad(tac, fnr, deltakelsesperiode = virkingsperiode)
         val (behandling, response) = startBehandlingForSøknadId(tac, sak.id, søknad.id)
         return Tuple4(sak, søknad, behandling, response)
     }

@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettFørsteMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Attestering
@@ -127,18 +126,24 @@ class IverksettBehandlingService(
         vedtak: Rammevedtak,
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
-    ) {
-        val førsteMeldeperiode = this.opprettFørsteMeldeperiode()
+    ): Sak {
+        val (oppdatertSak, meldeperioder) = this.genererMeldeperioder()
+        // Denne har vi behov for å gjøre ved påfølgende førstegangsbehandligner (altså ikke den første)
+        val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) =
+            this.meldekortBehandlinger.oppdaterMedNyeKjeder(oppdatertSak.meldeperiodeKjeder, tiltakstypeperioder)
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
         // Dersom denne endres til søknadsbehandling og vi kan ha mer enn 1 for en sak og den kan overlappe den eksistrende saksperioden, må den legge til nye versjoner av meldeperiodene her.
         sessionFactory.withTransactionContext { tx ->
             behandlingRepo.lagre(vedtak.behandling, tx)
+            sakService.oppdaterSisteDagSomGirRett(oppdatertSak.id, oppdatertSak.sisteDagSomGirRett, tx)
             rammevedtakRepo.lagre(vedtak, tx)
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
-            meldeperiodeRepo.lagre(førsteMeldeperiode, tx)
+            oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, tx) }
+            meldeperiodeRepo.lagre(meldeperioder, tx)
         }
+        return oppdatertSak.copy(meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
     }
 
     private fun Sak.iverksettRevurdering(
@@ -146,19 +151,19 @@ class IverksettBehandlingService(
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
-        val (oppdaterteKjeder, oppdaterteMeldeperioder) =
-            this.meldeperiodeKjeder.oppdaterMedNyStansperiode(vedtak.periode)
-        val (oppdaterteMeldekortbehandlinger, OppdaterteMeldekort) =
-            this.meldekortBehandlinger.oppdaterMedNyeKjeder(oppdaterteKjeder, tiltakstypeperioder)
+        val (oppdatertSak, oppdaterteMeldeperioder) = this.genererMeldeperioder()
+        val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) =
+            this.meldekortBehandlinger.oppdaterMedNyeKjeder(oppdatertSak.meldeperiodeKjeder, tiltakstypeperioder)
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
             behandlingRepo.lagre(vedtak.behandling, tx)
+            sakService.oppdaterSisteDagSomGirRett(oppdatertSak.id, oppdatertSak.sisteDagSomGirRett, tx)
             rammevedtakRepo.lagre(vedtak, tx)
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
-            OppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, tx) }
-            oppdaterteMeldeperioder.forEach { meldeperiodeRepo.lagre(it, tx) }
+            oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, tx) }
+            meldeperiodeRepo.lagre(oppdaterteMeldeperioder, tx)
         }
-        return this.copy(meldeperiodeKjeder = oppdaterteKjeder, meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
+        return oppdatertSak.copy(meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
     }
 }

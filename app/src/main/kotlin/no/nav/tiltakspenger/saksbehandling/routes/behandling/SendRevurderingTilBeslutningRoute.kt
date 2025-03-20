@@ -11,17 +11,14 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.routes.correlationId
-import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.routes.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.withBody
 import no.nav.tiltakspenger.saksbehandling.routes.withSakId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.KanIkkeSendeTilBeslutter.MåVæreSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.SendRevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.SendBehandlingTilBeslutningService
 import java.time.LocalDate
@@ -71,9 +68,8 @@ fun Route.sendRevurderingTilBeslutningRoute(
                                 correlationId = correlationId,
                             ),
                         ).onLeft {
-                            when (it) {
-                                is MåVæreSaksbehandler -> call.respond403Forbidden(Standardfeil.måVæreSaksbehandler())
-                            }
+                            val error = it.toErrorJson()
+                            call.respond(error.first, error.second)
                         }.onRight {
                             auditService.logMedBehandlingId(
                                 behandlingId = behandlingId,

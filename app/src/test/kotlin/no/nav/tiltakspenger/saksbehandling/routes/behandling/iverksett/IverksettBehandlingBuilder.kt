@@ -13,9 +13,13 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.felles.april
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendFørstegangsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
@@ -28,9 +32,11 @@ interface IverksettBehandlingBuilder {
     /** Oppretter ny sak, søknad og behandling. */
     suspend fun ApplicationTestBuilder.iverksett(
         tac: TestApplicationContext,
+        fnr: Fnr = Fnr.random(),
+        virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): Tuple4<Sak, Søknad, Behandling, String> {
-        val (sak, søknad, behandlingId, _) = sendFørstegangsbehandlingTilBeslutning(tac)
+        val (sak, søknad, behandlingId, _) = sendFørstegangsbehandlingTilBeslutning(tac, fnr, virkingsperiode)
         taBehanding(tac, behandlingId, beslutter)
         val (oppdatertSak, oppdatertBehandling, jsonResponse) = iverksettForBehandlingId(
             tac,

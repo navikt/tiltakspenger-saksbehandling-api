@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.januar
 import no.nav.tiltakspenger.saksbehandling.felles.mars
 import no.nav.tiltakspenger.saksbehandling.felles.nå
+import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
@@ -32,6 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Atte
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
@@ -65,8 +67,9 @@ interface BehandlingMother {
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
-        virkningsperiode: Periode = virkningsperiode(),
-        søknad: Søknad = ObjectMother.nySøknad(),
+        virkningsperiode: Periode? = virkningsperiode(),
+        behandlingstype: Behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
+        søknad: Søknad? = if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING) ObjectMother.nySøknad() else null,
         saksbehandlerIdent: String = ObjectMother.saksbehandler().navIdent,
         sendtTilBeslutning: LocalDateTime? = null,
         beslutterIdent: String = ObjectMother.beslutter().navIdent,
@@ -77,7 +80,6 @@ interface BehandlingMother {
         iverksattTidspunkt: LocalDateTime? = null,
         sendtTilDatadeling: LocalDateTime? = null,
         sistEndret: LocalDateTime = førsteNovember24,
-        behandlingstype: Behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering? = null,
@@ -120,21 +122,21 @@ interface BehandlingMother {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
         virkningsperiode: Periode = virkningsperiode(),
-        søknad: Søknad = ObjectMother.nySøknad(),
+        behandlingstype: Behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
+        søknad: Søknad? = if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING) ObjectMother.nySøknad() else null,
         saksbehandlerIdent: String = ObjectMother.saksbehandler().navIdent,
         sendtTilBeslutning: LocalDateTime = førsteNovember24,
         beslutterIdent: String = ObjectMother.beslutter().navIdent,
-        saksopplysninger: Saksopplysninger = saksopplysninger(),
+        saksopplysninger: Saksopplysninger = saksopplysninger(fom = virkningsperiode.fraOgMed, tom = virkningsperiode.tilOgMed),
         attesteringer: List<Attestering> = emptyList(),
         opprettet: LocalDateTime = førsteNovember24,
         iverksattTidspunkt: LocalDateTime = førsteNovember24,
         sendtTilDatadeling: LocalDateTime? = null,
         sistEndret: LocalDateTime = førsteNovember24,
-        behandlingstype: Behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nyVedtattBehandling()"),
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering? = null,
-        saksopplysningsperiode: Periode = virkningsperiode(),
+        saksopplysningsperiode: Periode = virkningsperiode,
         barnetillegg: Barnetillegg? = null,
         valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = ValgteTiltaksdeltakelser(
             Periodisering(
@@ -266,12 +268,16 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
         tiltaksdeltagelse = tiltaksdeltagelse,
         sak = sak,
     )
-    return this.behandlingContext.startSøknadsbehandlingService.startSøknadsbehandling(
-        søknad.id,
-        sak.id,
-        saksbehandler,
-        correlationId = correlationId,
-    ).getOrFail()
+    return sak.copy(
+        behandlinger = Behandlinger(
+            sak.behandlinger.behandlinger + this.behandlingContext.startSøknadsbehandlingService.startSøknadsbehandling(
+                søknad.id,
+                sak.id,
+                saksbehandler,
+                correlationId = correlationId,
+            ).getOrFail(),
+        ),
+    )
 }
 
 suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
@@ -291,7 +297,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
     this.behandlingContext.sendBehandlingTilBeslutningService.sendFørstegangsbehandlingTilBeslutning(
         SendSøknadsbehandlingTilBeslutningKommando(
             sakId = sakMedFørstegangsbehandling.id,
-            behandlingId = sakMedFørstegangsbehandling.førstegangsbehandling!!.id,
+            behandlingId = sakMedFørstegangsbehandling.behandlinger.singleOrNullOrThrow()!!.id,
             saksbehandler = saksbehandler,
             correlationId = correlationId,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
@@ -301,7 +307,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
             tiltaksdeltakelser = listOf(
                 Pair(
                     periode,
-                    sakMedFørstegangsbehandling.førstegangsbehandling!!.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
+                    sakMedFørstegangsbehandling.behandlinger.singleOrNullOrThrow()!!.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
                 ),
             ),
         ),
@@ -326,7 +332,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingUnderBeslutning(
         saksbehandler = saksbehandler,
     )
     this.behandlingContext.behandlingService.taBehandling(
-        vilkårsvurdert.førstegangsbehandling!!.id,
+        vilkårsvurdert.behandlinger.singleOrNullOrThrow()!!.id,
         beslutter,
         correlationId = correlationId,
     )
@@ -353,7 +359,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingIverksatt(
     )
     runBlocking {
         tac.behandlingContext.iverksettBehandlingService.iverksett(
-            behandlingId = underBeslutning.førstegangsbehandling!!.id,
+            behandlingId = underBeslutning.behandlinger.singleOrNullOrThrow()!!.id,
             beslutter = beslutter,
             correlationId = correlationId,
             sakId = underBeslutning.id,
@@ -382,7 +388,7 @@ suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
     )
     tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
         sakId = sak.id,
-        kjedeId = sak.meldeperiodeKjeder.hentSisteMeldeperiode().kjedeId,
+        kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
         saksbehandler = saksbehandler,
         correlationId = correlationId,
     )
@@ -463,7 +469,7 @@ suspend fun TestApplicationContext.andreMeldekortIverksatt(
 
     tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
         sakId = sak.id,
-        kjedeId = sak.meldeperiodeKjeder.hentSisteMeldeperiode().kjedeId,
+        kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
         saksbehandler = saksbehandler,
         correlationId = correlationId,
     )

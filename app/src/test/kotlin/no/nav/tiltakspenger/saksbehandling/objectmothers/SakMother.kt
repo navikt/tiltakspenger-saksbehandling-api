@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySøknad
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.virkningsperiode
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
@@ -23,7 +24,9 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import java.time.LocalDate
 
@@ -72,8 +75,13 @@ interface SakMother {
             tiltaksdeltagelse = registrerteTiltak,
         ),
         barnetillegg: Barnetillegg? = null,
-        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = listOf(Pair(virkningsperiode, registrerteTiltak.first().eksternDeltagelseId)),
-    ): Sak {
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = listOf(
+            Pair(
+                virkningsperiode,
+                registrerteTiltak.first().eksternDeltagelseId,
+            ),
+        ),
+    ): Pair<Sak, Behandling> {
         val førstegangsbehandling =
             runBlocking {
                 val behandling = Behandling.opprettSøknadsbehandling(
@@ -114,6 +122,49 @@ interface SakMother {
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             soknader = listOf(søknad),
+        ) to førstegangsbehandling
+    }
+
+    fun nySakMedVedtak(
+        sakId: SakId = SakId.random(),
+        fnr: Fnr = Fnr.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+        saksbehandler: Saksbehandler = saksbehandler(),
+        virkningsperiode: Periode = virkningsperiode(),
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
+    ): Triple<Sak, Vedtak, Behandling> {
+        val (sak, førstegangsbehandling) = this.sakMedOpprettetBehandling(
+            sakId = sakId,
+            fnr = fnr,
+            saksnummer = saksnummer,
+            virkningsperiode = virkningsperiode,
+            saksbehandler = saksbehandler,
         )
+
+        val iverksattBehandling = førstegangsbehandling.taBehandling(saksbehandler).tilBeslutning(
+            SendSøknadsbehandlingTilBeslutningKommando(
+                sakId = sakId,
+                behandlingId = førstegangsbehandling.id,
+                correlationId = CorrelationId.generate(),
+                saksbehandler = saksbehandler,
+                barnetillegg = null,
+                fritekstTilVedtaksbrev = null,
+                begrunnelseVilkårsvurdering = null,
+                innvilgelsesperiode = virkningsperiode,
+                tiltaksdeltakelser = førstegangsbehandling.saksopplysninger.tiltaksdeltagelse.map {
+                    Pair(virkningsperiode, it.eksternDeltagelseId)
+                }.toList(),
+            ),
+        ).taBehandling(beslutter)
+            .iverksett(
+                utøvendeBeslutter = beslutter,
+                attestering = ObjectMother.godkjentAttestering(beslutter),
+            )
+
+        val sakMedIverksattBehandling = sak.copy(behandlinger = Behandlinger(iverksattBehandling))
+
+        val sakMedVedtak = sakMedIverksattBehandling.opprettVedtak(iverksattBehandling)
+
+        return Triple(sakMedVedtak.first, sakMedVedtak.second, iverksattBehandling)
     }
 }
