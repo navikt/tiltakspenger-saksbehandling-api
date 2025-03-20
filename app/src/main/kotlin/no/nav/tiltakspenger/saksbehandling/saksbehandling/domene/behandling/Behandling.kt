@@ -441,7 +441,7 @@ data class Behandling(
 
             REVURDERING -> {
                 require(søknad == null) { "Søknad kan ikke være satt for revurdering" }
-                require(valgtHjemmelHarIkkeRettighet.any { it.type == ValgtHjemmelType.AVSLAG }) { "Revurdering kan ikke bli avslått" }
+                require(valgtHjemmelHarIkkeRettighet.none { it.type == ValgtHjemmelType.AVSLAG }) { "Revurdering kan ikke bli avslått" }
             }
         }
 
@@ -449,7 +449,7 @@ data class Behandling(
             "Valgte hjemler for en behandling kan bare være av en type"
         }
 
-        require(valgtHjemmelHarIkkeRettighet.filter { it.type == ValgtHjemmelType.STANS }.size > 1) {
+        require(valgtHjemmelHarIkkeRettighet.filter { it.type == ValgtHjemmelType.STANS }.size < 1) {
             "Kan ikke ha mer enn en valgt hjemmel for stans på en behandling"
         }
 
