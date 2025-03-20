@@ -61,8 +61,8 @@ internal class MeldekortberegningKorrigeringTest {
     fun `Skal beregne for korrigering`() {
         val sakId = SakId.random()
 
-        val barnetilleggsPerioder = Periodisering<AntallBarn>()
-        val tiltakstypePerioder = Periodisering(
+        val barnetilleggsPerioder = Periodisering<AntallBarn?>()
+        val tiltakstypePerioder = Periodisering<TiltakstypeSomGirRett?>(
             PeriodeMedVerdi(
                 periode = Periode(fraOgMed = førsteDag, tilOgMed = førsteDag.plusDays(100)),
                 verdi = TiltakstypeSomGirRett.JOBBKLUBB,
