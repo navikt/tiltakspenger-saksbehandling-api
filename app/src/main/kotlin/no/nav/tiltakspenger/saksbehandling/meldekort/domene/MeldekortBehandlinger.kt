@@ -96,7 +96,7 @@ data class MeldekortBehandlinger(
                 return KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagFraSperret.left()
             }
         }
-        val (meldekortdager) = kommando.beregn(
+        val (meldekortdager, alleDager) = kommando.beregn(
             eksisterendeMeldekortBehandlinger = this,
             barnetilleggsPerioder = barnetilleggsPerioder,
             tiltakstypePerioder = tiltakstypePerioder,
