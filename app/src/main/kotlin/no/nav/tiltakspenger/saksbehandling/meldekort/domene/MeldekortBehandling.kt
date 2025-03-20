@@ -98,7 +98,6 @@ sealed interface MeldekortBehandling {
                     meldeperiode = meldeperiode,
                     meldekortId = this.id,
                     sakId = this.sakId,
-                    maksDagerMedTiltakspengerForPeriode = meldeperiode.antallDagerForPeriode,
                     tiltakstypePerioder = tiltakstypePerioder,
                 ),
             )
@@ -201,7 +200,6 @@ sealed interface MeldekortBehandling {
                     tiltakstypePerioder = tiltakstypePerioder,
                     meldekortId = this.id,
                     sakId = this.sakId,
-                    maksDagerMedTiltakspengerForPeriode = meldeperiode.antallDagerForPeriode,
                 ),
                 saksbehandler = saksbehandler,
                 navkontor = this.navkontor,
@@ -335,20 +333,14 @@ fun Sak.opprettMeldekortBehandling(
             "Forrige meldekortbehandling i kjeden må være godkjent for å opprette en ny behandling/korrigering (kjede $kjedeId på sak ${this.id})"
         }
     }
-
     val meldekortId = MeldekortId.random()
     val meldeperiode = hentSisteMeldeperiodeForKjede(kjedeId)
-    require(this.vedtaksliste.innvilgelsesperioder.isNotEmpty()) { "Må ha minst én periode som gir rett til tiltakspegner for å opprette meldekortbehandling" }
 
     val overlappendePeriode = this.vedtaksliste.innvilgelsesperioder.overlappendePerioder(
         listOf(meldeperiode.periode),
     ).singleOrNullOrThrow()
 
     requireNotNull(overlappendePeriode) { "Meldeperioden må overlappe med innvilgelsesperioden(e)" }
-
-    // TODO jah: Behandlingen må ta inn periodisert antall dager og ikke bruke tidligere vedtak her. Tror ikke maksDagerMedTiltakspengerForPeriode brukes til noe; kanskje den bør bort fra beregningen?
-    val vedtak = this.vedtaksliste.tidslinjeForPeriode(overlappendePeriode).single().verdi
-    val maksDagerMedTiltakspengerForPeriode = vedtak?.behandling?.maksDagerMedTiltakspengerForPeriode
 
     // TODO abn: må støtte flere brukers meldekort på samme kjede før vi åpner for korrigering fra bruker
     val brukersMeldekort = this.brukersMeldekort.find { it.kjedeId == kjedeId }
@@ -372,8 +364,6 @@ fun Sak.opprettMeldekortBehandling(
             meldeperiode = meldeperiode,
             meldekortId = meldekortId,
             sakId = this.id,
-            // TODO jah: Behandlingen må ta inn periodisert antall dager og ikke bruke tidligere vedtak her. Tror ikke maksDagerMedTiltakspengerForPeriode brukes til noe; kanskje den bør bort fra beregningen?
-            maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode!!,
             tiltakstypePerioder = this.vedtaksliste.tiltakstypeperioder,
         ),
     )

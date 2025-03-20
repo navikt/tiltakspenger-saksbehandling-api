@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.april
 import no.nav.tiltakspenger.saksbehandling.felles.desember
@@ -123,9 +125,11 @@ class MeldeperiodeKjederTest {
 
     @Test
     fun `genererer meldeperioder for et stansvedtak`() {
+        val fnr = Fnr.random()
+        val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
-        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(periode = periode)
-        val stansVedtak = ObjectMother.nyRammevedtakStans(periode = periode)
+        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, periode = periode)
+        val stansVedtak = ObjectMother.nyRammevedtakStans(fnr = fnr, sakId = sakId, periode = periode)
         val vedtaksliste = Vedtaksliste(listOf(innvilgelseVedtak, stansVedtak))
 
         val kjeder = MeldeperiodeKjeder(emptyList())
@@ -140,8 +144,10 @@ class MeldeperiodeKjederTest {
 
     @Test
     fun `genererer meldeperioder for innvilgelse, og deretter annulerer ved stans`() {
+        val fnr = Fnr.random()
+        val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
-        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(periode = periode)
+        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, periode = periode)
         val v1 = Vedtaksliste(listOf(innvilgelseVedtak))
         val kjederV1 = MeldeperiodeKjeder(emptyList())
 
@@ -162,7 +168,7 @@ class MeldeperiodeKjederTest {
             it.first.meldeperioder.last().antallDagerForPeriode shouldBe 2
         }
 
-        val stansVedtak = ObjectMother.nyRammevedtakStans(periode = periode)
+        val stansVedtak = ObjectMother.nyRammevedtakStans(fnr = fnr, sakId = sakId, periode = periode)
         val v2 = Vedtaksliste(listOf(innvilgelseVedtak, stansVedtak))
 
         val actual = nyeKjederV1.genererMeldeperioder(v2, LocalDate.MAX)

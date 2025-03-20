@@ -17,6 +17,9 @@ class MeldekortBehandlingRepoImplTest {
     @Test
     fun `kan lagre og hente`() {
         withMigratedDb { testDataHelper ->
+            val meldekortRepo = testDataHelper.meldekortRepo
+            val sakRepo = testDataHelper.sakRepo
+
             val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
@@ -27,12 +30,7 @@ class MeldekortBehandlingRepoImplTest {
                 saksnummer = sak.saksnummer,
                 meldeperiode = sak.meldeperiodeKjeder.first().first(),
                 periode = sak.meldeperiodeKjeder.first().first().periode,
-            )
-
-            val meldekortRepo = testDataHelper.meldekortRepo
-            val sakRepo = testDataHelper.sakRepo
-
-            meldekortRepo.lagre(meldekort)
+            ).also { meldekortRepo.lagre(it) }
 
             testDataHelper.sessionFactory.withSession {
                 MeldekortBehandlingPostgresRepo.hentForMeldekortId(meldekort.id, it)!! shouldBe meldekort
@@ -47,16 +45,11 @@ class MeldekortBehandlingRepoImplTest {
                 oppdatertSak.meldeperiodeKjeder.last().kjedeId,
                 ObjectMother.navkontor(),
                 ObjectMother.saksbehandler(),
-            )
-
-            meldekortRepo.lagre(nesteMeldekort)
+            ).also { meldekortRepo.lagre(it) }
 
             val hentForMeldekortId2 =
                 testDataHelper.sessionFactory.withSession {
-                    MeldekortBehandlingPostgresRepo.hentForMeldekortId(
-                        nesteMeldekort.id,
-                        it,
-                    )
+                    MeldekortBehandlingPostgresRepo.hentForMeldekortId(nesteMeldekort.id, it)
                 }
             hentForMeldekortId2 shouldBe nesteMeldekort
         }
@@ -92,7 +85,10 @@ class MeldekortBehandlingRepoImplTest {
             meldekortRepo.oppdater(oppdatertMeldekortBehandling)
 
             testDataHelper.sessionFactory.withSession {
-                MeldekortBehandlingPostgresRepo.hentForMeldekortId(meldekortBehandling.id, it)!! shouldBe oppdatertMeldekortBehandling
+                MeldekortBehandlingPostgresRepo.hentForMeldekortId(
+                    meldekortBehandling.id,
+                    it,
+                )!! shouldBe oppdatertMeldekortBehandling
             }
         }
     }

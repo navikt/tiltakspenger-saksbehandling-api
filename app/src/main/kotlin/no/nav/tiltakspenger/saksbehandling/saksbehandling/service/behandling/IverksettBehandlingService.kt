@@ -141,9 +141,7 @@ class IverksettBehandlingService(
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
             oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, tx) }
-            meldeperioder.forEach {
-                meldeperiodeRepo.lagre(it, tx)
-            }
+            meldeperiodeRepo.lagre(meldeperioder, tx)
         }
         return oppdatertSak.copy(meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
     }
@@ -164,7 +162,7 @@ class IverksettBehandlingService(
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
             oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, tx) }
-            oppdaterteMeldeperioder.forEach { meldeperiodeRepo.lagre(it, tx) }
+            meldeperiodeRepo.lagre(oppdaterteMeldeperioder, tx)
         }
         return oppdatertSak.copy(meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
     }

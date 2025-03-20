@@ -126,11 +126,12 @@ interface SakMother {
     }
 
     fun nySakMedVedtak(
-        sakId: SakId = ObjectMother.saksId,
-        fnr: Fnr = ObjectMother.fnr,
-        saksnummer: Saksnummer = ObjectMother.saksnummer,
+        sakId: SakId = SakId.random(),
+        fnr: Fnr = Fnr.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         saksbehandler: Saksbehandler = saksbehandler(),
         virkningsperiode: Periode = virkningsperiode(),
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): Triple<Sak, Vedtak, Behandling> {
         val (sak, førstegangsbehandling) = this.sakMedOpprettetBehandling(
             sakId = sakId,
@@ -154,10 +155,10 @@ interface SakMother {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
             ),
-        ).taBehandling(ObjectMother.beslutter)
+        ).taBehandling(beslutter)
             .iverksett(
-                utøvendeBeslutter = ObjectMother.beslutter,
-                attestering = ObjectMother.godkjentAttestering(ObjectMother.beslutter),
+                utøvendeBeslutter = beslutter,
+                attestering = ObjectMother.godkjentAttestering(beslutter),
             )
 
         val sakMedIverksattBehandling = sak.copy(behandlinger = Behandlinger(iverksattBehandling))

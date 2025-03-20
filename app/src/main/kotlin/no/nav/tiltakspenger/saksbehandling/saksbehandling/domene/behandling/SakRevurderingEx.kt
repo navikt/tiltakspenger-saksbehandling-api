@@ -33,7 +33,7 @@ suspend fun Sak.startRevurdering(
     }
 
     // TODO - dette gjelder bare så lenge dette er en stans revurdering
-    // Her har vi ikke valgt revurderingsperioden, men revurderingsperioden kan aldri være større enn innvilgelseprioden
+    // Her har vi ikke valgt revurderingsperioden, men ved forlengelse vil den kunne være større.
     val saksopplysningsperiode = this.vedtaksliste.innvilgelsesperiode!!
 
     val revurdering = Behandling.opprettRevurdering(

@@ -73,9 +73,7 @@ internal class MeldeperiodePostgresRepo(
 
     override fun lagre(meldeperioder: List<Meldeperiode>, sessionContext: SessionContext?) {
         sessionFactory.withSessionContext(sessionContext) { sc ->
-            meldeperioder.forEach {
-                lagre(it, sc)
-            }
+            meldeperioder.forEach { lagre(it, sc) }
         }
     }
 

@@ -27,8 +27,8 @@ data class Meldeperiode(
     val girRett: Map<LocalDate, Boolean>,
     val sendtTilMeldekortApi: LocalDateTime?,
 ) : Comparable<Meldeperiode> {
-    val ingenDagerGirRett = girRett.values.none { it }
     val antallDagerSomGirRett = girRett.values.count { it }
+    val ingenDagerGirRett = antallDagerSomGirRett == 0
 
     fun helePeriodenErSperret(): Boolean {
         return girRett.values.toList().all { !it }
@@ -40,7 +40,12 @@ data class Meldeperiode(
     }
 
     fun erLik(meldeperiode: Meldeperiode): Boolean {
-        return this.kjedeId == meldeperiode.kjedeId && this.sakId == meldeperiode.sakId && this.saksnummer == meldeperiode.saksnummer && this.fnr == meldeperiode.fnr && this.periode == meldeperiode.periode && this.antallDagerForPeriode == meldeperiode.antallDagerForPeriode && this.girRett == meldeperiode.girRett
+        // feltene vi har lyst til å ignorere
+        return this == meldeperiode.copy(
+            id = this.id,
+            opprettet = this.opprettet,
+            versjon = this.versjon,
+        )
     }
 
     override fun compareTo(other: Meldeperiode): Int {

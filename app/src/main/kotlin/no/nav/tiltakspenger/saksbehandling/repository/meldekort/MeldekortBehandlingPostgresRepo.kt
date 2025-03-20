@@ -178,18 +178,18 @@ class MeldekortBehandlingPostgresRepo(
             row: Row,
             session: Session,
         ): MeldekortBehandling {
+            val meldeperiodeId = MeldeperiodeId.fromString(row.string("meldeperiode_id"))
+            val meldeperiode = MeldeperiodePostgresRepo.hentForMeldeperiodeId(meldeperiodeId, session)
+
             val id = MeldekortId.fromString(row.string("id"))
             val sakId = SakId.fromString(row.string("sak_id"))
             val saksnummer = Saksnummer(row.string("saksnummer"))
             val navkontorEnhetsnummer = row.string("navkontor")
             val navkontorNavn = row.stringOrNull("navkontor_navn")
             val fnr = Fnr.fromString(row.string("fnr"))
-            val maksDagerMedTiltakspengerForPeriode = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+            val maksDagerMedTiltakspengerForPeriode = meldeperiode?.antallDagerForPeriode ?: Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
             val opprettet = row.localDateTime("opprettet")
             val type = row.string("type").tilMeldekortBehandlingType()
-
-            val meldeperiodeId = MeldeperiodeId.fromString(row.string("meldeperiode_id"))
-            val meldeperiode = MeldeperiodePostgresRepo.hentForMeldeperiodeId(meldeperiodeId, session)
 
             val navkontor = Navkontor(kontornummer = navkontorEnhetsnummer, kontornavn = navkontorNavn)
 

@@ -195,7 +195,6 @@ interface MeldekortMother {
             meldeperiode = meldeperiode,
             meldekortId = meldekortId,
             sakId = sakId,
-            maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
             tiltakstypePerioder = tiltakstypePerioder,
         )
     }
@@ -343,7 +342,6 @@ interface MeldekortMother {
                         meldeperiode = meldeperiode,
                         tiltakstypePerioder = tiltakstypePerioder,
                         meldekortId = meldekortId,
-                        maksDagerMedTiltakspengerForPeriode = kommando.dager.size,
                     ),
                     ikkeRettTilTiltakspengerTidspunkt = null,
                     meldeperiode = meldeperiode,
@@ -397,7 +395,6 @@ interface MeldekortMother {
                     meldeperiode = meldeperiode,
                     tiltakstypePerioder = tiltakstypePerioder,
                     meldekortId = meldekortId,
-                    maksDagerMedTiltakspengerForPeriode = kommando.dager.size,
                 ),
                 ikkeRettTilTiltakspengerTidspunkt = null,
                 meldeperiode = meldeperiode,

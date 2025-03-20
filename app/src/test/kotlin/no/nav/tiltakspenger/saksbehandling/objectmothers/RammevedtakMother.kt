@@ -1,14 +1,17 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.januar
 import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtakstype
 import java.time.LocalDate
@@ -20,9 +23,11 @@ interface RammevedtakMother {
         opprettet: LocalDateTime = nå(),
         sakId: SakId = SakId.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
+        fnr: Fnr = Fnr.random(),
         behandling: Behandling = ObjectMother.nyVedtattBehandling(
             sakId = sakId,
             virkningsperiode = periode,
+            fnr = fnr,
         ),
         vedtaksdato: LocalDate = 2.januar(2023),
         vedtaksType: Vedtakstype = Vedtakstype.INNVILGELSE,
@@ -51,13 +56,14 @@ interface RammevedtakMother {
     fun nyRammevedtakInnvilgelse(
         id: VedtakId = VedtakId.random(),
         opprettet: LocalDateTime = nå(),
-        sakId: SakId = ObjectMother.saksId,
+        sakId: SakId = SakId.random(),
+        fnr: Fnr = Fnr.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
         behandling: Behandling = ObjectMother.nyVedtattBehandling(
             sakId = sakId,
             virkningsperiode = periode,
-            saksnummer = ObjectMother.saksnummer,
-            fnr = ObjectMother.fnr,
+            saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+            fnr = fnr,
         ),
         vedtaksdato: LocalDate = 2.januar(2023),
         journalpostId: JournalpostId? = null,
@@ -85,13 +91,14 @@ interface RammevedtakMother {
     fun nyRammevedtakStans(
         id: VedtakId = VedtakId.random(),
         opprettet: LocalDateTime = nå(),
-        sakId: SakId = ObjectMother.saksId,
+        sakId: SakId = SakId.random(),
+        fnr: Fnr = Fnr.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
         behandling: Behandling = ObjectMother.nyVedtattBehandling(
             sakId = sakId,
             virkningsperiode = periode,
-            saksnummer = ObjectMother.saksnummer,
-            fnr = ObjectMother.fnr,
+            saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+            fnr = fnr,
             behandlingstype = Behandlingstype.REVURDERING,
             søknad = null,
         ),
