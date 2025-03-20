@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
+import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -37,8 +38,6 @@ private data class MeldekortBeregning(
     val barnetilleggsPerioder: Periodisering<AntallBarn?>,
     val tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
 ) {
-    private val meldekortId = kommando.meldekortId
-
     private var sykTilstand: SykTilstand = SykTilstand.FullUtbetaling
     private var egenmeldingsdagerSyk: Int = ANTALL_EGENMELDINGSDAGER
     private var sykKaranteneDag: LocalDate? = null
@@ -50,6 +49,7 @@ private data class MeldekortBeregning(
     private var sisteSyktBarnSykedag: LocalDate? = null
 
     init {
+        val meldekortId = kommando.meldekortId
         val meldekortSomSkalUtfylles = eksisterendeMeldekortPåSaken.hentMeldekortBehandling(meldekortId)
 
         require(eksisterendeMeldekortPåSaken.sakId == kommando.sakId) {
@@ -67,6 +67,7 @@ private data class MeldekortBeregning(
 
     /** Returnerer beregnede dager fra kommando, og (om-)beregning for alle dager på saken  */
     fun beregn(): Pair<NonEmptyList<MeldeperiodeBeregningDag.Utfylt>, List<MeldeperiodeBeregningDag.Utfylt>> {
+        val oppdatertMeldekortId = kommando.meldekortId
         val oppdaterteDager = kommando.dager
         val eksisterendeDager = eksisterendeMeldekortPåSaken.utfylteDager
             .filter { eksisterendeDag ->
@@ -80,17 +81,18 @@ private data class MeldekortBeregning(
             }
 
             val dag = meldekortdag.dato
+            val meldekortId = meldekortdag.meldekortId
             val antallBarn: AntallBarn = barnetilleggsPerioder.hentVerdiForDag(dag) ?: AntallBarn.ZERO
 
             when (meldekortdag) {
-                is Sperret -> sperret(dag)
-                is VelferdGodkjentAvNav -> gyldigFravær(tiltakstype, dag, antallBarn)
-                is VelferdIkkeGodkjentAvNav -> ugyldigFravær(tiltakstype, dag, antallBarn)
-                is SyktBarn -> fraværSykBarn(tiltakstype, dag, antallBarn)
-                is SykBruker -> fraværSyk(tiltakstype, dag, antallBarn)
-                is IkkeDeltatt -> ikkeDeltatt(tiltakstype, dag, antallBarn)
-                is DeltattMedLønnITiltaket -> deltattMedLønn(tiltakstype, dag, antallBarn)
-                is DeltattUtenLønnITiltaket -> deltattUtenLønn(tiltakstype, dag, antallBarn)
+                is Sperret -> sperret(dag, meldekortId)
+                is VelferdGodkjentAvNav -> gyldigFravær(dag, meldekortId, tiltakstype, antallBarn)
+                is VelferdIkkeGodkjentAvNav -> ugyldigFravær(dag, meldekortId, tiltakstype, antallBarn)
+                is SyktBarn -> fraværSykBarn(dag, meldekortId, tiltakstype, antallBarn)
+                is SykBruker -> fraværSyk(dag, meldekortId, tiltakstype, antallBarn)
+                is IkkeDeltatt -> ikkeDeltatt(dag, meldekortId, tiltakstype, antallBarn)
+                is DeltattMedLønnITiltaket -> deltattMedLønn(dag, meldekortId, tiltakstype, antallBarn)
+                is DeltattUtenLønnITiltaket -> deltattUtenLønn(dag, meldekortId, tiltakstype, antallBarn)
             }
         }
 
@@ -105,14 +107,14 @@ private data class MeldekortBeregning(
             val antallBarn: AntallBarn = barnetilleggsPerioder.hentVerdiForDag(dag) ?: AntallBarn.ZERO
 
             when (meldekortdag.status) {
-                SPERRET -> sperret(dag)
-                DELTATT_UTEN_LØNN_I_TILTAKET -> deltattUtenLønn(tiltakstype, dag, antallBarn)
-                DELTATT_MED_LØNN_I_TILTAKET -> deltattMedLønn(tiltakstype, dag, antallBarn)
-                IKKE_DELTATT -> ikkeDeltatt(tiltakstype, dag, antallBarn)
-                FRAVÆR_SYK -> fraværSyk(tiltakstype, dag, antallBarn)
-                FRAVÆR_SYKT_BARN -> fraværSykBarn(tiltakstype, dag, antallBarn)
-                FRAVÆR_VELFERD_GODKJENT_AV_NAV -> gyldigFravær(tiltakstype, dag, antallBarn)
-                FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> ugyldigFravær(tiltakstype, dag, antallBarn)
+                SPERRET -> sperret(dag, oppdatertMeldekortId)
+                DELTATT_UTEN_LØNN_I_TILTAKET -> deltattUtenLønn(dag, oppdatertMeldekortId, tiltakstype, antallBarn)
+                DELTATT_MED_LØNN_I_TILTAKET -> deltattMedLønn(dag, oppdatertMeldekortId, tiltakstype, antallBarn)
+                IKKE_DELTATT -> ikkeDeltatt(dag, oppdatertMeldekortId, tiltakstype, antallBarn)
+                FRAVÆR_SYK -> fraværSyk(dag, oppdatertMeldekortId, tiltakstype, antallBarn)
+                FRAVÆR_SYKT_BARN -> fraværSykBarn(dag, oppdatertMeldekortId, tiltakstype, antallBarn)
+                FRAVÆR_VELFERD_GODKJENT_AV_NAV -> gyldigFravær(dag, oppdatertMeldekortId, tiltakstype, antallBarn)
+                FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> ugyldigFravær(dag, oppdatertMeldekortId, tiltakstype, antallBarn)
             }
         }
 
@@ -130,8 +132,9 @@ private data class MeldekortBeregning(
     }
 
     private fun deltattUtenLønn(
-        tiltakstype: TiltakstypeSomGirRett,
         dag: LocalDate,
+        meldekortId: MeldekortId,
+        tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,
     ): DeltattUtenLønnITiltaket {
         sjekkSykKarantene(dag)
@@ -145,8 +148,9 @@ private data class MeldekortBeregning(
     }
 
     private fun gyldigFravær(
-        tiltakstype: TiltakstypeSomGirRett,
         dag: LocalDate,
+        meldekortId: MeldekortId,
+        tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,
     ): VelferdGodkjentAvNav {
         sjekkSykKarantene(dag)
@@ -160,8 +164,9 @@ private data class MeldekortBeregning(
     }
 
     private fun ugyldigFravær(
-        tiltakstype: TiltakstypeSomGirRett,
         dag: LocalDate,
+        meldekortId: MeldekortId,
+        tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,
     ): VelferdIkkeGodkjentAvNav {
         sjekkSykKarantene(dag)
@@ -176,6 +181,7 @@ private data class MeldekortBeregning(
 
     private fun sperret(
         dag: LocalDate,
+        meldekortId: MeldekortId,
     ): Sperret {
         sjekkSykKarantene(dag)
         sjekkSykBarnKarantene(dag)
@@ -186,8 +192,9 @@ private data class MeldekortBeregning(
     }
 
     private fun ikkeDeltatt(
-        tiltakstype: TiltakstypeSomGirRett,
         dag: LocalDate,
+        meldekortId: MeldekortId,
+        tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,
     ): IkkeDeltatt {
         sjekkSykKarantene(dag)
@@ -201,8 +208,9 @@ private data class MeldekortBeregning(
     }
 
     private fun deltattMedLønn(
-        tiltakstype: TiltakstypeSomGirRett,
         dag: LocalDate,
+        meldekortId: MeldekortId,
+        tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,
     ): DeltattMedLønnITiltaket {
         sjekkSykKarantene(dag)
@@ -216,8 +224,9 @@ private data class MeldekortBeregning(
     }
 
     private fun fraværSyk(
-        tiltakstype: TiltakstypeSomGirRett,
         dag: LocalDate,
+        meldekortId: MeldekortId,
+        tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,
     ): SykBruker {
         sisteSykedag = dag
@@ -289,8 +298,9 @@ private data class MeldekortBeregning(
     }
 
     private fun fraværSykBarn(
-        tiltakstype: TiltakstypeSomGirRett,
         dag: LocalDate,
+        meldekortId: MeldekortId,
+        tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,
     ): SyktBarn {
         sisteSykedag = dag
