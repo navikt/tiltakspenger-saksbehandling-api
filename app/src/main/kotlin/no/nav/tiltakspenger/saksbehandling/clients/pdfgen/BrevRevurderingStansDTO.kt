@@ -17,9 +17,9 @@ private class BrevRevurderingStansDTO(
     val saksnummer: String,
     val datoForUtsending: String,
     val barnetillegg: Boolean = false,
-    @Deprecated("rammevedtakFraDato er renamet til virkningsperiodeFraDato, beholdes frem til pdfgen har fjernet bruken")
+    @Deprecated("rammevedtakFraDato er renamet til virkningsperiodeFraDato, beholdes til pdfgen har fjernet bruken")
     val rammevedtakFraDato: String,
-    @Deprecated("rammevedtakTilDato er renamet til virkvirkningsperiodeTilDatoningsperiodeFraDato, beholdes til pdfgen har fjernet bruken")
+    @Deprecated("rammevedtakTilDato er renamet til virkningsperiodeTilDato, beholdes til pdfgen har fjernet bruken")
     val rammevedtakTilDato: String,
     val virkningsperiodeFraDato: String,
     val virkningsperiodeTilDato: String,
