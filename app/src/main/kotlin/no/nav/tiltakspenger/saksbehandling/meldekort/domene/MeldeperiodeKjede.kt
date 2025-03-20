@@ -37,6 +37,9 @@ data class MeldeperiodeKjede(
             require(a.versjon < b.versjon) {
                 "Meldeperiodene må være sortert på versjon - ${a.id} og ${b.id} var i feil rekkefølge"
             }
+            require(a.opprettet != b.opprettet) {
+                "Meldeperodene må ha ulik opprettelses tidspunkt - ${a.id} og ${b.id} var like"
+            }
             require(a.id != b.id)
             require(!a.erLik(b)) {
                 "Meldeperiodene må være unike - ${a.id} og ${b.id} var like"

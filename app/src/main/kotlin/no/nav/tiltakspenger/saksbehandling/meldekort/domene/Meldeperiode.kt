@@ -40,12 +40,11 @@ data class Meldeperiode(
     }
 
     fun erLik(meldeperiode: Meldeperiode): Boolean {
-        // feltene vi har lyst til å ignorere
-        return this == meldeperiode.copy(
-            id = this.id,
-            opprettet = this.opprettet,
-            versjon = this.versjon,
-        )
+        /**
+         * Må oppdaters dersom det kommer nytt felt som vi har lyst å sammenligne på,
+         * men er bedre at det ikke opprettes nye meldeperioder
+         */
+        return this.kjedeId == meldeperiode.kjedeId && this.sakId == meldeperiode.sakId && this.saksnummer == meldeperiode.saksnummer && this.fnr == meldeperiode.fnr && this.periode == meldeperiode.periode && this.antallDagerForPeriode == meldeperiode.antallDagerForPeriode && this.girRett == meldeperiode.girRett
     }
 
     override fun compareTo(other: Meldeperiode): Int {
