@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person
 
 import arrow.core.Either
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId

@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.clients.meldekort
 
 import arrow.core.Either
 import arrow.core.left
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.future.await
-import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
@@ -39,7 +39,7 @@ class MeldekortApiHttpClient(
             if (status !in 200..299) {
                 val body: String = response.body()
                 with("Feilrespons ved sending av ${meldeperiode.kjedeId}/${meldeperiode.id} til meldekort-api - status: $status") {
-                    logger.error(this)
+                    logger.error { this }
                     sikkerlogg.error { "$this - Response body: $body" }
                 }
                 return FeilVedSendingTilMeldekortApi.left()

@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.auditlog
 
 import arrow.core.Either
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -129,8 +129,8 @@ object AuditLogger {
 
     fun log(logEvent: AuditLogEvent) {
         when (logEvent.logLevel) {
-            AuditLogEvent.Level.INFO -> auditLogger.info(compileLogMessage(logEvent))
-            AuditLogEvent.Level.WARN -> auditLogger.warn(compileLogMessage(logEvent))
+            AuditLogEvent.Level.INFO -> auditLogger.info { compileLogMessage(logEvent) }
+            AuditLogEvent.Level.WARN -> auditLogger.warn { compileLogMessage(logEvent) }
         }
     }
 

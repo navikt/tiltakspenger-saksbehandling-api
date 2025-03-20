@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.Oppgavebehov

@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.routes.behandling.beslutter
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
@@ -28,7 +28,7 @@ fun Route.behandlingBeslutterRoutes(
 ) {
     val logger = KotlinLogging.logger {}
     post("$BEHANDLING_PATH/sendtilbake/{behandlingId}") {
-        logger.debug("Mottatt post-request på '$BEHANDLING_PATH/sendtilbake/{behandlingId}' - sender behandling tilbake til saksbehandler")
+        logger.debug { "Mottatt post-request på '$BEHANDLING_PATH/sendtilbake/{behandlingId}' - sender behandling tilbake til saksbehandler" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withBehandlingId { behandlingId ->
                 call.withBody<BegrunnelseDTO> { body ->

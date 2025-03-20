@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.ContentTransformationException
 import io.ktor.server.request.uri
-import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound

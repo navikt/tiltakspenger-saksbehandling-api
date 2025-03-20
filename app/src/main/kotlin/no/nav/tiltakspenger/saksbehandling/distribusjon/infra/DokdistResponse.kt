@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.distribusjon.infra
 
 import arrow.core.Either
-import mu.KLogger
+import io.github.oshai.kotlinlogging.KLogger
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.distribusjon.KunneIkkeDistribuereDokument

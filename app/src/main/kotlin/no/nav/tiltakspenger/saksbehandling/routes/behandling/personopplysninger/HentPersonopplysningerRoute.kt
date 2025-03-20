@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.routes.behandling.personopplysninger
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import mu.KotlinLogging
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
@@ -26,7 +26,7 @@ fun Route.hentPersonRoute(
 ) {
     val logger = KotlinLogging.logger {}
     get("$SAK_PATH/{sakId}/personopplysninger") {
-        logger.debug("Mottatt get-request på '$SAK_PATH/{sakId}/personopplysninger' - henter personopplysninger for en sak")
+        logger.debug { "Mottatt get-request på '$SAK_PATH/{sakId}/personopplysninger' - henter personopplysninger for en sak" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 val correlationId = call.correlationId()

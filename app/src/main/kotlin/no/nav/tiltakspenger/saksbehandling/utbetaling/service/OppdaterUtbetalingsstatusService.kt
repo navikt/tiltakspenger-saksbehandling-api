@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.UtbetalingGateway
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor

@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.clients.person
 import arrow.core.Either
 import arrow.core.getOrElse
 import com.fasterxml.jackson.module.kotlin.readValue
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.AdressebeskyttelseGradering
