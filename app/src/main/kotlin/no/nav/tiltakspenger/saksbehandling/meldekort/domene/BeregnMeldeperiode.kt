@@ -69,7 +69,7 @@ private data class MeldekortBeregning(
     fun beregn(): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
         val oppdatertMeldekortId = kommando.meldekortId
         val oppdaterteDager = kommando.dager
-        val oppdatertFraOgMed = kommando.dager.first().dag
+        val oppdatertTilOgMed = kommando.dager.last().dag
 
         val eksisterendeDager = eksisterendeMeldekortPåSaken.utfylteDager
             .filter { eksisterendeDag ->
@@ -97,7 +97,7 @@ private data class MeldekortBeregning(
                 is DeltattUtenLønnITiltaket -> deltattUtenLønn(dag, meldekortId, tiltakstype, antallBarn)
             }
 
-            if (dag > oppdatertFraOgMed) utfyltDag else null
+            if (dag > oppdatertTilOgMed) utfyltDag else null
         }
 
         val oppdaterteDagerBeregnet = oppdaterteDager.map { meldekortdag ->
