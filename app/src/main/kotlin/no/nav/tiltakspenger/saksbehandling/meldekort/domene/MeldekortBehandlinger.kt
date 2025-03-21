@@ -40,8 +40,8 @@ data class MeldekortBehandlinger(
     private val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
 
     /** Under behandling er ikke-avsluttede meldekortbehandlinger som ikke er til beslutning. */
-    val meldekortUnderBehandling: List<MeldekortUnderBehandling> by lazy {
-        verdi.filterIsInstance<MeldekortUnderBehandling>()
+    val meldekortUnderBehandling: MeldekortUnderBehandling? by lazy {
+        verdi.filterIsInstance<MeldekortUnderBehandling>().singleOrNullOrThrow()
     }
 
     val godkjenteMeldekort: List<MeldekortBehandlet> by lazy { behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
@@ -72,21 +72,21 @@ data class MeldekortBehandlinger(
         clock: Clock,
     ): Either<KanIkkeSendeMeldekortTilBeslutning, Pair<MeldekortBehandlinger, MeldekortBehandlet>> {
         val meldekortId = kommando.meldekortId
+        val meldekort = meldekortUnderBehandling
 
-        val meldekortUnderBehandling = hentMeldekortBehandling(meldekortId)
-
-        requireNotNull(meldekortUnderBehandling) {
-            "Fant ikke innsendt meldekort $meldekortId på saken"
-        }
-        require(meldekortUnderBehandling is MeldekortUnderBehandling) {
-            "Innsendt meldekort $meldekortId er ikke under behandling"
+        requireNotNull(meldekort) {
+            "Fant ingen meldekort under behandling på saken"
         }
 
-        if (kommando.periode != meldekortUnderBehandling.periode) {
+        require(meldekort.id == meldekortId) {
+            "MeldekortId i kommando ($meldekortId) samsvarer ikke med meldekortet som er under behandling (${meldekort.id})"
+        }
+
+        if (kommando.periode != meldekort.periode) {
             return InnsendteDagerMåMatcheMeldeperiode.left()
         }
 
-        kommando.dager.dager.zip(meldekortUnderBehandling.beregning.dager).forEach { (dagA, dagB) ->
+        kommando.dager.dager.zip(meldekort.beregning.dager).forEach { (dagA, dagB) ->
             if (dagA.status == Status.SPERRET && dagB !is MeldeperiodeBeregningDag.Utfylt.Sperret) {
                 log.error { "Kan ikke endre dag til sperret. Nåværende tilstand: $utfylteDager. Innsendte dager: ${kommando.dager}" }
                 return KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagTilSperret.left()
@@ -102,7 +102,7 @@ data class MeldekortBehandlinger(
             tiltakstypePerioder = tiltakstypePerioder,
         )
         val utfyltMeldeperiode =
-            meldekortUnderBehandling.beregning.tilUtfyltMeldeperiode(meldekortDagerBeregnet).getOrElse {
+            meldekort.beregning.tilUtfyltMeldeperiode(meldekortDagerBeregnet).getOrElse {
                 return it.left()
             }
 
@@ -182,8 +182,8 @@ data class MeldekortBehandlinger(
                 "Meldekortperiodene må være sammenhengende og sortert, men var ${verdi.map { it.periode }}"
             }
         }
-        require(førsteBehandlinger.dropLast(1).all { it is MeldekortBehandlet }) {
-            "Kun den siste førstegangsbehandlingen av meldeperiodene kan være i tilstanden 'under behandling', de N første må være 'behandlet'."
+        require(verdi.count { it is MeldekortUnderBehandling } <= 1) {
+            "Kun ett meldekort kan være i tilstanden 'under behandling'"
         }
         require(verdi.map { it.sakId }.distinct().size <= 1) {
             "Alle meldekortperioder må tilhøre samme sak."
