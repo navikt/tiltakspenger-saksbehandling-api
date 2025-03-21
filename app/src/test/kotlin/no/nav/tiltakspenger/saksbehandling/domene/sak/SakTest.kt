@@ -75,11 +75,17 @@ class SakTest {
         fun `for en sak med et vedtak`() {
             val virkningsperiode = Periode(9.april(2024), 16.april(2024))
             val (sak) = ObjectMother.nySakMedVedtak(virkningsperiode = virkningsperiode)
-            val actual = sak.genererMeldeperioder()
+            val (sakMedMeldeperioder, meldeperioder) = sak.genererMeldeperioder()
 
-            actual.let {
-                it.first.meldeperiodeKjeder.single() shouldBe it.second
+            sakMedMeldeperioder.let {
+                it.meldeperiodeKjeder.single() shouldBe meldeperioder
+                meldeperioder.size shouldBe 1
             }
+
+            val (sakDerViPrøverÅGenerePåNytt, nyeMeldeperioder) = sakMedMeldeperioder.genererMeldeperioder()
+
+            sakMedMeldeperioder shouldBe sakDerViPrøverÅGenerePåNytt
+            nyeMeldeperioder.size shouldBe 0
         }
     }
 }
