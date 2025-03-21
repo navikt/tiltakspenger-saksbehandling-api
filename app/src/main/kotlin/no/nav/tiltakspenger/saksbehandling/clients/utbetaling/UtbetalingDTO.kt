@@ -27,8 +27,9 @@ fun Utbetalingsvedtak.toDTO(
 ): String {
     val forrigeUtbetaling = forrigeUtbetalingJson?.let { deserialize<IverksettV2Dto>(it) }
     val vedtak: Utbetalingsvedtak = this
-    val nyeUtbetalingerStønad = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = false)
-    val nyeUtbetalingerBarnetillegg = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = true)
+
+    val utbetalingerStønad = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = false)
+    val utbetalingerBarnetillegg = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = true)
 
     return IverksettV2Dto(
         sakId = vedtak.saksnummer.toString(),
@@ -42,10 +43,7 @@ fun Utbetalingsvedtak.toDTO(
             vedtakstidspunkt = vedtak.opprettet,
             saksbehandlerId = vedtak.saksbehandler,
             beslutterId = vedtak.beslutter,
-            utbetalinger = (
-                forrigeUtbetaling?.vedtak?.utbetalinger
-                    ?: emptyList()
-                ) + nyeUtbetalingerStønad + nyeUtbetalingerBarnetillegg,
+            utbetalinger = utbetalingerStønad + utbetalingerBarnetillegg,
         ),
         forrigeIverksetting =
         vedtak.forrigeUtbetalingsvedtakId?.let { ForrigeIverksettingV2Dto(behandlingId = it.uuidPart()) },
@@ -58,8 +56,7 @@ private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
 ): List<UtbetalingV2Dto> {
-    return this.beregning.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->
-        meldekortdag as MeldeperiodeBeregningDag.Utfylt
+    return this.beregning.dagerForHeleSaken.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->
         val kjedeId = this.kjedeId
         when (val sisteUtbetalingsperiode = acc.lastOrNull()) {
             null -> {
@@ -72,9 +69,9 @@ private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
 
             else ->
                 sisteUtbetalingsperiode.leggTil(
-                    meldekortdag,
-                    this.kjedeId,
-                    brukersNavKontor,
+                    meldekortdag = meldekortdag,
+                    kjedeId = kjedeId,
+                    brukersNavKontor = brukersNavKontor,
                     barnetillegg = barnetillegg,
                 ).let {
                     when (it) {

@@ -165,15 +165,17 @@ interface MeldekortMother : MotherOfAllMothers {
         maksDagerMedTiltakspengerForPeriode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
     ): MeldeperiodeBeregning.UtfyltMeldeperiode {
+        val dager = maksAntallDeltattTiltaksdagerIMeldekortperiode(
+            startDato,
+            meldekortId,
+            tiltakstype,
+            barnetilleggsPerioder,
+        )
         return MeldeperiodeBeregning.UtfyltMeldeperiode(
             sakId = sakId,
             maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-            dager = maksAntallDeltattTiltaksdagerIMeldekortperiode(
-                startDato,
-                meldekortId,
-                tiltakstype,
-                barnetilleggsPerioder,
-            ),
+            dager = dager,
+            dagerForHeleSaken = dager,
         )
     }
 

@@ -212,6 +212,7 @@ class MeldekortBehandlingPostgresRepo(
                         sakId = sakId,
                         meldekortId = id,
                         maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
+                        periode = meldeperiode.periode,
                     )
 
                     MeldekortBehandlet(
