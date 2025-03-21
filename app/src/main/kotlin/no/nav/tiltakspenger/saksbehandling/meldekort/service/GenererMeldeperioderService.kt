@@ -24,8 +24,9 @@ class GenererMeldeperioderService(
                 val sak = sakRepo.hentForSakId(sakId)!!
                 val (sakMedNyeMeldeperioder, meldeperioder) = sak.genererMeldeperioder(clock)
                 sessionFactory.withTransactionContext { tx ->
-                    sakRepo.oppdaterSisteDagSomGirRett(
+                    sakRepo.oppdaterFørsteOgSisteDagSomGirRett(
                         sakId = sakId,
+                        førsteDagSomGirRett = sakMedNyeMeldeperioder.førsteDagSomGirRett,
                         sisteDagSomGirRett = sakMedNyeMeldeperioder.sisteDagSomGirRett,
                         sessionContext = tx,
                     )

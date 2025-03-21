@@ -88,8 +88,9 @@ class SakFakeRepo(
         return hentSak(sakId)
     }
 
-    override fun oppdaterSisteDagSomGirRett(
+    override fun oppdaterFørsteOgSisteDagSomGirRett(
         sakId: SakId,
+        førsteDagSomGirRett: LocalDate?,
         sisteDagSomGirRett: LocalDate?,
         sessionContext: SessionContext?,
     ) {

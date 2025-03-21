@@ -204,11 +204,13 @@ class SakServiceImpl(
      */
     override fun oppdaterSisteDagSomGirRett(
         sakId: SakId,
+        førsteDagSomGirRett: LocalDate?,
         sisteDagSomGirRett: LocalDate?,
         sessionContext: SessionContext,
     ) {
-        sakRepo.oppdaterSisteDagSomGirRett(
+        sakRepo.oppdaterFørsteOgSisteDagSomGirRett(
             sakId = sakId,
+            førsteDagSomGirRett = førsteDagSomGirRett,
             sisteDagSomGirRett = sisteDagSomGirRett,
             sessionContext = sessionContext,
         )

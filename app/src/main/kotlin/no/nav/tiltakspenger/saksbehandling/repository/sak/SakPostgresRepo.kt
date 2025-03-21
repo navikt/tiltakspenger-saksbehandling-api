@@ -185,8 +185,9 @@ internal class SakPostgresRepo(
             }
         }
 
-    override fun oppdaterSisteDagSomGirRett(
+    override fun oppdaterFørsteOgSisteDagSomGirRett(
         sakId: SakId,
+        førsteDagSomGirRett: LocalDate?,
         sisteDagSomGirRett: LocalDate?,
         sessionContext: SessionContext?,
     ) {
@@ -195,9 +196,10 @@ internal class SakPostgresRepo(
                 session.run(
                     queryOf(
                         """
-                        update sak set siste_dag_som_gir_rett = :siste_dag_som_gir_rett where id = :sak_id
+                        update sak set første_dag_som_gir_rett = :forste_dag_som_gir_rett, siste_dag_som_gir_rett = :siste_dag_som_gir_rett where id = :sak_id
                         """.trimIndent(),
                         mapOf(
+                            "forste_dag_som_gir_rett" to førsteDagSomGirRett,
                             "siste_dag_som_gir_rett" to sisteDagSomGirRett,
                             "sak_id" to sakId.toString(),
                         ),
@@ -214,10 +216,25 @@ internal class SakPostgresRepo(
                     queryOf(
                         // language=SQL
                         """
-                            with temp as (
-                                select s.id, s.siste_dag_som_gir_rett, max(m.til_og_med) as til_og_med from sak s join meldeperiode m on s.id = m.sak_id group by s.id
+                            select s.id, s.siste_dag_som_gir_rett, max(m.til_og_med) as til_og_med
+                            from sak s
+                            left join meldeperiode m on s.id = m.sak_id
+                            group by s.id
+                            having (
+                                -- Case 1: Has meldeperioder but needs more
+                                (
+                                    max(m.til_og_med) is not null 
+                                    and max(m.til_og_med) < s.siste_dag_som_gir_rett
+                                    and max(m.til_og_med) < :ikkeGenererEtter
+                                )
+                                or
+                                -- Case 2: Has no meldeperioder (max will be null)
+                                (
+                                    max(m.til_og_med) is null
+                                    and s.første_dag_som_gir_rett <= :ikkeGenererEtter
+                                )
                             )
-                            select * from temp where til_og_med < siste_dag_som_gir_rett and til_og_med < :ikkeGenererEtter limit $limit;
+                            limit $limit;
                         """.trimIndent(),
                         mapOf("ikkeGenererEtter" to ikkeGenererEtter),
                     ).map {

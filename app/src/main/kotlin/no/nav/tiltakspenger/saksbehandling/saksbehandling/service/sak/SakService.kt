@@ -67,6 +67,7 @@ interface SakService {
      */
     fun oppdaterSisteDagSomGirRett(
         sakId: SakId,
+        førsteDagSomGirRett: LocalDate?,
         sisteDagSomGirRett: LocalDate?,
         sessionContext: SessionContext,
     )

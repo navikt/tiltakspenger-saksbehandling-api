@@ -41,8 +41,9 @@ interface SakRepo {
      *
      * Ment for å optimalisere db-spørringer (generering av meldeperioder)
      */
-    fun oppdaterSisteDagSomGirRett(
+    fun oppdaterFørsteOgSisteDagSomGirRett(
         sakId: SakId,
+        førsteDagSomGirRett: LocalDate?,
         sisteDagSomGirRett: LocalDate?,
         sessionContext: SessionContext? = null,
     )

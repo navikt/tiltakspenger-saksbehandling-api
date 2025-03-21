@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.db.persisterNySak
 import no.nav.tiltakspenger.saksbehandling.db.persisterOpprettetFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.db.persisterSak
 import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
+import no.nav.tiltakspenger.saksbehandling.felles.desember
 import no.nav.tiltakspenger.saksbehandling.felles.februar
 import no.nav.tiltakspenger.saksbehandling.felles.januar
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -82,7 +83,7 @@ internal class SakRepoTest {
                     deltakelseFom = 1.februar(2025),
                     deltakelseTom = 28.februar(2025),
                 )
-                sakRepo.oppdaterSisteDagSomGirRett(sak.id, sak.sisteDagSomGirRett)
+                sakRepo.oppdaterFørsteOgSisteDagSomGirRett(sak.id, sak.førsteDagSomGirRett, sak.sisteDagSomGirRett)
                 sak.meldeperiodeKjeder.meldeperioder.size shouldBe 3
                 sakRepo.hentSakerSomMåGenerereMeldeperioderFra(1.februar(2025)) shouldBe emptyList()
             }
@@ -101,10 +102,11 @@ internal class SakRepoTest {
                 sakRepo.hentSakerSomMåGenerereMeldeperioderFra(1.januar(2000)) shouldBe emptyList()
                 sakRepo.hentSakerSomMåGenerereMeldeperioderFra(1.januar(2025)) shouldBe emptyList()
                 sakRepo.hentSakerSomMåGenerereMeldeperioderFra(1.januar(2050)) shouldBe emptyList()
-                // Later som det finnes et vedtak som siste dag gir rett 31.januar(2025)
-                sakRepo.oppdaterSisteDagSomGirRett(sak.id, 31.januar(2025))
-                // TODO jah: Virkelig bug som må fikses. Vi må også persistere førsteDagSomGirRett, for å kunne avgjøre om vi skal generere en meldeperiode dersom det ikke finnes meldeperioder fra før.
-                // meldeperiodeRepo.hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter = 1.januar(2050)) shouldBe listOf(sak)
+                // Later som det finnes et vedtak med innvilgelsesperiode hele januar 2025
+                sakRepo.oppdaterFørsteOgSisteDagSomGirRett(sak.id, 1.januar(2025), 31.januar(2025))
+                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter = 31.desember(2024)) shouldBe emptyList()
+                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter = 1.januar(2025)) shouldBe listOf(sak.id)
+                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter = 1.januar(2050)) shouldBe listOf(sak.id)
 
                 testDataHelper.sessionFactory.withSessionContext {
                     meldeperiodeRepo.lagre(
@@ -119,6 +121,7 @@ internal class SakRepoTest {
 
                 sakRepo.hentSakerSomMåGenerereMeldeperioderFra(19.januar(2025)) shouldBe emptyList()
                 sakRepo.hentSakerSomMåGenerereMeldeperioderFra(20.januar(2025)) shouldBe listOf(sak.id)
+                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(20.januar(2050)) shouldBe listOf(sak.id)
                 testDataHelper.sessionFactory.withSessionContext {
                     meldeperiodeRepo.lagre(
                         ObjectMother.meldeperiode(
@@ -129,14 +132,20 @@ internal class SakRepoTest {
                         it,
                     )
                 }
+                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(19.januar(2000)) shouldBe emptyList()
                 sakRepo.hentSakerSomMåGenerereMeldeperioderFra(19.januar(2025)) shouldBe emptyList()
+                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(19.januar(2050)) shouldBe emptyList()
 
-                sakRepo.oppdaterSisteDagSomGirRett(sak.id, 2.februar(2025))
+                sakRepo.oppdaterFørsteOgSisteDagSomGirRett(sak.id, 1.januar(2025), 2.februar(2025))
+                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(2.februar(2000)) shouldBe emptyList()
                 sakRepo.hentSakerSomMåGenerereMeldeperioderFra(2.februar(2025)) shouldBe emptyList()
+                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(2.februar(2050)) shouldBe emptyList()
 
-                sakRepo.oppdaterSisteDagSomGirRett(sak.id, 3.februar(2025))
+                sakRepo.oppdaterFørsteOgSisteDagSomGirRett(sak.id, 1.januar(2025), 3.februar(2025))
+                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(2.februar(2000)) shouldBe emptyList()
                 sakRepo.hentSakerSomMåGenerereMeldeperioderFra(2.februar(2025)) shouldBe emptyList()
                 sakRepo.hentSakerSomMåGenerereMeldeperioderFra(3.februar(2025)) shouldBe listOf(sak.id)
+                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(3.februar(2050)) shouldBe listOf(sak.id)
             }
         }
     }
