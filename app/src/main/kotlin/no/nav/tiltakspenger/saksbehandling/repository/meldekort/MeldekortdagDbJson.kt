@@ -151,7 +151,7 @@ private fun MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.toDbJson(): String =
     }.let { serialize(it) }
 
 private fun MeldeperiodeBeregning.UtfyltMeldeperiode.toDbJson(): String =
-    dager
+    dagerForHeleSaken
         .toList()
         .map { meldekortdag ->
             MeldekortdagDbJson(
