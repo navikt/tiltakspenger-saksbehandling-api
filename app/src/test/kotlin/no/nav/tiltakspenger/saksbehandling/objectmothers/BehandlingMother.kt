@@ -107,6 +107,7 @@ interface BehandlingMother {
             sistEndret = sistEndret,
             behandlingstype = behandlingstype,
             oppgaveId = oppgaveId,
+            valgtHjemmelHarIkkeRettighet = emptyList(),
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
             saksopplysningsperiode = saksopplysningsperiode,

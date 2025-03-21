@@ -32,6 +32,7 @@ fun Route.routes(
         forhåndsvisVedtaksbrevService = applicationContext.behandlingContext.forhåndsvisVedtaksbrevService,
         startRevurderingService = applicationContext.behandlingContext.startRevurderingService,
         oppdaterBarnetilleggService = applicationContext.behandlingContext.oppdaterBarnetilleggService,
+        oppdaterValgtHjemmelService = applicationContext.behandlingContext.oppdaterValgtHjemmelService,
     )
     behandlingBenkRoutes(
         tokenService = applicationContext.tokenService,

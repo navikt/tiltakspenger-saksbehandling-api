@@ -167,10 +167,11 @@ internal class PdfgenHttpClient(
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,
-        stansperiode: Periode,
+        virkningsperiode: Periode,
         saksnummer: Saksnummer,
         sakId: SakId,
         forhåndsvisning: Boolean,
+        barnetillegg: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -181,9 +182,10 @@ internal class PdfgenHttpClient(
                     fnr = fnr,
                     saksbehandlerNavIdent = saksbehandlerNavIdent,
                     beslutterNavIdent = beslutterNavIdent,
-                    stansperiode = stansperiode,
+                    virkningsperiode = virkningsperiode,
                     saksnummer = saksnummer,
                     forhåndsvisning = forhåndsvisning,
+                    barnetillegg = barnetillegg,
                 )
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",
