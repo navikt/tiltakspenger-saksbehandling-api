@@ -15,10 +15,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeIverksetteMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
@@ -69,32 +67,21 @@ class IverksettMeldekortService(
         }
 
         return meldekortBehandling.iverksettMeldekort(kommando.beslutter, clock).onRight {
-            when (it.type) {
-                MeldekortBehandlingType.FØRSTE_BEHANDLING -> persisterFørsteBehandling(it, sak)
-                MeldekortBehandlingType.KORRIGERING -> persisterKorrigering(it, sak)
+            val eksisterendeUtbetalingsvedtak = sak.utbetalinger
+            val utbetalingsvedtak = it.opprettUtbetalingsvedtak(
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                eksisterendeUtbetalingsvedtak.lastOrNull()?.id,
+                clock = clock,
+            )
+            val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()
+
+            sessionFactory.withTransactionContext { tx ->
+                meldekortBehandlingRepo.oppdater(it, tx)
+                utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
+                statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             }
         }
-    }
-
-    private fun persisterFørsteBehandling(meldekort: MeldekortBehandling.MeldekortBehandlet, sak: Sak) {
-        val eksisterendeUtbetalingsvedtak = sak.utbetalinger
-        val utbetalingsvedtak = meldekort.opprettUtbetalingsvedtak(
-            saksnummer = sak.saksnummer,
-            fnr = sak.fnr,
-            eksisterendeUtbetalingsvedtak.lastOrNull()?.id,
-            clock = clock,
-        )
-        val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()
-
-        sessionFactory.withTransactionContext { tx ->
-            meldekortBehandlingRepo.oppdater(meldekort, tx)
-            utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
-            statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
-        }
-    }
-
-    private fun persisterKorrigering(meldekort: MeldekortBehandling.MeldekortBehandlet, sak: Sak) {
-        TODO("Har ikke implementert iverksetting av korrigering ennå!")
     }
 
     private suspend fun kastHvisIkkeTilgangTilPerson(
