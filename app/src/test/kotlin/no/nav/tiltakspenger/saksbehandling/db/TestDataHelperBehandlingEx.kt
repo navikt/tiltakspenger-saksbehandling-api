@@ -241,9 +241,13 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
             .taBehandling(beslutter)
             .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter))
     behandlingRepo.lagre(oppdatertFørstegangsbehandling)
-    val vedtak = sak.opprettVedtak(oppdatertFørstegangsbehandling).second
+    val (sakMedVedtak, vedtak) = sak.opprettVedtak(oppdatertFørstegangsbehandling)
     vedtakRepo.lagre(vedtak)
-
+    sakRepo.oppdaterFørsteOgSisteDagSomGirRett(
+        sakId = vedtak.sakId,
+        førsteDagSomGirRett = sakMedVedtak.førsteDagSomGirRett,
+        sisteDagSomGirRett = sakMedVedtak.sisteDagSomGirRett,
+    )
     val oppdatertSak = sakRepo.hentForSakId(sakId)!!
     val (_, meldeperioder) = oppdatertSak.genererMeldeperioder(clock)
     meldeperiodeRepo.lagre(meldeperioder)

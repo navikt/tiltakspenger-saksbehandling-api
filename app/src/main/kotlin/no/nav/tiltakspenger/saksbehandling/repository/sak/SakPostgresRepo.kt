@@ -275,7 +275,18 @@ internal class SakPostgresRepo(
                     meldeperiodeKjeder = meldeperioder,
                     brukersMeldekort = BrukersMeldekortPostgresRepo.hentForSakId(id, session),
                     soknader = soknader,
-                )
+                ).also { sak ->
+                    localDateOrNull("første_dag_som_gir_rett").also {
+                        require(sak.førsteDagSomGirRett == it) {
+                            "Vedtakslisten vår er master på første dag som gir rett (${sak.førsteDagSomGirRett}). Kolonnen sak.første_dag_som_gir_rett er ikke oppdatert ($it)"
+                        }
+                    }
+                    localDateOrNull("siste_dag_som_gir_rett").also {
+                        require(sak.sisteDagSomGirRett == it) {
+                            "Vedtakslisten vår er master på siste dag som gir rett (${sak.sisteDagSomGirRett}). Kolonnen sak.siste_dag_som_gir_rett er ikke oppdatert ($it)"
+                        }
+                    }
+                }
             }
         }
 
