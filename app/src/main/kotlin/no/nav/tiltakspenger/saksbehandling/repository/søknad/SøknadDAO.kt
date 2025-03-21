@@ -37,8 +37,8 @@ internal object SøknadDAO {
         session.run(
             queryOf(sqlHentSakIdForTiltaksdeltakelse, eksternId)
                 .map { row -> row.toSakId() }
-                .asSingle,
-        )
+                .asList,
+        ).firstOrNull()
 
     fun finnSakId(
         søknadId: SøknadId,
