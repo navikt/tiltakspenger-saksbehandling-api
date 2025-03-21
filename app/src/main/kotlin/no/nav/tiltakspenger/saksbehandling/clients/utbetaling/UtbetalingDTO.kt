@@ -17,6 +17,7 @@ import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
 import no.nav.utsjekk.kontrakter.iverksett.StønadsdataTiltakspengerV2Dto
 import no.nav.utsjekk.kontrakter.iverksett.UtbetalingV2Dto
 import no.nav.utsjekk.kontrakter.iverksett.VedtaksdetaljerV2Dto
+import java.time.LocalDate
 import kotlin.collections.fold
 
 /**
@@ -25,10 +26,15 @@ import kotlin.collections.fold
 fun Utbetalingsvedtak.toDTO(
     forrigeUtbetalingJson: String?,
 ): String {
-    val forrigeUtbetaling = forrigeUtbetalingJson?.let { deserialize<IverksettV2Dto>(it) }
     val vedtak: Utbetalingsvedtak = this
-    val nyeUtbetalingerStønad = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = false)
-    val nyeUtbetalingerBarnetillegg = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = true)
+
+    val utbetalingerStønad = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = false)
+    val utbetalingerBarnetillegg = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = true)
+
+    val nyeUtbetalinger = (utbetalingerStønad + utbetalingerBarnetillegg)
+
+    val tidligereUtbetalinger = forrigeUtbetalingJson?.let { deserialize<IverksettV2Dto>(it) }
+        ?.utbetalingerEtter(nyeUtbetalinger.maxOf { it.tilOgMedDato }) ?: emptyList()
 
     return IverksettV2Dto(
         sakId = vedtak.saksnummer.toString(),
@@ -42,10 +48,7 @@ fun Utbetalingsvedtak.toDTO(
             vedtakstidspunkt = vedtak.opprettet,
             saksbehandlerId = vedtak.saksbehandler,
             beslutterId = vedtak.beslutter,
-            utbetalinger = (
-                forrigeUtbetaling?.vedtak?.utbetalinger
-                    ?: emptyList()
-                ) + nyeUtbetalingerStønad + nyeUtbetalingerBarnetillegg,
+            utbetalinger = tidligereUtbetalinger + nyeUtbetalinger,
         ),
         forrigeIverksetting =
         vedtak.forrigeUtbetalingsvedtakId?.let { ForrigeIverksettingV2Dto(behandlingId = it.uuidPart()) },
@@ -54,12 +57,14 @@ fun Utbetalingsvedtak.toDTO(
     }
 }
 
+private fun IverksettV2Dto.utbetalingerEtter(dato: LocalDate) =
+    this.vedtak.utbetalinger.filter { dato > it.tilOgMedDato }
+
 private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
 ): List<UtbetalingV2Dto> {
-    return this.beregning.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->
-        meldekortdag as MeldeperiodeBeregningDag.Utfylt
+    return this.beregning.dagerForHeleSaken.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->
         val kjedeId = this.kjedeId
         when (val sisteUtbetalingsperiode = acc.lastOrNull()) {
             null -> {
@@ -72,9 +77,9 @@ private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
 
             else ->
                 sisteUtbetalingsperiode.leggTil(
-                    meldekortdag,
-                    this.kjedeId,
-                    brukersNavKontor,
+                    meldekortdag = meldekortdag,
+                    kjedeId = kjedeId,
+                    brukersNavKontor = brukersNavKontor,
                     barnetillegg = barnetillegg,
                 ).let {
                     when (it) {

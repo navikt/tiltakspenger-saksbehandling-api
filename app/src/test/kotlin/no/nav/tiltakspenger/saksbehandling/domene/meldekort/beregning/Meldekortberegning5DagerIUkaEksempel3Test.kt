@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.domene
+package no.nav.tiltakspenger.saksbehandling.domene.meldekort.beregning
 
 import arrow.core.nonEmptyListOf
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test
  * https://confluence.adeo.no/pages/viewpage.action?pageId=597368022
  * Eksempel 2
  */
-internal class Meldekortberegning5DagerIUkaEksempel5ArenaTest {
+internal class Meldekortberegning5DagerIUkaEksempel3Test {
     private val meldekort1 = nonEmptyListOf(
         DagMedForventning(29.januar(2024), SPERRET, YtelsenFallerBort),
         DagMedForventning(30.januar(2024), SPERRET, YtelsenFallerBort),
@@ -51,7 +51,7 @@ internal class Meldekortberegning5DagerIUkaEksempel5ArenaTest {
         DagMedForventning(20.februar(2024), FRAVÆR_SYK, Reduksjon),
         DagMedForventning(21.februar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
         DagMedForventning(22.februar(2024), FRAVÆR_SYK, Reduksjon),
-        DagMedForventning(23.februar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
+        DagMedForventning(23.februar(2024), FRAVÆR_SYK, Reduksjon),
         DagMedForventning(24.februar(2024), IKKE_DELTATT, YtelsenFallerBort),
         DagMedForventning(25.februar(2024), IKKE_DELTATT, YtelsenFallerBort),
     )
@@ -76,8 +76,8 @@ internal class Meldekortberegning5DagerIUkaEksempel5ArenaTest {
     private val meldekort4 = nonEmptyListOf(
         DagMedForventning(11.mars(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
         DagMedForventning(12.mars(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
-        DagMedForventning(13.mars(2024), FRAVÆR_SYK, Reduksjon),
-        DagMedForventning(14.mars(2024), FRAVÆR_SYK, YtelsenFallerBort),
+        DagMedForventning(13.mars(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
+        DagMedForventning(14.mars(2024), FRAVÆR_SYK, IngenReduksjon),
         DagMedForventning(15.mars(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
         DagMedForventning(16.mars(2024), IKKE_DELTATT, YtelsenFallerBort),
         DagMedForventning(17.mars(2024), IKKE_DELTATT, YtelsenFallerBort),
@@ -99,8 +99,8 @@ internal class Meldekortberegning5DagerIUkaEksempel5ArenaTest {
         DagMedForventning(30.mars(2024), IKKE_DELTATT, YtelsenFallerBort),
         DagMedForventning(31.mars(2024), IKKE_DELTATT, YtelsenFallerBort),
 
-        DagMedForventning(1.april(2024), SPERRET, YtelsenFallerBort),
-        DagMedForventning(2.april(2024), SPERRET, YtelsenFallerBort),
+        DagMedForventning(1.april(2024), FRAVÆR_SYK, IngenReduksjon),
+        DagMedForventning(2.april(2024), FRAVÆR_SYK, IngenReduksjon),
         DagMedForventning(3.april(2024), SPERRET, YtelsenFallerBort),
         DagMedForventning(4.april(2024), SPERRET, YtelsenFallerBort),
         DagMedForventning(5.april(2024), SPERRET, YtelsenFallerBort),
@@ -109,13 +109,13 @@ internal class Meldekortberegning5DagerIUkaEksempel5ArenaTest {
     )
 
     @Test
-    fun `to arbeidsgiverperioder - den første er fullt utbetalt - nytt sykefravær før opptjeningsperioden er fullført`() {
+    fun `to arbeidsgiverperioder - den første er fullt utbetalt - nytt sykefravær etter at opptjeningsperioden er fullført`() {
         nonEmptyListOf(
             meldekort1,
             meldekort2,
             meldekort3,
             meldekort4,
             meldekort5,
-        ).assertForventning(vurderingsperiode = Periode(1.februar(2024), 31.mars(2024)))
+        ).assertForventning(vurderingsperiode = Periode(1.februar(2024), 2.april(2024)))
     }
 }
