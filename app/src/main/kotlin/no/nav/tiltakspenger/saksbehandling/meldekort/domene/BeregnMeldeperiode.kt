@@ -69,12 +69,14 @@ private data class MeldekortBeregning(
     fun beregn(): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
         val oppdatertMeldekortId = kommando.meldekortId
         val oppdaterteDager = kommando.dager
+        val oppdatertFraOgMed = kommando.dager.first().dag
+
         val eksisterendeDager = eksisterendeMeldekortPåSaken.utfylteDager
             .filter { eksisterendeDag ->
                 !oppdaterteDager.any { it.dag == eksisterendeDag.dato }
             }
 
-        val eksisterendeDagerBeregnet = eksisterendeDager.map { meldekortdag ->
+        val eksisterendeDagerBeregnet = eksisterendeDager.mapNotNull { meldekortdag ->
             val tiltakstype: TiltakstypeSomGirRett by lazy {
                 meldekortdag.tiltakstype
                     ?: throw IllegalStateException("Tidligere meldekortdag.tiltakstype var null for meldekortdag $meldekortdag")
@@ -84,7 +86,7 @@ private data class MeldekortBeregning(
             val meldekortId = meldekortdag.meldekortId
             val antallBarn: AntallBarn = barnetilleggsPerioder.hentVerdiForDag(dag) ?: AntallBarn.ZERO
 
-            when (meldekortdag) {
+            val utfyltDag = when (meldekortdag) {
                 is Sperret -> sperret(dag, meldekortId)
                 is VelferdGodkjentAvNav -> gyldigFravær(dag, meldekortId, tiltakstype, antallBarn)
                 is VelferdIkkeGodkjentAvNav -> ugyldigFravær(dag, meldekortId, tiltakstype, antallBarn)
@@ -94,6 +96,8 @@ private data class MeldekortBeregning(
                 is DeltattMedLønnITiltaket -> deltattMedLønn(dag, meldekortId, tiltakstype, antallBarn)
                 is DeltattUtenLønnITiltaket -> deltattUtenLønn(dag, meldekortId, tiltakstype, antallBarn)
             }
+
+            if (dag > oppdatertFraOgMed) utfyltDag else null
         }
 
         val oppdaterteDagerBeregnet = oppdaterteDager.map { meldekortdag ->
@@ -118,9 +122,9 @@ private data class MeldekortBeregning(
             }
         }
 
-        val alleDagerBeregnet = (eksisterendeDagerBeregnet + oppdaterteDagerBeregnet).sortedBy { it.dato }
+        val dagerBeregnet = (eksisterendeDagerBeregnet + oppdaterteDagerBeregnet).sortedBy { it.dato }
 
-        val duplikateDager = alleDagerBeregnet.nonDistinctBy {
+        val duplikateDager = dagerBeregnet.nonDistinctBy {
             it.dato
         }
 
@@ -128,7 +132,7 @@ private data class MeldekortBeregning(
             "Beregnede utbetalingsdager har duplikate dager - $duplikateDager"
         }
 
-        return alleDagerBeregnet.toNonEmptyListOrNull()!!
+        return dagerBeregnet.toNonEmptyListOrNull()!!
     }
 
     private fun deltattUtenLønn(
