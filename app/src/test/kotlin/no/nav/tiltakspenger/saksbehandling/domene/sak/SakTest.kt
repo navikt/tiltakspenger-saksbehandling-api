@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.april
+import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
@@ -63,7 +64,7 @@ class SakTest {
         @Test
         fun `for en ny sak som er tom`() {
             val sak = ObjectMother.nySak()
-            val actual = sak.genererMeldeperioder()
+            val actual = sak.genererMeldeperioder(fixedClock)
 
             actual.let {
                 it.first.meldeperiodeKjeder.size shouldBe 0
@@ -75,14 +76,14 @@ class SakTest {
         fun `for en sak med et vedtak`() {
             val virkningsperiode = Periode(9.april(2024), 16.april(2024))
             val (sak) = ObjectMother.nySakMedVedtak(virkningsperiode = virkningsperiode)
-            val (sakMedMeldeperioder, meldeperioder) = sak.genererMeldeperioder()
+            val (sakMedMeldeperioder, meldeperioder) = sak.genererMeldeperioder(fixedClock)
 
             sakMedMeldeperioder.let {
                 it.meldeperiodeKjeder.single() shouldBe meldeperioder
                 meldeperioder.size shouldBe 1
             }
 
-            val (sakDerViPrøverÅGenerePåNytt, nyeMeldeperioder) = sakMedMeldeperioder.genererMeldeperioder()
+            val (sakDerViPrøverÅGenerePåNytt, nyeMeldeperioder) = sakMedMeldeperioder.genererMeldeperioder(fixedClock)
 
             sakMedMeldeperioder shouldBe sakDerViPrøverÅGenerePåNytt
             nyeMeldeperioder.size shouldBe 0

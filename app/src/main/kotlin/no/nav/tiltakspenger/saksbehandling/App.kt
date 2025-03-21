@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.Configuration.httpPort
 import no.nav.tiltakspenger.saksbehandling.context.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.jobber.TaskExecutor
+import java.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -32,8 +33,10 @@ internal fun start(
     log: KLogger,
     port: Int = httpPort(),
     isNais: Boolean = Configuration.isNais(),
+    clock: Clock = Clock.systemUTC(),
     applicationContext: ApplicationContext = ApplicationContext(
         gitHash = Configuration.gitHash(),
+        clock = clock,
     ),
     devRoutes: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {
@@ -85,6 +88,10 @@ internal fun start(
                 applicationContext.meldekortContext.sendMeldeperiodeTilBrukerService.send()
                 applicationContext.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
             }
+            // slå på når ting er good to go
+//            if (!Configuration.isProd()) {
+//                applicationContext.genererMeldeperioderService.genererMeldeperioderForSaker()
+//            }
         },
     )
 

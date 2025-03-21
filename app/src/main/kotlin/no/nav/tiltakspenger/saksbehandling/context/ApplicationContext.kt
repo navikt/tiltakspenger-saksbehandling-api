@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMe
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.VeilarboppfolgingGateway
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.NavkontorService
+import java.time.Clock
 
 /**
  * Inneholder alle klienter, repoer og servicer.
@@ -37,6 +38,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.service.NavkontorService
 @Suppress("unused")
 open class ApplicationContext(
     internal val gitHash: String,
+    internal open val clock: Clock,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -172,6 +174,7 @@ open class ApplicationContext(
             sakService = sakContext.sakService,
             tiltakGateway = tiltakContext.tiltakGateway,
             oppgaveGateway = oppgaveGateway,
+            clock = clock,
         )
     }
 
@@ -210,6 +213,7 @@ open class ApplicationContext(
             sakRepo = sakContext.sakRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
             sessionFactory = sessionFactory,
+            clock = clock,
         )
     }
 }

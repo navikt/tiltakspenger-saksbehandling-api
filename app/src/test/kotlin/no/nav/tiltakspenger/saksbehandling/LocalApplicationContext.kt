@@ -46,6 +46,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.GenererStansvedt
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.VeilarboppfolgingGateway
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.NavkontorService
+import java.time.Clock
 
 /**
  * Oppretter en tom ApplicationContext for bruk i tester.
@@ -54,7 +55,8 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.service.NavkontorService
  */
 class LocalApplicationContext(
     usePdfGen: Boolean,
-) : ApplicationContext(gitHash = "fake-git-hash") {
+    clock: Clock,
+) : ApplicationContext(gitHash = "fake-git-hash", clock = clock) {
 
     val journalpostIdGenerator = JournalpostIdGenerator()
     val distribusjonIdGenerator = DistribusjonIdGenerator()
@@ -214,6 +216,7 @@ class LocalApplicationContext(
             sakService = sakContext.sakService,
             tiltakGateway = tiltakGatewayFake,
             oppgaveGateway = oppgaveGateway,
+            clock = clock,
         ) {}
     }
     override val utbetalingContext by lazy {

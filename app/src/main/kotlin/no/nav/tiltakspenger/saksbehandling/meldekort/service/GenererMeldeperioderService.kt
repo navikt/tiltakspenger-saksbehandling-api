@@ -7,20 +7,22 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SakRepo
+import java.time.Clock
 
 class GenererMeldeperioderService(
     val sakRepo: SakRepo,
     val meldeperiodeRepo: MeldeperiodeRepo,
     val sessionFactory: SessionFactory,
+    private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
     fun genererMeldeperioderForSaker(): List<Either<SakId, SakId>> {
-        val sakIDer: List<SakId> = meldeperiodeRepo.hentSakerSomMåGenerereMeldeperioderFra(Sak.ikkeGenererEtter())
+        val sakIDer: List<SakId> = sakRepo.hentSakerSomMåGenerereMeldeperioderFra(Sak.ikkeGenererEtter(clock))
         val resultat = sakIDer.map { sakId ->
             Either.catch {
                 val sak = sakRepo.hentForSakId(sakId)!!
-                val (sakMedNyeMeldeperioder, meldeperioder) = sak.genererMeldeperioder()
+                val (sakMedNyeMeldeperioder, meldeperioder) = sak.genererMeldeperioder(clock)
                 sessionFactory.withTransactionContext { tx ->
                     sakRepo.oppdaterSisteDagSomGirRett(
                         sakId = sakId,

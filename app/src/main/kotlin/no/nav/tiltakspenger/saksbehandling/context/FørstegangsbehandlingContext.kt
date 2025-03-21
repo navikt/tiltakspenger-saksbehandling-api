@@ -33,6 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.journalføring
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.StartRevurderingService
+import java.time.Clock
 
 open class FørstegangsbehandlingContext(
     sessionFactory: SessionFactory,
@@ -51,6 +52,7 @@ open class FørstegangsbehandlingContext(
     sakService: SakService,
     tiltakGateway: TiltakGateway,
     oppgaveGateway: OppgaveGateway,
+    clock: Clock,
 ) {
     open val rammevedtakRepo: RammevedtakRepo by lazy { RammevedtakPostgresRepo(sessionFactory as PostgresSessionFactory) }
     open val behandlingRepo: BehandlingRepo by lazy { BehandlingPostgresRepo(sessionFactory as PostgresSessionFactory) }
@@ -107,6 +109,7 @@ open class FørstegangsbehandlingContext(
             gitHash = gitHash,
             sakService = sakService,
             oppgaveGateway = oppgaveGateway,
+            clock = clock,
         )
     }
 

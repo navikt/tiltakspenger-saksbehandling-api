@@ -207,6 +207,27 @@ internal class SakPostgresRepo(
         }
     }
 
+    override fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate, limit: Int): List<SakId> {
+        return sessionFactory.withSessionContext { sessionContext ->
+            sessionContext.withSession { session ->
+                session.run(
+                    queryOf(
+                        // language=SQL
+                        """
+                            with temp as (
+                                select s.id, s.siste_dag_som_gir_rett, max(m.til_og_med) as til_og_med from sak s join meldeperiode m on s.id = m.sak_id group by s.id
+                            )
+                            select * from temp where til_og_med < siste_dag_som_gir_rett and til_og_med < :ikkeGenererEtter limit $limit;
+                        """.trimIndent(),
+                        mapOf("ikkeGenererEtter" to ikkeGenererEtter),
+                    ).map {
+                        SakId.fromString(it.string("id"))
+                    }.asList,
+                )
+            }
+        }
+    }
+
     private fun sakFinnes(
         sakId: SakId,
         session: Session,

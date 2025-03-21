@@ -46,4 +46,6 @@ interface SakRepo {
         sisteDagSomGirRett: LocalDate?,
         sessionContext: SessionContext? = null,
     )
+
+    fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate, limit: Int = 10): List<SakId>
 }

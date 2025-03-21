@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.fakes.clients.GenererFakeUtbetalingsv
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.GenererFakeVedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.JournalførFakeMeldekortGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.JournalførFakeVedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.fakes.clients.MeldekortApiFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.OppgaveFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.PersonFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.TilgangsstyringFakeGateway
@@ -48,10 +49,39 @@ import no.nav.tiltakspenger.saksbehandling.fakes.repos.StatistikkSakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.StatistikkStønadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.UtbetalingsvedtakFakeRepo
+import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.NavkontorService
+import java.time.Clock
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
+
+class TikkendeKlokke(
+    private val initialClock: Clock = fixedClock,
+) : Clock() {
+    private var nextInstant = initialClock.instant()
+
+    override fun getZone(): ZoneId = initialClock.zone
+    override fun withZone(zone: ZoneId?): Clock = initialClock.withZone(zone)
+
+    override fun instant(): Instant {
+        nextInstant = nextInstant.plus(1, ChronoUnit.SECONDS)
+        return nextInstant
+    }
+
+    fun spolTil(dato: LocalDate): Instant {
+        require(dato.atStartOfDay(zone).toInstant() > nextInstant) { "Kan bare spole fremover i tid" }
+        return dato.atStartOfDay(zone).plus(nextInstant.nano.toLong(), ChronoUnit.NANOS).toInstant().also {
+            nextInstant = it
+        }
+    }
+
+    fun copy(): TikkendeKlokke = TikkendeKlokke(initialClock)
+}
 
 /**
  * Oppretter en tom ApplicationContext for bruk i tester.
@@ -61,7 +91,11 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.service.NavkontorService
 @Suppress("UNCHECKED_CAST")
 class TestApplicationContext(
     override val sessionFactory: TestSessionFactory = TestSessionFactory(),
-) : ApplicationContext(gitHash = "fake-git-hash") {
+    override val clock: TikkendeKlokke = TikkendeKlokke(fixedClock),
+) : ApplicationContext(
+    gitHash = "fake-git-hash",
+    clock = clock,
+) {
 
     val journalpostIdGenerator = JournalpostIdGenerator()
     val distribusjonIdGenerator = DistribusjonIdGenerator()
@@ -84,6 +118,7 @@ class TestApplicationContext(
     private val journalførFakeMeldekortGateway = JournalførFakeMeldekortGateway(journalpostIdGenerator)
     private val journalførFakeVedtaksbrevGateway = JournalførFakeVedtaksbrevGateway(journalpostIdGenerator)
     private val dokdistFakeGateway = DokdistFakeGateway(distribusjonIdGenerator)
+    private val meldekortApiGateway = MeldekortApiFakeGateway()
 
     val jwtGenerator = JwtGenerator()
 
@@ -201,6 +236,7 @@ class TestApplicationContext(
             override val meldekortBehandlingRepo = meldekortBehandlingFakeRepo
             override val meldeperiodeRepo = meldeperiodeFakeRepo
             override val brukersMeldekortRepo = brukersMeldekortFakeRepo
+            override val meldekortApiHttpClient = meldekortApiGateway
         }
     }
 
@@ -222,6 +258,7 @@ class TestApplicationContext(
             sakService = sakContext.sakService,
             tiltakGateway = tiltakGatewayFake,
             oppgaveGateway = oppgaveGateway,
+            clock = clock,
         ) {
             override val rammevedtakRepo = rammevedtakFakeRepo
             override val behandlingRepo = behandlingFakeRepo

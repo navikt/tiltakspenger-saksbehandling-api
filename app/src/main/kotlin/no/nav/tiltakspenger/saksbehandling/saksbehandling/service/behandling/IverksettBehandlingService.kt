@@ -35,6 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.sak.genererSaksstatistikkForRammevedtak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.stønad.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.stønad.genererStønadsstatistikkForRammevedtak
+import java.time.Clock
 
 class IverksettBehandlingService(
     private val behandlingRepo: BehandlingRepo,
@@ -49,6 +50,7 @@ class IverksettBehandlingService(
     private val sakService: SakService,
     private val gitHash: String,
     private val oppgaveGateway: OppgaveGateway,
+    private val clock: Clock,
 ) {
 
     private val logger = KotlinLogging.logger {}
@@ -127,7 +129,7 @@ class IverksettBehandlingService(
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
-        val (oppdatertSak, meldeperioder) = this.genererMeldeperioder()
+        val (oppdatertSak, meldeperioder) = this.genererMeldeperioder(clock)
         // Denne har vi behov for å gjøre ved påfølgende førstegangsbehandligner (altså ikke den første)
         val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) =
             this.meldekortBehandlinger.oppdaterMedNyeKjeder(oppdatertSak.meldeperiodeKjeder, tiltakstypeperioder)
@@ -151,7 +153,7 @@ class IverksettBehandlingService(
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
-        val (oppdatertSak, oppdaterteMeldeperioder) = this.genererMeldeperioder()
+        val (oppdatertSak, oppdaterteMeldeperioder) = this.genererMeldeperioder(clock)
         val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) =
             this.meldekortBehandlinger.oppdaterMedNyeKjeder(oppdatertSak.meldeperiodeKjeder, tiltakstypeperioder)
         // journalføring og dokumentdistribusjon skjer i egen jobb

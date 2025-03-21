@@ -88,6 +88,7 @@ data class MeldeperiodeKjeder(
     fun hentSisteMeldeperiodeForKjedeId(kjedeId: MeldeperiodeKjedeId): Meldeperiode {
         return meldeperiodeKjeder.single { it.kjedeId == kjedeId }.last()
     }
+
     fun hentSisteMeldeperiodeForKjede(kjedeId: MeldeperiodeKjedeId): Meldeperiode {
         return hentSisteMeldeperiodeForKjedeId(kjedeId)
     }

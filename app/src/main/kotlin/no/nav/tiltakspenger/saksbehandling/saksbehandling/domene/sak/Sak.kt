@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søk
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
+import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -150,16 +151,15 @@ data class Sak(
         return Pair(oppdatertSak, avbruttSøknad)
     }
 
-    fun genererMeldeperioder(): Pair<Sak, List<Meldeperiode>> {
-        val ikkeGenererEtter = ikkeGenererEtter()
-        return this.meldeperiodeKjeder.genererMeldeperioder(this.vedtaksliste, ikkeGenererEtter).let {
-            this.copy(meldeperiodeKjeder = it.first) to it.second
-        }
+    fun genererMeldeperioder(clock: Clock): Pair<Sak, List<Meldeperiode>> {
+        val ikkeGenererEtter = ikkeGenererEtter(clock)
+        return this.meldeperiodeKjeder.genererMeldeperioder(this.vedtaksliste, ikkeGenererEtter)
+            .let { this.copy(meldeperiodeKjeder = it.first) to it.second }
     }
 
     companion object {
-        fun ikkeGenererEtter(): LocalDate {
-            val dag = LocalDate.now()
+        fun ikkeGenererEtter(clock: Clock): LocalDate {
+            val dag = LocalDate.now(clock)
             val ukedag = dag.dayOfWeek.value
             return if (ukedag > 4) {
                 dag.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))

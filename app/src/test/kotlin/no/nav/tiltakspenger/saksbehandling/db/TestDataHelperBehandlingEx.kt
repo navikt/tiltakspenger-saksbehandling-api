@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.opprettVedtak
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -200,6 +201,10 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
             saksnummer = sak.saksnummer,
         ),
     correlationId: CorrelationId = CorrelationId.generate(),
+    /**
+     * Brukt for å styre meldeperiode generering
+     */
+    clock: Clock = Clock.systemUTC(),
 ): Triple<Sak, Rammevedtak, Behandling> {
     val (sak, førstegangsbehandling) = persisterOpprettetFørstegangsbehandling(
         sakId = sak.id,
@@ -240,7 +245,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
     vedtakRepo.lagre(vedtak)
 
     val oppdatertSak = sakRepo.hentForSakId(sakId)!!
-    val (_, meldeperioder) = oppdatertSak.genererMeldeperioder()
+    val (_, meldeperioder) = oppdatertSak.genererMeldeperioder(clock)
     meldeperiodeRepo.lagre(meldeperioder)
     return Triple(sakRepo.hentForSakId(sakId)!!, vedtak, oppdatertFørstegangsbehandling)
 }

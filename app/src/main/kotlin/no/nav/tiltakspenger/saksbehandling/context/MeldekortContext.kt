@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.Configuration
 import no.nav.tiltakspenger.saksbehandling.clients.meldekort.MeldekortApiHttpClient
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiHttpClientGateway
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortService
@@ -86,7 +87,7 @@ open class MeldekortContext(
         )
     }
 
-    private val meldekortApiHttpClient by lazy {
+    open val meldekortApiHttpClient: MeldekortApiHttpClientGateway by lazy {
         MeldekortApiHttpClient(
             baseUrl = Configuration.meldekortApiUrl,
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.meldekortApiScope) },

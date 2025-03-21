@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 class MeldeperiodeFakeRepo : MeldeperiodeRepo {
@@ -27,11 +26,13 @@ class MeldeperiodeFakeRepo : MeldeperiodeRepo {
     }
 
     override fun hentUsendteTilBruker(): List<Meldeperiode> {
-        TODO("Not yet implemented")
+        return data.get().filter { it.value.sendtTilMeldekortApi == null }.map { it.value }
     }
 
     override fun markerSomSendtTilBruker(meldeperiodeId: MeldeperiodeId, tidspunkt: LocalDateTime) {
-        TODO("Not yet implemented")
+        data.get()[meldeperiodeId] = data.get()[meldeperiodeId]!!.copy(
+            sendtTilMeldekortApi = tidspunkt,
+        )
     }
 
     override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): MeldeperiodeKjeder {
@@ -44,9 +45,5 @@ class MeldeperiodeFakeRepo : MeldeperiodeRepo {
 
     override fun hentForMeldeperiodeId(meldeperiodeId: MeldeperiodeId, sessionContext: SessionContext?): Meldeperiode? {
         return data.get()[meldeperiodeId]
-    }
-
-    override fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate, limit: Int): List<SakId> {
-        TODO("????")
     }
 }

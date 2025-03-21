@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.repository.meldekort
 import com.fasterxml.jackson.core.type.TypeReference
 import kotliquery.Row
 import kotliquery.Session
-import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
@@ -12,7 +11,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
@@ -87,27 +85,6 @@ internal class MeldeperiodePostgresRepo(
     override fun hentForMeldeperiodeId(meldeperiodeId: MeldeperiodeId, sessionContext: SessionContext?): Meldeperiode? {
         return sessionFactory.withSession(sessionContext) { session ->
             hentForMeldeperiodeId(meldeperiodeId, session)
-        }
-    }
-
-    override fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate, limit: Int): List<SakId> {
-        return sessionFactory.withSessionContext { sessionContext ->
-            sessionContext.withSession { session ->
-                session.run(
-                    queryOf(
-                        // language=SQL
-                        """
-                            with temp as (
-                                select s.id, s.siste_dag_som_gir_rett, max(m.til_og_med) as til_og_med from sak s join meldeperiode m on s.id = m.sak_id group by s.id
-                            )
-                            select * from temp where til_og_med < siste_dag_som_gir_rett and til_og_med < :ikkeGenererEtter limit $limit;
-                        """.trimIndent(),
-                        mapOf("ikkeGenererEtter" to ikkeGenererEtter),
-                    ).map {
-                        SakId.fromString(it.string("id"))
-                    }.asList,
-                )
-            }
         }
     }
 
