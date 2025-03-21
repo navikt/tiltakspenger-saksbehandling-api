@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -35,5 +34,5 @@ interface MeldeperiodeRepo {
         sessionContext: SessionContext? = null,
     ): Meldeperiode?
 
-    fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate): List<Sak>
+    fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate, limit: Int = 10): List<SakId>
 }

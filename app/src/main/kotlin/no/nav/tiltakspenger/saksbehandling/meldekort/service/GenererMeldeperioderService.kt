@@ -16,22 +16,23 @@ class GenererMeldeperioderService(
     val logger = KotlinLogging.logger { }
 
     fun genererMeldeperioderForSaker(): List<Either<SakId, SakId>> {
-        val saker: List<Sak> = meldeperiodeRepo.hentSakerSomMåGenerereMeldeperioderFra(Sak.ikkeGenererEtter())
-        val resultat = saker.map { sak ->
+        val sakIDer: List<SakId> = meldeperiodeRepo.hentSakerSomMåGenerereMeldeperioderFra(Sak.ikkeGenererEtter())
+        val resultat = sakIDer.map { sakId ->
             Either.catch {
+                val sak = sakRepo.hentForSakId(sakId)!!
                 val (sakMedNyeMeldeperioder, meldeperioder) = sak.genererMeldeperioder()
                 sessionFactory.withTransactionContext { tx ->
                     sakRepo.oppdaterSisteDagSomGirRett(
-                        sakId = sak.id,
+                        sakId = sakId,
                         sisteDagSomGirRett = sakMedNyeMeldeperioder.sisteDagSomGirRett,
                         sessionContext = tx,
                     )
                     meldeperiodeRepo.lagre(meldeperioder, tx)
                 }
-                sak.id
+                sakId
             }.mapLeft {
-                logger.error(it) { "Feil oppstod ved generering av nye meldeperioder for sak ${sak.id}" }
-                sak.id
+                logger.error(it) { "Feil oppstod ved generering av nye meldeperioder for sak $sakId" }
+                sakId
             }
         }
         return resultat

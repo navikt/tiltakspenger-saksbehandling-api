@@ -1,3 +1,5 @@
+@file:Suppress("UnusedImport")
+
 package no.nav.tiltakspenger.saksbehandling.fakes.repos
 
 import arrow.atomic.Atomic
@@ -7,7 +9,6 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -45,7 +46,7 @@ class MeldeperiodeFakeRepo : MeldeperiodeRepo {
         return data.get()[meldeperiodeId]
     }
 
-    override fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate): List<Sak> {
+    override fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate, limit: Int): List<SakId> {
         TODO("????")
     }
 }

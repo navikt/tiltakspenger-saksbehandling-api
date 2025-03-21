@@ -18,8 +18,6 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
-import no.nav.tiltakspenger.saksbehandling.repository.sak.SakPostgresRepo.Companion.toSak
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -92,20 +90,21 @@ internal class MeldeperiodePostgresRepo(
         }
     }
 
-    override fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate): List<Sak> {
+    override fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate, limit: Int): List<SakId> {
         return sessionFactory.withSessionContext { sessionContext ->
             sessionContext.withSession { session ->
                 session.run(
                     queryOf(
+                        // language=SQL
                         """
                             with temp as (
-                                select s.*, max(m.til_og_med) as til_og_med from sak s join meldeperiode m on s.id = m.sak_id
-                                group by s.id)
-                                     select * from temp where til_og_med < siste_dag_som_gir_rett and til_og_med < :ikkeGenererEtter;
+                                select s.id, s.siste_dag_som_gir_rett, max(m.til_og_med) as til_og_med from sak s join meldeperiode m on s.id = m.sak_id group by s.id
+                            )
+                            select * from temp where til_og_med < siste_dag_som_gir_rett and til_og_med < :ikkeGenererEtter limit $limit;
                         """.trimIndent(),
                         mapOf("ikkeGenererEtter" to ikkeGenererEtter),
                     ).map {
-                        it.toSak(sessionContext)
+                        SakId.fromString(it.string("id"))
                     }.asList,
                 )
             }

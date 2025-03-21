@@ -148,6 +148,21 @@ internal fun TestDataHelper.persisterAvbruttFørstegangsbehandling(
     return sakRepo.hentForSakId(sakMedFørstegangsbehandling.id)!! to avbruttBehandling
 }
 
+/** Skal kun persistere en helt tom sak */
+internal fun TestDataHelper.persisterNySak(
+    sakId: SakId = SakId.random(),
+    fnr: Fnr = Fnr.random(),
+    saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
+): Sak {
+    return ObjectMother.nySak(
+        sakId = sakId,
+        fnr = fnr,
+        saksnummer = saksnummer,
+    ).also {
+        sakRepo.opprettSak(it)
+    }
+}
+
 /**
  * Persisterer og et rammevedtak.
  */
