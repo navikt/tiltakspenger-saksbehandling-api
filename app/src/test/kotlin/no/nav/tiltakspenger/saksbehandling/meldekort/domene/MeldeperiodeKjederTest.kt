@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.april
@@ -128,8 +129,14 @@ class MeldeperiodeKjederTest {
         val fnr = Fnr.random()
         val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
-        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, periode = periode)
-        val stansVedtak = ObjectMother.nyRammevedtakStans(fnr = fnr, sakId = sakId, periode = periode)
+        val innvilgelseVedtak =
+            ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, periode = periode, opprettet = nå().minusDays(1))
+        val stansVedtak = ObjectMother.nyRammevedtakStans(
+            fnr = fnr,
+            sakId = sakId,
+            periode = periode,
+            opprettet = nå(),
+        )
         val vedtaksliste = Vedtaksliste(listOf(innvilgelseVedtak, stansVedtak))
 
         val kjeder = MeldeperiodeKjeder(emptyList())

@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeUtfylt
@@ -182,16 +183,18 @@ private fun ReduksjonAvYtelsePåGrunnAvFravær.toDb(): ReduksjonAvYtelsePåGrunn
 internal fun String.toUtfyltMeldekortperiode(
     sakId: SakId,
     meldekortId: MeldekortId,
+    periode: Periode,
     maksDagerMedTiltakspengerForPeriode: Int,
 ): MeldeperiodeBeregning.UtfyltMeldeperiode =
     deserializeList<MeldekortdagDbJson>(this)
         .map {
             it.toMeldekortdag(meldekortId) as MeldeperiodeBeregningDag.Utfylt
         }.let {
-            MeldeperiodeBeregning.UtfyltMeldeperiode(
-                sakId,
-                maksDagerMedTiltakspengerForPeriode,
-                it.toNonEmptyListOrNull()!!,
+            MeldeperiodeBeregning.UtfyltMeldeperiode.fraBeregningAvHeleSaken(
+                sakId = sakId,
+                maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
+                dagerForHeleSaken = it.toNonEmptyListOrNull()!!,
+                periode = periode,
             )
         }
 

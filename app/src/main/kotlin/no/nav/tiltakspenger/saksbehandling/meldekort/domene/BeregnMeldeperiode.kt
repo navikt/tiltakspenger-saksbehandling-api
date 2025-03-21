@@ -66,7 +66,7 @@ private data class MeldekortBeregning(
     }
 
     /** Returnerer beregnede dager fra kommando, og (om-)beregning for alle dager på saken  */
-    fun beregn(): Pair<NonEmptyList<MeldeperiodeBeregningDag.Utfylt>, List<MeldeperiodeBeregningDag.Utfylt>> {
+    fun beregn(): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
         val oppdatertMeldekortId = kommando.meldekortId
         val oppdaterteDager = kommando.dager
         val eksisterendeDager = eksisterendeMeldekortPåSaken.utfylteDager
@@ -128,7 +128,7 @@ private data class MeldekortBeregning(
             "Beregnede utbetalingsdager har duplikate dager - $duplikateDager"
         }
 
-        return oppdaterteDagerBeregnet.toNonEmptyListOrNull()!! to alleDagerBeregnet
+        return alleDagerBeregnet.toNonEmptyListOrNull()!!
     }
 
     private fun deltattUtenLønn(
