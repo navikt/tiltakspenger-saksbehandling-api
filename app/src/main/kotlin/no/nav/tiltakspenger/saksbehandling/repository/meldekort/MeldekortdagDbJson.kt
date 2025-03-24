@@ -1,11 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.repository.meldekort
 
+import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeUtfylt
@@ -123,13 +122,19 @@ private data class MeldekortdagDbJson(
     }
 }
 
-internal fun MeldeperiodeBeregning.toDbJson(): String =
+internal fun MeldeperiodeBeregning.tilMeldekortdagerDbJson(): String =
     when (this) {
-        is MeldeperiodeBeregning.IkkeUtfyltMeldeperiode -> this.toDbJson()
-        is MeldeperiodeBeregning.UtfyltMeldeperiode -> this.toDbJson()
+        is MeldeperiodeBeregning.IkkeUtfyltMeldeperiode -> this.tilMeldekortdagerDbJson()
+        is MeldeperiodeBeregning.UtfyltMeldeperiode -> this.tilMeldekortdagerDbJson()
     }
 
-private fun MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.toDbJson(): String =
+internal fun MeldeperiodeBeregning.tilMeldekortdagerOmberegnetDbJson(): String? =
+    when (this) {
+        is MeldeperiodeBeregning.IkkeUtfyltMeldeperiode -> null
+        is MeldeperiodeBeregning.UtfyltMeldeperiode -> if (this.dagerOmberegnet.isNotEmpty()) this.dagerOmberegnet.toDbJson() else null
+    }
+
+private fun MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.tilMeldekortdagerDbJson(): String =
     dager.toList().map { meldekortdag ->
         MeldekortdagDbJson(
             tiltakstype = meldekortdag.tiltakstype?.toDb(),
@@ -150,28 +155,28 @@ private fun MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.toDbJson(): String =
         )
     }.let { serialize(it) }
 
-private fun MeldeperiodeBeregning.UtfyltMeldeperiode.toDbJson(): String =
-    dagerForHeleSaken
-        .toList()
-        .map { meldekortdag ->
-            MeldekortdagDbJson(
-                tiltakstype = meldekortdag.tiltakstype?.toDb(),
-                dato = meldekortdag.dato.toString(),
-                reduksjon = meldekortdag.reduksjon.toDb(),
-                beregningsdag = meldekortdag.beregningsdag?.toDbJson(),
-                status =
-                when (meldekortdag) {
-                    is DeltattMedLønnITiltaket -> DELTATT_MED_LØNN_I_TILTAKET
-                    is DeltattUtenLønnITiltaket -> DELTATT_UTEN_LØNN_I_TILTAKET
-                    is SykBruker -> FRAVÆR_SYK
-                    is SyktBarn -> FRAVÆR_SYKT_BARN
-                    is VelferdGodkjentAvNav -> FRAVÆR_VELFERD_GODKJENT_AV_NAV
-                    is VelferdIkkeGodkjentAvNav -> FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-                    is IkkeDeltatt -> IKKE_DELTATT
-                    is Sperret -> SPERRET
-                },
-            )
-        }.let { serialize(it) }
+private fun MeldeperiodeBeregning.UtfyltMeldeperiode.tilMeldekortdagerDbJson(): String =
+    dager.toList().toDbJson()
+
+private fun List<MeldeperiodeBeregningDag.Utfylt>.toDbJson(): String = this.map { meldekortdag ->
+    MeldekortdagDbJson(
+        tiltakstype = meldekortdag.tiltakstype?.toDb(),
+        dato = meldekortdag.dato.toString(),
+        reduksjon = meldekortdag.reduksjon.toDb(),
+        beregningsdag = meldekortdag.beregningsdag?.toDbJson(),
+        status =
+        when (meldekortdag) {
+            is DeltattMedLønnITiltaket -> DELTATT_MED_LØNN_I_TILTAKET
+            is DeltattUtenLønnITiltaket -> DELTATT_UTEN_LØNN_I_TILTAKET
+            is SykBruker -> FRAVÆR_SYK
+            is SyktBarn -> FRAVÆR_SYKT_BARN
+            is VelferdGodkjentAvNav -> FRAVÆR_VELFERD_GODKJENT_AV_NAV
+            is VelferdIkkeGodkjentAvNav -> FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
+            is IkkeDeltatt -> IKKE_DELTATT
+            is Sperret -> SPERRET
+        },
+    )
+}.let { serialize(it) }
 
 private fun ReduksjonAvYtelsePåGrunnAvFravær.toDb(): ReduksjonAvYtelsePåGrunnAvFraværDb =
     when (this) {
@@ -180,36 +185,14 @@ private fun ReduksjonAvYtelsePåGrunnAvFravær.toDb(): ReduksjonAvYtelsePåGrunn
         ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort -> ReduksjonAvYtelsePåGrunnAvFraværDb.YtelsenFallerBort
     }
 
-internal fun String.toUtfyltMeldekortperiode(
-    sakId: SakId,
+internal fun String.tilUtfylteMeldekortDager(
     meldekortId: MeldekortId,
-    periode: Periode,
-    maksDagerMedTiltakspengerForPeriode: Int,
-): MeldeperiodeBeregning.UtfyltMeldeperiode =
-    deserializeList<MeldekortdagDbJson>(this)
-        .map {
-            it.toMeldekortdag(meldekortId) as MeldeperiodeBeregningDag.Utfylt
-        }.let {
-            MeldeperiodeBeregning.UtfyltMeldeperiode.fraBeregningAvHeleSaken(
-                sakId = sakId,
-                maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-                dagerForHeleSaken = it.toNonEmptyListOrNull()!!,
-                periode = periode,
-            )
-        }
+): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> =
+    deserializeList<MeldekortdagDbJson>(this).map { it.toMeldekortdag(meldekortId) as MeldeperiodeBeregningDag.Utfylt }
+        .toNonEmptyListOrNull()!!
 
-internal fun String.toIkkeUtfyltMeldekortperiode(
-    sakId: SakId,
+internal fun String.tilIkkeUtfylteMeldekortDager(
     meldekortId: MeldekortId,
-    maksDagerMedTiltakspengerForPeriode: Int,
-): MeldeperiodeBeregning.IkkeUtfyltMeldeperiode =
-    deserializeList<MeldekortdagDbJson>(this)
-        .map {
-            it.toMeldekortdag(meldekortId)
-        }.let {
-            MeldeperiodeBeregning.IkkeUtfyltMeldeperiode(
-                sakId,
-                maksDagerMedTiltakspengerForPeriode,
-                it.toNonEmptyListOrNull()!!,
-            )
-        }
+): NonEmptyList<MeldeperiodeBeregningDag> =
+    deserializeList<MeldekortdagDbJson>(this).map { it.toMeldekortdag(meldekortId) }
+        .toNonEmptyListOrNull()!!

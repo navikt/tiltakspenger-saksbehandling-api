@@ -164,18 +164,19 @@ interface MeldekortMother : MotherOfAllMothers {
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         maksDagerMedTiltakspengerForPeriode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
-    ): MeldeperiodeBeregning.UtfyltMeldeperiode {
-        val dager = maksAntallDeltattTiltaksdagerIMeldekortperiode(
+        dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt> = maksAntallDeltattTiltaksdagerIMeldekortperiode(
             startDato,
             meldekortId,
             tiltakstype,
             barnetilleggsPerioder,
-        )
+        ),
+        dagerOmberegnet: List<MeldeperiodeBeregningDag.Utfylt> = emptyList(),
+    ): MeldeperiodeBeregning.UtfyltMeldeperiode {
         return MeldeperiodeBeregning.UtfyltMeldeperiode(
             sakId = sakId,
             maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
             dager = dager,
-            dagerForHeleSaken = dager,
+            dagerOmberegnet = dagerOmberegnet,
         )
     }
 

@@ -96,13 +96,13 @@ data class MeldekortBehandlinger(
                 return KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagFraSperret.left()
             }
         }
-        val meldekortDagerBeregnet = kommando.beregn(
+        val (meldekortDagerBeregnet, eksisterendeDagerOmberegnet) = kommando.beregn(
             eksisterendeMeldekortBehandlinger = this,
             barnetilleggsPerioder = barnetilleggsPerioder,
             tiltakstypePerioder = tiltakstypePerioder,
         )
         val utfyltMeldeperiode =
-            meldekort.beregning.tilUtfyltMeldeperiode(meldekortDagerBeregnet).getOrElse {
+            meldekort.beregning.tilUtfyltMeldeperiode(meldekortDagerBeregnet, eksisterendeDagerOmberegnet).getOrElse {
                 return it.left()
             }
 

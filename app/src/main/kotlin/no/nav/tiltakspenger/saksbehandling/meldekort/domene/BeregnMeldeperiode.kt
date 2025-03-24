@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
@@ -66,7 +65,7 @@ private data class MeldekortBeregning(
     }
 
     /** Returnerer beregnede dager fra kommando, og (om-)beregning for alle dager på saken  */
-    fun beregn(): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
+    fun beregn(): Pair<NonEmptyList<MeldeperiodeBeregningDag.Utfylt>, List<MeldeperiodeBeregningDag.Utfylt>> {
         val oppdatertMeldekortId = kommando.meldekortId
         val oppdaterteDager = kommando.dager
         val oppdatertTilOgMed = kommando.dager.last().dag
@@ -76,7 +75,7 @@ private data class MeldekortBeregning(
                 !oppdaterteDager.any { it.dag == eksisterendeDag.dato }
             }
 
-        val eksisterendeDagerBeregnet = eksisterendeDager.mapNotNull { meldekortdag ->
+        val eksisterendeDagerOmberegnet = eksisterendeDager.mapNotNull { meldekortdag ->
             val tiltakstype: TiltakstypeSomGirRett by lazy {
                 meldekortdag.tiltakstype
                     ?: throw IllegalStateException("Tidligere meldekortdag.tiltakstype var null for meldekortdag $meldekortdag")
@@ -122,17 +121,17 @@ private data class MeldekortBeregning(
             }
         }
 
-        val dagerBeregnet = (eksisterendeDagerBeregnet + oppdaterteDagerBeregnet).sortedBy { it.dato }
+//        val dagerBeregnet = (eksisterendeDagerBeregnet + oppdaterteDagerBeregnet).sortedBy { it.dato }
+//
+//        val duplikateDager = dagerBeregnet.nonDistinctBy {
+//            it.dato
+//        }
+//
+//        check(duplikateDager.isEmpty()) {
+//            "Beregnede utbetalingsdager har duplikate dager - $duplikateDager"
+//        }
 
-        val duplikateDager = dagerBeregnet.nonDistinctBy {
-            it.dato
-        }
-
-        check(duplikateDager.isEmpty()) {
-            "Beregnede utbetalingsdager har duplikate dager - $duplikateDager"
-        }
-
-        return dagerBeregnet.toNonEmptyListOrNull()!!
+        return oppdaterteDagerBeregnet.toNonEmptyListOrNull()!! to eksisterendeDagerOmberegnet
     }
 
     private fun deltattUtenLønn(

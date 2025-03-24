@@ -32,7 +32,7 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
         override val sakId: SakId,
         override val maksDagerMedTiltakspengerForPeriode: Int,
         override val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-        val dagerForHeleSaken: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
+        val dagerOmberegnet: List<MeldeperiodeBeregningDag.Utfylt>,
     ) : MeldeperiodeBeregning,
         List<MeldeperiodeBeregningDag> by dager {
         override val meldekortId = dager.first().meldekortId
@@ -44,9 +44,6 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
             dager.forEachIndexed { index, dag ->
                 require(dager.first().dato.plusDays(index.toLong()) == dag.dato) {
                     "Datoene må være sammenhengende og sortert, men var ${dager.map { it.dato }}"
-                }
-                require(dagerForHeleSaken.contains(dag)) {
-                    "Alle dager for meldeperioden må inngå i beregningen for hele saken, men $dag mangler fra beregningen"
                 }
             }
 
@@ -75,24 +72,6 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
          * Ordinær stønad + barnetillegg
          */
         fun beregnTotaltBeløp(): Int = beregnTotalOrdinærBeløp() + beregnTotalBarnetiillegg()
-
-        companion object {
-            fun fraBeregningAvHeleSaken(
-                sakId: SakId,
-                maksDagerMedTiltakspengerForPeriode: Int,
-                periode: Periode,
-                dagerForHeleSaken: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-            ): UtfyltMeldeperiode {
-                return UtfyltMeldeperiode(
-                    sakId = sakId,
-                    maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-                    dagerForHeleSaken = dagerForHeleSaken,
-                    dager = dagerForHeleSaken
-                        .filter { it.dato >= periode.fraOgMed && it.dato <= periode.tilOgMed }
-                        .toNonEmptyListOrNull()!!,
-                )
-            }
-        }
     }
 
     /**
@@ -173,14 +152,15 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
         }
 
         fun tilUtfyltMeldeperiode(
-            dagerForHeleSaken: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
+            dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
+            dagerOmberegnet: List<MeldeperiodeBeregningDag.Utfylt>,
         ): Either<KanIkkeSendeMeldekortTilBeslutning, UtfyltMeldeperiode> {
             return validerAntallDager().map {
-                UtfyltMeldeperiode.fraBeregningAvHeleSaken(
+                UtfyltMeldeperiode(
                     sakId = sakId,
                     maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-                    dagerForHeleSaken = dagerForHeleSaken,
-                    periode = periode,
+                    dager = dager,
+                    dagerOmberegnet = dagerOmberegnet,
                 )
             }
         }

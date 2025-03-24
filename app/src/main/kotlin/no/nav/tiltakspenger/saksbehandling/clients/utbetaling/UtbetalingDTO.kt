@@ -17,7 +17,6 @@ import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
 import no.nav.utsjekk.kontrakter.iverksett.StønadsdataTiltakspengerV2Dto
 import no.nav.utsjekk.kontrakter.iverksett.UtbetalingV2Dto
 import no.nav.utsjekk.kontrakter.iverksett.VedtaksdetaljerV2Dto
-import java.time.LocalDate
 import kotlin.collections.fold
 
 /**
@@ -33,8 +32,11 @@ fun Utbetalingsvedtak.toDTO(
 
     val nyeUtbetalinger = (utbetalingerStønad + utbetalingerBarnetillegg)
 
-    val tidligereUtbetalinger = forrigeUtbetalingJson?.let { deserialize<IverksettV2Dto>(it) }
-        ?.utbetalingerEtter(nyeUtbetalinger.maxOf { it.tilOgMedDato }) ?: emptyList()
+    val førsteNyeUtbetaling = nyeUtbetalinger.minByOrNull { it.fraOgMedDato }!!
+
+    val tidligereUtbetalinger = forrigeUtbetalingJson
+        ?.let { deserialize<IverksettV2Dto>(it) }
+        ?.utbetalingerFør(førsteNyeUtbetaling) ?: emptyList()
 
     return IverksettV2Dto(
         sakId = vedtak.saksnummer.toString(),
@@ -57,14 +59,19 @@ fun Utbetalingsvedtak.toDTO(
     }
 }
 
-private fun IverksettV2Dto.utbetalingerEtter(dato: LocalDate) =
-    this.vedtak.utbetalinger.filter { dato > it.tilOgMedDato }
+/** Filtrerer vekk tidligere utbetalinger, og utbetalinger på samme meldeperiodekjede ("meldekortId" her) */
+private fun IverksettV2Dto.utbetalingerFør(utbetaling: UtbetalingV2Dto) =
+    this.vedtak.utbetalinger.filter {
+        val itStønadsdata = it.stønadsdata as StønadsdataTiltakspengerV2Dto
+        val utbetalingStønadsdata = utbetaling.stønadsdata as StønadsdataTiltakspengerV2Dto
+        utbetaling.fraOgMedDato > it.fraOgMedDato && utbetalingStønadsdata.meldekortId != itStønadsdata.meldekortId
+    }
 
 private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
 ): List<UtbetalingV2Dto> {
-    return this.beregning.dagerForHeleSaken.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->
+    return this.beregning.dager.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->
         val kjedeId = this.kjedeId
         when (val sisteUtbetalingsperiode = acc.lastOrNull()) {
             null -> {
