@@ -191,7 +191,7 @@ internal class SakPostgresRepo(
         sisteDagSomGirRett: LocalDate?,
         sessionContext: SessionContext?,
     ) {
-        sessionFactory.withSessionContext { sc ->
+        sessionFactory.withSessionContext(sessionContext) { sc ->
             sc.withSession { session ->
                 session.run(
                     queryOf(
