@@ -67,36 +67,44 @@ private fun IverksettV2Dto.utbetalingerFør(utbetaling: UtbetalingV2Dto) =
         utbetaling.fraOgMedDato > it.fraOgMedDato && utbetalingStønadsdata.meldekortId != itStønadsdata.meldekortId
     }
 
+private fun List<MeldeperiodeBeregningDag.Utfylt>.toUtbetalingDto(
+    brukersNavKontor: Navkontor,
+    barnetillegg: Boolean,
+) = this.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->
+    val kjedeId = meldekortdag.kjedeId
+    when (val sisteUtbetalingsperiode = acc.lastOrNull()) {
+        null -> {
+            meldekortdag.genererUtbetalingsperiode(
+                kjedeId = kjedeId,
+                brukersNavKontor = brukersNavKontor,
+                barnetillegg = barnetillegg,
+            )?.let { acc + it } ?: acc
+        }
+
+        else ->
+            sisteUtbetalingsperiode.leggTil(
+                meldekortdag = meldekortdag,
+                kjedeId = kjedeId,
+                brukersNavKontor = brukersNavKontor,
+                barnetillegg = barnetillegg,
+            ).let {
+                when (it) {
+                    is Resultat.KanIkkeSlåSammen -> acc + it.utbetalingsperiode
+                    is Resultat.KanSlåSammen -> acc.dropLast(1) + it.utbetalingsperiode
+                    is Resultat.SkalIkkeUtbetales -> acc
+                }
+            }
+    }
+}
+
 private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
 ): List<UtbetalingV2Dto> {
-    return this.beregning.dager.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->
-        val kjedeId = this.kjedeId
-        when (val sisteUtbetalingsperiode = acc.lastOrNull()) {
-            null -> {
-                meldekortdag.genererUtbetalingsperiode(
-                    kjedeId = kjedeId,
-                    brukersNavKontor = brukersNavKontor,
-                    barnetillegg = barnetillegg,
-                )?.let { acc + it } ?: acc
-            }
-
-            else ->
-                sisteUtbetalingsperiode.leggTil(
-                    meldekortdag = meldekortdag,
-                    kjedeId = kjedeId,
-                    brukersNavKontor = brukersNavKontor,
-                    barnetillegg = barnetillegg,
-                ).let {
-                    when (it) {
-                        is Resultat.KanIkkeSlåSammen -> acc + it.utbetalingsperiode
-                        is Resultat.KanSlåSammen -> acc.dropLast(1) + it.utbetalingsperiode
-                        is Resultat.SkalIkkeUtbetales -> acc
-                    }
-                }
-        }
-    }
+    return this.beregning.dager.toUtbetalingDto(
+        brukersNavKontor,
+        barnetillegg,
+    ) + this.beregning.dagerOmberegnet.toUtbetalingDto(brukersNavKontor, barnetillegg)
 }
 
 private fun MeldeperiodeBeregningDag.Utfylt.genererUtbetalingsperiode(

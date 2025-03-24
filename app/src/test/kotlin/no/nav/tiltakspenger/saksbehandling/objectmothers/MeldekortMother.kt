@@ -161,12 +161,19 @@ interface MeldekortMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         startDato: LocalDate = LocalDate.of(2023, 1, 2),
         meldekortId: MeldekortId = MeldekortId.random(),
+        kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(
+            Periode(
+                fraOgMed = startDato,
+                tilOgMed = startDato.plusDays(13),
+            ),
+        ),
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         maksDagerMedTiltakspengerForPeriode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
         dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt> = maksAntallDeltattTiltaksdagerIMeldekortperiode(
             startDato,
             meldekortId,
+            kjedeId,
             tiltakstype,
             barnetilleggsPerioder,
         ),
@@ -211,25 +218,39 @@ interface MeldekortMother : MotherOfAllMothers {
     fun maksAntallDeltattTiltaksdagerIMeldekortperiode(
         startDato: LocalDate,
         meldekortId: MeldekortId,
+        kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(
+            Periode(
+                fraOgMed = startDato,
+                tilOgMed = startDato.plusDays(13),
+            ),
+        ),
         tiltakstype: TiltakstypeSomGirRett,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
     ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
         return (
-            tiltaksdager(startDato, meldekortId, tiltakstype, barnetilleggsPerioder = barnetilleggsPerioder) +
-                ikkeTiltaksdager(startDato.plusDays(5), meldekortId, 2, tiltakstype) +
+            tiltaksdager(
+                startDato = startDato,
+                meldekortId = meldekortId,
+                kjedeId = kjedeId,
+                tiltakstype = tiltakstype,
+                barnetilleggsPerioder = barnetilleggsPerioder,
+            ) +
+                ikkeTiltaksdager(startDato.plusDays(5), meldekortId, kjedeId, 2, tiltakstype) +
                 tiltaksdager(
                     startDato.plusDays(7),
                     meldekortId,
+                    kjedeId,
                     tiltakstype,
                     barnetilleggsPerioder = barnetilleggsPerioder,
                 ) +
-                ikkeTiltaksdager(startDato.plusDays(12), meldekortId, 2, tiltakstype)
+                ikkeTiltaksdager(startDato.plusDays(12), meldekortId, kjedeId, 2, tiltakstype)
             ).toNonEmptyListOrNull()!!
     }
 
     fun tiltaksdager(
-        startDato: LocalDate = LocalDate.of(2023, 1, 2),
-        meldekortId: MeldekortId = MeldekortId.random(),
+        startDato: LocalDate,
+        meldekortId: MeldekortId,
+        kjedeId: MeldeperiodeKjedeId,
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         antallDager: Int = 5,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
@@ -242,6 +263,7 @@ interface MeldekortMother : MotherOfAllMothers {
             MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket.create(
                 dato = dato,
                 meldekortId = meldekortId,
+                kjedeId = kjedeId,
                 tiltakstype = tiltakstype,
                 antallBarn = barnetilleggsPerioder.hentVerdiForDag(dato) ?: AntallBarn.ZERO,
             )
@@ -249,8 +271,9 @@ interface MeldekortMother : MotherOfAllMothers {
     }
 
     fun ikkeTiltaksdager(
-        startDato: LocalDate = LocalDate.of(2023, 1, 2),
-        meldekortId: MeldekortId = MeldekortId.random(),
+        startDato: LocalDate,
+        meldekortId: MeldekortId,
+        kjedeId: MeldeperiodeKjedeId,
         antallDager: Int = 2,
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
@@ -263,6 +286,7 @@ interface MeldekortMother : MotherOfAllMothers {
             MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt.create(
                 dato = dato,
                 meldekortId = meldekortId,
+                kjedeId = kjedeId,
                 tiltakstype = tiltakstype,
                 antallBarn = barnetilleggsPerioder.hentVerdiForDag(dato) ?: AntallBarn.ZERO,
             )

@@ -4,6 +4,7 @@ import arrow.core.toNonEmptyListOrNull
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -11,7 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregnin
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -23,6 +23,7 @@ internal class UtbetalingDTOKorrigeringTest {
         LocalDate.of(2025, 1, 6),
         LocalDate.of(2025, 1, 19),
     )
+    val førstePeriodeKjedeId = MeldeperiodeKjedeId.fraPeriode(førstePeriode)
 
     private fun lagUtbetalingsVedtak(
         id: VedtakId,
@@ -73,12 +74,14 @@ internal class UtbetalingDTOKorrigeringTest {
             dager = ObjectMother.tiltaksdager(
                 startDato = førstePeriode.fraOgMed,
                 meldekortId = korrigertMeldekortId,
+                kjedeId = førstePeriodeKjedeId,
                 tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                 antallDager = 4,
             ).plus(
                 ObjectMother.ikkeTiltaksdager(
                     startDato = førstePeriode.fraOgMed.plusDays(4),
                     meldekortId = korrigertMeldekortId,
+                    kjedeId = førstePeriodeKjedeId,
                     tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 3,
                 ),
@@ -86,6 +89,7 @@ internal class UtbetalingDTOKorrigeringTest {
                 ObjectMother.tiltaksdager(
                     startDato = førstePeriode.fraOgMed.plusDays(7),
                     meldekortId = korrigertMeldekortId,
+                    kjedeId = førstePeriodeKjedeId,
                     tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 4,
                 ),
@@ -93,6 +97,7 @@ internal class UtbetalingDTOKorrigeringTest {
                 ObjectMother.ikkeTiltaksdager(
                     startDato = førstePeriode.fraOgMed.plusDays(11),
                     meldekortId = korrigertMeldekortId,
+                    kjedeId = førstePeriodeKjedeId,
                     tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 3,
                 ),
@@ -149,7 +154,6 @@ internal class UtbetalingDTOKorrigeringTest {
         korrigertUtbetalingsvedtak.toDTO(førsteJson).shouldEqualJson(forventetKorrigertJson)
     }
 
-    @Disabled
     @Test
     fun `Skal korrigere det første av to meldekort`() {
         val førsteMeldekortId = MeldekortId.random()
@@ -165,12 +169,14 @@ internal class UtbetalingDTOKorrigeringTest {
         val korrigerteDager = ObjectMother.tiltaksdager(
             startDato = førstePeriode.fraOgMed,
             meldekortId = korrigertMeldekortId,
+            kjedeId = førstePeriodeKjedeId,
             tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
             antallDager = 4,
         ).plus(
             ObjectMother.ikkeTiltaksdager(
                 startDato = førstePeriode.fraOgMed.plusDays(4),
                 meldekortId = korrigertMeldekortId,
+                kjedeId = førstePeriodeKjedeId,
                 tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                 antallDager = 3,
             ),
@@ -178,6 +184,7 @@ internal class UtbetalingDTOKorrigeringTest {
             ObjectMother.tiltaksdager(
                 startDato = førstePeriode.fraOgMed.plusDays(7),
                 meldekortId = korrigertMeldekortId,
+                kjedeId = førstePeriodeKjedeId,
                 tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                 antallDager = 4,
             ),
@@ -185,6 +192,7 @@ internal class UtbetalingDTOKorrigeringTest {
             ObjectMother.ikkeTiltaksdager(
                 startDato = førstePeriode.fraOgMed.plusDays(11),
                 meldekortId = korrigertMeldekortId,
+                kjedeId = førstePeriodeKjedeId,
                 tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                 antallDager = 3,
             ),
@@ -216,7 +224,6 @@ internal class UtbetalingDTOKorrigeringTest {
             periode = førstePeriode,
             opprettet = LocalDateTime.parse("2025-01-26T00:00:00.000001"),
             dager = korrigerteDager,
-            dagerOmberegnet = korrigerteDager.plus(andrePeriodeDager),
         )
 
         val førsteJson = førsteUtbetalingsvedtak.toDTO(null)
@@ -259,30 +266,6 @@ internal class UtbetalingDTOKorrigeringTest {
                       "barnetillegg": false,
                       "brukersNavKontor": "0220",
                       "meldekortId": "2025-01-06/2025-01-19"
-                    }
-                  },
-                  {
-                    "beløp": 298,
-                    "satstype": "DAGLIG_INKL_HELG",
-                    "fraOgMedDato": "2025-01-20",
-                    "tilOgMedDato": "2025-01-24",
-                    "stønadsdata": {
-                      "stønadstype": "GRUPPE_AMO",
-                      "barnetillegg": false,
-                      "brukersNavKontor": "0220",
-                      "meldekortId": "2025-01-20/2025-02-02"
-                    }
-                  },
-                  {
-                    "beløp": 298,
-                    "satstype": "DAGLIG_INKL_HELG",
-                    "fraOgMedDato": "2025-01-27",
-                    "tilOgMedDato": "2025-01-31",
-                    "stønadsdata": {
-                      "stønadstype": "GRUPPE_AMO",
-                      "barnetillegg": false,
-                      "brukersNavKontor": "0220",
-                      "meldekortId": "2025-01-20/2025-02-02"
                     }
                   }
                 ]
