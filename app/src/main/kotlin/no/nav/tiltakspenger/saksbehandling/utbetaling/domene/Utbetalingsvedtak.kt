@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.periodisering.nå
 import no.nav.tiltakspenger.saksbehandling.felles.Navkontor
 import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.felles.nå
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.stønad.StatistikkUtbetalingDTO

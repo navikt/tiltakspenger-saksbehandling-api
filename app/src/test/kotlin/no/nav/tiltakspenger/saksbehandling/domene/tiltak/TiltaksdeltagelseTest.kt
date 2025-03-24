@@ -2,13 +2,13 @@ package no.nav.tiltakspenger.saksbehandling.domene.tiltak
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.desember
+import no.nav.tiltakspenger.libs.periodisering.februar
+import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.libs.periodisering.juni
+import no.nav.tiltakspenger.libs.periodisering.mai
+import no.nav.tiltakspenger.libs.periodisering.oktober
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.felles.desember
-import no.nav.tiltakspenger.saksbehandling.felles.februar
-import no.nav.tiltakspenger.saksbehandling.felles.januar
-import no.nav.tiltakspenger.saksbehandling.felles.juni
-import no.nav.tiltakspenger.saksbehandling.felles.mai
-import no.nav.tiltakspenger.saksbehandling.felles.oktober
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltakskilde

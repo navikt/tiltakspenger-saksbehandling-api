@@ -2,10 +2,10 @@ package no.nav.tiltakspenger.saksbehandling.domene
 
 import arrow.core.nonEmptyListOf
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.felles.april
-import no.nav.tiltakspenger.saksbehandling.felles.februar
-import no.nav.tiltakspenger.saksbehandling.felles.januar
-import no.nav.tiltakspenger.saksbehandling.felles.mars
+import no.nav.tiltakspenger.libs.periodisering.april
+import no.nav.tiltakspenger.libs.periodisering.februar
+import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager.Dag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.FRAVÆR_SYK

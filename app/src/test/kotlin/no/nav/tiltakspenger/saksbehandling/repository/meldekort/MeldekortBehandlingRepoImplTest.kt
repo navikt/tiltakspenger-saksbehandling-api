@@ -2,11 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.repository.meldekort
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.libs.periodisering.april
+import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.db.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
-import no.nav.tiltakspenger.saksbehandling.felles.april
-import no.nav.tiltakspenger.saksbehandling.felles.januar
-import no.nav.tiltakspenger.saksbehandling.felles.mars
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother

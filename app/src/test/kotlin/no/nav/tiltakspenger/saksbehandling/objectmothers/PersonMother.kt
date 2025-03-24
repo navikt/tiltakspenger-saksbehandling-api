@@ -4,7 +4,7 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.saksbehandling.felles.januar
+import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 import java.time.LocalDate
 

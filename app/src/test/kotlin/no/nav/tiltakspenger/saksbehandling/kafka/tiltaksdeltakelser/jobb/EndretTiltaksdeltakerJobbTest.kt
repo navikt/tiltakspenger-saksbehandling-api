@@ -9,13 +9,13 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.libs.periodisering.mai
 import no.nav.tiltakspenger.saksbehandling.db.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.db.persisterOpprettetFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.db.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.felles.OppgaveId
-import no.nav.tiltakspenger.saksbehandling.felles.januar
-import no.nav.tiltakspenger.saksbehandling.felles.mai
 import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.repository.getTiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.TiltakDeltakerstatus

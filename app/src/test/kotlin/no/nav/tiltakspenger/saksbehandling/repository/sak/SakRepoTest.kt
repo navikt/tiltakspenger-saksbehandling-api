@@ -4,14 +4,14 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.desember
+import no.nav.tiltakspenger.libs.periodisering.februar
+import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.saksbehandling.db.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.db.persisterNySak
 import no.nav.tiltakspenger.saksbehandling.db.persisterOpprettetFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.db.persisterSak
 import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
-import no.nav.tiltakspenger.saksbehandling.felles.desember
-import no.nav.tiltakspenger.saksbehandling.felles.februar
-import no.nav.tiltakspenger.saksbehandling.felles.januar
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saker
 import org.junit.jupiter.api.Nested

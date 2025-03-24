@@ -6,9 +6,9 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.libs.periodisering.juni
 import no.nav.tiltakspenger.saksbehandling.felles.OppgaveId
-import no.nav.tiltakspenger.saksbehandling.felles.januar
-import no.nav.tiltakspenger.saksbehandling.felles.juni
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søk
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 interface SøknadMother {
     fun søknadstiltak(

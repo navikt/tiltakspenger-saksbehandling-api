@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.repository.meldekort
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.db.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
-import no.nav.tiltakspenger.saksbehandling.felles.januar
-import no.nav.tiltakspenger.saksbehandling.felles.mars
 import org.junit.jupiter.api.Test
 
 class MeldeperiodePostgresRepoTest {

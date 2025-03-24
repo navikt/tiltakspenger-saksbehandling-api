@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
+import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.felles.januar
-import no.nav.tiltakspenger.saksbehandling.felles.mars
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknadstiltak

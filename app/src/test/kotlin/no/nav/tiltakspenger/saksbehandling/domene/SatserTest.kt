@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.utbetaling.domene
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.saksbehandling.felles.desember
-import no.nav.tiltakspenger.saksbehandling.felles.januar
+import no.nav.tiltakspenger.libs.periodisering.desember
+import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Sats
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Satser
 import org.junit.jupiter.api.Test

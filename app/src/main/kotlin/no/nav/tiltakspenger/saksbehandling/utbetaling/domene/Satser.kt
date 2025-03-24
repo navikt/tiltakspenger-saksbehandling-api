@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.felles.desember
-import no.nav.tiltakspenger.saksbehandling.felles.januar
+import no.nav.tiltakspenger.libs.periodisering.desember
+import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Satsdag
 import java.time.LocalDate
 

@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.db
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.saksbehandling.felles.januar
-import no.nav.tiltakspenger.saksbehandling.felles.mars
+import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.repository.behandling.BehandlingRepoTest.Companion.random
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
