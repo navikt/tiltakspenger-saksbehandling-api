@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.libs.ktor.common.respond501NotImplemented
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeImplementertException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.ikkeFunnet
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.ikkeImplementert
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.ikkeTilgang
@@ -26,8 +25,7 @@ object ExceptionHandler {
         cause: Throwable,
     ) {
         val uri = call.request.uri
-        logger.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ktor mottok exception i ytterste lag. Uri: $uri. Se sikkerlogg mer kontekst." }
-        sikkerlogg.error(cause) { "Ktor mottok exception i ytterste lag. Uri: $uri." }
+        logger.error(cause) { "Ktor mottok exception i ytterste lag. Uri: $uri." }
         when (cause) {
             is IllegalStateException -> {
                 call.respond500InternalServerError(serverfeil())
