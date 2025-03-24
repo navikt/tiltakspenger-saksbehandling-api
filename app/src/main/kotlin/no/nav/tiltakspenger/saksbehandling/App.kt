@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.libs.jobber.LeaderPodLookupFeil
 import no.nav.tiltakspenger.libs.jobber.RunCheckFactory
 import no.nav.tiltakspenger.saksbehandling.Configuration.httpPort
 import no.nav.tiltakspenger.saksbehandling.context.ApplicationContext
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.jobber.TaskExecutor
 import java.time.Clock
 import kotlin.time.Duration.Companion.minutes
@@ -41,8 +40,7 @@ internal fun start(
     devRoutes: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {
     Thread.setDefaultUncaughtExceptionHandler { _, e ->
-        log.error { e }
-        sikkerlogg.error(e) { e.message }
+        log.error(e) { e.message }
     }
 
     val server = embeddedServer(
