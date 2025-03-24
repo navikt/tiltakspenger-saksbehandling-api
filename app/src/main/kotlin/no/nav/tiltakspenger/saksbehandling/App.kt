@@ -86,10 +86,10 @@ internal fun start(
                 applicationContext.meldekortContext.sendMeldeperiodeTilBrukerService.send()
                 applicationContext.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
             }
-            // slå på når ting er good to go
-//            if (!Configuration.isProd()) {
-//                applicationContext.genererMeldeperioderService.genererMeldeperioderForSaker()
-//            }
+            // Slå på for prod når vi har friskmeldt/verifisert dev OK.
+            if (!Configuration.isProd()) {
+                applicationContext.genererMeldeperioderService.genererMeldeperioderForSaker()
+            }
         },
     )
 

@@ -256,7 +256,7 @@ internal class SakPostgresRepo(
     companion object {
 
         fun Row.toSak(sessionContext: SessionContext): Sak {
-            val id = SakId.fromString(string("id"))
+            val id: SakId = SakId.fromString(string("id"))
             return sessionContext.withSession { session ->
                 val behandlinger = BehandlingPostgresRepo.hentForSakId(id, session)
                 val vedtaksliste: Vedtaksliste = RammevedtakPostgresRepo.hentForSakId(id, session)
@@ -265,7 +265,7 @@ internal class SakPostgresRepo(
                 val meldeperioder = MeldeperiodePostgresRepo.hentForSakId(id, session)
                 val soknader = SøknadDAO.hentForSakId(id, session)
                 Sak(
-                    id = SakId.fromString(string("id")),
+                    id = id,
                     saksnummer = Saksnummer(verdi = string("saksnummer")),
                     fnr = Fnr.fromString(string("fnr")),
                     behandlinger = behandlinger,
@@ -278,12 +278,12 @@ internal class SakPostgresRepo(
                 ).also { sak ->
                     localDateOrNull("første_dag_som_gir_rett").also {
                         require(sak.førsteDagSomGirRett == it) {
-                            "Vedtakslisten vår er master på første dag som gir rett (${sak.førsteDagSomGirRett}). Kolonnen sak.første_dag_som_gir_rett er ikke oppdatert ($it)"
+                            "Vedtakslisten vår er master på første dag som gir rett (${sak.førsteDagSomGirRett}). Kolonnen sak.første_dag_som_gir_rett er ikke oppdatert ($it). For sak-id: $id, saksnummer: ${sak.saksnummer}"
                         }
                     }
                     localDateOrNull("siste_dag_som_gir_rett").also {
                         require(sak.sisteDagSomGirRett == it) {
-                            "Vedtakslisten vår er master på siste dag som gir rett (${sak.sisteDagSomGirRett}). Kolonnen sak.siste_dag_som_gir_rett er ikke oppdatert ($it)"
+                            "Vedtakslisten vår er master på siste dag som gir rett (${sak.sisteDagSomGirRett}). Kolonnen sak.siste_dag_som_gir_rett er ikke oppdatert ($it). For sak-id: $id, saksnummer: ${sak.saksnummer}"
                         }
                     }
                 }
