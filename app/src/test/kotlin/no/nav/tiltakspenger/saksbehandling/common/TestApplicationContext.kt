@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.GenerellSystembrukerrolle
 import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.TestSessionFactory
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.saksbehandling.Profile
 import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
@@ -54,34 +55,6 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysnin
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.NavkontorService
-import java.time.Clock
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.temporal.ChronoUnit
-
-class TikkendeKlokke(
-    private val initialClock: Clock = fixedClock,
-) : Clock() {
-    private var nextInstant = initialClock.instant()
-
-    override fun getZone(): ZoneId = initialClock.zone
-    override fun withZone(zone: ZoneId?): Clock = initialClock.withZone(zone)
-
-    override fun instant(): Instant {
-        nextInstant = nextInstant.plus(1, ChronoUnit.SECONDS)
-        return nextInstant
-    }
-
-    fun spolTil(dato: LocalDate): Instant {
-        require(dato.atStartOfDay(zone).toInstant() > nextInstant) { "Kan bare spole fremover i tid" }
-        return dato.atStartOfDay(zone).plus(nextInstant.nano.toLong(), ChronoUnit.NANOS).toInstant().also {
-            nextInstant = it
-        }
-    }
-
-    fun copy(): TikkendeKlokke = TikkendeKlokke(initialClock)
-}
 
 /**
  * Oppretter en tom ApplicationContext for bruk i tester.
