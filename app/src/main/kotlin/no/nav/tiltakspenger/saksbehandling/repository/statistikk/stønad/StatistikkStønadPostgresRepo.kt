@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.repository.statistikk.stønad
 
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
-import no.nav.tiltakspenger.libs.periodisering.nå
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.StatistikkStønadRepo

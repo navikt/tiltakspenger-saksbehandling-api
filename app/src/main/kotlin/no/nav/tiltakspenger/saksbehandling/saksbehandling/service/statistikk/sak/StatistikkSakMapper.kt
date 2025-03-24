@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.sak
 
-import no.nav.tiltakspenger.libs.periodisering.nå
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtakstype

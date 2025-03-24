@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.repository.utbetaling
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.libs.periodisering.januar
-import no.nav.tiltakspenger.libs.periodisering.nå
 import no.nav.tiltakspenger.saksbehandling.db.persisterRammevedtakMedBehandletMeldekort
 import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId

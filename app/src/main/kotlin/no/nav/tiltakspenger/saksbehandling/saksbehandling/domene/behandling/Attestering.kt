@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling
 
-import no.nav.tiltakspenger.libs.periodisering.nå
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import java.time.LocalDateTime
 
