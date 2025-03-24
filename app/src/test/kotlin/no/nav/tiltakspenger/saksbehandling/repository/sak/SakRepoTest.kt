@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saker
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.Clock
 
 internal class SakRepoTest {
     @Test
@@ -82,6 +83,7 @@ internal class SakRepoTest {
                 val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
                     deltakelseFom = 1.februar(2025),
                     deltakelseTom = 28.februar(2025),
+                    clock = Clock.systemUTC(),
                 )
                 sakRepo.oppdaterFørsteOgSisteDagSomGirRett(sak.id, sak.førsteDagSomGirRett, sak.sisteDagSomGirRett)
                 sak.meldeperiodeKjeder.meldeperioder.size shouldBe 3

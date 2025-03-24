@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SaksoversiktRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakServiceImpl
+import java.time.Clock
 
 open class SakContext(
     sessionFactory: SessionFactory,
@@ -20,6 +21,7 @@ open class SakContext(
     poaoTilgangGateway: PoaoTilgangGateway,
     personService: PersonService,
     profile: Profile,
+    clock: Clock,
 ) {
     val sakService: SakService by lazy {
         SakServiceImpl(
@@ -41,6 +43,7 @@ open class SakContext(
         SakPostgresRepo(
             sessionFactory = sessionFactory as PostgresSessionFactory,
             saksnummerGenerator = saksnummerGenerator,
+            clock = clock,
         )
     }
     open val saksoversiktRepo: SaksoversiktRepo by lazy {

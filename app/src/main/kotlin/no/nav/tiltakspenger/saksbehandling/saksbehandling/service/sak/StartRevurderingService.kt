@@ -19,12 +19,14 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.star
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.OppdaterSaksopplysningerService
+import java.time.Clock
 
 class StartRevurderingService(
     private val sakService: SakService,
     private val behandlingRepo: BehandlingRepo,
     private val tilgangsstyringService: TilgangsstyringService,
     private val saksopplysningerService: OppdaterSaksopplysningerService,
+    private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -48,7 +50,7 @@ class StartRevurderingService(
         sjekkSaksbehandlersTilgangTilPerson(sak.fnr, sak.id, saksbehandler, correlationId)
 
         val (oppdatertSak, behandling) = sak
-            .startRevurdering(kommando, saksopplysningerService::hentSaksopplysningerFraRegistre)
+            .startRevurdering(kommando, clock, saksopplysningerService::hentSaksopplysningerFraRegistre)
             .getOrElse { return it.left() }
 
         behandlingRepo.lagre(behandling)

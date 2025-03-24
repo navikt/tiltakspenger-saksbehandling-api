@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.stønad.StatistikkUtbetalingDTO
+import java.time.Clock
 import java.time.LocalDateTime
 
 /**
@@ -47,10 +48,11 @@ fun MeldekortBehandling.MeldekortBehandlet.opprettUtbetalingsvedtak(
     saksnummer: Saksnummer,
     fnr: Fnr,
     forrigeUtbetalingsvedtak: VedtakId?,
+    clock: Clock,
 ): Utbetalingsvedtak =
     Utbetalingsvedtak(
         id = VedtakId.random(),
-        opprettet = nå(),
+        opprettet = nå(clock),
         sakId = this.sakId,
         saksnummer = saksnummer,
         fnr = fnr,

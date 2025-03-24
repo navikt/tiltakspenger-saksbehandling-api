@@ -23,11 +23,13 @@ import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.routes.withBody
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.KunneIkkeHenteSakForFnr
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
+import java.time.Clock
 
 fun Route.hentSakForFnrRoute(
     sakService: SakService,
     auditService: AuditService,
     tokenService: TokenService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
 
@@ -66,7 +68,7 @@ fun Route.hentSakForFnrRoute(
                             contextMessage = "Søker opp alle sakene til brukeren",
                             correlationId = correlationId,
                         )
-                        val sakDTO = it.toDTO()
+                        val sakDTO = it.toDTO(clock)
                         call.respond(message = sakDTO, status = HttpStatusCode.OK)
                     },
                 )

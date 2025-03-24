@@ -11,10 +11,12 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.send
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
+import java.time.Clock
 
 class SendBehandlingTilBeslutningService(
     private val sakService: SakService,
     private val behandlingRepo: BehandlingRepo,
+    private val clock: Clock,
 ) {
     suspend fun sendFørstegangsbehandlingTilBeslutning(
         kommando: SendSøknadsbehandlingTilBeslutningKommando,
@@ -23,7 +25,7 @@ class SendBehandlingTilBeslutningService(
             sakService.hentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId).getOrElse {
                 throw IllegalStateException("Saksbehandler ${kommando.saksbehandler.navIdent} har ikke tilgang til sak ${kommando.sakId}")
             }
-        return sak.sendFørstegangsbehandlingTilBeslutning(kommando).map { (_, behandling) -> behandling }.onRight {
+        return sak.sendFørstegangsbehandlingTilBeslutning(kommando, clock).map { (_, behandling) -> behandling }.onRight {
             behandlingRepo.lagre(it)
         }
     }
@@ -34,7 +36,7 @@ class SendBehandlingTilBeslutningService(
                 throw IllegalStateException("Saksbehandler ${kommando.saksbehandler.navIdent} har ikke tilgang til sak ${kommando.sakId}")
             }
 
-        return sak.sendRevurderingTilBeslutning(kommando).onRight {
+        return sak.sendRevurderingTilBeslutning(kommando, clock).onRight {
             behandlingRepo.lagre(it)
         }
     }

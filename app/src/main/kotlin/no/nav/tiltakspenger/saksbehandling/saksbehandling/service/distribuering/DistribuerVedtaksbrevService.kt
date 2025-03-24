@@ -8,10 +8,12 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DokdistGateway
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.RammevedtakRepo
+import java.time.Clock
 
 class DistribuerVedtaksbrevService(
     private val dokdistGateway: DokdistGateway,
     private val rammevedtakRepo: RammevedtakRepo,
+    private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -29,7 +31,7 @@ class DistribuerVedtaksbrevService(
                                 return@forEach
                             }
                     log.info { "Vedtaksbrev distribuert. $vedtakSomSkalDistribueres" }
-                    rammevedtakRepo.markerDistribuert(vedtakSomSkalDistribueres.id, distribusjonId, nå())
+                    rammevedtakRepo.markerDistribuert(vedtakSomSkalDistribueres.id, distribusjonId, nå(clock))
                     log.info { "Vedtaksbrev markert som distribuert. distribusjonId: $distribusjonId, $vedtakSomSkalDistribueres" }
                 }.onLeft {
                     log.error(it) { "Feil ved journalføring av vedtaksbrev. $vedtakSomSkalDistribueres" }

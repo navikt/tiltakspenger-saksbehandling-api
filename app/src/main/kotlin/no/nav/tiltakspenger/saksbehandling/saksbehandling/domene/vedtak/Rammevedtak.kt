@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Beha
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vilkår.Utfallsperiode
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -84,12 +85,13 @@ enum class Vedtakstype(
 
 fun Sak.opprettVedtak(
     behandling: Behandling,
+    clock: Clock,
 ): Pair<Sak, Rammevedtak> {
     require(behandling.status == Behandlingsstatus.VEDTATT) { "Krever behandlingsstatus VEDTATT når vi skal opprette et vedtak." }
 
     val vedtak = Rammevedtak(
         id = VedtakId.random(),
-        opprettet = nå(),
+        opprettet = nå(clock),
         sakId = this.id,
         behandling = behandling,
         vedtaksdato = null,

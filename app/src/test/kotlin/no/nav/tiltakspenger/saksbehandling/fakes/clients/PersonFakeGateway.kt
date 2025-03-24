@@ -9,8 +9,9 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.PersonGateway
+import java.time.Clock
 
-class PersonFakeGateway : PersonGateway {
+class PersonFakeGateway(private val clock: Clock) : PersonGateway {
     private val data = Atomic(mutableMapOf<Fnr, PersonopplysningerSøker>())
 
     private val kall = Atomic(mutableListOf<Fnr>())
@@ -67,7 +68,7 @@ class PersonFakeGateway : PersonGateway {
 
         return PersonopplysningerSøker(
             fnr = fnr,
-            fødselsdato = nå().toLocalDate().minusYears(20),
+            fødselsdato = nå(clock).toLocalDate().minusYears(20),
             fornavn = person.fornavn,
             mellomnavn = person.mellomnavn,
             etternavn = person.etternavn,

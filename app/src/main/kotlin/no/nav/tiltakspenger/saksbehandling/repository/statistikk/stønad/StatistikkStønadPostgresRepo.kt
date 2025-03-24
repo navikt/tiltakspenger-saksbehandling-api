@@ -9,9 +9,11 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.StatistikkStøna
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.stønad.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.stønad.StatistikkUtbetalingDTO
 import org.intellij.lang.annotations.Language
+import java.time.Clock
 
 class StatistikkStønadPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
+    private val clock: Clock,
 ) : StatistikkStønadRepo {
     override fun lagre(
         dto: StatistikkStønadDTO,
@@ -70,8 +72,8 @@ class StatistikkStønadPostgresRepo(
                     "tiltakDato" to null,
                     "gyldigFraDatoTiltak" to null,
                     "gyldigTilDatoTiltak" to null,
-                    "sistEndret" to nå(),
-                    "opprettet" to nå(),
+                    "sistEndret" to nå(clock),
+                    "opprettet" to nå(clock),
                 ),
             ).asUpdate,
         )

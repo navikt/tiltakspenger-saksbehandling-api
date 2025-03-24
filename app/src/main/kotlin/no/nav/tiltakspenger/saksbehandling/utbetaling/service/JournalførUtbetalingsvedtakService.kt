@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsved
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
+import java.time.Clock
 
 /**
  * Har ansvar for å generere pdf og sende utbetalingsvedtak til journalføring.
@@ -22,6 +23,7 @@ class JournalførUtbetalingsvedtakService(
     private val genererUtbetalingsvedtakGateway: GenererUtbetalingsvedtakGateway,
     private val navIdentClient: NavIdentClient,
     private val sakRepo: SakRepo,
+    private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger { }
 
@@ -46,7 +48,7 @@ class JournalførUtbetalingsvedtakService(
                         correlationId = correlationId,
                     )
                     log.info { "utbetalingsvedtak journalført. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}. JournalpostId: $journalpostId" }
-                    utbetalingsvedtakRepo.markerJournalført(utbetalingsvedtak.id, journalpostId, nå())
+                    utbetalingsvedtakRepo.markerJournalført(utbetalingsvedtak.id, journalpostId, nå(clock))
                     log.info { "Utbetalingsvedtak markert som journalført. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}. JournalpostId: $journalpostId" }
                 }.onLeft {
                     log.error(it) { "Ukjent feil skjedde under generering av brev og journalføring av utbetalingsvedtak. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }

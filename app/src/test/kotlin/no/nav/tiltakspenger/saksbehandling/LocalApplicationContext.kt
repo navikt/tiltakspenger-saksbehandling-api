@@ -67,7 +67,7 @@ class LocalApplicationContext(
     }
 
     private val utbetalingGatewayFake = UtbetalingFakeGateway()
-    private val personGatewayFake = PersonFakeGateway()
+    private val personGatewayFake = PersonFakeGateway(clock)
     private val genererFakeUtbetalingsvedtakGateway: GenererUtbetalingsvedtakGateway =
         if (usePdfGen) realPdfGen!! else GenererFakeUtbetalingsvedtakGateway()
 
@@ -104,6 +104,7 @@ class LocalApplicationContext(
         val sakRepo = SakPostgresRepo(
             sessionFactory = sessionFactory as PostgresSessionFactory,
             saksnummerGenerator = SaksnummerGenerator.Local,
+            clock = clock,
         )
         val sak = sakRepo.hentForFnr(fnr).saker.firstOrNull() ?: ObjectMother.nySak(
             fnr = fnr,
@@ -182,6 +183,7 @@ class LocalApplicationContext(
             tilgangsstyringService = personContext.tilgangsstyringService,
             poaoTilgangGateway = personContext.poaoTilgangGateway,
             profile = profile,
+            clock = clock,
         ) {}
     }
     override val meldekortContext by lazy {
@@ -196,6 +198,7 @@ class LocalApplicationContext(
             navkontorService = navkontorService,
             oppgaveGateway = oppgaveGateway,
             sakRepo = sakContext.sakRepo,
+            clock = clock,
         ) {}
     }
     override val behandlingContext by lazy {
@@ -227,6 +230,7 @@ class LocalApplicationContext(
             entraIdSystemtokenClient = entraIdSystemtokenClient,
             sakRepo = sakContext.sakRepo,
             navIdentClient = personContext.navIdentClient,
+            clock = clock,
         ) {
             override val utbetalingGateway = utbetalingGatewayFake
         }

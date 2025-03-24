@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -21,14 +22,14 @@ data class MeldeperiodeDTO(
     val meldekortBehandling: MeldekortBehandlingDTO?,
 )
 
-fun Sak.toMeldeperiodeDTO(meldeperiode: Meldeperiode): MeldeperiodeDTO {
+fun Sak.toMeldeperiodeDTO(meldeperiode: Meldeperiode, clock: Clock): MeldeperiodeDTO {
     return MeldeperiodeDTO(
         kjedeId = meldeperiode.kjedeId.toString(),
         id = meldeperiode.id.toString(),
         versjon = meldeperiode.versjon.value,
         periode = meldeperiode.periode.toDTO(),
         opprettet = meldeperiode.opprettet,
-        status = this.toMeldeperiodeStatusDTO(meldeperiode),
+        status = this.toMeldeperiodeStatusDTO(meldeperiode, clock),
         antallDager = meldeperiode.antallDagerForPeriode,
         girRett = meldeperiode.girRett,
         meldekortBehandling = this.meldekortBehandlinger

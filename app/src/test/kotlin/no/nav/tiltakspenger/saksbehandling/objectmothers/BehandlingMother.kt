@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
@@ -59,7 +60,7 @@ interface BehandlingMother {
         status = Attesteringsstatus.GODKJENT,
         begrunnelse = null,
         beslutter = beslutter.navIdent,
-        tidspunkt = nå(),
+        tidspunkt = nå(fixedClock),
     )
 
     fun nyBehandling(

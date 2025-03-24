@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
+import java.time.Clock
 
 enum class MeldeperiodeStatusDTO {
     IKKE_RETT_TIL_TILTAKSPENGER,
@@ -13,7 +14,7 @@ enum class MeldeperiodeStatusDTO {
     GODKJENT,
 }
 
-fun Sak.toMeldeperiodeStatusDTO(meldeperiode: Meldeperiode): MeldeperiodeStatusDTO {
+fun Sak.toMeldeperiodeStatusDTO(meldeperiode: Meldeperiode, clock: Clock): MeldeperiodeStatusDTO {
     val meldekortBehandling = this.meldekortBehandlinger.find { meldekortBehandling ->
         meldekortBehandling.meldeperiode.id == meldeperiode.id
     }
@@ -28,7 +29,7 @@ fun Sak.toMeldeperiodeStatusDTO(meldeperiode: Meldeperiode): MeldeperiodeStatusD
         MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldeperiodeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
         null -> when {
             meldeperiode.helePeriodenErSperret() -> MeldeperiodeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
-            !meldeperiode.erKlarTilUtfylling() -> MeldeperiodeStatusDTO.IKKE_KLAR_TIL_UTFYLLING
+            !meldeperiode.erKlarTilUtfylling(clock) -> MeldeperiodeStatusDTO.IKKE_KLAR_TIL_UTFYLLING
             brukersMeldekort == null -> MeldeperiodeStatusDTO.VENTER_PÅ_UTFYLLING
             else -> MeldeperiodeStatusDTO.KLAR_TIL_BEHANDLING
         }

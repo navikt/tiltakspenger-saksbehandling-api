@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiHttpClientGateway
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
+import java.time.Clock
 
 /**
  * Sender meldekort som er klare for utfylling til meldekort-api, som serverer videre til bruker
@@ -13,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 class SendMeldeperiodeTilBrukerService(
     private val meldeperiodeRepo: MeldeperiodeRepo,
     private val meldekortApiHttpClient: MeldekortApiHttpClientGateway,
+    private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger { }
 
@@ -25,7 +27,7 @@ class SendMeldeperiodeTilBrukerService(
             usendteMeldeperioder.forEach { meldeperiode ->
                 meldekortApiHttpClient.sendMeldeperiode(meldeperiode).onRight {
                     logger.info { "Sendte meldekort til meldekort-api med id ${meldeperiode.id}" }
-                    meldeperiodeRepo.markerSomSendtTilBruker(meldeperiode.id, nå())
+                    meldeperiodeRepo.markerSomSendtTilBruker(meldeperiode.id, nå(clock))
                 }.onLeft {
                     logger.error { "Kunne ikke sende meldekort til meldekort-api med id ${meldeperiode.id}" }
                 }

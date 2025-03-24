@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.routes.sak
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.BehandlingstypeDTO
 import org.junit.jupiter.api.Test
@@ -14,7 +15,7 @@ class SakDtoTest {
         // TODO - burde muligens ha en sak.nySøknad()
         val sakMedSøknadOgBehandling = sak.copy(soknader = sak.soknader + nySøknad)
 
-        val actual = sakMedSøknadOgBehandling.toDTO()
+        val actual = sakMedSøknadOgBehandling.toDTO(fixedClock)
         actual.behandlingsoversikt.size shouldBe 2
         actual.behandlingsoversikt.first().let {
             it.typeBehandling shouldBe BehandlingstypeDTO.SØKNAD

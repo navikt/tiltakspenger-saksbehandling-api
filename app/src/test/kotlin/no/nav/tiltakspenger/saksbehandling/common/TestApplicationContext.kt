@@ -84,7 +84,7 @@ class TestApplicationContext(
     private val søknadFakeRepo = SøknadFakeRepo()
     private val tiltakGatewayFake = TiltakFakeGateway(søknadRepo = søknadFakeRepo)
     private val behandlingFakeRepo = BehandlingFakeRepo()
-    private val personGatewayFake = PersonFakeGateway()
+    private val personGatewayFake = PersonFakeGateway(clock)
     private val tilgangsstyringFakeGateway = TilgangsstyringFakeGateway()
     private val genererFakeMeldekortPdfGateway = GenererFakeUtbetalingsvedtakGateway()
     private val genererFakeVedtaksbrevGateway = GenererFakeVedtaksbrevGateway()
@@ -162,7 +162,7 @@ class TestApplicationContext(
     }
 
     override val statistikkContext by lazy {
-        object : StatistikkContext(sessionFactory) {
+        object : StatistikkContext(sessionFactory, clock) {
             override val statistikkStønadRepo = statistikkStønadFakeRepo
             override val statistikkSakRepo = statistikkSakFakeRepo
         }
@@ -186,6 +186,7 @@ class TestApplicationContext(
             tilgangsstyringService = tilgangsstyringFakeGateway,
             poaoTilgangGateway = personContext.poaoTilgangGateway,
             profile = Profile.LOCAL,
+            clock = clock,
         ) {
             override val sakRepo = sakFakeRepo
             override val saksoversiktRepo = saksoversiktFakeRepo
@@ -205,6 +206,7 @@ class TestApplicationContext(
                 navkontorService = navkontorService,
                 oppgaveGateway = oppgaveGateway,
                 sakRepo = sakContext.sakRepo,
+                clock = clock,
             ) {
             override val meldekortBehandlingRepo = meldekortBehandlingFakeRepo
             override val meldeperiodeRepo = meldeperiodeFakeRepo
@@ -246,6 +248,7 @@ class TestApplicationContext(
             entraIdSystemtokenClient = entraIdSystemtokenClient,
             navIdentClient = personContext.navIdentClient,
             sakRepo = sakContext.sakRepo,
+            clock = clock,
         ) {
             override val utbetalingGateway = utbetalingGatewayFake
             override val utbetalingsvedtakRepo = utbetalingsvedtakFakeRepo

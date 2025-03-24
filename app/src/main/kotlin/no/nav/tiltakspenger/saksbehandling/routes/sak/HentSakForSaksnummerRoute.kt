@@ -15,11 +15,13 @@ import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.routes.withSaksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.KunneIkkeHenteSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
+import java.time.Clock
 
 fun Route.hentSakForSaksnummerRoute(
     sakService: SakService,
     auditService: AuditService,
     tokenService: TokenService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
     get("$SAK_PATH/{saksnummer}") {
@@ -44,7 +46,7 @@ fun Route.hentSakForSaksnummerRoute(
                         }
                     },
                     { sak ->
-                        call.respond(message = sak.toDTO(), status = HttpStatusCode.OK)
+                        call.respond(message = sak.toDTO(clock), status = HttpStatusCode.OK)
                     },
                 )
             }

@@ -4,11 +4,13 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtakstype
+import java.time.Clock
 
 fun genererStatistikkForNyFørstegangsbehandling(
     behandling: Behandling,
     gjelderKode6: Boolean,
     versjon: String,
+    clock: Clock,
 ): StatistikkSakDTO {
     return StatistikkSakDTO(
         sakId = behandling.sakId.toString(),
@@ -20,9 +22,9 @@ fun genererStatistikkForNyFørstegangsbehandling(
         registrertTidspunkt = behandling.opprettet,
         ferdigBehandletTidspunkt = null,
         vedtakTidspunkt = null,
-        endretTidspunkt = nå(),
+        endretTidspunkt = nå(clock),
         utbetaltTidspunkt = null,
-        tekniskTidspunkt = nå(),
+        tekniskTidspunkt = nå(clock),
         søknadsformat = Format.DIGITAL.name,
         // TODO jah: Dette bør være et eget felt som utledes fra tiltaksperioden og kravfrist.
         forventetOppstartTidspunkt = behandling.saksopplysningsperiode?.fraOgMed,
@@ -53,6 +55,7 @@ fun genererSaksstatistikkForRammevedtak(
     vedtak: Rammevedtak,
     gjelderKode6: Boolean,
     versjon: String,
+    clock: Clock,
 ): StatistikkSakDTO {
     val behandling = vedtak.behandling
     return StatistikkSakDTO(
@@ -68,7 +71,7 @@ fun genererSaksstatistikkForRammevedtak(
         vedtakTidspunkt = vedtak.opprettet,
         endretTidspunkt = vedtak.opprettet,
         utbetaltTidspunkt = null,
-        tekniskTidspunkt = nå(),
+        tekniskTidspunkt = nå(clock),
         søknadsformat = Format.DIGITAL.name,
         // TODO jah: Hva gjør vi ved revurdering/stans i dette tilfellet. Skal vi sende førstegangsbehandling sin første innvilget fraOgMed eller null?
         forventetOppstartTidspunkt = if (behandling.erFørstegangsbehandling) behandling.saksopplysningsperiode?.fraOgMed else null,

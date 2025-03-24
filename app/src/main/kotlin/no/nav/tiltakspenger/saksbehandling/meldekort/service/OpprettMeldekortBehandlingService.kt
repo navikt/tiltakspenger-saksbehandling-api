@@ -16,12 +16,14 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettMeldekortBeha
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.NavkontorService
+import java.time.Clock
 
 class OpprettMeldekortBehandlingService(
     val sakService: SakService,
     val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     val navkontorService: NavkontorService,
     val sessionFactory: SessionFactory,
+    private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -51,6 +53,7 @@ class OpprettMeldekortBehandlingService(
                 kjedeId = kjedeId,
                 navkontor = navkontor,
                 saksbehandler = saksbehandler,
+                clock = clock,
             )
         }.getOrElse {
             return KanIkkeOppretteMeldekortBehandling.KanIkkeOpprettePåKjede.left()

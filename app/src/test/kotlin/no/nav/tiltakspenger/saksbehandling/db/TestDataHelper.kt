@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.db
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.common.TestSaksnummerGenerator
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaRepository
@@ -18,11 +19,13 @@ import no.nav.tiltakspenger.saksbehandling.repository.søknad.PostgresSøknadRep
 import no.nav.tiltakspenger.saksbehandling.repository.utbetaling.UtbetalingsvedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.repository.vedtak.RammevedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
+import java.time.Clock
 import javax.sql.DataSource
 
 internal class TestDataHelper(
     private val dataSource: DataSource,
     val saksnummerGenerator: TestSaksnummerGenerator,
+    val clock: Clock = TikkendeKlokke(),
 ) {
     private val log = KotlinLogging.logger {}
     private val sessionCounter = SessionCounter(log)
@@ -30,10 +33,10 @@ internal class TestDataHelper(
     val søknadRepo = PostgresSøknadRepo(sessionFactory)
     val behandlingRepo = BehandlingPostgresRepo(sessionFactory)
     val vedtakRepo = RammevedtakPostgresRepo(sessionFactory)
-    val sakRepo = SakPostgresRepo(sessionFactory, saksnummerGenerator)
+    val sakRepo = SakPostgresRepo(sessionFactory, saksnummerGenerator, clock)
     val saksoversiktRepo = BenkOversiktPostgresRepo(sessionFactory)
     val statistikkSakRepo = StatistikkSakRepoImpl(sessionFactory)
-    val statistikkStønadRepo = StatistikkStønadPostgresRepo(sessionFactory)
+    val statistikkStønadRepo = StatistikkStønadPostgresRepo(sessionFactory, clock)
     val meldekortRepo = MeldekortBehandlingPostgresRepo(sessionFactory)
     val meldeperiodeRepo = MeldeperiodePostgresRepo(sessionFactory)
     val meldekortBrukerRepo = BrukersMeldekortPostgresRepo(sessionFactory)

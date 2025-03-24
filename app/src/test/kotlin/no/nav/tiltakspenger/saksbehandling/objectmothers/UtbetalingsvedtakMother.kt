@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -35,7 +36,7 @@ interface UtbetalingsvedtakMother {
         sendtTilUtbetaling: LocalDateTime? = null,
         journalpostId: JournalpostId? = null,
         journalføringstidspunkt: LocalDateTime? = null,
-        opprettet: LocalDateTime = nå(),
+        opprettet: LocalDateTime = nå(fixedClock),
     ): Utbetalingsvedtak {
         return Utbetalingsvedtak(
             id = id,

@@ -7,6 +7,7 @@ import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SendtUtbetaling
@@ -18,7 +19,7 @@ import org.junit.jupiter.api.Test
 internal class SendUtbetalingerServiceTest {
     private val utbetalingsvedtakRepo = mockk<UtbetalingsvedtakRepo>()
     private val utbetalingsklient = mockk<UtbetalingGateway>()
-    private val sendUtbetalingerService = SendUtbetalingerService(utbetalingsvedtakRepo, utbetalingsklient)
+    private val sendUtbetalingerService = SendUtbetalingerService(utbetalingsvedtakRepo, utbetalingsklient, fixedClock)
 
     @Test
     fun `utbetaling blir iverksatt og markert som sendt til utbetaling`() = runTest {

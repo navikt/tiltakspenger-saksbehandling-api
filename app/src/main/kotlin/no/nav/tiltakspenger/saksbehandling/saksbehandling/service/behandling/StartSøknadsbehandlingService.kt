@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.StatistikkSakRep
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.KanIkkeStarteSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.sak.genererStatistikkForNyFørstegangsbehandling
+import java.time.Clock
 
 class StartSøknadsbehandlingService(
     private val sakService: SakService,
@@ -31,6 +32,7 @@ class StartSøknadsbehandlingService(
     private val behandlingRepo: BehandlingRepo,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
+    private val clock: Clock,
 ) {
 
     val logger = KotlinLogging.logger {}
@@ -76,6 +78,7 @@ class StartSøknadsbehandlingService(
             søknad = soknad,
             saksbehandler = saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
+            clock = clock,
         ).getOrElse { return KanIkkeStarteSøknadsbehandling.OppretteBehandling(it).left() }
 
         val statistikk =
@@ -83,6 +86,7 @@ class StartSøknadsbehandlingService(
                 behandling = førstegangsbehandling,
                 gjelderKode6 = adressebeskyttelseGradering.harStrengtFortroligAdresse(),
                 versjon = gitHash,
+                clock = clock,
             )
 
         sessionFactory.withTransactionContext { tx ->

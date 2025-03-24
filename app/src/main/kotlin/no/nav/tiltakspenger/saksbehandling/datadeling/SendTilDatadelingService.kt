@@ -7,11 +7,13 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.RammevedtakRepo
+import java.time.Clock
 
 class SendTilDatadelingService(
     private val rammevedtakRepo: RammevedtakRepo,
     private val behandlingRepo: BehandlingRepo,
     private val datadelingClient: DatadelingClient,
+    private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -27,7 +29,7 @@ class SendTilDatadelingService(
                 Either.catch {
                     datadelingClient.send(rammevedtak, correlationId).onRight {
                         logger.info { "Vedtak sendt til datadeling. VedtakId: ${rammevedtak.id}" }
-                        rammevedtakRepo.markerSendtTilDatadeling(rammevedtak.id, nå())
+                        rammevedtakRepo.markerSendtTilDatadeling(rammevedtak.id, nå(clock))
                         logger.info { "Vedtak markert som sendt til datadeling. VedtakId: ${rammevedtak.id}" }
                     }.onLeft {
                         logger.error { "Vedtak kunne ikke sendes til datadeling. Saksnummer: ${rammevedtak.saksnummer}, sakId: ${rammevedtak.sakId}, vedtakId: ${rammevedtak.id}" }
@@ -50,7 +52,7 @@ class SendTilDatadelingService(
                 Either.catch {
                     datadelingClient.send(behandling, correlationId).onRight {
                         logger.info { "Behandling sendt til datadeling. Saksnummer: ${behandling.saksnummer}, sakId: ${behandling.sakId}, behandlingId: ${behandling.id}" }
-                        behandlingRepo.markerSendtTilDatadeling(behandling.id, nå())
+                        behandlingRepo.markerSendtTilDatadeling(behandling.id, nå(clock))
                         logger.info { "Behandling markert som sendt til datadeling. Saksnummer: ${behandling.saksnummer}, sakId: ${behandling.sakId}, behandlingId: ${behandling.id}" }
                     }.onLeft {
                         logger.error { "Behandling kunne ikke sendes til datadeling. Saksnummer: ${behandling.saksnummer}, sakId: ${behandling.sakId}, behandlingId: ${behandling.id}" }

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.UtbetalingGateway
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
+import java.time.Clock
 
 /**
  * Har ansvar for å sende klare utbetalingsvedtak til helved utsjekk.
@@ -14,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRep
 class SendUtbetalingerService(
     private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
     private val utbetalingsklient: UtbetalingGateway,
+    private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
     suspend fun send() {
@@ -27,7 +29,7 @@ class SendUtbetalingerService(
                         }
                     utbetalingsklient.iverksett(utbetalingsvedtak, forrigeUtbetalingJson, correlationId).onRight {
                         logger.info { "Utbetaling iverksatt for vedtak ${utbetalingsvedtak.id}" }
-                        utbetalingsvedtakRepo.markerSendtTilUtbetaling(utbetalingsvedtak.id, nå(), it)
+                        utbetalingsvedtakRepo.markerSendtTilUtbetaling(utbetalingsvedtak.id, nå(clock), it)
                         logger.info { "Utbetaling markert som utbetalt for vedtak ${utbetalingsvedtak.id}" }
                     }.onLeft {
                         logger.error { "Utbetaling kunne ikke iverksettes. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }

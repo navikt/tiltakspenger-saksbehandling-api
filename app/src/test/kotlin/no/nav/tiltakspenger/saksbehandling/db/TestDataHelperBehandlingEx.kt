@@ -68,6 +68,7 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
             saksnummer = sak.saksnummer,
         ),
     barnetillegg: Barnetillegg? = null,
+    clock: Clock = this.clock,
 ): Triple<Sak, Behandling, Søknad> {
     this.persisterSakOgSøknad(
         fnr = sak.fnr,
@@ -83,6 +84,7 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
             saksbehandler = saksbehandler,
             sakId = sak.id,
             barnetillegg = barnetillegg,
+            clock = clock,
         )
     behandlingRepo.lagre(sakMedBehandling.behandlinger.singleOrNullOrThrow()!!)
 
@@ -126,6 +128,7 @@ internal fun TestDataHelper.persisterAvbruttFørstegangsbehandling(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
         ),
+    clock: Clock = this.clock,
 ): Pair<Sak, Behandling> {
     val (sakMedFørstegangsbehandling, _) = persisterOpprettetFørstegangsbehandling(
         sakId = sakId,
@@ -138,6 +141,7 @@ internal fun TestDataHelper.persisterAvbruttFørstegangsbehandling(
         id = id,
         søknad = søknad,
         sak = sak,
+        clock = clock,
     )
     val førstegangsbehandling = sakMedFørstegangsbehandling.behandlinger.singleOrNullOrThrow()!!
     val avbruttBehandling = førstegangsbehandling.avbryt(
@@ -204,7 +208,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
     /**
      * Brukt for å styre meldeperiode generering
      */
-    clock: Clock = Clock.systemUTC(),
+    clock: Clock = this.clock,
 ): Triple<Sak, Rammevedtak, Behandling> {
     val (sak, førstegangsbehandling) = persisterOpprettetFørstegangsbehandling(
         sakId = sak.id,
@@ -237,11 +241,12 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
                         ),
                     ),
                 ),
+                clock = clock,
             )
             .taBehandling(beslutter)
-            .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter))
+            .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), clock)
     behandlingRepo.lagre(oppdatertFørstegangsbehandling)
-    val (sakMedVedtak, vedtak) = sak.opprettVedtak(oppdatertFørstegangsbehandling)
+    val (sakMedVedtak, vedtak) = sak.opprettVedtak(oppdatertFørstegangsbehandling, clock)
     vedtakRepo.lagre(vedtak)
     sakRepo.oppdaterFørsteOgSisteDagSomGirRett(
         sakId = vedtak.sakId,
@@ -291,6 +296,7 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
             saksnummer = sak.saksnummer,
         ),
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
+    clock: Clock = this.clock,
 ): Pair<Sak, Behandling> {
     val (sak, _) = runBlocking {
         persisterIverksattFørstegangsbehandling(
@@ -305,6 +311,7 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
             id = id,
             søknad = søknad,
             sak = sak,
+            clock = clock,
         )
     }
     return runBlocking {
@@ -315,6 +322,7 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
                 saksbehandler = saksbehandler,
             ),
             hentSaksopplysninger = hentSaksopplysninger,
+            clock = clock,
         )
     }.getOrNull()!!.also {
         behandlingRepo.lagre(it.second)
@@ -355,6 +363,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
             saksnummer = sak.saksnummer,
         ),
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
+    clock: Clock = this.clock,
 ): Pair<Sak, Behandling> {
     val (sak, _) = runBlocking {
         persisterIverksattFørstegangsbehandling(
@@ -369,6 +378,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
             id = id,
             søknad = søknad,
             sak = sak,
+            clock = clock,
         )
     }
     return runBlocking {
@@ -379,6 +389,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
                 saksbehandler = saksbehandler,
             ),
             hentSaksopplysninger = hentSaksopplysninger,
+            clock = clock,
         )
     }.getOrNull()!!.also {
         behandlingRepo.lagre(it.second)
@@ -420,6 +431,7 @@ internal fun TestDataHelper.persisterBehandletRevurdering(
         ),
     stansDato: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
     begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("fordi"),
+    clock: Clock = this.clock,
 ): Pair<Sak, Behandling> {
     val (sak, behandling) = runBlocking {
         persisterOpprettetRevurdering(
@@ -434,6 +446,7 @@ internal fun TestDataHelper.persisterBehandletRevurdering(
             id = id,
             søknad = søknad,
             sak = sak,
+            clock = clock,
         )
     }
     return runBlocking {
@@ -446,6 +459,7 @@ internal fun TestDataHelper.persisterBehandletRevurdering(
                 begrunnelse = begrunnelse,
                 stansDato = stansDato,
             ),
+            clock = clock,
         )
     }.getOrNull()!!.let {
         behandlingRepo.lagre(it)
@@ -486,6 +500,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
         ),
+    clock: Clock = this.clock,
 ): Pair<Sak, MeldekortBehandling.MeldekortBehandlet> {
     val (sak) = persisterIverksattFørstegangsbehandling(
         sakId = sakId,
@@ -499,6 +514,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         søknad = søknad,
         beslutter = beslutter,
         sak = sak,
+        clock = clock,
     )
     val meldeperioder = sak.meldeperiodeKjeder.meldeperioder
     val behandletMeldekort = ObjectMother.meldekortBehandlet(
