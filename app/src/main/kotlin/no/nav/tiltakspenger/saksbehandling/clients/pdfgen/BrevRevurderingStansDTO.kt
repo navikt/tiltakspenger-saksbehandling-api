@@ -96,7 +96,7 @@ internal suspend fun genererStansbrev(
 }
 
 private fun ValgtHjemmelHarIkkeRettighet.tekstVedtaksbrev(barnetillegg: Boolean): String {
-    return when (this) {
+    return when (this as ValgtHjemmelForStans) {
         ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak ->
             if (barnetillegg) {
                 "du ikke lenger deltar på tiltak. Du må være deltaker i et arbeidsmarkedstiltak for å ha rett til tiltakspenger og barnetillegg. Dette kommer frem av arbeidsmarkedsloven § 13, tiltakspengeforskriften §§ 2 og 3."
@@ -157,9 +157,5 @@ private fun ValgtHjemmelHarIkkeRettighet.tekstVedtaksbrev(barnetillegg: Boolean)
                     Det er gjort unntak for opphold i barneverns-institusjoner. Dette kommer frem av tiltakspengeforskriften §9. 
                 """.trimIndent()
             }
-
-        else -> {
-            throw IllegalStateException("Ukjent valgt hjemmel: $this")
-        }
     }
 }
