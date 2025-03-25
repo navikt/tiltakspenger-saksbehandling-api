@@ -55,7 +55,6 @@ fun Utbetalingsvedtak.toDTO(
     ).let { serialize(it) }
 }
 
-/** Filtrerer vekk tidligere utbetalinger, og utbetalinger på samme meldeperiodekjede ("meldekortId" her) */
 private fun IverksettV2Dto.hentIkkeOppdaterteUtbetalinger(oppdaterteUtbetalinger: List<UtbetalingV2Dto>): List<UtbetalingV2Dto> {
     val oppdaterteMeldekortIder = oppdaterteUtbetalinger.map {
         val stønadsdata = it.stønadsdata as StønadsdataTiltakspengerV2Dto
