@@ -25,8 +25,6 @@ internal data class BehandlingDTO(
     val avbrutt: AvbruttDTO?,
     val iverksattTidspunkt: String?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
-//    Denne burde være med på revurderinger for client-side validering
-//    val førsteLovligeStansdato: LocalDate?,
 )
 
 internal fun Behandling.toDTO(): BehandlingDTO {
