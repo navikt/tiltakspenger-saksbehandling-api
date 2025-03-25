@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Valg
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 
@@ -18,7 +17,7 @@ class ValgtHjemmelHarIkkeRettighetTest {
         // language=JSON
         val json = """
             [
-                {"kode": "DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK", "type": "STANS"}
+                "STANS_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK"
             ]
         """.trimIndent()
 
@@ -34,7 +33,7 @@ class ValgtHjemmelHarIkkeRettighetTest {
         // language=JSON
         val json = """
             [
-                {"kode": "ALDER", "type": "AVSLAG"}
+              "AVSLAG_ALDER"
             ]
         """.trimIndent()
 
@@ -50,8 +49,8 @@ class ValgtHjemmelHarIkkeRettighetTest {
         // language=JSON
         val json = """
             [
-                {"kode": "ALDER", "type": "AVSLAG"},
-                {"kode": "INSTITUSJONSOPPHOLD", "type": "AVSLAG"}
+              "STANS_ALDER", 
+              "STANS_INSTITUSJONSOPPHOLD"
             ]
         """.trimIndent()
 
@@ -68,21 +67,6 @@ class ValgtHjemmelHarIkkeRettighetTest {
     }
 
     @Test
-    fun `kaster exception om koden ikke finnes`() {
-        // Syntax highlighting
-        // language=JSON
-        val json = """
-            [
-                {"kode": "DENNE_KODEN_FINNES_IKKE", "type": "STANS"}
-            ]
-        """.trimIndent()
-
-        assertThrows<NoSuchElementException> {
-            json.toValgtHjemmelHarIkkeRettighet()
-        }
-    }
-
-    @Test
     fun `serialiserer tom liste`() {
         val list = emptyList<ValgtHjemmelHarIkkeRettighet>()
         val json = list.toDbJson()
@@ -96,7 +80,9 @@ class ValgtHjemmelHarIkkeRettighetTest {
         val list = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak)
         val json = list.toDbJson()
         val expectedJson = """
-            [{"kode":"DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK","type":"STANS"}]
+            [
+              "STANS_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK"
+            ]
         """.trimIndent()
 
         JSONAssert.assertEquals(expectedJson, json, JSONCompareMode.LENIENT)
@@ -107,7 +93,9 @@ class ValgtHjemmelHarIkkeRettighetTest {
         val list = listOf(ValgtHjemmelForAvslag.Alder)
         val json = list.toDbJson()
         val expectedJson = """
-            [{"kode":"ALDER","type":"AVSLAG"}]
+            [
+              "AVSLAG_ALDER"
+            ]
         """.trimIndent()
 
         JSONAssert.assertEquals(expectedJson, json, JSONCompareMode.LENIENT)
@@ -122,8 +110,8 @@ class ValgtHjemmelHarIkkeRettighetTest {
         val json = list.toDbJson()
         val expectedJson = """
             [
-              {"kode":"DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK","type":"AVSLAG"},
-              {"kode":"ALDER","type":"AVSLAG"}
+              "AVSLAG_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK",
+              "AVSLAG_ALDER"
             ]
         """.trimIndent()
 

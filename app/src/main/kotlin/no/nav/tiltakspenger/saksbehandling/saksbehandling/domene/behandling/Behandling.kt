@@ -275,10 +275,7 @@ data class Behandling(
             sendtTilBeslutning = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelse,
             virkningsperiode = Periode(kommando.stansDato, sisteDagSomGirRett),
-            valgtHjemmelHarIkkeRettighet = toValgtHjemmelHarIkkeRettighet(
-                ValgtHjemmelType.STANS,
-                kommando.valgteHjemler,
-            ),
+            valgtHjemmelHarIkkeRettighet = kommando.toValgtHjemmelHarIkkeRettighet(),
         )
     }
 
@@ -434,11 +431,11 @@ data class Behandling(
 
             REVURDERING -> {
                 require(søknad == null) { "Søknad kan ikke være satt for revurdering" }
-                require(valgtHjemmelHarIkkeRettighet.none { it.type == ValgtHjemmelType.AVSLAG }) { "Revurdering kan bare føre til stans" }
+                require(valgtHjemmelHarIkkeRettighet.none { it is ValgtHjemmelForAvslag }) { "Revurdering kan bare føre til stans" }
             }
         }
 
-        require(valgtHjemmelHarIkkeRettighet.map { it.type }.distinct().size <= 1) {
+        require(valgtHjemmelHarIkkeRettighet.map { it.javaClass.simpleName }.distinct().size <= 1) {
             "Valgte hjemler for en behandling kan bare være av en type"
         }
 

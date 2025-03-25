@@ -406,7 +406,7 @@ internal fun TestDataHelper.persisterBehandletRevurdering(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
-    valgteHjemler: List<String> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak.kode),
+    valgteHjemler: List<String> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak.javaClass.simpleName),
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,

@@ -49,6 +49,7 @@ interface SendRevurderingTilBeslutterBuilder {
                 behandlingId,
                 saksbehandler,
                 stansperiode = søknad.vurderingsperiode(),
+                valgteHjemler = listOf("Alder"),
             ),
         )
     }
@@ -62,6 +63,7 @@ interface SendRevurderingTilBeslutterBuilder {
         fritekstTilVedtaksbrev: String = "fritekst",
         begrunnelseVilkårsvurdering: String = "begrunnelse",
         stansperiode: Periode,
+        valgteHjemler: List<String>,
     ): String {
         defaultRequest(
             HttpMethod.Post,
@@ -77,14 +79,20 @@ interface SendRevurderingTilBeslutterBuilder {
                 """
             {
                 "begrunnelse": "$begrunnelseVilkårsvurdering",
-                "stansDato": "${stansperiode.fraOgMed}"
+                "stansDato": "${stansperiode.fraOgMed}",
+                "valgteHjemler": [${valgteHjemler.joinToString(separator = ",", prefix = "\"", postfix = "\"")}]
             }
                 """.trimIndent(),
             )
         }.apply {
             val bodyAsText = this.bodyAsText()
             withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
+                """
+                    Response details:
+                    Status: ${this.status}
+                    Content-Type: ${this.contentType()}
+                    Body: $bodyAsText
+                """.trimMargin(),
             ) {
                 status shouldBe HttpStatusCode.OK
             }

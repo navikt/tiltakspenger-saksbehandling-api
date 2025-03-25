@@ -14,4 +14,14 @@ data class SendRevurderingTilBeslutningKommando(
     val begrunnelse: BegrunnelseVilkårsvurdering,
     val valgteHjemler: List<String>,
     val stansDato: LocalDate,
-)
+) {
+
+    fun toValgtHjemmelHarIkkeRettighet(): List<ValgtHjemmelHarIkkeRettighet> {
+        return valgteHjemler.map { valgtHjemmel ->
+            ValgtHjemmelHarIkkeRettighet.toValgtHjemmelHarIkkeRettighet(
+                ValgtHjemmelType.STANS,
+                valgtHjemmel,
+            )
+        }
+    }
+}

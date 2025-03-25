@@ -6,8 +6,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.felles.PdfA
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingstype
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.ValgtHjemmelType
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.toValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.validerStansDato
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.GenererStansvedtaksbrevGateway
@@ -92,7 +90,7 @@ class ForhåndsvisVedtaksbrevService(
                     sakId = sak.id,
                     forhåndsvisning = true,
                     barnetillegg = behandling.barnetillegg != null,
-                    valgtHjemmelHarIkkeRettighet = toValgtHjemmelHarIkkeRettighet(ValgtHjemmelType.STANS, kommando.valgteHjemler),
+                    valgtHjemmelHarIkkeRettighet = kommando.toValgtHjemmelHarIkkeRettighet(),
                 ).fold(
                     ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
                     ifRight = { it.pdf },
