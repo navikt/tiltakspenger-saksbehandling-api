@@ -11,10 +11,8 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.overlappendePerioder
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.felles.Navkontor
-import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
@@ -341,11 +339,9 @@ fun Sak.opprettMeldekortBehandling(
     val meldekortId = MeldekortId.random()
     val meldeperiode = hentSisteMeldeperiodeForKjede(kjedeId)
 
-    val overlappendePeriode = this.vedtaksliste.innvilgelsesperioder.overlappendePerioder(
-        listOf(meldeperiode.periode),
-    ).singleOrNullOrThrow()
-
-    requireNotNull(overlappendePeriode) { "Meldeperioden må overlappe med innvilgelsesperioden(e)" }
+    require(!meldeperiode.ingenDagerGirRett) {
+        "Kan ikke starte behandling på meldeperiode uten dager som gir rett til tiltakspenger"
+    }
 
     // TODO abn: må støtte flere brukers meldekort på samme kjede før vi åpner for korrigering fra bruker
     val brukersMeldekort = this.brukersMeldekort.find { it.kjedeId == kjedeId }
