@@ -275,6 +275,7 @@ data class Behandling(
             sendtTilBeslutning = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelse,
             virkningsperiode = Periode(kommando.stansDato, sisteDagSomGirRett),
+            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             valgtHjemmelHarIkkeRettighet = kommando.toValgtHjemmelHarIkkeRettighet(),
         )
     }

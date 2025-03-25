@@ -461,6 +461,7 @@ internal fun TestDataHelper.persisterBehandletRevurdering(
                 begrunnelse = begrunnelse,
                 stansDato = stansDato,
                 valgteHjemler = valgteHjemler,
+                fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("fritekstTilVedtaksbrev"),
             ),
             clock = clock,
         )

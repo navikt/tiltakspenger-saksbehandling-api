@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.withBody
 import no.nav.tiltakspenger.saksbehandling.routes.withSakId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.SendRevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.SendBehandlingTilBeslutningService
 import java.time.LocalDate
@@ -26,7 +27,7 @@ import java.time.LocalDate
 private data class SendRevurderingTilBeslutningBody(
     val begrunnelse: String,
     val fritekst: String?,
-    val valgteHjemler: List<String>,
+    val valgteHjemler: List<String>?, // TODO Midlertidig nullable for å unngå breaking change
     val stansDato: LocalDate,
 ) {
     fun toDomain(
@@ -40,9 +41,10 @@ private data class SendRevurderingTilBeslutningBody(
             behandlingId = behandlingId,
             saksbehandler = saksbehandler,
             correlationId = correlationId,
-            begrunnelse = BegrunnelseVilkårsvurdering(begrunnelse),
             stansDato = stansDato,
-            valgteHjemler = valgteHjemler,
+            begrunnelse = BegrunnelseVilkårsvurdering(begrunnelse),
+            fritekstTilVedtaksbrev = fritekst?.let { FritekstTilVedtaksbrev(it) },
+            valgteHjemler = valgteHjemler ?: emptyList(),
         )
     }
 }
