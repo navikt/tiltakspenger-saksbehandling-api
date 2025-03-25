@@ -166,7 +166,8 @@ data class MeldeperiodeKjeder(
             val utfallsperiodeCount = nærmesteMeldeperiode.tilDager().count {
                 (utfallsperioder.hentVerdiForDag(it) == Utfallsperiode.RETT_TIL_TILTAKSPENGER)
             }
-            val antallDagerSomGirRettForMeldePeriode = min(utfallsperiodeCount, MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)
+            val antallDagerSomGirRettForMeldePeriode =
+                min(utfallsperiodeCount, MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)
 
             val kjede = this.hentMeldeperiodeKjedeForPeriode(nærmesteMeldeperiode)
             val versjon = kjede?.nesteVersjon() ?: HendelseVersjon.ny()
@@ -213,6 +214,15 @@ data class MeldeperiodeKjeder(
         }
 
         return førstePeriode
+    }
+
+    fun hentMeldeperiodekjedeForKjedeId(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKjede? {
+        return meldeperiodeKjeder.singleOrNullOrThrow { it.kjedeId == kjedeId }
+    }
+
+    fun hentForegåendeMeldeperiodekjede(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKjede? {
+        meldeperiodeKjeder.zipWithNext { a, b -> if (b.kjedeId == kjedeId) return a }
+        return null
     }
 
     companion object {

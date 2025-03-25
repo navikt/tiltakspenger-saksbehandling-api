@@ -43,7 +43,7 @@ class MeldekortBehandlingRepoImplTest {
             val oppdatertSak = sakRepo.hentForSakId(sak.id)!!
 
             val nesteMeldekort = oppdatertSak.opprettMeldekortBehandling(
-                oppdatertSak.meldeperiodeKjeder.last().kjedeId,
+                oppdatertSak.meldeperiodeKjeder[1].kjedeId,
                 ObjectMother.navkontor(),
                 ObjectMother.saksbehandler(),
                 fixedClock,

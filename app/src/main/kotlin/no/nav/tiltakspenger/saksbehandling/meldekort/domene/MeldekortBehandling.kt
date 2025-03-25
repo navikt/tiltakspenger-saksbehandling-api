@@ -327,28 +327,39 @@ fun Sak.opprettMeldekortBehandling(
     saksbehandler: Saksbehandler,
     clock: Clock,
 ): MeldekortBehandling.MeldekortUnderBehandling {
-    require(this.vedtaksliste.innvilgelsesperioder.isNotEmpty()) {
-        "Må ha minst én periode som gir rett til tiltakspenger for å opprette meldekortbehandling"
+    if (this.meldekortBehandlinger.finnesÅpenMeldekortBehandling) {
+        throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige er avsluttet for sak $id og kjedeId $kjedeId")
     }
+    val meldeperiodekjede: MeldeperiodeKjede = this.meldeperiodeKjeder.hentMeldeperiodekjedeForKjedeId(kjedeId)
+        ?: throw IllegalStateException("Kan ikke opprette meldekortbehandling for kjedeId $kjedeId som ikke finnes")
+    val meldeperiode: Meldeperiode = meldeperiodekjede.hentSisteMeldeperiode()
+    val behandlingerKnyttetTilKjede = this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(kjedeId)
 
-    val forrigeMeldekortBehandling = hentSisteMeldekortBehandlingForKjede(kjedeId)?.also {
-        require(it.status == GODKJENT) {
-            "Forrige meldekortbehandling i kjeden må være godkjent for å opprette en ny behandling/korrigering (kjede $kjedeId på sak ${this.id})"
+    if (this.meldekortBehandlinger.isEmpty()) {
+        require(meldeperiode == this.meldeperiodeKjeder.first().hentSisteMeldeperiode()) {
+            "Dette er første meldekortbehandling på saken og må da behandle den første meldeperiode kjeden. sakId: ${this.id}, meldeperiodekjedeId: ${meldeperiodekjede.kjedeId}"
         }
     }
-    val meldekortId = MeldekortId.random()
-    val meldeperiode = hentSisteMeldeperiodeForKjede(kjedeId)
+    val foregåendeMeldeperiodekjede = this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
+    foregåendeMeldeperiodekjede?.also { foregåendeMeldeperiodekjede ->
+        this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(foregåendeMeldeperiodekjede.kjedeId).also {
+            if (it.none { it.status == GODKJENT }) {
+                throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige kjede er godkjent")
+            }
+        }
+    }
 
-    require(!meldeperiode.ingenDagerGirRett) {
-        "Kan ikke starte behandling på meldeperiode uten dager som gir rett til tiltakspenger"
+    if (meldeperiode.ingenDagerGirRett) {
+        throw IllegalStateException("Kan ikke starte behandling på meldeperiode uten dager som gir rett til tiltakspenger")
     }
 
     // TODO abn: må støtte flere brukers meldekort på samme kjede før vi åpner for korrigering fra bruker
     val brukersMeldekort = this.brukersMeldekort.find { it.kjedeId == kjedeId }
 
     val type =
-        if (forrigeMeldekortBehandling == null) MeldekortBehandlingType.FØRSTE_BEHANDLING else MeldekortBehandlingType.KORRIGERING
+        if (behandlingerKnyttetTilKjede.isEmpty()) MeldekortBehandlingType.FØRSTE_BEHANDLING else MeldekortBehandlingType.KORRIGERING
 
+    val meldekortId = MeldekortId.random()
     return MeldekortBehandling.MeldekortUnderBehandling(
         id = meldekortId,
         sakId = this.id,
