@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
@@ -17,7 +16,6 @@ import java.time.LocalDate
 sealed interface MeldeperiodeBeregningDag {
     val dato: LocalDate
     val meldekortId: MeldekortId
-    val kjedeId: MeldeperiodeKjedeId
     val reduksjon: ReduksjonAvYtelsePåGrunnAvFravær?
     val tiltakstype: TiltakstypeSomGirRett?
     val beregningsdag: Beregningsdag?
@@ -31,7 +29,6 @@ sealed interface MeldeperiodeBeregningDag {
 
     data class IkkeUtfylt(
         override val meldekortId: MeldekortId,
-        override val kjedeId: MeldeperiodeKjedeId,
         override val dato: LocalDate,
         override val tiltakstype: TiltakstypeSomGirRett,
     ) : MeldeperiodeBeregningDag {
@@ -52,7 +49,6 @@ sealed interface MeldeperiodeBeregningDag {
 
             data class DeltattUtenLønnITiltaket private constructor(
                 override val meldekortId: MeldekortId,
-                override val kjedeId: MeldeperiodeKjedeId,
                 override val dato: LocalDate,
                 override val tiltakstype: TiltakstypeSomGirRett,
                 override val beregningsdag: Beregningsdag,
@@ -62,13 +58,11 @@ sealed interface MeldeperiodeBeregningDag {
                 companion object {
                     fun create(
                         meldekortId: MeldekortId,
-                        kjedeId: MeldeperiodeKjedeId,
                         dato: LocalDate,
                         tiltakstype: TiltakstypeSomGirRett,
                         antallBarn: AntallBarn,
                     ) = DeltattUtenLønnITiltaket(
                         meldekortId,
-                        kjedeId,
                         dato,
                         tiltakstype,
                         beregnDag(dato, IngenReduksjon, antallBarn),
@@ -76,17 +70,15 @@ sealed interface MeldeperiodeBeregningDag {
 
                     fun fromDb(
                         meldekortId: MeldekortId,
-                        kjedeId: MeldeperiodeKjedeId,
                         dato: LocalDate,
                         tiltakstype: TiltakstypeSomGirRett,
                         beregningsdag: Beregningsdag,
-                    ) = DeltattUtenLønnITiltaket(meldekortId, kjedeId, dato, tiltakstype, beregningsdag)
+                    ) = DeltattUtenLønnITiltaket(meldekortId, dato, tiltakstype, beregningsdag)
                 }
             }
 
             data class DeltattMedLønnITiltaket private constructor(
                 override val meldekortId: MeldekortId,
-                override val kjedeId: MeldeperiodeKjedeId,
                 override val dato: LocalDate,
                 override val tiltakstype: TiltakstypeSomGirRett,
                 override val beregningsdag: Beregningsdag,
@@ -96,13 +88,11 @@ sealed interface MeldeperiodeBeregningDag {
                 companion object {
                     fun create(
                         meldekortId: MeldekortId,
-                        kjedeId: MeldeperiodeKjedeId,
                         dato: LocalDate,
                         tiltakstype: TiltakstypeSomGirRett,
                         antallBarn: AntallBarn,
                     ) = DeltattMedLønnITiltaket(
                         meldekortId,
-                        kjedeId,
                         dato,
                         tiltakstype,
                         beregnDag(dato, YtelsenFallerBort, antallBarn),
@@ -110,18 +100,16 @@ sealed interface MeldeperiodeBeregningDag {
 
                     fun fromDb(
                         meldekortId: MeldekortId,
-                        kjedeId: MeldeperiodeKjedeId,
                         dato: LocalDate,
                         tiltakstype: TiltakstypeSomGirRett,
                         beregningsdag: Beregningsdag,
-                    ) = DeltattMedLønnITiltaket(meldekortId, kjedeId, dato, tiltakstype, beregningsdag)
+                    ) = DeltattMedLønnITiltaket(meldekortId, dato, tiltakstype, beregningsdag)
                 }
             }
         }
 
         data class IkkeDeltatt private constructor(
             override val meldekortId: MeldekortId,
-            override val kjedeId: MeldeperiodeKjedeId,
             override val dato: LocalDate,
             override val tiltakstype: TiltakstypeSomGirRett,
             override val beregningsdag: Beregningsdag,
@@ -132,19 +120,17 @@ sealed interface MeldeperiodeBeregningDag {
             companion object {
                 fun create(
                     meldekortId: MeldekortId,
-                    kjedeId: MeldeperiodeKjedeId,
                     dato: LocalDate,
                     tiltakstype: TiltakstypeSomGirRett,
                     antallBarn: AntallBarn,
-                ) = IkkeDeltatt(meldekortId, kjedeId, dato, tiltakstype, beregnDag(dato, YtelsenFallerBort, antallBarn))
+                ) = IkkeDeltatt(meldekortId, dato, tiltakstype, beregnDag(dato, YtelsenFallerBort, antallBarn))
 
                 fun fromDb(
                     meldekortId: MeldekortId,
-                    kjedeId: MeldeperiodeKjedeId,
                     dato: LocalDate,
                     tiltakstype: TiltakstypeSomGirRett,
                     beregningsdag: Beregningsdag,
-                ) = IkkeDeltatt(meldekortId, kjedeId, dato, tiltakstype, beregningsdag)
+                ) = IkkeDeltatt(meldekortId, dato, tiltakstype, beregningsdag)
             }
         }
 
@@ -160,7 +146,6 @@ sealed interface MeldeperiodeBeregningDag {
 
                 data class SykBruker private constructor(
                     override val meldekortId: MeldekortId,
-                    override val kjedeId: MeldeperiodeKjedeId,
                     override val dato: LocalDate,
                     override val tiltakstype: TiltakstypeSomGirRett,
                     override val reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
@@ -169,14 +154,12 @@ sealed interface MeldeperiodeBeregningDag {
                     companion object {
                         fun create(
                             meldekortId: MeldekortId,
-                            kjedeId: MeldeperiodeKjedeId,
                             dato: LocalDate,
                             reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
                             tiltakstype: TiltakstypeSomGirRett,
                             antallBarn: AntallBarn,
                         ) = SykBruker(
                             meldekortId,
-                            kjedeId,
                             dato,
                             tiltakstype,
                             reduksjon,
@@ -185,18 +168,16 @@ sealed interface MeldeperiodeBeregningDag {
 
                         fun fromDb(
                             meldekortId: MeldekortId,
-                            kjedeId: MeldeperiodeKjedeId,
                             dato: LocalDate,
                             tiltakstype: TiltakstypeSomGirRett,
                             reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
                             beregningsdag: Beregningsdag,
-                        ) = SykBruker(meldekortId, kjedeId, dato, tiltakstype, reduksjon, beregningsdag)
+                        ) = SykBruker(meldekortId, dato, tiltakstype, reduksjon, beregningsdag)
                     }
                 }
 
                 data class SyktBarn private constructor(
                     override val meldekortId: MeldekortId,
-                    override val kjedeId: MeldeperiodeKjedeId,
                     override val dato: LocalDate,
                     override val tiltakstype: TiltakstypeSomGirRett,
                     override val reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
@@ -206,14 +187,12 @@ sealed interface MeldeperiodeBeregningDag {
                     companion object {
                         fun create(
                             meldekortId: MeldekortId,
-                            kjedeId: MeldeperiodeKjedeId,
                             dag: LocalDate,
                             reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
                             tiltakstype: TiltakstypeSomGirRett,
                             antallBarn: AntallBarn,
                         ) = SyktBarn(
                             meldekortId,
-                            kjedeId,
                             dag,
                             tiltakstype,
                             reduksjon,
@@ -222,12 +201,11 @@ sealed interface MeldeperiodeBeregningDag {
 
                         fun fromDb(
                             meldekortId: MeldekortId,
-                            kjedeId: MeldeperiodeKjedeId,
                             dato: LocalDate,
                             tiltakstype: TiltakstypeSomGirRett,
                             reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
                             beregningsdag: Beregningsdag,
-                        ) = SyktBarn(meldekortId, kjedeId, dato, tiltakstype, reduksjon, beregningsdag)
+                        ) = SyktBarn(meldekortId, dato, tiltakstype, reduksjon, beregningsdag)
                     }
                 }
             }
@@ -235,7 +213,6 @@ sealed interface MeldeperiodeBeregningDag {
             sealed interface Velferd : Fravær {
                 data class VelferdGodkjentAvNav private constructor(
                     override val meldekortId: MeldekortId,
-                    override val kjedeId: MeldeperiodeKjedeId,
                     override val dato: LocalDate,
                     override val tiltakstype: TiltakstypeSomGirRett,
                     override val beregningsdag: Beregningsdag,
@@ -245,13 +222,11 @@ sealed interface MeldeperiodeBeregningDag {
                     companion object {
                         fun create(
                             meldekortId: MeldekortId,
-                            kjedeId: MeldeperiodeKjedeId,
                             dato: LocalDate,
                             tiltakstype: TiltakstypeSomGirRett,
                             antallBarn: AntallBarn,
                         ) = VelferdGodkjentAvNav(
                             meldekortId,
-                            kjedeId,
                             dato,
                             tiltakstype,
                             beregnDag(dato, IngenReduksjon, antallBarn),
@@ -259,17 +234,15 @@ sealed interface MeldeperiodeBeregningDag {
 
                         fun fromDb(
                             meldekortId: MeldekortId,
-                            kjedeId: MeldeperiodeKjedeId,
                             dato: LocalDate,
                             tiltakstype: TiltakstypeSomGirRett,
                             beregningsdag: Beregningsdag,
-                        ) = VelferdGodkjentAvNav(meldekortId, kjedeId, dato, tiltakstype, beregningsdag)
+                        ) = VelferdGodkjentAvNav(meldekortId, dato, tiltakstype, beregningsdag)
                     }
                 }
 
                 data class VelferdIkkeGodkjentAvNav private constructor(
                     override val meldekortId: MeldekortId,
-                    override val kjedeId: MeldeperiodeKjedeId,
                     override val dato: LocalDate,
                     override val tiltakstype: TiltakstypeSomGirRett,
                     override val beregningsdag: Beregningsdag,
@@ -279,13 +252,11 @@ sealed interface MeldeperiodeBeregningDag {
                     companion object {
                         fun create(
                             meldekortId: MeldekortId,
-                            kjedeId: MeldeperiodeKjedeId,
                             dato: LocalDate,
                             tiltakstype: TiltakstypeSomGirRett,
                             antallBarn: AntallBarn,
                         ) = VelferdIkkeGodkjentAvNav(
                             meldekortId,
-                            kjedeId,
                             dato,
                             tiltakstype,
                             beregnDag(dato, YtelsenFallerBort, antallBarn),
@@ -293,11 +264,10 @@ sealed interface MeldeperiodeBeregningDag {
 
                         fun fromDb(
                             meldekortId: MeldekortId,
-                            kjedeId: MeldeperiodeKjedeId,
                             dato: LocalDate,
                             tiltakstype: TiltakstypeSomGirRett,
                             beregningsdag: Beregningsdag,
-                        ) = VelferdIkkeGodkjentAvNav(meldekortId, kjedeId, dato, tiltakstype, beregningsdag)
+                        ) = VelferdIkkeGodkjentAvNav(meldekortId, dato, tiltakstype, beregningsdag)
                     }
                 }
             }
@@ -312,7 +282,6 @@ sealed interface MeldeperiodeBeregningDag {
          */
         data class Sperret(
             override val meldekortId: MeldekortId,
-            override val kjedeId: MeldeperiodeKjedeId,
             override val dato: LocalDate,
         ) : Utfylt {
             override val tiltakstype = null

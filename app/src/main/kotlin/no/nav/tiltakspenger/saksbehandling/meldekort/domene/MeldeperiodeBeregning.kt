@@ -100,7 +100,6 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
                         MeldeperiodeBeregningDag.Utfylt.Sperret(
                             dato = it.dato,
                             meldekortId = it.meldekortId,
-                            kjedeId = it.kjedeId,
                         )
                     } else {
                         it
@@ -119,7 +118,6 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
                     MeldeperiodeBeregningDag.Utfylt.Sperret(
                         dato = it.dato,
                         meldekortId = it.meldekortId,
-                        kjedeId = it.kjedeId,
                     )
                 }.toNonEmptyListOrNull()!!,
             )
@@ -143,14 +141,12 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
                             MeldeperiodeBeregningDag.IkkeUtfylt(
                                 dato = dag,
                                 meldekortId = meldekortId,
-                                kjedeId = meldeperiode.kjedeId,
                                 tiltakstype = tiltakstypePerioder.hentVerdiForDag(dag)!!,
                             )
                         } else {
                             MeldeperiodeBeregningDag.Utfylt.Sperret(
                                 dato = dag,
                                 meldekortId = meldekortId,
-                                kjedeId = meldeperiode.kjedeId,
                             )
                         }
                     }

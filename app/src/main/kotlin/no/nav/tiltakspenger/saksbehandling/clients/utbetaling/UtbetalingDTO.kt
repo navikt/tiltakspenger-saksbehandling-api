@@ -70,8 +70,8 @@ private fun IverksettV2Dto.utbetalingerFør(utbetaling: UtbetalingV2Dto) =
 private fun List<MeldeperiodeBeregningDag.Utfylt>.toUtbetalingDto(
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
+    kjedeId: MeldeperiodeKjedeId,
 ) = this.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->
-    val kjedeId = meldekortdag.kjedeId
     when (val sisteUtbetalingsperiode = acc.lastOrNull()) {
         null -> {
             meldekortdag.genererUtbetalingsperiode(
@@ -104,6 +104,7 @@ private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
     return this.beregning.dager.toUtbetalingDto(
         brukersNavKontor,
         barnetillegg,
+        this.kjedeId,
     )
 }
 

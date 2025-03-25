@@ -264,7 +264,6 @@ interface MeldekortMother : MotherOfAllMothers {
             MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket.create(
                 dato = dato,
                 meldekortId = meldekortId,
-                kjedeId = kjedeId,
                 tiltakstype = tiltakstype,
                 antallBarn = barnetilleggsPerioder.hentVerdiForDag(dato) ?: AntallBarn.ZERO,
             )
@@ -287,7 +286,6 @@ interface MeldekortMother : MotherOfAllMothers {
             MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt.create(
                 dato = dato,
                 meldekortId = meldekortId,
-                kjedeId = kjedeId,
                 tiltakstype = tiltakstype,
                 antallBarn = barnetilleggsPerioder.hentVerdiForDag(dato) ?: AntallBarn.ZERO,
             )

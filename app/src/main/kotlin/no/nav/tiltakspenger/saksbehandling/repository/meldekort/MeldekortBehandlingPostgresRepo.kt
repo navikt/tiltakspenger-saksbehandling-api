@@ -217,7 +217,7 @@ class MeldekortBehandlingPostgresRepo(
                     val meldeperiodeBeregning = MeldeperiodeBeregning.UtfyltMeldeperiode(
                         sakId = sakId,
                         maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-                        dager = meldekortdager.tilUtfylteMeldekortDager(id, meldeperiode.kjedeId),
+                        dager = meldekortdager.tilUtfylteMeldekortDager(id),
                         meldeperioderOmberegnet = row.stringOrNull("meldeperioder_omberegnet")
                             ?.tilMeldeperioderOmberegnet(id) ?: emptyList(),
                     )
@@ -247,7 +247,7 @@ class MeldekortBehandlingPostgresRepo(
                     val beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode(
                         sakId = sakId,
                         maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-                        dager = meldekortdager.tilIkkeUtfylteMeldekortDager(id, meldeperiode.kjedeId),
+                        dager = meldekortdager.tilIkkeUtfylteMeldekortDager(id),
                     )
 
                     MeldekortUnderBehandling(
