@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.jobber.LeaderPodLookup
 import no.nav.tiltakspenger.libs.jobber.LeaderPodLookupClient
 import no.nav.tiltakspenger.libs.jobber.LeaderPodLookupFeil
 import no.nav.tiltakspenger.libs.jobber.RunCheckFactory
+import no.nav.tiltakspenger.libs.periodisering.zoneIdOslo
 import no.nav.tiltakspenger.saksbehandling.Configuration.httpPort
 import no.nav.tiltakspenger.saksbehandling.context.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.jobber.TaskExecutor
@@ -32,7 +33,7 @@ internal fun start(
     log: KLogger,
     port: Int = httpPort(),
     isNais: Boolean = Configuration.isNais(),
-    clock: Clock = Clock.systemUTC(),
+    clock: Clock = Clock.system(zoneIdOslo),
     applicationContext: ApplicationContext = ApplicationContext(
         gitHash = Configuration.gitHash(),
         clock = clock,
