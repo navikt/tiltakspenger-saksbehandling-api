@@ -4,7 +4,6 @@ import arrow.core.toNonEmptyListOrNull
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -24,7 +23,6 @@ internal class UtbetalingDTOKorrigeringTest {
         LocalDate.of(2025, 1, 6),
         LocalDate.of(2025, 1, 19),
     )
-    val førstePeriodeKjedeId = MeldeperiodeKjedeId.fraPeriode(førstePeriode)
 
     private fun lagUtbetalingsVedtak(
         id: VedtakId,
@@ -75,14 +73,12 @@ internal class UtbetalingDTOKorrigeringTest {
             dager = ObjectMother.tiltaksdager(
                 startDato = førstePeriode.fraOgMed,
                 meldekortId = korrigertMeldekortId,
-                kjedeId = førstePeriodeKjedeId,
                 tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                 antallDager = 4,
             ).plus(
                 ObjectMother.ikkeTiltaksdager(
                     startDato = førstePeriode.fraOgMed.plusDays(4),
                     meldekortId = korrigertMeldekortId,
-                    kjedeId = førstePeriodeKjedeId,
                     tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 3,
                 ),
@@ -90,7 +86,6 @@ internal class UtbetalingDTOKorrigeringTest {
                 ObjectMother.tiltaksdager(
                     startDato = førstePeriode.fraOgMed.plusDays(7),
                     meldekortId = korrigertMeldekortId,
-                    kjedeId = førstePeriodeKjedeId,
                     tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 4,
                 ),
@@ -98,7 +93,6 @@ internal class UtbetalingDTOKorrigeringTest {
                 ObjectMother.ikkeTiltaksdager(
                     startDato = førstePeriode.fraOgMed.plusDays(11),
                     meldekortId = korrigertMeldekortId,
-                    kjedeId = førstePeriodeKjedeId,
                     tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 3,
                 ),
@@ -170,14 +164,12 @@ internal class UtbetalingDTOKorrigeringTest {
         val korrigerteDager = ObjectMother.tiltaksdager(
             startDato = førstePeriode.fraOgMed,
             meldekortId = korrigertMeldekortId,
-            kjedeId = førstePeriodeKjedeId,
             tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
             antallDager = 4,
         ).plus(
             ObjectMother.ikkeTiltaksdager(
                 startDato = førstePeriode.fraOgMed.plusDays(4),
                 meldekortId = korrigertMeldekortId,
-                kjedeId = førstePeriodeKjedeId,
                 tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                 antallDager = 3,
             ),
@@ -185,7 +177,6 @@ internal class UtbetalingDTOKorrigeringTest {
             ObjectMother.tiltaksdager(
                 startDato = førstePeriode.fraOgMed.plusDays(7),
                 meldekortId = korrigertMeldekortId,
-                kjedeId = førstePeriodeKjedeId,
                 tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                 antallDager = 4,
             ),
@@ -193,7 +184,6 @@ internal class UtbetalingDTOKorrigeringTest {
             ObjectMother.ikkeTiltaksdager(
                 startDato = førstePeriode.fraOgMed.plusDays(11),
                 meldekortId = korrigertMeldekortId,
-                kjedeId = førstePeriodeKjedeId,
                 tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                 antallDager = 3,
             ),
