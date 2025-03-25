@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -17,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-interface UtbetalingsvedtakMother {
+interface UtbetalingsvedtakMother : MotherOfAllMothers {
 
     fun utbetalingsvedtak(
         id: VedtakId = VedtakId.random(),
@@ -36,7 +35,7 @@ interface UtbetalingsvedtakMother {
         sendtTilUtbetaling: LocalDateTime? = null,
         journalpostId: JournalpostId? = null,
         journalføringstidspunkt: LocalDateTime? = null,
-        opprettet: LocalDateTime = nå(fixedClock),
+        opprettet: LocalDateTime = nå(clock),
     ): Utbetalingsvedtak {
         return Utbetalingsvedtak(
             id = id,

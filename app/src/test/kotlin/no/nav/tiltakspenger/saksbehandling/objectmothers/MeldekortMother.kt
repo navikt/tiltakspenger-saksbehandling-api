@@ -44,7 +44,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.math.ceil
 
-interface MeldekortMother {
+interface MeldekortMother : MotherOfAllMothers {
     @Suppress("unused")
     fun meldekortUnderBehandling(
         id: MeldekortId = MeldekortId.random(),
@@ -63,7 +63,7 @@ interface MeldekortMother {
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT,
         navkontor: Navkontor = ObjectMother.navkontor(),
-        opprettet: LocalDateTime = nå(fixedClock),
+        opprettet: LocalDateTime = nå(clock),
         antallDagerForPeriode: Int = 10,
         type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
     ): MeldekortBehandling.MeldekortUnderBehandling {
@@ -100,7 +100,7 @@ interface MeldekortMother {
         fnr: Fnr = Fnr.random(),
         periode: Periode,
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
-        opprettet: LocalDateTime = nå(fixedClock),
+        opprettet: LocalDateTime = nå(clock),
         antallDagerForPeriode: Int = 10,
         meldeperiode: Meldeperiode = meldeperiode(
             periode = periode,
@@ -124,9 +124,9 @@ interface MeldekortMother {
         beslutter: String = "beslutter",
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT,
-        iverksattTidspunkt: LocalDateTime? = nå(fixedClock),
+        iverksattTidspunkt: LocalDateTime? = nå(clock),
         navkontor: Navkontor = ObjectMother.navkontor(),
-        sendtTilBeslutning: LocalDateTime = nå(fixedClock),
+        sendtTilBeslutning: LocalDateTime = nå(clock),
         erFørsteBehandlingForPerioden: Boolean = true,
         type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
     ): MeldekortBehandling.MeldekortBehandlet {
@@ -417,7 +417,7 @@ interface MeldekortMother {
         versjon: HendelseVersjon = HendelseVersjon.ny(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         fnr: Fnr = Fnr.random(),
-        opprettet: LocalDateTime = nå(fixedClock),
+        opprettet: LocalDateTime = nå(clock),
         antallDagerForPeriode: Int = 10,
         girRett: Map<LocalDate, Boolean> = buildMap {
             val perUke = ceil(antallDagerForPeriode / 2.0).toInt()

@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
@@ -50,7 +49,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.ValgteTi
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-interface BehandlingMother {
+interface BehandlingMother : MotherOfAllMothers {
     /** Felles default vurderingsperiode for testdatatypene */
     fun virkningsperiode() = Periode(1.januar(2023), 31.mars(2023))
     fun revurderingsperiode() = Periode(2.januar(2023), 31.mars(2023))
@@ -60,7 +59,7 @@ interface BehandlingMother {
         status = Attesteringsstatus.GODKJENT,
         begrunnelse = null,
         beslutter = beslutter.navIdent,
-        tidspunkt = nå(fixedClock),
+        tidspunkt = nå(clock),
     )
 
     fun nyBehandling(

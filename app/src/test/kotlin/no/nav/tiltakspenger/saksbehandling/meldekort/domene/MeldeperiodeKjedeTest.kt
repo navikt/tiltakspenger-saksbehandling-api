@@ -4,8 +4,6 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.enUkeEtterFixedClock
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -45,9 +43,6 @@ class MeldeperiodeKjedeTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            opprettet = nå(
-                enUkeEtterFixedClock,
-            ),
         )
         val kjede = MeldeperiodeKjede(nonEmptyListOf(m1))
         val m2 =

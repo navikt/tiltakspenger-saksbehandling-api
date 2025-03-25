@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerroller
 
-interface SaksbehandlerMother {
+interface SaksbehandlerMother : MotherOfAllMothers {
     fun saksbehandler(
         navIdent: String = "Z12345",
         brukernavn: String = "Sak Behandler",

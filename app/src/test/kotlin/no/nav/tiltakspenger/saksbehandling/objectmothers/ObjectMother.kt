@@ -6,6 +6,13 @@ import no.nav.tiltakspenger.saksbehandling.felles.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.Navn
 import java.time.Instant
 
+/**
+ * test-data instanser vi vil skal deles på tvers av test-interfacene våre
+ */
+interface MotherOfAllMothers {
+    val clock get() = KlokkeMother.clock
+}
+
 object ObjectMother :
     SaksbehandlerMother,
     SystembrukerMother,

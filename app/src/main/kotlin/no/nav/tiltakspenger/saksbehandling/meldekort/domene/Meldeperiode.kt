@@ -37,7 +37,7 @@ data class Meldeperiode(
 
     // TODO Anders: når skal vi tillate at meldekortet fylles ut? Siste fredag i perioden?
     fun erKlarTilUtfylling(clock: Clock): Boolean {
-        return periode.fraOgMed <= nå(clock).toLocalDate()
+        return periode.fraOgMed <= LocalDate.now(clock)
     }
 
     fun erLik(meldeperiode: Meldeperiode): Boolean {

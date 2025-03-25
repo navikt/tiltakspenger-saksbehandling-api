@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -18,10 +17,10 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtakst
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-interface RammevedtakMother {
+interface RammevedtakMother : MotherOfAllMothers {
     fun nyRammevedtak(
         id: VedtakId = VedtakId.random(),
-        opprettet: LocalDateTime = nå(fixedClock),
+        opprettet: LocalDateTime = nå(clock),
         sakId: SakId = SakId.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
         fnr: Fnr = Fnr.random(),
@@ -56,7 +55,7 @@ interface RammevedtakMother {
 
     fun nyRammevedtakInnvilgelse(
         id: VedtakId = VedtakId.random(),
-        opprettet: LocalDateTime = nå(fixedClock),
+        opprettet: LocalDateTime = nå(clock),
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
@@ -91,7 +90,7 @@ interface RammevedtakMother {
 
     fun nyRammevedtakStans(
         id: VedtakId = VedtakId.random(),
-        opprettet: LocalDateTime = nå(fixedClock),
+        opprettet: LocalDateTime = nå(clock),
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
