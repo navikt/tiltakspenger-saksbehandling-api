@@ -34,11 +34,11 @@ private const val DAGER_KARANTENE = 16L - 1
 
 private data class MeldekortBeregning(
     val kommando: SendMeldekortTilBeslutningKommando,
-    val eksisterendeMeldekortPåSaken: MeldekortBehandlinger,
+    val eksisterendeMeldekortBehandlinger: MeldekortBehandlinger,
     val barnetilleggsPerioder: Periodisering<AntallBarn?>,
     val tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
 ) {
-    private val oppdatertKjedeId: MeldeperiodeKjedeId
+    private val meldekortSomSkalUtfylles: MeldekortBehandling
 
     private var sykTilstand: SykTilstand = SykTilstand.FullUtbetaling
     private var egenmeldingsdagerSyk: Int = ANTALL_EGENMELDINGSDAGER
@@ -52,10 +52,10 @@ private data class MeldekortBeregning(
 
     init {
         val meldekortId = kommando.meldekortId
-        val meldekortSomSkalUtfylles = eksisterendeMeldekortPåSaken.hentMeldekortBehandling(meldekortId)
+        val meldekortSomSkalUtfylles = eksisterendeMeldekortBehandlinger.hentMeldekortBehandling(meldekortId)
 
-        require(eksisterendeMeldekortPåSaken.sakId == kommando.sakId) {
-            "SakId på eksisterende meldekortperiode ${eksisterendeMeldekortPåSaken.sakId} er ikke likt sakId på kommando ${kommando.sakId}"
+        require(eksisterendeMeldekortBehandlinger.sakId == kommando.sakId) {
+            "SakId på eksisterende meldekortperiode ${eksisterendeMeldekortBehandlinger.sakId} er ikke likt sakId på kommando ${kommando.sakId}"
         }
 
         requireNotNull(meldekortSomSkalUtfylles) {
@@ -66,43 +66,22 @@ private data class MeldekortBeregning(
             "Innsendt meldekort $meldekortId er ikke under behandling"
         }
 
-        oppdatertKjedeId = meldekortSomSkalUtfylles.kjedeId
+        this.meldekortSomSkalUtfylles = meldekortSomSkalUtfylles
     }
 
-    /** Returnerer beregnede dager fra kommando, og (om-)beregning for alle dager på saken  */
-    fun beregn(): Pair<NonEmptyList<MeldeperiodeBeregningDag.Utfylt>, List<MeldeperiodeBeregningDag.Utfylt>> {
-        val oppdatertMeldekortId = kommando.meldekortId
+    /** Returnerer beregnede dager fra kommando, og omberegning for relevante dager på saken  */
+    fun beregn(): Pair<NonEmptyList<MeldeperiodeBeregningDag.Utfylt>, List<MeldeperiodeOmberegnet>> {
+        val oppdatertMeldekortId = meldekortSomSkalUtfylles.id
+        val oppdatertKjedeId = meldekortSomSkalUtfylles.kjedeId
         val oppdaterteDager = kommando.dager
-        val oppdatertTilOgMed = kommando.dager.last().dag
+        val oppdatertFraOgMed = oppdaterteDager.first().dag
 
-        val eksisterendeDager = eksisterendeMeldekortPåSaken.utfylteDager
-            .filter { eksisterendeDag ->
-                !oppdaterteDager.any { it.dag == eksisterendeDag.dato }
-            }
+        val (eksisterendeMeldekortFør, eksisterendeMeldekortEtter) = eksisterendeMeldekortBehandlinger.sisteBehandledeMeldekortPerKjede
+            .dropWhile { it.kjedeId == oppdatertKjedeId }
+            .partition { it.periode.fraOgMed < oppdatertFraOgMed }
 
-        val eksisterendeDagerOmberegnet = eksisterendeDager.mapNotNull { meldekortdag ->
-            val tiltakstype: TiltakstypeSomGirRett by lazy {
-                meldekortdag.tiltakstype
-                    ?: throw IllegalStateException("Tidligere meldekortdag.tiltakstype var null for meldekortdag $meldekortdag")
-            }
-
-            val dag = meldekortdag.dato
-            val meldekortId = meldekortdag.meldekortId
-            val kjedeId = meldekortdag.kjedeId
-            val antallBarn: AntallBarn = barnetilleggsPerioder.hentVerdiForDag(dag) ?: AntallBarn.ZERO
-
-            val utfyltDag = when (meldekortdag) {
-                is Sperret -> sperret(dag, meldekortId, kjedeId)
-                is VelferdGodkjentAvNav -> gyldigFravær(dag, meldekortId, kjedeId, tiltakstype, antallBarn)
-                is VelferdIkkeGodkjentAvNav -> ugyldigFravær(dag, meldekortId, kjedeId, tiltakstype, antallBarn)
-                is SyktBarn -> fraværSykBarn(dag, meldekortId, kjedeId, tiltakstype, antallBarn)
-                is SykBruker -> fraværSyk(dag, meldekortId, kjedeId, tiltakstype, antallBarn)
-                is IkkeDeltatt -> ikkeDeltatt(dag, meldekortId, kjedeId, tiltakstype, antallBarn)
-                is DeltattMedLønnITiltaket -> deltattMedLønn(dag, meldekortId, kjedeId, tiltakstype, antallBarn)
-                is DeltattUtenLønnITiltaket -> deltattUtenLønn(dag, meldekortId, kjedeId, tiltakstype, antallBarn)
-            }
-
-            if (dag > oppdatertTilOgMed) utfyltDag else null
+        eksisterendeMeldekortFør.forEach { meldekort ->
+            meldekort.beregning.dager.forEach { beregnMeldekortDag(it) }
         }
 
         val oppdaterteDagerBeregnet = oppdaterteDager.map { meldekortdag ->
@@ -154,17 +133,40 @@ private data class MeldekortBeregning(
             }
         }
 
-//        val dagerBeregnet = (eksisterendeDagerBeregnet + oppdaterteDagerBeregnet).sortedBy { it.dato }
-//
-//        val duplikateDager = dagerBeregnet.nonDistinctBy {
-//            it.dato
-//        }
-//
-//        check(duplikateDager.isEmpty()) {
-//            "Beregnede utbetalingsdager har duplikate dager - $duplikateDager"
-//        }
+        val meldeperioderOmberegnet = eksisterendeMeldekortEtter.map { meldekort ->
+            MeldeperiodeOmberegnet(
+                periode = meldekort.periode,
+                kjedeId = meldekort.kjedeId,
+                dager = meldekort.beregning.dager.map { beregnMeldekortDag(it) },
+            )
+        }
 
-        return oppdaterteDagerBeregnet.toNonEmptyListOrNull()!! to eksisterendeDagerOmberegnet
+        return oppdaterteDagerBeregnet.toNonEmptyListOrNull()!! to meldeperioderOmberegnet
+    }
+
+    private fun beregnMeldekortDag(meldekortdag: MeldeperiodeBeregningDag.Utfylt): MeldeperiodeBeregningDag.Utfylt {
+        val tiltakstype: TiltakstypeSomGirRett by lazy {
+            meldekortdag.tiltakstype
+                ?: throw IllegalStateException("Tidligere meldekortdag.tiltakstype var null for meldekortdag $meldekortdag")
+        }
+
+        val dag = meldekortdag.dato
+        val meldekortId = meldekortdag.meldekortId
+        val kjedeId = meldekortdag.kjedeId
+        val antallBarn: AntallBarn = barnetilleggsPerioder.hentVerdiForDag(dag) ?: AntallBarn.ZERO
+
+        val utfyltDag = when (meldekortdag) {
+            is Sperret -> sperret(dag, meldekortId, kjedeId)
+            is VelferdGodkjentAvNav -> gyldigFravær(dag, meldekortId, kjedeId, tiltakstype, antallBarn)
+            is VelferdIkkeGodkjentAvNav -> ugyldigFravær(dag, meldekortId, kjedeId, tiltakstype, antallBarn)
+            is SyktBarn -> fraværSykBarn(dag, meldekortId, kjedeId, tiltakstype, antallBarn)
+            is SykBruker -> fraværSyk(dag, meldekortId, kjedeId, tiltakstype, antallBarn)
+            is IkkeDeltatt -> ikkeDeltatt(dag, meldekortId, kjedeId, tiltakstype, antallBarn)
+            is DeltattMedLønnITiltaket -> deltattMedLønn(dag, meldekortId, kjedeId, tiltakstype, antallBarn)
+            is DeltattUtenLønnITiltaket -> deltattUtenLønn(dag, meldekortId, kjedeId, tiltakstype, antallBarn)
+        }
+
+        return utfyltDag
     }
 
     private fun deltattUtenLønn(
@@ -482,5 +484,5 @@ fun SendMeldekortTilBeslutningKommando.beregn(
     kommando = this,
     barnetilleggsPerioder = barnetilleggsPerioder,
     tiltakstypePerioder = tiltakstypePerioder,
-    eksisterendeMeldekortPåSaken = eksisterendeMeldekortBehandlinger,
+    eksisterendeMeldekortBehandlinger = eksisterendeMeldekortBehandlinger,
 ).beregn()

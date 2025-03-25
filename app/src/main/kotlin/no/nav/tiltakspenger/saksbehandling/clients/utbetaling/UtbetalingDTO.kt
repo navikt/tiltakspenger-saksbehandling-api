@@ -104,7 +104,7 @@ private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
     return this.beregning.dager.toUtbetalingDto(
         brukersNavKontor,
         barnetillegg,
-    ) + this.beregning.dagerOmberegnet.toUtbetalingDto(brukersNavKontor, barnetillegg)
+    )
 }
 
 private fun MeldeperiodeBeregningDag.Utfylt.genererUtbetalingsperiode(

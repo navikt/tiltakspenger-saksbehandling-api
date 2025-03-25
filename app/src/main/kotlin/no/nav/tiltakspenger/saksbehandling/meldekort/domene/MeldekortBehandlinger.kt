@@ -36,8 +36,9 @@ data class MeldekortBehandlinger(
     val sakId: SakId by lazy { verdi.first().sakId }
 
     private val førsteBehandlinger: List<MeldekortBehandling> by lazy { verdi.filter { it.type == MeldekortBehandlingType.FØRSTE_BEHANDLING } }
-
     private val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
+
+    val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandlet> by lazy { behandledeMeldekort.groupBy { it.kjedeId }.values.map { it.last() } }
 
     /** Under behandling er ikke-avsluttede meldekortbehandlinger som ikke er til beslutning. */
     val meldekortUnderBehandling: MeldekortUnderBehandling? by lazy {
@@ -56,10 +57,11 @@ data class MeldekortBehandlinger(
         godkjenteMeldekort.flatMap { it.beregning.dager }.lastOrNull { it.beløp > 0 }?.dato
     }
 
+    // TODO abn: Vi kan ikke stole på beregninger fra enkelt-dagene ettersom korrigeringer kan påvirke dager etter den korrigerte perioden
     /** Vil kun returnere hele meldekortperioder som er utfylt. Dersom siste meldekortperiode er delvis utfylt, vil ikke disse komme med. */
-    val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy { behandledeMeldekort.flatMap { it.beregning.dager } }
+    val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy { sisteBehandledeMeldekortPerKjede.flatMap { it.beregning.dager } }
 
-    val finnesÅpenMeldekortBehandling: Boolean by lazy { meldekortUnderBehandling.isNotEmpty() }
+    val finnesÅpenMeldekortBehandling: Boolean by lazy { meldekortUnderBehandling != null }
 
     /**
      * @throws NullPointerException Dersom det ikke er noen meldekort-behandling som kan sendes til beslutter. Eller siste meldekort ikke er i tilstanden 'under behandling'.

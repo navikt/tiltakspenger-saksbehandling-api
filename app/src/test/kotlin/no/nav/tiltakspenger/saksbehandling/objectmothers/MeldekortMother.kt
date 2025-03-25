@@ -35,6 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingB
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeOmberegnet
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
@@ -177,13 +178,13 @@ interface MeldekortMother : MotherOfAllMothers {
             tiltakstype,
             barnetilleggsPerioder,
         ),
-        dagerOmberegnet: List<MeldeperiodeBeregningDag.Utfylt> = emptyList(),
+        meldeperioderOmberegnet: List<MeldeperiodeOmberegnet> = emptyList(),
     ): MeldeperiodeBeregning.UtfyltMeldeperiode {
         return MeldeperiodeBeregning.UtfyltMeldeperiode(
             sakId = sakId,
             maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
             dager = dager,
-            dagerOmberegnet = dagerOmberegnet,
+            meldeperioderOmberegnet = meldeperioderOmberegnet,
         )
     }
 

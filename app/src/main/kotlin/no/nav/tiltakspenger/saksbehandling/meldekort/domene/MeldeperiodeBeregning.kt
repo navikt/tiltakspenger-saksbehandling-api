@@ -6,12 +6,19 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import java.time.DayOfWeek
 import java.time.LocalDate
+
+data class MeldeperiodeOmberegnet(
+    val kjedeId: MeldeperiodeKjedeId,
+    val periode: Periode,
+    val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
+)
 
 /**
  * Fra paragraf 5: Enhver som mottar tiltakspenger, må som hovedregel melde seg til Arbeids- og velferdsetaten hver fjortende dag (meldeperioden)
@@ -32,7 +39,7 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
         override val sakId: SakId,
         override val maksDagerMedTiltakspengerForPeriode: Int,
         override val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-        val dagerOmberegnet: List<MeldeperiodeBeregningDag.Utfylt>,
+        val meldeperioderOmberegnet: List<MeldeperiodeOmberegnet>,
     ) : MeldeperiodeBeregning,
         List<MeldeperiodeBeregningDag> by dager {
         override val meldekortId = dager.first().meldekortId
@@ -157,14 +164,14 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
 
         fun tilUtfyltMeldeperiode(
             dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-            dagerOmberegnet: List<MeldeperiodeBeregningDag.Utfylt>,
+            meldeperioderOmberegnet: List<MeldeperiodeOmberegnet>,
         ): Either<KanIkkeSendeMeldekortTilBeslutning, UtfyltMeldeperiode> {
             return validerAntallDager().map {
                 UtfyltMeldeperiode(
                     sakId = sakId,
                     maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
                     dager = dager,
-                    dagerOmberegnet = dagerOmberegnet,
+                    meldeperioderOmberegnet = meldeperioderOmberegnet,
                 )
             }
         }

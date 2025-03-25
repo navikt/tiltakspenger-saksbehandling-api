@@ -104,7 +104,7 @@ class MeldekortBehandlingPostgresRepo(
                     """
                     update meldekortbehandling set
                         meldekortdager = to_jsonb(:meldekortdager::jsonb),
-                        meldekortdagerOmberegnet = to_jsonb(:meldekortdager_omberegnet::jsonb),
+                        meldeperioder_omberegnet = to_jsonb(:meldeperioder_omberegnet::jsonb),
                         saksbehandler = :saksbehandler,
                         beslutter = :beslutter,
                         status = :status,
@@ -117,7 +117,7 @@ class MeldekortBehandlingPostgresRepo(
                     """,
                     "id" to meldekortBehandling.id.toString(),
                     "meldekortdager" to meldekortBehandling.beregning.tilMeldekortdagerDbJson(),
-                    "meldekortdager_omberegnet" to meldekortBehandling.beregning.tilMeldekortdagerOmberegnetDbJson(),
+                    "meldeperioder_omberegnet" to meldekortBehandling.beregning.tilMeldeperioderOmberegnetDbJson(),
                     "saksbehandler" to meldekortBehandling.saksbehandler,
                     "beslutter" to meldekortBehandling.beslutter,
                     "status" to meldekortBehandling.status.toDb(),
@@ -218,9 +218,8 @@ class MeldekortBehandlingPostgresRepo(
                         sakId = sakId,
                         maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
                         dager = meldekortdager.tilUtfylteMeldekortDager(id, meldeperiode.kjedeId),
-                        dagerOmberegnet = row.stringOrNull("meldekortdagerOmberegnet")
-                            ?.tilUtfylteMeldekortDager(id, meldeperiode.kjedeId)
-                            ?: emptyList(),
+                        meldeperioderOmberegnet = row.stringOrNull("meldeperioder_omberegnet")
+                            ?.tilMeldeperioderOmberegnet(id) ?: emptyList(),
                     )
 
                     MeldekortBehandlet(
