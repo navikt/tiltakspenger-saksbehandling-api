@@ -56,30 +56,6 @@ data class Vedtaksliste(
         innvilgelsesperioder.maxOfOrNull { it.tilOgMed }
     }
 
-    val antallDagerPerioder: Periodisering<Int?> by lazy {
-        tidslinje.map { pmvVedtak ->
-            pmvVedtak?.antallDagerPerMeldeperiode
-        }
-    }
-
-    /**
-     * @param meldeperiode må stemme med meldeperiode-syklusen på saken
-     */
-    fun hentAntallDager(meldeperiode: Periode): Int? =
-        antallDagerPerioder.filter {
-            it.periode.overlapperMed(meldeperiode)
-        }.mapNotNull {
-            it.verdi
-        }.singleOrNullOrThrow()
-
-    /**
-     * Perioden må være innenfor tidslinjen
-     *
-     * **/
-    fun tidslinjeForPeriode(periode: Periode): Periodisering<Rammevedtak?> {
-        return tidslinje.krymp(periode)
-    }
-
     /**
      * Innvilget->Stans eksempel:
      * Vedtak 1: 01.01.2021 - 04.01.2021 (oppfylt/innvilget)
@@ -138,10 +114,6 @@ data class Vedtaksliste(
 
     val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett?> by lazy {
         valgteTiltaksdeltakelser.map { it?.typeKode }
-    }
-
-    fun antallBarnForDag(dag: LocalDate): AntallBarn {
-        return barnetilleggsperioder.singleOrNullOrThrow { it.periode.inneholder(dag) }?.verdi ?: AntallBarn.ZERO
     }
 
     fun leggTilFørstegangsVedtak(vedtak: Rammevedtak): Vedtaksliste = copy(value = this.value.plus(vedtak))

@@ -65,27 +65,17 @@ data class Sak(
 
     /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
     @Suppress("unused")
-    fun hentMeldekortBehandlingerForMeldeperiode(meldeperiodeId: MeldeperiodeId) =
-        meldekortBehandlinger.hentMeldekortBehandlingerForMeldeperiode(meldeperiodeId)
+    fun hentMeldekortBehandlingerForMeldeperiode(meldeperiodeId: MeldeperiodeId): List<MeldekortBehandling> {
+        return meldekortBehandlinger.hentMeldekortBehandlingerForMeldeperiode(meldeperiodeId)
+    }
 
-    /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
-    fun hentMeldekortBehandlingerForKjede(id: MeldeperiodeKjedeId) =
-        meldekortBehandlinger.hentMeldekortBehandlingerForKjede(id)
-
-    fun hentSisteMeldekortBehandlingForKjede(id: MeldeperiodeKjedeId) =
-        meldekortBehandlinger.hentSisteMeldekortBehandlingForKjede(id)
-
-    fun hentMeldeperiode(id: MeldeperiodeId): Meldeperiode? {
-        return meldeperiodeKjeder.hentMeldeperiode(id)
+    fun hentSisteMeldekortBehandlingForKjede(id: MeldeperiodeKjedeId): MeldekortBehandling? {
+        return meldekortBehandlinger.hentSisteMeldekortBehandlingForKjede(id)
     }
 
     fun hentSisteMeldeperiodeForKjede(kjedeId: MeldeperiodeKjedeId): Meldeperiode {
         return meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(kjedeId)
     }
-
-    /** Den er kun trygg inntil vi revurderer antall dager. */
-    fun hentAntallDager(periode: Periode): Int? = vedtaksliste.hentAntallDager(periode)
-
     fun hentBehandling(behandlingId: BehandlingId): Behandling? = behandlinger.hentBehandling(behandlingId)
 
     fun sisteUtbetalteMeldekortDag(): LocalDate? = meldekortBehandlinger.sisteUtbetalteMeldekortDag
