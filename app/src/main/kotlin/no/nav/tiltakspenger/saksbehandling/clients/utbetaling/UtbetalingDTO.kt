@@ -30,7 +30,7 @@ fun Utbetalingsvedtak.toDTO(
     val utbetalingerStønad = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = false)
     val utbetalingerBarnetillegg = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = true)
 
-    val nyeOgOppdaterteUtbetalinger = (utbetalingerStønad + utbetalingerBarnetillegg)
+    val nyeOgOppdaterteUtbetalinger = utbetalingerStønad.plus(utbetalingerBarnetillegg)
 
     val tidligereUtbetalinger = forrigeUtbetalingJson
         ?.let { deserialize<IverksettV2Dto>(it) }
@@ -48,7 +48,7 @@ fun Utbetalingsvedtak.toDTO(
             vedtakstidspunkt = vedtak.opprettet,
             saksbehandlerId = vedtak.saksbehandler,
             beslutterId = vedtak.beslutter,
-            utbetalinger = tidligereUtbetalinger + nyeOgOppdaterteUtbetalinger,
+            utbetalinger = tidligereUtbetalinger.plus(nyeOgOppdaterteUtbetalinger),
         ),
         forrigeIverksetting =
         vedtak.forrigeUtbetalingsvedtakId?.let { ForrigeIverksettingV2Dto(behandlingId = it.uuidPart()) },
@@ -105,13 +105,15 @@ private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
         brukersNavKontor,
         barnetillegg,
         this.kjedeId,
-    ) + this.beregning.meldeperioderOmberegnet.flatMap {
-        it.dager.toUtbetalingDto(
-            brukersNavKontor,
-            barnetillegg,
-            it.kjedeId,
-        )
-    }
+    ).plus(
+        this.beregning.meldeperioderOmberegnet.flatMap {
+            it.dager.toUtbetalingDto(
+                brukersNavKontor,
+                barnetillegg,
+                it.kjedeId,
+            )
+        },
+    )
 }
 
 private fun MeldeperiodeBeregningDag.Utfylt.genererUtbetalingsperiode(

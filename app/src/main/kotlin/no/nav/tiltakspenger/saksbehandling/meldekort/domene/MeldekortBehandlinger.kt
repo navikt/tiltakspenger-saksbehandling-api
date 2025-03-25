@@ -173,7 +173,7 @@ data class MeldekortBehandlinger(
 
     fun leggTil(behandling: MeldekortUnderBehandling): MeldekortBehandlinger {
         return MeldekortBehandlinger(
-            verdi = verdi + behandling,
+            verdi = verdi.plus(behandling).sortedBy { it.fraOgMed },
         )
     }
 
