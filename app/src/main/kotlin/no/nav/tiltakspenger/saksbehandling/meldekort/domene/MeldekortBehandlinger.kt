@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekor
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling.MeldekortBehandlet
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Status
+import java.time.Clock
 import java.time.LocalDate
 
 /**
@@ -40,6 +41,7 @@ data class MeldekortBehandlinger(
         kommando: SendMeldekortTilBeslutningKommando,
         barnetilleggsPerioder: Periodisering<AntallBarn?>,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
+        clock: Clock,
     ): Either<KanIkkeSendeMeldekortTilBeslutning, Pair<MeldekortBehandlinger, MeldekortBehandlet>> {
         val meldekortId = kommando.meldekortId
 
@@ -74,7 +76,7 @@ data class MeldekortBehandlinger(
         val utfyltMeldeperiode = meldekortUnderBehandling.beregning.tilUtfyltMeldeperiode(meldekortdager).getOrElse {
             return it.left()
         }
-        return meldekortUnderBehandling.sendTilBeslutter(utfyltMeldeperiode, kommando.saksbehandler)
+        return meldekortUnderBehandling.sendTilBeslutter(utfyltMeldeperiode, kommando.saksbehandler, clock)
             .map {
                 Pair(
                     MeldekortBehandlinger(
@@ -109,13 +111,14 @@ data class MeldekortBehandlinger(
     fun oppdaterMedNyeKjeder(
         oppdaterteKjeder: MeldeperiodeKjeder,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
+        clock: Clock,
     ): Pair<MeldekortBehandlinger, List<MeldekortBehandling>> {
         return verdi.filter { it.erÅpen() }
             .fold(Pair(this, emptyList())) { acc, meldekortBehandling ->
                 val meldeperiode = oppdaterteKjeder.hentSisteMeldeperiodeForKjede(
                     kjedeId = meldekortBehandling.meldeperiode.kjedeId,
                 )
-                meldekortBehandling.oppdaterMeldeperiode(meldeperiode, tiltakstypePerioder)?.let {
+                meldekortBehandling.oppdaterMeldeperiode(meldeperiode, tiltakstypePerioder, clock)?.let {
                     Pair(
                         acc.first.oppdaterMeldekortbehandling(it),
                         acc.second + it,

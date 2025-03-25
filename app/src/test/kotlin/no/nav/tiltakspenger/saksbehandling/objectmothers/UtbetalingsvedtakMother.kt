@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-interface UtbetalingsvedtakMother {
+interface UtbetalingsvedtakMother : MotherOfAllMothers {
 
     fun utbetalingsvedtak(
         id: VedtakId = VedtakId.random(),
@@ -35,7 +35,7 @@ interface UtbetalingsvedtakMother {
         sendtTilUtbetaling: LocalDateTime? = null,
         journalpostId: JournalpostId? = null,
         journalføringstidspunkt: LocalDateTime? = null,
-        opprettet: LocalDateTime = nå(),
+        opprettet: LocalDateTime = nå(clock),
     ): Utbetalingsvedtak {
         return Utbetalingsvedtak(
             id = id,

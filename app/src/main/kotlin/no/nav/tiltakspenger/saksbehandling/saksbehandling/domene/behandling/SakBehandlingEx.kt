@@ -5,9 +5,11 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
+import java.time.Clock
 
 fun Sak.sendFørstegangsbehandlingTilBeslutning(
     kommando: SendSøknadsbehandlingTilBeslutningKommando,
+    clock: Clock,
 ): Either<KanIkkeSendeTilBeslutter, Pair<Sak, Behandling>> {
     if (!kommando.saksbehandler.erSaksbehandler()) {
         return KanIkkeSendeTilBeslutter.MåVæreSaksbehandler.left()
@@ -17,7 +19,7 @@ fun Sak.sendFørstegangsbehandlingTilBeslutning(
     if (overlapperEllerTilstøterNyInnvilgelsesperiodeMedEksisterende(kommando.innvilgelsesperiode)) {
         return KanIkkeSendeTilBeslutter.PeriodenOverlapperEllerTilstøterMedAnnenBehandling.left()
     }
-    val oppdatertBehandling = behandling.tilBeslutning(kommando)
+    val oppdatertBehandling = behandling.tilBeslutning(kommando, clock)
     return (this.copy(behandlinger = this.behandlinger.oppdaterBehandling(oppdatertBehandling)) to oppdatertBehandling).right()
 }
 
@@ -28,6 +30,7 @@ private fun Sak.overlapperEllerTilstøterNyInnvilgelsesperiodeMedEksisterende(in
 
 fun Sak.sendRevurderingTilBeslutning(
     kommando: SendRevurderingTilBeslutningKommando,
+    clock: Clock,
 ): Either<KanIkkeSendeTilBeslutter, Behandling> {
     if (!kommando.saksbehandler.erSaksbehandler()) {
         return KanIkkeSendeTilBeslutter.MåVæreSaksbehandler.left()
@@ -47,7 +50,7 @@ fun Sak.sendRevurderingTilBeslutning(
 
     val behandling: Behandling = this.hentBehandling(kommando.behandlingId)!!
     require(behandling.erRevurdering) { "Finnes egen funksjon for å sende til førstegangbehandling til beslutning" }
-    val oppdatertBehandling = behandling.sendRevurderingTilBeslutning(kommando, this.vedtaksliste.sisteDagSomGirRett!!)
+    val oppdatertBehandling = behandling.sendRevurderingTilBeslutning(kommando, this.vedtaksliste.sisteDagSomGirRett!!, clock)
 
     return oppdatertBehandling.right()
 }

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.repository.utbetaling
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.libs.periodisering.januar
@@ -18,14 +19,14 @@ class UtbetalingsvedtakRepoImplTest {
 
     @Test
     fun `kan lagre og hente`() {
-        val tidspunkt = nå()
+        val tidspunkt = nå(fixedClock)
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (sak, meldekort) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
             val utbetalingsvedtakRepo = testDataHelper.utbetalingsvedtakRepo as UtbetalingsvedtakPostgresRepo
-            val utbetalingsvedtak = meldekort.opprettUtbetalingsvedtak(sak.saksnummer, sak.fnr, null)
+            val utbetalingsvedtak = meldekort.opprettUtbetalingsvedtak(sak.saksnummer, sak.fnr, null, fixedClock)
             // Utbetaling
             utbetalingsvedtakRepo.lagre(utbetalingsvedtak)
             utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk() shouldBe listOf(utbetalingsvedtak)
@@ -60,7 +61,7 @@ class UtbetalingsvedtakRepoImplTest {
             )
             val utbetalingsvedtakRepo = testDataHelper.utbetalingsvedtakRepo as UtbetalingsvedtakPostgresRepo
             // Utbetaling
-            val utbetalingsvedtak = meldekort.opprettUtbetalingsvedtak(sak.saksnummer, sak.fnr, null)
+            val utbetalingsvedtak = meldekort.opprettUtbetalingsvedtak(sak.saksnummer, sak.fnr, null, fixedClock)
             utbetalingsvedtakRepo.lagre(utbetalingsvedtak)
 
             utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk() shouldBe listOf(utbetalingsvedtak)
@@ -82,11 +83,11 @@ class UtbetalingsvedtakRepoImplTest {
             )
             val utbetalingsvedtakRepo = testDataHelper.utbetalingsvedtakRepo as UtbetalingsvedtakPostgresRepo
             // Utbetaling
-            val utbetalingsvedtak = meldekort.opprettUtbetalingsvedtak(sak.saksnummer, sak.fnr, null)
+            val utbetalingsvedtak = meldekort.opprettUtbetalingsvedtak(sak.saksnummer, sak.fnr, null, fixedClock)
             utbetalingsvedtakRepo.lagre(utbetalingsvedtak)
             utbetalingsvedtakRepo.markerSendtTilUtbetaling(
                 vedtakId = utbetalingsvedtak.id,
-                tidspunkt = nå(),
+                tidspunkt = nå(fixedClock),
                 utbetalingsrespons = SendtUtbetaling("myReq", "myRes", 202),
             )
 

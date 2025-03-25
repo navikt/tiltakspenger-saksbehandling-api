@@ -17,10 +17,10 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtakst
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-interface RammevedtakMother {
+interface RammevedtakMother : MotherOfAllMothers {
     fun nyRammevedtak(
         id: VedtakId = VedtakId.random(),
-        opprettet: LocalDateTime = nå(),
+        opprettet: LocalDateTime = nå(clock),
         sakId: SakId = SakId.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
         fnr: Fnr = Fnr.random(),
@@ -55,7 +55,7 @@ interface RammevedtakMother {
 
     fun nyRammevedtakInnvilgelse(
         id: VedtakId = VedtakId.random(),
-        opprettet: LocalDateTime = nå(),
+        opprettet: LocalDateTime = nå(clock),
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
@@ -90,7 +90,7 @@ interface RammevedtakMother {
 
     fun nyRammevedtakStans(
         id: VedtakId = VedtakId.random(),
-        opprettet: LocalDateTime = nå(),
+        opprettet: LocalDateTime = nå(clock),
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         periode: Periode = ObjectMother.virkningsperiode(),

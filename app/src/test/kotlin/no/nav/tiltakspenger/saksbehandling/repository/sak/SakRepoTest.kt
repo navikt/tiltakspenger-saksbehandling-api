@@ -4,9 +4,11 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.libs.periodisering.desember
 import no.nav.tiltakspenger.libs.periodisering.februar
 import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.libs.periodisering.zoneIdOslo
 import no.nav.tiltakspenger.saksbehandling.db.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.db.persisterNySak
 import no.nav.tiltakspenger.saksbehandling.db.persisterOpprettetFørstegangsbehandling
@@ -16,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saker
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.Clock
 
 internal class SakRepoTest {
     @Test
@@ -82,6 +85,7 @@ internal class SakRepoTest {
                 val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
                     deltakelseFom = 1.februar(2025),
                     deltakelseTom = 28.februar(2025),
+                    clock = Clock.fixed(1.april(2025).atStartOfDay(zoneIdOslo).toInstant(), zoneIdOslo),
                 )
                 sakRepo.oppdaterFørsteOgSisteDagSomGirRett(sak.id, sak.førsteDagSomGirRett, sak.sisteDagSomGirRett)
                 sak.meldeperiodeKjeder.meldeperioder.size shouldBe 3

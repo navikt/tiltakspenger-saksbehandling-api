@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -28,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
+import java.time.Clock
 import java.time.LocalDate
 
 interface SakMother {
@@ -81,6 +83,7 @@ interface SakMother {
                 registrerteTiltak.first().eksternDeltagelseId,
             ),
         ),
+        clock: Clock = fixedClock,
     ): Pair<Sak, Behandling> {
         val førstegangsbehandling =
             runBlocking {
@@ -91,6 +94,7 @@ interface SakMother {
                     søknad = søknad,
                     saksbehandler = saksbehandler,
                     hentSaksopplysninger = { saksopplysninger },
+                    clock = clock,
                 ).getOrFail()
 
                 if (barnetillegg == null) {
@@ -108,6 +112,7 @@ interface SakMother {
                             innvilgelsesperiode = virkningsperiode,
                             tiltaksdeltakelser = valgteTiltaksdeltakelser,
                         ),
+                        clock = clock,
                     )
                 }
             }
@@ -132,6 +137,7 @@ interface SakMother {
         saksbehandler: Saksbehandler = saksbehandler(),
         virkningsperiode: Periode = virkningsperiode(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
+        clock: Clock = fixedClock,
     ): Triple<Sak, Vedtak, Behandling> {
         val (sak, førstegangsbehandling) = this.sakMedOpprettetBehandling(
             sakId = sakId,
@@ -155,15 +161,17 @@ interface SakMother {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
             ),
+            clock = clock,
         ).taBehandling(beslutter)
             .iverksett(
                 utøvendeBeslutter = beslutter,
                 attestering = ObjectMother.godkjentAttestering(beslutter),
+                clock = clock,
             )
 
         val sakMedIverksattBehandling = sak.copy(behandlinger = Behandlinger(iverksattBehandling))
 
-        val sakMedVedtak = sakMedIverksattBehandling.opprettVedtak(iverksattBehandling)
+        val sakMedVedtak = sakMedIverksattBehandling.opprettVedtak(iverksattBehandling, clock)
 
         return Triple(sakMedVedtak.first, sakMedVedtak.second, iverksattBehandling)
     }

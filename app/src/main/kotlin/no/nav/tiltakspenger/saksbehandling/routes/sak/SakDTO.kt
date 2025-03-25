@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto.MeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto.toMeldeperiodeKjederDTO
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
+import java.time.Clock
 import java.time.LocalDate
 
 /**
@@ -23,7 +24,7 @@ internal data class SakDTO(
     val behandlinger: List<BehandlingDTO>,
 )
 
-internal fun Sak.toDTO() = SakDTO(
+internal fun Sak.toDTO(clock: Clock) = SakDTO(
     saksnummer = saksnummer.verdi,
     sakId = id.toString(),
     fnr = fnr.verdi,
@@ -33,7 +34,7 @@ internal fun Sak.toDTO() = SakDTO(
                 .filter { soknad -> behandlinger.none { it.søknad?.id == soknad.id } }
                 .toSaksoversiktDTO()
         ).sortedBy { it.opprettet },
-    meldeperiodeKjeder = toMeldeperiodeKjederDTO(),
+    meldeperiodeKjeder = toMeldeperiodeKjederDTO(clock = clock),
     førsteLovligeStansdato = førsteLovligeStansdato(),
     sisteDagSomGirRett = sisteDagSomGirRett,
     søknader = soknader.toDTO(),

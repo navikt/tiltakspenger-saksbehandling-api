@@ -11,11 +11,13 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.KanIkkeStarteRevurdering
+import java.time.Clock
 
 private val loggerForStartRevurdering = KotlinLogging.logger { }
 
 suspend fun Sak.startRevurdering(
     kommando: StartRevurderingKommando,
+    clock: Clock,
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger,
 ): Either<KanIkkeStarteRevurdering, Pair<Sak, Behandling>> {
     val saksbehandler = kommando.saksbehandler
@@ -49,6 +51,7 @@ suspend fun Sak.startRevurdering(
             )
         },
         saksopplysningsperiode = saksopplysningsperiode,
+        clock = clock,
     )
 
     return Pair(leggTilRevurdering(revurdering), revurdering).right()

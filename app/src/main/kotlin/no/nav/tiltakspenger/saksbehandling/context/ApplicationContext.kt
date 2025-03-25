@@ -119,7 +119,7 @@ open class ApplicationContext(
 
     open val personContext by lazy { PersonContext(sessionFactory, entraIdSystemtokenClient) }
     open val dokumentContext by lazy { DokumentContext(entraIdSystemtokenClient) }
-    open val statistikkContext by lazy { StatistikkContext(sessionFactory) }
+    open val statistikkContext by lazy { StatistikkContext(sessionFactory, clock) }
     open val søknadContext by lazy { SøknadContext(sessionFactory, oppgaveGateway) }
     open val tiltakContext by lazy { TiltakContext(entraIdSystemtokenClient) }
     open val profile by lazy { Configuration.applicationProfile() }
@@ -130,6 +130,7 @@ open class ApplicationContext(
             poaoTilgangGateway = personContext.poaoTilgangGateway,
             personService = personContext.personService,
             profile = profile,
+            clock = clock,
         )
     }
     open val utbetalingContext by lazy {
@@ -140,6 +141,7 @@ open class ApplicationContext(
             entraIdSystemtokenClient = entraIdSystemtokenClient,
             navIdentClient = personContext.navIdentClient,
             sakRepo = sakContext.sakRepo,
+            clock = clock,
         )
     }
     open val meldekortContext by lazy {
@@ -154,6 +156,7 @@ open class ApplicationContext(
             navkontorService = navkontorService,
             oppgaveGateway = oppgaveGateway,
             sakRepo = sakContext.sakRepo,
+            clock = clock,
         )
     }
     open val behandlingContext by lazy {
@@ -190,6 +193,7 @@ open class ApplicationContext(
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
             behandlingRepo = behandlingContext.behandlingRepo,
             datadelingClient = datadelingGateway,
+            clock = clock,
         )
     }
 

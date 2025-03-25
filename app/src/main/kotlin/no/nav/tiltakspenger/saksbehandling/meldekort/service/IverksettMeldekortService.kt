@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.opprettUtbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.tilStatistikk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
+import java.time.Clock
 
 class IverksettMeldekortService(
     val sakService: SakService,
@@ -35,6 +36,7 @@ class IverksettMeldekortService(
     private val personService: PersonService,
     private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
+    private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -66,7 +68,7 @@ class IverksettMeldekortService(
             "Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: $sakId, meldekortId: $meldekortId"
         }
 
-        return meldekortBehandling.iverksettMeldekort(kommando.beslutter).onRight {
+        return meldekortBehandling.iverksettMeldekort(kommando.beslutter, clock).onRight {
             when (it.type) {
                 MeldekortBehandlingType.FØRSTE_BEHANDLING -> persisterFørsteBehandling(it, sak)
                 MeldekortBehandlingType.KORRIGERING -> persisterKorrigering(it, sak)
@@ -80,6 +82,7 @@ class IverksettMeldekortService(
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
             eksisterendeUtbetalingsvedtak.lastOrNull()?.id,
+            clock = clock,
         )
         val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()
 

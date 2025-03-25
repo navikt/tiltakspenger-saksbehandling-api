@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -76,6 +77,7 @@ sealed interface MeldekortBehandling {
     fun oppdaterMeldeperiode(
         meldeperiode: Meldeperiode,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
+        clock: Clock,
     ): MeldekortBehandling? {
         require(meldeperiode.kjedeId == kjedeId) {
             "MeldekortBehandling: Kan ikke oppdatere meldeperiode med annen kjede id. ${meldeperiode.kjedeId} != $kjedeId"
@@ -83,7 +85,7 @@ sealed interface MeldekortBehandling {
         if (erAvsluttet) return null
         if (meldeperiode.versjon <= this.meldeperiode.versjon) return null
 
-        val ikkeRettTilTiltakspengerTidspunkt = if (meldeperiode.ingenDagerGirRett) nå() else null
+        val ikkeRettTilTiltakspengerTidspunkt = if (meldeperiode.ingenDagerGirRett) nå(clock) else null
         return when (this) {
             is MeldekortBehandlet -> this.tilUnderBehandling(
                 nyMeldeperiode = meldeperiode,
@@ -160,6 +162,7 @@ sealed interface MeldekortBehandling {
 
         fun iverksettMeldekort(
             beslutter: Saksbehandler,
+            clock: Clock,
         ): Either<KanIkkeIverksetteMeldekort, MeldekortBehandlet> {
             if (!beslutter.erBeslutter()) {
                 return KanIkkeIverksetteMeldekort.MåVæreBeslutter(beslutter.roller).left()
@@ -172,7 +175,7 @@ sealed interface MeldekortBehandling {
             return this.copy(
                 beslutter = beslutter.navIdent,
                 status = GODKJENT,
-                iverksattTidspunkt = nå(),
+                iverksattTidspunkt = nå(clock),
             ).right()
         }
 
@@ -248,6 +251,7 @@ sealed interface MeldekortBehandling {
         fun sendTilBeslutter(
             utfyltMeldeperiode: MeldeperiodeBeregning.UtfyltMeldeperiode,
             saksbehandler: Saksbehandler,
+            clock: Clock,
         ): Either<KanIkkeSendeMeldekortTilBeslutning, MeldekortBehandlet> {
             require(utfyltMeldeperiode.periode == this.periode) {
                 "Når man fyller ut et meldekort må meldekortperioden være den samme som den som er opprettet. Opprettet periode: ${this.beregning.periode}, utfylt periode: ${utfyltMeldeperiode.periode}"
@@ -269,7 +273,7 @@ sealed interface MeldekortBehandling {
                 opprettet = this.opprettet,
                 beregning = utfyltMeldeperiode,
                 saksbehandler = saksbehandler.navIdent,
-                sendtTilBeslutning = nå(),
+                sendtTilBeslutning = nå(clock),
                 beslutter = this.beslutter,
                 status = KLAR_TIL_BESLUTNING,
                 iverksattTidspunkt = null,
@@ -323,6 +327,7 @@ fun Sak.opprettMeldekortBehandling(
     kjedeId: MeldeperiodeKjedeId,
     navkontor: Navkontor,
     saksbehandler: Saksbehandler,
+    clock: Clock,
 ): MeldekortBehandling.MeldekortUnderBehandling {
     require(this.vedtaksliste.innvilgelsesperioder.isNotEmpty()) {
         "Må ha minst én periode som gir rett til tiltakspenger for å opprette meldekortbehandling"
@@ -353,7 +358,7 @@ fun Sak.opprettMeldekortBehandling(
         sakId = this.id,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
-        opprettet = nå(),
+        opprettet = nå(clock),
         navkontor = navkontor,
         ikkeRettTilTiltakspengerTidspunkt = null,
         brukersMeldekort = brukersMeldekort,

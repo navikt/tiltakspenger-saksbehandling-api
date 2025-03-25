@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.db
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
@@ -9,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.repository.behandling.BehandlingRepoTest.Companion.random
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
+import java.time.Clock
 import java.time.LocalDate
 
 internal fun TestDataHelper.persisterSakOgSøknad(
@@ -36,6 +38,7 @@ internal fun TestDataHelper.persisterSakOgSøknad(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
         ),
+    clock: Clock = TikkendeKlokke(),
 ): Søknad {
     this.persisterSak(fnr, sak)
     this.søknadRepo.lagre(søknad)

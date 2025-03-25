@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.GenererStansvedt
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.JournalførVedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService
+import java.time.Clock
 import java.time.LocalDate
 
 class JournalførRammevedtakService(
@@ -22,6 +23,7 @@ class JournalførRammevedtakService(
     private val genererStansvedtaksbrevGateway: GenererStansvedtaksbrevGateway,
     private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
+    private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -53,7 +55,7 @@ class JournalførRammevedtakService(
                     val journalpostId =
                         journalførVedtaksbrevGateway.journalførVedtaksbrev(vedtak, pdfOgJson, correlationId)
                     log.info { "Vedtaksbrev journalført for vedtak ${vedtak.id}" }
-                    rammevedtakRepo.markerJournalført(vedtak.id, vedtaksdato, pdfOgJson.json, journalpostId, nå())
+                    rammevedtakRepo.markerJournalført(vedtak.id, vedtaksdato, pdfOgJson.json, journalpostId, nå(clock))
                     log.info { "Vedtaksbrev markert som journalført for vedtak ${vedtak.id}" }
                 }.onLeft {
                     log.error(it) { "Feil ved journalføring av vedtaksbrev for vedtak ${vedtak.id}" }

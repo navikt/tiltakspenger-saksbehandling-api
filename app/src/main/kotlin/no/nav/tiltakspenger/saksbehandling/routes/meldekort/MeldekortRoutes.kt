@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortBeh
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.routes.meldekort.frameldekortapi.mottaMeldekortRoutes
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
+import java.time.Clock
 
 fun Route.meldekortRoutes(
     opprettMeldekortBehandlingService: OpprettMeldekortBehandlingService,
@@ -18,8 +19,9 @@ fun Route.meldekortRoutes(
     sakService: SakService,
     tokenService: TokenService,
     mottaBrukerutfyltMeldekortService: MottaBrukerutfyltMeldekortService,
+    clock: Clock,
 ) {
-    hentMeldekortRoute(sakService, auditService, tokenService)
+    hentMeldekortRoute(sakService, auditService, tokenService, clock)
     iverksettMeldekortRoute(iverksettMeldekortService, auditService, tokenService)
     sendMeldekortTilBeslutterRoute(sendMeldekortTilBeslutterService, auditService, tokenService)
     opprettMeldekortBehandlingRoute(opprettMeldekortBehandlingService, auditService, tokenService)

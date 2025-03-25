@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vilkår.Utfallsperiode
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -35,8 +36,8 @@ data class Meldeperiode(
     }
 
     // TODO Anders: når skal vi tillate at meldekortet fylles ut? Siste fredag i perioden?
-    fun erKlarTilUtfylling(): Boolean {
-        return periode.fraOgMed <= nå().toLocalDate()
+    fun erKlarTilUtfylling(clock: Clock): Boolean {
+        return periode.fraOgMed <= LocalDate.now(clock)
     }
 
     fun erLik(meldeperiode: Meldeperiode): Boolean {
@@ -74,6 +75,7 @@ data class Meldeperiode(
             sakId: SakId,
             antallDagerForPeriode: Int,
             versjon: HendelseVersjon = HendelseVersjon.ny(),
+            clock: Clock,
         ): Meldeperiode {
             val meldeperiode = Meldeperiode(
                 kjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
@@ -83,7 +85,7 @@ data class Meldeperiode(
                 sakId = sakId,
                 antallDagerForPeriode = antallDagerForPeriode,
                 periode = periode,
-                opprettet = nå(),
+                opprettet = nå(clock),
                 versjon = versjon,
                 girRett = periode.tilDager().associateWith {
                     (utfallsperioder.hentVerdiForDag(it) == Utfallsperiode.RETT_TIL_TILTAKSPENGER)

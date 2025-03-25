@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
@@ -38,11 +39,12 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBesl
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vilkår.Utfallsperiode
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.math.ceil
 
-interface MeldekortMother {
+interface MeldekortMother : MotherOfAllMothers {
     @Suppress("unused")
     fun meldekortUnderBehandling(
         id: MeldekortId = MeldekortId.random(),
@@ -61,7 +63,7 @@ interface MeldekortMother {
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT,
         navkontor: Navkontor = ObjectMother.navkontor(),
-        opprettet: LocalDateTime = nå(),
+        opprettet: LocalDateTime = nå(clock),
         antallDagerForPeriode: Int = 10,
         type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
     ): MeldekortBehandling.MeldekortUnderBehandling {
@@ -98,7 +100,7 @@ interface MeldekortMother {
         fnr: Fnr = Fnr.random(),
         periode: Periode,
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
-        opprettet: LocalDateTime = nå(),
+        opprettet: LocalDateTime = nå(clock),
         antallDagerForPeriode: Int = 10,
         meldeperiode: Meldeperiode = meldeperiode(
             periode = periode,
@@ -122,9 +124,9 @@ interface MeldekortMother {
         beslutter: String = "beslutter",
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT,
-        iverksattTidspunkt: LocalDateTime? = nå(),
+        iverksattTidspunkt: LocalDateTime? = nå(clock),
         navkontor: Navkontor = ObjectMother.navkontor(),
-        sendtTilBeslutning: LocalDateTime = nå(),
+        sendtTilBeslutning: LocalDateTime = nå(clock),
         erFørsteBehandlingForPerioden: Boolean = true,
         type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
     ): MeldekortBehandling.MeldekortBehandlet {
@@ -310,7 +312,8 @@ interface MeldekortMother {
         sakId: SakId,
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         fnr: Fnr = Fnr.random(),
-        opprettet: LocalDateTime = nå(),
+        clock: Clock = fixedClock,
+        opprettet: LocalDateTime = nå(clock),
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
         barnetilleggsPerioder: Periodisering<AntallBarn?> = Periodisering.empty(),
@@ -351,7 +354,7 @@ interface MeldekortMother {
                 ),
             ),
         )
-        return meldekortBehandlinger.sendTilBeslutter(kommando, barnetilleggsPerioder, tiltakstypePerioder).getOrFail()
+        return meldekortBehandlinger.sendTilBeslutter(kommando, barnetilleggsPerioder, tiltakstypePerioder, clock).getOrFail()
     }
 
     fun MeldekortBehandlinger.beregnNesteMeldekort(
@@ -360,7 +363,8 @@ interface MeldekortMother {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
-        opprettet: LocalDateTime = nå(),
+        clock: Clock = fixedClock,
+        opprettet: LocalDateTime = nå(clock),
         barnetilleggsPerioder: Periodisering<AntallBarn?>,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?> = Periodisering(
             TiltakstypeSomGirRett.GRUPPE_AMO,
@@ -402,7 +406,7 @@ interface MeldekortMother {
                 saksbehandler = kommando.saksbehandler.navIdent,
                 type = MeldekortBehandlingType.FØRSTE_BEHANDLING,
             ),
-        ).sendTilBeslutter(kommando, barnetilleggsPerioder, tiltakstypePerioder).getOrFail().first
+        ).sendTilBeslutter(kommando, barnetilleggsPerioder, tiltakstypePerioder, clock).getOrFail().first
     }
 
     fun meldeperiode(
@@ -413,7 +417,7 @@ interface MeldekortMother {
         versjon: HendelseVersjon = HendelseVersjon.ny(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         fnr: Fnr = Fnr.random(),
-        opprettet: LocalDateTime = nå(),
+        opprettet: LocalDateTime = nå(clock),
         antallDagerForPeriode: Int = 10,
         girRett: Map<LocalDate, Boolean> = buildMap {
             val perUke = ceil(antallDagerForPeriode / 2.0).toInt()

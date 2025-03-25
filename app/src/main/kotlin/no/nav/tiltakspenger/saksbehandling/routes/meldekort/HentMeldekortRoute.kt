@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.withMeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.routes.withSakId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.KunneIkkeHenteSakForSakId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
+import java.time.Clock
 
 private const val PATH = "/sak/{sakId}/meldeperiode/{kjedeId}"
 
@@ -27,6 +28,7 @@ fun Route.hentMeldekortRoute(
     sakService: SakService,
     auditService: AuditService,
     tokenService: TokenService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -49,7 +51,7 @@ fun Route.hentMeldekortRoute(
                     }
 
                     val meldeperiodeKjedeDTO =
-                        sak.toMeldeperiodeKjedeDTO(kjedeId = kjedeId)
+                        sak.toMeldeperiodeKjedeDTO(kjedeId = kjedeId, clock = clock)
                             ?: return@withMeldeperiodeKjedeId call.respond404NotFound(fantIkkeMeldekort())
 
                     auditService.logMedSakId(

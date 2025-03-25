@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRep
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.JournalførUtbetalingsvedtakService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsstatusService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SendUtbetalingerService
+import java.time.Clock
 
 open class UtbetalingContext(
     sessionFactory: SessionFactory,
@@ -23,6 +24,7 @@ open class UtbetalingContext(
     navIdentClient: NavIdentClient,
     entraIdSystemtokenClient: EntraIdSystemtokenClient,
     sakRepo: SakRepo,
+    clock: Clock,
 ) {
     open val utbetalingGateway: UtbetalingGateway by lazy {
         UtbetalingHttpClient(
@@ -39,6 +41,7 @@ open class UtbetalingContext(
         SendUtbetalingerService(
             utbetalingsvedtakRepo = utbetalingsvedtakRepo,
             utbetalingsklient = utbetalingGateway,
+            clock = clock,
         )
     }
     val journalførUtbetalingsvedtakService by lazy {
@@ -48,6 +51,7 @@ open class UtbetalingContext(
             genererUtbetalingsvedtakGateway = genererUtbetalingsvedtakGateway,
             navIdentClient = navIdentClient,
             sakRepo = sakRepo,
+            clock = clock,
         )
     }
 

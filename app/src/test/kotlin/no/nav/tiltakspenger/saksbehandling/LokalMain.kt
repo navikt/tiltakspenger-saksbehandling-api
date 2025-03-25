@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.routing.Route
+import no.nav.tiltakspenger.libs.periodisering.zoneIdOslo
 import java.time.Clock
 
 /**
@@ -15,7 +16,7 @@ fun main() {
 
     val log = KotlinLogging.logger {}
     log.info { "Starter lokal server. Bruker default postgres i docker og in-memory fakes." }
-    val clock = Clock.systemUTC()
+    val clock = Clock.system(zoneIdOslo)
     val localApplicationContext = LocalApplicationContext(usePdfGen = true, clock)
     start(
         log = log,

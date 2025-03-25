@@ -3,6 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.enUkeEtterFixedClock
+import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.april
@@ -104,7 +107,7 @@ class MeldeperiodeKjederTest {
         val periode = Periode(2.januar(2023), 17.januar(2023))
         val kjeder = MeldeperiodeKjeder(emptyList())
         val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(sakId = sakId, periode = periode)
-        val actual = kjeder.genererMeldeperioder(Vedtaksliste(innvilgelseVedtak), LocalDate.MAX)
+        val actual = kjeder.genererMeldeperioder(Vedtaksliste(innvilgelseVedtak), LocalDate.MAX, fixedClock)
 
         val forventetFørstePeriode = Periode(2.januar(2023), 15.januar(2023))
         val forventetSistePeriode = Periode(16.januar(2023), 29.januar(2023))
@@ -129,12 +132,19 @@ class MeldeperiodeKjederTest {
         val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
         val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, periode = periode)
-        val stansVedtak = ObjectMother.nyRammevedtakStans(fnr = fnr, sakId = sakId, periode = periode)
+        val stansVedtak = ObjectMother.nyRammevedtakStans(
+            fnr = fnr,
+            sakId = sakId,
+            periode = periode,
+            opprettet = nå(
+                enUkeEtterFixedClock,
+            ),
+        )
         val vedtaksliste = Vedtaksliste(listOf(innvilgelseVedtak, stansVedtak))
 
         val kjeder = MeldeperiodeKjeder(emptyList())
 
-        val actual = kjeder.genererMeldeperioder(vedtaksliste, LocalDate.MAX)
+        val actual = kjeder.genererMeldeperioder(vedtaksliste, LocalDate.MAX, fixedClock)
 
         actual.let {
             it.first.size shouldBe 0
@@ -154,7 +164,7 @@ class MeldeperiodeKjederTest {
         val forventetFørstePeriode = Periode(2.januar(2023), 15.januar(2023))
         val forventetSistePeriode = Periode(16.januar(2023), 29.januar(2023))
 
-        val (nyeKjederV1) = kjederV1.genererMeldeperioder(v1, LocalDate.MAX).also {
+        val (nyeKjederV1) = kjederV1.genererMeldeperioder(v1, LocalDate.MAX, fixedClock).also {
             it.first.meldeperioder.size shouldBe 2
             it.first.meldeperioder shouldBe it.second
 
@@ -168,10 +178,17 @@ class MeldeperiodeKjederTest {
             it.first.meldeperioder.last().antallDagerForPeriode shouldBe 2
         }
 
-        val stansVedtak = ObjectMother.nyRammevedtakStans(fnr = fnr, sakId = sakId, periode = periode)
+        val stansVedtak = ObjectMother.nyRammevedtakStans(
+            fnr = fnr,
+            sakId = sakId,
+            periode = periode,
+            opprettet = nå(
+                enUkeEtterFixedClock,
+            ),
+        )
         val v2 = Vedtaksliste(listOf(innvilgelseVedtak, stansVedtak))
 
-        val actual = nyeKjederV1.genererMeldeperioder(v2, LocalDate.MAX)
+        val actual = nyeKjederV1.genererMeldeperioder(v2, LocalDate.MAX, enUkeEtterFixedClock)
 
         actual.let {
             it.first.meldeperioder.size shouldBe 2

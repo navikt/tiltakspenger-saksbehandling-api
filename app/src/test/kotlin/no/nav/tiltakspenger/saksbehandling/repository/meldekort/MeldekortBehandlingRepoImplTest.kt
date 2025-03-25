@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.repository.meldekort
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.libs.periodisering.januar
@@ -45,6 +46,7 @@ class MeldekortBehandlingRepoImplTest {
                 oppdatertSak.meldeperiodeKjeder.last().kjedeId,
                 ObjectMother.navkontor(),
                 ObjectMother.saksbehandler(),
+                fixedClock,
             ).also { meldekortRepo.lagre(it) }
 
             val hentForMeldekortId2 =
@@ -66,6 +68,7 @@ class MeldekortBehandlingRepoImplTest {
                 sak.meldeperiodeKjeder.first().kjedeId,
                 ObjectMother.navkontor(),
                 ObjectMother.saksbehandler(),
+                fixedClock,
             )
 
             val meldekortRepo = testDataHelper.meldekortRepo
@@ -80,6 +83,7 @@ class MeldekortBehandlingRepoImplTest {
                     maksDagerMedTiltakspengerForPeriode = meldekortBehandling.beregning.maksDagerMedTiltakspengerForPeriode,
                 ),
                 saksbehandler = ObjectMother.saksbehandler(),
+                clock = fixedClock,
             ).getOrFail()
 
             meldekortRepo.oppdater(oppdatertMeldekortBehandling)

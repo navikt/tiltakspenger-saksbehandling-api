@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.ValgteTi
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vilkår.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vilkår.Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vilkår.Utfallsperiode.RETT_TIL_TILTAKSPENGER
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -112,8 +113,9 @@ data class Behandling(
             søknad: Søknad,
             saksbehandler: Saksbehandler,
             hentSaksopplysninger: suspend (saksopplysningsperiode: Periode) -> Saksopplysninger,
+            clock: Clock,
         ): Either<KanIkkeOppretteBehandling, Behandling> {
-            val opprettet = nå()
+            val opprettet = nå(clock)
 
             /** Kommentar jah: Det kan bli aktuelt at saksbehandler får endre på fraOgMed her. */
             val saksopplysningsperiode: Periode = run {
@@ -165,8 +167,9 @@ data class Behandling(
             saksbehandler: Saksbehandler,
             saksopplysningsperiode: Periode,
             hentSaksopplysninger: suspend () -> Saksopplysninger,
+            clock: Clock,
         ): Behandling {
-            val opprettet = nå()
+            val opprettet = nå(clock)
             return Behandling(
                 id = BehandlingId.random(),
                 sakId = sakId,
@@ -235,6 +238,7 @@ data class Behandling(
 
     fun tilBeslutning(
         kommando: SendSøknadsbehandlingTilBeslutningKommando,
+        clock: Clock,
     ): Behandling {
         check(status == UNDER_BEHANDLING) {
             "Behandlingen må være under behandling, det innebærer også at en saksbehandler må ta saken før den kan sendes til beslutter. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}"
@@ -243,7 +247,7 @@ data class Behandling(
 
         return this.copy(
             status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
-            sendtTilBeslutning = nå(),
+            sendtTilBeslutning = nå(clock),
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             virkningsperiode = kommando.innvilgelsesperiode,
@@ -255,6 +259,7 @@ data class Behandling(
     fun sendRevurderingTilBeslutning(
         kommando: SendRevurderingTilBeslutningKommando,
         sisteDagSomGirRett: LocalDate,
+        clock: Clock,
     ): Behandling {
         check(status == UNDER_BEHANDLING) {
             "Behandlingen må være under behandling, det innebærer også at en saksbehandler må ta saken før den kan sendes til beslutter. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}"
@@ -263,7 +268,7 @@ data class Behandling(
 
         return this.copy(
             status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
-            sendtTilBeslutning = nå(),
+            sendtTilBeslutning = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelse,
             virkningsperiode = Periode(kommando.stansDato, sisteDagSomGirRett),
         )
@@ -272,6 +277,7 @@ data class Behandling(
     fun iverksett(
         utøvendeBeslutter: Saksbehandler,
         attestering: Attestering,
+        clock: Clock,
     ): Behandling {
         require(virkningsperiode != null) { "virkningsperiode må være satt ved iverksetting" }
 
@@ -285,7 +291,7 @@ data class Behandling(
                 this.copy(
                     status = VEDTATT,
                     attesteringer = attesteringer + attestering,
-                    iverksattTidspunkt = nå(),
+                    iverksattTidspunkt = nå(clock),
                 )
             }
 

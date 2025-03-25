@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
@@ -76,10 +77,11 @@ class IverksettBehandlingService(
             status = Attesteringsstatus.GODKJENT,
             begrunnelse = null,
             beslutter = beslutter.navIdent,
+            tidspunkt = nå(clock),
         )
-        val iverksattBehandling = behandling.iverksett(beslutter, attestering)
+        val iverksattBehandling = behandling.iverksett(beslutter, attestering, clock)
 
-        val (oppdatertSak, vedtak) = sak.opprettVedtak(iverksattBehandling)
+        val (oppdatertSak, vedtak) = sak.opprettVedtak(iverksattBehandling, clock)
 
         val fnr = personService.hentFnrForBehandlingId(behandlingId)
         val adressebeskyttelseGradering: List<AdressebeskyttelseGradering>? =
@@ -95,6 +97,7 @@ class IverksettBehandlingService(
             vedtak = vedtak,
             gjelderKode6 = adressebeskyttelseGradering.harStrengtFortroligAdresse(),
             versjon = gitHash,
+            clock = clock,
         )
         val stønadStatistikk = genererStønadsstatistikkForRammevedtak(vedtak)
 
@@ -132,7 +135,7 @@ class IverksettBehandlingService(
         val (oppdatertSak, meldeperioder) = this.genererMeldeperioder(clock)
         // Denne har vi behov for å gjøre ved påfølgende førstegangsbehandligner (altså ikke den første)
         val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) =
-            this.meldekortBehandlinger.oppdaterMedNyeKjeder(oppdatertSak.meldeperiodeKjeder, tiltakstypeperioder)
+            this.meldekortBehandlinger.oppdaterMedNyeKjeder(oppdatertSak.meldeperiodeKjeder, tiltakstypeperioder, clock)
 
         // journalføring og dokumentdistribusjon skjer i egen jobb
         // Dersom denne endres til søknadsbehandling og vi kan ha mer enn 1 for en sak og den kan overlappe den eksistrende saksperioden, må den legge til nye versjoner av meldeperiodene her.
@@ -160,7 +163,7 @@ class IverksettBehandlingService(
     ): Sak {
         val (oppdatertSak, oppdaterteMeldeperioder) = this.genererMeldeperioder(clock)
         val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) =
-            this.meldekortBehandlinger.oppdaterMedNyeKjeder(oppdatertSak.meldeperiodeKjeder, tiltakstypeperioder)
+            this.meldekortBehandlinger.oppdaterMedNyeKjeder(oppdatertSak.meldeperiodeKjeder, tiltakstypeperioder, clock)
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
             behandlingRepo.lagre(vedtak.behandling, tx)

@@ -7,6 +7,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
@@ -22,12 +23,14 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.KanI
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.KanIkkeUnderkjenne
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService
+import java.time.Clock
 
 class BehandlingServiceImpl(
     private val behandlingRepo: BehandlingRepo,
     private val sessionFactory: SessionFactory,
     private val tilgangsstyringService: TilgangsstyringService,
     private val personService: PersonService,
+    private val clock: Clock,
 ) : BehandlingService {
     val logger = KotlinLogging.logger { }
 
@@ -70,6 +73,7 @@ class BehandlingServiceImpl(
         beslutter: Saksbehandler,
         begrunnelse: String,
         correlationId: CorrelationId,
+
     ): Either<KanIkkeUnderkjenne, Behandling> {
         if (!beslutter.erBeslutter()) {
             logger.warn { "Navident ${beslutter.navIdent} med rollene ${beslutter.roller} har ikke tilgang til å underkjenne behandlingen" }
@@ -80,6 +84,7 @@ class BehandlingServiceImpl(
                 status = Attesteringsstatus.SENDT_TILBAKE,
                 begrunnelse = begrunnelse,
                 beslutter = beslutter.navIdent,
+                tidspunkt = nå(clock),
             )
 
         val behandling =

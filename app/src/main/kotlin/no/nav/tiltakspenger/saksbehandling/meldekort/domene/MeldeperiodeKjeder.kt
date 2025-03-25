@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vilkår.Utfallsperiode
+import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -133,6 +134,7 @@ data class MeldeperiodeKjeder(
     fun genererMeldeperioder(
         vedtaksliste: Vedtaksliste,
         ikkeGenererEtter: LocalDate,
+        clock: Clock,
     ): Pair<MeldeperiodeKjeder, List<Meldeperiode>> {
         if (vedtaksliste.isEmpty()) {
             require(this.isEmpty()) { "Forventet ingen meldeperioder ved tom vedtaksliste" }
@@ -173,6 +175,7 @@ data class MeldeperiodeKjeder(
                 sakId = vedtaksliste.sakId!!,
                 antallDagerForPeriode = antallDagerSomGirRettForMeldePeriode,
                 versjon = versjon,
+                clock = clock,
             )
             potensielleNyeMeldeperioder.add(potensiellNyMeldeperiode)
             nærmesteMeldeperiode = nærmesteMeldeperiode.nesteMeldeperiode()

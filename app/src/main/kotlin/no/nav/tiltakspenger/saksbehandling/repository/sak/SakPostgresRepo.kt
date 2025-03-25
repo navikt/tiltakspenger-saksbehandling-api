@@ -26,11 +26,13 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.SaksnummerG
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SakRepo
 import org.intellij.lang.annotations.Language
+import java.time.Clock
 import java.time.LocalDate
 
 internal class SakPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val saksnummerGenerator: SaksnummerGenerator,
+    private val clock: Clock,
 ) : SakRepo {
     override fun hentForFnr(fnr: Fnr): Saker {
         val saker =
@@ -114,7 +116,7 @@ internal class SakPostgresRepo(
 
     override fun opprettSak(sak: Sak) {
         sikkerlogg.info { "Oppretter sak ${sak.id}" }
-        val nå = nå()
+        val nå = nå(clock)
         sessionFactory.withSessionContext { sessionContext ->
             sessionContext.withSession { session ->
                 if (sakFinnes(sak.id, session)) return@withSession

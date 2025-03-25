@@ -62,6 +62,7 @@ open class FørstegangsbehandlingContext(
             sessionFactory = sessionFactory,
             tilgangsstyringService = tilgangsstyringService,
             personService = personService,
+            clock = clock,
         )
     }
     val startSøknadsbehandlingService: StartSøknadsbehandlingService by lazy {
@@ -73,6 +74,7 @@ open class FørstegangsbehandlingContext(
             behandlingRepo = behandlingRepo,
             statistikkSakRepo = statistikkSakRepo,
             oppdaterSaksopplysningerService = oppdaterSaksopplysningerService,
+            clock = clock,
         )
     }
     val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService by lazy {
@@ -117,6 +119,7 @@ open class FørstegangsbehandlingContext(
         SendBehandlingTilBeslutningService(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
+            clock = clock,
         )
     }
     val startRevurderingService: StartRevurderingService by lazy {
@@ -125,6 +128,7 @@ open class FørstegangsbehandlingContext(
             behandlingRepo = behandlingRepo,
             tilgangsstyringService = tilgangsstyringService,
             saksopplysningerService = oppdaterSaksopplysningerService,
+            clock = clock,
         )
     }
     val oppdaterBarnetilleggService: OppdaterBarnetilleggService by lazy {
@@ -142,6 +146,7 @@ open class FørstegangsbehandlingContext(
             personService = personService,
             navIdentClient = navIdentClient,
             genererStansvedtaksbrevGateway = genererStansvedtaksbrevGateway,
+            clock = clock,
         )
     }
 
@@ -149,6 +154,7 @@ open class FørstegangsbehandlingContext(
         DistribuerVedtaksbrevService(
             dokdistGateway = dokdistGateway,
             rammevedtakRepo = rammevedtakRepo,
+            clock = clock,
         )
     }
 

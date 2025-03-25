@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRe
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
 import java.lang.IllegalStateException
+import java.time.Clock
 
 /**
  * Har ansvar for å ta imot et utfylt meldekort og sende det til beslutter.
@@ -26,6 +27,7 @@ class SendMeldekortTilBeslutningService(
     private val personService: PersonService,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakService: SakService,
+    private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -51,7 +53,7 @@ class SendMeldekortTilBeslutningService(
             throw IllegalStateException("Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: ${sak.id}, meldekortId: ${meldekortbehandling.id}")
         }
         return sak.meldekortBehandlinger
-            .sendTilBeslutter(kommando, sak.barnetilleggsperioder, sak.tiltakstypeperioder)
+            .sendTilBeslutter(kommando, sak.barnetilleggsperioder, sak.tiltakstypeperioder, clock)
             .map { it.second }
             .onRight {
                 meldekortBehandlingRepo.oppdater(it)

@@ -20,11 +20,13 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.avslutt.KunneIkkeAvbryteSøknadOgBehandling
+import java.time.Clock
 
 fun Route.avbrytSøknadOgBehandling(
     tokenService: TokenService,
     auditService: AuditService,
     avbrytSøknadOgBehandlingService: AvbrytSøknadOgBehandlingService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
     post("$SAK_PATH/{saksnummer}/avbryt-aktiv-behandling") {
@@ -51,7 +53,7 @@ fun Route.avbrytSøknadOgBehandling(
                                 correlationId = call.correlationId(),
                                 contextMessage = "Avsluttet søknad og behandling",
                             )
-                            call.respond(status = HttpStatusCode.OK, it.toDTO())
+                            call.respond(status = HttpStatusCode.OK, it.toDTO(clock))
                         },
                     )
                 }

@@ -39,7 +39,11 @@ class MeldeperiodeKjedeTest {
         val sakId = SakId.random()
         val fnr = Fnr.random()
         val saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234")
-        val m1 = ObjectMother.meldeperiode(sakId = sakId, saksnummer = saksnummer, fnr = fnr)
+        val m1 = ObjectMother.meldeperiode(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+        )
         val kjede = MeldeperiodeKjede(nonEmptyListOf(m1))
         val m2 =
             ObjectMother.meldeperiode(
