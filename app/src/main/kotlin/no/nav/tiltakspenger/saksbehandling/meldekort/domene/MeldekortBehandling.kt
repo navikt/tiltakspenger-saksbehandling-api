@@ -49,6 +49,7 @@ sealed interface MeldekortBehandling {
     val navkontor: Navkontor
     val iverksattTidspunkt: LocalDateTime?
     val sendtTilBeslutning: LocalDateTime?
+    val begrunnelse: MeldekortbehandlingBegrunnelse?
 
     /** Denne styres kun av vedtakene. Dersom vi har en åpen meldekortbehandling (inkl. til beslutning) kan et nytt vedtak overstyre hele meldeperioden til [MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] */
     val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?
@@ -130,6 +131,7 @@ sealed interface MeldekortBehandling {
         override val brukersMeldekort: BrukersMeldekort?,
         override val meldeperiode: Meldeperiode,
         override val type: MeldekortBehandlingType,
+        override val begrunnelse: MeldekortbehandlingBegrunnelse?,
     ) : MeldekortBehandling {
 
         init {
@@ -210,6 +212,7 @@ sealed interface MeldekortBehandling {
                 brukersMeldekort = brukersMeldekort,
                 meldeperiode = meldeperiode,
                 type = type,
+                begrunnelse = this.begrunnelse,
             )
         }
 
@@ -236,6 +239,7 @@ sealed interface MeldekortBehandling {
         override val meldeperiode: Meldeperiode,
         override val saksbehandler: String,
         override val type: MeldekortBehandlingType,
+        override val begrunnelse: MeldekortbehandlingBegrunnelse?,
     ) : MeldekortBehandling {
         override val iverksattTidspunkt = null
         override val sendtTilBeslutning = null
@@ -250,6 +254,7 @@ sealed interface MeldekortBehandling {
 
         fun sendTilBeslutter(
             utfyltMeldeperiode: MeldeperiodeBeregning.UtfyltMeldeperiode,
+            begrunnelse: MeldekortbehandlingBegrunnelse?,
             saksbehandler: Saksbehandler,
             clock: Clock,
         ): Either<KanIkkeSendeMeldekortTilBeslutning, MeldekortBehandlet> {
@@ -282,6 +287,7 @@ sealed interface MeldekortBehandling {
                 brukersMeldekort = brukersMeldekort,
                 meldeperiode = meldeperiode,
                 type = type,
+                begrunnelse = begrunnelse,
             ).right()
         }
 
@@ -371,5 +377,6 @@ fun Sak.opprettMeldekortBehandling(
             sakId = this.id,
             tiltakstypePerioder = this.vedtaksliste.tiltakstypeperioder,
         ),
+        begrunnelse = null,
     )
 }
