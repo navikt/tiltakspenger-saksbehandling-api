@@ -264,7 +264,7 @@ internal class SakPostgresRepo(
                 val vedtaksliste: Vedtaksliste = RammevedtakPostgresRepo.hentForSakId(id, session)
                 val meldekortBehandlinger =
                     MeldekortBehandlingPostgresRepo.hentForSakId(id, session) ?: MeldekortBehandlinger.empty()
-                val meldeperioder = MeldeperiodePostgresRepo.hentForSakId(id, session)
+                val meldeperiodekjeder = MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(id, session)
                 val soknader = SøknadDAO.hentForSakId(id, session)
                 Sak(
                     id = id,
@@ -274,7 +274,7 @@ internal class SakPostgresRepo(
                     vedtaksliste = vedtaksliste,
                     meldekortBehandlinger = meldekortBehandlinger,
                     utbetalinger = UtbetalingsvedtakPostgresRepo.hentForSakId(id, session),
-                    meldeperiodeKjeder = meldeperioder,
+                    meldeperiodeKjeder = meldeperiodekjeder,
                     brukersMeldekort = BrukersMeldekortPostgresRepo.hentForSakId(id, session),
                     soknader = soknader,
                 ).also { sak ->

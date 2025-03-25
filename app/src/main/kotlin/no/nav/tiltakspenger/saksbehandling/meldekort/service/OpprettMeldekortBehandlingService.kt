@@ -56,8 +56,11 @@ class OpprettMeldekortBehandlingService(
                 clock = clock,
             )
         }.getOrElse {
+            logger.error(it) { "Kunne ikke opprette meldekort behandling på kjede $kjedeId for sak $sakId" }
             return KanIkkeOppretteMeldekortBehandling.KanIkkeOpprettePåKjede.left()
         }
+        // Ikke fjern denne, vi må verifisere at vi kan legge til den nye behandlingen før vi persisterer
+        val oppdatertSak = sak.leggTilMeldekortbehandling(meldekortBehandling)
 
         sessionFactory.withTransactionContext { tx ->
             meldekortBehandlingRepo.lagre(meldekortBehandling, tx)

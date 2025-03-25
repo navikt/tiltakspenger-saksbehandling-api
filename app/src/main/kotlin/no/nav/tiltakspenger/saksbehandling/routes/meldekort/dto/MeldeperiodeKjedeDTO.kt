@@ -25,7 +25,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
 }
 
 fun Sak.toMeldeperiodeKjederDTO(clock: Clock): List<MeldeperiodeKjedeDTO> {
-    return this.meldeperiodeKjeder.map { meldeperiodeKjede ->
+    return this.meldeperiodeKjeder.sortedByDescending { it.periode.fraOgMed }.map { meldeperiodeKjede ->
         MeldeperiodeKjedeDTO(
             kjedeId = meldeperiodeKjede.kjedeId.toString(),
             periode = meldeperiodeKjede.periode.toDTO(),
