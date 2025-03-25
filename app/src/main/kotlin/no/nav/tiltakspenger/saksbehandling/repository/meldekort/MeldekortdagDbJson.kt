@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeUtfylt
@@ -133,8 +132,6 @@ private data class MeldekortdagDbJson(
 
 private data class MeldeperiodeOmberegnetDbJson(
     val kjedeId: String,
-    val fraOgMed: LocalDate,
-    val tilOgMed: LocalDate,
     val dager: List<MeldekortdagDbJson>,
 )
 
@@ -178,8 +175,6 @@ private fun MeldeperiodeBeregning.UtfyltMeldeperiode.tilMeldekortdagerDbJson(): 
 private fun List<MeldeperiodeOmberegnet>.toDbJson(): String = this.map { meldeperiode ->
     MeldeperiodeOmberegnetDbJson(
         kjedeId = meldeperiode.kjedeId.toString(),
-        fraOgMed = meldeperiode.periode.fraOgMed,
-        tilOgMed = meldeperiode.periode.tilOgMed,
         dager = meldeperiode.dager.toDbJson(),
     )
 }.let { serialize(it) }
@@ -230,7 +225,6 @@ internal fun String.tilMeldeperioderOmberegnet(meldekortId: MeldekortId): List<M
         val kjedeId = MeldeperiodeKjedeId(it.kjedeId)
         MeldeperiodeOmberegnet(
             kjedeId = kjedeId,
-            periode = Periode(it.fraOgMed, it.tilOgMed),
             dager = it.dager.map { dag ->
                 dag.toMeldekortdag(meldekortId) as MeldeperiodeBeregningDag.Utfylt
             }.toNonEmptyListOrNull()!!,

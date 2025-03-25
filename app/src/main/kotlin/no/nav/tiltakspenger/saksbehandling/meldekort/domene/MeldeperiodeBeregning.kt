@@ -16,7 +16,6 @@ import java.time.LocalDate
 
 data class MeldeperiodeOmberegnet(
     val kjedeId: MeldeperiodeKjedeId,
-    val periode: Periode,
     val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
 )
 

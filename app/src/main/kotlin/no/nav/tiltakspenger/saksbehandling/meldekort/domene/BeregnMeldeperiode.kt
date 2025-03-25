@@ -90,7 +90,6 @@ private data class MeldekortBeregning(
             }
 
             MeldeperiodeOmberegnet(
-                periode = meldekort.periode,
                 kjedeId = meldekort.kjedeId,
                 dager = oppdaterteDager,
             )
