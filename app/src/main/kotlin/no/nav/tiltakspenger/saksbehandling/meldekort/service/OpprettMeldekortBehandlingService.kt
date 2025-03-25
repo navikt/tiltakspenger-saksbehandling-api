@@ -56,6 +56,7 @@ class OpprettMeldekortBehandlingService(
                 clock = clock,
             )
         }.getOrElse {
+            logger.error(it) { "Kunne ikke opprette meldekort behandling på kjede $kjedeId for sak $sakId" }
             return KanIkkeOppretteMeldekortBehandling.KanIkkeOpprettePåKjede.left()
         }
 
