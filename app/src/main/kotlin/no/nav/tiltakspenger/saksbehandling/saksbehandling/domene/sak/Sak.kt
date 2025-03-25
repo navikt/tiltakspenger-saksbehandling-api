@@ -147,6 +147,10 @@ data class Sak(
             .let { this.copy(meldeperiodeKjeder = it.first) to it.second }
     }
 
+    fun leggTilMeldekortbehandling(behandling: MeldekortBehandling.MeldekortUnderBehandling): Sak {
+        return this.copy(meldekortBehandlinger = this.meldekortBehandlinger.leggTil(behandling))
+    }
+
     companion object {
         fun ikkeGenererEtter(clock: Clock): LocalDate {
             val dag = LocalDate.now(clock)

@@ -168,9 +168,15 @@ data class MeldekortBehandlinger(
         )
     }
 
+    fun leggTil(behandling: MeldekortUnderBehandling): MeldekortBehandlinger {
+        return MeldekortBehandlinger(
+            verdi = verdi + behandling,
+        )
+    }
+
     init {
         verdi.zipWithNext { a, b ->
-            require(a.tilOgMed.plusDays(1) == b.fraOgMed) {
+            require(a.tilOgMed < b.fraOgMed) {
                 "Meldekortperiodene må være sammenhengende og sortert, men var ${verdi.map { it.periode }}"
             }
         }
