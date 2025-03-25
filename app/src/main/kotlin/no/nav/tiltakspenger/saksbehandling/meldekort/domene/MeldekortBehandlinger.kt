@@ -108,7 +108,7 @@ data class MeldekortBehandlinger(
                 return it.left()
             }
 
-        return meldekortUnderBehandling.sendTilBeslutter(utfyltMeldeperiode, kommando.meldekortbehandlingBegrunnelse, kommando.saksbehandler, clock)
+        return meldekort.sendTilBeslutter(utfyltMeldeperiode, kommando.meldekortbehandlingBegrunnelse, kommando.saksbehandler, clock)
             .map {
                 Pair(
                     oppdaterMeldekortbehandling(it),

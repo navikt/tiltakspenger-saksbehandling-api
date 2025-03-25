@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.enUkeEtterFixedClock
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå

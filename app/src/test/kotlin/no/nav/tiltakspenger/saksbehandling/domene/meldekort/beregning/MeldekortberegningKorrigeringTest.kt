@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.datetime.DayOfWeek
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
@@ -91,6 +92,7 @@ internal class MeldekortberegningKorrigeringTest {
             førsteBehandlingKommando,
             barnetilleggsPerioder,
             tiltakstypePerioder,
+            fixedClock,
         ).getOrFail().second
 
         meldekortFørstegangsBehandlet.beløpTotal shouldBe sats2025 * 10
@@ -117,6 +119,7 @@ internal class MeldekortberegningKorrigeringTest {
             korrigeringKommando,
             barnetilleggsPerioder,
             tiltakstypePerioder,
+            fixedClock,
         ).getOrFail().second
 
         meldekortKorrigeringBehandlet.beløpTotal shouldBe sats2025 * 5
