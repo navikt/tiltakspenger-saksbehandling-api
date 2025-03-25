@@ -248,6 +248,30 @@ internal class UtbetalingDTOKorrigeringTest {
                   {
                     "beløp": 298,
                     "satstype": "DAGLIG_INKL_HELG",
+                    "fraOgMedDato": "2025-01-20",
+                    "tilOgMedDato": "2025-01-24",
+                    "stønadsdata": {
+                      "stønadstype": "GRUPPE_AMO",
+                      "barnetillegg": false,
+                      "brukersNavKontor": "0220",
+                      "meldekortId": "2025-01-20/2025-02-02"
+                    }
+                  },
+                  {
+                    "beløp": 298,
+                    "satstype": "DAGLIG_INKL_HELG",
+                    "fraOgMedDato": "2025-01-27",
+                    "tilOgMedDato": "2025-01-31",
+                    "stønadsdata": {
+                      "stønadstype": "GRUPPE_AMO",
+                      "barnetillegg": false,
+                      "brukersNavKontor": "0220",
+                      "meldekortId": "2025-01-20/2025-02-02"
+                    }
+                  },
+                  {
+                    "beløp": 298,
+                    "satstype": "DAGLIG_INKL_HELG",
                     "fraOgMedDato": "2025-01-06",
                     "tilOgMedDato": "2025-01-09",
                     "stønadsdata": {

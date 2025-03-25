@@ -30,13 +30,11 @@ fun Utbetalingsvedtak.toDTO(
     val utbetalingerStønad = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = false)
     val utbetalingerBarnetillegg = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = true)
 
-    val nyeUtbetalinger = (utbetalingerStønad + utbetalingerBarnetillegg)
-
-    val førsteNyeUtbetaling = nyeUtbetalinger.minByOrNull { it.fraOgMedDato }!!
+    val nyeOgOppdaterteUtbetalinger = (utbetalingerStønad + utbetalingerBarnetillegg)
 
     val tidligereUtbetalinger = forrigeUtbetalingJson
         ?.let { deserialize<IverksettV2Dto>(it) }
-        ?.utbetalingerFør(førsteNyeUtbetaling) ?: emptyList()
+        ?.hentIkkeOppdaterteUtbetalinger(nyeOgOppdaterteUtbetalinger) ?: emptyList()
 
     return IverksettV2Dto(
         sakId = vedtak.saksnummer.toString(),
@@ -50,22 +48,25 @@ fun Utbetalingsvedtak.toDTO(
             vedtakstidspunkt = vedtak.opprettet,
             saksbehandlerId = vedtak.saksbehandler,
             beslutterId = vedtak.beslutter,
-            utbetalinger = tidligereUtbetalinger + nyeUtbetalinger,
+            utbetalinger = tidligereUtbetalinger + nyeOgOppdaterteUtbetalinger,
         ),
         forrigeIverksetting =
         vedtak.forrigeUtbetalingsvedtakId?.let { ForrigeIverksettingV2Dto(behandlingId = it.uuidPart()) },
-    ).let {
-        serialize(it)
-    }
+    ).let { serialize(it) }
 }
 
 /** Filtrerer vekk tidligere utbetalinger, og utbetalinger på samme meldeperiodekjede ("meldekortId" her) */
-private fun IverksettV2Dto.utbetalingerFør(utbetaling: UtbetalingV2Dto) =
-    this.vedtak.utbetalinger.filter {
-        val itStønadsdata = it.stønadsdata as StønadsdataTiltakspengerV2Dto
-        val utbetalingStønadsdata = utbetaling.stønadsdata as StønadsdataTiltakspengerV2Dto
-        utbetaling.fraOgMedDato > it.fraOgMedDato && utbetalingStønadsdata.meldekortId != itStønadsdata.meldekortId
+private fun IverksettV2Dto.hentIkkeOppdaterteUtbetalinger(oppdaterteUtbetalinger: List<UtbetalingV2Dto>): List<UtbetalingV2Dto> {
+    val oppdaterteMeldekortIder = oppdaterteUtbetalinger.map {
+        val stønadsdata = it.stønadsdata as StønadsdataTiltakspengerV2Dto
+        stønadsdata.meldekortId
     }
+
+    return this.vedtak.utbetalinger.filterNot { tidligereUtbetaling ->
+        val stønadsdata = tidligereUtbetaling.stønadsdata as StønadsdataTiltakspengerV2Dto
+        oppdaterteMeldekortIder.contains(stønadsdata.meldekortId)
+    }
+}
 
 private fun List<MeldeperiodeBeregningDag.Utfylt>.toUtbetalingDto(
     brukersNavKontor: Navkontor,
@@ -105,7 +106,13 @@ private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
         brukersNavKontor,
         barnetillegg,
         this.kjedeId,
-    )
+    ) + this.beregning.meldeperioderOmberegnet.flatMap {
+        it.dager.toUtbetalingDto(
+            brukersNavKontor,
+            barnetillegg,
+            it.kjedeId,
+        )
+    }
 }
 
 private fun MeldeperiodeBeregningDag.Utfylt.genererUtbetalingsperiode(
