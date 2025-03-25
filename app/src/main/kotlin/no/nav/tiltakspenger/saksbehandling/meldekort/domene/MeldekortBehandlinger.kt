@@ -35,10 +35,9 @@ data class MeldekortBehandlinger(
     val periode: Periode by lazy { Periode(verdi.first().fraOgMed, verdi.last().tilOgMed) }
     val sakId: SakId by lazy { verdi.first().sakId }
 
-    private val førsteBehandlinger: List<MeldekortBehandling> by lazy { verdi.filter { it.type == MeldekortBehandlingType.FØRSTE_BEHANDLING } }
     private val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
-
-    val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandlet> by lazy { behandledeMeldekort.groupBy { it.kjedeId }.values.map { it.last() } }
+    private val sisteMeldekortPerKjede: List<MeldekortBehandling> by lazy { verdi.groupBy { it.kjedeId }.values.map { it.last() } }
+    val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandlet> by lazy { sisteMeldekortPerKjede.filterIsInstance<MeldekortBehandlet>() }
 
     /** Under behandling er ikke-avsluttede meldekortbehandlinger som ikke er til beslutning. */
     val meldekortUnderBehandling: MeldekortUnderBehandling? by lazy {
@@ -179,8 +178,8 @@ data class MeldekortBehandlinger(
     }
 
     init {
-        førsteBehandlinger.zipWithNext { a, b ->
-            require(a.tilOgMed < b.fraOgMed) {
+        verdi.zipWithNext { a, b ->
+            require(a.kjedeId == b.kjedeId || a.tilOgMed < b.fraOgMed) {
                 "Meldekortperiodene må være sammenhengende og sortert, men var ${verdi.map { it.periode }}"
             }
         }
