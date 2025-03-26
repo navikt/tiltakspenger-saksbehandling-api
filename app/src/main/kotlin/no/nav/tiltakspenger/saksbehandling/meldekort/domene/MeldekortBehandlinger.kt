@@ -153,6 +153,8 @@ data class MeldekortBehandlinger(
 
     val sakId: SakId by lazy { verdi.first().sakId }
 
+    val finnesÅpenMeldekortBehandling: Boolean by lazy { meldekortUnderBehandling.isNotEmpty() }
+
     /**
      * Erstatt eksisterende meldekortbehandling med ny meldekortbehandling.
      */
