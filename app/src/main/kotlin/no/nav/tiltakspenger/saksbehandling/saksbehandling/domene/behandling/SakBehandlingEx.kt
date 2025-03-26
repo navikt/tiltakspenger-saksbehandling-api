@@ -48,6 +48,10 @@ fun Sak.sendRevurderingTilBeslutning(
         throw IllegalArgumentException("Kan ikke starte revurdering ($stansDato) før første innvilgetdato (${this.førsteDagSomGirRett})")
     }
 
+    if (stansDato.isAfter(this.sisteDagSomGirRett)) {
+        throw IllegalArgumentException("Kan ikke starte revurdering med stansdato ($stansDato) etter siste innvilgetdato (${this.sisteDagSomGirRett})")
+    }
+
     val behandling: Behandling = this.hentBehandling(kommando.behandlingId)!!
     require(behandling.erRevurdering) { "Finnes egen funksjon for å sende til førstegangbehandling til beslutning" }
     val oppdatertBehandling = behandling.sendRevurderingTilBeslutning(kommando, this.vedtaksliste.sisteDagSomGirRett!!, clock)
