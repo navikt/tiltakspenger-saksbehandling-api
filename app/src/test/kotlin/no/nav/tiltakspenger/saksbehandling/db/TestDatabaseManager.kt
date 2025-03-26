@@ -20,7 +20,10 @@ internal class TestDatabaseManager {
     private val log = KotlinLogging.logger {}
 
     private val postgres: PostgreSQLContainer<Nothing> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-        PostgreSQLContainer<Nothing>("postgres:17-alpine").apply { start() }
+        PostgreSQLContainer<Nothing>("postgres:17-alpine").apply {
+            withCommand("postgres", "-c", "wal_level=logical")
+            start()
+        }
     }
 
     private val dataSource: HikariDataSource by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
