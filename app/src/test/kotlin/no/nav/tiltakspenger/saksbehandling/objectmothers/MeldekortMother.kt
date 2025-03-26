@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
@@ -90,6 +91,7 @@ interface MeldekortMother : MotherOfAllMothers {
             brukersMeldekort = null,
             saksbehandler = saksbehandler,
             type = type,
+            begrunnelse = null,
         )
     }
 
@@ -129,6 +131,7 @@ interface MeldekortMother : MotherOfAllMothers {
         sendtTilBeslutning: LocalDateTime = nå(clock),
         erFørsteBehandlingForPerioden: Boolean = true,
         type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
+        begrunnelse: MeldekortbehandlingBegrunnelse? = null,
     ): MeldekortBehandling.MeldekortBehandlet {
         return MeldekortBehandling.MeldekortBehandlet(
             id = id,
@@ -147,6 +150,7 @@ interface MeldekortMother : MotherOfAllMothers {
             meldeperiode = meldeperiode,
             brukersMeldekort = null,
             type = type,
+            begrunnelse = begrunnelse,
         )
     }
 
@@ -274,6 +278,7 @@ interface MeldekortMother : MotherOfAllMothers {
         ),
         navkontor: Navkontor = ObjectMother.navkontor(),
         barnetilleggsPerioder: Periodisering<AntallBarn?> = Periodisering.empty(),
+        begrunnelse: MeldekortbehandlingBegrunnelse? = null,
     ): MeldekortBehandlinger {
         val kommandoer = meldeperioder.map { meldeperiode ->
             SendMeldekortTilBeslutningKommando(
@@ -282,6 +287,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 saksbehandler = saksbehandler,
                 dager = Dager(meldeperiode),
                 correlationId = CorrelationId.generate(),
+                meldekortbehandlingBegrunnelse = begrunnelse,
             )
         }
 
@@ -319,6 +325,7 @@ interface MeldekortMother : MotherOfAllMothers {
         barnetilleggsPerioder: Periodisering<AntallBarn?> = Periodisering.empty(),
         girRett: Map<LocalDate, Boolean> = kommando.dager.dager.map { it.dag to it.status.girRett() }.toMap(),
         antallDagerForPeriode: Int = girRett.count { it.value },
+        begrunnelse: MeldekortbehandlingBegrunnelse? = null,
     ): Pair<MeldekortBehandlinger, MeldekortBehandling.MeldekortBehandlet> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
@@ -351,6 +358,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     brukersMeldekort = null,
                     saksbehandler = kommando.saksbehandler.navIdent,
                     type = MeldekortBehandlingType.FØRSTE_BEHANDLING,
+                    begrunnelse = begrunnelse,
                 ),
             ),
         )
@@ -405,6 +413,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 brukersMeldekort = null,
                 saksbehandler = kommando.saksbehandler.navIdent,
                 type = MeldekortBehandlingType.FØRSTE_BEHANDLING,
+                begrunnelse = null,
             ),
         ).sendTilBeslutter(kommando, barnetilleggsPerioder, tiltakstypePerioder, clock).getOrFail().first
     }
@@ -539,5 +548,6 @@ fun MeldekortBehandling.MeldekortUnderBehandling.tilSendMeldekortTilBeslutterKom
         saksbehandler = saksbehandler,
         dager = Dager(dager),
         correlationId = CorrelationId.generate(),
+        meldekortbehandlingBegrunnelse = null,
     )
 }

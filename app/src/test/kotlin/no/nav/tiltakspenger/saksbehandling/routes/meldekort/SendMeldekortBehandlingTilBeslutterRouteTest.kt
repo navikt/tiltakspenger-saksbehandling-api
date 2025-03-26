@@ -46,7 +46,6 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
         } returns KanIkkeSendeMeldekortTilBeslutning.ForMangeDagerUtfylt(14, 15).left()
         val request = """
             {
-              "navkontor": "0315",
               "dager": [
                 {"dato":"2024-01-01","status":"FRAVÆR_SYK"}
               ]

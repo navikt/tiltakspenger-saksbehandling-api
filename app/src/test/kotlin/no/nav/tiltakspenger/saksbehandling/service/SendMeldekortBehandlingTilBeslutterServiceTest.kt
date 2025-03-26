@@ -46,6 +46,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                                 ),
                             ),
                         ),
+                        meldekortbehandlingBegrunnelse = null,
                     ),
                 ) shouldBe KanIkkeSendeMeldekortTilBeslutning.InnsendteDagerMåMatcheMeldeperiode.left()
             }
@@ -90,6 +91,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                                 IKKE_DELTATT,
                             ),
                         ),
+                        meldekortbehandlingBegrunnelse = null,
                     ),
                 ) shouldBe KanIkkeSendeMeldekortTilBeslutning.InnsendteDagerMåMatcheMeldeperiode.left()
             }
@@ -134,6 +136,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                                 SPERRET,
                             ),
                         ),
+                        meldekortbehandlingBegrunnelse = null,
                     ),
                 ) shouldBe KanIkkeSendeMeldekortTilBeslutning.InnsendteDagerMåMatcheMeldeperiode.left()
             }
@@ -177,6 +180,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                                 SPERRET,
                             ),
                         ),
+                        meldekortbehandlingBegrunnelse = null,
                     ),
                 ) shouldBe KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagTilSperret.left()
             }
@@ -221,6 +225,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
                             ),
                         ),
+                        meldekortbehandlingBegrunnelse = null,
                     ),
                 ) shouldBe KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagFraSperret.left()
             }
@@ -264,6 +269,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                                 IKKE_DELTATT,
                             ),
                         ),
+                        meldekortbehandlingBegrunnelse = null,
                     ),
                 ).getOrFail()
             }

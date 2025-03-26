@@ -76,7 +76,7 @@ data class MeldekortBehandlinger(
         val utfyltMeldeperiode = meldekortUnderBehandling.beregning.tilUtfyltMeldeperiode(meldekortdager).getOrElse {
             return it.left()
         }
-        return meldekortUnderBehandling.sendTilBeslutter(utfyltMeldeperiode, kommando.saksbehandler, clock)
+        return meldekortUnderBehandling.sendTilBeslutter(utfyltMeldeperiode, kommando.meldekortbehandlingBegrunnelse, kommando.saksbehandler, clock)
             .map {
                 Pair(
                     MeldekortBehandlinger(

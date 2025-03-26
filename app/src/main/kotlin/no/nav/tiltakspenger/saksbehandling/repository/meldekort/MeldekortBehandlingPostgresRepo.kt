@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortperioder
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
@@ -48,7 +49,8 @@ class MeldekortBehandlingPostgresRepo(
                         iverksatt_tidspunkt,
                         sendt_til_beslutning,
                         navkontor_navn,
-                        type
+                        type,
+                        begrunnelse
                     ) values (
                         :id,
                         :meldeperiode_kjede_id,
@@ -65,7 +67,8 @@ class MeldekortBehandlingPostgresRepo(
                         :iverksatt_tidspunkt,
                         :sendt_til_beslutning,
                         :navkontor_navn,
-                        :type
+                        :type,
+                        :begrunnelse
                     )
                     """,
                     "id" to meldekortBehandling.id.toString(),
@@ -84,6 +87,7 @@ class MeldekortBehandlingPostgresRepo(
                     "sendt_til_beslutning" to meldekortBehandling.sendtTilBeslutning,
                     "navkontor_navn" to meldekortBehandling.navkontor.kontornavn,
                     "type" to meldekortBehandling.type.tilDb(),
+                    "begrunnelse" to meldekortBehandling.begrunnelse?.verdi,
                 ).asUpdate,
             )
         }
@@ -105,7 +109,8 @@ class MeldekortBehandlingPostgresRepo(
                         navkontor = :navkontor,
                         iverksatt_tidspunkt = :iverksatt_tidspunkt,
                         sendt_til_beslutning = :sendt_til_beslutning,
-                        meldeperiode_id = :meldeperiode_id
+                        meldeperiode_id = :meldeperiode_id,
+                        begrunnelse = :begrunnelse
                     where id = :id
                     """,
                     "id" to meldekortBehandling.id.toString(),
@@ -117,6 +122,7 @@ class MeldekortBehandlingPostgresRepo(
                     "iverksatt_tidspunkt" to meldekortBehandling.iverksattTidspunkt,
                     "sendt_til_beslutning" to meldekortBehandling.sendtTilBeslutning,
                     "meldeperiode_id" to meldekortBehandling.meldeperiode.id.toString(),
+                    "begrunnelse" to meldekortBehandling.begrunnelse?.verdi,
                 ).asUpdate,
             )
         }
@@ -189,6 +195,7 @@ class MeldekortBehandlingPostgresRepo(
             val maksDagerMedTiltakspengerForPeriode = meldeperiode.antallDagerForPeriode
             val opprettet = row.localDateTime("opprettet")
             val type = row.string("type").tilMeldekortBehandlingType()
+            val begrunnelse = row.stringOrNull("begrunnelse")?.let { MeldekortbehandlingBegrunnelse(verdi = it) }
 
             val navkontor = Navkontor(kontornummer = navkontorEnhetsnummer, kontornavn = navkontorNavn)
 
@@ -224,6 +231,7 @@ class MeldekortBehandlingPostgresRepo(
                         brukersMeldekort = brukersMeldekort,
                         meldeperiode = meldeperiode,
                         type = type,
+                        begrunnelse = begrunnelse,
                     )
                 }
                 // TODO jah: Her blander vi sammen behandlingsstatus og om man har rett/ikke-rett. Det er mulig at man har startet en meldekortbehandling også endres statusen til IKKE_RETT_TIL_TILTAKSPENGER. Da vil behandlingen sånn som koden er nå implisitt avsluttes. Det kan hende vi bør endre dette når vi skiller grunnlag, innsending og behandling.
@@ -246,6 +254,7 @@ class MeldekortBehandlingPostgresRepo(
                         meldeperiode = meldeperiode,
                         saksbehandler = saksbehandler,
                         type = type,
+                        begrunnelse = begrunnelse,
                     )
                 }
             }

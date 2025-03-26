@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.db.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
@@ -31,6 +32,7 @@ class MeldekortBehandlingRepoImplTest {
                 saksnummer = sak.saksnummer,
                 meldeperiode = sak.meldeperiodeKjeder.first().first(),
                 periode = sak.meldeperiodeKjeder.first().first().periode,
+                begrunnelse = MeldekortbehandlingBegrunnelse("begrunnelse"),
             ).also { meldekortRepo.lagre(it) }
 
             testDataHelper.sessionFactory.withSession {
@@ -84,6 +86,7 @@ class MeldekortBehandlingRepoImplTest {
                 ),
                 saksbehandler = ObjectMother.saksbehandler(),
                 clock = fixedClock,
+                begrunnelse = null,
             ).getOrFail()
 
             meldekortRepo.oppdater(oppdatertMeldekortBehandling)

@@ -21,6 +21,7 @@ class SendMeldekortTilBeslutningKommando(
     val saksbehandler: Saksbehandler,
     val dager: Dager,
     val correlationId: CorrelationId,
+    val meldekortbehandlingBegrunnelse: MeldekortbehandlingBegrunnelse?,
 ) {
     val periode: Periode = Periode(dager.first().dag, dager.last().dag)
 

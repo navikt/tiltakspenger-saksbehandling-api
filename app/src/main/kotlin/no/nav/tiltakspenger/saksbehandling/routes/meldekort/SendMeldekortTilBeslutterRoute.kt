@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekor
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.KunneIkkeHenteSak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.MeldekortperiodenKanIkkeVæreFremITid
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.MåVæreSaksbehandler
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutningService
@@ -37,6 +38,7 @@ import java.time.LocalDate
 
 private data class Body(
     val dager: List<Dag>,
+    val begrunnelse: String? = null,
 ) {
     data class Dag(
         val dato: String,
@@ -73,6 +75,7 @@ private data class Body(
                 }.toNonEmptyListOrNull()!!,
             ),
             meldekortId = meldekortId,
+            meldekortbehandlingBegrunnelse = begrunnelse?.let { MeldekortbehandlingBegrunnelse(verdi = it) },
         )
     }
 }
