@@ -39,8 +39,14 @@ sealed interface MeldekortBeregning : List<MeldeperiodeBeregningDag> {
     data class UtfyltMeldeperiode(
         override val sakId: SakId,
         override val maksDagerMedTiltakspengerForPeriode: Int,
+        /**
+         * Pdd omfatter "dager" både status-rapportering for dagene i det utfylte meldekortet, og beregningene som utledes derfra
+         * "meldeperioderOmberegnet" omfatter beregning av påfølgende meldeperioder der deler av beregningen ble endret som følge av en korrigering
+         * på dagene i meldekortet.
+         *
+         * TODO: Vi bør kanskje splitte rapporteringen og beregningen for meldekortet til separate modeller
+         * */
         override val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-        /** Denne omfatter påfølgende meldeperioder der beregningen ble endret som følge av en korrigering */
         val meldeperioderOmberegnet: List<MeldeperiodeOmberegnet>,
     ) : MeldekortBeregning,
         List<MeldeperiodeBeregningDag> by dager {
