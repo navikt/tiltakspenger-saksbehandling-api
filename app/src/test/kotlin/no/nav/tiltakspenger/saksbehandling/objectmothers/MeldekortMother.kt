@@ -31,9 +31,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager
@@ -53,7 +53,7 @@ interface MeldekortMother : MotherOfAllMothers {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         fnr: Fnr = Fnr.random(),
         periode: Periode,
-        meldekortperiode: MeldeperiodeBeregning.IkkeUtfyltMeldeperiode = ikkeUtfyltMeldekortperiode(
+        meldekortperiode: MeldekortBeregning.IkkeUtfyltMeldeperiode = ikkeUtfyltMeldekortperiode(
             meldekortId = id,
             sakId = sakId,
             periode = periode,
@@ -114,7 +114,7 @@ interface MeldekortMother : MotherOfAllMothers {
             antallDagerForPeriode = antallDagerForPeriode,
         ),
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
-        meldekortperiodeBeregning: MeldeperiodeBeregning.UtfyltMeldeperiode =
+        meldekortperiodeBeregning: MeldekortBeregning.UtfyltMeldeperiode =
             utfyltMeldekortperiode(
                 meldekortId = id,
                 sakId = sakId,
@@ -170,9 +170,9 @@ interface MeldekortMother : MotherOfAllMothers {
             tiltakstype,
             barnetilleggsPerioder,
         ),
-        meldeperioderOmberegnet: List<MeldeperiodeBeregning.MeldeperiodeOmberegnet> = emptyList(),
-    ): MeldeperiodeBeregning.UtfyltMeldeperiode {
-        return MeldeperiodeBeregning.UtfyltMeldeperiode(
+        meldeperioderOmberegnet: List<MeldekortBeregning.MeldeperiodeOmberegnet> = emptyList(),
+    ): MeldekortBeregning.UtfyltMeldeperiode {
+        return MeldekortBeregning.UtfyltMeldeperiode(
             sakId = sakId,
             maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
             dager = dager,
@@ -193,14 +193,14 @@ interface MeldekortMother : MotherOfAllMothers {
             periode,
         ),
         maksDagerMedTiltakspengerForPeriode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-    ): MeldeperiodeBeregning.IkkeUtfyltMeldeperiode {
+    ): MeldekortBeregning.IkkeUtfyltMeldeperiode {
         val meldeperiode = meldeperiode(
             periode = periode,
             sakId = sakId,
             antallDagerForPeriode = maksDagerMedTiltakspengerForPeriode,
         )
 
-        return MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
+        return MeldekortBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
             meldeperiode = meldeperiode,
             meldekortId = meldekortId,
             sakId = sakId,
@@ -355,7 +355,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     fnr = fnr,
                     opprettet = opprettet,
                     navkontor = navkontor,
-                    beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
+                    beregning = MeldekortBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
                         sakId = sakId,
                         meldeperiode = meldeperiode,
                         tiltakstypePerioder = tiltakstypePerioder,
@@ -410,7 +410,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 fnr = fnr,
                 opprettet = opprettet,
                 navkontor = navkontor,
-                beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
+                beregning = MeldekortBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
                     sakId = sakId,
                     meldeperiode = meldeperiode,
                     tiltakstypePerioder = tiltakstypePerioder,

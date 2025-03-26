@@ -22,7 +22,7 @@ import java.time.Clock
 import java.time.LocalDate
 
 /**
- * Består av ingen, én eller flere [MeldeperiodeBeregning].
+ * Består av ingen, én eller flere [MeldekortBeregning].
  * Vil være tom fram til første innvilgede førstegangsbehandling.
  * Kun den siste vil kunne være under behandling (åpen).
  */
@@ -36,7 +36,9 @@ data class MeldekortBehandlinger(
     val sakId: SakId by lazy { verdi.first().sakId }
 
     private val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
+
     private val sisteMeldekortPerKjede: List<MeldekortBehandling> by lazy { verdi.groupBy { it.kjedeId }.values.map { it.last() } }
+
     val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandlet> by lazy { sisteMeldekortPerKjede.filterIsInstance<MeldekortBehandlet>() }
 
     /** Under behandling er ikke-avsluttede meldekortbehandlinger som ikke er til beslutning. */
@@ -49,15 +51,17 @@ data class MeldekortBehandlinger(
     val sisteGodkjenteMeldekort: MeldekortBehandlet? by lazy { godkjenteMeldekort.lastOrNull() }
 
     @Suppress("unused")
-    val sisteGodkjenteMeldekortDag: LocalDate? by lazy { sisteGodkjenteMeldekort?.periode?.tilOgMed }
+    val sisteGodkjenteMeldekortDag: LocalDate? by lazy { sisteGodkjenteMeldekort?.tilOgMed }
 
     /** Merk at denne går helt tilbake til siste godkjente, utbetalte dag. Dette er ikke nødvendigvis den siste godkjente meldeperioden. */
     val sisteUtbetalteMeldekortDag: LocalDate? by lazy {
         godkjenteMeldekort.flatMap { it.beregning.dager }.lastOrNull { it.beløp > 0 }?.dato
     }
 
-    // TODO abn: Vi kan ikke stole på beregninger fra enkelt-dagene ettersom korrigeringer kan påvirke dager etter den korrigerte perioden
-    /** Vil kun returnere hele meldekortperioder som er utfylt. Dersom siste meldekortperiode er delvis utfylt, vil ikke disse komme med. */
+    /**
+     *  Vil kun returnere hele meldekortperioder som er utfylt. Dersom siste meldekortperiode er delvis utfylt, vil ikke disse komme med.
+     *  Obs: Vi kan ikke stole på beregninger fra disse dagene ettersom korrigeringer kan påvirke dager etter den korrigerte perioden
+     *  */
     val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy { sisteBehandledeMeldekortPerKjede.flatMap { it.beregning.dager } }
 
     val finnesÅpenMeldekortBehandling: Boolean by lazy { meldekortUnderBehandling != null }

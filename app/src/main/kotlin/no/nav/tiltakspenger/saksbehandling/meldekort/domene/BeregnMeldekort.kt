@@ -31,7 +31,7 @@ private const val ANTALL_EGENMELDINGSDAGER = 3
 private const val ANTALL_ARBEIDSGIVERDAGER = 13
 private const val DAGER_KARANTENE = 16L - 1
 
-private data class MeldekortBeregning(
+private data class BeregnMeldekort(
     val kommando: SendMeldekortTilBeslutningKommando,
     val eksisterendeMeldekortBehandlinger: MeldekortBehandlinger,
     val barnetilleggsPerioder: Periodisering<AntallBarn?>,
@@ -65,13 +65,14 @@ private data class MeldekortBeregning(
     }
 
     /** Returnerer beregnede dager fra kommando, og evt omberegninger for relevante meldeperioder på saken */
-    fun beregn(): Pair<NonEmptyList<MeldeperiodeBeregningDag.Utfylt>, List<MeldeperiodeBeregning.MeldeperiodeOmberegnet>> {
+    fun beregn(): Pair<NonEmptyList<MeldeperiodeBeregningDag.Utfylt>, List<MeldekortBeregning.MeldeperiodeOmberegnet>> {
         val oppdatertFraOgMed = kommando.dager.first().dag
         val oppdatertKjedeId = eksisterendeMeldekortBehandlinger
             .hentMeldekortBehandling(kommando.meldekortId)!!
             .kjedeId
 
-        val (eksisterendeMeldekortFør, eksisterendeMeldekortEtter) = eksisterendeMeldekortBehandlinger.sisteBehandledeMeldekortPerKjede
+        val (eksisterendeMeldekortFør, eksisterendeMeldekortEtter) = eksisterendeMeldekortBehandlinger
+            .sisteBehandledeMeldekortPerKjede
             .filterNot { it.kjedeId == oppdatertKjedeId }
             .partition { it.periode.fraOgMed < oppdatertFraOgMed }
 
@@ -89,7 +90,7 @@ private data class MeldekortBeregning(
                 return@mapNotNull null
             }
 
-            MeldeperiodeBeregning.MeldeperiodeOmberegnet(
+            MeldekortBeregning.MeldeperiodeOmberegnet(
                 kjedeId = meldekort.kjedeId,
                 dager = oppdaterteDager,
             )
@@ -458,7 +459,7 @@ fun SendMeldekortTilBeslutningKommando.beregn(
     eksisterendeMeldekortBehandlinger: MeldekortBehandlinger,
     barnetilleggsPerioder: Periodisering<AntallBarn?>,
     tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
-) = MeldekortBeregning(
+) = BeregnMeldekort(
     kommando = this,
     barnetilleggsPerioder = barnetilleggsPerioder,
     tiltakstypePerioder = tiltakstypePerioder,

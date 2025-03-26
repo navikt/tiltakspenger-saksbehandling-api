@@ -19,10 +19,8 @@ import java.time.LocalDate
  *
  * @property maksDagerMedTiltakspengerForPeriode Maks antall dager bruker kan få tiltakspenger i meldeperioden. 100% vil tilsvare 5 dager i uken.
  */
-sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
-    val fraOgMed: LocalDate get() = this.first().dato
-    val tilOgMed: LocalDate get() = this.last().dato
-    val periode: Periode get() = Periode(fraOgMed, tilOgMed)
+sealed interface MeldekortBeregning : List<MeldeperiodeBeregningDag> {
+    val periode: Periode
     val sakId: SakId
     val meldekortId: MeldekortId
     val maksDagerMedTiltakspengerForPeriode: Int
@@ -42,13 +40,34 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
         override val sakId: SakId,
         override val maksDagerMedTiltakspengerForPeriode: Int,
         override val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
+        /** Denne omfatter påfølgende meldeperioder der beregningen ble endret som følge av en korrigering */
         val meldeperioderOmberegnet: List<MeldeperiodeOmberegnet>,
-    ) : MeldeperiodeBeregning,
+    ) : MeldekortBeregning,
         List<MeldeperiodeBeregningDag> by dager {
+
         override val meldekortId = dager.first().meldekortId
+
+        val fraOgMed: LocalDate get() = this.first().dato
+        val tilOgMed = meldeperioderOmberegnet.lastOrNull()?.dager?.last()?.dato ?: this.last().dato
+        override val periode = Periode(fraOgMed, tilOgMed)
 
         init {
             dager.validerPeriode()
+
+            if (meldeperioderOmberegnet.isNotEmpty()) {
+                val sisteDatoIMeldeperioden = dager.last().dato
+                val førsteDatoOmberegnet = meldeperioderOmberegnet.first().dager.first().dato
+
+                require(førsteDatoOmberegnet > sisteDatoIMeldeperioden) {
+                    "Omberegnede meldeperioder må komme etter den utfylte meldeperioden - $førsteDatoOmberegnet er før $sisteDatoIMeldeperioden"
+                }
+
+                require(
+                    meldeperioderOmberegnet.zipWithNext().all { (a, b) -> a.dager.last().dato < b.dager.first().dato },
+                ) {
+                    "Omberegnede meldeperioder må være sortert og ikke ha overlapp - $meldeperioderOmberegnet"
+                }
+            }
 
             validerAntallDager().onLeft {
                 throw IllegalArgumentException(
@@ -80,10 +99,13 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
         override val sakId: SakId,
         override val maksDagerMedTiltakspengerForPeriode: Int,
         override val dager: NonEmptyList<MeldeperiodeBeregningDag>,
-    ) : MeldeperiodeBeregning,
+    ) : MeldekortBeregning,
         List<MeldeperiodeBeregningDag> by dager {
 
         override val meldekortId = dager.first().meldekortId
+        val fraOgMed: LocalDate get() = this.first().dato
+        val tilOgMed: LocalDate get() = this.last().dato
+        override val periode = Periode(fraOgMed, tilOgMed)
 
         fun settPeriodeTilSperret(periode: Periode): IkkeUtfyltMeldeperiode {
             return this.copy(
@@ -190,7 +212,7 @@ private fun List<MeldeperiodeBeregningDag>.validerPeriode() {
 }
 
 /** Denne skal ikke kalles utenfra */
-private fun MeldeperiodeBeregning.validerAntallDager(): Either<KanIkkeSendeMeldekortTilBeslutning.ForMangeDagerUtfylt, Unit> {
+private fun MeldekortBeregning.validerAntallDager(): Either<KanIkkeSendeMeldekortTilBeslutning.ForMangeDagerUtfylt, Unit> {
     return if (antallDagerMedDeltattEllerFravær > this.maksDagerMedTiltakspengerForPeriode) {
         return KanIkkeSendeMeldekortTilBeslutning.ForMangeDagerUtfylt(
             maksDagerMedTiltakspengerForPeriode = this.maksDagerMedTiltakspengerForPeriode,

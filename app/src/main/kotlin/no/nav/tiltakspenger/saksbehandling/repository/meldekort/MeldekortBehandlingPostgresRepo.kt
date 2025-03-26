@@ -17,8 +17,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingBegrunnelse
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortperioder
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
@@ -78,7 +78,7 @@ class MeldekortBehandlingPostgresRepo(
                     "sak_id" to meldekortBehandling.sakId.toString(),
                     "opprettet" to meldekortBehandling.opprettet,
                     "fra_og_med" to meldekortBehandling.fraOgMed,
-                    "til_og_med" to meldekortBehandling.periode.tilOgMed,
+                    "til_og_med" to meldekortBehandling.tilOgMed,
                     "meldekortdager" to meldekortBehandling.beregning.tilMeldekortdagerDbJson(),
                     "saksbehandler" to meldekortBehandling.saksbehandler,
                     "beslutter" to meldekortBehandling.beslutter,
@@ -214,7 +214,7 @@ class MeldekortBehandlingPostgresRepo(
 
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.GODKJENT, MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> {
-                    val meldeperiodeBeregning = MeldeperiodeBeregning.UtfyltMeldeperiode(
+                    val meldekortBeregning = MeldekortBeregning.UtfyltMeldeperiode(
                         sakId = sakId,
                         maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
                         dager = meldekortdager.tilUtfylteMeldekortDager(id),
@@ -228,7 +228,7 @@ class MeldekortBehandlingPostgresRepo(
                         saksnummer = saksnummer,
                         fnr = fnr,
                         opprettet = opprettet,
-                        beregning = meldeperiodeBeregning,
+                        beregning = meldekortBeregning,
                         saksbehandler = saksbehandler,
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
                         beslutter = row.stringOrNull("beslutter"),
@@ -244,7 +244,7 @@ class MeldekortBehandlingPostgresRepo(
                 }
                 // TODO jah: Her blander vi sammen behandlingsstatus og om man har rett/ikke-rett. Det er mulig at man har startet en meldekortbehandling også endres statusen til IKKE_RETT_TIL_TILTAKSPENGER. Da vil behandlingen sånn som koden er nå implisitt avsluttes. Det kan hende vi bør endre dette når vi skiller grunnlag, innsending og behandling.
                 MeldekortBehandlingStatus.IKKE_BEHANDLET, MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> {
-                    val beregning = MeldeperiodeBeregning.IkkeUtfyltMeldeperiode(
+                    val beregning = MeldekortBeregning.IkkeUtfyltMeldeperiode(
                         sakId = sakId,
                         maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
                         dager = meldekortdager.tilIkkeUtfylteMeldekortDager(id),
