@@ -37,9 +37,11 @@ data class MeldekortBehandlinger(
 
     private val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
 
-    private val sisteMeldekortPerKjede: List<MeldekortBehandling> by lazy { verdi.groupBy { it.kjedeId }.values.map { it.last() } }
-
-    val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandlet> by lazy { sisteMeldekortPerKjede.filterIsInstance<MeldekortBehandlet>() }
+    val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandlet> by lazy {
+        behandledeMeldekort
+            .groupBy { it.kjedeId }.values
+            .map { it.last() }
+    }
 
     /** Under behandling er ikke-avsluttede meldekortbehandlinger som ikke er til beslutning. */
     val meldekortUnderBehandling: MeldekortUnderBehandling? by lazy {
@@ -111,7 +113,12 @@ data class MeldekortBehandlinger(
                 return it.left()
             }
 
-        return meldekort.sendTilBeslutter(utfyltMeldeperiode, kommando.meldekortbehandlingBegrunnelse, kommando.saksbehandler, clock)
+        return meldekort.sendTilBeslutter(
+            utfyltMeldeperiode,
+            kommando.meldekortbehandlingBegrunnelse,
+            kommando.saksbehandler,
+            clock,
+        )
             .map {
                 Pair(
                     oppdaterMeldekortbehandling(it),
