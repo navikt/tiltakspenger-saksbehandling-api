@@ -86,6 +86,7 @@ internal class MeldekortberegningKorrigeringTest {
             saksbehandler = ObjectMother.saksbehandler(navIdent = meldekortFørstegangsBehandling.saksbehandler),
             correlationId = CorrelationId.generate(),
             dager = SendMeldekortTilBeslutningKommando.Dager(deltatt10Dager),
+            meldekortbehandlingBegrunnelse = null,
         )
 
         val meldekortFørstegangsBehandlet = meldekortBehandlingerMedFørsteUnderBehandling.sendTilBeslutter(
@@ -109,6 +110,7 @@ internal class MeldekortberegningKorrigeringTest {
             saksbehandler = ObjectMother.saksbehandler(navIdent = meldekortKorrigering.saksbehandler),
             correlationId = CorrelationId.generate(),
             dager = SendMeldekortTilBeslutningKommando.Dager(deltatt5DagerUgyldigFravær5Dager),
+            meldekortbehandlingBegrunnelse = null,
         )
 
         val meldekortBehandlingerMedKorrigeringUnderBehandling = MeldekortBehandlinger(
