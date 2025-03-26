@@ -71,29 +71,31 @@ private fun List<MeldeperiodeBeregningDag.Utfylt>.toUtbetalingDto(
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
     kjedeId: MeldeperiodeKjedeId,
-) = this.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->
-    when (val sisteUtbetalingsperiode = acc.lastOrNull()) {
-        null -> {
-            meldekortdag.genererUtbetalingsperiode(
-                kjedeId = kjedeId,
-                brukersNavKontor = brukersNavKontor,
-                barnetillegg = barnetillegg,
-            )?.let { acc + it } ?: acc
-        }
-
-        else ->
-            sisteUtbetalingsperiode.leggTil(
-                meldekortdag = meldekortdag,
-                kjedeId = kjedeId,
-                brukersNavKontor = brukersNavKontor,
-                barnetillegg = barnetillegg,
-            ).let {
-                when (it) {
-                    is Resultat.KanIkkeSlåSammen -> acc + it.utbetalingsperiode
-                    is Resultat.KanSlåSammen -> acc.dropLast(1) + it.utbetalingsperiode
-                    is Resultat.SkalIkkeUtbetales -> acc
-                }
+): List<UtbetalingV2Dto> {
+    return this.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->
+        when (val sisteUtbetalingsperiode = acc.lastOrNull()) {
+            null -> {
+                meldekortdag.genererUtbetalingsperiode(
+                    kjedeId = kjedeId,
+                    brukersNavKontor = brukersNavKontor,
+                    barnetillegg = barnetillegg,
+                )?.let { acc + it } ?: acc
             }
+
+            else ->
+                sisteUtbetalingsperiode.leggTil(
+                    meldekortdag = meldekortdag,
+                    kjedeId = kjedeId,
+                    brukersNavKontor = brukersNavKontor,
+                    barnetillegg = barnetillegg,
+                ).let {
+                    when (it) {
+                        is Resultat.KanIkkeSlåSammen -> acc + it.utbetalingsperiode
+                        is Resultat.KanSlåSammen -> acc.dropLast(1) + it.utbetalingsperiode
+                        is Resultat.SkalIkkeUtbetales -> acc
+                    }
+                }
+        }
     }
 }
 
