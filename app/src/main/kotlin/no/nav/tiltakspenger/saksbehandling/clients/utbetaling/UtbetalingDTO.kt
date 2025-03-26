@@ -108,7 +108,7 @@ private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
         barnetillegg,
         this.kjedeId,
     ).plus(
-        this.beregning.meldeperioderOmberegnet.flatMap {
+        this.beregning.meldeperioderBeregnet.flatMap {
             it.dager.toUtbetalingDto(
                 brukersNavKontor,
                 barnetillegg,

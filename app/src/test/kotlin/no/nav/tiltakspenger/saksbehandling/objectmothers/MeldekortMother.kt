@@ -170,13 +170,13 @@ interface MeldekortMother : MotherOfAllMothers {
             tiltakstype,
             barnetilleggsPerioder,
         ),
-        meldeperioderOmberegnet: List<MeldekortBeregning.MeldeperiodeOmberegnet> = emptyList(),
+        meldeperioderBeregnet: List<MeldekortBeregning.MeldeperiodeBeregnet> = emptyList(),
     ): MeldekortBeregning.UtfyltMeldeperiode {
         return MeldekortBeregning.UtfyltMeldeperiode(
             sakId = sakId,
             maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
             dager = dager,
-            meldeperioderOmberegnet = meldeperioderOmberegnet,
+            meldeperioderBeregnet = meldeperioderBeregnet,
         )
     }
 

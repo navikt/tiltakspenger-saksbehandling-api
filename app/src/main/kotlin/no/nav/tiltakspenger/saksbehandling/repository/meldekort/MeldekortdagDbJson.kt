@@ -129,7 +129,7 @@ private data class MeldekortdagDbJson(
     }
 }
 
-private data class MeldeperiodeOmberegnetDbJson(
+private data class MeldeperiodeBeregnetDbJson(
     val kjedeId: String,
     val dager: List<MeldekortdagDbJson>,
 )
@@ -140,11 +140,11 @@ internal fun MeldekortBeregning.tilMeldekortdagerDbJson(): String =
         is MeldekortBeregning.UtfyltMeldeperiode -> this.tilMeldekortdagerDbJson()
     }
 
-internal fun MeldekortBeregning.tilMeldeperioderOmberegnetDbJson(): String? =
+internal fun MeldekortBeregning.tilMeldeperioderBeregnetDbJson(): String? =
     when (this) {
         is MeldekortBeregning.IkkeUtfyltMeldeperiode -> null
         is MeldekortBeregning.UtfyltMeldeperiode ->
-            if (this.meldeperioderOmberegnet.isNotEmpty()) this.meldeperioderOmberegnet.toDbJson() else null
+            if (this.meldeperioderBeregnet.isNotEmpty()) this.meldeperioderBeregnet.toDbJson() else null
     }
 
 private fun MeldekortBeregning.IkkeUtfyltMeldeperiode.tilMeldekortdagerDbJson(): String =
@@ -171,8 +171,8 @@ private fun MeldekortBeregning.IkkeUtfyltMeldeperiode.tilMeldekortdagerDbJson():
 private fun MeldekortBeregning.UtfyltMeldeperiode.tilMeldekortdagerDbJson(): String =
     dager.toList().toDbJson().let { serialize(it) }
 
-private fun List<MeldekortBeregning.MeldeperiodeOmberegnet>.toDbJson(): String = this.map { meldeperiode ->
-    MeldeperiodeOmberegnetDbJson(
+private fun List<MeldekortBeregning.MeldeperiodeBeregnet>.toDbJson(): String = this.map { meldeperiode ->
+    MeldeperiodeBeregnetDbJson(
         kjedeId = meldeperiode.kjedeId.toString(),
         dager = meldeperiode.dager.toDbJson(),
     )
@@ -219,10 +219,10 @@ internal fun String.tilIkkeUtfylteMeldekortDager(
         .map { it.toMeldekortdag(meldekortId) }
         .toNonEmptyListOrNull()!!
 
-internal fun String.tilMeldeperioderOmberegnet(meldekortId: MeldekortId): List<MeldekortBeregning.MeldeperiodeOmberegnet> =
-    deserializeList<MeldeperiodeOmberegnetDbJson>(this).map {
+internal fun String.tilMeldeperioderBeregnet(meldekortId: MeldekortId): List<MeldekortBeregning.MeldeperiodeBeregnet> =
+    deserializeList<MeldeperiodeBeregnetDbJson>(this).map {
         val kjedeId = MeldeperiodeKjedeId(it.kjedeId)
-        MeldekortBeregning.MeldeperiodeOmberegnet(
+        MeldekortBeregning.MeldeperiodeBeregnet(
             kjedeId = kjedeId,
             dager = it.dager.map { dag ->
                 dag.toMeldekortdag(meldekortId) as MeldeperiodeBeregningDag.Utfylt

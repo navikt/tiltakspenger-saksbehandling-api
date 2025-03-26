@@ -27,7 +27,7 @@ sealed interface MeldekortBeregning : List<MeldeperiodeBeregningDag> {
     val dager: NonEmptyList<MeldeperiodeBeregningDag>
     val antallDagerMedDeltattEllerFravær: Int get() = dager.count { it.harDeltattEllerFravær }
 
-    data class MeldeperiodeOmberegnet(
+    data class MeldeperiodeBeregnet(
         val kjedeId: MeldeperiodeKjedeId,
         val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
     ) {
@@ -41,37 +41,37 @@ sealed interface MeldekortBeregning : List<MeldeperiodeBeregningDag> {
         override val maksDagerMedTiltakspengerForPeriode: Int,
         /**
          * Pdd omfatter "dager" både status-rapportering for dagene i det utfylte meldekortet, og beregningene som utledes derfra
-         * "meldeperioderOmberegnet" omfatter beregning av påfølgende meldeperioder der deler av beregningen ble endret som følge av en korrigering
+         * "meldeperioderBeregnet" omfatter beregning av påfølgende meldeperioder der deler av beregningen ble endret som følge av en korrigering
          * på dagene i meldekortet.
          *
          * TODO: Vi bør kanskje splitte rapporteringen og beregningen for meldekortet til separate modeller
          * */
         override val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-        val meldeperioderOmberegnet: List<MeldeperiodeOmberegnet>,
+        val meldeperioderBeregnet: List<MeldeperiodeBeregnet>,
     ) : MeldekortBeregning,
         List<MeldeperiodeBeregningDag> by dager {
 
         override val meldekortId = dager.first().meldekortId
 
         val fraOgMed: LocalDate get() = this.first().dato
-        val tilOgMed = meldeperioderOmberegnet.lastOrNull()?.dager?.last()?.dato ?: this.last().dato
+        val tilOgMed = meldeperioderBeregnet.lastOrNull()?.dager?.last()?.dato ?: this.last().dato
         override val periode = Periode(fraOgMed, tilOgMed)
 
         init {
             dager.validerPeriode()
 
-            if (meldeperioderOmberegnet.isNotEmpty()) {
+            if (meldeperioderBeregnet.isNotEmpty()) {
                 val sisteDatoIMeldeperioden = dager.last().dato
-                val førsteDatoOmberegnet = meldeperioderOmberegnet.first().dager.first().dato
+                val førsteDatoOmberegnet = meldeperioderBeregnet.first().dager.first().dato
 
                 require(førsteDatoOmberegnet > sisteDatoIMeldeperioden) {
                     "Omberegnede meldeperioder må komme etter den utfylte meldeperioden - $førsteDatoOmberegnet er før $sisteDatoIMeldeperioden"
                 }
 
                 require(
-                    meldeperioderOmberegnet.zipWithNext().all { (a, b) -> a.dager.last().dato < b.dager.first().dato },
+                    meldeperioderBeregnet.zipWithNext().all { (a, b) -> a.dager.last().dato < b.dager.first().dato },
                 ) {
-                    "Omberegnede meldeperioder må være sortert og ikke ha overlapp - $meldeperioderOmberegnet"
+                    "Omberegnede meldeperioder må være sortert og ikke ha overlapp - $meldeperioderBeregnet"
                 }
             }
 
@@ -180,14 +180,14 @@ sealed interface MeldekortBeregning : List<MeldeperiodeBeregningDag> {
 
         fun tilUtfyltMeldeperiode(
             dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-            meldeperioderOmberegnet: List<MeldeperiodeOmberegnet>,
+            meldeperioderBeregnet: List<MeldeperiodeBeregnet>,
         ): Either<KanIkkeSendeMeldekortTilBeslutning, UtfyltMeldeperiode> {
             return validerAntallDager().map {
                 UtfyltMeldeperiode(
                     sakId = sakId,
                     maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
                     dager = dager,
-                    meldeperioderOmberegnet = meldeperioderOmberegnet,
+                    meldeperioderBeregnet = meldeperioderBeregnet,
                 )
             }
         }
