@@ -25,6 +25,7 @@ internal data class BehandlingDTO(
     val avbrutt: AvbruttDTO?,
     val iverksattTidspunkt: String?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
+    val valgtHjemmelHarIkkeRettighet: List<String>?,
 )
 
 internal fun Behandling.toDTO(): BehandlingDTO {
@@ -47,6 +48,7 @@ internal fun Behandling.toDTO(): BehandlingDTO {
         avbrutt = this.avbrutt?.toDTO(),
         iverksattTidspunkt = this.iverksattTidspunkt?.toString(),
         valgteTiltaksdeltakelser = this.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.map { it.toTiltaksdeltakelsePeriodeDTO() },
+        valgtHjemmelHarIkkeRettighet = this.valgtHjemmelHarIkkeRettighet.toDTO(this.behandlingstype),
     )
 }
 

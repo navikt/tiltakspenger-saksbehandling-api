@@ -26,7 +26,7 @@ import java.time.LocalDate
 
 private data class SendRevurderingTilBeslutningBody(
     val begrunnelse: String,
-    val fritekst: String?,
+    val fritekstTilVedtaksbrev: String?,
     val valgteHjemler: List<String>?, // TODO Midlertidig nullable for å unngå breaking change
     val stansDato: LocalDate,
 ) {
@@ -43,7 +43,7 @@ private data class SendRevurderingTilBeslutningBody(
             correlationId = correlationId,
             stansDato = stansDato,
             begrunnelse = BegrunnelseVilkårsvurdering(begrunnelse),
-            fritekstTilVedtaksbrev = fritekst?.let { FritekstTilVedtaksbrev(it) },
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(it) },
             valgteHjemler = valgteHjemler ?: emptyList(),
         )
     }
