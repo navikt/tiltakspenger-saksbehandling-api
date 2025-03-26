@@ -80,16 +80,13 @@ internal fun start(
             applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør()
             applicationContext.behandlingContext.distribuerVedtaksbrevService.distribuer()
             applicationContext.meldekortContext.oppgaveMeldekortService.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk()
+            applicationContext.genererMeldeperioderService.genererMeldeperioderForSaker()
             if (Configuration.isNais()) {
                 applicationContext.endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
                 applicationContext.endretTiltaksdeltakerJobb.opprydning()
                 applicationContext.sendTilDatadelingService.send()
                 applicationContext.meldekortContext.sendMeldeperiodeTilBrukerService.send()
                 applicationContext.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
-            }
-            // Slå på for prod når vi har friskmeldt/verifisert dev OK.
-            if (!Configuration.isProd()) {
-                applicationContext.genererMeldeperioderService.genererMeldeperioderForSaker()
             }
         },
     )
