@@ -72,7 +72,7 @@ private data class MeldekortBeregning(
             .kjedeId
 
         val (eksisterendeMeldekortFør, eksisterendeMeldekortEtter) = eksisterendeMeldekortBehandlinger.sisteBehandledeMeldekortPerKjede
-            .dropWhile { it.kjedeId == oppdatertKjedeId }
+            .filterNot { it.kjedeId == oppdatertKjedeId }
             .partition { it.periode.fraOgMed < oppdatertFraOgMed }
 
         /** Tidligere dager må tas høyde for i beregningen, men vil ikke påvirkes av eventuelle fremtidige korrigeringer */
