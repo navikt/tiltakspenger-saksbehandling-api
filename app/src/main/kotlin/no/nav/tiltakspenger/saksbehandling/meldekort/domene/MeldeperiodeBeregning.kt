@@ -14,11 +14,6 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import java.time.DayOfWeek
 import java.time.LocalDate
 
-data class MeldeperiodeOmberegnet(
-    val kjedeId: MeldeperiodeKjedeId,
-    val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-)
-
 /**
  * Fra paragraf 5: Enhver som mottar tiltakspenger, må som hovedregel melde seg til Arbeids- og velferdsetaten hver fjortende dag (meldeperioden)
  *
@@ -34,6 +29,15 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
     val dager: NonEmptyList<MeldeperiodeBeregningDag>
     val antallDagerMedDeltattEllerFravær: Int get() = dager.count { it.harDeltattEllerFravær }
 
+    data class MeldeperiodeOmberegnet(
+        val kjedeId: MeldeperiodeKjedeId,
+        val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
+    ) {
+        init {
+            dager.validerPeriode()
+        }
+    }
+
     data class UtfyltMeldeperiode(
         override val sakId: SakId,
         override val maksDagerMedTiltakspengerForPeriode: Int,
@@ -44,18 +48,7 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
         override val meldekortId = dager.first().meldekortId
 
         init {
-            require(dager.size == 14) { "En meldekortperiode må være 14 dager, men var ${dager.size}" }
-            require(dager.first().dato.dayOfWeek == DayOfWeek.MONDAY) { "Utbetalingsperioden må starte på en mandag" }
-            require(dager.last().dato.dayOfWeek == DayOfWeek.SUNDAY) { "Utbetalingsperioden må slutte på en søndag" }
-            dager.forEachIndexed { index, dag ->
-                require(dager.first().dato.plusDays(index.toLong()) == dag.dato) {
-                    "Datoene må være sammenhengende og sortert, men var ${dager.map { it.dato }}"
-                }
-            }
-
-            require(dager.all { it.meldekortId == meldekortId }) {
-                "Alle dager må tilhøre samme meldekort, men var: ${dager.map { it.meldekortId }}"
-            }
+            dager.validerPeriode()
 
             validerAntallDager().onLeft {
                 throw IllegalArgumentException(
@@ -172,22 +165,28 @@ sealed interface MeldeperiodeBeregning : List<MeldeperiodeBeregningDag> {
         }
 
         init {
-            require(dager.size == 14) { "En meldekortperiode må være 14 dager, men var ${dager.size}" }
-            require(dager.first().dato.dayOfWeek == DayOfWeek.MONDAY) { "Utbetalingsperioden må starte på en mandag" }
-            require(dager.last().dato.dayOfWeek == DayOfWeek.SUNDAY) { "Utbetalingsperioden må slutte på en søndag" }
-            dager.forEachIndexed { index, dag ->
-                require(dager.first().dato.plusDays(index.toLong()) == dag.dato) {
-                    "Datoene må være sammenhengende og sortert, men var ${dager.map { it.dato }}"
-                }
-            }
-            require(
-                dager.all { it.meldekortId == meldekortId },
-            ) { "Alle dager må tilhøre samme meldekort, men var: ${dager.map { it.meldekortId }}" }
+            dager.validerPeriode()
+
             require(
                 dager.all { it is MeldeperiodeBeregningDag.IkkeUtfylt || it is MeldeperiodeBeregningDag.Utfylt.Sperret },
             ) { "Alle dagene må være av typen Ikke Utfylt eller Sperret." }
         }
     }
+}
+
+private fun List<MeldeperiodeBeregningDag>.validerPeriode() {
+    require(this.size == 14) { "En meldekortperiode må være 14 dager, men var ${this.size}" }
+    require(this.first().dato.dayOfWeek == DayOfWeek.MONDAY) { "Utbetalingsperioden må starte på en mandag" }
+    require(this.last().dato.dayOfWeek == DayOfWeek.SUNDAY) { "Utbetalingsperioden må slutte på en søndag" }
+    this.forEachIndexed { index, dag ->
+        require(this.first().dato.plusDays(index.toLong()) == dag.dato) {
+            "Datoene må være sammenhengende og sortert, men var ${this.map { it.dato }}"
+        }
+    }
+    require(
+        this.zipWithNext()
+            .all { (a, b) -> a.meldekortId == b.meldekortId },
+    ) { "Alle dager må tilhøre samme meldekort, men var: ${this.map { it.meldekortId }}" }
 }
 
 /** Denne skal ikke kalles utenfra */

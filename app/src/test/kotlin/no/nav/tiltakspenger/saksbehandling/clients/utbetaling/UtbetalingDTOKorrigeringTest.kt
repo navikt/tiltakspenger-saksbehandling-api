@@ -7,8 +7,8 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeOmberegnet
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import org.intellij.lang.annotations.Language
@@ -30,7 +30,7 @@ internal class UtbetalingDTOKorrigeringTest {
         periode: Periode,
         opprettet: LocalDateTime,
         dager: List<MeldeperiodeBeregningDag.Utfylt>,
-        meldeperioderOmberegnet: List<MeldeperiodeOmberegnet> = emptyList(),
+        meldeperioderOmberegnet: List<MeldeperiodeBeregning.MeldeperiodeOmberegnet> = emptyList(),
     ) = ObjectMother.utbetalingsvedtak(
         fnr = fnr,
         saksnummer = saksnummer,

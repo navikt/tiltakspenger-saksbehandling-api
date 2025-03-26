@@ -65,7 +65,7 @@ private data class MeldekortBeregning(
     }
 
     /** Returnerer beregnede dager fra kommando, og evt omberegninger for relevante meldeperioder på saken */
-    fun beregn(): Pair<NonEmptyList<MeldeperiodeBeregningDag.Utfylt>, List<MeldeperiodeOmberegnet>> {
+    fun beregn(): Pair<NonEmptyList<MeldeperiodeBeregningDag.Utfylt>, List<MeldeperiodeBeregning.MeldeperiodeOmberegnet>> {
         val oppdatertFraOgMed = kommando.dager.first().dag
         val oppdatertKjedeId = eksisterendeMeldekortBehandlinger
             .hentMeldekortBehandling(kommando.meldekortId)!!
@@ -89,7 +89,7 @@ private data class MeldekortBeregning(
                 return@mapNotNull null
             }
 
-            MeldeperiodeOmberegnet(
+            MeldeperiodeBeregning.MeldeperiodeOmberegnet(
                 kjedeId = meldekort.kjedeId,
                 dager = oppdaterteDager,
             )

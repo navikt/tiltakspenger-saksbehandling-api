@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregnin
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdIkkeGodkjentAvNav
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Sperret
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeOmberegnet
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.repository.meldekort.MeldekortdagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb
 import no.nav.tiltakspenger.saksbehandling.repository.meldekort.MeldekortdagDbJson.StatusDb.DELTATT_MED_LØNN_I_TILTAKET
@@ -172,7 +171,7 @@ private fun MeldeperiodeBeregning.IkkeUtfyltMeldeperiode.tilMeldekortdagerDbJson
 private fun MeldeperiodeBeregning.UtfyltMeldeperiode.tilMeldekortdagerDbJson(): String =
     dager.toList().toDbJson().let { serialize(it) }
 
-private fun List<MeldeperiodeOmberegnet>.toDbJson(): String = this.map { meldeperiode ->
+private fun List<MeldeperiodeBeregning.MeldeperiodeOmberegnet>.toDbJson(): String = this.map { meldeperiode ->
     MeldeperiodeOmberegnetDbJson(
         kjedeId = meldeperiode.kjedeId.toString(),
         dager = meldeperiode.dager.toDbJson(),
@@ -220,10 +219,10 @@ internal fun String.tilIkkeUtfylteMeldekortDager(
         .map { it.toMeldekortdag(meldekortId) }
         .toNonEmptyListOrNull()!!
 
-internal fun String.tilMeldeperioderOmberegnet(meldekortId: MeldekortId): List<MeldeperiodeOmberegnet> =
+internal fun String.tilMeldeperioderOmberegnet(meldekortId: MeldekortId): List<MeldeperiodeBeregning.MeldeperiodeOmberegnet> =
     deserializeList<MeldeperiodeOmberegnetDbJson>(this).map {
         val kjedeId = MeldeperiodeKjedeId(it.kjedeId)
-        MeldeperiodeOmberegnet(
+        MeldeperiodeBeregning.MeldeperiodeOmberegnet(
             kjedeId = kjedeId,
             dager = it.dager.map { dag ->
                 dag.toMeldekortdag(meldekortId) as MeldeperiodeBeregningDag.Utfylt
