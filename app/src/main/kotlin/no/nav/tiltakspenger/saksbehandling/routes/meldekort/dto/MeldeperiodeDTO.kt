@@ -17,9 +17,8 @@ data class MeldeperiodeDTO(
     val status: MeldeperiodeStatusDTO,
     val antallDager: Int,
     val girRett: Map<LocalDate, Boolean>,
-    // TODO: hent ut alle brukers meldekort og behandlinger for perioden
     val brukersMeldekort: BrukersMeldekortDTO?,
-    val meldekortBehandling: MeldekortBehandlingDTO?,
+    val meldekortBehandlinger: List<MeldekortBehandlingDTO>,
 )
 
 fun Sak.toMeldeperiodeDTO(meldeperiode: Meldeperiode, clock: Clock): MeldeperiodeDTO {
@@ -32,10 +31,11 @@ fun Sak.toMeldeperiodeDTO(meldeperiode: Meldeperiode, clock: Clock): Meldeperiod
         status = this.toMeldeperiodeStatusDTO(meldeperiode, clock),
         antallDager = meldeperiode.antallDagerForPeriode,
         girRett = meldeperiode.girRett,
-        meldekortBehandling = this.meldekortBehandlinger
-            .hentMeldekortBehandlingerForKjede(meldeperiode.kjedeId).lastOrNull()?.toDTO(),
         brukersMeldekort = this.brukersMeldekort
             .find { it.kjedeId == meldeperiode.kjedeId }
             ?.toDTO(),
+        meldekortBehandlinger = this.meldekortBehandlinger
+            .hentMeldekortBehandlingerForMeldeperiode(meldeperiode.id)
+            .map { it.toDTO() },
     )
 }
