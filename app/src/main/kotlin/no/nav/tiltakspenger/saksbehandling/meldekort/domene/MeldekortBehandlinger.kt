@@ -74,7 +74,7 @@ data class MeldekortBehandlinger(
     val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy { sisteBehandledeMeldekortPerKjede.flatMap { it.beregning.dager } }
 
     /** Meldekort som er under behandling eller venter på beslutning */
-    val finnesÅpenMeldekortBehandling: Boolean by lazy { meldekortUnderBehandling != null && meldekortUnderBeslutning != null }
+    val finnesÅpenMeldekortBehandling: Boolean by lazy { meldekortUnderBehandling != null || meldekortUnderBeslutning != null }
 
     /**
      * @throws NullPointerException Dersom det ikke er noen meldekort-behandling som kan sendes til beslutter. Eller siste meldekort ikke er i tilstanden 'under behandling'.
