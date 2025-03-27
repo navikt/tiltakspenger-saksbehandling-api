@@ -79,6 +79,7 @@ class GenererFakeVedtaksbrevGateway :
         saksnummer: Saksnummer,
         sakId: SakId,
         forhåndsvisning: Boolean,
+        tilleggstekst: FritekstTilVedtaksbrev?,
         barnetillegg: Boolean,
         valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelHarIkkeRettighet>,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {

@@ -178,6 +178,7 @@ internal class PdfgenHttpClient(
         saksnummer: Saksnummer,
         sakId: SakId,
         forhåndsvisning: Boolean,
+        tilleggstekst: FritekstTilVedtaksbrev?,
         barnetillegg: Boolean,
         valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelHarIkkeRettighet>,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
@@ -195,6 +196,7 @@ internal class PdfgenHttpClient(
                     forhåndsvisning = forhåndsvisning,
                     barnetillegg = barnetillegg,
                     valgteHjemler = valgtHjemmelHarIkkeRettighet,
+                    tilleggstekst = tilleggstekst,
                 )
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",
