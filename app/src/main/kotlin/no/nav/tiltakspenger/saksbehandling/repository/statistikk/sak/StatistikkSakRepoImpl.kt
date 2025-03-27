@@ -94,7 +94,7 @@ internal class StatistikkSakRepoImpl(
             vedtakTidspunkt,
             utbetaltTidspunkt,
             endretTidspunkt,
-            søknadsformat,
+            soknadsformat,
             forventetOppstartTidspunkt,
             tekniskTidspunkt,
             sakYtelse,
@@ -108,12 +108,12 @@ internal class StatistikkSakRepoImpl(
             saksbehandler,
             ansvarligBeslutter,
             ansvarligEnhet,
-            tilbakekrevingsbeløp,
+            tilbakekrevingsbelop,
             funksjonellperiode_fra_og_med,
             funksjonellperiode_til_og_med,
             hendelse,
             avsender,
-            versjon        
+            versjon
         ) values (
             :sakId,
             :saksnummer,
@@ -153,7 +153,7 @@ internal class StatistikkSakRepoImpl(
         private val lagreVilkårSql = """
         insert into statistikk_sak_vilkar (
             statistikk_sak_id,
-            vilkår,
+            vilkar,
             beskrivelse,
             resultat  
         ) values (
