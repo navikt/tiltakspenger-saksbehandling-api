@@ -296,8 +296,8 @@ sealed interface MeldekortBehandling {
         override val fnr: Fnr,
         override val opprettet: LocalDateTime,
         /**
-         * Er [MeldeperiodeBeregning.IkkeUtfyltMeldeperiode] dersom meldekortet ikke har blitt sendt til beslutter enda
-         * Er [MeldeperiodeBeregning.UtfyltMeldeperiode] dersom den har vært hos beslutter, og blitt underkjent (sendt tilbake)
+         * Er [MeldekortBeregning.IkkeUtfyltMeldeperiode] dersom meldekortet ikke har blitt sendt til beslutter enda
+         * Er [MeldekortBeregning.UtfyltMeldeperiode] dersom den har vært hos beslutter, og blitt underkjent (sendt tilbake)
          */
         override val beregning: MeldekortBeregning,
         override val navkontor: Navkontor,
@@ -398,6 +398,7 @@ fun Sak.opprettMeldekortBehandling(
     if (this.meldekortBehandlinger.finnesÅpenMeldekortBehandling) {
         throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige er avsluttet for sak $id og kjedeId $kjedeId")
     }
+
     val meldeperiodekjede: MeldeperiodeKjede = this.meldeperiodeKjeder.hentMeldeperiodekjedeForKjedeId(kjedeId)
         ?: throw IllegalStateException("Kan ikke opprette meldekortbehandling for kjedeId $kjedeId som ikke finnes")
     val meldeperiode: Meldeperiode = meldeperiodekjede.hentSisteMeldeperiode()
@@ -408,14 +409,6 @@ fun Sak.opprettMeldekortBehandling(
             "Dette er første meldekortbehandling på saken og må da behandle den første meldeperiode kjeden. sakId: ${this.id}, meldeperiodekjedeId: ${meldeperiodekjede.kjedeId}"
         }
     }
-    this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
-        ?.also { foregåendeMeldeperiodekjede ->
-            this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(foregåendeMeldeperiodekjede.kjedeId).also {
-                if (it.none { it.status == GODKJENT }) {
-                    throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige kjede er godkjent")
-                }
-            }
-        }
 
     if (meldeperiode.ingenDagerGirRett) {
         throw IllegalStateException("Kan ikke starte behandling på meldeperiode uten dager som gir rett til tiltakspenger")
