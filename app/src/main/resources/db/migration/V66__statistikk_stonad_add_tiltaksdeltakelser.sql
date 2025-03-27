@@ -1,0 +1,1 @@
+ALTER TABLE statistikk_stonad ADD COLUMN IF NOT EXISTS tiltaksdeltakelser jsonb;

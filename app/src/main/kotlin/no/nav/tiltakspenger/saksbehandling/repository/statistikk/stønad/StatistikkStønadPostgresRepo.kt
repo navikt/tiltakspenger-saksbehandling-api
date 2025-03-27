@@ -3,12 +3,14 @@ package no.nav.tiltakspenger.saksbehandling.repository.statistikk.stønad
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.stønad.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.stønad.StatistikkUtbetalingDTO
 import org.intellij.lang.annotations.Language
+import org.postgresql.util.PGobject
 import java.time.Clock
 
 class StatistikkStønadPostgresRepo(
@@ -52,6 +54,7 @@ class StatistikkStønadPostgresRepo(
                     "tom" to dto.vedtakTom,
                     "sistEndret" to nå(clock),
                     "opprettet" to nå(clock),
+                    "tiltaksdeltakelser" to toPGObject(dto.tiltaksdeltakelser),
                 ),
             ).asUpdate,
         )
@@ -113,7 +116,8 @@ class StatistikkStønadPostgresRepo(
         fra_og_med,
         til_og_med,
         sist_endret,
-        opprettet
+        opprettet,
+        tiltaksdeltakelser
         ) values (
         :id,
         :brukerId,
@@ -134,7 +138,8 @@ class StatistikkStønadPostgresRepo(
         :fom,
         :tom,
         :sistEndret,
-        :opprettet
+        :opprettet,
+        :tiltaksdeltakelser
         )
         """.trimIndent()
 
@@ -167,4 +172,9 @@ class StatistikkStønadPostgresRepo(
         :utbetaling_id
         )
         """.trimIndent()
+
+    fun toPGObject(value: Any?) = PGobject().also {
+        it.type = "json"
+        it.value = value?.let { v -> objectMapper.writeValueAsString(v) }
+    }
 }

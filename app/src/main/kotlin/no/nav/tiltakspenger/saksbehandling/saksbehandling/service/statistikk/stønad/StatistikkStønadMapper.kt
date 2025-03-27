@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.stønad
 
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 /**
@@ -11,7 +10,6 @@ import java.util.UUID
 fun genererStønadsstatistikkForRammevedtak(
     vedtak: Rammevedtak,
 ): StatistikkStønadDTO {
-    val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
     return StatistikkStønadDTO(
         id = UUID.randomUUID(),
         brukerId = vedtak.fnr.verdi,
@@ -37,5 +35,8 @@ fun genererStønadsstatistikkForRammevedtak(
         vedtakDato = vedtak.opprettet.toLocalDate(),
         vedtakFom = vedtak.periode.fraOgMed,
         vedtakTom = vedtak.periode.tilOgMed,
+        tiltaksdeltakelser = vedtak.behandling.valgteTiltaksdeltakelser?.let { valgteTiltaksdeltakelser ->
+            valgteTiltaksdeltakelser.getTiltaksdeltakelser().map { it.eksternDeltagelseId }
+        } ?: emptyList(),
     )
 }

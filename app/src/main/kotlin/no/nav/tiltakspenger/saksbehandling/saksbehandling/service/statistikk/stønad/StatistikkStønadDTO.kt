@@ -26,4 +26,7 @@ data class StatistikkStønadDTO(
     val vedtakDato: LocalDate,
     val vedtakFom: LocalDate,
     val vedtakTom: LocalDate,
+
+    // tiltaksdeltakelser (eksternId) som det er innvilget tiltakspenger for
+    val tiltaksdeltakelser: List<String>,
 )

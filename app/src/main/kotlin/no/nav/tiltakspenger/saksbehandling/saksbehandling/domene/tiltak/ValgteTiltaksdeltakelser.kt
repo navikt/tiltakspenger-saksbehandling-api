@@ -41,4 +41,8 @@ data class ValgteTiltaksdeltakelser(
             }
         }
     }
+
+    fun getTiltaksdeltakelser(): List<Tiltaksdeltagelse> {
+        return this.periodisering.perioderMedVerdi.map { it.verdi }.distinctBy { it.eksternDeltagelseId }
+    }
 }
