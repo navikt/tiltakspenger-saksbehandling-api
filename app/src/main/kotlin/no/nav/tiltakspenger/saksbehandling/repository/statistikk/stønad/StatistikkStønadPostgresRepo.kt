@@ -84,6 +84,7 @@ class StatistikkStønadPostgresRepo(
                     "posteringsDato" to dto.posteringDato,
                     "gyldigFraDato" to dto.gyldigFraDatoPostering,
                     "gyldigTilDato" to dto.gyldigTilDatoPostering,
+                    "utbetaling_id" to dto.utbetalingId,
                 ),
             ).asUpdate,
         )
@@ -150,7 +151,8 @@ class StatistikkStønadPostgresRepo(
         arsak,
         posteringsdato,
         gyldig_fra_dato,
-        gyldig_til_dato     
+        gyldig_til_dato,
+        utbetaling_id
         ) values (
         :id,
         :sakId,
@@ -161,7 +163,8 @@ class StatistikkStønadPostgresRepo(
         :arsak,
         :posteringsDato,
         :gyldigFraDato,
-        :gyldigTilDato
+        :gyldigTilDato,
+        :utbetaling_id
         )
         """.trimIndent()
 }

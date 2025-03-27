@@ -78,4 +78,5 @@ fun Utbetalingsvedtak.tilStatistikk(): StatistikkUtbetalingDTO =
         posteringDato = this.opprettet.toLocalDate(),
         gyldigFraDatoPostering = this.periode.fraOgMed,
         gyldigTilDatoPostering = this.periode.tilOgMed,
+        utbetalingId = this.id.uuidPart(),
     )

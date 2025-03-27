@@ -13,4 +13,6 @@ data class StatistikkUtbetalingDTO(
     val posteringDato: LocalDate,
     val gyldigFraDatoPostering: LocalDate,
     val gyldigTilDatoPostering: LocalDate,
+    // id-en som vi sender til helved
+    val utbetalingId: String,
 )
