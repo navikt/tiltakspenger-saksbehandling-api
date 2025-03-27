@@ -25,10 +25,16 @@ import kotlin.collections.fold
 fun Utbetalingsvedtak.toDTO(
     forrigeUtbetalingJson: String?,
 ): String {
-    val forrigeUtbetaling = forrigeUtbetalingJson?.let { deserialize<IverksettV2Dto>(it) }
     val vedtak: Utbetalingsvedtak = this
-    val nyeUtbetalingerStønad = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = false)
-    val nyeUtbetalingerBarnetillegg = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = true)
+
+    val utbetalingerStønad = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = false)
+    val utbetalingerBarnetillegg = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = true)
+
+    val nyeOgOppdaterteUtbetalinger = utbetalingerStønad.plus(utbetalingerBarnetillegg)
+
+    val tidligereUtbetalinger = forrigeUtbetalingJson
+        ?.let { deserialize<IverksettV2Dto>(it) }
+        ?.hentIkkeOppdaterteUtbetalinger(nyeOgOppdaterteUtbetalinger) ?: emptyList()
 
     return IverksettV2Dto(
         sakId = vedtak.saksnummer.toString(),
@@ -42,25 +48,31 @@ fun Utbetalingsvedtak.toDTO(
             vedtakstidspunkt = vedtak.opprettet,
             saksbehandlerId = vedtak.saksbehandler,
             beslutterId = vedtak.beslutter,
-            utbetalinger = (
-                forrigeUtbetaling?.vedtak?.utbetalinger
-                    ?: emptyList()
-                ) + nyeUtbetalingerStønad + nyeUtbetalingerBarnetillegg,
+            utbetalinger = tidligereUtbetalinger.plus(nyeOgOppdaterteUtbetalinger),
         ),
         forrigeIverksetting =
         vedtak.forrigeUtbetalingsvedtakId?.let { ForrigeIverksettingV2Dto(behandlingId = it.uuidPart()) },
-    ).let {
-        serialize(it)
+    ).let { serialize(it) }
+}
+
+private fun IverksettV2Dto.hentIkkeOppdaterteUtbetalinger(oppdaterteUtbetalinger: List<UtbetalingV2Dto>): List<UtbetalingV2Dto> {
+    val oppdaterteMeldekortIder = oppdaterteUtbetalinger.map {
+        val stønadsdata = it.stønadsdata as StønadsdataTiltakspengerV2Dto
+        stønadsdata.meldekortId
+    }
+
+    return this.vedtak.utbetalinger.filterNot { tidligereUtbetaling ->
+        val stønadsdata = tidligereUtbetaling.stønadsdata as StønadsdataTiltakspengerV2Dto
+        oppdaterteMeldekortIder.contains(stønadsdata.meldekortId)
     }
 }
 
-private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
+private fun List<MeldeperiodeBeregningDag.Utfylt>.toUtbetalingDto(
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
+    kjedeId: MeldeperiodeKjedeId,
 ): List<UtbetalingV2Dto> {
-    return this.beregning.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->
-        meldekortdag as MeldeperiodeBeregningDag.Utfylt
-        val kjedeId = this.kjedeId
+    return this.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->
         when (val sisteUtbetalingsperiode = acc.lastOrNull()) {
             null -> {
                 meldekortdag.genererUtbetalingsperiode(
@@ -72,9 +84,9 @@ private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
 
             else ->
                 sisteUtbetalingsperiode.leggTil(
-                    meldekortdag,
-                    this.kjedeId,
-                    brukersNavKontor,
+                    meldekortdag = meldekortdag,
+                    kjedeId = kjedeId,
+                    brukersNavKontor = brukersNavKontor,
                     barnetillegg = barnetillegg,
                 ).let {
                     when (it) {
@@ -85,6 +97,19 @@ private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
                 }
         }
     }
+}
+
+private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
+    brukersNavKontor: Navkontor,
+    barnetillegg: Boolean,
+): List<UtbetalingV2Dto> {
+    return this.beregning.beregninger.map {
+        it.dager.toUtbetalingDto(
+            brukersNavKontor,
+            barnetillegg,
+            it.kjedeId,
+        )
+    }.flatten()
 }
 
 private fun MeldeperiodeBeregningDag.Utfylt.genererUtbetalingsperiode(

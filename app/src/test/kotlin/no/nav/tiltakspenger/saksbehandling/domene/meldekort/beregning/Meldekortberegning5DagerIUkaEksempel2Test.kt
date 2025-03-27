@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.domene
+package no.nav.tiltakspenger.saksbehandling.domene.meldekort.beregning
 
 import arrow.core.nonEmptyListOf
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.periodisering.februar
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.FRAVÆR_SYK
@@ -16,9 +15,9 @@ import org.junit.jupiter.api.Test
 
 /**
  * https://confluence.adeo.no/pages/viewpage.action?pageId=597368022
- * Eksempel 1
+ * Eksempel 2
  */
-internal class Meldekortberegning5DagerIUkaEksempel1Test {
+internal class Meldekortberegning5DagerIUkaEksempel2Test {
     private val meldekort1 = nonEmptyListOf(
         DagMedForventning(29.januar(2024), SPERRET, YtelsenFallerBort),
         DagMedForventning(30.januar(2024), SPERRET, YtelsenFallerBort),
@@ -47,14 +46,14 @@ internal class Meldekortberegning5DagerIUkaEksempel1Test {
 
         DagMedForventning(19.februar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
         DagMedForventning(20.februar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
-        DagMedForventning(21.februar(2024), FRAVÆR_SYK, Reduksjon),
-        DagMedForventning(22.februar(2024), FRAVÆR_SYK, Reduksjon),
-        DagMedForventning(23.februar(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(21.februar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
+        DagMedForventning(22.februar(2024), FRAVÆR_SYK, IngenReduksjon),
+        DagMedForventning(23.februar(2024), FRAVÆR_SYK, IngenReduksjon),
         DagMedForventning(24.februar(2024), IKKE_DELTATT, YtelsenFallerBort),
         DagMedForventning(25.februar(2024), IKKE_DELTATT, YtelsenFallerBort),
     )
     private val meldekort3 = nonEmptyListOf(
-        DagMedForventning(26.februar(2024), FRAVÆR_SYK, Reduksjon),
+        DagMedForventning(26.februar(2024), FRAVÆR_SYK, IngenReduksjon),
         DagMedForventning(27.februar(2024), SPERRET, YtelsenFallerBort),
         DagMedForventning(28.februar(2024), SPERRET, YtelsenFallerBort),
         DagMedForventning(29.februar(2024), SPERRET, YtelsenFallerBort),
@@ -72,7 +71,7 @@ internal class Meldekortberegning5DagerIUkaEksempel1Test {
     )
 
     @Test
-    fun `to sykeperioder med 16 dagers mellomrom`() {
+    fun `to sykeperioder med 17 dagers mellomrom`() {
         nonEmptyListOf(
             meldekort1,
             meldekort2,

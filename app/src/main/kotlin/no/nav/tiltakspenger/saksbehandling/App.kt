@@ -76,6 +76,7 @@ internal fun start(
         runCheckFactory = runCheckFactory,
         tasks = listOf {
             applicationContext.utbetalingContext.sendUtbetalingerService.send()
+            applicationContext.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
             applicationContext.utbetalingContext.journalførUtbetalingsvedtakService.journalfør()
             applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør()
             applicationContext.behandlingContext.distribuerVedtaksbrevService.distribuer()
@@ -86,7 +87,6 @@ internal fun start(
                 applicationContext.endretTiltaksdeltakerJobb.opprydning()
                 applicationContext.sendTilDatadelingService.send()
                 applicationContext.meldekortContext.sendMeldeperiodeTilBrukerService.send()
-                applicationContext.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
             }
         },
     )

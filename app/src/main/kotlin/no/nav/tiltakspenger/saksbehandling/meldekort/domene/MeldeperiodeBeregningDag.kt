@@ -158,7 +158,13 @@ sealed interface MeldeperiodeBeregningDag {
                             reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
                             tiltakstype: TiltakstypeSomGirRett,
                             antallBarn: AntallBarn,
-                        ) = SykBruker(meldekortId, dato, tiltakstype, reduksjon, beregnDag(dato, reduksjon, antallBarn))
+                        ) = SykBruker(
+                            meldekortId,
+                            dato,
+                            tiltakstype,
+                            reduksjon,
+                            beregnDag(dato, reduksjon, antallBarn),
+                        )
 
                         fun fromDb(
                             meldekortId: MeldekortId,
@@ -185,7 +191,13 @@ sealed interface MeldeperiodeBeregningDag {
                             reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
                             tiltakstype: TiltakstypeSomGirRett,
                             antallBarn: AntallBarn,
-                        ) = SyktBarn(meldekortId, dag, tiltakstype, reduksjon, beregnDag(dag, reduksjon, antallBarn))
+                        ) = SyktBarn(
+                            meldekortId,
+                            dag,
+                            tiltakstype,
+                            reduksjon,
+                            beregnDag(dag, reduksjon, antallBarn),
+                        )
 
                         fun fromDb(
                             meldekortId: MeldekortId,
