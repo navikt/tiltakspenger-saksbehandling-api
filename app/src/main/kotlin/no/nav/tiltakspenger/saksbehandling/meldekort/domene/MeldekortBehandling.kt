@@ -149,8 +149,12 @@ sealed interface MeldekortBehandling {
     ) : MeldekortBehandling {
 
         init {
-            require(meldeperiode.periode == periode)
-            require(beregning.periode == periode)
+            require(meldeperiode.periode.fraOgMed == fraOgMed) {
+                "Fra og med dato for beregningsperioden og meldeperioden må være like"
+            }
+            require(meldeperiode.periode.tilOgMed <= tilOgMed) {
+                "Til og med dato for beregningsperioden må være nyere eller lik meldeperioden"
+            }
             when (status) {
                 IKKE_BEHANDLET -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status IKKE_UTFYLT")
                 KLAR_TIL_BESLUTNING -> {
