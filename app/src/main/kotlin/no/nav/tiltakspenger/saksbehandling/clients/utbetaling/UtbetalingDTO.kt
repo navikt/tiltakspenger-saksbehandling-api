@@ -103,19 +103,13 @@ private fun MeldekortBehandling.MeldekortBehandlet.toUtbetalingDto(
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
 ): List<UtbetalingV2Dto> {
-    return this.beregning.dager.toUtbetalingDto(
-        brukersNavKontor,
-        barnetillegg,
-        this.kjedeId,
-    ).plus(
-        this.beregning.meldeperioderBeregnet.flatMap {
-            it.dager.toUtbetalingDto(
-                brukersNavKontor,
-                barnetillegg,
-                it.kjedeId,
-            )
-        },
-    )
+    return this.beregning.beregninger.map {
+        it.dager.toUtbetalingDto(
+            brukersNavKontor,
+            barnetillegg,
+            it.kjedeId,
+        )
+    }.flatten()
 }
 
 private fun MeldeperiodeBeregningDag.Utfylt.genererUtbetalingsperiode(

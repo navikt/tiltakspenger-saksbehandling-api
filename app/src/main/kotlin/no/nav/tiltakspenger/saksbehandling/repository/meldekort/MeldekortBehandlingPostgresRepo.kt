@@ -43,6 +43,7 @@ class MeldekortBehandlingPostgresRepo(
                         fra_og_med,
                         til_og_med,
                         meldekortdager,
+                        beregninger,
                         saksbehandler,
                         beslutter,
                         status,
@@ -61,6 +62,7 @@ class MeldekortBehandlingPostgresRepo(
                         :fra_og_med,
                         :til_og_med,
                         to_jsonb(:meldekortdager::jsonb),
+                        to_jsonb(:beregninger::jsonb),
                         :saksbehandler,
                         :beslutter,
                         :status,
@@ -80,6 +82,7 @@ class MeldekortBehandlingPostgresRepo(
                     "fra_og_med" to meldekortBehandling.fraOgMed,
                     "til_og_med" to meldekortBehandling.tilOgMed,
                     "meldekortdager" to meldekortBehandling.beregning.tilMeldekortdagerDbJson(),
+                    "beregninger" to meldekortBehandling.beregning.tilBeregningerDbJson(),
                     "saksbehandler" to meldekortBehandling.saksbehandler,
                     "beslutter" to meldekortBehandling.beslutter,
                     "status" to meldekortBehandling.status.toDb(),
@@ -104,7 +107,7 @@ class MeldekortBehandlingPostgresRepo(
                     """
                     update meldekortbehandling set
                         meldekortdager = to_jsonb(:meldekortdager::jsonb),
-                        meldeperioder_beregnet = to_jsonb(:meldeperioder_beregnet::jsonb),
+                        beregninger = to_jsonb(:beregninger::jsonb),
                         saksbehandler = :saksbehandler,
                         beslutter = :beslutter,
                         status = :status,
@@ -117,7 +120,7 @@ class MeldekortBehandlingPostgresRepo(
                     """,
                     "id" to meldekortBehandling.id.toString(),
                     "meldekortdager" to meldekortBehandling.beregning.tilMeldekortdagerDbJson(),
-                    "meldeperioder_beregnet" to meldekortBehandling.beregning.tilMeldeperioderBeregnetDbJson(),
+                    "beregninger" to meldekortBehandling.beregning.tilBeregningerDbJson(),
                     "saksbehandler" to meldekortBehandling.saksbehandler,
                     "beslutter" to meldekortBehandling.beslutter,
                     "status" to meldekortBehandling.status.toDb(),
@@ -214,12 +217,12 @@ class MeldekortBehandlingPostgresRepo(
 
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.GODKJENT, MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> {
+                    val beregninger = row.string("beregninger").tilberegninger()
+
                     val meldekortBeregning = MeldekortBeregning.UtfyltMeldeperiode(
                         sakId = sakId,
                         maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-                        dager = meldekortdager.tilUtfylteMeldekortDager(id),
-                        meldeperioderBeregnet = row.stringOrNull("meldeperioder_beregnet")
-                            ?.tilMeldeperioderBeregnet(id) ?: emptyList(),
+                        beregninger = beregninger,
                     )
 
                     MeldekortBehandlet(
@@ -229,17 +232,17 @@ class MeldekortBehandlingPostgresRepo(
                         fnr = fnr,
                         opprettet = opprettet,
                         beregning = meldekortBeregning,
-                        saksbehandler = saksbehandler,
-                        sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
-                        beslutter = row.stringOrNull("beslutter"),
-                        status = status,
-                        iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
                         navkontor = navkontor,
                         ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                         brukersMeldekort = brukersMeldekort,
                         meldeperiode = meldeperiode,
+                        saksbehandler = saksbehandler,
                         type = type,
                         begrunnelse = begrunnelse,
+                        sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
+                        beslutter = row.stringOrNull("beslutter"),
+                        status = status,
+                        iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
                     )
                 }
                 // TODO jah: Her blander vi sammen behandlingsstatus og om man har rett/ikke-rett. Det er mulig at man har startet en meldekortbehandling også endres statusen til IKKE_RETT_TIL_TILTAKSPENGER. Da vil behandlingen sånn som koden er nå implisitt avsluttes. Det kan hende vi bør endre dette når vi skiller grunnlag, innsending og behandling.

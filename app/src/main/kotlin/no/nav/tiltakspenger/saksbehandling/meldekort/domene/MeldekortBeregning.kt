@@ -14,6 +14,8 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import java.time.DayOfWeek
 import java.time.LocalDate
 
+// TODO: Flytt saksbehandlers utfylling av meldekort-dager ut til sitt eget felt på MeldekortBehandling
+
 /**
  * Fra paragraf 5: Enhver som mottar tiltakspenger, må som hovedregel melde seg til Arbeids- og velferdsetaten hver fjortende dag (meldeperioden)
  *
@@ -29,8 +31,13 @@ sealed interface MeldekortBeregning : List<MeldeperiodeBeregningDag> {
 
     data class MeldeperiodeBeregnet(
         val kjedeId: MeldeperiodeKjedeId,
+        /** Id for meldekortbehandlingen som denne perioden er beregnet ut fra */
+        val meldekortId: MeldekortId,
         val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
     ) {
+        val fraOgMed: LocalDate get() = dager.first().dato
+        val tilOgMed: LocalDate get() = dager.last().dato
+
         init {
             dager.validerPeriode()
         }
@@ -39,40 +46,24 @@ sealed interface MeldekortBeregning : List<MeldeperiodeBeregningDag> {
     data class UtfyltMeldeperiode(
         override val sakId: SakId,
         override val maksDagerMedTiltakspengerForPeriode: Int,
-        /**
-         * Pdd omfatter "dager" både status-rapportering for dagene i det utfylte meldekortet, og beregningene som utledes derfra
-         * "meldeperioderBeregnet" omfatter beregning av påfølgende meldeperioder der deler av beregningen ble endret som følge av en korrigering
-         * på dagene i meldekortet.
-         *
-         * TODO: Vi bør kanskje splitte rapporteringen og beregningen for meldekortet til separate modeller
+        /** Den første meldeperioden i beregninger-lista samsvarer med meldeperioden for den tilhørende meldekort-behandlingen.
+         *  Resten av lista innholder evt beregninger av påfølgende meldeperioder som ble endres som følge av en korrigering
+         *  (dersom meldekort-behandlingen er en korrigering)
          * */
-        override val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-        val meldeperioderBeregnet: List<MeldeperiodeBeregnet>,
+        val beregninger: NonEmptyList<MeldeperiodeBeregnet>,
     ) : MeldekortBeregning,
-        List<MeldeperiodeBeregningDag> by dager {
+        List<MeldeperiodeBeregningDag> by beregninger.first().dager {
 
+        override val dager = beregninger.first().dager
         override val meldekortId = dager.first().meldekortId
 
-        val fraOgMed: LocalDate get() = this.first().dato
-        val tilOgMed = meldeperioderBeregnet.lastOrNull()?.dager?.last()?.dato ?: this.last().dato
+        val fraOgMed: LocalDate get() = beregninger.first().fraOgMed
+        val tilOgMed: LocalDate get() = beregninger.last().tilOgMed
         override val periode = Periode(fraOgMed, tilOgMed)
 
         init {
-            dager.validerPeriode()
-
-            if (meldeperioderBeregnet.isNotEmpty()) {
-                val sisteDatoIMeldeperioden = dager.last().dato
-                val førsteDatoOmberegnet = meldeperioderBeregnet.first().dager.first().dato
-
-                require(førsteDatoOmberegnet > sisteDatoIMeldeperioden) {
-                    "Omberegnede meldeperioder må komme etter den utfylte meldeperioden - $førsteDatoOmberegnet er før $sisteDatoIMeldeperioden"
-                }
-
-                require(
-                    meldeperioderBeregnet.zipWithNext().all { (a, b) -> a.dager.last().dato < b.dager.first().dato },
-                ) {
-                    "Omberegnede meldeperioder må være sortert og ikke ha overlapp - $meldeperioderBeregnet"
-                }
+            require(beregninger.zipWithNext().all { (a, b) -> a.tilOgMed < b.fraOgMed }) {
+                "Beregnede meldeperioder må være sortert og ikke ha overlapp - $beregninger"
             }
 
             validerAntallDager().onLeft {
@@ -178,16 +169,12 @@ sealed interface MeldekortBeregning : List<MeldeperiodeBeregningDag> {
             }
         }
 
-        fun tilUtfyltMeldeperiode(
-            dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-            meldeperioderBeregnet: List<MeldeperiodeBeregnet>,
-        ): Either<KanIkkeSendeMeldekortTilBeslutning, UtfyltMeldeperiode> {
+        fun tilBeregnetMeldekort(beregninger: NonEmptyList<MeldeperiodeBeregnet>): Either<KanIkkeSendeMeldekortTilBeslutning, UtfyltMeldeperiode> {
             return validerAntallDager().map {
                 UtfyltMeldeperiode(
                     sakId = sakId,
                     maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-                    dager = dager,
-                    meldeperioderBeregnet = meldeperioderBeregnet,
+                    beregninger = beregninger,
                 )
             }
         }

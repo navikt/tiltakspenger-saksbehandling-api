@@ -1,9 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.clients.utbetaling
 
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -29,8 +32,14 @@ internal class UtbetalingDTOKorrigeringTest {
         meldekortId: MeldekortId,
         periode: Periode,
         opprettet: LocalDateTime,
-        dager: List<MeldeperiodeBeregningDag.Utfylt>,
-        meldeperioderBeregnet: List<MeldekortBeregning.MeldeperiodeBeregnet> = emptyList(),
+        dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
+        beregninger: NonEmptyList<MeldekortBeregning.MeldeperiodeBeregnet> = nonEmptyListOf(
+            MeldekortBeregning.MeldeperiodeBeregnet(
+                kjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
+                meldekortId = meldekortId,
+                dager = dager,
+            ),
+        ),
     ) = ObjectMother.utbetalingsvedtak(
         fnr = fnr,
         saksnummer = saksnummer,
@@ -42,8 +51,8 @@ internal class UtbetalingDTOKorrigeringTest {
             meldekortperiodeBeregning = ObjectMother.utfyltMeldekortperiode(
                 startDato = periode.fraOgMed,
                 meldekortId = meldekortId,
-                dager = dager.toNonEmptyListOrNull()!!,
-                meldeperioderBeregnet = meldeperioderBeregnet,
+                dager = dager,
+                beregninger = beregninger,
             ),
         ),
     )
@@ -96,7 +105,7 @@ internal class UtbetalingDTOKorrigeringTest {
                     tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                     antallDager = 3,
                 ),
-            ),
+            ).toNonEmptyListOrNull()!!,
         )
 
         val førsteJson = førsteUtbetalingsvedtak.toDTO(null)
@@ -187,7 +196,7 @@ internal class UtbetalingDTOKorrigeringTest {
                 tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
                 antallDager = 3,
             ),
-        )
+        ).toNonEmptyListOrNull()!!
 
         val førsteUtbetalingsvedtak = lagUtbetalingsVedtak(
             id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6"),

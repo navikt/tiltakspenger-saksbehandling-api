@@ -131,6 +131,7 @@ private data class MeldekortdagDbJson(
 
 private data class MeldeperiodeBeregnetDbJson(
     val kjedeId: String,
+    val meldekortId: String,
     val dager: List<MeldekortdagDbJson>,
 )
 
@@ -140,11 +141,10 @@ internal fun MeldekortBeregning.tilMeldekortdagerDbJson(): String =
         is MeldekortBeregning.UtfyltMeldeperiode -> this.tilMeldekortdagerDbJson()
     }
 
-internal fun MeldekortBeregning.tilMeldeperioderBeregnetDbJson(): String? =
+internal fun MeldekortBeregning.tilBeregningerDbJson(): String? =
     when (this) {
         is MeldekortBeregning.IkkeUtfyltMeldeperiode -> null
-        is MeldekortBeregning.UtfyltMeldeperiode ->
-            if (this.meldeperioderBeregnet.isNotEmpty()) this.meldeperioderBeregnet.toDbJson() else null
+        is MeldekortBeregning.UtfyltMeldeperiode -> this.beregninger.toDbJson()
     }
 
 private fun MeldekortBeregning.IkkeUtfyltMeldeperiode.tilMeldekortdagerDbJson(): String =
@@ -174,6 +174,7 @@ private fun MeldekortBeregning.UtfyltMeldeperiode.tilMeldekortdagerDbJson(): Str
 private fun List<MeldekortBeregning.MeldeperiodeBeregnet>.toDbJson(): String = this.map { meldeperiode ->
     MeldeperiodeBeregnetDbJson(
         kjedeId = meldeperiode.kjedeId.toString(),
+        meldekortId = meldeperiode.meldekortId.toString(),
         dager = meldeperiode.dager.toDbJson(),
     )
 }.let { serialize(it) }
@@ -205,13 +206,6 @@ private fun ReduksjonAvYtelsePåGrunnAvFravær.toDb(): ReduksjonAvYtelsePåGrunn
         ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort -> ReduksjonAvYtelsePåGrunnAvFraværDb.YtelsenFallerBort
     }
 
-internal fun String.tilUtfylteMeldekortDager(
-    meldekortId: MeldekortId,
-): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> =
-    deserializeList<MeldekortdagDbJson>(this)
-        .map { it.toMeldekortdag(meldekortId) as MeldeperiodeBeregningDag.Utfylt }
-        .toNonEmptyListOrNull()!!
-
 internal fun String.tilIkkeUtfylteMeldekortDager(
     meldekortId: MeldekortId,
 ): NonEmptyList<MeldeperiodeBeregningDag> =
@@ -219,13 +213,14 @@ internal fun String.tilIkkeUtfylteMeldekortDager(
         .map { it.toMeldekortdag(meldekortId) }
         .toNonEmptyListOrNull()!!
 
-internal fun String.tilMeldeperioderBeregnet(meldekortId: MeldekortId): List<MeldekortBeregning.MeldeperiodeBeregnet> =
+internal fun String.tilberegninger(): NonEmptyList<MeldekortBeregning.MeldeperiodeBeregnet> =
     deserializeList<MeldeperiodeBeregnetDbJson>(this).map {
-        val kjedeId = MeldeperiodeKjedeId(it.kjedeId)
+        val meldekortId = MeldekortId.fromString(it.meldekortId)
         MeldekortBeregning.MeldeperiodeBeregnet(
-            kjedeId = kjedeId,
+            kjedeId = MeldeperiodeKjedeId(it.kjedeId),
+            meldekortId = meldekortId,
             dager = it.dager.map { dag ->
                 dag.toMeldekortdag(meldekortId) as MeldeperiodeBeregningDag.Utfylt
             }.toNonEmptyListOrNull()!!,
         )
-    }
+    }.toNonEmptyListOrNull()!!

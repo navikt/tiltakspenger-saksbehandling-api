@@ -160,6 +160,9 @@ interface MeldekortMother : MotherOfAllMothers {
     fun utfyltMeldekortperiode(
         sakId: SakId = SakId.random(),
         startDato: LocalDate = LocalDate.of(2023, 1, 2),
+        kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(
+            Periode(startDato, startDato.plusDays(13)),
+        ),
         meldekortId: MeldekortId = MeldekortId.random(),
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         maksDagerMedTiltakspengerForPeriode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
@@ -170,13 +173,18 @@ interface MeldekortMother : MotherOfAllMothers {
             tiltakstype,
             barnetilleggsPerioder,
         ),
-        meldeperioderBeregnet: List<MeldekortBeregning.MeldeperiodeBeregnet> = emptyList(),
+        beregninger: NonEmptyList<MeldekortBeregning.MeldeperiodeBeregnet> = nonEmptyListOf(
+            MeldekortBeregning.MeldeperiodeBeregnet(
+                kjedeId = kjedeId,
+                meldekortId = meldekortId,
+                dager = dager,
+            ),
+        ),
     ): MeldekortBeregning.UtfyltMeldeperiode {
         return MeldekortBeregning.UtfyltMeldeperiode(
             sakId = sakId,
             maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-            dager = dager,
-            meldeperioderBeregnet = meldeperioderBeregnet,
+            beregninger = beregninger,
         )
     }
 

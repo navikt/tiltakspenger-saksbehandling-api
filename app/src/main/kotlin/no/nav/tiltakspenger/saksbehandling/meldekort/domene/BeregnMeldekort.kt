@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -65,7 +66,8 @@ private data class BeregnMeldekort(
     }
 
     /** Returnerer beregnede dager fra kommando, og evt nye beregninger for påfølgende meldeperioder på saken */
-    fun beregn(): Pair<NonEmptyList<MeldeperiodeBeregningDag.Utfylt>, List<MeldekortBeregning.MeldeperiodeBeregnet>> {
+    fun beregn(): NonEmptyList<MeldekortBeregning.MeldeperiodeBeregnet> {
+        val oppdatertMeldekortId = kommando.meldekortId
         val oppdatertFraOgMed = kommando.dager.first().dag
         val oppdatertKjedeId = eksisterendeMeldekortBehandlinger
             .hentMeldekortBehandling(kommando.meldekortId)!!
@@ -79,10 +81,14 @@ private data class BeregnMeldekort(
         /** Tidligere dager må tas høyde for i beregningen, men vil ikke påvirkes av eventuelle fremtidige korrigeringer */
         tidligereMeldekort.forEach { beregnEksisterendeDager(it.beregning.dager) }
 
-        val oppdaterteDagerBeregnet = beregnOppdaterteDager(kommando)
+        val oppdaterteDagerBeregnet = MeldekortBeregning.MeldeperiodeBeregnet(
+            kjedeId = oppdatertKjedeId,
+            meldekortId = oppdatertMeldekortId,
+            dager = beregnOppdaterteDager(kommando),
+        )
 
         /** Dersom dette er en korrigering av en tidligere meldeperiode, kan denne påvirke påfølgende meldeperioder */
-        val meldeperioderBeregnet = påfølgendeMeldekort.mapNotNull { meldekort ->
+        val beregninger = påfølgendeMeldekort.mapNotNull { meldekort ->
             val eksisterendeDager = meldekort.beregning.dager
             val oppdaterteDager = beregnEksisterendeDager(eksisterendeDager)
 
@@ -92,11 +98,12 @@ private data class BeregnMeldekort(
 
             MeldekortBeregning.MeldeperiodeBeregnet(
                 kjedeId = meldekort.kjedeId,
+                meldekortId = meldekort.id,
                 dager = oppdaterteDager,
             )
         }
 
-        return oppdaterteDagerBeregnet to meldeperioderBeregnet
+        return nonEmptyListOf(oppdaterteDagerBeregnet).plus(beregninger)
     }
 
     private fun beregnEksisterendeDager(dager: List<MeldeperiodeBeregningDag.Utfylt>): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> =
