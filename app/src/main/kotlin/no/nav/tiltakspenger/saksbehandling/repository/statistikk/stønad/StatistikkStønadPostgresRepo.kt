@@ -115,7 +115,7 @@ class StatistikkStønadPostgresRepo(
     @Language("SQL")
     private val lagreSql =
         """
-        insert into statistikk_stønad (
+        insert into statistikk_stonad (
         id,
         bruker_id,
         sak_id,

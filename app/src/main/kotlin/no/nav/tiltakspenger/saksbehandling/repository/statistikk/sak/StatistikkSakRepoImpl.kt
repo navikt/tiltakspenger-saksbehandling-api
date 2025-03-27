@@ -151,7 +151,7 @@ internal class StatistikkSakRepoImpl(
 
         @Language("SQL")
         private val lagreVilkårSql = """
-        insert into statistikk_sak_vilkår (
+        insert into statistikk_sak_vilkar (
             statistikk_sak_id,
             vilkår,
             beskrivelse,
