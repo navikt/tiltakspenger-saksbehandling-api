@@ -73,37 +73,39 @@ private data class BeregnMeldekort(
             .hentMeldekortBehandling(kommando.meldekortId)!!
             .kjedeId
 
-        val (tidligereMeldekort, påfølgendeMeldekort) = eksisterendeMeldekortBehandlinger
-            .sisteBehandledeMeldekortPerKjede
+        return eksisterendeMeldekortBehandlinger.sisteBehandledeMeldekortPerKjede
             .filterNot { it.kjedeId == oppdatertKjedeId }
             .partition { it.periode.fraOgMed < oppdatertFraOgMed }
+            .let { (tidligereMeldekort, påfølgendeMeldekort) ->
+                /** Kjør gjennom tidligere meldekort for å sette riktig state for sykedager før vi gjør beregninger på aktuelle meldekort */
+                tidligereMeldekort.forEach { beregnEksisterendeDager(it.beregning.dager) }
 
-        /** Tidligere dager må tas høyde for i beregningen, men vil ikke påvirkes av eventuelle fremtidige korrigeringer */
-        tidligereMeldekort.forEach { beregnEksisterendeDager(it.beregning.dager) }
+                nonEmptyListOf(
+                    MeldekortBeregning.MeldeperiodeBeregnet(
+                        kjedeId = oppdatertKjedeId,
+                        meldekortId = oppdatertMeldekortId,
+                        dager = beregnOppdaterteDager(kommando),
+                    ),
+                ).plus(
+                    /** Dersom meldekort-behandlingen er en korrigering tilbake i tid, kan utbetalinger for påfølgende meldekort potensielt
+                     *  endres som følge av sykedager reglene.
+                     * */
+                    påfølgendeMeldekort.mapNotNull { meldekort ->
+                        val eksisterendeDager = meldekort.beregning.dager
+                        val oppdaterteDager = beregnEksisterendeDager(eksisterendeDager)
 
-        val oppdaterteDagerBeregnet = MeldekortBeregning.MeldeperiodeBeregnet(
-            kjedeId = oppdatertKjedeId,
-            meldekortId = oppdatertMeldekortId,
-            dager = beregnOppdaterteDager(kommando),
-        )
+                        if (oppdaterteDager == eksisterendeDager) {
+                            return@mapNotNull null
+                        }
 
-        /** Dersom dette er en korrigering av en tidligere meldeperiode, kan denne påvirke påfølgende meldeperioder */
-        val beregninger = påfølgendeMeldekort.mapNotNull { meldekort ->
-            val eksisterendeDager = meldekort.beregning.dager
-            val oppdaterteDager = beregnEksisterendeDager(eksisterendeDager)
-
-            if (oppdaterteDager == eksisterendeDager) {
-                return@mapNotNull null
+                        MeldekortBeregning.MeldeperiodeBeregnet(
+                            kjedeId = meldekort.kjedeId,
+                            meldekortId = meldekort.id,
+                            dager = oppdaterteDager,
+                        )
+                    },
+                )
             }
-
-            MeldekortBeregning.MeldeperiodeBeregnet(
-                kjedeId = meldekort.kjedeId,
-                meldekortId = meldekort.id,
-                dager = oppdaterteDager,
-            )
-        }
-
-        return nonEmptyListOf(oppdaterteDagerBeregnet).plus(beregninger)
     }
 
     private fun beregnEksisterendeDager(dager: List<MeldeperiodeBeregningDag.Utfylt>): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> =
