@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toDTO
 
 data class MeldekortBehandlingDTO(
     val id: String,
+    val meldeperiodeId: String,
     val saksbehandler: String,
     val beslutter: String?,
     val status: MeldekortBehandlingStatusDTO,
@@ -31,6 +32,7 @@ fun MeldekortBehandlinger.toDTO(): List<MeldekortBehandlingDTO> {
 fun MeldekortBehandling.toDTO(): MeldekortBehandlingDTO {
     return MeldekortBehandlingDTO(
         id = id.toString(),
+        meldeperiodeId = meldeperiode.id.toString(),
         saksbehandler = saksbehandler,
         beslutter = beslutter,
         status = this.toStatusDTO(),
@@ -42,7 +44,7 @@ fun MeldekortBehandling.toDTO(): MeldekortBehandlingDTO {
         dager = beregning.toDTO(),
         brukersMeldekortId = brukersMeldekort?.id.toString(),
         type = type.tilDTO(),
-        attesteringer = attesteringer.toDTO(),
         begrunnelse = begrunnelse?.verdi,
+        attesteringer = attesteringer.toDTO(),
     )
 }

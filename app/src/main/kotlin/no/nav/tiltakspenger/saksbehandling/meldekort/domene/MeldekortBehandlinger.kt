@@ -39,7 +39,9 @@ data class MeldekortBehandlinger(
     val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandlet> by lazy {
         behandledeMeldekort
             .groupBy { it.kjedeId }.values
-            .map { it.last() }
+            .map { behandlingerForKjede ->
+                behandlingerForKjede.maxByOrNull { it.opprettet }!!
+            }
     }
 
     /** Under behandling er ikke-avsluttede meldekortbehandlinger som ikke er til beslutning. */
@@ -61,7 +63,9 @@ data class MeldekortBehandlinger(
 
     /**
      *  Vil kun returnere hele meldekortperioder som er utfylt. Dersom siste meldekortperiode er delvis utfylt, vil ikke disse komme med.
-     *  Obs: Vi kan ikke stole på beregninger fra disse dagene ettersom korrigeringer kan påvirke dager etter den korrigerte perioden
+     *
+     *  Obs!! Med korrigeringer kan vi ikke stole på beregninger fra disse dagene, ettersom korrigering kan påvirke dager etter det korrigerte meldekortet
+     *  TODO: Bør løses når vi splitter meldekort-utfylling og meldekort-beregning
      *  */
     val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy { sisteBehandledeMeldekortPerKjede.flatMap { it.beregning.dager } }
 
@@ -197,7 +201,7 @@ data class MeldekortBehandlinger(
             }
         }
         require(verdi.count { it is MeldekortUnderBehandling } <= 1) {
-            "Kun ett meldekort kan være i tilstanden 'under behandling'"
+            "Kun ett meldekort på saken kan være i tilstanden 'under behandling'"
         }
         require(verdi.map { it.sakId }.distinct().size <= 1) {
             "Alle meldekortperioder må tilhøre samme sak."

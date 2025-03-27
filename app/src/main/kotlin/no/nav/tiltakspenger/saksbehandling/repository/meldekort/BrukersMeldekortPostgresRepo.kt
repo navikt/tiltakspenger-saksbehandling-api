@@ -51,7 +51,7 @@ class BrukersMeldekortPostgresRepo(
                     "meldeperiode_id" to brukersMeldekort.meldeperiodeId.toString(),
                     "sak_id" to brukersMeldekort.sakId.toString(),
                     "mottatt" to brukersMeldekort.mottatt,
-                    "dager" to brukersMeldekort.toDagerJson(),
+                    "dager" to brukersMeldekort.toDbJson(),
                     "journalpost_id" to brukersMeldekort.journalpostId.toString(),
                     "oppgave_id" to brukersMeldekort.oppgaveId?.toString(),
                 ).asUpdate,

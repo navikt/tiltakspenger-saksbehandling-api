@@ -30,8 +30,10 @@ internal fun Sak.toDTO(clock: Clock) = SakDTO(
     fnr = fnr.verdi,
     behandlingsoversikt = (
         behandlinger.hentÅpneBehandlinger().toSaksoversiktDTO() +
-            this.soknader.filterNot { it.erAvbrutt }
-                .filter { soknad -> behandlinger.none { it.søknad?.id == soknad.id } }
+            this.soknader
+                .filter { soknad ->
+                    !soknad.erAvbrutt && behandlinger.none { it.søknad?.id == soknad.id }
+                }
                 .toSaksoversiktDTO()
         ).sortedBy { it.opprettet },
     meldeperiodeKjeder = toMeldeperiodeKjederDTO(clock = clock),
