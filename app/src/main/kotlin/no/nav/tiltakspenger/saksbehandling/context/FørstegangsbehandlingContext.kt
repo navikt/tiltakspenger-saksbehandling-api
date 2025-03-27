@@ -91,6 +91,7 @@ open class FørstegangsbehandlingContext(
             behandlingRepo = behandlingRepo,
         )
     }
+
     val oppdaterFritekstTilVedtaksbrevService by lazy {
         OppdaterFritekstTilVedtaksbrevService(
             sakService = sakService,

@@ -1,10 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.brev
 
 import arrow.core.getOrElse
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.felles.PdfA
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.validerStansDato
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.GenererStansvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService
@@ -18,7 +20,7 @@ class ForhåndsvisVedtaksbrevService(
     private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
 ) {
-    suspend fun forhåndsvisInnvilgelsesvedtaksbrev(
+    suspend fun forhåndsvisVedtaksbrev(
         kommando: ForhåndsvisVedtaksbrevKommando,
     ): PdfA {
         // hentForSakId sjekker tilgang til person og sak.
@@ -39,7 +41,8 @@ class ForhåndsvisVedtaksbrevService(
             Behandlingsstatus.UNDER_BEHANDLING,
             // gir det mening at man har lyst til å se innvilgelsesbrevet hvis behandlingen er avbrutt?
             Behandlingsstatus.AVBRUTT,
-            -> kommando.virkingsperiode ?: behandling.virkningsperiode!!
+            -> kommando.virkingsperiode ?: behandling.virkningsperiode
+
             Behandlingsstatus.KLAR_TIL_BESLUTNING,
             Behandlingsstatus.UNDER_BESLUTNING,
             Behandlingsstatus.VEDTATT,
@@ -56,11 +59,11 @@ class ForhåndsvisVedtaksbrevService(
                     fnr = sak.fnr,
                     saksbehandlerNavIdent = behandling.saksbehandler,
                     beslutterNavIdent = behandling.beslutter,
-                    innvilgelsesperiode = virkingsperiode,
+                    innvilgelsesperiode = virkingsperiode!!,
                     saksnummer = sak.saksnummer,
                     sakId = sak.id,
                     forhåndsvisning = true,
-                    barnetilleggsPerioder = kommando.barnetillegg.let { if (it.isEmpty()) null else it },
+                    barnetilleggsPerioder = kommando.barnetillegg?.let { if (it.isEmpty()) null else it },
                 ).fold(
                     ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
                     ifRight = { it.pdf },
@@ -68,6 +71,13 @@ class ForhåndsvisVedtaksbrevService(
             }
 
             Behandlingstype.REVURDERING -> {
+                sak.validerStansDato(kommando.stansDato)
+                val stansePeriode = kommando.stansDato?.let { stansDato ->
+                    sak.vedtaksliste.sisteDagSomGirRett?.let { sisteDagSomGirRett ->
+                        Periode(stansDato, sisteDagSomGirRett)
+                    }
+                }
+
                 genererStansbrevClient.genererStansvedtak(
                     hentBrukersNavn = personService::hentNavn,
                     hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -75,10 +85,13 @@ class ForhåndsvisVedtaksbrevService(
                     fnr = sak.fnr,
                     saksbehandlerNavIdent = behandling.saksbehandler,
                     beslutterNavIdent = behandling.beslutter,
-                    stansperiode = virkingsperiode,
+                    virkningsperiode = stansePeriode!!,
                     saksnummer = sak.saksnummer,
                     sakId = sak.id,
                     forhåndsvisning = true,
+                    barnetillegg = behandling.barnetillegg != null,
+                    valgtHjemmelHarIkkeRettighet = kommando.toValgtHjemmelHarIkkeRettighet(),
+                    tilleggstekst = kommando.fritekstTilVedtaksbrev,
                 ).fold(
                     ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
                     ifRight = { it.pdf },

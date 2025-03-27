@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Send
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.sendRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
@@ -405,6 +406,7 @@ internal fun TestDataHelper.persisterBehandletRevurdering(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
+    valgteHjemler: List<String> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak.javaClass.simpleName),
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,
@@ -458,6 +460,8 @@ internal fun TestDataHelper.persisterBehandletRevurdering(
                 correlationId = CorrelationId.generate(),
                 begrunnelse = begrunnelse,
                 stansDato = stansDato,
+                valgteHjemler = valgteHjemler,
+                fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("fritekstTilVedtaksbrev"),
             ),
             clock = clock,
         )

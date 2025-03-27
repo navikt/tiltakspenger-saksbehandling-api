@@ -61,6 +61,7 @@ data class Behandling(
     val sistEndret: LocalDateTime,
     val behandlingstype: Behandlingstype,
     val oppgaveId: OppgaveId?,
+    val valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelHarIkkeRettighet>,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     val saksopplysningsperiode: Periode?,
@@ -78,7 +79,8 @@ data class Behandling(
     fun inneholderEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
         saksopplysninger.tiltaksdeltagelse.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
 
-    fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? = saksopplysninger.getTiltaksdeltagelse(eksternDeltagelseId)
+    fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? =
+        saksopplysninger.getTiltaksdeltagelse(eksternDeltagelseId)
 
     /**
      * null dersom [virkningsperiode] ikke er satt enda. Typisk i stegene før til beslutning eller ved avslag.
@@ -140,6 +142,7 @@ data class Behandling(
                 søknad = søknad,
                 virkningsperiode = null,
                 saksopplysninger = saksopplysninger,
+                valgtHjemmelHarIkkeRettighet = emptyList(),
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
                 saksbehandler = saksbehandler.navIdent,
@@ -181,6 +184,7 @@ data class Behandling(
                 sendtTilBeslutning = null,
                 beslutter = null,
                 saksopplysninger = hentSaksopplysninger(),
+                valgtHjemmelHarIkkeRettighet = emptyList(),
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
                 status = UNDER_BEHANDLING,
@@ -271,6 +275,8 @@ data class Behandling(
             sendtTilBeslutning = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelse,
             virkningsperiode = Periode(kommando.stansDato, sisteDagSomGirRett),
+            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
+            valgtHjemmelHarIkkeRettighet = kommando.toValgtHjemmelHarIkkeRettighet(),
         )
     }
 
@@ -426,7 +432,12 @@ data class Behandling(
 
             REVURDERING -> {
                 require(søknad == null) { "Søknad kan ikke være satt for revurdering" }
+                require(valgtHjemmelHarIkkeRettighet.none { it is ValgtHjemmelForAvslag }) { "Revurdering kan bare føre til stans" }
             }
+        }
+
+        require(valgtHjemmelHarIkkeRettighet.map { it.javaClass.simpleName }.distinct().size <= 1) {
+            "Valgte hjemler for en behandling kan bare være av en type"
         }
 
         when (status) {
