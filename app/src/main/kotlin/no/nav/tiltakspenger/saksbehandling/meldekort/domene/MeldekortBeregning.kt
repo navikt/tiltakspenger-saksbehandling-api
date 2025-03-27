@@ -134,6 +134,23 @@ sealed interface MeldekortBeregning : List<MeldeperiodeBeregningDag> {
             )
         }
 
+        init {
+            require(dager.size == 14) { "En meldekortperiode må være 14 dager, men var ${dager.size}" }
+            require(dager.first().dato.dayOfWeek == DayOfWeek.MONDAY) { "Utbetalingsperioden må starte på en mandag" }
+            require(dager.last().dato.dayOfWeek == DayOfWeek.SUNDAY) { "Utbetalingsperioden må slutte på en søndag" }
+            dager.forEachIndexed { index, dag ->
+                require(dager.first().dato.plusDays(index.toLong()) == dag.dato) {
+                    "Datoene må være sammenhengende og sortert, men var ${dager.map { it.dato }}"
+                }
+            }
+            require(
+                dager.all { it.meldekortId == meldekortId },
+            ) { "Alle dager må tilhøre samme meldekort, men var: ${dager.map { it.meldekortId }}" }
+            require(
+                dager.all { it is MeldeperiodeBeregningDag.IkkeUtfylt || it is MeldeperiodeBeregningDag.Utfylt.Sperret },
+            ) { "Alle dagene må være av typen Ikke Utfylt eller Sperret." }
+        }
+
         companion object {
             /**
              * @param meldeperiode Perioden meldekortet skal gjelde for. Må være 14 dager, starte på en mandag og slutte på en søndag.

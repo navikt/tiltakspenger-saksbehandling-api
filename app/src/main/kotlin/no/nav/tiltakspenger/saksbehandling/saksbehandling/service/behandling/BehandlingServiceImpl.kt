@@ -1,11 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
@@ -71,29 +73,37 @@ class BehandlingServiceImpl(
     override suspend fun sendTilbakeTilSaksbehandler(
         behandlingId: BehandlingId,
         beslutter: Saksbehandler,
-        begrunnelse: String,
+        begrunnelse: String?,
         correlationId: CorrelationId,
-
     ): Either<KanIkkeUnderkjenne, Behandling> {
+        val behandling = hentBehandling(behandlingId, beslutter, correlationId)
+        tilgangsstyringService.harTilgangTilPerson(behandling.fnr, beslutter.roller, correlationId).onLeft {
+            throw TilgangException("Feil ved tilgangssjekk til person ved sending av behandling tilbake til saksbehandler. Feilen var $it")
+        }.onRight {
+            if (!it) throw TilgangException("Saksbehandler ${beslutter.navIdent} har ikke tilgang til person")
+        }
         if (!beslutter.erBeslutter()) {
             logger.warn { "Navident ${beslutter.navIdent} med rollene ${beslutter.roller} har ikke tilgang til å underkjenne behandlingen" }
             return KanIkkeUnderkjenne.MåVæreBeslutter.left()
         }
+
+        val nonBlankBegrunnelse = Either.catch { begrunnelse?.toNonBlankString() }.getOrElse {
+            return KanIkkeUnderkjenne.ManglerBegrunnelse.left()
+        }
+
         val attestering =
             Attestering(
                 status = Attesteringsstatus.SENDT_TILBAKE,
-                begrunnelse = begrunnelse,
+                begrunnelse = nonBlankBegrunnelse,
                 beslutter = beslutter.navIdent,
                 tidspunkt = nå(clock),
             )
 
-        val behandling =
-            hentBehandling(behandlingId, beslutter, correlationId).sendTilbakeTilBehandling(beslutter, attestering).also {
-                sessionFactory.withTransactionContext { tx ->
-                    behandlingRepo.lagre(it, tx)
-                }
+        return behandling.sendTilbakeTilBehandling(beslutter, attestering).also {
+            sessionFactory.withTransactionContext { tx ->
+                behandlingRepo.lagre(it, tx)
             }
-        return behandling.right()
+        }.right()
     }
 
     override suspend fun taBehandling(

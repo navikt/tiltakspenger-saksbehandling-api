@@ -78,7 +78,7 @@ class MeldekortBehandlingRepoImplTest {
             meldekortRepo.lagre(meldekortBehandling)
 
             val oppdatertMeldekortBehandling = meldekortBehandling.sendTilBeslutter(
-                utfyltMeldeperiode = ObjectMother.utfyltMeldekortperiode(
+                beregning = ObjectMother.utfyltMeldekortperiode(
                     sakId = sak.id,
                     startDato = meldekortBehandling.periode.fraOgMed,
                     meldekortId = meldekortBehandling.id,

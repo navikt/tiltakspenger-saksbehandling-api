@@ -5,6 +5,7 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.common.TestApplicationContext
+import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.saksbehandling.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendTilbake
@@ -32,7 +33,7 @@ class SendTilbakeTilSaksbehandlerTest {
                                 id = it.id,
                                 tidspunkt = it.tidspunkt,
                                 status = no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Attesteringsstatus.SENDT_TILBAKE,
-                                begrunnelse = "send_tilbake_begrunnelse",
+                                begrunnelse = NonBlankString.create("send_tilbake_begrunnelse"),
                                 beslutter = ObjectMother.beslutter().navIdent,
                             )
                     }

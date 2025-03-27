@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.repository.behandling.attesteringer
 
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId.Companion.fromString
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Attestering
 import java.time.LocalDateTime
@@ -15,7 +16,7 @@ internal data class AttesteringDbJson(
         Attestering(
             id = fromString(id),
             status = status.toAttesteringsstatus(),
-            begrunnelse = begrunnelse,
+            begrunnelse = begrunnelse?.toNonBlankString(),
             beslutter = beslutter,
             tidspunkt = tidspunkt,
         )
@@ -25,7 +26,7 @@ internal fun Attestering.toDbJson(): AttesteringDbJson =
     AttesteringDbJson(
         id = id.toString(),
         status = status.toDbJson(),
-        begrunnelse = begrunnelse,
+        begrunnelse = begrunnelse?.value,
         beslutter = beslutter,
         tidspunkt = tidspunkt,
     )

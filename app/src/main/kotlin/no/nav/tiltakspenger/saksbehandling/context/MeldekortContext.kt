@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppgaveMeldekortSer
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldeperiodeTilBrukerService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.repository.meldekort.BrukersMeldekortPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.repository.meldekort.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.repository.meldekort.MeldeperiodePostgresRepo
@@ -111,6 +112,14 @@ open class MeldekortContext(
             oppgaveGateway = oppgaveGateway,
             sakRepo = sakRepo,
             brukersMeldekortRepo = brukersMeldekortRepo,
+        )
+    }
+
+    val underkjennMeldekortBehandlingService by lazy {
+        UnderkjennMeldekortBehandlingService(
+            meldekortBehandlingRepo = meldekortBehandlingRepo,
+            tilgangsstyringService = tilgangsstyringService,
+            clock = clock,
         )
     }
 }

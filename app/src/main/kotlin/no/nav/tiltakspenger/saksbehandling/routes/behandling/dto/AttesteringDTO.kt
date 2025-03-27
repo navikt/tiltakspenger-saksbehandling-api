@@ -18,6 +18,6 @@ internal fun List<Attestering>.toDTO(): List<AttesteringDTO> {
 internal fun Attestering.toDTO() = AttesteringDTO(
     endretAv = this.beslutter,
     status = this.status,
-    begrunnelse = this.begrunnelse,
+    begrunnelse = this.begrunnelse?.value,
     endretTidspunkt = this.tidspunkt,
 )

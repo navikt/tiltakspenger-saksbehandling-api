@@ -29,6 +29,5 @@ internal fun List<Attestering>.toDbJson(): String =
             attesteringer = this.map {
                 it.toDbJson()
             },
-
         ),
     )

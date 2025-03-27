@@ -39,6 +39,10 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
                 }
             }
 
+    override fun hent(meldekortId: MeldekortId, sessionContext: SessionContext?): MeldekortBehandling? {
+        return data.get()[meldekortId]
+    }
+
     fun hentFnrForMeldekortId(
         meldekortId: MeldekortId,
     ): Fnr? = data.get()[meldekortId]?.fnr

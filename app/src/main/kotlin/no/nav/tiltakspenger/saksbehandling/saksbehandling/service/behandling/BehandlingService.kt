@@ -51,7 +51,7 @@ interface BehandlingService {
     suspend fun sendTilbakeTilSaksbehandler(
         behandlingId: BehandlingId,
         beslutter: Saksbehandler,
-        begrunnelse: String,
+        begrunnelse: String?,
         correlationId: CorrelationId,
     ): Either<KanIkkeUnderkjenne, Behandling>
 

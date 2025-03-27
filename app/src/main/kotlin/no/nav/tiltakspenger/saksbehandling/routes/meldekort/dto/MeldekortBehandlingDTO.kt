@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto
 
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.AttesteringDTO
+import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toDTO
 
 data class MeldekortBehandlingDTO(
     val id: String,
@@ -17,6 +19,7 @@ data class MeldekortBehandlingDTO(
     val brukersMeldekortId: String?,
     val type: MeldekortBehandlingTypeDTO,
     val begrunnelse: String?,
+    val attesteringer: List<AttesteringDTO>,
 )
 
 fun MeldekortBehandlinger.toDTO(): List<MeldekortBehandlingDTO> {
@@ -39,6 +42,7 @@ fun MeldekortBehandling.toDTO(): MeldekortBehandlingDTO {
         dager = beregning.toDTO(),
         brukersMeldekortId = brukersMeldekort?.id.toString(),
         type = type.tilDTO(),
+        attesteringer = attesteringer.toDTO(),
         begrunnelse = begrunnelse?.verdi,
     )
 }

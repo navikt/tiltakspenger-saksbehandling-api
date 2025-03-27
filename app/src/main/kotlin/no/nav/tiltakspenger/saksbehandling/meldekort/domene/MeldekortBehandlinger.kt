@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.getOrElse
 import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -103,18 +102,21 @@ data class MeldekortBehandlinger(
                 return KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagFraSperret.left()
             }
         }
-        val beregninger = kommando.beregn(
+
+        val beregnedeDager = kommando.beregn(
             eksisterendeMeldekortBehandlinger = this,
             barnetilleggsPerioder = barnetilleggsPerioder,
             tiltakstypePerioder = tiltakstypePerioder,
         )
-        val utfyltMeldeperiode =
-            meldekort.beregning.tilBeregnetMeldekort(beregninger).getOrElse {
-                return it.left()
-            }
+
+        val beregning = MeldekortBeregning.UtfyltMeldeperiode(
+            sakId = sakId,
+            maksDagerMedTiltakspengerForPeriode = meldekortUnderBehandling!!.beregning.maksDagerMedTiltakspengerForPeriode,
+            beregninger = beregnedeDager,
+        )
 
         return meldekort.sendTilBeslutter(
-            utfyltMeldeperiode,
+            beregning,
             kommando.meldekortbehandlingBegrunnelse,
             kommando.saksbehandler,
             clock,
