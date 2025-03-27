@@ -34,8 +34,6 @@ data class StatistikkSakDTO(
     val vilkår: List<VilkårStatistikkDTO>,
     // IND
     val sakYtelse: String,
-    // Om saken gjelder utland. Settes til N
-    val sakUtland: String,
     val behandlingType: BehandlingType,
     val behandlingStatus: BehandlingStatus,
     val behandlingResultat: BehandlingResultat?,
@@ -49,8 +47,6 @@ data class StatistikkSakDTO(
     val saksbehandler: String?,
     // Settes til -5 hvis kode 6
     val ansvarligBeslutter: String?,
-    // Settes til -5 hvis kode 6
-    val ansvarligEnhet: String?,
     /** Kun for tilbakekreving: beløp som skal tilbakekreves */
     val tilbakekrevingsbeløp: Double?,
     /** Kun for tilbakekreving: funksjonell periode for tilbakekreving */

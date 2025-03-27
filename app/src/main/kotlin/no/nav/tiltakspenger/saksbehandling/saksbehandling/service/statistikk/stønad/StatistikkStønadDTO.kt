@@ -17,7 +17,6 @@ data class StatistikkStønadDTO(
     val ytelse: String,
 
     val søknadId: String?,
-    val opplysning: String,
     val søknadDato: LocalDate?,
     val søknadFraDato: LocalDate?,
     val søknadTilDato: LocalDate?,

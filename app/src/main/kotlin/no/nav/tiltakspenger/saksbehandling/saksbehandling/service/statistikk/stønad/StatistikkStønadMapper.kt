@@ -27,7 +27,6 @@ fun genererStønadsstatistikkForRammevedtak(
         ytelse = "IND",
 
         søknadId = vedtak.behandling.søknad?.id?.toString(),
-        opplysning = "",
         søknadDato = vedtak.behandling.søknad?.opprettet?.toLocalDate(),
         søknadFraDato = vedtak.behandling.søknad?.tiltak?.deltakelseFom,
         søknadTilDato = vedtak.behandling.søknad?.tiltak?.deltakelseTom,

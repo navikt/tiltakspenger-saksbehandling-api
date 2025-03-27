@@ -9,7 +9,6 @@ data class StatistikkUtbetalingDTO(
     val ordinærBeløp: Int,
     val barnetilleggBeløp: Int,
     val totalBeløp: Int,
-    val beløpBeskrivelse: String,
     val årsak: String,
     val posteringDato: LocalDate,
     val gyldigFraDatoPostering: LocalDate,
