@@ -331,7 +331,8 @@ sealed interface MeldekortBehandling {
             saksbehandler: Saksbehandler,
             clock: Clock,
         ): Either<KanIkkeSendeMeldekortTilBeslutning, MeldekortBehandlet> {
-            require(beregning.periode == this.periode) {
+            // TODO: gjør noe med denne sjekken når vi splitter beregning/utfylling. Dette blir litt rart :D
+            require(Periode(beregning.dager.first().dato, beregning.dager.last().dato) == this.meldeperiode.periode) {
                 "Når man fyller ut et meldekort må meldekortperioden være den samme som den som er opprettet. Opprettet periode: ${this.beregning.periode}, utfylt periode: ${beregning.periode}"
             }
             require(sakId == beregning.sakId)
