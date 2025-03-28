@@ -24,9 +24,9 @@ fun Route.meldekortRoutes(
     clock: Clock,
 ) {
     hentMeldekortRoute(sakService, auditService, tokenService, clock)
-    iverksettMeldekortRoute(iverksettMeldekortService, auditService, tokenService)
-    sendMeldekortTilBeslutterRoute(sendMeldekortTilBeslutterService, auditService, tokenService)
-    opprettMeldekortBehandlingRoute(opprettMeldekortBehandlingService, auditService, tokenService)
+    iverksettMeldekortRoute(iverksettMeldekortService, auditService, tokenService, clock)
+    sendMeldekortTilBeslutterRoute(sendMeldekortTilBeslutterService, auditService, tokenService, clock)
+    opprettMeldekortBehandlingRoute(opprettMeldekortBehandlingService, auditService, tokenService, clock)
     mottaMeldekortRoutes(mottaBrukerutfyltMeldekortService)
     underkjennMeldekortBehandlingRoute(underkjennMeldekortBehandlingService, auditService, tokenService)
 }

@@ -20,15 +20,17 @@ import no.nav.tiltakspenger.saksbehandling.routes.correlationId
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.ikkeTilgang
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.måVæreBeslutter
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.saksbehandlerOgBeslutterKanIkkeVæreLik
-import no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto.toDTO
+import no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.routes.withMeldekortId
 import no.nav.tiltakspenger.saksbehandling.routes.withSakId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.KunneIkkeHenteSakForSakId
+import java.time.Clock
 
 fun Route.iverksettMeldekortRoute(
     iverksettMeldekortService: IverksettMeldekortService,
     auditService: AuditService,
     tokenService: TokenService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -68,7 +70,7 @@ fun Route.iverksettMeldekortRoute(
                                 }
                             }
                         },
-                        { call.respond(HttpStatusCode.OK, it.toDTO()) },
+                        { call.respond(HttpStatusCode.OK, it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock)!!) },
                     )
                 }
             }

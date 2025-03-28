@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekor
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
 import java.lang.IllegalStateException
@@ -36,7 +37,7 @@ class SendMeldekortTilBeslutningService(
      */
     suspend fun sendMeldekortTilBeslutter(
         kommando: SendMeldekortTilBeslutningKommando,
-    ): Either<KanIkkeSendeMeldekortTilBeslutning, MeldekortBehandling.MeldekortBehandlet> {
+    ): Either<KanIkkeSendeMeldekortTilBeslutning, Pair<Sak, MeldekortBehandling.MeldekortBehandlet>> {
         if (!kommando.saksbehandler.erSaksbehandler()) {
             return KanIkkeSendeMeldekortTilBeslutning.MåVæreSaksbehandler(
                 kommando.saksbehandler.roller,
@@ -54,10 +55,12 @@ class SendMeldekortTilBeslutningService(
         }
         return sak.meldekortBehandlinger
             .sendTilBeslutter(kommando, sak.barnetilleggsperioder, sak.tiltakstypeperioder, clock)
-            .map { it.second }
-            .onRight {
-                meldekortBehandlingRepo.oppdater(it)
-                logger.info { "Meldekort med id ${it.id} sendt til beslutter. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
+            .map {
+                Pair(sak.oppdaterMeldekortbehandling(it.second), it.second)
+            }
+            .onRight { (_, meldekort) ->
+                meldekortBehandlingRepo.oppdater(meldekort)
+                logger.info { "Meldekort med id ${meldekort.id} sendt til beslutter. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
             }
     }
 

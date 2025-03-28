@@ -15,9 +15,10 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.routes.correlationId
-import no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto.toDTO
+import no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.routes.withMeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.routes.withSakId
+import java.time.Clock
 
 private const val PATH = "sak/{sakId}/meldeperiode/{kjedeId}/opprettBehandling"
 
@@ -25,6 +26,7 @@ fun Route.opprettMeldekortBehandlingRoute(
     opprettMeldekortBehandlingService: OpprettMeldekortBehandlingService,
     auditService: AuditService,
     tokenService: TokenService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -68,7 +70,7 @@ fun Route.opprettMeldekortBehandlingRoute(
                                 correlationId = correlationId,
                             )
 
-                            call.respond(HttpStatusCode.OK, it.toDTO())
+                            call.respond(HttpStatusCode.OK, it.toMeldeperiodeKjedeDTO(kjedeId, clock)!!)
                         },
                     )
                 }

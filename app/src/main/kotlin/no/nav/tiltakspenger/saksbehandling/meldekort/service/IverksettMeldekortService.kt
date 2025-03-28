@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -17,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
@@ -40,7 +42,7 @@ class IverksettMeldekortService(
 
     suspend fun iverksettMeldekort(
         kommando: IverksettMeldekortKommando,
-    ): Either<KanIkkeIverksetteMeldekort, MeldekortBehandling.MeldekortBehandlet> {
+    ): Either<KanIkkeIverksetteMeldekort, Pair<Sak, MeldekortBehandling.MeldekortBehandlet>> {
         if (!kommando.beslutter.erBeslutter()) {
             return KanIkkeIverksetteMeldekort.MåVæreBeslutter(kommando.beslutter.roller).left()
         }
@@ -81,7 +83,7 @@ class IverksettMeldekortService(
                 utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
                 statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             }
-        }
+        }.map { return Pair(sak.oppdaterMeldekortbehandling(it), it).right() }
     }
 
     private suspend fun kastHvisIkkeTilgangTilPerson(

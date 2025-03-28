@@ -181,7 +181,7 @@ data class MeldekortBehandlinger(
     /**
      * Erstatt eksisterende meldekortbehandling med ny meldekortbehandling.
      */
-    private fun oppdaterMeldekortbehandling(meldekortBehandling: MeldekortBehandling): MeldekortBehandlinger {
+    fun oppdaterMeldekortbehandling(meldekortBehandling: MeldekortBehandling): MeldekortBehandlinger {
         return MeldekortBehandlinger(
             verdi = verdi.map {
                 if (it.id == meldekortBehandling.id) {

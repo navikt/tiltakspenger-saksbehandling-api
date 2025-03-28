@@ -151,6 +151,10 @@ data class Sak(
         return this.copy(meldekortBehandlinger = this.meldekortBehandlinger.leggTil(behandling))
     }
 
+    fun oppdaterMeldekortbehandling(behandling: MeldekortBehandling): Sak {
+        return this.copy(meldekortBehandlinger = this.meldekortBehandlinger.oppdaterMeldekortbehandling(behandling))
+    }
+
     companion object {
         fun ikkeGenererEtter(clock: Clock): LocalDate {
             val dag = LocalDate.now(clock)

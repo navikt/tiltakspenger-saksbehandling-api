@@ -29,11 +29,12 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBesl
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.routes.correlationId
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil
-import no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto.toDTO
+import no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.routes.withBody
 import no.nav.tiltakspenger.saksbehandling.routes.withMeldekortId
 import no.nav.tiltakspenger.saksbehandling.routes.withSakId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.KunneIkkeHenteSakForSakId
+import java.time.Clock
 import java.time.LocalDate
 
 private data class Body(
@@ -84,6 +85,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
     sendMeldekortTilBeslutterService: SendMeldekortTilBeslutningService,
     auditService: AuditService,
     tokenService: TokenService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
     post("/sak/{sakId}/meldekort/{meldekortId}") {
@@ -151,7 +153,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
                                     contextMessage = "Saksbehandler har fylt ut meldekortet og sendt til beslutter",
                                     correlationId = correlationId,
                                 )
-                                call.respond(message = it.toDTO(), status = HttpStatusCode.OK)
+                                call.respond(message = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock)!!, status = HttpStatusCode.OK)
                             },
                         )
                     }
