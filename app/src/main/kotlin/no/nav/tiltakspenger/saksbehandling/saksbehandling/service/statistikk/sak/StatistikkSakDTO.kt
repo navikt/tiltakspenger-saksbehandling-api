@@ -31,7 +31,6 @@ data class StatistikkSakDTO(
     val forventetOppstartTidspunkt: LocalDate?,
     /** Tidspunktet da fagsystemet legger hendelsen på grensesnittet/topicen. */
     val tekniskTidspunkt: LocalDateTime,
-    val vilkår: List<VilkårStatistikkDTO>,
     // IND
     val sakYtelse: String,
     val behandlingType: BehandlingType,
@@ -57,12 +56,6 @@ data class StatistikkSakDTO(
     // commit hash
     val versjon: String,
     val hendelse: String,
-)
-
-data class VilkårStatistikkDTO(
-    val vilkår: String,
-    val beskrivelse: String,
-    val resultat: Resultat,
 )
 
 enum class Format {
