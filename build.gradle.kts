@@ -183,7 +183,7 @@ tasks {
 
     register("checkFlywayMigrationNames") {
         doLast {
-            val files = project.file("app/src/main/resources/db/migration").walk()
+            val files = project.file("src/main/resources/db/migration").walk()
                 .filter { it.isFile && it.extension == "sql" }
                 .toList()
 
@@ -214,6 +214,7 @@ tasks {
     }
     jar {
         dependsOn(configurations.runtimeClasspath)
+        archiveBaseName = "app"
 
         manifest {
             attributes["Main-Class"] = "no.nav.tiltakspenger.saksbehandling.AppKt"

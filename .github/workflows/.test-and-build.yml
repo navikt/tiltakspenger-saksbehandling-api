@@ -39,7 +39,7 @@ jobs:
       - name: Test and build application
         uses: gradle/gradle-build-action@v3
         with:
-          arguments: build --info app:installDist
+          arguments: build --info installDist
 
       - name: Build and push docker image
         uses: nais/docker-build-push@v0
