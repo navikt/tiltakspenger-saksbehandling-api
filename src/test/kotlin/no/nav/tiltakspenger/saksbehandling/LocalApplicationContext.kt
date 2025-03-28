@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringServiceImpl
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.clients.pdfgen.PdfgenHttpClient
 import no.nav.tiltakspenger.saksbehandling.clients.person.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.context.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.context.DokumentContext
@@ -20,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.context.SakContext
 import no.nav.tiltakspenger.saksbehandling.context.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.context.TiltakContext
 import no.nav.tiltakspenger.saksbehandling.context.UtbetalingContext
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.DokdistFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.FellesFakeAdressebeskyttelseKlient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.FellesFakeSkjermingsklient

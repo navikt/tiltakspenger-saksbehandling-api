@@ -8,12 +8,9 @@ import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
 import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
-import no.nav.tiltakspenger.libs.ktor.common.respond501NotImplemented
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeImplementertException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.ikkeFunnet
-import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.ikkeImplementert
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.ikkeTilgang
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.serverfeil
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.ugyldigRequest
@@ -41,10 +38,6 @@ object ExceptionHandler {
 
             is IkkeFunnetException -> {
                 call.respond404NotFound(ikkeFunnet())
-            }
-
-            is IkkeImplementertException -> {
-                call.respond501NotImplemented(ikkeImplementert())
             }
 
             // Catch all

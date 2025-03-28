@@ -13,8 +13,6 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.saksbehandling.Configuration
 import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
-import no.nav.tiltakspenger.saksbehandling.clients.oppgave.OppgaveHttpClient
-import no.nav.tiltakspenger.saksbehandling.clients.veilarboppfolging.VeilarboppfolgingHttpClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient
 import no.nav.tiltakspenger.saksbehandling.db.DataSourceSetup
@@ -26,6 +24,8 @@ import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.komet.Tiltak
 import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaRepository
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.GenererMeldeperioderService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMeldekortService
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingHttpClient
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.VeilarboppfolgingGateway
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.NavkontorService

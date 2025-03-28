@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.komet
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusType
 import no.nav.tiltakspenger.libs.tiltak.toDeltakerStatusDTO
-import no.nav.tiltakspenger.saksbehandling.clients.tiltak.toDomain
 import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.toDomain
 import java.time.LocalDate
 import java.util.UUID
 

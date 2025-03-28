@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.clients.pdfgen
 
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.saksbehandling.clients.pdfgen.PdfgenHttpClient
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 

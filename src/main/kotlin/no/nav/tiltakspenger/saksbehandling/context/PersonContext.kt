@@ -7,11 +7,11 @@ import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringServiceImpl
 import no.nav.tiltakspenger.saksbehandling.Configuration
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.clients.person.MicrosoftGraphApiClient
-import no.nav.tiltakspenger.saksbehandling.clients.person.PersonHttpklient
-import no.nav.tiltakspenger.saksbehandling.clients.poaotilgang.PoaoTilgangClient
+import no.nav.tiltakspenger.saksbehandling.auth.poaotilgang.infra.PoaoTilgangClient
 import no.nav.tiltakspenger.saksbehandling.felles.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.person.infra.MicrosoftGraphApiClient
+import no.nav.tiltakspenger.saksbehandling.person.infra.PersonHttpklient
 import no.nav.tiltakspenger.saksbehandling.repository.person.PersonPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.PersonGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.PersonRepo

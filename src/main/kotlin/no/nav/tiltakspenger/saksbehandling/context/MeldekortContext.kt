@@ -5,8 +5,8 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.Configuration
-import no.nav.tiltakspenger.saksbehandling.clients.meldekort.MeldekortApiHttpClient
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.MeldekortApiHttpClient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiHttpClientGateway
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
