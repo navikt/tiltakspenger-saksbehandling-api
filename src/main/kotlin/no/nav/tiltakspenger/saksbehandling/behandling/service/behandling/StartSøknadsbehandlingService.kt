@@ -15,23 +15,22 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.genererStatistikkForNyFørstegangsbehandling
 import java.time.Clock
 
 class StartSøknadsbehandlingService(
-    private val sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
+    private val sakService: SakService,
     private val sessionFactory: SessionFactory,
     private val tilgangsstyringService: TilgangsstyringService,
     private val gitHash: String,
     private val behandlingRepo: BehandlingRepo,
     private val statistikkSakRepo: StatistikkSakRepo,
-    private val oppdaterSaksopplysningerService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService,
+    private val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
     private val clock: Clock,
 ) {
 
@@ -42,10 +41,10 @@ class StartSøknadsbehandlingService(
         sakId: SakId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteSøknadsbehandling, Behandling> {
+    ): Either<KanIkkeStarteSøknadsbehandling, Behandling> {
         if (!saksbehandler.erSaksbehandler()) {
             logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å opprette behandling for fnr" }
-            return no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteSøknadsbehandling.HarIkkeTilgang(
+            return KanIkkeStarteSøknadsbehandling.HarIkkeTilgang(
                 kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER),
                 harRollene = saksbehandler.roller,
             ).left()
@@ -64,7 +63,7 @@ class StartSøknadsbehandlingService(
                     )
                 }
         require(adressebeskyttelseGradering != null) { "Fant ikke adressebeskyttelse for person. SøknadId: $søknadId" }
-        val hentSaksopplysninger: suspend (Periode) -> no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger = { saksopplysningsperiode: Periode ->
+        val hentSaksopplysninger: suspend (Periode) -> Saksopplysninger = { saksopplysningsperiode: Periode ->
             oppdaterSaksopplysningerService.hentSaksopplysningerFraRegistre(
                 fnr = fnr,
                 correlationId = correlationId,
@@ -79,7 +78,7 @@ class StartSøknadsbehandlingService(
             saksbehandler = saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,
-        ).getOrElse { return no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteSøknadsbehandling.OppretteBehandling(it).left() }
+        ).getOrElse { return KanIkkeStarteSøknadsbehandling.OppretteBehandling(it).left() }
 
         val statistikk =
             no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.genererStatistikkForNyFørstegangsbehandling(

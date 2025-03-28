@@ -6,5 +6,5 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHente
 sealed interface KanIkkeIverksetteMeldekort {
     data class MåVæreBeslutter(val roller: Saksbehandlerroller) : KanIkkeIverksetteMeldekort
     data object SaksbehandlerOgBeslutterKanIkkeVæreLik : KanIkkeIverksetteMeldekort
-    data class KunneIkkeHenteSak(val underliggende: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSakId) : KanIkkeIverksetteMeldekort
+    data class KunneIkkeHenteSak(val underliggende: KunneIkkeHenteSakForSakId) : KanIkkeIverksetteMeldekort
 }

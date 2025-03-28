@@ -19,12 +19,12 @@ open class SakContext(
     sessionFactory: SessionFactory,
     tilgangsstyringService: TilgangsstyringService,
     poaoTilgangGateway: PoaoTilgangGateway,
-    personService: no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService,
+    personService: PersonService,
     profile: Profile,
     clock: Clock,
 ) {
-    val sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService by lazy {
-        no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakServiceImpl(
+    val sakService: SakService by lazy {
+        SakServiceImpl(
             sakRepo = sakRepo,
             saksoversiktRepo = saksoversiktRepo,
             tilgangsstyringService = tilgangsstyringService,

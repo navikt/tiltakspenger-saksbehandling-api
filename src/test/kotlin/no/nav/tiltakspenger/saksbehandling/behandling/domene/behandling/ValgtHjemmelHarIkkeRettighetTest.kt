@@ -1,5 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling
 
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForAvslag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.toValgtHjemmelHarIkkeRettighet
 import org.junit.jupiter.api.Assertions.assertEquals

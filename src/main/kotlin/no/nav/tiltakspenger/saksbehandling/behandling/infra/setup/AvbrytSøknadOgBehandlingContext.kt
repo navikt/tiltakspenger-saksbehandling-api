@@ -7,13 +7,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Behandl
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 
 open class AvbrytSøknadOgBehandlingContext(
-    sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
-    søknadService: no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService,
-    behandlingService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService,
+    sakService: SakService,
+    søknadService: SøknadService,
+    behandlingService: BehandlingService,
     sessionFactory: SessionFactory,
 ) {
     val avsluttSøknadOgBehandlingService =
-        no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingServiceImpl(
+        AvbrytSøknadOgBehandlingServiceImpl(
             sakService = sakService,
             søknadService = søknadService,
             behandlingService = behandlingService,

@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 
 fun Route.hentBehandlingRoute(
     tokenService: TokenService,
-    behandlingService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService,
+    behandlingService: BehandlingService,
     auditService: AuditService,
 ) {
     val logger = KotlinLogging.logger {}

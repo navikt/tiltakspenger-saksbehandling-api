@@ -8,14 +8,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad
 
 class StatistikkStønadFakeRepo : StatistikkStønadRepo {
 
-    private val stønadsdata = Atomic(mutableMapOf<String, no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO>())
-    private val utbetalingsdata = Atomic(mutableMapOf<String, no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkUtbetalingDTO>())
+    private val stønadsdata = Atomic(mutableMapOf<String, StatistikkStønadDTO>())
+    private val utbetalingsdata = Atomic(mutableMapOf<String, StatistikkUtbetalingDTO>())
 
-    override fun lagre(dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO, context: TransactionContext?) {
+    override fun lagre(dto: StatistikkStønadDTO, context: TransactionContext?) {
         stønadsdata.get()[dto.id.toString()] = dto
     }
 
-    override fun lagre(dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkUtbetalingDTO, context: TransactionContext?) {
+    override fun lagre(dto: StatistikkUtbetalingDTO, context: TransactionContext?) {
         utbetalingsdata.get()[dto.id] = dto
     }
 }

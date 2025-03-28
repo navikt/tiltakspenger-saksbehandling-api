@@ -7,13 +7,13 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.juni
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.BarnetilleggFraSøknad
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
+import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.søknad.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -95,7 +95,7 @@ interface SøknadMother {
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         oppgaveId: OppgaveId? = ObjectMother.oppgaveId(),
-        avbrutt: no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Avbrutt? = null,
+        avbrutt: Avbrutt? = null,
     ): Søknad =
         Søknad(
             versjon = versjon,

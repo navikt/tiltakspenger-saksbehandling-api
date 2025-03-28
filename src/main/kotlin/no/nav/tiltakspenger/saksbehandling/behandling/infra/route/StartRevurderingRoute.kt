@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.StartRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.StartRevurderingService
@@ -24,7 +24,7 @@ private const val PATH = "/sak/{sakId}/revurdering/start"
 
 fun Route.startRevurderingRoute(
     tokenService: TokenService,
-    startRevurderingService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.StartRevurderingService,
+    startRevurderingService: StartRevurderingService,
     auditService: AuditService,
 ) {
     val logger = KotlinLogging.logger {}
@@ -38,7 +38,7 @@ fun Route.startRevurderingRoute(
                     .fold(
                         {
                             when (it) {
-                                is no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteRevurdering.HarIkkeTilgang -> {
+                                is KanIkkeStarteRevurdering.HarIkkeTilgang -> {
                                     call.respond403Forbidden(
                                         ikkeTilgang("Krever en av rollene ${it.kreverEnAvRollene} for å starte en behandling."),
                                     )

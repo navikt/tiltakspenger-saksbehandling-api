@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppretteBehandling
 import no.nav.tiltakspenger.saksbehandling.benk.Saksoversikt
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPersonMedSkjerming
@@ -73,7 +74,7 @@ interface SakService {
 
 sealed interface KanIkkeStarteSøknadsbehandling {
     data class OppretteBehandling(
-        val underliggende: no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeOppretteBehandling,
+        val underliggende: KanIkkeOppretteBehandling,
     ) : KanIkkeStarteSøknadsbehandling
 
     data class HarIkkeTilgang(

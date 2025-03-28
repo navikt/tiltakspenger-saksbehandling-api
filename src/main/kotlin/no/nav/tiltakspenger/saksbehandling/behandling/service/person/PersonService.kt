@@ -42,14 +42,14 @@ class PersonService(
         personRepo.hentFnrForSøknadId(søknadId)
             ?: throw IkkeFunnetException("Fant ikke fnr på søknadId: søknadId")
 
-    suspend fun hentEnkelPersonFnr(fnr: Fnr): Either<no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson, EnkelPerson> {
+    suspend fun hentEnkelPersonFnr(fnr: Fnr): Either<KunneIkkeHenteEnkelPerson, EnkelPerson> {
         // TODO post-mvp jah: Her burde klienten logget feilen og gitt en Left.
         return Either.catch {
             personClient.hentEnkelPerson(fnr)
         }.mapLeft {
             logger.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved kall mot PDL. Se sikkerlogg for mer kontekst." }
             sikkerlogg.error(it) { "Feil ved kall mot PDL for fnr: $fnr." }
-            no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl
+            KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl
         }
     }
 

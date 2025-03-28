@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus.Deltar
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse

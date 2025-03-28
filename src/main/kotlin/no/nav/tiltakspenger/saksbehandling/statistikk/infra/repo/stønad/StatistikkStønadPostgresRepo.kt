@@ -18,7 +18,7 @@ class StatistikkStønadPostgresRepo(
     private val clock: Clock,
 ) : StatistikkStønadRepo {
     override fun lagre(
-        dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO,
+        dto: StatistikkStønadDTO,
         context: TransactionContext?,
     ) {
         sessionFactory.withTransaction(context) { tx ->
@@ -27,7 +27,7 @@ class StatistikkStønadPostgresRepo(
     }
 
     internal fun lagre(
-        dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO,
+        dto: StatistikkStønadDTO,
         tx: TransactionalSession,
     ) {
         tx.run(
@@ -62,7 +62,7 @@ class StatistikkStønadPostgresRepo(
     }
 
     override fun lagre(
-        dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkUtbetalingDTO,
+        dto: StatistikkUtbetalingDTO,
         context: TransactionContext?,
     ) {
         sessionFactory.withTransaction(context) { tx ->
@@ -71,7 +71,7 @@ class StatistikkStønadPostgresRepo(
     }
 
     fun lagre(
-        dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkUtbetalingDTO,
+        dto: StatistikkUtbetalingDTO,
         tx: TransactionalSession,
     ) {
         tx.run(

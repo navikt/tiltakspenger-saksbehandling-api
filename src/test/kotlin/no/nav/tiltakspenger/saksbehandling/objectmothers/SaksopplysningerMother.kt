@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import java.time.LocalDate
 
@@ -12,8 +12,8 @@ interface SaksopplysningerMother {
         tom: LocalDate = 31.mars(2023),
         fødselsdato: LocalDate = ObjectMother.fødselsdato(),
         tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelse(fom = fom, tom = tom),
-    ): no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger {
-        return no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger(
+    ): Saksopplysninger {
+        return Saksopplysninger(
             fødselsdato = fødselsdato,
             tiltaksdeltagelse = listOf(tiltaksdeltagelse),
         )

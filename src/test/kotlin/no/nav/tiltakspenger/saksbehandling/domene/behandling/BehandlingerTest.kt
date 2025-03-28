@@ -7,9 +7,9 @@ import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -31,7 +31,7 @@ class BehandlingerTest {
             fnr = fnr,
             sakId = sakId,
             status = Behandlingsstatus.AVBRUTT,
-            avbrutt = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Avbrutt(
+            avbrutt = Avbrutt(
                 førsteNovember24,
                 "aaa",
                 "bbb",

@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.infra.route
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 
 internal data class AvbruttDTO(
     val avbruttAv: String,
@@ -8,7 +8,7 @@ internal data class AvbruttDTO(
     val begrunnelse: String,
 )
 
-internal fun no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Avbrutt.toAvbruttDTO() = AvbruttDTO(
+internal fun Avbrutt.toAvbruttDTO() = AvbruttDTO(
     avbruttAv = saksbehandler,
     avbruttTidspunkt = tidspunkt.toString(),
     begrunnelse = begrunnelse,

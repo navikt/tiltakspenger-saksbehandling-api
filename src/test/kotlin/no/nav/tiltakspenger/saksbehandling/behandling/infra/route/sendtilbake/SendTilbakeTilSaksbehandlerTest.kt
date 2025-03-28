@@ -5,8 +5,9 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.NonBlankString
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attestering
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.felles.Attestering
+import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -28,11 +29,11 @@ class SendTilbakeTilSaksbehandlerTest {
                     val (_, _, behandlingId, _) = this.sendTilbake(tac)
                     tac.behandlingContext.behandlingRepo.hent(behandlingId).attesteringer.single().let {
                         it shouldBe
-                            no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attestering(
+                            Attestering(
                                 // Ignorerer id+tidspunkt
                                 id = it.id,
                                 tidspunkt = it.tidspunkt,
-                                status = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringsstatus.SENDT_TILBAKE,
+                                status = Attesteringsstatus.SENDT_TILBAKE,
                                 begrunnelse = NonBlankString.create("send_tilbake_begrunnelse"),
                                 beslutter = ObjectMother.beslutter().navIdent,
                             )

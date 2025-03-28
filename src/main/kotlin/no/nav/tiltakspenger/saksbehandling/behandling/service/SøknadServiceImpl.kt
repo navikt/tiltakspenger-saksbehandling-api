@@ -4,17 +4,17 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 
 class SøknadServiceImpl(
     private val søknadRepo: SøknadRepo,
     private val oppgaveGateway: OppgaveGateway,
-) : no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService {
+) : SøknadService {
     private val log = KotlinLogging.logger {}
 
     override suspend fun nySøknad(søknad: Søknad, systembruker: Systembruker) {

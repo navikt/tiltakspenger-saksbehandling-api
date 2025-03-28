@@ -2,12 +2,14 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.infra.route.BarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.infra.route.toBarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.toAttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toSøknadDTO

@@ -10,19 +10,18 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste
-import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -34,7 +33,7 @@ data class Sak(
     val fnr: Fnr,
     val saksnummer: Saksnummer,
     val behandlinger: Behandlinger,
-    val vedtaksliste: no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste,
+    val vedtaksliste: Vedtaksliste,
     val meldekortBehandlinger: MeldekortBehandlinger,
     val meldeperiodeKjeder: MeldeperiodeKjeder,
     val brukersMeldekort: List<BrukersMeldekort>,

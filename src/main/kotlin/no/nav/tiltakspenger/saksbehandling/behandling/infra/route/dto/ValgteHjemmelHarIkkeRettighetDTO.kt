@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlingstype
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.ValgtHjemmelForAvslag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.ValgtHjemmelHarIkkeRettighet
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.ValgtHjemmelType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForAvslag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelType
 
 fun List<ValgtHjemmelHarIkkeRettighet>.toDTO(type: Behandlingstype): List<String> {
     val valgtHjemmelType = when (type) {

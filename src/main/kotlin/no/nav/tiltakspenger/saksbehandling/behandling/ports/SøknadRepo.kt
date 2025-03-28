@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 
 interface SøknadRepo {
     fun lagre(

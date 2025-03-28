@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.behandling.ports
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
 import java.time.LocalDate
 import java.time.LocalDateTime

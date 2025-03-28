@@ -16,12 +16,12 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import org.json.JSONObject
 
 interface OppdaterBegrunnelseBuilder {

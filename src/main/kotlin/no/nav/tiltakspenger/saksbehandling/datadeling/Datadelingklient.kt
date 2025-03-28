@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.datadeling
 
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 interface DatadelingClient {
 

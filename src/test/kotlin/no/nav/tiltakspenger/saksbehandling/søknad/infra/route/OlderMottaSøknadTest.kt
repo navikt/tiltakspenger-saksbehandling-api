@@ -14,14 +14,14 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.april
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.BarnetilleggFraSøknad
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.søknad.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime

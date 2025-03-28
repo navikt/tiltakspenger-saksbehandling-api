@@ -5,6 +5,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad
 import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkUtbetalingDTO
 
 interface StatistikkStønadRepo {
-    fun lagre(dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO, context: TransactionContext? = null)
-    fun lagre(dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkUtbetalingDTO, context: TransactionContext? = null)
+    fun lagre(dto: StatistikkStønadDTO, context: TransactionContext? = null)
+    fun lagre(dto: StatistikkUtbetalingDTO, context: TransactionContext? = null)
 }

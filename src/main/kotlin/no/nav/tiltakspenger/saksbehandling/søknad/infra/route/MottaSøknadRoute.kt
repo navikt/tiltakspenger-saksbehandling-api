@@ -19,8 +19,8 @@ private val logger = KotlinLogging.logger {}
 const val SØKNAD_PATH = "/soknad"
 
 fun Route.mottaSøknadRoute(
-    søknadService: no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService,
-    sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
+    søknadService: SøknadService,
+    sakService: SakService,
     tokenService: TokenService,
 ) {
     post(SØKNAD_PATH) {

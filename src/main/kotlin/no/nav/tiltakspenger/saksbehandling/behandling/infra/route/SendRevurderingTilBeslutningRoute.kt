@@ -13,9 +13,9 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.SendRevurderingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendRevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -52,7 +52,7 @@ private data class SendRevurderingTilBeslutningBody(
 private const val PATH = "/sak/{sakId}/revurdering/{behandlingId}/sendtilbeslutning"
 
 fun Route.sendRevurderingTilBeslutningRoute(
-    sendBehandlingTilBeslutningService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService,
+    sendBehandlingTilBeslutningService: SendBehandlingTilBeslutningService,
     auditService: AuditService,
     tokenService: TokenService,
 ) {

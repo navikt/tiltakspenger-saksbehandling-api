@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.ktor.common.respond501NotImplemented
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeOppretteBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppretteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteSøknadsbehandling
@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withSøknadId
 
 fun Route.startSøknadsbehandlingRoute(
     tokenService: TokenService,
-    startSøknadsbehandlingService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService,
+    startSøknadsbehandlingService: StartSøknadsbehandlingService,
     auditService: AuditService,
 ) {
     val logger = KotlinLogging.logger {}
@@ -40,15 +40,15 @@ fun Route.startSøknadsbehandlingRoute(
                     ).fold(
                         {
                             when (it) {
-                                is no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteSøknadsbehandling.OppretteBehandling ->
+                                is KanIkkeStarteSøknadsbehandling.OppretteBehandling ->
                                     when (it.underliggende) {
-                                        is no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeOppretteBehandling.IngenRelevanteTiltak -> call.respond501NotImplemented(
+                                        is KanIkkeOppretteBehandling.IngenRelevanteTiltak -> call.respond501NotImplemented(
                                             melding = "Ingen relevante tiltak for denne søknaden - dette støtter vi ikke ennå",
                                             kode = "",
                                         )
                                     }
 
-                                is no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteSøknadsbehandling.HarIkkeTilgang -> {
+                                is KanIkkeStarteSøknadsbehandling.HarIkkeTilgang -> {
                                     call.respond403Forbidden(
                                         ikkeTilgang("Krever en av rollene ${it.kreverEnAvRollene} for å starte en behandling."),
                                     )

@@ -51,10 +51,10 @@ import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
-import no.nav.tiltakspenger.saksbehandling.søknad.SøknadContext
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
-import no.nav.tiltakspenger.saksbehandling.utbetaling.UtbetalingContext
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 
 /**
  * Oppretter en tom ApplicationContext for bruk i tester.

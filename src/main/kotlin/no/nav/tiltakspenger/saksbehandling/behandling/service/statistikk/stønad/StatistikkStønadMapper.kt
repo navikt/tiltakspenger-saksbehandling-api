@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.util.UUID
 
 /**
@@ -9,8 +9,8 @@ import java.util.UUID
  */
 fun genererStønadsstatistikkForRammevedtak(
     vedtak: Rammevedtak,
-): no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO {
-    return no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO(
+): StatistikkStønadDTO {
+    return StatistikkStønadDTO(
         id = UUID.randomUUID(),
         brukerId = vedtak.fnr.verdi,
 

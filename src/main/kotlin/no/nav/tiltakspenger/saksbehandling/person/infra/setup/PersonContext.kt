@@ -56,7 +56,7 @@ open class PersonContext(
         )
     }
     val personService by lazy {
-        no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService(
+        PersonService(
             personRepo = personRepo,
             personClient = personGateway,
         )

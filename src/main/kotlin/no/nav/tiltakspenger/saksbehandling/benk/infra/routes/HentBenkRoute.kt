@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSaksoversiktDTO
 
 fun Route.hentBenkRoute(
     tokenService: TokenService,
-    sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
+    sakService: SakService,
 ) {
     val logger = KotlinLogging.logger {}
 
@@ -30,7 +30,7 @@ fun Route.hentBenkRoute(
             ).fold(
                 {
                     when (it) {
-                        is no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeHenteSaksoversikt.HarIkkeTilgang -> call.respond403Forbidden(
+                        is KanIkkeHenteSaksoversikt.HarIkkeTilgang -> call.respond403Forbidden(
                             ikkeTilgang("Må ha en av rollene ${it.kreverEnAvRollene} for å hente behandlinger på benken."),
                         )
                     }

@@ -31,7 +31,7 @@ class ExceptionHandlingTest {
     @Test
     fun `IllegalStateException skal bli til 500`() {
         val tokenServiceMock = mockk<TokenService>()
-        val sakService = mockk<no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService>()
+        val sakService = mockk<SakService>()
         runTest {
             coEvery { tokenServiceMock.validerOgHentBruker(any()) } returns ObjectMother.beslutter().right()
             coEvery { sakService.hentBenkOversikt(any(), any()) } throws IllegalStateException("Wuzza")

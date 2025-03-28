@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev
 
 import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlingstype
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.validerStansDato
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.validerStansDato
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -14,14 +14,14 @@ import no.nav.tiltakspenger.saksbehandling.person.NavIdentClient
 import java.time.LocalDate
 
 class ForhåndsvisVedtaksbrevService(
-    private val sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
+    private val sakService: SakService,
     private val genererInnvilgelsesbrevClient: GenererInnvilgelsesvedtaksbrevGateway,
     private val genererStansbrevClient: GenererStansvedtaksbrevGateway,
-    private val personService: no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService,
+    private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
 ) {
     suspend fun forhåndsvisVedtaksbrev(
-        kommando: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevKommando,
+        kommando: ForhåndsvisVedtaksbrevKommando,
     ): PdfA {
         // hentForSakId sjekker tilgang til person og sak.
         val sak = sakService.hentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId).getOrElse {

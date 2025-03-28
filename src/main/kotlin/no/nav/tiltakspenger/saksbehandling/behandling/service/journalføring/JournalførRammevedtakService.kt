@@ -5,7 +5,6 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtakstype
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførVedtaksbrevGateway
@@ -13,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.person.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.Clock
 import java.time.LocalDate
 
@@ -21,7 +21,7 @@ class JournalførRammevedtakService(
     private val rammevedtakRepo: RammevedtakRepo,
     private val genererInnvilgelsesvedtaksbrevGateway: GenererInnvilgelsesvedtaksbrevGateway,
     private val genererStansvedtaksbrevGateway: GenererStansvedtaksbrevGateway,
-    private val personService: no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService,
+    private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
     private val clock: Clock,
 ) {

@@ -26,7 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import java.time.Clock
 
 fun Route.hentSakForFnrRoute(
-    sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
+    sakService: SakService,
     auditService: AuditService,
     tokenService: TokenService,
     clock: Clock,
@@ -56,8 +56,8 @@ fun Route.hentSakForFnrRoute(
                 sakService.hentForFnr(fnr, saksbehandler, correlationId).fold(
                     ifLeft = {
                         when (it) {
-                            is no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForFnr.FantIkkeSakForFnr -> call.respond404NotFound(Standardfeil.fantIkkeFnr())
-                            is no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForFnr.HarIkkeTilgang -> call.respond403Forbidden(ikkeTilgang("Må ha en av rollene ${it.kreverEnAvRollene} for å hente sak for fnr."))
+                            is KunneIkkeHenteSakForFnr.FantIkkeSakForFnr -> call.respond404NotFound(Standardfeil.fantIkkeFnr())
+                            is KunneIkkeHenteSakForFnr.HarIkkeTilgang -> call.respond403Forbidden(ikkeTilgang("Må ha en av rollene ${it.kreverEnAvRollene} for å hente sak for fnr."))
                         }
                     },
                     ifRight = {

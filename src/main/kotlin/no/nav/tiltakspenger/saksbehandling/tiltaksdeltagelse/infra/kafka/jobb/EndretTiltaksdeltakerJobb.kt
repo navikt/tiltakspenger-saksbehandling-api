@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.jobb
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo

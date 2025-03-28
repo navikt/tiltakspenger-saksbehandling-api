@@ -14,9 +14,11 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.infra.route.BarnetilleggPeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.infra.route.tilPeriodisering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilPeriodisering
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
@@ -35,10 +37,10 @@ internal data class ForhåndsvisBehandlingBody(
         behandlingId: BehandlingId,
         correlationId: CorrelationId,
         saksbehandler: Saksbehandler,
-    ): no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevKommando {
+    ): ForhåndsvisVedtaksbrevKommando {
         val virkningsperiode = virkningsperiode?.toDomain()
 
-        return no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevKommando(
+        return ForhåndsvisVedtaksbrevKommando(
             fritekstTilVedtaksbrev = FritekstTilVedtaksbrev(fritekst),
             sakId = sakId,
             behandlingId = behandlingId,
@@ -55,7 +57,7 @@ internal data class ForhåndsvisBehandlingBody(
 fun Route.forhåndsvisVedtaksbrevRoute(
     tokenService: TokenService,
     auditService: AuditService,
-    forhåndsvisVedtaksbrevService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService,
+    forhåndsvisVedtaksbrevService: ForhåndsvisVedtaksbrevService,
 ) {
     val logger = KotlinLogging.logger {}
     post("/sak/{sakId}/behandling/{behandlingId}/forhandsvis") {

@@ -2,13 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.SaksopplysningerDbJson.TiltaksdeltagelseDbJson
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.tiltakDeltagelse.toDb
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.tiltakDeltagelse.toTiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.tiltakDeltagelse.toTiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toDb
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toTiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toTiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toTiltakstypeSomGirRett
 import java.time.LocalDate
 
@@ -63,16 +62,16 @@ private fun Tiltaksdeltagelse.toDbJson(): TiltaksdeltagelseDbJson {
     )
 }
 
-fun no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger.toDbJson(): String {
+fun Saksopplysninger.toDbJson(): String {
     return SaksopplysningerDbJson(
         fødselsdato = fødselsdato.toString(),
         tiltaksdeltagelse = tiltaksdeltagelse.map { it.toDbJson() },
     ).let { serialize(it) }
 }
 
-fun String.toSaksopplysninger(): no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger {
+fun String.toSaksopplysninger(): Saksopplysninger {
     val dbJson = deserialize<SaksopplysningerDbJson>(this)
-    return no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger(
+    return Saksopplysninger(
         fødselsdato = LocalDate.parse(dbJson.fødselsdato),
         tiltaksdeltagelse = dbJson.tiltaksdeltagelse.map { it.toDomain() },
     )

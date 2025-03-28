@@ -11,14 +11,14 @@ import org.intellij.lang.annotations.Language
 internal class StatistikkSakRepoImpl(
     private val sessionFactory: PostgresSessionFactory,
 ) : StatistikkSakRepo {
-    override fun lagre(dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.StatistikkSakDTO, context: TransactionContext?) {
+    override fun lagre(dto: StatistikkSakDTO, context: TransactionContext?) {
         sessionFactory.withTransaction(context) { tx ->
             lagre(dto, tx)
         }
     }
 
     companion object {
-        fun lagre(dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.StatistikkSakDTO, tx: TransactionalSession) {
+        fun lagre(dto: StatistikkSakDTO, tx: TransactionalSession) {
             tx.run(
                 queryOf(
                     lagreSql,

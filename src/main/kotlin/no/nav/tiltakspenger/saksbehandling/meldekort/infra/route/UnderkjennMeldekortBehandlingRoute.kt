@@ -15,9 +15,9 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KunneIkkeUnderkjenneMeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UnderkjennMeldekortBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.UtbetalingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldekortBehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingService
 
 internal const val UNDERKJENN_MELDEKORT_BEHANDLING_PATH = "/sak/{sakId}/meldekort/{meldekortId}/underkjenn"

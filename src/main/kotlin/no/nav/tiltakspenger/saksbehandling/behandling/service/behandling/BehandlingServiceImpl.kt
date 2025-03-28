@@ -14,14 +14,14 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attestering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeHenteBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeTaBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeUnderkjenne
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeHenteBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeTaBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeUnderkjenne
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
+import no.nav.tiltakspenger.saksbehandling.felles.Attestering
+import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
@@ -31,9 +31,9 @@ class BehandlingServiceImpl(
     private val behandlingRepo: BehandlingRepo,
     private val sessionFactory: SessionFactory,
     private val tilgangsstyringService: TilgangsstyringService,
-    private val personService: no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService,
+    private val personService: PersonService,
     private val clock: Clock,
-) : no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService {
+) : BehandlingService {
     val logger = KotlinLogging.logger { }
 
     override fun hentBehandlingForSystem(
@@ -59,10 +59,10 @@ class BehandlingServiceImpl(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
         sessionContext: SessionContext?,
-    ): Either<no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeHenteBehandling, Behandling> {
+    ): Either<KanIkkeHenteBehandling, Behandling> {
         if (!saksbehandler.erSaksbehandler()) {
             logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å hente behandling" }
-            return no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeHenteBehandling.MåVæreSaksbehandlerEllerBeslutter.left()
+            return KanIkkeHenteBehandling.MåVæreSaksbehandlerEllerBeslutter.left()
         }
         sjekkTilgang(behandlingId, saksbehandler, correlationId)
 
@@ -92,8 +92,8 @@ class BehandlingServiceImpl(
         }
 
         val attestering =
-            no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attestering(
-                status = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringsstatus.SENDT_TILBAKE,
+            Attestering(
+                status = Attesteringsstatus.SENDT_TILBAKE,
                 begrunnelse = nonBlankBegrunnelse,
                 beslutter = beslutter.navIdent,
                 tidspunkt = nå(clock),

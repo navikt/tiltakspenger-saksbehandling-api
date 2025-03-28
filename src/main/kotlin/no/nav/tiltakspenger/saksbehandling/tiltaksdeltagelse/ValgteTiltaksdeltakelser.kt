@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 
 /**
  * Saksbehandler skal kunne velge hvilke tiltaksdeltakelser man velger å innvilge tiltakspenger for i gitte perioder,

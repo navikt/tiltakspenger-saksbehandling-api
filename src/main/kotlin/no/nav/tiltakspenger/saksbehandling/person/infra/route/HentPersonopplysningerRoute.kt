@@ -21,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SAK_PATH
 
 fun Route.hentPersonRoute(
     tokenService: TokenService,
-    sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
+    sakService: SakService,
     auditService: AuditService,
 ) {
     val logger = KotlinLogging.logger {}
@@ -35,12 +35,12 @@ fun Route.hentPersonRoute(
                 }.fold(
                     {
                         when (it) {
-                            no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson.FantIkkeSakId -> Standardfeil.fantIkkeSak()
-                            no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl -> call.respond500InternalServerError(
+                            KunneIkkeHenteEnkelPerson.FantIkkeSakId -> Standardfeil.fantIkkeSak()
+                            KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl -> call.respond500InternalServerError(
                                 melding = "Feil ved kall mot PDL",
                                 kode = "feil_ved_kall_mot_pdl",
                             )
-                            is no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson.HarIkkeTilgang -> call.respond403Forbidden(ikkeTilgang("Må ha rollen ${it.kreverEnAvRollene} for å hente personopplysninger knyttet til sak"))
+                            is KunneIkkeHenteEnkelPerson.HarIkkeTilgang -> call.respond403Forbidden(ikkeTilgang("Må ha rollen ${it.kreverEnAvRollene} for å hente personopplysninger knyttet til sak"))
                         }
                     },
                     { personopplysninger ->

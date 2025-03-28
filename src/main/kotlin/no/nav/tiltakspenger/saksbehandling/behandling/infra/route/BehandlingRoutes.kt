@@ -3,11 +3,11 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 import io.ktor.server.routing.Route
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.infra.route.oppdaterBarnetilleggRoute
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.beslutter.iverksettBehandlingRoute
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.beslutter.underkjennBehandlingRoute
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.oppdaterBarnetilleggRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.forhåndsvisVedtaksbrevRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.oppdaterFritekstTilVedtaksbrevRoute
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.iverksettBehandlingRoute
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.underkjennBehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBarnetilleggService

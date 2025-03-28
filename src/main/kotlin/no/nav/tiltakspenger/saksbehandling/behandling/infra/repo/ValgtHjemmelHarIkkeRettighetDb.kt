@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.ValgtHjemmelForAvslag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.ValgtHjemmelHarIkkeRettighet
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForAvslag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 
 enum class ValgtHjemmelHarIkkeRettighetDb {
     STANS_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK,

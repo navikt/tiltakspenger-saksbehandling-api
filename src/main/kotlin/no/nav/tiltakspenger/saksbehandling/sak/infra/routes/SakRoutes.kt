@@ -10,10 +10,10 @@ import java.time.Clock
 internal const val SAK_PATH = "/sak"
 
 fun Route.sakRoutes(
-    sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
+    sakService: SakService,
     auditService: AuditService,
     tokenService: TokenService,
-    avbrytSøknadOgBehandlingService: no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingService,
+    avbrytSøknadOgBehandlingService: AvbrytSøknadOgBehandlingService,
     clock: Clock,
 ) {
     hentSakForFnrRoute(sakService, auditService, tokenService, clock)

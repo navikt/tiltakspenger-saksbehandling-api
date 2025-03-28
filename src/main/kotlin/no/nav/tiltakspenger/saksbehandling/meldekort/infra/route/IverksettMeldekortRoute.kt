@@ -64,7 +64,7 @@ fun Route.iverksettMeldekortRoute(
                                 )
 
                                 is KanIkkeIverksetteMeldekort.KunneIkkeHenteSak -> when (val u = it.underliggende) {
-                                    is no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSakId.HarIkkeTilgang -> call.respond403Forbidden(
+                                    is KunneIkkeHenteSakForSakId.HarIkkeTilgang -> call.respond403Forbidden(
                                         ikkeTilgang("Må ha en av rollene ${u.kreverEnAvRollene} for å hente sak"),
                                     )
                                 }

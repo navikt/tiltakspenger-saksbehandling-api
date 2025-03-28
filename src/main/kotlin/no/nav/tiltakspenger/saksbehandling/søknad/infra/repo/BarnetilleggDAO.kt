@@ -6,7 +6,7 @@ import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.BarnetilleggFraSøknad
 import org.intellij.lang.annotations.Language
 
 internal object BarnetilleggDAO {

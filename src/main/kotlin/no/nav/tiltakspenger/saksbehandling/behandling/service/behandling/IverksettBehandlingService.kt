@@ -14,13 +14,9 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attestering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlingstype
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeIverksetteBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.opprettVedtak
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeIverksetteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
@@ -33,9 +29,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.Sta
 import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.genererSaksstatistikkForRammevedtak
 import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.genererStønadsstatistikkForRammevedtak
+import no.nav.tiltakspenger.saksbehandling.felles.Attestering
+import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
 import java.time.Clock
 
 class IverksettBehandlingService(
@@ -47,8 +47,8 @@ class IverksettBehandlingService(
     private val statistikkSakRepo: StatistikkSakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
     private val tilgangsstyringService: TilgangsstyringService,
-    private val personService: no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService,
-    private val sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
+    private val personService: PersonService,
+    private val sakService: SakService,
     private val gitHash: String,
     private val oppgaveGateway: OppgaveGateway,
     private val clock: Clock,
@@ -69,12 +69,12 @@ class IverksettBehandlingService(
         val sak = sakService.hentForSakId(sakId, beslutter, correlationId).getOrElse {
             @Suppress("USELESS_IS_CHECK")
             when (it) {
-                is no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSakId -> return KanIkkeIverksetteBehandling.MåVæreBeslutter.left()
+                is KunneIkkeHenteSakForSakId -> return KanIkkeIverksetteBehandling.MåVæreBeslutter.left()
             }
         }
         val behandling = sak.hentBehandling(behandlingId)!!
-        val attestering = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attestering(
-            status = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringsstatus.GODKJENT,
+        val attestering = Attestering(
+            status = Attesteringsstatus.GODKJENT,
             begrunnelse = null,
             beslutter = beslutter.navIdent,
             tidspunkt = nå(clock),
@@ -94,14 +94,14 @@ class IverksettBehandlingService(
         require(adressebeskyttelseGradering != null) { "Fant ikke adressebeskyttelse for person. BehandlingId: $behandlingId" }
 
         val sakStatistikk =
-            no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.genererSaksstatistikkForRammevedtak(
+            genererSaksstatistikkForRammevedtak(
                 vedtak = vedtak,
                 gjelderKode6 = adressebeskyttelseGradering.harStrengtFortroligAdresse(),
                 versjon = gitHash,
                 clock = clock,
             )
         val stønadStatistikk =
-            no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.genererStønadsstatistikkForRammevedtak(
+            genererStønadsstatistikkForRammevedtak(
                 vedtak,
             )
 
@@ -133,8 +133,8 @@ class IverksettBehandlingService(
 
     private fun Sak.iverksettFørstegangsbehandling(
         vedtak: Rammevedtak,
-        sakStatistikk: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.StatistikkSakDTO,
-        stønadStatistikk: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO,
+        sakStatistikk: StatistikkSakDTO,
+        stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
         val (oppdatertSak, meldeperioder) = this.genererMeldeperioder(clock)
         // Denne har vi behov for å gjøre ved påfølgende førstegangsbehandligner (altså ikke den første)
@@ -162,8 +162,8 @@ class IverksettBehandlingService(
 
     private fun Sak.iverksettRevurdering(
         vedtak: Rammevedtak,
-        sakStatistikk: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.StatistikkSakDTO,
-        stønadStatistikk: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO,
+        sakStatistikk: StatistikkSakDTO,
+        stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
         val (oppdatertSak, oppdaterteMeldeperioder) = this.genererMeldeperioder(clock)
         val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) =

@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -26,7 +26,7 @@ private data class FritekstBody(
 fun Route.oppdaterFritekstTilVedtaksbrevRoute(
     tokenService: TokenService,
     auditService: AuditService,
-    oppdaterFritekstTilVedtaksbrevService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterFritekstTilVedtaksbrevService,
+    oppdaterFritekstTilVedtaksbrevService: OppdaterFritekstTilVedtaksbrevService,
 ) {
     val logger = KotlinLogging.logger {}
     patch("/sak/{sakId}/behandling/{behandlingId}/fritekst") {

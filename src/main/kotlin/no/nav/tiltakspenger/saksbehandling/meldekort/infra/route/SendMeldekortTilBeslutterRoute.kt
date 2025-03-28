@@ -129,7 +129,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
                                         val u =
                                             it.underliggende
                                     ) {
-                                        is no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSakId.HarIkkeTilgang -> call.respond403Forbidden(
+                                        is KunneIkkeHenteSakForSakId.HarIkkeTilgang -> call.respond403Forbidden(
                                             Standardfeil.ikkeTilgang("Må ha en av rollene ${u.kreverEnAvRollene} for å hente sak"),
                                         )
                                     }

@@ -1,7 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.getOrElse
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBarnetilleggKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 
 class OppdaterBarnetilleggService(
@@ -9,7 +10,7 @@ class OppdaterBarnetilleggService(
     private val behandlingRepo: BehandlingRepo,
 ) {
     suspend fun oppdaterBarnetillegg(
-        kommando: no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.OppdaterBarnetilleggKommando,
+        kommando: OppdaterBarnetilleggKommando,
     ): Behandling {
         // Denne sjekker tilgang til person og sak.
         val sak = sakService.hentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId).getOrElse {

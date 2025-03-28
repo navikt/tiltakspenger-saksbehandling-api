@@ -6,10 +6,10 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeHenteBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeTaBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeUnderkjenne
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeHenteBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeTaBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeUnderkjenne
 
 interface BehandlingService {
 
@@ -46,7 +46,7 @@ interface BehandlingService {
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
         sessionContext: SessionContext? = null,
-    ): Either<no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeHenteBehandling, Behandling>
+    ): Either<KanIkkeHenteBehandling, Behandling>
 
     suspend fun sendTilbakeTilSaksbehandler(
         behandlingId: BehandlingId,

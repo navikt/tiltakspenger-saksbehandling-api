@@ -8,12 +8,12 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -64,8 +64,8 @@ class RammevedtakFakeRepo : RammevedtakRepo {
         data.get()[id] = data.get()[id]!!.copy(sendtTilDatadeling = tidspunkt)
     }
 
-    fun hentForSakId(sakId: SakId): no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste = data.get().values.filter { it.behandling.sakId == sakId }.sortedBy { it.opprettet }.let {
-        no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste(it)
+    fun hentForSakId(sakId: SakId): Vedtaksliste = data.get().values.filter { it.behandling.sakId == sakId }.sortedBy { it.opprettet }.let {
+        Vedtaksliste(it)
     }
 
     fun hentForBehandlingId(behandlingId: BehandlingId): Rammevedtak? =

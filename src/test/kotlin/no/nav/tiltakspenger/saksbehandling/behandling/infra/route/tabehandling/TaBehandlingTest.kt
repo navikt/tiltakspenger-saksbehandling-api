@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tabehandling
 import io.kotest.matchers.shouldBe
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization

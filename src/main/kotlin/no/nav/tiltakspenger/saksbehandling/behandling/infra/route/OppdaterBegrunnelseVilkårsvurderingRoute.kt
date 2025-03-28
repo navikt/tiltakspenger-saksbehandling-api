@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -26,7 +26,7 @@ private data class BegrunnelseBody(
 fun Route.oppdaterBegrunnelseVilkårsvurderingRoute(
     tokenService: TokenService,
     auditService: AuditService,
-    oppdaterBegrunnelseVilkårsvurderingService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService,
+    oppdaterBegrunnelseVilkårsvurderingService: OppdaterBegrunnelseVilkårsvurderingService,
 ) {
     val logger = KotlinLogging.logger {}
     patch("/sak/{sakId}/behandling/{behandlingId}/begrunnelse") {

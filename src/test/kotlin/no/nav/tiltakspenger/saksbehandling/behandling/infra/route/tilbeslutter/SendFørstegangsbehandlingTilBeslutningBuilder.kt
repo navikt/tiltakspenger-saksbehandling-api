@@ -22,7 +22,6 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.oppdaterBegrunnelseForBehandlingId
@@ -30,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.oppdaterFritekstF
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 
 interface SendFørstegangsbehandlingTilBeslutningBuilder {
 

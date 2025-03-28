@@ -17,7 +17,7 @@ fun Route.meldekortRoutes(
     iverksettMeldekortService: IverksettMeldekortService,
     sendMeldekortTilBeslutterService: SendMeldekortTilBeslutningService,
     auditService: AuditService,
-    sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
+    sakService: SakService,
     tokenService: TokenService,
     mottaBrukerutfyltMeldekortService: MottaBrukerutfyltMeldekortService,
     underkjennMeldekortBehandlingService: UnderkjennMeldekortBehandlingService,

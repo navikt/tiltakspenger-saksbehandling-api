@@ -12,15 +12,15 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.LocalDateTime
 
 class AvbrytSøknadOgBehandlingServiceImpl(
-    private val sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
-    private val søknadService: no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService,
-    private val behandlingService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService,
+    private val sakService: SakService,
+    private val søknadService: SøknadService,
+    private val behandlingService: BehandlingService,
     private val sessionFactory: SessionFactory,
-) : no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingService {
-    override suspend fun avbrytSøknadOgBehandling(command: no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand): Either<no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.KunneIkkeAvbryteSøknadOgBehandling, Sak> {
+) : AvbrytSøknadOgBehandlingService {
+    override suspend fun avbrytSøknadOgBehandling(command: AvbrytSøknadOgBehandlingCommand): Either<KunneIkkeAvbryteSøknadOgBehandling, Sak> {
         val sak =
             sakService.hentForSaksnummer(command.saksnummer, command.avsluttetAv, command.correlationId).getOrElse {
-                return no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.KunneIkkeAvbryteSøknadOgBehandling.Feil.left()
+                return KunneIkkeAvbryteSøknadOgBehandling.Feil.left()
             }
 
         val (oppdatertSak, avbruttSøknad, avbruttBehandling) = sak.avbrytSøknadOgBehandling(

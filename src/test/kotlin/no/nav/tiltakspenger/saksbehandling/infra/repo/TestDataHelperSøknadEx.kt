@@ -6,10 +6,10 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingRepoTest.Companion.random
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import java.time.Clock
 import java.time.LocalDate
 

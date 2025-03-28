@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.AttesteringDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toAttesteringDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.toAttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak

@@ -15,12 +15,12 @@ import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.infra.route.BarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeSendeTilBeslutter
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeSendeTilBeslutter.MåVæreSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBeslutter
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBeslutter.MåVæreSaksbehandler
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil
@@ -62,7 +62,7 @@ private data class SendTilBeslutningBody(
 }
 
 fun Route.sendSøknadsbehandlingTilBeslutningRoute(
-    sendBehandlingTilBeslutningService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService,
+    sendBehandlingTilBeslutningService: SendBehandlingTilBeslutningService,
     auditService: AuditService,
     tokenService: TokenService,
 ) {
@@ -102,9 +102,9 @@ fun Route.sendSøknadsbehandlingTilBeslutningRoute(
     }
 }
 
-internal fun no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
+internal fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
     MåVæreSaksbehandler -> HttpStatusCode.Forbidden to Standardfeil.måVæreSaksbehandler()
-    no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.KanIkkeSendeTilBeslutter.PeriodenOverlapperEllerTilstøterMedAnnenBehandling -> HttpStatusCode.BadRequest to ErrorJson(
+    KanIkkeSendeTilBeslutter.PeriodenOverlapperEllerTilstøterMedAnnenBehandling -> HttpStatusCode.BadRequest to ErrorJson(
         "Innvilgelsesperioden overlapper/tilstøter med eksisterende perioder på saken",
         "innvilgelsesperiode_overlapper_eller_tilstøter_med_eksisternede_perioder",
     )

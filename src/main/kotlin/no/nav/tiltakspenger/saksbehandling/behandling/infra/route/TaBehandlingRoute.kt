@@ -22,7 +22,7 @@ private const val TA_BEHANDLING_PATH = "$BEHANDLING_PATH/tabehandling/{behandlin
 fun Route.taBehandlingRoute(
     tokenService: TokenService,
     auditService: AuditService,
-    behandlingService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService,
+    behandlingService: BehandlingService,
 ) {
     val logger = KotlinLogging.logger {}
 // TODO jah: Endre til /sak/{sakId}/behandling/{behandlingId}/ta - merk at vi vil ha en egen for overta.

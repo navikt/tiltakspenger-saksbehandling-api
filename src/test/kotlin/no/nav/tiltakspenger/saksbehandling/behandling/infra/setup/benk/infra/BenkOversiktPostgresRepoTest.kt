@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.benk.infra
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.benk.BehandlingEllerSøknadForSaksoversikt
 import no.nav.tiltakspenger.saksbehandling.benk.BenkBehandlingstype
 import no.nav.tiltakspenger.saksbehandling.benk.Saksoversikt

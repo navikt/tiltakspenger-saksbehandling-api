@@ -11,9 +11,9 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.StartRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.startRevurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
@@ -22,24 +22,24 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 
 class StartRevurderingService(
-    private val sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
+    private val sakService: SakService,
     private val behandlingRepo: BehandlingRepo,
     private val tilgangsstyringService: TilgangsstyringService,
-    private val saksopplysningerService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService,
+    private val saksopplysningerService: OppdaterSaksopplysningerService,
     private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
     suspend fun startRevurdering(
         kommando: StartRevurderingKommando,
-    ): Either<no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteRevurdering, Pair<Sak, Behandling>> {
+    ): Either<KanIkkeStarteRevurdering, Pair<Sak, Behandling>> {
         val (sakId, correlationId, saksbehandler) = kommando
 
         val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId).getOrElse {
             when (it) {
-                is no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSakId.HarIkkeTilgang -> {
+                is KunneIkkeHenteSakForSakId.HarIkkeTilgang -> {
                     logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til sak for sakId $sakId" }
-                    return no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteRevurdering.HarIkkeTilgang(
+                    return KanIkkeStarteRevurdering.HarIkkeTilgang(
                         kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER),
                         harRollene = saksbehandler.roller,
                     ).left()

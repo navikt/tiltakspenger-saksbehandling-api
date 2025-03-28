@@ -69,8 +69,8 @@ fun MeldekortBehandling.MeldekortBehandlet.opprettUtbetalingsvedtak(
         status = null,
     )
 
-fun Utbetalingsvedtak.tilStatistikk(): no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkUtbetalingDTO =
-    no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkUtbetalingDTO(
+fun Utbetalingsvedtak.tilStatistikk(): StatistikkUtbetalingDTO =
+    StatistikkUtbetalingDTO(
         // TODO post-mvp jah: Vi sender uuid-delen av denne til helved som behandlingId som mappes videre til OS/UR i feltet 'henvisning'.
         id = this.id.toString(),
         sakId = this.sakId.toString(),

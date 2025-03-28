@@ -1,11 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak.infra.http
 
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
-import no.nav.tiltakspenger.saksbehandling.journalføring.infra.JoarkRequest
-import no.nav.tiltakspenger.saksbehandling.journalføring.infra.JoarkRequest.JournalpostDokument.DokumentVariant.ArkivPDF
-import no.nav.tiltakspenger.saksbehandling.journalføring.infra.JoarkRequest.JournalpostDokument.DokumentVariant.OriginalJson
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JoarkRequest
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JoarkRequest.JournalpostDokument.DokumentVariant.ArkivPDF
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JoarkRequest.JournalpostDokument.DokumentVariant.OriginalJson
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 /** Denne ligger nærmere vedtak enn journalføring strukturmessig */
 internal fun Rammevedtak.utgåendeJournalpostRequest(

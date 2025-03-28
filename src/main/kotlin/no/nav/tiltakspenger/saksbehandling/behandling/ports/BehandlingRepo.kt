@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import java.time.LocalDateTime
 
 interface BehandlingRepo {

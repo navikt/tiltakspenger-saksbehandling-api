@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 
 fun Behandlingstype.toDbValue(): String {
     return when (this) {

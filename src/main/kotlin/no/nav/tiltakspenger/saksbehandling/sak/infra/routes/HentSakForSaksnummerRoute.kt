@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withSaksnummer
 import java.time.Clock
 
 fun Route.hentSakForSaksnummerRoute(
-    sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
+    sakService: SakService,
     auditService: AuditService,
     tokenService: TokenService,
     clock: Clock,
@@ -42,7 +42,7 @@ fun Route.hentSakForSaksnummerRoute(
                 ).fold(
                     {
                         when (it) {
-                            is no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSaksnummer.HarIkkeTilgang -> call.respond403Forbidden(ikkeTilgang("Må ha en av rollene ${it.kreverEnAvRollene} for å hente sak for saksnummer."))
+                            is KunneIkkeHenteSakForSaksnummer.HarIkkeTilgang -> call.respond403Forbidden(ikkeTilgang("Må ha en av rollene ${it.kreverEnAvRollene} for å hente sak for saksnummer."))
                         }
                     },
                     { sak ->

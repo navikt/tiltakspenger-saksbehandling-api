@@ -204,7 +204,7 @@ object AuditLogger {
 }
 
 class AuditService(
-    private val personService: no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService,
+    private val personService: PersonService,
 ) {
     fun logMedBehandlingId(
         behandlingId: BehandlingId,

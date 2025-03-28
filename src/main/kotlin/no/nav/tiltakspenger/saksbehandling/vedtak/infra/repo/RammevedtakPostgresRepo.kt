@@ -10,14 +10,14 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtakstype
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -208,7 +208,7 @@ class RammevedtakPostgresRepo(
         fun hentForSakId(
             sakId: SakId,
             session: Session,
-        ): no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste {
+        ): Vedtaksliste {
             return session.run(
                 queryOf(
                     "select * from rammevedtak where sak_id = :sak_id order by opprettet",
@@ -218,7 +218,7 @@ class RammevedtakPostgresRepo(
                 ).map { row ->
                     row.toVedtak(session)
                 }.asList,
-            ).let { no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste(it) }
+            ).let { Vedtaksliste(it) }
         }
 
         internal fun lagreVedtak(
@@ -276,7 +276,7 @@ class RammevedtakPostgresRepo(
                 id = id,
                 sakId = SakId.fromString(string("sak_id")),
                 behandling =
-                no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo.hentOrNull(
+                BehandlingPostgresRepo.hentOrNull(
                     BehandlingId.fromString(string("behandling_id")),
                     session,
                 )!!,

@@ -20,10 +20,10 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringer
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.vilkår.Utfallsperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.common.JournalpostIdGenerator
+import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
+import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
@@ -77,7 +77,7 @@ interface MeldekortMother : MotherOfAllMothers {
             antallDagerForPeriode = antallDagerForPeriode,
         ),
         type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
-        attesteringer: no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringer = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringer.empty(),
+        attesteringer: Attesteringer = Attesteringer.empty(),
     ): MeldekortBehandling.MeldekortUnderBehandling {
         return MeldekortBehandling.MeldekortUnderBehandling(
             id = id,
@@ -134,7 +134,7 @@ interface MeldekortMother : MotherOfAllMothers {
         sendtTilBeslutning: LocalDateTime = nå(clock),
         erFørsteBehandlingForPerioden: Boolean = true,
         type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
-        attesteringer: no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringer = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringer.empty(),
+        attesteringer: Attesteringer = Attesteringer.empty(),
         begrunnelse: MeldekortbehandlingBegrunnelse? = null,
     ): MeldekortBehandling.MeldekortBehandlet {
         return MeldekortBehandling.MeldekortBehandlet(
@@ -347,7 +347,7 @@ interface MeldekortMother : MotherOfAllMothers {
         girRett: Map<LocalDate, Boolean> = kommando.dager.dager.map { it.dag to it.status.girRett() }.toMap(),
         antallDagerForPeriode: Int = girRett.count { it.value },
         begrunnelse: MeldekortbehandlingBegrunnelse? = null,
-        attesteringer: no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringer = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringer.empty(),
+        attesteringer: Attesteringer = Attesteringer.empty(),
     ): Pair<MeldekortBehandlinger, MeldekortBehandling.MeldekortBehandlet> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
@@ -404,7 +404,7 @@ interface MeldekortMother : MotherOfAllMothers {
         ),
         girRett: Map<LocalDate, Boolean> = kommando.dager.dager.map { it.dag to it.status.girRett() }.toMap(),
         antallDagerForPeriode: Int = girRett.count { it.value },
-        attesteringer: no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringer = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringer.empty(),
+        attesteringer: Attesteringer = Attesteringer.empty(),
     ): MeldekortBehandlinger {
         val meldekortId = kommando.meldekortId
         val sakId = kommando.sakId

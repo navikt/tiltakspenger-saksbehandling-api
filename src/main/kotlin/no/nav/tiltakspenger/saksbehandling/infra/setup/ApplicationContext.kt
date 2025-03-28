@@ -29,7 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
-import no.nav.tiltakspenger.saksbehandling.søknad.SøknadContext
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.TiltaksdeltakerService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.arena.ArenaDeltakerMapper
@@ -37,7 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.arena.T
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.jobb.EndretTiltaksdeltakerJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.komet.TiltaksdeltakerKometConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
-import no.nav.tiltakspenger.saksbehandling.utbetaling.UtbetalingContext
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import java.time.Clock
 
 /**

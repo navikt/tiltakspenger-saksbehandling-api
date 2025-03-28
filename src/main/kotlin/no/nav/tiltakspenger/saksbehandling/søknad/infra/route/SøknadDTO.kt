@@ -2,14 +2,14 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.BarnetilleggFraSøknad
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad.FraOgMedDatoSpm
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad.JaNeiSpm
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad.PeriodeSpm
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
+import no.nav.tiltakspenger.saksbehandling.søknad.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknad.FraOgMedDatoSpm
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknad.JaNeiSpm
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknad.PeriodeSpm
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
 import java.time.LocalDate
 import java.time.LocalDateTime
 

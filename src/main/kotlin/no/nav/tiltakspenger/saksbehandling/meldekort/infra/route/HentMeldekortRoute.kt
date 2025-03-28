@@ -23,7 +23,7 @@ import java.time.Clock
 private const val PATH = "/sak/{sakId}/meldeperiode/{kjedeId}"
 
 fun Route.hentMeldekortRoute(
-    sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
+    sakService: SakService,
     auditService: AuditService,
     tokenService: TokenService,
     clock: Clock,
@@ -39,7 +39,7 @@ fun Route.hentMeldekortRoute(
 
                     val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId = correlationId).getOrElse {
                         when (it) {
-                            is no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSakId.HarIkkeTilgang -> call.respond403Forbidden(
+                            is KunneIkkeHenteSakForSakId.HarIkkeTilgang -> call.respond403Forbidden(
                                 ikkeTilgang(
                                     "Må ha en av rollene ${it.kreverEnAvRollene} for å hente meldekort",
                                 ),

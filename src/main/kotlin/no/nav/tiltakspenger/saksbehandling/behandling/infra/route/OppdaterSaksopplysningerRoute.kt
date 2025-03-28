@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 fun Route.oppdaterSaksopplysningerRoute(
     tokenService: TokenService,
     auditService: AuditService,
-    oppdaterSaksopplysningerService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService,
+    oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
 ) {
     val logger = KotlinLogging.logger {}
     patch("/sak/{sakId}/behandling/{behandlingId}/saksopplysninger") {

@@ -28,12 +28,12 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRep
 import java.time.Clock
 
 class IverksettMeldekortService(
-    val sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
+    val sakService: SakService,
     val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     val meldeperiodeRepo: MeldeperiodeRepo,
     val sessionFactory: SessionFactory,
     private val tilgangsstyringService: TilgangsstyringService,
-    private val personService: no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService,
+    private val personService: PersonService,
     private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
     private val clock: Clock,

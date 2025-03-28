@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 const val SAKSNUMMER_PATH = "/saksnummer"
 
 fun Route.hentEllerOpprettSakRoute(
-    sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
+    sakService: SakService,
     tokenService: TokenService,
 ) {
     val logger = KotlinLogging.logger {}

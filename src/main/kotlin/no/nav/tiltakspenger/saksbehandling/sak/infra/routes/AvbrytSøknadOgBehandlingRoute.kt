@@ -25,7 +25,7 @@ import java.time.Clock
 fun Route.avbrytSøknadOgBehandling(
     tokenService: TokenService,
     auditService: AuditService,
-    avbrytSøknadOgBehandlingService: no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingService,
+    avbrytSøknadOgBehandlingService: AvbrytSøknadOgBehandlingService,
     clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
@@ -62,8 +62,8 @@ fun Route.avbrytSøknadOgBehandling(
     }
 }
 
-fun no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.KunneIkkeAvbryteSøknadOgBehandling.toStatusAndMessage(): Pair<HttpStatusCode, String> = when (this) {
-    no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.KunneIkkeAvbryteSøknadOgBehandling.Feil -> HttpStatusCode.InternalServerError to "Ukjent feil ved avbrytelse av søknad (og behandling)"
+fun KunneIkkeAvbryteSøknadOgBehandling.toStatusAndMessage(): Pair<HttpStatusCode, String> = when (this) {
+    KunneIkkeAvbryteSøknadOgBehandling.Feil -> HttpStatusCode.InternalServerError to "Ukjent feil ved avbrytelse av søknad (og behandling)"
 }
 
 data class AvsluttSøknadOgBehandlingBody(
@@ -75,8 +75,8 @@ data class AvsluttSøknadOgBehandlingBody(
         saksnummer: Saksnummer,
         avsluttetAv: Saksbehandler,
         correlationId: CorrelationId,
-    ): no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand {
-        return no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand(
+    ): AvbrytSøknadOgBehandlingCommand {
+        return AvbrytSøknadOgBehandlingCommand(
             saksnummer = saksnummer,
             søknadId = søknadId?.let { SøknadId.fromString(it) },
             behandlingId = behandlingId?.let { BehandlingId.fromString(it) },

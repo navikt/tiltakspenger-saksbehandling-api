@@ -13,8 +13,8 @@ import no.nav.tiltakspenger.libs.periodisering.desember
 import no.nav.tiltakspenger.libs.periodisering.februar
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -108,7 +108,7 @@ class MeldeperiodeKjederTest {
         val kjeder = MeldeperiodeKjeder(emptyList())
         val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(sakId = sakId, periode = periode)
         val actual = kjeder.genererMeldeperioder(
-            no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste(
+            Vedtaksliste(
                 innvilgelseVedtak,
             ),
             LocalDate.MAX,
@@ -146,7 +146,7 @@ class MeldeperiodeKjederTest {
                 enUkeEtterFixedClock,
             ),
         )
-        val vedtaksliste = no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste(
+        val vedtaksliste = Vedtaksliste(
             listOf(
                 innvilgelseVedtak,
                 stansVedtak,
@@ -169,7 +169,7 @@ class MeldeperiodeKjederTest {
         val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
         val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(fnr = fnr, sakId = sakId, periode = periode)
-        val v1 = no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste(listOf(innvilgelseVedtak))
+        val v1 = Vedtaksliste(listOf(innvilgelseVedtak))
         val kjederV1 = MeldeperiodeKjeder(emptyList())
 
         val forventetFørstePeriode = Periode(2.januar(2023), 15.januar(2023))
@@ -197,7 +197,7 @@ class MeldeperiodeKjederTest {
                 enUkeEtterFixedClock,
             ),
         )
-        val v2 = no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste(
+        val v2 = Vedtaksliste(
             listOf(
                 innvilgelseVedtak,
                 stansVedtak,

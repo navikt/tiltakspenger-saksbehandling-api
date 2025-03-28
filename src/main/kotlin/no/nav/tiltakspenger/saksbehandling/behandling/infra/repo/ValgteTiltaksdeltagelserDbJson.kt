@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
@@ -17,7 +18,7 @@ private data class TiltaksdeltakelsePeriodeMedVerdi(
     val eksternDeltagelseId: String,
 )
 
-fun String.toValgteTiltaksdeltakelser(saksopplysninger: no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger): ValgteTiltaksdeltakelser {
+fun String.toValgteTiltaksdeltakelser(saksopplysninger: Saksopplysninger): ValgteTiltaksdeltakelser {
     val valgteTiltaksdeltakelserDbJson = deserialize<ValgteTiltaksdeltakelserDbJson>(this)
     return ValgteTiltaksdeltakelser(
         periodisering = Periodisering(

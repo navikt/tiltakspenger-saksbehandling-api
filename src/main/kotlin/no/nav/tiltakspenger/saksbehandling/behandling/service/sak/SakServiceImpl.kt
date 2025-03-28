@@ -14,8 +14,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksoversiktRepo
@@ -32,15 +31,16 @@ import no.nav.tiltakspenger.saksbehandling.person.EnkelPersonMedSkjerming
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import java.time.LocalDate
 
 class SakServiceImpl(
     private val sakRepo: SakRepo,
     private val saksoversiktRepo: SaksoversiktRepo,
-    private val personService: no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService,
+    private val personService: PersonService,
     private val tilgangsstyringService: TilgangsstyringService,
     private val poaoTilgangGateway: PoaoTilgangGateway,
-) : no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService {
+) : SakService {
     val logger = KotlinLogging.logger { }
 
     override suspend fun hentEllerOpprettSak(
@@ -63,7 +63,7 @@ class SakServiceImpl(
             fnr = fnr,
             saksnummer = sakRepo.hentNesteSaksnummer(),
             behandlinger = Behandlinger(emptyList()),
-            vedtaksliste = no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste.empty(),
+            vedtaksliste = Vedtaksliste.empty(),
             meldekortBehandlinger = MeldekortBehandlinger.empty(),
             utbetalinger = Utbetalinger(emptyList()),
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
@@ -79,10 +79,10 @@ class SakServiceImpl(
         saksnummer: Saksnummer,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSaksnummer, Sak> {
+    ): Either<KunneIkkeHenteSakForSaksnummer, Sak> {
         if (!saksbehandler.erSaksbehandlerEllerBeslutter()) {
             logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å hente sak for saksnummer" }
-            return no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSaksnummer.HarIkkeTilgang(
+            return KunneIkkeHenteSakForSaksnummer.HarIkkeTilgang(
                 kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.BESLUTTER),
                 harRollene = saksbehandler.roller,
             ).left()
@@ -108,16 +108,16 @@ class SakServiceImpl(
         fnr: Fnr,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForFnr, Sak> {
+    ): Either<KunneIkkeHenteSakForFnr, Sak> {
         if (!saksbehandler.erSaksbehandlerEllerBeslutter()) {
             logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å hente sak for fnr" }
-            return no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForFnr.HarIkkeTilgang(
+            return KunneIkkeHenteSakForFnr.HarIkkeTilgang(
                 kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.BESLUTTER),
                 harRollene = saksbehandler.roller,
             ).left()
         }
         val saker = sakRepo.hentForFnr(fnr)
-        if (saker.saker.isEmpty()) return no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForFnr.FantIkkeSakForFnr.left()
+        if (saker.saker.isEmpty()) return KunneIkkeHenteSakForFnr.FantIkkeSakForFnr.left()
         if (saker.size > 1) throw IllegalStateException("Vi støtter ikke flere saker per søker i piloten.")
 
         val sak = saker.single()
@@ -130,10 +130,10 @@ class SakServiceImpl(
         sakId: SakId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSakId, Sak> {
+    ): Either<KunneIkkeHenteSakForSakId, Sak> {
         if (!saksbehandler.erSaksbehandlerEllerBeslutter()) {
             logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å hente sak for fnr" }
-            return no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSakId.HarIkkeTilgang(
+            return KunneIkkeHenteSakForSakId.HarIkkeTilgang(
                 kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.BESLUTTER),
                 harRollene = saksbehandler.roller,
             ).left()
@@ -145,10 +145,10 @@ class SakServiceImpl(
     override suspend fun hentBenkOversikt(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeHenteSaksoversikt, Saksoversikt> {
+    ): Either<KanIkkeHenteSaksoversikt, Saksoversikt> {
         if (!saksbehandler.erSaksbehandlerEllerBeslutter()) {
             logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å hente saksoversikt" }
-            return no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeHenteSaksoversikt.HarIkkeTilgang(
+            return KanIkkeHenteSaksoversikt.HarIkkeTilgang(
                 kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.BESLUTTER),
                 harRollene = saksbehandler.roller,
             ).left()
@@ -181,18 +181,18 @@ class SakServiceImpl(
         sakId: SakId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson, EnkelPersonMedSkjerming> {
+    ): Either<KunneIkkeHenteEnkelPerson, EnkelPersonMedSkjerming> {
         if (!saksbehandler.erSaksbehandlerEllerBeslutter()) {
             logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å hente sak for fnr" }
-            return no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson.HarIkkeTilgang(
+            return KunneIkkeHenteEnkelPerson.HarIkkeTilgang(
                 kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.BESLUTTER),
                 harRollene = saksbehandler.roller,
             ).left()
         }
-        val fnr = sakRepo.hentFnrForSakId(sakId) ?: return no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson.FantIkkeSakId.left()
+        val fnr = sakRepo.hentFnrForSakId(sakId) ?: return KunneIkkeHenteEnkelPerson.FantIkkeSakId.left()
         val erSkjermet = poaoTilgangGateway.erSkjermet(fnr, correlationId)
         val person = personService.hentEnkelPersonFnr(fnr)
-            .getOrElse { return no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl.left() }
+            .getOrElse { return KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl.left() }
         val personMedSkjerming =
             EnkelPersonMedSkjerming(
                 person,

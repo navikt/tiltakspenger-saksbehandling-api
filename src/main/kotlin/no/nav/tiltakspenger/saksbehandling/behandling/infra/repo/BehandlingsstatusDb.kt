@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.Behandlingsstat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingsstatusDb.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingsstatusDb.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingsstatusDb.VEDTATT
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlingsstatus as BehandlingsstatusDomain
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus as BehandlingsstatusDomain
 
 /**
  * @see BehandlingsstatusDomain

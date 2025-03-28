@@ -7,9 +7,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.StatistikkSakDTO
 
 class StatistikkSakFakeRepo : StatistikkSakRepo {
-    private val data = Atomic(mutableMapOf<SakId, no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.StatistikkSakDTO>())
+    private val data = Atomic(mutableMapOf<SakId, StatistikkSakDTO>())
 
-    override fun lagre(dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.StatistikkSakDTO, context: TransactionContext?) {
+    override fun lagre(dto: StatistikkSakDTO, context: TransactionContext?) {
         data.get()[SakId.fromString(dto.sakId)] = dto
     }
 }

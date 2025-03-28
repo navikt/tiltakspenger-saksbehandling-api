@@ -25,9 +25,9 @@ import java.time.Clock
  */
 class SendMeldekortTilBeslutningService(
     private val tilgangsstyringService: TilgangsstyringService,
-    private val personService: no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService,
+    private val personService: PersonService,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
-    private val sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
+    private val sakService: SakService,
     private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger {}

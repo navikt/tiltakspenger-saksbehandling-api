@@ -49,22 +49,22 @@ open class BehandlingOgVedtakContext(
     genererVedtaksbrevGateway: GenererInnvilgelsesvedtaksbrevGateway,
     genererStansvedtaksbrevGateway: GenererStansvedtaksbrevGateway,
     tilgangsstyringService: TilgangsstyringService,
-    personService: no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService,
+    personService: PersonService,
     dokumentdistribusjonsklient: Dokumentdistribusjonsklient,
     navIdentClient: NavIdentClient,
-    sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
+    sakService: SakService,
     tiltaksdeltagelseGateway: TiltaksdeltagelseGateway,
     oppgaveGateway: OppgaveGateway,
     clock: Clock,
 ) {
     open val rammevedtakRepo: RammevedtakRepo by lazy { RammevedtakPostgresRepo(sessionFactory as PostgresSessionFactory) }
     open val behandlingRepo: BehandlingRepo by lazy {
-        no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo(
+        BehandlingPostgresRepo(
             sessionFactory as PostgresSessionFactory,
         )
     }
-    val behandlingService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService by lazy {
-        no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingServiceImpl(
+    val behandlingService: BehandlingService by lazy {
+        BehandlingServiceImpl(
             behandlingRepo = behandlingRepo,
             sessionFactory = sessionFactory,
             tilgangsstyringService = tilgangsstyringService,
@@ -72,8 +72,8 @@ open class BehandlingOgVedtakContext(
             clock = clock,
         )
     }
-    val startSøknadsbehandlingService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService by lazy {
-        no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService(
+    val startSøknadsbehandlingService: StartSøknadsbehandlingService by lazy {
+        StartSøknadsbehandlingService(
             sakService = sakService,
             sessionFactory = sessionFactory,
             tilgangsstyringService = tilgangsstyringService,
@@ -84,8 +84,8 @@ open class BehandlingOgVedtakContext(
             clock = clock,
         )
     }
-    val oppdaterSaksopplysningerService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService by lazy {
-        no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService(
+    val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService by lazy {
+        OppdaterSaksopplysningerService(
             sakService = sakService,
             personService = personService,
             tiltaksdeltagelseGateway = tiltaksdeltagelseGateway,
@@ -93,20 +93,20 @@ open class BehandlingOgVedtakContext(
         )
     }
     val oppdaterBegrunnelseVilkårsvurderingService by lazy {
-        no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService(
+        OppdaterBegrunnelseVilkårsvurderingService(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
         )
     }
 
     val oppdaterFritekstTilVedtaksbrevService by lazy {
-        no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterFritekstTilVedtaksbrevService(
+        OppdaterFritekstTilVedtaksbrevService(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
         )
     }
     val iverksettBehandlingService by lazy {
-        no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettBehandlingService(
+        IverksettBehandlingService(
             behandlingRepo = behandlingRepo,
             rammevedtakRepo = rammevedtakRepo,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
@@ -124,14 +124,14 @@ open class BehandlingOgVedtakContext(
     }
 
     val sendBehandlingTilBeslutningService by lazy {
-        no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService(
+        SendBehandlingTilBeslutningService(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
             clock = clock,
         )
     }
-    val startRevurderingService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.StartRevurderingService by lazy {
-        no.nav.tiltakspenger.saksbehandling.behandling.service.sak.StartRevurderingService(
+    val startRevurderingService: StartRevurderingService by lazy {
+        StartRevurderingService(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
             tilgangsstyringService = tilgangsstyringService,
@@ -139,15 +139,15 @@ open class BehandlingOgVedtakContext(
             clock = clock,
         )
     }
-    val oppdaterBarnetilleggService: no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBarnetilleggService by lazy {
-        no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBarnetilleggService(
+    val oppdaterBarnetilleggService: OppdaterBarnetilleggService by lazy {
+        OppdaterBarnetilleggService(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
         )
     }
 
     val journalførVedtaksbrevService by lazy {
-        no.nav.tiltakspenger.saksbehandling.behandling.service.journalføring.JournalførRammevedtakService(
+        JournalførRammevedtakService(
             journalførVedtaksbrevGateway = journalførVedtaksbrevGateway,
             rammevedtakRepo = rammevedtakRepo,
             genererInnvilgelsesvedtaksbrevGateway = genererVedtaksbrevGateway,
@@ -159,7 +159,7 @@ open class BehandlingOgVedtakContext(
     }
 
     val distribuerVedtaksbrevService by lazy {
-        no.nav.tiltakspenger.saksbehandling.behandling.service.distribuering.DistribuerVedtaksbrevService(
+        DistribuerVedtaksbrevService(
             dokumentdistribusjonsklient = dokumentdistribusjonsklient,
             rammevedtakRepo = rammevedtakRepo,
             clock = clock,
@@ -167,7 +167,7 @@ open class BehandlingOgVedtakContext(
     }
 
     val forhåndsvisVedtaksbrevService by lazy {
-        no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService(
+        ForhåndsvisVedtaksbrevService(
             sakService = sakService,
             genererInnvilgelsesbrevClient = genererVedtaksbrevGateway,
             genererStansbrevClient = genererStansvedtaksbrevGateway,
