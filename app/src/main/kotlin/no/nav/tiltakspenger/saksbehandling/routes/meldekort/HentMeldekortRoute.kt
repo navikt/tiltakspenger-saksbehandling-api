@@ -9,11 +9,9 @@ import io.ktor.server.routing.get
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
-import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.routes.correlationId
-import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.fantIkkeMeldekort
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.ikkeTilgang
 import no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.routes.withMeldeperiodeKjedeId
@@ -50,9 +48,7 @@ fun Route.hentMeldekortRoute(
                         return@withMeldeperiodeKjedeId
                     }
 
-                    val meldeperiodeKjedeDTO =
-                        sak.toMeldeperiodeKjedeDTO(kjedeId = kjedeId, clock = clock)
-                            ?: return@withMeldeperiodeKjedeId call.respond404NotFound(fantIkkeMeldekort())
+                    val meldeperiodeKjedeDTO = sak.toMeldeperiodeKjedeDTO(kjedeId = kjedeId, clock = clock)
 
                     auditService.logMedSakId(
                         sakId = sakId,
@@ -61,8 +57,6 @@ fun Route.hentMeldekortRoute(
                         contextMessage = "Henter meldekort",
                         correlationId = correlationId,
                     )
-
-                    // TODO post-mvp jah: Saksbehandlerne reagerte på ordet saksperiode og ønsket seg "vedtaksperiode". Gitt at man har en forlengelse vil man ha et førstegangsvedtak+forlengelsesvedtak. Ønsker de ikke se den totale meldeperioden for den gitte saken?
                     call.respond(
                         status = HttpStatusCode.OK,
                         message = meldeperiodeKjedeDTO,

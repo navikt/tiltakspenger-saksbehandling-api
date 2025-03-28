@@ -16,7 +16,7 @@ data class MeldeperiodeDTO(
     val girRett: Map<LocalDate, Boolean>,
 )
 
-fun Meldeperiode.toDTO(): MeldeperiodeDTO = MeldeperiodeDTO(
+fun Meldeperiode.toMeldeperiodeDTO(): MeldeperiodeDTO = MeldeperiodeDTO(
     id = id.toString(),
     versjon = versjon.value,
     kjedeId = kjedeId.toString(),

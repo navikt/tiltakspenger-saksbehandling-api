@@ -153,7 +153,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
                                     contextMessage = "Saksbehandler har fylt ut meldekortet og sendt til beslutter",
                                     correlationId = correlationId,
                                 )
-                                call.respond(message = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock)!!, status = HttpStatusCode.OK)
+                                call.respond(message = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock), status = HttpStatusCode.OK)
                             },
                         )
                     }

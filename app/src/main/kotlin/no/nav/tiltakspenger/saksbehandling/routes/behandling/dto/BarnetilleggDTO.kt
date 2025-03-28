@@ -24,7 +24,7 @@ internal data class BarnetilleggPeriodeDTO(
     val periode: PeriodeDTO,
 )
 
-internal fun Barnetillegg.toDTO(): BarnetilleggDTO = BarnetilleggDTO(
+internal fun Barnetillegg.toBarnetilleggDTO(): BarnetilleggDTO = BarnetilleggDTO(
     perioder = periodisering.perioderMedVerdi.filter { it.verdi.value > 0 }.map {
         BarnetilleggPeriodeDTO(
             antallBarn = it.verdi.value,

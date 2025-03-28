@@ -17,8 +17,8 @@ data class MeldeperiodeKjedeDTO(
     val brukersMeldekort: BrukersMeldekortDTO?,
 )
 
-fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeDTO? {
-    val meldeperiodeKjede = this.meldeperiodeKjeder.find { it.kjedeId == kjedeId } ?: return null
+fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeDTO {
+    val meldeperiodeKjede = this.meldeperiodeKjeder.single { it.kjedeId == kjedeId }
 
     return MeldeperiodeKjedeDTO(
         id = meldeperiodeKjede.kjedeId.toString(),
@@ -28,16 +28,20 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
         tiltaksnavn = this.vedtaksliste
             .valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode)
             .perioderMedVerdi.mapNotNull { it.verdi?.typeNavn },
-        meldeperioder = meldeperiodeKjede.map { it.toDTO() },
+        meldeperioder = meldeperiodeKjede.map { it.toMeldeperiodeDTO() },
         meldekortBehandlinger = this.meldekortBehandlinger
-            .hentMeldekortBehandlingerForKjede(kjedeId)
-            .map { it.toDTO() },
+            .hentMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)
+            .map {
+                // Bruker vedtaket istedenfor behandlingen dersom det finnes ett.
+                this.utbetalinger.hentUtbetalingForBehandlingId(it.id)?.toMeldekortBehandlingDTO()
+                    ?: it.toMeldekortBehandlingDTO(UtbetalingsstatusDTO.IKKE_GODKJENT)
+            },
         brukersMeldekort = this.brukersMeldekort
             .find { it.kjedeId == kjedeId }
-            ?.toDTO(),
+            ?.toBrukersMeldekortDTO(),
     )
 }
 
 fun Sak.toMeldeperiodeKjederDTO(clock: Clock): List<MeldeperiodeKjedeDTO> {
-    return this.meldeperiodeKjeder.map { this.toMeldeperiodeKjedeDTO(it.kjedeId, clock)!! }
+    return this.meldeperiodeKjeder.map { this.toMeldeperiodeKjedeDTO(it.kjedeId, clock) }
 }

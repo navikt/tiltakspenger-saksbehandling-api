@@ -8,5 +8,5 @@ data class BeregningsdagDTO(
     val barnetillegg: Int,
 )
 
-fun Beregningsdag.toDTO(): BeregningsdagDTO =
+fun Beregningsdag.toBeregningsdagDTO(): BeregningsdagDTO =
     BeregningsdagDTO(beløp = beløp, prosent = prosent, barnetillegg = beløpBarnetillegg)

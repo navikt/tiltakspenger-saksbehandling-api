@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søk
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -153,6 +154,10 @@ data class Sak(
 
     fun oppdaterMeldekortbehandling(behandling: MeldekortBehandling): Sak {
         return this.copy(meldekortBehandlinger = this.meldekortBehandlinger.oppdaterMeldekortbehandling(behandling))
+    }
+
+    fun leggTilUtbetalingsvedtak(utbetalingsvedtak: Utbetalingsvedtak): Sak {
+        return this.copy(utbetalinger = this.utbetalinger.leggTil(utbetalingsvedtak))
     }
 
     companion object {

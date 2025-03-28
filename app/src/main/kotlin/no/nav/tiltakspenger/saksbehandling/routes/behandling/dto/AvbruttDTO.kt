@@ -8,7 +8,7 @@ internal data class AvbruttDTO(
     val begrunnelse: String,
 )
 
-internal fun Avbrutt.toDTO() = AvbruttDTO(
+internal fun Avbrutt.toAvbruttDTO() = AvbruttDTO(
     avbruttAv = saksbehandler,
     avbruttTidspunkt = tidspunkt.toString(),
     begrunnelse = begrunnelse,

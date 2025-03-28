@@ -11,7 +11,7 @@ enum class BehandlingsstatusDTO {
     AVBRUTT,
 }
 
-fun Behandlingsstatus.toDTO(): BehandlingsstatusDTO {
+fun Behandlingsstatus.toBehandlingsstatusDTO(): BehandlingsstatusDTO {
     return when (this) {
         Behandlingsstatus.KLAR_TIL_BEHANDLING -> BehandlingsstatusDTO.KLAR_TIL_BEHANDLING
         Behandlingsstatus.UNDER_BEHANDLING -> BehandlingsstatusDTO.UNDER_BEHANDLING

@@ -1,9 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto
 
+import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
+import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.AttesteringDTO
-import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toDTO
+import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toAttesteringDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import java.time.LocalDateTime
 
 data class MeldekortBehandlingDTO(
@@ -23,15 +26,40 @@ data class MeldekortBehandlingDTO(
     val type: MeldekortBehandlingTypeDTO,
     val begrunnelse: String?,
     val attesteringer: List<AttesteringDTO>,
+    val utbetalingsstatus: UtbetalingsstatusDTO,
+    val godkjentTidspunkt: LocalDateTime?,
+    val periode: PeriodeDTO,
 )
 
-fun MeldekortBehandlinger.toDTO(): List<MeldekortBehandlingDTO> {
-    return this.map {
-        it.toDTO()
-    }
+fun Utbetalingsvedtak.toMeldekortBehandlingDTO(): MeldekortBehandlingDTO {
+    val behandling = this.meldekortbehandling
+    return MeldekortBehandlingDTO(
+        id = behandling.id.toString(),
+        meldeperiodeId = behandling.meldeperiode.id.toString(),
+        saksbehandler = behandling.saksbehandler,
+        beslutter = behandling.beslutter,
+        opprettet = behandling.opprettet,
+        status = behandling.toStatusDTO(),
+        totalbeløpTilUtbetaling = behandling.beløpTotal,
+        totalOrdinærBeløpTilUtbetaling = behandling.ordinærBeløp,
+        totalBarnetilleggTilUtbetaling = behandling.barnetilleggBeløp,
+        navkontor = behandling.navkontor.kontornummer,
+        navkontorNavn = behandling.navkontor.kontornavn,
+        dager = behandling.beregning.toMeldekortDagDTO(),
+        brukersMeldekortId = behandling.brukersMeldekort?.id.toString(),
+        type = behandling.type.tilDTO(),
+        begrunnelse = behandling.begrunnelse?.verdi,
+        attesteringer = behandling.attesteringer.toAttesteringDTO(),
+        utbetalingsstatus = this.status.toUtbetalingsstatusDTO(),
+        godkjentTidspunkt = this.opprettet,
+        periode = behandling.periode.toDTO(),
+    )
 }
 
-fun MeldekortBehandling.toDTO(): MeldekortBehandlingDTO {
+fun MeldekortBehandling.toMeldekortBehandlingDTO(
+    utbetalingsstatus: UtbetalingsstatusDTO,
+): MeldekortBehandlingDTO {
+    require(status != MeldekortBehandlingStatus.GODKJENT) { "Bruk Utbetalingsvedtak.toMeldekortBehandlingDTO() for godkjente meldekortbehandlinger. sakId ${this.sakId}, behandlingId: $id" }
     return MeldekortBehandlingDTO(
         id = id.toString(),
         meldeperiodeId = meldeperiode.id.toString(),
@@ -44,10 +72,13 @@ fun MeldekortBehandling.toDTO(): MeldekortBehandlingDTO {
         totalBarnetilleggTilUtbetaling = this.barnetilleggBeløp,
         navkontor = navkontor.kontornummer,
         navkontorNavn = navkontor.kontornavn,
-        dager = beregning.toDTO(),
+        dager = beregning.toMeldekortDagDTO(),
         brukersMeldekortId = brukersMeldekort?.id.toString(),
         type = type.tilDTO(),
         begrunnelse = begrunnelse?.verdi,
-        attesteringer = attesteringer.toDTO(),
+        attesteringer = attesteringer.toAttesteringDTO(),
+        godkjentTidspunkt = iverksattTidspunkt,
+        periode = this.periode.toDTO(),
+        utbetalingsstatus = utbetalingsstatus,
     )
 }

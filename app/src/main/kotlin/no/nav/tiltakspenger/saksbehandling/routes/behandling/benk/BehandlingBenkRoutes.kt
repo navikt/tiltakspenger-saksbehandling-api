@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.routes.correlationId
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.ikkeTilgang
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.måVæreSaksbehandlerEllerBeslutter
-import no.nav.tiltakspenger.saksbehandling.routes.sak.toDTO
+import no.nav.tiltakspenger.saksbehandling.routes.sak.toSaksoversiktDTO
 import no.nav.tiltakspenger.saksbehandling.routes.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.KanIkkeHenteSaksoversikt
@@ -48,7 +48,7 @@ fun Route.behandlingBenkRoutes(
                     }
                 },
                 {
-                    call.respond(status = HttpStatusCode.OK, it.toDTO())
+                    call.respond(status = HttpStatusCode.OK, it.toSaksoversiktDTO())
                 },
             )
         }

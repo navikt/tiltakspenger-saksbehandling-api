@@ -70,7 +70,7 @@ fun Route.opprettMeldekortBehandlingRoute(
                                 correlationId = correlationId,
                             )
 
-                            call.respond(HttpStatusCode.OK, it.toMeldeperiodeKjedeDTO(kjedeId, clock)!!)
+                            call.respond(HttpStatusCode.OK, it.toMeldeperiodeKjedeDTO(kjedeId, clock))
                         },
                     )
                 }

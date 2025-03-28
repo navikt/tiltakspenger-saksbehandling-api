@@ -7,7 +7,7 @@ data class SaksopplysningerDTO(
     val tiltaksdeltagelse: List<TiltaksdeltagelseDTO>,
 )
 
-fun Saksopplysninger.toDTO(): SaksopplysningerDTO {
+fun Saksopplysninger.toSaksopplysningerDTO(): SaksopplysningerDTO {
     return SaksopplysningerDTO(
         fødselsdato = this.fødselsdato.toString(),
         tiltaksdeltagelse = this.tiltaksdeltagelse.map { it.toDTO() },
