@@ -4,9 +4,9 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando

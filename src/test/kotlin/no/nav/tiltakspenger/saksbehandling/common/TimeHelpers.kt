@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.common
+package no.nav.tiltakspenger.saksbehandling.common
 
 import java.time.LocalDateTime
 import java.time.Month

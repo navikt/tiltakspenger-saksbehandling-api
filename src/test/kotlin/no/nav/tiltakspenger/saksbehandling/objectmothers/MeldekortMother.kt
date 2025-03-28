@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
-import no.nav.tiltakspenger.common.JournalpostIdGenerator
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
@@ -21,6 +20,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.common.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.felles.Navkontor
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort

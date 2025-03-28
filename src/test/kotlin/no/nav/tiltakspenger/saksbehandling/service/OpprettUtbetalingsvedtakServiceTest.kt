@@ -1,9 +1,9 @@
-package no.nav.tiltakspenger.service
+package no.nav.tiltakspenger.saksbehandling.service
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.UtbetalingsvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling

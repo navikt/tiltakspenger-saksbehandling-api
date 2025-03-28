@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime

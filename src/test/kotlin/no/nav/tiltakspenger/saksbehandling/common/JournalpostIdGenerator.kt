@@ -1,6 +1,6 @@
-package no.nav.tiltakspenger.common
+package no.nav.tiltakspenger.saksbehandling.common
 
-import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import java.util.concurrent.atomic.AtomicLong
 
 /**

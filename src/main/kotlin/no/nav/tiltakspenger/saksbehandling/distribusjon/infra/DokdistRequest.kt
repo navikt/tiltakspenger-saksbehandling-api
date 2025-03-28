@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.distribusjon.infra
 
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 
 private data class DokdistRequest(
     val journalpostId: String,

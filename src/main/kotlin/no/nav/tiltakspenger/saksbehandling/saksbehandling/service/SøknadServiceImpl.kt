@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
-import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.Oppgavebehov

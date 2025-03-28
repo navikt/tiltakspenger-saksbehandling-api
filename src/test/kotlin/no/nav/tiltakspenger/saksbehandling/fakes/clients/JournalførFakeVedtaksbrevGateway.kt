@@ -3,11 +3,11 @@
 package no.nav.tiltakspenger.saksbehandling.fakes.clients
 
 import arrow.atomic.Atomic
-import no.nav.tiltakspenger.common.JournalpostIdGenerator
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.common.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.felles.journalføring.PdfOgJson
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.JournalførVedtaksbrevGateway
 

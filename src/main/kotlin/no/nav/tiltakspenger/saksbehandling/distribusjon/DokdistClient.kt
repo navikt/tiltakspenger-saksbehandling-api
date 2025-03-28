@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.distribusjon
 
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 
 interface DokdistGateway {
     suspend fun distribuerDokument(

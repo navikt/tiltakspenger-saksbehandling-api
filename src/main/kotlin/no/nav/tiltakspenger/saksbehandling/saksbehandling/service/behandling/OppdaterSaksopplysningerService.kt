@@ -11,14 +11,14 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.BehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.TiltakGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseGateway
 
 class OppdaterSaksopplysningerService(
     private val sakService: SakService,
     private val personService: PersonService,
-    private val tiltakGateway: TiltakGateway,
+    private val tiltaksdeltagelseGateway: TiltaksdeltagelseGateway,
     private val behandlingRepo: BehandlingRepo,
 ) {
     suspend fun oppdaterSaksopplysninger(
@@ -52,7 +52,7 @@ class OppdaterSaksopplysningerService(
     ): Saksopplysninger {
         val personopplysninger = personService.hentPersonopplysninger(fnr)
         val alleRelevanteTiltak = runBlocking {
-            tiltakGateway.hentTiltaksdeltagelse(
+            tiltaksdeltagelseGateway.hentTiltaksdeltagelse(
                 fnr = fnr,
                 correlationId = correlationId,
             )

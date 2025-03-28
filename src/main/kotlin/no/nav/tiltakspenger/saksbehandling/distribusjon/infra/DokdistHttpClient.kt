@@ -12,8 +12,8 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DokdistGateway
 import no.nav.tiltakspenger.saksbehandling.distribusjon.KunneIkkeDistribuereDokument
-import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest

@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.routes.søknad
 
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
-import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.hentEllerOpprettSak
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.mottaSøknad

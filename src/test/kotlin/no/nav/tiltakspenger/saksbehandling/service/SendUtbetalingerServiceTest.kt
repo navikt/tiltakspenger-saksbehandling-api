@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.service
+package no.nav.tiltakspenger.saksbehandling.service
 
 import arrow.core.Either
 import io.mockk.coEvery

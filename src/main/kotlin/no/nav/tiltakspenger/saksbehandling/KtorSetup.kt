@@ -14,7 +14,6 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.path
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
-import no.nav.tiltakspenger.saksbehandling.context.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.ExceptionHandler
 import no.nav.tiltakspenger.saksbehandling.routes.routes
 

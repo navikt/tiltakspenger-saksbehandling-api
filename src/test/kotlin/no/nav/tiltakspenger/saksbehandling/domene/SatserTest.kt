@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.utbetaling.domene
+package no.nav.tiltakspenger.saksbehandling.domene
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

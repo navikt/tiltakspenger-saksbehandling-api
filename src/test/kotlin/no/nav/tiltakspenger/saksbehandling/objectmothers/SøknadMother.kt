@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
-import no.nav.tiltakspenger.common.januarDateTime
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -8,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.juni
+import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.BarnetilleggFraSøknad

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.common
+package no.nav.tiltakspenger.saksbehandling.common
 
 import no.nav.tiltakspenger.libs.auth.core.AdRolle
 import no.nav.tiltakspenger.libs.auth.core.MicrosoftEntraIdTokenService
@@ -14,18 +14,10 @@ import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
+import no.nav.tiltakspenger.saksbehandling.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.Profile
 import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
-import no.nav.tiltakspenger.saksbehandling.context.ApplicationContext
-import no.nav.tiltakspenger.saksbehandling.context.DokumentContext
-import no.nav.tiltakspenger.saksbehandling.context.FørstegangsbehandlingContext
-import no.nav.tiltakspenger.saksbehandling.context.MeldekortContext
-import no.nav.tiltakspenger.saksbehandling.context.PersonContext
-import no.nav.tiltakspenger.saksbehandling.context.SakContext
-import no.nav.tiltakspenger.saksbehandling.context.StatistikkContext
-import no.nav.tiltakspenger.saksbehandling.context.SøknadContext
-import no.nav.tiltakspenger.saksbehandling.context.TiltakContext
-import no.nav.tiltakspenger.saksbehandling.context.UtbetalingContext
+import no.nav.tiltakspenger.saksbehandling.dokument.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.DokdistFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.GenererFakeUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.GenererFakeVedtaksbrevGateway
@@ -35,7 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.fakes.clients.MeldekortApiFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.OppgaveFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.PersonFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.TilgangsstyringFakeGateway
-import no.nav.tiltakspenger.saksbehandling.fakes.clients.TiltakFakeGateway
+import no.nav.tiltakspenger.saksbehandling.fakes.clients.TiltaksdeltagelseFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.UtbetalingFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.VeilarboppfolgingFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.BehandlingFakeRepo
@@ -51,9 +43,17 @@ import no.nav.tiltakspenger.saksbehandling.fakes.repos.StatistikkStønadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.UtbetalingsvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fixedClock
+import no.nav.tiltakspenger.saksbehandling.meldekort.MeldekortContext
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.PersonContext
+import no.nav.tiltakspenger.saksbehandling.sak.SakContext
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.FørstegangsbehandlingContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
+import no.nav.tiltakspenger.saksbehandling.søknad.SøknadContext
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
+import no.nav.tiltakspenger.saksbehandling.utbetaling.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.NavkontorService
 
 /**
@@ -70,7 +70,10 @@ class TestApplicationContext(
     clock = clock,
 ) {
 
+    @Suppress("MemberVisibilityCanBePrivate")
     val journalpostIdGenerator = JournalpostIdGenerator()
+
+    @Suppress("MemberVisibilityCanBePrivate")
     val distribusjonIdGenerator = DistribusjonIdGenerator()
 
     private val rammevedtakFakeRepo = RammevedtakFakeRepo()
@@ -82,7 +85,7 @@ class TestApplicationContext(
     private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
     private val utbetalingsvedtakFakeRepo = UtbetalingsvedtakFakeRepo()
     private val søknadFakeRepo = SøknadFakeRepo()
-    private val tiltakGatewayFake = TiltakFakeGateway(søknadRepo = søknadFakeRepo)
+    private val tiltakGatewayFake = TiltaksdeltagelseFakeGateway(søknadRepo = søknadFakeRepo)
     private val behandlingFakeRepo = BehandlingFakeRepo()
     private val personGatewayFake = PersonFakeGateway(clock)
     private val tilgangsstyringFakeGateway = TilgangsstyringFakeGateway()
@@ -175,8 +178,8 @@ class TestApplicationContext(
     }
 
     override val tiltakContext by lazy {
-        object : TiltakContext(entraIdSystemtokenClient) {
-            override val tiltakGateway = tiltakGatewayFake
+        object : TiltaksdeltagelseContext(entraIdSystemtokenClient) {
+            override val tiltaksdeltagelseGateway = tiltakGatewayFake
         }
     }
     override val sakContext by lazy {
@@ -231,7 +234,7 @@ class TestApplicationContext(
             dokdistGateway = dokdistFakeGateway,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
-            tiltakGateway = tiltakGatewayFake,
+            tiltaksdeltagelseGateway = tiltakGatewayFake,
             oppgaveGateway = oppgaveGateway,
             clock = clock,
         ) {

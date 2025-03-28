@@ -1,6 +1,6 @@
 @file:Suppress("UnusedImport")
 
-package no.nav.tiltakspenger.common
+package no.nav.tiltakspenger.saksbehandling.common
 
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer

@@ -6,11 +6,11 @@ import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager.Dag

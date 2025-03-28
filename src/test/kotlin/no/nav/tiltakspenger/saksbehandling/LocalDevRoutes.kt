@@ -5,8 +5,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.saksbehandling.context.ApplicationContext
-import no.nav.tiltakspenger.saksbehandling.repository.felles.PeriodeDbJson
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.routes.søknad.nySakMedNySøknad
 import no.nav.tiltakspenger.saksbehandling.routes.søknad.nySøknadForFnr
 import no.nav.tiltakspenger.saksbehandling.routes.withBody
@@ -20,11 +19,11 @@ internal fun Route.localDevRoutes(applicationContext: ApplicationContext) {
     )
 
     post("$DEV_ROUTE/soknad/ny") {
-        call.withBody<NySøknadBody> {
-            val fnr = it.fnr?.let { Fnr.tryFromString(it) }
+        call.withBody<NySøknadBody> { body ->
+            val fnr = body.fnr?.let { Fnr.tryFromString(it) }
             if (fnr == null) {
                 val saksnummer = nySakMedNySøknad(
-                    deltakelsesperiode = it.deltakelsesperiode?.toDomain(),
+                    deltakelsesperiode = body.deltakelsesperiode?.toDomain(),
                     applicationContext = applicationContext,
                 )
                 call.respond(HttpStatusCode.OK, saksnummer.toString())
@@ -32,7 +31,7 @@ internal fun Route.localDevRoutes(applicationContext: ApplicationContext) {
                 val saksnummer = nySøknadForFnr(
                     fnr = fnr,
                     applicationContext = applicationContext,
-                    deltakelsesperiode = it.deltakelsesperiode?.toDomain(),
+                    deltakelsesperiode = body.deltakelsesperiode?.toDomain(),
                 )
                 call.respond(HttpStatusCode.OK, saksnummer.toString())
             }

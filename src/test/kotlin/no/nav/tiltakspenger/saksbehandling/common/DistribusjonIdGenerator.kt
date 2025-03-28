@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.common
+package no.nav.tiltakspenger.saksbehandling.common
 
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import java.util.concurrent.atomic.AtomicLong

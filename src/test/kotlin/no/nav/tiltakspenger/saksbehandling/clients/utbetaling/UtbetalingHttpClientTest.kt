@@ -6,9 +6,9 @@ import com.marcinziolo.kotlin.wiremock.get
 import com.marcinziolo.kotlin.wiremock.returns
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.common.withWireMockServer
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.saksbehandling.common.withWireMockServer
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor

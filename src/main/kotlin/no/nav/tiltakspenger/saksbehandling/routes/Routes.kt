@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.routes
 
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.routing.Route
-import no.nav.tiltakspenger.saksbehandling.context.ApplicationContext
+import no.nav.tiltakspenger.saksbehandling.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.behandlingRoutes
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.benk.behandlingBenkRoutes
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.beslutter.behandlingBeslutterRoutes

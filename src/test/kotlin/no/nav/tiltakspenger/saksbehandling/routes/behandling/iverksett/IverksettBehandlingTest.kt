@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksett
 import no.nav.tiltakspenger.saksbehandling.routes.routes

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.tiltaksdeltakelser
+package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelser
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -6,14 +6,14 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusType
-import no.nav.tiltakspenger.saksbehandling.db.persisterSakOgSøknad
-import no.nav.tiltakspenger.saksbehandling.db.withMigratedDb
-import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.TiltaksdeltakerService
-import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.arena.ArenaDeltakerMapper
-import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.komet.DeltakerV1Dto
-import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.repository.TiltaksdeltakerKafkaDb
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
+import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.TiltaksdeltakerService
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.arena.ArenaDeltakerMapper
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.komet.DeltakerV1Dto
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime

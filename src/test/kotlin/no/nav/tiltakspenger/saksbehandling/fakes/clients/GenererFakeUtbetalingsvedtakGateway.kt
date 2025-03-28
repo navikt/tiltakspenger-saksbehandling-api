@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.fakes.clients
 
 import arrow.core.Either
 import arrow.core.right
-import no.nav.tiltakspenger.saksbehandling.felles.KunneIkkeGenererePdf
+import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.felles.PdfA
 import no.nav.tiltakspenger.saksbehandling.felles.journalføring.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway

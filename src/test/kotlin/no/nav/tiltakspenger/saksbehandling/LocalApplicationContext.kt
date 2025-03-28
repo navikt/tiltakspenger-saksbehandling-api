@@ -1,7 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling
 
-import no.nav.tiltakspenger.common.DistribusjonIdGenerator
-import no.nav.tiltakspenger.common.JournalpostIdGenerator
 import no.nav.tiltakspenger.libs.auth.test.core.EntraIdSystemtokenFakeClient
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -10,15 +8,9 @@ import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringServiceImpl
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.clients.person.FakeNavIdentClient
-import no.nav.tiltakspenger.saksbehandling.context.ApplicationContext
-import no.nav.tiltakspenger.saksbehandling.context.DokumentContext
-import no.nav.tiltakspenger.saksbehandling.context.FørstegangsbehandlingContext
-import no.nav.tiltakspenger.saksbehandling.context.MeldekortContext
-import no.nav.tiltakspenger.saksbehandling.context.PersonContext
-import no.nav.tiltakspenger.saksbehandling.context.SakContext
-import no.nav.tiltakspenger.saksbehandling.context.SøknadContext
-import no.nav.tiltakspenger.saksbehandling.context.TiltakContext
-import no.nav.tiltakspenger.saksbehandling.context.UtbetalingContext
+import no.nav.tiltakspenger.saksbehandling.common.DistribusjonIdGenerator
+import no.nav.tiltakspenger.saksbehandling.common.JournalpostIdGenerator
+import no.nav.tiltakspenger.saksbehandling.dokument.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.DokdistFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.FellesFakeAdressebeskyttelseKlient
@@ -30,13 +22,17 @@ import no.nav.tiltakspenger.saksbehandling.fakes.clients.JournalførFakeVedtaksb
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.OppgaveFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.PersonFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.PoaoTilgangskontrollFake
-import no.nav.tiltakspenger.saksbehandling.fakes.clients.TiltakFakeGateway
+import no.nav.tiltakspenger.saksbehandling.fakes.clients.TiltaksdeltagelseFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.UtbetalingFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.VeilarboppfolgingFakeGateway
+import no.nav.tiltakspenger.saksbehandling.meldekort.MeldekortContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toSøknadstiltak
-import no.nav.tiltakspenger.saksbehandling.repository.sak.SakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.PersonContext
+import no.nav.tiltakspenger.saksbehandling.sak.SakContext
+import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.saksbehandling.FørstegangsbehandlingContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.SaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
@@ -45,6 +41,9 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.GenererInnvilgel
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.GenererStansvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.VeilarboppfolgingGateway
+import no.nav.tiltakspenger.saksbehandling.søknad.SøknadContext
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
+import no.nav.tiltakspenger.saksbehandling.utbetaling.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.NavkontorService
 import java.time.Clock
 
@@ -58,7 +57,10 @@ class LocalApplicationContext(
     clock: Clock,
 ) : ApplicationContext(gitHash = "fake-git-hash", clock = clock) {
 
+    @Suppress("MemberVisibilityCanBePrivate")
     val journalpostIdGenerator = JournalpostIdGenerator()
+
+    @Suppress("MemberVisibilityCanBePrivate")
     val distribusjonIdGenerator = DistribusjonIdGenerator()
     private val realPdfGen = if (usePdfGen) {
         PdfgenHttpClient(baseUrl = "http://host.docker.internal:8081")
@@ -128,6 +130,7 @@ class LocalApplicationContext(
         )
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
     fun leggTilPerson(
         fnr: Fnr,
         personopplysningerForBruker: PersonopplysningerSøker,
@@ -167,11 +170,11 @@ class LocalApplicationContext(
     }
 
     private val tiltakGatewayFake =
-        TiltakFakeGateway(søknadRepo = søknadContext.søknadRepo)
+        TiltaksdeltagelseFakeGateway(søknadRepo = søknadContext.søknadRepo)
 
     override val tiltakContext by lazy {
-        object : TiltakContext(entraIdSystemtokenClient) {
-            override val tiltakGateway = tiltakGatewayFake
+        object : TiltaksdeltagelseContext(entraIdSystemtokenClient) {
+            override val tiltaksdeltagelseGateway = tiltakGatewayFake
         }
     }
     override val profile by lazy { Profile.LOCAL }
@@ -217,7 +220,7 @@ class LocalApplicationContext(
             dokdistGateway = dokdistFakeGateway,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
-            tiltakGateway = tiltakGatewayFake,
+            tiltaksdeltagelseGateway = tiltakGatewayFake,
             oppgaveGateway = oppgaveGateway,
             clock = clock,
         ) {}

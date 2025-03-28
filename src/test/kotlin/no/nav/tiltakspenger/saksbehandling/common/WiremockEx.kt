@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.common
+package no.nav.tiltakspenger.saksbehandling.common
 
 import com.github.tomakehurst.wiremock.WireMockServer
 

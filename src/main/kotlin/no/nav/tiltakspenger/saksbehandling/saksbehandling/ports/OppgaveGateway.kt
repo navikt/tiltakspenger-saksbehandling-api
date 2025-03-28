@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.saksbehandling.ports
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.saksbehandling.felles.OppgaveId
-import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 
 interface OppgaveGateway {
     suspend fun opprettOppgave(fnr: Fnr, journalpostId: JournalpostId, oppgavebehov: Oppgavebehov): OppgaveId

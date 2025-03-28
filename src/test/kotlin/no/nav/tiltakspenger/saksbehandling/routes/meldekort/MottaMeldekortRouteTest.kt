@@ -12,12 +12,12 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.ktor.server.util.url
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother

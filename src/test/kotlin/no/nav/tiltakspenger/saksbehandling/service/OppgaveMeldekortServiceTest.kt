@@ -7,8 +7,8 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.common.JournalpostIdGenerator
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.saksbehandling.common.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppgaveMeldekortService

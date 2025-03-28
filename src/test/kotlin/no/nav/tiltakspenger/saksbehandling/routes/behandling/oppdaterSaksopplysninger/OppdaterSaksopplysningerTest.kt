@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.routes.behandling.oppdaterSaksopplys
 import io.kotest.matchers.shouldBe
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
-import no.nav.tiltakspenger.common.TestApplicationContext
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.oppdaterSaksopplysningerForBehandlingId
