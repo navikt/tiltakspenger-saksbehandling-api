@@ -28,7 +28,6 @@ fun genererStatistikkForNyFørstegangsbehandling(
         søknadsformat = Format.DIGITAL.name,
         // TODO jah: Dette bør være et eget felt som utledes fra tiltaksperioden og kravfrist.
         forventetOppstartTidspunkt = behandling.saksopplysningsperiode?.fraOgMed,
-        vilkår = emptyList(),
         sakYtelse = "IND",
         behandlingType = BehandlingType.FØRSTEGANGSBEHANDLING,
         behandlingStatus = BehandlingStatus.UNDER_BEHANDLING,
@@ -73,7 +72,6 @@ fun genererSaksstatistikkForRammevedtak(
         søknadsformat = Format.DIGITAL.name,
         // TODO jah: Hva gjør vi ved revurdering/stans i dette tilfellet. Skal vi sende førstegangsbehandling sin første innvilget fraOgMed eller null?
         forventetOppstartTidspunkt = if (behandling.erFørstegangsbehandling) behandling.saksopplysningsperiode?.fraOgMed else null,
-        vilkår = emptyList(),
         sakYtelse = "IND",
         behandlingType = if (behandling.erFørstegangsbehandling) BehandlingType.FØRSTEGANGSBEHANDLING else BehandlingType.REVURDERING,
         // TODO jah: I følge confluence-dokken så finner jeg ikke dette feltet. Burde det heller vært AVSLUTTET?

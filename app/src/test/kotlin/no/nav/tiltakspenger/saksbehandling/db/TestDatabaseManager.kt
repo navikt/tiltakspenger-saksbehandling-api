@@ -89,7 +89,6 @@ internal class TestDatabaseManager {
                   statistikk_utbetaling,
                   statistikk_stonad,
                   statistikk_sak,
-                  statistikk_sak_vilkar,
                   meldekort_bruker,
                   meldekortbehandling,
                   meldeperiode,

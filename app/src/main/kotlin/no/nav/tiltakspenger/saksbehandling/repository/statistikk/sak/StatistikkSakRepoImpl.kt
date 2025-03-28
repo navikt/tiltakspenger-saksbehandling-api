@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.sak.StatistikkSakDTO
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.sak.VilkårStatistikkDTO
 import org.intellij.lang.annotations.Language
 
 internal class StatistikkSakRepoImpl(
@@ -55,26 +54,6 @@ internal class StatistikkSakRepoImpl(
                         "versjon" to dto.versjon,
                     ),
                 ).asUpdateAndReturnGeneratedKey,
-            ).also { id ->
-                if (id != null) {
-                    dto.vilkår.forEach { vilkår ->
-                        lagreVilkår(id.toInt(), vilkår, tx)
-                    }
-                }
-            }
-        }
-
-        private fun lagreVilkår(id: Int, dto: VilkårStatistikkDTO, tx: TransactionalSession) {
-            tx.run(
-                queryOf(
-                    lagreVilkårSql,
-                    mapOf(
-                        "statistikkSakId" to id,
-                        "vilkar" to dto.vilkår,
-                        "beskrivelse" to dto.beskrivelse,
-                        "resultat" to dto.resultat.name,
-                    ),
-                ).asUpdate,
             )
         }
 
@@ -140,21 +119,6 @@ internal class StatistikkSakRepoImpl(
             :hendelse,
             :avsender,
             :versjon
-        ) returning id
-        """.trimIndent()
-
-        @Language("SQL")
-        private val lagreVilkårSql = """
-        insert into statistikk_sak_vilkar (
-            statistikk_sak_id,
-            vilkar,
-            beskrivelse,
-            resultat  
-        ) values (
-            :statistikkSakId,
-            :vilkar,
-            :beskrivelse,
-            :resultat
         )
         """.trimIndent()
     }

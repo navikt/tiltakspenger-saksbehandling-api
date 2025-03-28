@@ -39,8 +39,7 @@ class BenkOversiktPostgresRepo(
                           behandling.attesteringer,
                           behandling.sak_id,
                           behandling.behandlingstype,
-                          søknad.tidsstempel_hos_oss as kravtidspunkt,
-                          behandling.vilkårssett
+                          søknad.tidsstempel_hos_oss as kravtidspunkt
                         from behandling
                         left join sak on sak.id = behandling.sak_id
                         left join søknad on behandling.id = søknad.behandling_id
