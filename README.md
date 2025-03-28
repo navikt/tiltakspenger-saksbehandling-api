@@ -15,7 +15,7 @@ En del av satsningen ["Flere i arbeid – P4"](https://memu.no/artikler/stor-sat
 
 ## Lokal kjøring
 
-Appen kan kjøres opp lokalt med `main`-funksjonen i ([LokalMain.kt](https://github.com/navikt/tiltakspenger-saksbehandling-api/blob/main/app/src/test/kotlin/no/nav/tiltakspenger/LokalMain.kt)). Denne bruker mocks for de fleste tjenester, og krever kun en lokal database kjørende i tillegg.
+Appen kan kjøres opp lokalt med `main`-funksjonen i ([LokalMain.kt](https://github.com/navikt/tiltakspenger-saksbehandling-api/blob/main/src/test/kotlin/no/nav/tiltakspenger/LokalMain.kt)). Denne bruker mocks for de fleste tjenester, og krever kun en lokal database kjørende i tillegg.
   
 Databasen kan startes med docker-compose i [meta-repoet for tiltakspenger](https://github.com/navikt/tiltakspenger). Se README der for fremgangsmåte og import av data.
 

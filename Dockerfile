@@ -6,7 +6,7 @@ ENV LANG='nb_NO.UTF-8'
 
 WORKDIR /app
 
-COPY app/build/install/app/lib/*.jar .
+COPY build/install/tiltakspenger-saksbehandling-api/lib/*.jar .
 
 USER nobody
 

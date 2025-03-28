@@ -2,70 +2,175 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val jvmVersion = JvmTarget.JVM_21
+val kotlinxCoroutinesVersion = "1.10.1"
+val kotestVersion = "5.9.1"
+val felleslibVersion = "0.0.424"
+val mockkVersion = "1.13.17"
+val ktorVersion = "3.1.2"
+val testContainersVersion = "1.20.6"
+val poaoTilgangVersjon = "2025.03.17_10.46-e6359712fa6d"
+val iverksettVersjon = "1.0_20241213145703_7ff5f9c"
 
+dependencies {
+    // Align versions of all Kotlin components
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
+    implementation(kotlin("stdlib"))
 
+    implementation("com.github.navikt.tiltakspenger-libs:soknad-dtos:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:tiltak-dtos:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:arenatiltak-dtos:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:person-dtos:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:datadeling-dtos:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:periodisering:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:personklient-domene:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:personklient-infrastruktur:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:persistering-domene:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:persistering-infrastruktur:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:jobber:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:common:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:json:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:auth-core:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:auth-ktor:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:ktor-common:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:logging:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:meldekort-dtos:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:kafka:$felleslibVersion")
+
+    implementation("io.github.oshai:kotlin-logging-jvm:7.0.5")
+    implementation("ch.qos.logback:logback-classic:1.5.18")
+    implementation("net.logstash.logback:logstash-logback-encoder:8.0")
+    implementation("com.papertrailapp:logback-syslog4j:1.0.0")
+    implementation("com.aallam.ulid:ulid-kotlin:1.3.0")
+
+    implementation("io.ktor:ktor-server-call-id:$ktorVersion")
+    implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
+    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-server-cors:$ktorVersion")
+    implementation("io.ktor:ktor-server-default-headers-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-server-host-common:$ktorVersion")
+    implementation("io.ktor:ktor-server-host-common-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
+    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
+    implementation("io.ktor:ktor-utils:$ktorVersion")
+
+    implementation("com.natpryce:konfig:1.6.10.0")
+
+    // Http
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-apache:$ktorVersion")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-client-logging:$ktorVersion")
+    implementation("io.ktor:ktor-http:$ktorVersion")
+
+    // Auth
+    api("com.auth0:java-jwt:4.5.0")
+    api("com.auth0:jwks-rsa:0.22.1")
+
+    // DB
+    implementation("org.flywaydb:flyway-database-postgresql:11.5.0")
+    implementation("com.zaxxer:HikariCP:6.3.0")
+    implementation("org.postgresql:postgresql:42.7.5")
+    implementation("com.github.seratch:kotliquery:1.9.1")
+
+    // Helved/Utsjekk/Utbetaling
+    implementation("no.nav.utsjekk.kontrakter:iverksett:$iverksettVersjon")
+
+    //POAO tilgang
+    implementation("no.nav.poao-tilgang:client:$poaoTilgangVersjon")
+
+    // DIV
+    // Arrow
+    implementation("io.arrow-kt:arrow-core:2.0.1")
+
+    // Caffeine
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")
+
+    testImplementation(platform("org.junit:junit-bom:5.12.1"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("io.mockk:mockk:$mockkVersion")
+    testImplementation("io.mockk:mockk-dsl-jvm:$mockkVersion")
+    testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
+    testImplementation("io.kotest:kotest-extensions:$kotestVersion")
+    testImplementation("org.skyscreamer:jsonassert:1.5.3")
+    testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlinxCoroutinesVersion")
+    testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
+    testImplementation("org.testcontainers:postgresql:$testContainersVersion")
+    // need quarkus-junit-4-mock because of https://github.com/testcontainers/testcontainers-java/issues/970
+    testImplementation("io.quarkus:quarkus-junit4-mock:3.21.0")
+    testImplementation("io.github.serpro69:kotlin-faker:1.16.0")
+    testApi("com.github.navikt.tiltakspenger-libs:ktor-test-common:$felleslibVersion")
+    testApi("com.github.navikt.tiltakspenger-libs:auth-test-core:$felleslibVersion")
+    testApi("com.github.navikt.tiltakspenger-libs:test-common:$felleslibVersion")
+    testApi("com.github.navikt.tiltakspenger-libs:common:$felleslibVersion")
+    testApi("com.github.navikt.tiltakspenger-libs:persistering-domene:$felleslibVersion")
+}
 plugins {
     kotlin("jvm") version "2.1.20"
     id("com.diffplug.spotless") version "7.0.2"
+    application
 }
-
-allprojects {
-    repositories {
-        mavenCentral()
-        mavenLocal()
-        maven("https://packages.confluent.io/maven/")
-        maven {
-            url = uri("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
-        }
-    }
+application {
+    mainClass.set("no.nav.tiltakspenger.saksbehandling.AppKt")
 }
-
-subprojects {
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "com.diffplug.spotless")
-
-    spotless {
-        kotlin {
-            ktlint()
-                .editorConfigOverride(
-                    mapOf(
-                        "ktlint_standard_max-line-length" to "off",
-                        "ktlint_standard_function-signature" to "disabled",
-                        "ktlint_standard_function-expression-body" to "disabled",
-                    ),
-                )
-        }
-    }
-
-    tasks {
-        kotlin {
-            compilerOptions {
-                jvmTarget.set(jvmVersion)
-                freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
-            }
-        }
-
-        test {
-            // JUnit 5 support
-            useJUnitPlatform()
-            // https://phauer.com/2018/best-practices-unit-testing-kotlin/
-            systemProperty("junit.jupiter.testinstance.lifecycle.default", "per_class")
-            // https://github.com/mockito/mockito/issues/3037#issuecomment-1588199599
-            jvmArgs("-XX:+EnableDynamicAgentLoading")
-            testLogging {
-                // We only want to log failed and skipped tests when running Gradle.
-                events("skipped", "failed")
-                exceptionFormat = TestExceptionFormat.FULL
-            }
-        }
-    }
-
-    configurations.all {
-        // exclude JUnit 4
-        exclude(group = "junit", module = "junit")
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven("https://packages.confluent.io/maven/")
+    maven {
+        url = uri("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
     }
 }
+apply(plugin = "org.jetbrains.kotlin.jvm")
+apply(plugin = "com.diffplug.spotless")
 
+spotless {
+    kotlin {
+        ktlint()
+            .editorConfigOverride(
+                mapOf(
+                    "ktlint_standard_max-line-length" to "off",
+                    "ktlint_standard_function-signature" to "disabled",
+                    "ktlint_standard_function-expression-body" to "disabled",
+                ),
+            )
+    }
+}
+tasks {
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(jvmVersion)
+            freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
+        }
+    }
+
+    test {
+        // JUnit 5 support
+        useJUnitPlatform()
+        // https://phauer.com/2018/best-practices-unit-testing-kotlin/
+        systemProperty("junit.jupiter.testinstance.lifecycle.default", "per_class")
+        // https://github.com/mockito/mockito/issues/3037#issuecomment-1588199599
+        jvmArgs("-XX:+EnableDynamicAgentLoading")
+        testLogging {
+            // We only want to log failed and skipped tests when running Gradle.
+            events("skipped", "failed")
+            exceptionFormat = TestExceptionFormat.FULL
+        }
+    }
+}
+configurations.all {
+    // exclude JUnit 4
+    exclude(group = "junit", module = "junit")
+}
 tasks {
     register<Copy>("gitHooks") {
         from(file(".scripts/pre-commit"))
@@ -102,9 +207,19 @@ tasks {
 
             println("All migration filenames are valid and version numbers are unique.")
         }
-    }
 
+    }
     check {
         dependsOn("checkFlywayMigrationNames")
+    }
+    jar {
+        dependsOn(configurations.runtimeClasspath)
+
+        manifest {
+            attributes["Main-Class"] = "no.nav.tiltakspenger.saksbehandling.AppKt"
+            attributes["Class-Path"] = configurations.runtimeClasspath
+                .get()
+                .joinToString(separator = " ") { file -> file.name }
+        }
     }
 }
