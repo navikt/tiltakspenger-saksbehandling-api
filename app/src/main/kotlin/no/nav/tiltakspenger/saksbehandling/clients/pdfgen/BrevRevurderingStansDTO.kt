@@ -86,7 +86,7 @@ internal suspend fun genererStansbrev(
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
         // TODO post-mvp: legg inn NORG integrasjon for å hente saksbehandlers kontor.
-        kontor = "Nav Tiltak Øst-Viken",
+        kontor = "Nav Tiltakspenger",
         // Dette er vår dato, det brukes typisk når bruker klager på vedtaksbrev på dato ...
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
         forhandsvisning = forhåndsvisning,
