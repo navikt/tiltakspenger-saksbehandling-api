@@ -6,10 +6,10 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.april
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -20,7 +20,7 @@ class SakTest {
         val sak = ObjectMother.nySak(søknader = listOf(søknad))
 
         val (sakMedAvbruttsøknad, avbruttSøknad, behandling) = sak.avbrytSøknadOgBehandling(
-            AvbrytSøknadOgBehandlingCommand(
+            no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand(
                 saksnummer = sak.saksnummer,
                 søknadId = søknad.id,
                 behandlingId = null,
@@ -43,7 +43,7 @@ class SakTest {
         val sak = ObjectMother.nySak(behandlinger = Behandlinger(behandling), søknader = listOf(behandling.søknad!!))
 
         val (sakMedAvbruttsøknad, avbruttSøknad, avbruttBehandling) = sak.avbrytSøknadOgBehandling(
-            AvbrytSøknadOgBehandlingCommand(
+            no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand(
                 saksnummer = sak.saksnummer,
                 søknadId = null,
                 behandlingId = behandling.id,

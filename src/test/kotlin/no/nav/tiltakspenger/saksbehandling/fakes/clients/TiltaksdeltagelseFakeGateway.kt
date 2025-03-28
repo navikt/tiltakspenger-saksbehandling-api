@@ -5,9 +5,9 @@ package no.nav.tiltakspenger.saksbehandling.fakes.clients
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toTiltak
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SøknadRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseGateway
 
 class TiltaksdeltagelseFakeGateway(private val søknadRepo: SøknadRepo) : TiltaksdeltagelseGateway {

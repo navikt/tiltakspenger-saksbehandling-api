@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.domene.personopplysninger
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.førsteNovember24
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingsstatus
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -36,7 +36,7 @@ class BehandlingTest {
     fun `kan ikke avbryte en avbrutt behandling`() {
         val avbruttBehandling = ObjectMother.nyBehandling(
             status = Behandlingsstatus.AVBRUTT,
-            avbrutt = Avbrutt(
+            avbrutt = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Avbrutt(
                 tidspunkt = førsteNovember24,
                 saksbehandler = "navident",
                 begrunnelse = "skal få exception",

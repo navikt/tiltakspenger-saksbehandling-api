@@ -6,9 +6,10 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
-import no.nav.tiltakspenger.saksbehandling.routes.søknad.nySakMedNySøknad
-import no.nav.tiltakspenger.saksbehandling.routes.søknad.nySøknadForFnr
-import no.nav.tiltakspenger.saksbehandling.routes.withBody
+import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
+import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.nySakMedNySøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.nySøknadForFnr
 
 internal const val DEV_ROUTE = "/dev"
 

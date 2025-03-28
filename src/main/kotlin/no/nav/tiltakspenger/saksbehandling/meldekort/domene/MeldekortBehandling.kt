@@ -13,17 +13,17 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attestering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringer
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Attestering
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Attesteringer
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Attesteringsstatus
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -60,7 +60,7 @@ sealed interface MeldekortBehandling {
     val iverksattTidspunkt: LocalDateTime?
     val sendtTilBeslutning: LocalDateTime?
     val begrunnelse: MeldekortbehandlingBegrunnelse?
-    val attesteringer: Attesteringer
+    val attesteringer: no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringer
 
     /** Denne styres kun av vedtakene. Dersom vi har en åpen meldekortbehandling (inkl. til beslutning) kan et nytt vedtak overstyre hele meldeperioden til [MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] */
     val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?
@@ -148,7 +148,7 @@ sealed interface MeldekortBehandling {
         override val meldeperiode: Meldeperiode,
         override val type: MeldekortBehandlingType,
         override val begrunnelse: MeldekortbehandlingBegrunnelse?,
-        override val attesteringer: Attesteringer,
+        override val attesteringer: no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringer,
     ) : MeldekortBehandling {
 
         init {
@@ -197,9 +197,9 @@ sealed interface MeldekortBehandling {
             require(this.beslutter == null)
 
             val attesteringer = this.attesteringer.leggTil(
-                Attestering(
+                no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attestering(
                     id = AttesteringId.random(),
-                    status = Attesteringsstatus.GODKJENT,
+                    status = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringsstatus.GODKJENT,
                     begrunnelse = null,
                     beslutter = beslutter.navIdent,
                     tidspunkt = LocalDateTime.now(clock),
@@ -230,9 +230,9 @@ sealed interface MeldekortBehandling {
             }
 
             val attesteringer = this.attesteringer.leggTil(
-                Attestering(
+                no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attestering(
                     id = AttesteringId.random(),
-                    status = Attesteringsstatus.SENDT_TILBAKE,
+                    status = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringsstatus.SENDT_TILBAKE,
                     begrunnelse = begrunnelse,
                     beslutter = beslutter.navIdent,
                     tidspunkt = LocalDateTime.now(clock),
@@ -314,7 +314,7 @@ sealed interface MeldekortBehandling {
         override val saksbehandler: String,
         override val type: MeldekortBehandlingType,
         override val begrunnelse: MeldekortbehandlingBegrunnelse?,
-        override val attesteringer: Attesteringer,
+        override val attesteringer: no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringer,
         override val sendtTilBeslutning: LocalDateTime?,
     ) : MeldekortBehandling {
         override val iverksattTidspunkt = null
@@ -448,7 +448,7 @@ fun Sak.opprettMeldekortBehandling(
             tiltakstypePerioder = this.vedtaksliste.tiltakstypeperioder,
         ),
         begrunnelse = null,
-        attesteringer = Attesteringer.empty(),
+        attesteringer = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringer.empty(),
         sendtTilBeslutning = null,
     )
 }

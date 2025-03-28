@@ -11,10 +11,10 @@ import no.nav.tiltakspenger.libs.soknad.PersonopplysningerDTO
 import no.nav.tiltakspenger.libs.soknad.SpmSvarDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadDTO
 import no.nav.tiltakspenger.libs.soknad.SøknadsTiltakDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTOMapper
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime

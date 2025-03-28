@@ -14,10 +14,10 @@ import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
-import no.nav.tiltakspenger.saksbehandling.ApplicationContext
-import no.nav.tiltakspenger.saksbehandling.Profile
 import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
-import no.nav.tiltakspenger.saksbehandling.dokument.DokumentContext
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.GenererFakeUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.GenererFakeVedtaksbrevGateway
@@ -43,18 +43,18 @@ import no.nav.tiltakspenger.saksbehandling.fakes.repos.StatistikkStønadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.UtbetalingsvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fixedClock
-import no.nav.tiltakspenger.saksbehandling.meldekort.MeldekortContext
-import no.nav.tiltakspenger.saksbehandling.oppgave.infra.PersonContext
-import no.nav.tiltakspenger.saksbehandling.sak.SakContext
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.FørstegangsbehandlingContext
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
+import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
+import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
+import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
 import no.nav.tiltakspenger.saksbehandling.søknad.SøknadContext
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.UtbetalingContext
-import no.nav.tiltakspenger.saksbehandling.utbetaling.service.NavkontorService
 
 /**
  * Oppretter en tom ApplicationContext for bruk i tester.
@@ -219,7 +219,7 @@ class TestApplicationContext(
     }
 
     override val behandlingContext by lazy {
-        object : FørstegangsbehandlingContext(
+        object : BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
             meldekortBehandlingRepo = meldekortBehandlingFakeRepo,
             meldeperiodeRepo = meldeperiodeFakeRepo,

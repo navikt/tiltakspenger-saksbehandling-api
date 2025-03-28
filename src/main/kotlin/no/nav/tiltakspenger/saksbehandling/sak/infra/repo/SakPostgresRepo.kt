@@ -10,20 +10,18 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saker
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.SaksnummerGenerator
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.infra.repo.BehandlingPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SakRepo
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.sak.Saker
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.sak.SaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.repo.UtbetalingsvedtakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingsvedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import org.intellij.lang.annotations.Language
 import java.time.Clock
@@ -260,8 +258,8 @@ internal class SakPostgresRepo(
         fun Row.toSak(sessionContext: SessionContext): Sak {
             val id: SakId = SakId.fromString(string("id"))
             return sessionContext.withSession { session ->
-                val behandlinger = BehandlingPostgresRepo.hentForSakId(id, session)
-                val vedtaksliste: Vedtaksliste = RammevedtakPostgresRepo.hentForSakId(id, session)
+                val behandlinger = no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo.hentForSakId(id, session)
+                val vedtaksliste: no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste = RammevedtakPostgresRepo.hentForSakId(id, session)
                 val meldekortBehandlinger =
                     MeldekortBehandlingPostgresRepo.hentForSakId(id, session) ?: MeldekortBehandlinger.empty()
                 val meldeperiodekjeder = MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(id, session)

@@ -4,9 +4,9 @@ import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.BehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.RammevedtakRepo
 import java.time.Clock
 
 class SendTilDatadelingService(

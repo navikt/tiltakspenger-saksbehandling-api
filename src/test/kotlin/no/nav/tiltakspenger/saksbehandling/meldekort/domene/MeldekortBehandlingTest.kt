@@ -7,10 +7,10 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attestering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Attestering
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Attesteringsstatus
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -42,10 +42,10 @@ class MeldekortBehandlingTest {
             clock = fixedClock,
         )
 
-        val expetcedAttestering = Attestering(
+        val expetcedAttestering = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attestering(
             // ignorert
             id = AttesteringId.random(),
-            status = Attesteringsstatus.SENDT_TILBAKE,
+            status = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringsstatus.SENDT_TILBAKE,
             begrunnelse = NonBlankString.create("skal ikke kunne underkjenne"),
             beslutter = ObjectMother.saksbehandler().navIdent,
             tidspunkt = LocalDateTime.now(fixedClock),
@@ -54,7 +54,7 @@ class MeldekortBehandlingTest {
         actual.getOrFail().let {
             it.shouldBeInstanceOf<MeldekortBehandling.MeldekortUnderBehandling>()
             it.attesteringer.size shouldBe 1
-            it.attesteringer.first().shouldBeEqualToIgnoringFields(expetcedAttestering, Attestering::id)
+            it.attesteringer.first().shouldBeEqualToIgnoringFields(expetcedAttestering, no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attestering::id)
         }
     }
 }

@@ -9,6 +9,9 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
@@ -17,10 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.StatistikkStønadRepo
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.opprettUtbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.tilStatistikk
@@ -28,12 +28,12 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRep
 import java.time.Clock
 
 class IverksettMeldekortService(
-    val sakService: SakService,
+    val sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
     val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     val meldeperiodeRepo: MeldeperiodeRepo,
     val sessionFactory: SessionFactory,
     private val tilgangsstyringService: TilgangsstyringService,
-    private val personService: PersonService,
+    private val personService: no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService,
     private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
     private val clock: Clock,

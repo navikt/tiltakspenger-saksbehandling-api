@@ -8,8 +8,8 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.lang.String.join
 import java.util.UUID
 
@@ -204,7 +204,7 @@ object AuditLogger {
 }
 
 class AuditService(
-    private val personService: PersonService,
+    private val personService: no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService,
 ) {
     fun logMedBehandlingId(
         behandlingId: BehandlingId,

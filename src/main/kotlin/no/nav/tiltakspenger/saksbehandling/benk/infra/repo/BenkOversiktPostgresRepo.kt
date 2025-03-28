@@ -8,14 +8,14 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.toBehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.toBehandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksoversiktRepo
 import no.nav.tiltakspenger.saksbehandling.benk.BehandlingEllerSøknadForSaksoversikt
 import no.nav.tiltakspenger.saksbehandling.benk.BenkBehandlingstype
 import no.nav.tiltakspenger.saksbehandling.benk.toBenkBehandlingstype
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.infra.repo.attesteringer.toAttesteringer
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.infra.repo.toBehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.infra.repo.toBehandlingstype
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SaksoversiktRepo
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 class BenkOversiktPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -73,7 +73,11 @@ class BenkOversiktPostgresRepo(
                             kravtidspunkt = kravtidspunkt,
                             behandlingstype = behandlingstype,
                             fnr = Fnr.fromString(row.string("fnr")),
-                            saksnummer = Saksnummer(row.string("saksnummer")),
+                            saksnummer = Saksnummer(
+                                row.string(
+                                    "saksnummer",
+                                ),
+                            ),
                             id = id,
                             saksbehandler = saksbehandler,
                             beslutter = beslutter,
@@ -118,7 +122,11 @@ class BenkOversiktPostgresRepo(
                             kravtidspunkt = kravtidspunkt,
                             behandlingstype = behandlingstype,
                             fnr = Fnr.fromString(row.string("fnr")),
-                            saksnummer = Saksnummer(row.string("saksnummer")),
+                            saksnummer = Saksnummer(
+                                row.string(
+                                    "saksnummer",
+                                ),
+                            ),
                             id = id,
                             saksbehandler = null,
                             beslutter = null,

@@ -6,9 +6,9 @@ import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -16,19 +16,20 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class TiltaksdeltakerKafkaDbTest {
-    private val lagretTiltaksdeltakelse = Tiltaksdeltagelse(
-        eksternDeltagelseId = UUID.randomUUID().toString(),
-        gjennomføringId = UUID.randomUUID().toString(),
-        typeNavn = "Avklaring",
-        typeKode = TiltakstypeSomGirRett.AVKLARING,
-        rettPåTiltakspenger = true,
-        deltagelseFraOgMed = 5.januar(2025),
-        deltagelseTilOgMed = 5.april(2025),
-        deltakelseStatus = TiltakDeltakerstatus.Deltar,
-        deltakelseProsent = 50.0F,
-        antallDagerPerUke = 2.0F,
-        kilde = Tiltakskilde.Komet,
-    )
+    private val lagretTiltaksdeltakelse =
+        Tiltaksdeltagelse(
+            eksternDeltagelseId = UUID.randomUUID().toString(),
+            gjennomføringId = UUID.randomUUID().toString(),
+            typeNavn = "Avklaring",
+            typeKode = TiltakstypeSomGirRett.AVKLARING,
+            rettPåTiltakspenger = true,
+            deltagelseFraOgMed = 5.januar(2025),
+            deltagelseTilOgMed = 5.april(2025),
+            deltakelseStatus = TiltakDeltakerstatus.Deltar,
+            deltakelseProsent = 50.0F,
+            antallDagerPerUke = 2.0F,
+            kilde = Tiltakskilde.Komet,
+        )
 
     @Test
     fun `tiltaksdeltakelseErEndret - ingen endring - returnerer false`() {

@@ -9,9 +9,9 @@ import no.nav.tiltakspenger.libs.periodisering.juni
 import no.nav.tiltakspenger.libs.periodisering.mai
 import no.nav.tiltakspenger.libs.periodisering.oktober
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -121,17 +121,18 @@ class TiltaksdeltagelseTest {
         tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe true
     }
 
-    private fun getTiltaksdeltagelse(fom: LocalDate?, tom: LocalDate?) = Tiltaksdeltagelse(
-        eksternDeltagelseId = UUID.randomUUID().toString(),
-        gjennomføringId = UUID.randomUUID().toString(),
-        typeNavn = "Avklaring",
-        typeKode = TiltakstypeSomGirRett.AVKLARING,
-        rettPåTiltakspenger = true,
-        deltagelseFraOgMed = fom,
-        deltagelseTilOgMed = tom,
-        deltakelseStatus = TiltakDeltakerstatus.Deltar,
-        deltakelseProsent = 50.0F,
-        antallDagerPerUke = 2.0F,
-        kilde = Tiltakskilde.Komet,
-    )
+    private fun getTiltaksdeltagelse(fom: LocalDate?, tom: LocalDate?) =
+        Tiltaksdeltagelse(
+            eksternDeltagelseId = UUID.randomUUID().toString(),
+            gjennomføringId = UUID.randomUUID().toString(),
+            typeNavn = "Avklaring",
+            typeKode = TiltakstypeSomGirRett.AVKLARING,
+            rettPåTiltakspenger = true,
+            deltagelseFraOgMed = fom,
+            deltagelseTilOgMed = tom,
+            deltakelseStatus = TiltakDeltakerstatus.Deltar,
+            deltakelseProsent = 50.0F,
+            antallDagerPerUke = 2.0F,
+            kilde = Tiltakskilde.Komet,
+        )
 }

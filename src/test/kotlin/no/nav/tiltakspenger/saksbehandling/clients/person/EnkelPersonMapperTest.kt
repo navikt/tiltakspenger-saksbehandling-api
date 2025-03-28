@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.clients.person
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.saksbehandling.person.infra.toEnkelPerson
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.person.infra.http.toEnkelPerson
 import org.junit.jupiter.api.Test
 
 internal class EnkelPersonMapperTest {

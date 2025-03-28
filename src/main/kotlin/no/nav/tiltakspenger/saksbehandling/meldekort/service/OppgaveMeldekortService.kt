@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.OppgaveGateway
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.Oppgavebehov
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SakRepo
 
 class OppgaveMeldekortService(
     private val oppgaveGateway: OppgaveGateway,

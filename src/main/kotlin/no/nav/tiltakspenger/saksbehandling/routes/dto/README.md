@@ -1,1 +1,0 @@
-Felles DTOer for routes. Kontrakter med frontend.

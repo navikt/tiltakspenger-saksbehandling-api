@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.domene.sak
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.SaksnummerGenerator
+import no.nav.tiltakspenger.saksbehandling.sak.SaksnummerGenerator
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 

@@ -9,9 +9,9 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.KunneIkkeUtbetale
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SendtUtbetaling
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.UtbetalingGateway
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingGateway
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SendUtbetalingerService
 import org.junit.jupiter.api.Test

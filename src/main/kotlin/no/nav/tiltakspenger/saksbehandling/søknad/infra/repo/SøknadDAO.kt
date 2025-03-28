@@ -9,12 +9,12 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.toAvbrutt
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.infra.repo.toAvbrutt
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.infra.repo.toDbJson
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import org.intellij.lang.annotations.Language
 
 private const val KVP_FELT = "kvp"
@@ -152,7 +152,7 @@ internal object SøknadDAO {
 
     fun lagreAvbruttSøknad(
         søknadId: SøknadId,
-        avbrutt: Avbrutt,
+        avbrutt: no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Avbrutt,
         txSession: TransactionalSession,
     ) {
         val oppdaterteRader = txSession.run(

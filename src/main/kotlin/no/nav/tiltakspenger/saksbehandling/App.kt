@@ -14,8 +14,11 @@ import no.nav.tiltakspenger.libs.jobber.LeaderPodLookupClient
 import no.nav.tiltakspenger.libs.jobber.LeaderPodLookupFeil
 import no.nav.tiltakspenger.libs.jobber.RunCheckFactory
 import no.nav.tiltakspenger.libs.periodisering.zoneIdOslo
-import no.nav.tiltakspenger.saksbehandling.Configuration.httpPort
 import no.nav.tiltakspenger.saksbehandling.infra.jobber.TaskExecutor
+import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
+import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration.httpPort
+import no.nav.tiltakspenger.saksbehandling.infra.setup.ktorSetup
 import java.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds

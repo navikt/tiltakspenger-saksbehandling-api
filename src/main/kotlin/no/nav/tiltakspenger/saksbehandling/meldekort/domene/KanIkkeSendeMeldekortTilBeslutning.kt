@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.KunneIkkeHenteSakForSakId
+import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSakId
 
 sealed interface KanIkkeSendeMeldekortTilBeslutning {
     data object MeldekortperiodenKanIkkeVæreFremITid : KanIkkeSendeMeldekortTilBeslutning
@@ -10,7 +10,7 @@ sealed interface KanIkkeSendeMeldekortTilBeslutning {
         val maksDagerMedTiltakspengerForPeriode: Int,
         val antallDagerUtfylt: Int,
     ) : KanIkkeSendeMeldekortTilBeslutning
-    data class KunneIkkeHenteSak(val underliggende: KunneIkkeHenteSakForSakId) : KanIkkeSendeMeldekortTilBeslutning
+    data class KunneIkkeHenteSak(val underliggende: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSakId) : KanIkkeSendeMeldekortTilBeslutning
     data object KanIkkeEndreDagFraSperret : KanIkkeSendeMeldekortTilBeslutning
     data object KanIkkeEndreDagTilSperret : KanIkkeSendeMeldekortTilBeslutning
     data object InnsendteDagerMåMatcheMeldeperiode : KanIkkeSendeMeldekortTilBeslutning

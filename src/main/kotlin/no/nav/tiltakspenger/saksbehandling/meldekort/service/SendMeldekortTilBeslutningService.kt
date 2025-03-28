@@ -8,15 +8,15 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.lang.IllegalStateException
 import java.time.Clock
 
@@ -25,9 +25,9 @@ import java.time.Clock
  */
 class SendMeldekortTilBeslutningService(
     private val tilgangsstyringService: TilgangsstyringService,
-    private val personService: PersonService,
+    private val personService: no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
-    private val sakService: SakService,
+    private val sakService: no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService,
     private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger {}

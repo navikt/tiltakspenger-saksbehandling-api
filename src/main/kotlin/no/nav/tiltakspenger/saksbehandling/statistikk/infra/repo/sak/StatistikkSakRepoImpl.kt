@@ -4,21 +4,21 @@ import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.sak.StatistikkSakDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.StatistikkSakDTO
 import org.intellij.lang.annotations.Language
 
 internal class StatistikkSakRepoImpl(
     private val sessionFactory: PostgresSessionFactory,
 ) : StatistikkSakRepo {
-    override fun lagre(dto: StatistikkSakDTO, context: TransactionContext?) {
+    override fun lagre(dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.StatistikkSakDTO, context: TransactionContext?) {
         sessionFactory.withTransaction(context) { tx ->
             lagre(dto, tx)
         }
     }
 
     companion object {
-        fun lagre(dto: StatistikkSakDTO, tx: TransactionalSession) {
+        fun lagre(dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.StatistikkSakDTO, tx: TransactionalSession) {
             tx.run(
                 queryOf(
                     lagreSql,

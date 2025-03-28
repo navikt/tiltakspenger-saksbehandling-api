@@ -5,11 +5,11 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.jacksonSerialization
+import no.nav.tiltakspenger.saksbehandling.infra.route.routes
+import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startRevurdering
-import no.nav.tiltakspenger.saksbehandling.routes.routes
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingsstatus
 import org.junit.jupiter.api.Test
 
 internal class StartRevurderingTest {

@@ -17,14 +17,14 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.oppdaterBegrunnelseForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.oppdaterFritekstForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 interface SendRevurderingTilBeslutterBuilder {
 

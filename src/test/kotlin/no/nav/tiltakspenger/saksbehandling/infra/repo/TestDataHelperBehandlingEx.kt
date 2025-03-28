@@ -12,25 +12,25 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.SendRevurderingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.StartRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.sendRevurderingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.startRevurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.opprettVedtak
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingRepoTest.Companion.random
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.SendRevurderingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.StartRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.sendRevurderingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.startRevurdering
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.opprettVedtak
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.infra.repo.BehandlingRepoTest.Companion.random
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -296,7 +296,7 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
         ),
-    hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
+    hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
     clock: Clock = this.clock,
 ): Pair<Sak, Behandling> {
     val (sak, _) = runBlocking {
@@ -363,7 +363,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
         ),
-    hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
+    hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
     clock: Clock = this.clock,
 ): Pair<Sak, Behandling> {
     val (sak, _) = runBlocking {

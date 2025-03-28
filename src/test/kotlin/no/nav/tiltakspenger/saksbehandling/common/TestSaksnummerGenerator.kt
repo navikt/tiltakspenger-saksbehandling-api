@@ -3,8 +3,8 @@
 package no.nav.tiltakspenger.saksbehandling.common
 
 import arrow.atomic.Atomic
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.SaksnummerGenerator
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.sak.SaksnummerGenerator
 import java.time.LocalDate
 
 /**

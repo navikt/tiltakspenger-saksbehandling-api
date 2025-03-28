@@ -7,8 +7,8 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.PersonRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.PersonRepo
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 /*
     Dette repoet brukes av auditloggeren

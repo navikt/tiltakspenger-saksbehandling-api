@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.domene.personopplysninger
 
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.Navn
+import no.nav.tiltakspenger.saksbehandling.person.Navn
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
 

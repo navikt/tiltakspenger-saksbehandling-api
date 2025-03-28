@@ -8,13 +8,13 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.common.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppgaveMeldekortService
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.OppgaveGateway
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.Oppgavebehov
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SakRepo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 

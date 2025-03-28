@@ -3,13 +3,13 @@ package no.nav.tiltakspenger.saksbehandling.routes.revurdering
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.jacksonSerialization
+import no.nav.tiltakspenger.saksbehandling.infra.route.routes
+import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendRevurderingTilBeslutterForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
-import no.nav.tiltakspenger.saksbehandling.routes.routes
 import org.junit.jupiter.api.Test
 
 internal class IverksettRevurderingTest {

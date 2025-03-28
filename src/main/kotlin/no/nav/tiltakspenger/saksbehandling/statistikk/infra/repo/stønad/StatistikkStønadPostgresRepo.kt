@@ -6,9 +6,9 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.StatistikkStønadRepo
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.stønad.StatistikkStønadDTO
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.stønad.StatistikkUtbetalingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkUtbetalingDTO
 import org.intellij.lang.annotations.Language
 import org.postgresql.util.PGobject
 import java.time.Clock
@@ -18,7 +18,7 @@ class StatistikkStønadPostgresRepo(
     private val clock: Clock,
 ) : StatistikkStønadRepo {
     override fun lagre(
-        dto: StatistikkStønadDTO,
+        dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO,
         context: TransactionContext?,
     ) {
         sessionFactory.withTransaction(context) { tx ->
@@ -27,7 +27,7 @@ class StatistikkStønadPostgresRepo(
     }
 
     internal fun lagre(
-        dto: StatistikkStønadDTO,
+        dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO,
         tx: TransactionalSession,
     ) {
         tx.run(
@@ -62,7 +62,7 @@ class StatistikkStønadPostgresRepo(
     }
 
     override fun lagre(
-        dto: StatistikkUtbetalingDTO,
+        dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkUtbetalingDTO,
         context: TransactionContext?,
     ) {
         sessionFactory.withTransaction(context) { tx ->
@@ -71,7 +71,7 @@ class StatistikkStønadPostgresRepo(
     }
 
     fun lagre(
-        dto: StatistikkUtbetalingDTO,
+        dto: no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkUtbetalingDTO,
         tx: TransactionalSession,
     ) {
         tx.run(

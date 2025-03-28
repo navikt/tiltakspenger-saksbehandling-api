@@ -7,10 +7,10 @@ import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingsstatus
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDateTime
@@ -31,7 +31,11 @@ class BehandlingerTest {
             fnr = fnr,
             sakId = sakId,
             status = Behandlingsstatus.AVBRUTT,
-            avbrutt = Avbrutt(førsteNovember24, "aaa", "bbb"),
+            avbrutt = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Avbrutt(
+                førsteNovember24,
+                "aaa",
+                "bbb",
+            ),
             virkningsperiode = null,
             opprettet = LocalDateTime.now(),
         )

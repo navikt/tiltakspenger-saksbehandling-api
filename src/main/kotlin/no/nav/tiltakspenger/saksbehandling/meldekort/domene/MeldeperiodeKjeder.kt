@@ -10,11 +10,11 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.overlapperIkke
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling.Companion.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.vilkår.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling.Companion.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vilkår.Utfallsperiode
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -137,7 +137,7 @@ data class MeldeperiodeKjeder(
         }
 
     fun genererMeldeperioder(
-        vedtaksliste: Vedtaksliste,
+        vedtaksliste: no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste,
         ikkeGenererEtter: LocalDate,
         clock: Clock,
     ): Pair<MeldeperiodeKjeder, List<Meldeperiode>> {

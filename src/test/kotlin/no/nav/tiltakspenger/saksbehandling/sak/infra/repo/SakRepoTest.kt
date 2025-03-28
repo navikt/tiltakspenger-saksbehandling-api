@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetFørsteg
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSak
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saker
+import no.nav.tiltakspenger.saksbehandling.sak.Saker
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.Clock

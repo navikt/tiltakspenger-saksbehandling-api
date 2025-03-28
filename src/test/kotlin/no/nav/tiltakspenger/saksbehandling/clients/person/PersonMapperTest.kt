@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.clients.person
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.saksbehandling.person.infra.mapPersonopplysninger
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
+import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
+import no.nav.tiltakspenger.saksbehandling.person.infra.http.mapPersonopplysninger
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 

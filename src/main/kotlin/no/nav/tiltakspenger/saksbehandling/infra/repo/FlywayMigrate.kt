@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo
 
-import no.nav.tiltakspenger.saksbehandling.Configuration
-import no.nav.tiltakspenger.saksbehandling.Profile
+import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
+import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
 import org.flywaydb.core.Flyway
 
 private fun flyway(dataSource: javax.sql.DataSource): Flyway =

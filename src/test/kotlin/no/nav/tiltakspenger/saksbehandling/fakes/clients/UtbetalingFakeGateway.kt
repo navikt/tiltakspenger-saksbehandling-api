@@ -7,13 +7,13 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.KunneIkkeUtbetale
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SendtUtbetaling
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.UtbetalingGateway
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingGateway
 
 class UtbetalingFakeGateway : UtbetalingGateway {
     private val utbetalinger = Atomic(mutableMapOf<VedtakId, Utbetaling>())

@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.repo
 
 import kotliquery.Row
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad
 
 private const val JA = "JA"
 private const val NEI = "NEI"

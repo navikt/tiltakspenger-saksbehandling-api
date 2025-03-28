@@ -11,23 +11,23 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtak
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySøknad
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.virkningsperiode
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtak
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.opprettVedtak
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import java.time.Clock
 import java.time.LocalDate
@@ -44,7 +44,7 @@ interface SakMother {
         fnr = fnr,
         saksnummer = saksnummer,
         behandlinger = behandlinger,
-        vedtaksliste = Vedtaksliste.empty(),
+        vedtaksliste = no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste.empty(),
         meldekortBehandlinger = MeldekortBehandlinger.empty(),
         utbetalinger = Utbetalinger(emptyList()),
         meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
@@ -57,7 +57,10 @@ interface SakMother {
         fnr: Fnr = Fnr.random(),
         iDag: LocalDate = LocalDate.of(2023, 1, 1),
         løpenummer: Int = 1001,
-        saksnummer: Saksnummer = Saksnummer(iDag, løpenummer),
+        saksnummer: Saksnummer = Saksnummer(
+            iDag,
+            løpenummer,
+        ),
         virkningsperiode: Periode = Periode(fraOgMed = 1.januar(2023), tilOgMed = 31.januar(2023)),
         fødselsdato: LocalDate = ObjectMother.fødselsdato(),
         saksbehandler: Saksbehandler = saksbehandler(),
@@ -72,7 +75,7 @@ interface SakMother {
                 ),
             ),
         registrerteTiltak: List<Tiltaksdeltagelse> = listOf(søknad.tiltak.toTiltak()),
-        saksopplysninger: Saksopplysninger = Saksopplysninger(
+        saksopplysninger: no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger = no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger(
             fødselsdato = fødselsdato,
             tiltaksdeltagelse = registrerteTiltak,
         ),
@@ -121,7 +124,7 @@ interface SakMother {
             fnr = fnr,
             saksnummer = saksnummer,
             behandlinger = Behandlinger(førstegangsbehandling),
-            vedtaksliste = Vedtaksliste.empty(),
+            vedtaksliste = no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtaksliste.empty(),
             meldekortBehandlinger = MeldekortBehandlinger.empty(),
             utbetalinger = Utbetalinger(emptyList()),
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
@@ -138,7 +141,7 @@ interface SakMother {
         virkningsperiode: Periode = virkningsperiode(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         clock: Clock = fixedClock,
-    ): Triple<Sak, Vedtak, Behandling> {
+    ): Triple<Sak, no.nav.tiltakspenger.saksbehandling.behandling.domene.vedtak.Vedtak, Behandling> {
         val (sak, førstegangsbehandling) = this.sakMedOpprettetBehandling(
             sakId = sakId,
             fnr = fnr,

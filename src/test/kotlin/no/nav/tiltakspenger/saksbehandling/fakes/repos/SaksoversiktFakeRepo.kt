@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.fakes.repos
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksoversiktRepo
 import no.nav.tiltakspenger.saksbehandling.benk.BehandlingEllerSøknadForSaksoversikt
 import no.nav.tiltakspenger.saksbehandling.benk.BenkBehandlingstype
 import no.nav.tiltakspenger.saksbehandling.benk.toBenkBehandlingstype
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SaksoversiktRepo
 
 class SaksoversiktFakeRepo(
     private val søknadFakeRepo: SøknadFakeRepo,

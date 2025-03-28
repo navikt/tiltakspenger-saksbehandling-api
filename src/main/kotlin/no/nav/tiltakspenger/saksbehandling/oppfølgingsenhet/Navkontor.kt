@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet
 
 /**
- * Også kallt kontornummer/enhetsnummer.
+ * Også kallt kontornummer/enhetsnummer/oppfølgingsenhet.
  * Inngang befolkning: https://www.nav.no/sok-nav-kontor eksempel https://www.nav.no/kontor/nav-asker
  * Se også etterlatte sin take på det samme: https://github.com/navikt/pensjon-etterlatte-saksbehandling/blob/main/libs/saksbehandling-common/src/main/kotlin/Enhetsnummer.kt
  */

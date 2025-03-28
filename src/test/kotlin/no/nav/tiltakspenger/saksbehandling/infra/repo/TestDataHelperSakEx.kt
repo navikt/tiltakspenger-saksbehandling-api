@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.infra.repo
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 internal fun TestDataHelper.persisterSak(
     fnr: Fnr = Fnr.random(),

@@ -16,6 +16,15 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknad
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
@@ -28,24 +37,11 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.personSøk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Attestering
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Attesteringsstatus
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingstype
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.SendSøknadsbehandlingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.saksopplysninger.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.tiltak.ValgteTiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -54,13 +50,14 @@ interface BehandlingMother : MotherOfAllMothers {
     fun virkningsperiode() = Periode(1.januar(2023), 31.mars(2023))
     fun revurderingsperiode() = Periode(2.januar(2023), 31.mars(2023))
 
-    fun godkjentAttestering(beslutter: Saksbehandler = beslutter()): Attestering = Attestering(
-        id = AttesteringId.random(),
-        status = Attesteringsstatus.GODKJENT,
-        begrunnelse = null,
-        beslutter = beslutter.navIdent,
-        tidspunkt = nå(clock),
-    )
+    fun godkjentAttestering(beslutter: Saksbehandler = beslutter()): no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attestering =
+        no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attestering(
+            id = AttesteringId.random(),
+            status = no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attesteringsstatus.GODKJENT,
+            begrunnelse = null,
+            beslutter = beslutter.navIdent,
+            tidspunkt = nå(clock),
+        )
 
     fun nyBehandling(
         id: BehandlingId = BehandlingId.random(),
@@ -73,9 +70,9 @@ interface BehandlingMother : MotherOfAllMothers {
         saksbehandlerIdent: String = ObjectMother.saksbehandler().navIdent,
         sendtTilBeslutning: LocalDateTime? = null,
         beslutterIdent: String = ObjectMother.beslutter().navIdent,
-        saksopplysninger: Saksopplysninger = saksopplysninger(),
+        saksopplysninger: no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger = saksopplysninger(),
         status: Behandlingsstatus = Behandlingsstatus.UNDER_BEHANDLING,
-        attesteringer: List<Attestering> = emptyList(),
+        attesteringer: List<no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attestering> = emptyList(),
         opprettet: LocalDateTime = førsteNovember24,
         iverksattTidspunkt: LocalDateTime? = null,
         sendtTilDatadeling: LocalDateTime? = null,
@@ -86,7 +83,7 @@ interface BehandlingMother : MotherOfAllMothers {
         saksopplysningsperiode: Periode = virkningsperiode(),
         barnetillegg: Barnetillegg? = null,
         valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = null,
-        avbrutt: Avbrutt? = null,
+        avbrutt: no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Avbrutt? = null,
     ): Behandling {
         return Behandling(
             id = id,
@@ -128,8 +125,8 @@ interface BehandlingMother : MotherOfAllMothers {
         saksbehandlerIdent: String = ObjectMother.saksbehandler().navIdent,
         sendtTilBeslutning: LocalDateTime = førsteNovember24,
         beslutterIdent: String = ObjectMother.beslutter().navIdent,
-        saksopplysninger: Saksopplysninger = saksopplysninger(fom = virkningsperiode.fraOgMed, tom = virkningsperiode.tilOgMed),
-        attesteringer: List<Attestering> = emptyList(),
+        saksopplysninger: no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger = saksopplysninger(fom = virkningsperiode.fraOgMed, tom = virkningsperiode.tilOgMed),
+        attesteringer: List<no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Attestering> = emptyList(),
         opprettet: LocalDateTime = førsteNovember24,
         iverksattTidspunkt: LocalDateTime = førsteNovember24,
         sendtTilDatadeling: LocalDateTime? = null,

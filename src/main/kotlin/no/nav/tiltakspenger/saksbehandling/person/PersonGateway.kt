@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.person
 
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.EnkelPerson
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
+import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 
 interface PersonGateway {
     suspend fun hentPerson(fnr: Fnr): PersonopplysningerSøker

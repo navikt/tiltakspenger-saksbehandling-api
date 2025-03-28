@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.benk
 
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling.Behandlingstype
 
 enum class BenkBehandlingstype {
     SØKNAD,
