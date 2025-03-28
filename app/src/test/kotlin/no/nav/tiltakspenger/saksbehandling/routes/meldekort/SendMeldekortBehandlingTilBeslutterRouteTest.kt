@@ -21,6 +21,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.jacksonSerialization
@@ -60,6 +61,7 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
                             tokenService = tokenService,
                             auditService = auditService,
                             sendMeldekortTilBeslutterService = sendMeldekortTilBeslutterService,
+                            clock = fixedClock,
                         )
                     }
                 }
