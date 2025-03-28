@@ -39,12 +39,18 @@ data class MeldekortBehandlinger(
     val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandlet> by lazy {
         behandledeMeldekort
             .groupBy { it.kjedeId }.values
-            .map { it.last() }
+            .map { behandlingerForKjede ->
+                behandlingerForKjede.maxByOrNull { it.opprettet }!!
+            }
     }
 
     /** Under behandling er ikke-avsluttede meldekortbehandlinger som ikke er til beslutning. */
     val meldekortUnderBehandling: MeldekortUnderBehandling? by lazy {
         verdi.filterIsInstance<MeldekortUnderBehandling>().singleOrNullOrThrow()
+    }
+
+    private val meldekortUnderBeslutning: MeldekortBehandlet? by lazy {
+        behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING }.singleOrNullOrThrow()
     }
 
     val godkjenteMeldekort: List<MeldekortBehandlet> by lazy { behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
@@ -61,11 +67,14 @@ data class MeldekortBehandlinger(
 
     /**
      *  Vil kun returnere hele meldekortperioder som er utfylt. Dersom siste meldekortperiode er delvis utfylt, vil ikke disse komme med.
-     *  Obs: Vi kan ikke stole på beregninger fra disse dagene ettersom korrigeringer kan påvirke dager etter den korrigerte perioden
+     *
+     *  Obs!! Med korrigeringer kan vi ikke stole på beregninger fra disse dagene, ettersom korrigering kan påvirke dager etter det korrigerte meldekortet
+     *  TODO: Bør løses når vi splitter meldekort-utfylling og meldekort-beregning
      *  */
     val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy { sisteBehandledeMeldekortPerKjede.flatMap { it.beregning.dager } }
 
-    val finnesÅpenMeldekortBehandling: Boolean by lazy { meldekortUnderBehandling != null }
+    /** Meldekort som er under behandling eller venter på beslutning */
+    val finnesÅpenMeldekortBehandling: Boolean by lazy { meldekortUnderBehandling != null || meldekortUnderBeslutning != null }
 
     /**
      * @throws NullPointerException Dersom det ikke er noen meldekort-behandling som kan sendes til beslutter. Eller siste meldekort ikke er i tilstanden 'under behandling'.
@@ -197,7 +206,7 @@ data class MeldekortBehandlinger(
             }
         }
         require(verdi.count { it is MeldekortUnderBehandling } <= 1) {
-            "Kun ett meldekort kan være i tilstanden 'under behandling'"
+            "Kun ett meldekort på saken kan være i tilstanden 'under behandling'"
         }
         require(verdi.map { it.sakId }.distinct().size <= 1) {
             "Alle meldekortperioder må tilhøre samme sak."

@@ -45,8 +45,11 @@ sealed interface MeldekortBehandling {
      *  Perioden for beregningen av meldekortet.
      *  Fra og med start av meldeperioden, til og med siste dag med en beregnet utbetaling
      *  Ved korrigeringer tilbake i tid kan tilOgMed strekke seg til påfølgende meldeperioder dersom disse påvirkes av beregningen
+     *  TODO abn: Hva brukes egentlig denne til?
      * */
-    val periode: Periode get() = beregning.periode
+    val beregningPeriode: Periode get() = beregning.periode
+
+    val periode: Periode get() = meldeperiode.periode
     val fraOgMed: LocalDate get() = periode.fraOgMed
     val tilOgMed: LocalDate get() = periode.tilOgMed
 
@@ -149,8 +152,12 @@ sealed interface MeldekortBehandling {
     ) : MeldekortBehandling {
 
         init {
-            require(meldeperiode.periode == periode)
-            require(beregning.periode == periode)
+            require(meldeperiode.periode.fraOgMed == beregningPeriode.fraOgMed) {
+                "Fra og med dato for beregningsperioden og meldeperioden må være like"
+            }
+            require(meldeperiode.periode.tilOgMed <= beregningPeriode.tilOgMed) {
+                "Til og med dato for beregningsperioden må være nyere eller lik meldeperioden"
+            }
             when (status) {
                 IKKE_BEHANDLET -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status IKKE_UTFYLT")
                 KLAR_TIL_BESLUTNING -> {
@@ -296,8 +303,8 @@ sealed interface MeldekortBehandling {
         override val fnr: Fnr,
         override val opprettet: LocalDateTime,
         /**
-         * Er [MeldeperiodeBeregning.IkkeUtfyltMeldeperiode] dersom meldekortet ikke har blitt sendt til beslutter enda
-         * Er [MeldeperiodeBeregning.UtfyltMeldeperiode] dersom den har vært hos beslutter, og blitt underkjent (sendt tilbake)
+         * Er [MeldekortBeregning.IkkeUtfyltMeldeperiode] dersom meldekortet ikke har blitt sendt til beslutter enda
+         * Er [MeldekortBeregning.UtfyltMeldeperiode] dersom den har vært hos beslutter, og blitt underkjent (sendt tilbake)
          */
         override val beregning: MeldekortBeregning,
         override val navkontor: Navkontor,
@@ -331,7 +338,8 @@ sealed interface MeldekortBehandling {
             saksbehandler: Saksbehandler,
             clock: Clock,
         ): Either<KanIkkeSendeMeldekortTilBeslutning, MeldekortBehandlet> {
-            require(beregning.periode == this.periode) {
+            // TODO: gjør noe med denne sjekken når vi splitter beregning/utfylling. Dette blir litt rart :D
+            require(Periode(beregning.dager.first().dato, beregning.dager.last().dato) == this.meldeperiode.periode) {
                 "Når man fyller ut et meldekort må meldekortperioden være den samme som den som er opprettet. Opprettet periode: ${this.beregning.periode}, utfylt periode: ${beregning.periode}"
             }
             require(sakId == beregning.sakId)
@@ -398,6 +406,7 @@ fun Sak.opprettMeldekortBehandling(
     if (this.meldekortBehandlinger.finnesÅpenMeldekortBehandling) {
         throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige er avsluttet for sak $id og kjedeId $kjedeId")
     }
+
     val meldeperiodekjede: MeldeperiodeKjede = this.meldeperiodeKjeder.hentMeldeperiodekjedeForKjedeId(kjedeId)
         ?: throw IllegalStateException("Kan ikke opprette meldekortbehandling for kjedeId $kjedeId som ikke finnes")
     val meldeperiode: Meldeperiode = meldeperiodekjede.hentSisteMeldeperiode()
@@ -408,14 +417,6 @@ fun Sak.opprettMeldekortBehandling(
             "Dette er første meldekortbehandling på saken og må da behandle den første meldeperiode kjeden. sakId: ${this.id}, meldeperiodekjedeId: ${meldeperiodekjede.kjedeId}"
         }
     }
-    this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
-        ?.also { foregåendeMeldeperiodekjede ->
-            this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(foregåendeMeldeperiodekjede.kjedeId).also {
-                if (it.none { it.status == GODKJENT }) {
-                    throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige kjede er godkjent")
-                }
-            }
-        }
 
     if (meldeperiode.ingenDagerGirRett) {
         throw IllegalStateException("Kan ikke starte behandling på meldeperiode uten dager som gir rett til tiltakspenger")

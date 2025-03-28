@@ -5,6 +5,16 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+enum class InnmeldtStatusDTO {
+    DELTATT,
+    FRAVÆR_SYK,
+    FRAVÆR_SYKT_BARN,
+    FRAVÆR_ANNET,
+    IKKE_REGISTRERT,
+    IKKE_DELTATT,
+    IKKE_RETT_TIL_TILTAKSPENGER,
+}
+
 data class BrukersMeldekortDTO(
     val id: String,
     val mottatt: LocalDateTime,
@@ -30,11 +40,11 @@ fun BrukersMeldekort.toDTO(): BrukersMeldekortDTO {
 }
 
 fun InnmeldtStatus.toDTO(): String = when (this) {
-    InnmeldtStatus.DELTATT -> "DELTATT"
-    InnmeldtStatus.FRAVÆR_SYK -> "FRAVÆR_SYK"
-    InnmeldtStatus.FRAVÆR_SYKT_BARN -> "FRAVÆR_SYKT_BARN"
-    InnmeldtStatus.FRAVÆR_ANNET -> "FRAVÆR_ANNET"
-    InnmeldtStatus.IKKE_REGISTRERT -> "IKKE_REGISTRERT"
-    InnmeldtStatus.IKKE_DELTATT -> "IKKE_DELTATT"
-    InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER -> "IKKE_RETT_TIL_TILTAKSPENGER"
-}
+    InnmeldtStatus.DELTATT -> InnmeldtStatusDTO.DELTATT
+    InnmeldtStatus.FRAVÆR_SYK -> InnmeldtStatusDTO.FRAVÆR_SYK
+    InnmeldtStatus.FRAVÆR_SYKT_BARN -> InnmeldtStatusDTO.FRAVÆR_SYKT_BARN
+    InnmeldtStatus.FRAVÆR_ANNET -> InnmeldtStatusDTO.FRAVÆR_ANNET
+    InnmeldtStatus.IKKE_REGISTRERT -> InnmeldtStatusDTO.IKKE_REGISTRERT
+    InnmeldtStatus.IKKE_DELTATT -> InnmeldtStatusDTO.IKKE_DELTATT
+    InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER -> InnmeldtStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
+}.toString()

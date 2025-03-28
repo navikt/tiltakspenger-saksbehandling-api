@@ -4,11 +4,14 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toDTO
+import java.time.LocalDateTime
 
 data class MeldekortBehandlingDTO(
     val id: String,
+    val meldeperiodeId: String,
     val saksbehandler: String,
     val beslutter: String?,
+    val opprettet: LocalDateTime,
     val status: MeldekortBehandlingStatusDTO,
     val totalbeløpTilUtbetaling: Int?,
     val totalOrdinærBeløpTilUtbetaling: Int?,
@@ -31,8 +34,10 @@ fun MeldekortBehandlinger.toDTO(): List<MeldekortBehandlingDTO> {
 fun MeldekortBehandling.toDTO(): MeldekortBehandlingDTO {
     return MeldekortBehandlingDTO(
         id = id.toString(),
+        meldeperiodeId = meldeperiode.id.toString(),
         saksbehandler = saksbehandler,
         beslutter = beslutter,
+        opprettet = opprettet,
         status = this.toStatusDTO(),
         totalbeløpTilUtbetaling = this.beløpTotal,
         totalOrdinærBeløpTilUtbetaling = this.ordinærBeløp,
@@ -42,7 +47,7 @@ fun MeldekortBehandling.toDTO(): MeldekortBehandlingDTO {
         dager = beregning.toDTO(),
         brukersMeldekortId = brukersMeldekort?.id.toString(),
         type = type.tilDTO(),
-        attesteringer = attesteringer.toDTO(),
         begrunnelse = begrunnelse?.verdi,
+        attesteringer = attesteringer.toDTO(),
     )
 }
