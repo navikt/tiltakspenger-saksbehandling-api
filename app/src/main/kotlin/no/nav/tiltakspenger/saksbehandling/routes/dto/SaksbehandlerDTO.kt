@@ -9,6 +9,7 @@ internal data class SaksbehandlerDTO(
     val epost: String,
     val roller: List<RolleDTO>,
 ) {
+    @Suppress("unused")
     enum class RolleDTO {
         SAKSBEHANDLER,
         FORTROLIG_ADRESSE,

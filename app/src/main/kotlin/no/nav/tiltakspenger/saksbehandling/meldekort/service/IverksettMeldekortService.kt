@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -22,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.opprettUtbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.tilStatistikk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
@@ -42,7 +42,7 @@ class IverksettMeldekortService(
 
     suspend fun iverksettMeldekort(
         kommando: IverksettMeldekortKommando,
-    ): Either<KanIkkeIverksetteMeldekort, Pair<Sak, MeldekortBehandling.MeldekortBehandlet>> {
+    ): Either<KanIkkeIverksetteMeldekort, Pair<Sak, Utbetalingsvedtak>> {
         if (!kommando.beslutter.erBeslutter()) {
             return KanIkkeIverksetteMeldekort.MåVæreBeslutter(kommando.beslutter.roller).left()
         }
@@ -68,22 +68,24 @@ class IverksettMeldekortService(
             "Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: $sakId, meldekortId: $meldekortId"
         }
 
-        return meldekortBehandling.iverksettMeldekort(kommando.beslutter, clock).onRight {
+        return meldekortBehandling.iverksettMeldekort(kommando.beslutter, clock).map { iverksattMeldekortbehandling ->
             val eksisterendeUtbetalingsvedtak = sak.utbetalinger
-            val utbetalingsvedtak = it.opprettUtbetalingsvedtak(
+            val utbetalingsvedtak = iverksattMeldekortbehandling.opprettUtbetalingsvedtak(
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
-                eksisterendeUtbetalingsvedtak.lastOrNull()?.id,
+                forrigeUtbetalingsvedtak = eksisterendeUtbetalingsvedtak.lastOrNull()?.id,
                 clock = clock,
             )
             val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()
 
             sessionFactory.withTransactionContext { tx ->
-                meldekortBehandlingRepo.oppdater(it, tx)
+                meldekortBehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)
                 utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
                 statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             }
-        }.map { return Pair(sak.oppdaterMeldekortbehandling(it), it).right() }
+            sak.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
+                .leggTilUtbetalingsvedtak(utbetalingsvedtak) to utbetalingsvedtak
+        }
     }
 
     private suspend fun kastHvisIkkeTilgangTilPerson(

@@ -1,8 +1,20 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
+import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+
 data class Utbetalinger(
     val verdi: List<Utbetalingsvedtak>,
 ) : List<Utbetalingsvedtak> by verdi {
+
+    fun hentUtbetalingForBehandlingId(id: MeldekortId): Utbetalingsvedtak? {
+        return verdi.singleOrNullOrThrow { it.meldekortbehandling.id == id }
+    }
+
+    fun leggTil(utbetalingsvedtak: Utbetalingsvedtak): Utbetalinger {
+        return Utbetalinger(verdi + utbetalingsvedtak)
+    }
+
     init {
         if (verdi.isNotEmpty()) {
             require(
@@ -29,6 +41,7 @@ data class Utbetalinger(
                     .all { (a, b) -> a.id == b.forrigeUtbetalingsvedtakId },
             ) { "Utbetalingsvedtakene må være lenket, men var ${verdi.map { it.id to it.forrigeUtbetalingsvedtakId }}" }
             require(verdi.first().forrigeUtbetalingsvedtakId == null) { "Første utbetalingsvedtak.forrigeUtbetalingsvedtakId må være null, men var ${verdi.first().forrigeUtbetalingsvedtakId}" }
+            require(verdi.map { it.id }.distinct() == verdi.map { it.id }) { "Alle utbetalingsvedtakene må ha unik id. ${verdi.map { it.id }}" }
         }
     }
 }

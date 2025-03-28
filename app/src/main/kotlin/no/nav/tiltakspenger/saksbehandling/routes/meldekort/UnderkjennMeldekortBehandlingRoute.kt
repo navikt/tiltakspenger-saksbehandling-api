@@ -14,14 +14,15 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KunneIkkeUnderkjenne
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.routes.correlationId
-import no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto.toDTO
+import no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto.UtbetalingsstatusDTO
+import no.nav.tiltakspenger.saksbehandling.routes.meldekort.dto.toMeldekortBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.routes.withBody
 import no.nav.tiltakspenger.saksbehandling.routes.withMeldekortId
 import no.nav.tiltakspenger.saksbehandling.routes.withSakId
 
 internal const val UNDERKJENN_MELDEKORT_BEHANDLING_PATH = "/sak/{sakId}/meldekort/{meldekortId}/underkjenn"
 
-data class UnderkjennMeldekortBehandlingBody(val begrunnelse: String)
+private data class UnderkjennMeldekortBehandlingBody(val begrunnelse: String)
 
 fun Route.underkjennMeldekortBehandlingRoute(
     underkjennMeldekortBehandlingService: UnderkjennMeldekortBehandlingService,
@@ -30,7 +31,7 @@ fun Route.underkjennMeldekortBehandlingRoute(
 ) {
     val logger = KotlinLogging.logger { }
     post(UNDERKJENN_MELDEKORT_BEHANDLING_PATH) {
-        logger.debug { "Mottatt post-request på /sak/{sakId}/meldekort/{meldekortId}/underkjenn - Beslutter ønsker å underkjenne" }
+        logger.debug { "Mottatt post-request på $UNDERKJENN_MELDEKORT_BEHANDLING_PATH - Beslutter ønsker å underkjenne" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId {
                 call.withMeldekortId { meldekortId ->
@@ -57,7 +58,7 @@ fun Route.underkjennMeldekortBehandlingRoute(
                                     correlationId = correlationId,
                                 )
 
-                                call.respond(HttpStatusCode.OK, it.toDTO())
+                                call.respond(HttpStatusCode.OK, it.toMeldekortBehandlingDTO(UtbetalingsstatusDTO.IKKE_GODKJENT))
                             },
                         )
                     }

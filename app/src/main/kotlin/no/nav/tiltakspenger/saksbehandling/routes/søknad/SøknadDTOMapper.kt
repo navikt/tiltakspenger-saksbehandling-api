@@ -32,28 +32,28 @@ object SøknadDTOMapper {
                 etternavn = dto.personopplysninger.etternavn,
                 fnr = Fnr.fromString(dto.personopplysninger.ident),
             ),
-            tiltak = no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper.mapTiltak(dto.tiltak),
+            tiltak = mapTiltak(dto.tiltak),
             barnetillegg =
-            dto.barnetilleggPdl.map { no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper.mapBarnetilleggPDL(it) } +
+            dto.barnetilleggPdl.map { mapBarnetilleggPDL(it) } +
                 dto.barnetilleggManuelle.map {
-                    no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper.mapBarnetilleggManuelle(
+                    mapBarnetilleggManuelle(
                         it,
                     )
                 },
             opprettet = dto.opprettet,
             tidsstempelHosOss = innhentet,
             vedlegg = dto.vedlegg,
-            kvp = no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper.mapPeriodeSpm(dto.kvp),
-            intro = no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper.mapPeriodeSpm(dto.intro),
-            institusjon = no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper.mapPeriodeSpm(dto.institusjon),
-            etterlønn = no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper.mapJaNei(dto.etterlønn),
-            gjenlevendepensjon = no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper.mapPeriodeSpm(dto.gjenlevendepensjon),
-            alderspensjon = no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper.mapFraOgMedSpm(dto.alderspensjon),
-            sykepenger = no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper.mapPeriodeSpm(dto.sykepenger),
-            supplerendeStønadAlder = no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper.mapPeriodeSpm(dto.supplerendeStønadAlder),
-            supplerendeStønadFlyktning = no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper.mapPeriodeSpm(dto.supplerendeStønadFlyktning),
-            jobbsjansen = no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper.mapPeriodeSpm(dto.jobbsjansen),
-            trygdOgPensjon = no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper.mapPeriodeSpm(dto.trygdOgPensjon),
+            kvp = mapPeriodeSpm(dto.kvp),
+            intro = mapPeriodeSpm(dto.intro),
+            institusjon = mapPeriodeSpm(dto.institusjon),
+            etterlønn = mapJaNei(dto.etterlønn),
+            gjenlevendepensjon = mapPeriodeSpm(dto.gjenlevendepensjon),
+            alderspensjon = mapFraOgMedSpm(dto.alderspensjon),
+            sykepenger = mapPeriodeSpm(dto.sykepenger),
+            supplerendeStønadAlder = mapPeriodeSpm(dto.supplerendeStønadAlder),
+            supplerendeStønadFlyktning = mapPeriodeSpm(dto.supplerendeStønadFlyktning),
+            jobbsjansen = mapPeriodeSpm(dto.jobbsjansen),
+            trygdOgPensjon = mapPeriodeSpm(dto.trygdOgPensjon),
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             oppgaveId = null,
@@ -103,7 +103,7 @@ object SøknadDTOMapper {
         checkNotNull(dto.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg, manuelle barn " }
 
         return BarnetilleggFraSøknad.Manuell(
-            oppholderSegIEØS = no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper.mapJaNei(dto.oppholderSegIEØS),
+            oppholderSegIEØS = mapJaNei(dto.oppholderSegIEØS),
             fornavn = dto.fornavn!!,
             mellomnavn = dto.mellomnavn,
             etternavn = dto.etternavn!!,
@@ -114,7 +114,7 @@ object SøknadDTOMapper {
     private fun mapBarnetilleggPDL(dto: BarnetilleggDTO): BarnetilleggFraSøknad.FraPdl {
         checkNotNull(dto.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg fra PDL" }
         return BarnetilleggFraSøknad.FraPdl(
-            oppholderSegIEØS = no.nav.tiltakspenger.saksbehandling.routes.søknad.SøknadDTOMapper.mapJaNei(dto.oppholderSegIEØS),
+            oppholderSegIEØS = mapJaNei(dto.oppholderSegIEØS),
             fornavn = dto.fornavn,
             mellomnavn = dto.mellomnavn,
             etternavn = dto.etternavn,

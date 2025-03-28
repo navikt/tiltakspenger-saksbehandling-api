@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.withBody
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.KanIkkeUnderkjenne
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.BehandlingService
 
-data class BegrunnelseDTO(
+private data class BegrunnelseDTO(
     val begrunnelse: String?,
 )
 

@@ -13,7 +13,7 @@ class AvbruttDTOTest {
             tidspunkt = førsteNovember24,
             saksbehandler = "Sak S. Behandler",
             begrunnelse = "s",
-        ).toDTO() shouldBe AvbruttDTO(
+        ).toAvbruttDTO() shouldBe AvbruttDTO(
             avbruttAv = "Sak S. Behandler",
             avbruttTidspunkt = "2024-10-01T12:30",
             begrunnelse = "s",

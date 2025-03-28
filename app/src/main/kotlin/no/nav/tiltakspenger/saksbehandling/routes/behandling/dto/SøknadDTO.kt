@@ -55,7 +55,7 @@ internal data class SøknadDTO(
     }
 }
 
-internal fun Søknad.toDTO(): SøknadDTO {
+internal fun Søknad.toSøknadDTO(): SøknadDTO {
     return SøknadDTO(
         id = this.id.toString(),
         journalpostId = this.journalpostId,
@@ -63,25 +63,27 @@ internal fun Søknad.toDTO(): SøknadDTO {
         barnetillegg = this.barnetillegg.toDTO(),
         opprettet = this.opprettet,
         tidsstempelHosOss = this.tidsstempelHosOss,
-        kvp = this.kvp.toDTO(),
-        intro = this.intro.toDTO(),
-        institusjon = this.institusjon.toDTO(),
+        kvp = this.kvp.toPeriodeDTO(),
+        intro = this.intro.toPeriodeDTO(),
+        institusjon = this.institusjon.toPeriodeDTO(),
         etterlønn = this.etterlønn.toDTO(),
-        gjenlevendepensjon = this.gjenlevendepensjon.toDTO(),
+        gjenlevendepensjon = this.gjenlevendepensjon.toPeriodeDTO(),
         alderspensjon = this.alderspensjon.toDTO(),
-        sykepenger = this.sykepenger.toDTO(),
-        supplerendeStønadAlder = this.supplerendeStønadAlder.toDTO(),
-        supplerendeStønadFlyktning = this.supplerendeStønadFlyktning.toDTO(),
-        jobbsjansen = this.jobbsjansen.toDTO(),
-        trygdOgPensjon = this.trygdOgPensjon.toDTO(),
+        sykepenger = this.sykepenger.toPeriodeDTO(),
+        supplerendeStønadAlder = this.supplerendeStønadAlder.toPeriodeDTO(),
+        supplerendeStønadFlyktning = this.supplerendeStønadFlyktning.toPeriodeDTO(),
+        jobbsjansen = this.jobbsjansen.toPeriodeDTO(),
+        trygdOgPensjon = this.trygdOgPensjon.toPeriodeDTO(),
         antallVedlegg = this.vedlegg,
-        avbrutt = avbrutt?.toDTO(),
+        avbrutt = avbrutt?.toAvbruttDTO(),
         visVedlegg = this.barnetillegg.any { it is BarnetilleggFraSøknad.Manuell },
     )
 }
 
 @JvmName("søknadToDTO")
-internal fun List<Søknad>.toDTO() = this.map { it.toDTO() }
+internal fun List<Søknad>.toSøknadDTO(): List<SøknadDTO> {
+    return this.map { it.toSøknadDTO() }
+}
 
 fun JaNeiSpm.toDTO(): Boolean {
     return when (this) {
@@ -97,7 +99,7 @@ fun FraOgMedDatoSpm.toDTO(): LocalDate? {
     }
 }
 
-fun PeriodeSpm.toDTO(): PeriodeDTO? {
+fun PeriodeSpm.toPeriodeDTO(): PeriodeDTO? {
     return when (this) {
         is PeriodeSpm.Nei -> null
         is PeriodeSpm.Ja -> this.periode.toDTO()

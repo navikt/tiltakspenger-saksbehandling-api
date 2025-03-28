@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.routes.correlationId
 import no.nav.tiltakspenger.saksbehandling.routes.exceptionhandling.Standardfeil.ikkeTilgang
-import no.nav.tiltakspenger.saksbehandling.routes.sak.toDTO
 import no.nav.tiltakspenger.saksbehandling.routes.withSakId
 import no.nav.tiltakspenger.saksbehandling.routes.withSøknadId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.KanIkkeOppretteBehandling

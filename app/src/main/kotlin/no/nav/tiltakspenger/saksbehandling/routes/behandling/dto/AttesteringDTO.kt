@@ -11,11 +11,11 @@ data class AttesteringDTO(
     val endretTidspunkt: LocalDateTime,
 )
 
-internal fun List<Attestering>.toDTO(): List<AttesteringDTO> {
-    return this.map { it.toDTO() }
+internal fun List<Attestering>.toAttesteringDTO(): List<AttesteringDTO> {
+    return this.map { it.toAttesteringDTO() }
 }
 
-internal fun Attestering.toDTO() = AttesteringDTO(
+internal fun Attestering.toAttesteringDTO() = AttesteringDTO(
     endretAv = this.beslutter,
     status = this.status,
     begrunnelse = this.begrunnelse?.value,

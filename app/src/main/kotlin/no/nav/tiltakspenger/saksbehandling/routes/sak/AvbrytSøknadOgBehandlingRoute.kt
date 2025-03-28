@@ -53,7 +53,7 @@ fun Route.avbrytSøknadOgBehandling(
                                 correlationId = call.correlationId(),
                                 contextMessage = "Avsluttet søknad og behandling",
                             )
-                            call.respond(status = HttpStatusCode.OK, it.toDTO(clock))
+                            call.respond(status = HttpStatusCode.OK, it.toSakDTO(clock))
                         },
                     )
                 }

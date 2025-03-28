@@ -46,7 +46,7 @@ fun Route.hentSakForSaksnummerRoute(
                         }
                     },
                     { sak ->
-                        call.respond(message = sak.toDTO(clock), status = HttpStatusCode.OK)
+                        call.respond(message = sak.toSakDTO(clock), status = HttpStatusCode.OK)
                     },
                 )
             }

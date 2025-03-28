@@ -68,7 +68,7 @@ fun Route.hentSakForFnrRoute(
                             contextMessage = "Søker opp alle sakene til brukeren",
                             correlationId = correlationId,
                         )
-                        val sakDTO = it.toDTO(clock)
+                        val sakDTO = it.toSakDTO(clock)
                         call.respond(message = sakDTO, status = HttpStatusCode.OK)
                     },
                 )

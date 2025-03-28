@@ -40,7 +40,7 @@ fun Route.iverksettMeldekortRoute(
             call.withSakId { sakId ->
                 call.withMeldekortId { meldekortId ->
                     val correlationId = call.correlationId()
-                    val meldekort = iverksettMeldekortService.iverksettMeldekort(
+                    val utbetalingsvedtak = iverksettMeldekortService.iverksettMeldekort(
                         IverksettMeldekortKommando(
                             meldekortId = meldekortId,
                             beslutter = saksbehandler,
@@ -55,7 +55,7 @@ fun Route.iverksettMeldekortRoute(
                         contextMessage = "Iverksetter meldekort",
                         correlationId = correlationId,
                     )
-                    meldekort.fold(
+                    utbetalingsvedtak.fold(
                         {
                             when (it) {
                                 is MåVæreBeslutter -> call.respond403Forbidden(måVæreBeslutter())
@@ -70,7 +70,7 @@ fun Route.iverksettMeldekortRoute(
                                 }
                             }
                         },
-                        { call.respond(HttpStatusCode.OK, it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock)!!) },
+                        { call.respond(HttpStatusCode.OK, it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock)) },
                     )
                 }
             }

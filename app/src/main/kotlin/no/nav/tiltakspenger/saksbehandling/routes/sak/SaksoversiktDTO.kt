@@ -3,7 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.routes.sak
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.BehandlingstypeDTO
-import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toDTO
+import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toBehandlingsstatusDTO
+import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toBehandlingstypeDTO
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
@@ -32,18 +33,18 @@ data class SaksoversiktDTO(
     val opprettet: LocalDateTime,
 )
 
-internal fun Saksoversikt.toDTO(): List<SaksoversiktDTO> = this.map { it.toSaksoversiktDTO() }
+internal fun Saksoversikt.toSaksoversiktDTO(): List<SaksoversiktDTO> = this.map { it.toSaksoversiktDTO() }
 
 fun BehandlingEllerSøknadForSaksoversikt.toSaksoversiktDTO() = SaksoversiktDTO(
     periode = periode?.toDTO(),
     status =
     when (val s = status) {
         is BehandlingEllerSøknadForSaksoversikt.Status.Søknad -> "SØKNAD"
-        is BehandlingEllerSøknadForSaksoversikt.Status.Behandling -> s.behandlingsstatus.toDTO().toString()
+        is BehandlingEllerSøknadForSaksoversikt.Status.Behandling -> s.behandlingsstatus.toBehandlingsstatusDTO().toString()
     },
     underkjent = underkjent,
     kravtidspunkt = kravtidspunkt,
-    typeBehandling = behandlingstype.toDTO(),
+    typeBehandling = behandlingstype.toBehandlingstypeDTO(),
     fnr = fnr.verdi,
     saksnummer = saksnummer.toString(),
     id = id.toString(),
@@ -62,10 +63,10 @@ fun List<Søknad>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
 
 fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
     periode = virkningsperiode?.toDTO(),
-    status = status.toDTO().toString(),
+    status = status.toBehandlingsstatusDTO().toString(),
     kravtidspunkt = kravtidspunkt,
     underkjent = attesteringer.any { attestering -> attestering.isUnderkjent() },
-    typeBehandling = behandlingstype.toBenkBehandlingstype().toDTO(),
+    typeBehandling = behandlingstype.toBenkBehandlingstype().toBehandlingstypeDTO(),
     fnr = fnr.verdi,
     id = id.toString(),
     saksnummer = saksnummer.toString(),

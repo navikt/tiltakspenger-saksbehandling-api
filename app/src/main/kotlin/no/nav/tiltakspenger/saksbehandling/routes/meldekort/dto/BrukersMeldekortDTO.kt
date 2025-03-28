@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-enum class InnmeldtStatusDTO {
+private enum class InnmeldtStatusDTO {
     DELTATT,
     FRAVÆR_SYK,
     FRAVÆR_SYKT_BARN,
@@ -26,20 +26,20 @@ data class BrukersMeldekortDTO(
     )
 }
 
-fun BrukersMeldekort.toDTO(): BrukersMeldekortDTO {
+fun BrukersMeldekort.toBrukersMeldekortDTO(): BrukersMeldekortDTO {
     return BrukersMeldekortDTO(
         id = id.toString(),
         mottatt = mottatt,
         dager = dager.map {
             BrukersMeldekortDTO.DagDTO(
-                status = it.status.toDTO(),
+                status = it.status.toInnmeldtStatusString(),
                 dato = it.dato,
             )
         },
     )
 }
 
-fun InnmeldtStatus.toDTO(): String = when (this) {
+private fun InnmeldtStatus.toInnmeldtStatusString(): String = when (this) {
     InnmeldtStatus.DELTATT -> InnmeldtStatusDTO.DELTATT
     InnmeldtStatus.FRAVÆR_SYK -> InnmeldtStatusDTO.FRAVÆR_SYK
     InnmeldtStatus.FRAVÆR_SYKT_BARN -> InnmeldtStatusDTO.FRAVÆR_SYKT_BARN

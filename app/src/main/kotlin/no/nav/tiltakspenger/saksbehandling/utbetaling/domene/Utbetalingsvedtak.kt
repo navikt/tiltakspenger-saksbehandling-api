@@ -1,12 +1,16 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.Navkontor
 import no.nav.tiltakspenger.saksbehandling.felles.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.stønad.StatistikkUtbetalingDTO
 import java.time.Clock
@@ -29,15 +33,16 @@ data class Utbetalingsvedtak(
     val journalføringstidspunkt: LocalDateTime?,
     val status: Utbetalingsstatus?,
 ) {
-    val periode = meldekortbehandling.periode
-    val ordinærBeløp = meldekortbehandling.beløpTotal
-    val barnetilleggBeløp = meldekortbehandling.barnetilleggBeløp
-    val totalBeløp = ordinærBeløp + barnetilleggBeløp
-    val meldekortId = meldekortbehandling.id
-    val kjedeId = meldekortbehandling.kjedeId
+    val periode: Periode = meldekortbehandling.periode
+    val ordinærBeløp: Int = meldekortbehandling.ordinærBeløp
+    val barnetilleggBeløp: Int = meldekortbehandling.barnetilleggBeløp
+    val totalBeløp: Int = meldekortbehandling.beløpTotal
+    val meldekortId: MeldekortId = meldekortbehandling.id
+    val kjedeId: MeldeperiodeKjedeId = meldekortbehandling.kjedeId
     val saksbehandler: String = meldekortbehandling.saksbehandler
     val beslutter: String = meldekortbehandling.beslutter!!
     val brukerNavkontor: Navkontor = meldekortbehandling.navkontor
+    val meldeperiode: Meldeperiode = meldekortbehandling.meldeperiode
 
     fun oppdaterStatus(status: Utbetalingsstatus?): Utbetalingsvedtak {
         return this.copy(status = status)

@@ -10,12 +10,12 @@ data class MeldekortDagDTO(
     val beregningsdag: BeregningsdagDTO?,
 )
 
-fun MeldekortBeregning.toDTO(): List<MeldekortDagDTO> =
+fun MeldekortBeregning.toMeldekortDagDTO(): List<MeldekortDagDTO> =
     this.map {
         MeldekortDagDTO(
             dato = it.dato,
             status = it.toStatusDTO().toString(),
-            reduksjonAvYtelsePåGrunnAvFravær = it.reduksjon?.toDTO(),
-            beregningsdag = it.beregningsdag?.toDTO(),
+            reduksjonAvYtelsePåGrunnAvFravær = it.reduksjon?.toReduksjonAvYtelsePåGrunnAvFraværDTO(),
+            beregningsdag = it.beregningsdag?.toBeregningsdagDTO(),
         )
     }

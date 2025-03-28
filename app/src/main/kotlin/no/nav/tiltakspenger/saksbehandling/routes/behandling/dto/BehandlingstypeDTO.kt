@@ -8,7 +8,7 @@ enum class BehandlingstypeDTO {
     REVURDERING,
 }
 
-fun BenkBehandlingstype.toDTO(): BehandlingstypeDTO =
+fun BenkBehandlingstype.toBehandlingstypeDTO(): BehandlingstypeDTO =
     when (this) {
         BenkBehandlingstype.FØRSTEGANGSBEHANDLING -> BehandlingstypeDTO.FØRSTEGANGSBEHANDLING
         BenkBehandlingstype.REVURDERING -> BehandlingstypeDTO.REVURDERING

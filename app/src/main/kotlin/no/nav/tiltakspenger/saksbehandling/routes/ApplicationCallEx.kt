@@ -82,6 +82,7 @@ internal suspend inline fun ApplicationCall.withMeldeperiodeKjedeId(
     )
 }
 
+@Suppress("unused")
 internal suspend inline fun ApplicationCall.withMeldeperiodeId(
     crossinline onRight: suspend (MeldeperiodeId) -> Unit,
 ) {

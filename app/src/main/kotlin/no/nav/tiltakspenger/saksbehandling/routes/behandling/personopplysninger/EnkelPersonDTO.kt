@@ -13,7 +13,7 @@ data class EnkelPersonDTO(
     val skjermet: Boolean,
 )
 
-fun EnkelPersonMedSkjerming.toDTO(): EnkelPersonDTO = EnkelPersonDTO(
+fun EnkelPersonMedSkjerming.toEnkelPersonDTO(): EnkelPersonDTO = EnkelPersonDTO(
     fnr = fnr.verdi,
     fornavn = fornavn,
     mellomnavn = mellomnavn,
