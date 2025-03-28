@@ -6,7 +6,6 @@
 # See https://github.com/joeblau/gitignore.io/issues/186 and https://github.com/joeblau/gitignore.io/issues/360
 
 .idea/**
-!.idea/detekt.xml
 !.idea/inspectionProfiles
 !.idea/inspectionProfiles/profiles_settings.xml
 !.idea/inspectionProfiles/Project_Default.xml
