@@ -52,6 +52,7 @@ class StatistikkStønadPostgresRepo(
                     "vedtakDato" to dto.vedtakDato,
                     "fom" to dto.vedtakFom,
                     "tom" to dto.vedtakTom,
+                    "fagsystem" to dto.fagsystem,
                     "sistEndret" to nå(clock),
                     "opprettet" to nå(clock),
                     "tiltaksdeltakelser" to toPGObject(dto.tiltaksdeltakelser),
@@ -115,6 +116,7 @@ class StatistikkStønadPostgresRepo(
         vedtak_dato,
         fra_og_med,
         til_og_med,
+        fagsystem,
         sist_endret,
         opprettet,
         tiltaksdeltakelser
@@ -137,6 +139,7 @@ class StatistikkStønadPostgresRepo(
         :vedtakDato,
         :fom,
         :tom,
+        :fagsystem,
         :sistEndret,
         :opprettet,
         :tiltaksdeltakelser

@@ -20,7 +20,6 @@ ALTER TABLE statistikk_stonad DROP COLUMN IF EXISTS gyldig_til_dato_vilkår;
 ALTER TABLE statistikk_stonad DROP COLUMN IF EXISTS tiltak_id;
 ALTER TABLE statistikk_stonad DROP COLUMN IF EXISTS tiltak_type;
 ALTER TABLE statistikk_stonad DROP COLUMN IF EXISTS tiltak_beskrivelse;
-ALTER TABLE statistikk_stonad DROP COLUMN IF EXISTS fagsystem;
 ALTER TABLE statistikk_stonad DROP COLUMN IF EXISTS tiltak_dato;
 ALTER TABLE statistikk_stonad DROP COLUMN IF EXISTS gyldig_fra_dato_tiltak;
 ALTER TABLE statistikk_stonad DROP COLUMN IF EXISTS gyldig_til_dato_tiltak;
