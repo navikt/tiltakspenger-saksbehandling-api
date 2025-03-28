@@ -30,7 +30,6 @@ fun genererStatistikkForNyFørstegangsbehandling(
         forventetOppstartTidspunkt = behandling.saksopplysningsperiode?.fraOgMed,
         vilkår = emptyList(),
         sakYtelse = "IND",
-        sakUtland = "N",
         behandlingType = BehandlingType.FØRSTEGANGSBEHANDLING,
         behandlingStatus = BehandlingStatus.UNDER_BEHANDLING,
         behandlingResultat = null,
@@ -40,7 +39,6 @@ fun genererStatistikkForNyFørstegangsbehandling(
         opprettetAv = if (gjelderKode6) "-5" else "system",
         saksbehandler = if (gjelderKode6) "-5" else behandling.saksbehandler,
         ansvarligBeslutter = if (gjelderKode6) "-5" else null,
-        ansvarligEnhet = if (gjelderKode6) "-5" else null,
 
         tilbakekrevingsbeløp = null,
         funksjonellPeriodeFom = null,
@@ -77,7 +75,6 @@ fun genererSaksstatistikkForRammevedtak(
         forventetOppstartTidspunkt = if (behandling.erFørstegangsbehandling) behandling.saksopplysningsperiode?.fraOgMed else null,
         vilkår = emptyList(),
         sakYtelse = "IND",
-        sakUtland = "N",
         behandlingType = if (behandling.erFørstegangsbehandling) BehandlingType.FØRSTEGANGSBEHANDLING else BehandlingType.REVURDERING,
         // TODO jah: I følge confluence-dokken så finner jeg ikke dette feltet. Burde det heller vært AVSLUTTET?
         behandlingStatus = BehandlingStatus.FERDIG_BEHANDLET,
@@ -93,7 +90,6 @@ fun genererSaksstatistikkForRammevedtak(
         opprettetAv = if (gjelderKode6) "-5" else "system",
         saksbehandler = if (gjelderKode6) "-5" else behandling.saksbehandler,
         ansvarligBeslutter = if (gjelderKode6) "-5" else behandling.beslutter,
-        ansvarligEnhet = if (gjelderKode6) "-5" else "må hentes fra NORG",
 
         tilbakekrevingsbeløp = null,
         funksjonellPeriodeFom = null,

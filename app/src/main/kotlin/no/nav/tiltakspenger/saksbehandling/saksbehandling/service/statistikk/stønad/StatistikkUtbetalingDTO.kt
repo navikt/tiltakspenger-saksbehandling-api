@@ -9,9 +9,10 @@ data class StatistikkUtbetalingDTO(
     val ordinærBeløp: Int,
     val barnetilleggBeløp: Int,
     val totalBeløp: Int,
-    val beløpBeskrivelse: String,
     val årsak: String,
     val posteringDato: LocalDate,
     val gyldigFraDatoPostering: LocalDate,
     val gyldigTilDatoPostering: LocalDate,
+    // id-en som vi sender til helved
+    val utbetalingId: String,
 )

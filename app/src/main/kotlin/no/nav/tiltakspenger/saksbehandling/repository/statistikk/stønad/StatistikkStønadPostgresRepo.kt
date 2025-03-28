@@ -3,12 +3,14 @@ package no.nav.tiltakspenger.saksbehandling.repository.statistikk.stønad
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.stønad.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.statistikk.stønad.StatistikkUtbetalingDTO
 import org.intellij.lang.annotations.Language
+import org.postgresql.util.PGobject
 import java.time.Clock
 
 class StatistikkStønadPostgresRepo(
@@ -42,7 +44,6 @@ class StatistikkStønadPostgresRepo(
                     "gyldigTilDato" to dto.sakTilDato,
                     "ytelse" to dto.ytelse,
                     "soknadId" to dto.søknadId,
-                    "opplysning" to dto.opplysning,
                     "soknadDato" to dto.søknadDato,
                     "gyldigFraDatoSoknad" to dto.søknadFraDato,
                     "gyldigTilDatoSoknad" to dto.søknadTilDato,
@@ -51,29 +52,10 @@ class StatistikkStønadPostgresRepo(
                     "vedtakDato" to dto.vedtakDato,
                     "fom" to dto.vedtakFom,
                     "tom" to dto.vedtakTom,
-                    "oppfolgingEnhetKode" to null,
-                    "oppfolgingEnhetNavn" to null,
-                    "beslutningEnhetKode" to null,
-                    "beslutningEnhetNavn" to null,
-                    "tilhorighetEnhetKode" to null,
-                    "tilhorighetEnhetNavn" to null,
-                    "vilkarId" to null,
-                    "vilkarType" to null,
-                    "vilkarStatus" to null,
-                    "lovparagraf" to null,
-                    "beskrivelse" to null,
-                    "gyldigFraDatoVilkar" to null,
-                    "gyldigTilDatoVilkar" to null,
-                    // Er dette tiltak pr utbetaling, eller tiltak på rammevedtaket?
-                    "tiltakId" to null,
-                    "tiltakType" to null,
-                    "tiltakBeskrivelse" to null,
-                    "fagsystem" to null,
-                    "tiltakDato" to null,
-                    "gyldigFraDatoTiltak" to null,
-                    "gyldigTilDatoTiltak" to null,
+                    "fagsystem" to dto.fagsystem,
                     "sistEndret" to nå(clock),
                     "opprettet" to nå(clock),
+                    "tiltaksdeltakelser" to toPGObject(dto.tiltaksdeltakelser),
                 ),
             ).asUpdate,
         )
@@ -102,11 +84,11 @@ class StatistikkStønadPostgresRepo(
                     "belop" to dto.totalBeløp,
                     "ordinaerBelop" to dto.ordinærBeløp,
                     "barnetilleggBelop" to dto.barnetilleggBeløp,
-                    "belopBeskrivelse" to dto.beløpBeskrivelse,
                     "arsak" to dto.årsak,
                     "posteringsDato" to dto.posteringDato,
                     "gyldigFraDato" to dto.gyldigFraDatoPostering,
                     "gyldigTilDato" to dto.gyldigTilDatoPostering,
+                    "utbetaling_id" to dto.utbetalingId,
                 ),
             ).asUpdate,
         )
@@ -126,7 +108,6 @@ class StatistikkStønadPostgresRepo(
         gyldig_til_dato,
         ytelse,
         soknad_id,
-        opplysning,
         soknad_dato,
         gyldig_fra_dato_soknad,
         gyldig_til_dato_soknad,
@@ -135,28 +116,10 @@ class StatistikkStønadPostgresRepo(
         vedtak_dato,
         fra_og_med,
         til_og_med,
-        oppfølging_enhet_kode,
-        oppfølging_enhet_navn,
-        beslutning_enhet_kode,
-        beslutning_enhet_navn,
-        tilhørighet_enhet_kode,
-        tilhørighet_enhet_navn,
-        vilkår_id,
-        vilkår_type,
-        vilkår_status,
-        lovparagraf,
-        beskrivelse,
-        gyldig_fra_dato_vilkår,
-        gyldig_til_dato_vilkår,
-        tiltak_id,
-        tiltak_type,
-        tiltak_beskrivelse,
         fagsystem,
-        tiltak_dato,
-        gyldig_fra_dato_tiltak,
-        gyldig_til_dato_tiltak,
         sist_endret,
-        opprettet
+        opprettet,
+        tiltaksdeltakelser
         ) values (
         :id,
         :brukerId,
@@ -168,7 +131,6 @@ class StatistikkStønadPostgresRepo(
         :gyldigTilDato,
         :ytelse,
         :soknadId,
-        :opplysning,
         :soknadDato,
         :gyldigFraDatoSoknad,
         :gyldigTilDatoSoknad,
@@ -177,28 +139,10 @@ class StatistikkStønadPostgresRepo(
         :vedtakDato,
         :fom,
         :tom,
-        :oppfolgingEnhetKode,
-        :oppfolgingEnhetNavn,
-        :beslutningEnhetKode,
-        :beslutningEnhetNavn,
-        :tilhorighetEnhetKode,
-        :tilhorighetEnhetNavn,
-        :vilkarId,
-        :vilkarType,
-        :vilkarStatus,
-        :lovparagraf,
-        :beskrivelse,
-        :gyldigFraDatoVilkar,
-        :gyldigTilDatoVilkar,
-        :tiltakId,
-        :tiltakType,
-        :tiltakBeskrivelse,
         :fagsystem,
-        :tiltakDato,
-        :gyldigFraDatoTiltak,
-        :gyldigTilDatoTiltak,
         :sistEndret,
-        :opprettet
+        :opprettet,
+        :tiltaksdeltakelser
         )
         """.trimIndent()
 
@@ -212,11 +156,11 @@ class StatistikkStønadPostgresRepo(
         belop,
         ordinar_belop,
         barnetillegg_belop,
-        beløp_beskrivelse,
         arsak,
         posteringsdato,
         gyldig_fra_dato,
-        gyldig_til_dato     
+        gyldig_til_dato,
+        utbetaling_id
         ) values (
         :id,
         :sakId,
@@ -224,11 +168,16 @@ class StatistikkStønadPostgresRepo(
         :belop,
         :ordinaerBelop,
         :barnetilleggBelop,
-        :belopBeskrivelse,
         :arsak,
         :posteringsDato,
         :gyldigFraDato,
-        :gyldigTilDato
+        :gyldigTilDato,
+        :utbetaling_id
         )
         """.trimIndent()
+
+    fun toPGObject(value: Any?) = PGobject().also {
+        it.type = "json"
+        it.value = value?.let { v -> objectMapper.writeValueAsString(v) }
+    }
 }

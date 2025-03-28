@@ -17,7 +17,6 @@ data class StatistikkStønadDTO(
     val ytelse: String,
 
     val søknadId: String?,
-    val opplysning: String,
     val søknadDato: LocalDate?,
     val søknadFraDato: LocalDate?,
     val søknadTilDato: LocalDate?,
@@ -27,4 +26,8 @@ data class StatistikkStønadDTO(
     val vedtakDato: LocalDate,
     val vedtakFom: LocalDate,
     val vedtakTom: LocalDate,
+    // Brukes av DVH for å identifisere vedtakssystem når de sammenstiller data
+    val fagsystem: String = "TPSAK",
+    // tiltaksdeltakelser (eksternId) som det er innvilget tiltakspenger for
+    val tiltaksdeltakelser: List<String>,
 )
