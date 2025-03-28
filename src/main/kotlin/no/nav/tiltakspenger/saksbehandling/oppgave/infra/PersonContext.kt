@@ -8,12 +8,12 @@ import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringSer
 import no.nav.tiltakspenger.saksbehandling.Configuration
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.poaotilgang.infra.PoaoTilgangClient
-import no.nav.tiltakspenger.saksbehandling.felles.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.oppgave.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.person.PersonGateway
 import no.nav.tiltakspenger.saksbehandling.person.infra.MicrosoftGraphApiClient
 import no.nav.tiltakspenger.saksbehandling.person.infra.PersonHttpklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.PersonGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.PersonRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.PoaoTilgangGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonService

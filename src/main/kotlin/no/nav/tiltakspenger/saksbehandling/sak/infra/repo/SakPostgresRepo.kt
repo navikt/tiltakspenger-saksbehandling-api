@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.infra.repo.BehandlingP
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.repo.UtbetalingsvedtakPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repository.RammevedtakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import org.intellij.lang.annotations.Language
 import java.time.Clock
 import java.time.LocalDate

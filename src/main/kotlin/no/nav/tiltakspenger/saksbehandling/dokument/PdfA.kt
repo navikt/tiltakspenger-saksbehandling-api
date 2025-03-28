@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.felles
+package no.nav.tiltakspenger.saksbehandling.dokument
 
 import java.util.Base64
 

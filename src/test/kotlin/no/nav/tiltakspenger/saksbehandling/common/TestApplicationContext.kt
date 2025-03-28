@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.Profile
 import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
 import no.nav.tiltakspenger.saksbehandling.dokument.DokumentContext
-import no.nav.tiltakspenger.saksbehandling.fakes.clients.DokdistFakeGateway
+import no.nav.tiltakspenger.saksbehandling.fakes.clients.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.GenererFakeUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.GenererFakeVedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.JournalførFakeMeldekortGateway
@@ -93,7 +93,7 @@ class TestApplicationContext(
     private val genererFakeVedtaksbrevGateway = GenererFakeVedtaksbrevGateway()
     private val journalførFakeMeldekortGateway = JournalførFakeMeldekortGateway(journalpostIdGenerator)
     private val journalførFakeVedtaksbrevGateway = JournalførFakeVedtaksbrevGateway(journalpostIdGenerator)
-    private val dokdistFakeGateway = DokdistFakeGateway(distribusjonIdGenerator)
+    private val dokdistFakeGateway = Dokumentdistribusjonsklient(distribusjonIdGenerator)
     private val meldekortApiGateway = MeldekortApiFakeGateway()
 
     val jwtGenerator = JwtGenerator()
@@ -231,7 +231,7 @@ class TestApplicationContext(
             genererStansvedtaksbrevGateway = genererFakeVedtaksbrevGateway,
             personService = personContext.personService,
             tilgangsstyringService = tilgangsstyringFakeGateway,
-            dokdistGateway = dokdistFakeGateway,
+            dokumentdistribusjonsklient = dokdistFakeGateway,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
             tiltaksdeltagelseGateway = tiltakGatewayFake,

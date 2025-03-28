@@ -3,10 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.saksbehandling
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.saksbehandling.distribusjon.DokdistGateway
-import no.nav.tiltakspenger.saksbehandling.felles.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
+import no.nav.tiltakspenger.saksbehandling.oppgave.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.GenererInnvilgelsesvedtaksbrevGateway
@@ -32,7 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.person.PersonS
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.service.sak.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseGateway
-import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repository.RammevedtakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import java.time.Clock
 
 open class FørstegangsbehandlingContext(
@@ -47,7 +47,7 @@ open class FørstegangsbehandlingContext(
     genererStansvedtaksbrevGateway: GenererStansvedtaksbrevGateway,
     tilgangsstyringService: TilgangsstyringService,
     personService: PersonService,
-    dokdistGateway: DokdistGateway,
+    dokumentdistribusjonsklient: Dokumentdistribusjonsklient,
     navIdentClient: NavIdentClient,
     sakService: SakService,
     tiltaksdeltagelseGateway: TiltaksdeltagelseGateway,
@@ -153,7 +153,7 @@ open class FørstegangsbehandlingContext(
 
     val distribuerVedtaksbrevService by lazy {
         DistribuerVedtaksbrevService(
-            dokdistGateway = dokdistGateway,
+            dokumentdistribusjonsklient = dokumentdistribusjonsklient,
             rammevedtakRepo = rammevedtakRepo,
             clock = clock,
         )

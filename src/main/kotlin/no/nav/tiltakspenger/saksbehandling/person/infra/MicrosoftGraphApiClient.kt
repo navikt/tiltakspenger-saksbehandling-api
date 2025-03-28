@@ -13,8 +13,8 @@ import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.saksbehandling.Configuration
-import no.nav.tiltakspenger.saksbehandling.felles.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.oppgave.NavIdentClient
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse

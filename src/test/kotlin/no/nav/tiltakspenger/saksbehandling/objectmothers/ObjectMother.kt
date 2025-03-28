@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import no.nav.tiltakspenger.libs.common.AccessToken
-import no.nav.tiltakspenger.saksbehandling.felles.Navkontor
-import no.nav.tiltakspenger.saksbehandling.felles.OppgaveId
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
+import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.Navn
 import java.time.Instant
 

@@ -5,14 +5,14 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.saksbehandling.common.DistribusjonIdGenerator
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
-import no.nav.tiltakspenger.saksbehandling.distribusjon.DokdistGateway
+import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.KunneIkkeDistribuereDokument
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import java.util.concurrent.ConcurrentHashMap
 
-class DokdistFakeGateway(
+class Dokumentdistribusjonsklient(
     private val distribusjonIdGenerator: DistribusjonIdGenerator,
-) : DokdistGateway {
+) : Dokumentdistribusjonsklient {
 
     private val data = ConcurrentHashMap<JournalpostId, DistribusjonId>()
 

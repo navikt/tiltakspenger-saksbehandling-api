@@ -6,9 +6,9 @@ import arrow.atomic.Atomic
 import io.github.serpro69.kfaker.faker
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.person.PersonGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.PersonGateway
 import java.time.Clock
 
 class PersonFakeGateway(private val clock: Clock) : PersonGateway {

@@ -180,7 +180,7 @@ open class ApplicationContext(
             genererVedtaksbrevGateway = dokumentContext.genererInnvilgelsesvedtaksbrevGateway,
             genererStansvedtaksbrevGateway = dokumentContext.genererStansvedtaksbrevGateway,
             tilgangsstyringService = personContext.tilgangsstyringService,
-            dokdistGateway = dokumentContext.dokdistGateway,
+            dokumentdistribusjonsklient = dokumentContext.dokumentdistribusjonsklient,
             personService = personContext.personService,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,

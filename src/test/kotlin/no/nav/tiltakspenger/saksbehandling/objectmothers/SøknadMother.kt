@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.juni
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
-import no.nav.tiltakspenger.saksbehandling.felles.OppgaveId
+import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad

@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.felles.OppgaveId
+import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer

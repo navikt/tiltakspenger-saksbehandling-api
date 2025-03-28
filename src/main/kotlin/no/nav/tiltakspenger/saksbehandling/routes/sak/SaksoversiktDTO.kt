@@ -2,14 +2,14 @@ package no.nav.tiltakspenger.saksbehandling.routes.sak
 
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.saksbehandling.benk.BehandlingEllerSøknadForSaksoversikt
+import no.nav.tiltakspenger.saksbehandling.benk.Saksoversikt
+import no.nav.tiltakspenger.saksbehandling.benk.toBenkBehandlingstype
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.BehandlingstypeDTO
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toBehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.routes.behandling.dto.toBehandlingstypeDTO
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Søknad
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.Saksoversikt
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.toBenkBehandlingstype
 import java.time.LocalDateTime
 
 /**

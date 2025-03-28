@@ -1,0 +1,3 @@
+package no.nav.tiltakspenger.saksbehandling.distribusjon
+
+object KunneIkkeDistribuereDokument

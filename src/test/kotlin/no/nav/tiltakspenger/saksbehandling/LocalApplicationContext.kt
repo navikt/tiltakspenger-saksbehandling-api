@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.common.DistribusjonIdGenerator
 import no.nav.tiltakspenger.saksbehandling.common.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.dokument.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
-import no.nav.tiltakspenger.saksbehandling.fakes.clients.DokdistFakeGateway
+import no.nav.tiltakspenger.saksbehandling.fakes.clients.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.FellesFakeAdressebeskyttelseKlient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.FellesFakeSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.GenererFakeUtbetalingsvedtakGateway
@@ -79,7 +79,7 @@ class LocalApplicationContext(
         if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevGateway()
     private val journalførFakeMeldekortGateway = JournalførFakeMeldekortGateway(journalpostIdGenerator)
     private val journalførFakeVedtaksbrevGateway = JournalførFakeVedtaksbrevGateway(journalpostIdGenerator)
-    private val dokdistFakeGateway = DokdistFakeGateway(distribusjonIdGenerator)
+    private val dokdistFakeGateway = Dokumentdistribusjonsklient(distribusjonIdGenerator)
     private val fellesFakeAdressebeskyttelseKlient = FellesFakeAdressebeskyttelseKlient()
     private val fellesFakeSkjermingsklient = FellesFakeSkjermingsklient()
     private val poaoTilgangskontrollFake = PoaoTilgangskontrollFake()
@@ -217,7 +217,7 @@ class LocalApplicationContext(
             genererStansvedtaksbrevGateway = genererStansvedtaksbrevGateway,
             personService = personContext.personService,
             tilgangsstyringService = personContext.tilgangsstyringService,
-            dokdistGateway = dokdistFakeGateway,
+            dokumentdistribusjonsklient = dokdistFakeGateway,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
             tiltaksdeltagelseGateway = tiltakGatewayFake,

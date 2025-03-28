@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.distribusjon
+package no.nav.tiltakspenger.saksbehandling.vedtak
 
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId

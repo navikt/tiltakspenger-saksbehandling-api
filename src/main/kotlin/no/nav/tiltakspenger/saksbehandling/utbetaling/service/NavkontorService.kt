@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.saksbehandling.felles.Navkontor
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.VeilarboppfolgingGateway
 
 class NavkontorService(

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.saksbehandling.benk.infra
+package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -8,9 +8,9 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.BenkBehandlingstype
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.toBenkBehandlingstype
+import no.nav.tiltakspenger.saksbehandling.benk.BehandlingEllerSøknadForSaksoversikt
+import no.nav.tiltakspenger.saksbehandling.benk.BenkBehandlingstype
+import no.nav.tiltakspenger.saksbehandling.benk.toBenkBehandlingstype
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.infra.repo.toBehandlingsstatus
@@ -20,31 +20,32 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.SaksoversiktRepo
 class BenkOversiktPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : SaksoversiktRepo {
-    override fun hentÅpneBehandlinger(sessionContext: SessionContext?): List<BehandlingEllerSøknadForSaksoversikt> =
-        sessionFactory.withSession(sessionContext) { session ->
+
+    override fun hentÅpneBehandlinger(sessionContext: SessionContext?): List<BehandlingEllerSøknadForSaksoversikt> {
+        return sessionFactory.withSession(sessionContext) { session ->
             session
                 .run(
                     queryOf(
                         //language=SQL
                         """
-                        select behandling.id as behandling_id,
-                          sak.fnr,
-                          behandling.opprettet,
-                          behandling.virkningsperiode_fra_og_med,
-                          behandling.virkningsperiode_til_og_med,
-                          behandling.status,
-                          sak.saksnummer,
-                          behandling.saksbehandler,
-                          behandling.beslutter,
-                          behandling.attesteringer,
-                          behandling.sak_id,
-                          behandling.behandlingstype,
-                          søknad.tidsstempel_hos_oss as kravtidspunkt
-                        from behandling
-                        left join sak on sak.id = behandling.sak_id
-                        left join søknad on behandling.id = søknad.behandling_id
-                        where behandling.status != 'VEDTATT' and behandling.status != 'AVBRUTT'
-                        order by sak.saksnummer, behandling.id
+                            select behandling.id as behandling_id,
+                              sak.fnr,
+                              behandling.opprettet,
+                              behandling.virkningsperiode_fra_og_med,
+                              behandling.virkningsperiode_til_og_med,
+                              behandling.status,
+                              sak.saksnummer,
+                              behandling.saksbehandler,
+                              behandling.beslutter,
+                              behandling.attesteringer,
+                              behandling.sak_id,
+                              behandling.behandlingstype,
+                              søknad.tidsstempel_hos_oss as kravtidspunkt
+                            from behandling
+                            left join sak on sak.id = behandling.sak_id
+                            left join søknad on behandling.id = søknad.behandling_id
+                            where behandling.status != 'VEDTATT' and behandling.status != 'AVBRUTT'
+                            order by sak.saksnummer, behandling.id
                         """.trimIndent(),
                     ).map { row ->
                         val id = row.string("behandling_id").let { BehandlingId.fromString(it) }
@@ -82,6 +83,7 @@ class BenkOversiktPostgresRepo(
                     }.asList,
                 )
         }
+    }
 
     override fun hentÅpneSøknader(sessionContext: SessionContext?): List<BehandlingEllerSøknadForSaksoversikt> =
         sessionFactory.withSession(sessionContext) { session ->

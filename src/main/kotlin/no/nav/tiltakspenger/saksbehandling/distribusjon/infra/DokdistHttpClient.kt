@@ -10,7 +10,7 @@ import kotlinx.coroutines.withContext
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
-import no.nav.tiltakspenger.saksbehandling.distribusjon.DokdistGateway
+import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.KunneIkkeDistribuereDokument
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -27,7 +27,7 @@ class DokdistHttpClient(
     private val getToken: suspend () -> AccessToken,
     connectTimeout: Duration = 1.seconds,
     private val timeout: Duration = 1.seconds,
-) : DokdistGateway {
+) : Dokumentdistribusjonsklient {
 
     private val log = KotlinLogging.logger {}
 

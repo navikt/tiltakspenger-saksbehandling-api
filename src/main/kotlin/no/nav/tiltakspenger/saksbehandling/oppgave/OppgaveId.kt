@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.felles
+package no.nav.tiltakspenger.saksbehandling.oppgave
 
 @JvmInline
 value class OppgaveId(

@@ -1,6 +1,6 @@
-package no.nav.tiltakspenger.saksbehandling.felles.journalføring
+package no.nav.tiltakspenger.saksbehandling.dokument
 
-import no.nav.tiltakspenger.saksbehandling.felles.PdfA
+import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import java.util.Base64
 
 data class PdfOgJson(

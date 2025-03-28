@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.saksbehandling.felles.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
+import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import java.time.LocalDateTime
 
 /**

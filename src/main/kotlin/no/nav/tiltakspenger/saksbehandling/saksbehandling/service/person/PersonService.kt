@@ -9,11 +9,11 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.person.PersonGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.Navn
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.PersonGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.PersonRepo
 
 class PersonService(

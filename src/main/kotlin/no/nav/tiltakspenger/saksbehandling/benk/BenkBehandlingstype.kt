@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk
+package no.nav.tiltakspenger.saksbehandling.benk
 
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingstype
 

@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.saksbehandling.service.behandling.br
 
 import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.felles.NavIdentClient
-import no.nav.tiltakspenger.saksbehandling.felles.PdfA
+import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
+import no.nav.tiltakspenger.saksbehandling.oppgave.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.validerStansDato

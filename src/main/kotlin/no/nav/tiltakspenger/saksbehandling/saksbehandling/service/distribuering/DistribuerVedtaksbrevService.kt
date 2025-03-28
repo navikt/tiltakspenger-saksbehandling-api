@@ -5,13 +5,13 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.distribusjon.DokdistGateway
+import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.RammevedtakRepo
 import java.time.Clock
 
 class DistribuerVedtaksbrevService(
-    private val dokdistGateway: DokdistGateway,
+    private val dokumentdistribusjonsklient: Dokumentdistribusjonsklient,
     private val rammevedtakRepo: RammevedtakRepo,
     private val clock: Clock,
 ) {
@@ -25,7 +25,7 @@ class DistribuerVedtaksbrevService(
                 log.info { "Prøver å distribuere journalpost  for rammevedtak. $vedtakSomSkalDistribueres" }
                 Either.catch {
                     val distribusjonId =
-                        dokdistGateway.distribuerDokument(vedtakSomSkalDistribueres.journalpostId, correlationId)
+                        dokumentdistribusjonsklient.distribuerDokument(vedtakSomSkalDistribueres.journalpostId, correlationId)
                             .getOrElse {
                                 log.error { "Kunne ikke distribuere vedtaksbrev. $vedtakSomSkalDistribueres" }
                                 return@forEach

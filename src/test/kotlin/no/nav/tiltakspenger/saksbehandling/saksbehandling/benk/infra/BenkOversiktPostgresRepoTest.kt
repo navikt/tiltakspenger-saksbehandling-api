@@ -2,6 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.saksbehandling.benk.infra
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.tiltakspenger.saksbehandling.benk.BehandlingEllerSøknadForSaksoversikt
+import no.nav.tiltakspenger.saksbehandling.benk.BenkBehandlingstype
+import no.nav.tiltakspenger.saksbehandling.benk.Saksoversikt
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
@@ -11,9 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.behandling.Behandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.BehandlingEllerSøknadForSaksoversikt
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.BenkBehandlingstype
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.benk.Saksoversikt
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 

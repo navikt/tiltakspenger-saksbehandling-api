@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.vedtak.infra.repository
+package no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo
 
 import kotliquery.Row
 import kotliquery.Session
@@ -11,13 +11,13 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
-import no.nav.tiltakspenger.saksbehandling.distribusjon.VedtakSomSkalDistribueres
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.vedtak.Vedtakstype
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.ports.RammevedtakRepo
+import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
 import java.time.LocalDate
 import java.time.LocalDateTime
 

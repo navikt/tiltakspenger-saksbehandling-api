@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.saksbehandling.ports
+package no.nav.tiltakspenger.saksbehandling.person
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.domene.personopplysninger.EnkelPerson

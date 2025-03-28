@@ -4,13 +4,13 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
+import no.nav.tiltakspenger.saksbehandling.benk.infra.repo.BenkOversiktPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.common.TestSaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.saksbehandling.benk.infra.BenkOversiktPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.infra.repo.sak.StatistikkSakRepoImpl
 import no.nav.tiltakspenger.saksbehandling.statistikk.infra.repo.stønad.StatistikkStønadPostgresRepo
@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.PostgresSøknadRep
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.repo.UtbetalingsvedtakPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repository.RammevedtakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import java.time.Clock
 import javax.sql.DataSource
 

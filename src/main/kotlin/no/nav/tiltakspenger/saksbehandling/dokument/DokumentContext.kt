@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.dokument
 
 import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
 import no.nav.tiltakspenger.saksbehandling.Configuration
-import no.nav.tiltakspenger.saksbehandling.distribusjon.DokdistGateway
+import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokdistHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.JoarkHttpClient
@@ -21,7 +21,7 @@ open class DokumentContext(
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.joarkScope) },
         )
     }
-    open val dokdistGateway: DokdistGateway by lazy {
+    open val dokumentdistribusjonsklient: Dokumentdistribusjonsklient by lazy {
         DokdistHttpClient(
             baseUrl = Configuration.dokdistUrl,
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.dokdistScope) },
