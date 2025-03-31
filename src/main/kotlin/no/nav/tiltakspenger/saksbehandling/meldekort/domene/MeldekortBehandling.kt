@@ -404,7 +404,7 @@ fun Sak.opprettMeldekortBehandling(
     clock: Clock,
 ): MeldekortBehandling.MeldekortUnderBehandling {
     if (this.meldekortBehandlinger.finnesÅpenMeldekortBehandling) {
-        throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige er avsluttet for sak $id og kjedeId $kjedeId")
+        throw IllegalStateException("Kan ikke opprette ny meldekortbehandling når det finnes en åpen behandling på saken (sak $id - kjedeId $kjedeId)")
     }
 
     val meldeperiodekjede: MeldeperiodeKjede = this.meldeperiodeKjeder.hentMeldeperiodekjedeForKjedeId(kjedeId)
@@ -417,6 +417,15 @@ fun Sak.opprettMeldekortBehandling(
             "Dette er første meldekortbehandling på saken og må da behandle den første meldeperiode kjeden. sakId: ${this.id}, meldeperiodekjedeId: ${meldeperiodekjede.kjedeId}"
         }
     }
+
+    this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
+        ?.also { foregåendeMeldeperiodekjede ->
+            this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(foregåendeMeldeperiodekjede.kjedeId).also {
+                if (it.none { it.status == GODKJENT }) {
+                    throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige kjede er godkjent")
+                }
+            }
+        }
 
     if (meldeperiode.ingenDagerGirRett) {
         throw IllegalStateException("Kan ikke starte behandling på meldeperiode uten dager som gir rett til tiltakspenger")

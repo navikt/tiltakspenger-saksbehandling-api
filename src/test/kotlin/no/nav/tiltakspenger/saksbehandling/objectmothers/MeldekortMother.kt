@@ -315,7 +315,7 @@ interface MeldekortMother : MotherOfAllMothers {
 
         val opprettet = nå(clock)
 
-        return kommandoer.drop(1).fold(
+        return kommandoer.drop(1).foldIndexed(
             førsteBeregnetMeldekort(
                 tiltakstypePerioder = Periodisering(
                     TiltakstypeSomGirRett.GRUPPE_AMO,
@@ -329,13 +329,13 @@ interface MeldekortMother : MotherOfAllMothers {
                 beslutter = beslutter,
                 opprettet = opprettet,
             ).first,
-        ) { meldekortperioder, kommando ->
+        ) { index, meldekortperioder, kommando ->
             meldekortperioder.beregnNesteMeldekort(
                 kommando,
                 fnr,
                 barnetilleggsPerioder = barnetilleggsPerioder,
                 beslutter = beslutter,
-                opprettet = opprettet.plusMinutes(1),
+                opprettet = opprettet.plusMinutes(1 + index.toLong()),
             )
         }
     }

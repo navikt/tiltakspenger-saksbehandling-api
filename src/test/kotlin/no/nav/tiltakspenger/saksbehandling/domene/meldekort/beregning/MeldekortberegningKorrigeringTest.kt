@@ -265,4 +265,86 @@ internal class MeldekortberegningKorrigeringTest {
             satser = Satser.sats(LocalDate.of(2025, 1, 1)),
         )
     }
+
+    @Test
+    fun `Skal korrigere en korrigering`() {
+        val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+            vurderingsperiode = vurderingsperiode,
+            meldeperioder = nonEmptyListOf(
+                periodeMedFullDeltagelse(førsteDag),
+
+                periodeMedStatuser(
+                    førsteDag.plusWeeks(2),
+                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(2) { Status.SPERRET },
+                    List(3) { Status.FRAVÆR_SYK },
+                    List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(2) { Status.SPERRET },
+                ),
+
+                periodeMedStatuser(
+                    førsteDag,
+                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(2) { Status.SPERRET },
+                    List(1) { Status.FRAVÆR_SYK },
+                    List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(2) { Status.SPERRET },
+                ),
+
+                periodeMedStatuser(
+                    førsteDag,
+                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(2) { Status.SPERRET },
+                    List(5) { Status.FRAVÆR_SYK },
+                    List(2) { Status.SPERRET },
+                ),
+            ),
+        )
+
+        meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
+            full = 8 + 7,
+            redusert = 2 + 3,
+        )
+    }
+
+    @Test
+    fun `Skal korrigere en korrigering, med tidligere korrigering i en påfølgende periode`() {
+        val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+            vurderingsperiode = vurderingsperiode,
+            meldeperioder = nonEmptyListOf(
+                periodeMedFullDeltagelse(førsteDag),
+                periodeMedFullDeltagelse(førsteDag.plusWeeks(2)),
+
+                periodeMedStatuser(
+                    førsteDag,
+                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(2) { Status.SPERRET },
+                    List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(1) { Status.FRAVÆR_SYKT_BARN },
+                    List(2) { Status.SPERRET },
+                ),
+
+                periodeMedStatuser(
+                    førsteDag.plusWeeks(2),
+                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(2) { Status.SPERRET },
+                    List(5) { Status.FRAVÆR_SYKT_BARN },
+                    List(2) { Status.SPERRET },
+                ),
+
+                periodeMedStatuser(
+                    førsteDag,
+                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(2) { Status.SPERRET },
+                    List(5) { Status.FRAVÆR_SYKT_BARN },
+                    List(2) { Status.SPERRET },
+                ),
+            ),
+        )
+
+        meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
+            full = 8 + 5,
+            redusert = 2 + 5,
+        )
+    }
 }
