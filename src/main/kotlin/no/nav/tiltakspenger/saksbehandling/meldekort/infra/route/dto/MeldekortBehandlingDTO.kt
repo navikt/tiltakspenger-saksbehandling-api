@@ -52,14 +52,16 @@ fun Utbetalingsvedtak.toMeldekortBehandlingDTO(): MeldekortBehandlingDTO {
         attesteringer = behandling.attesteringer.toAttesteringDTO(),
         utbetalingsstatus = this.status.toUtbetalingsstatusDTO(),
         godkjentTidspunkt = this.opprettet,
-        periode = behandling.periode.toDTO(),
+        periode = behandling.beregningPeriode.toDTO(),
     )
 }
 
 fun MeldekortBehandling.toMeldekortBehandlingDTO(
     utbetalingsstatus: UtbetalingsstatusDTO,
 ): MeldekortBehandlingDTO {
-    require(status != MeldekortBehandlingStatus.GODKJENT) { "Bruk Utbetalingsvedtak.toMeldekortBehandlingDTO() for godkjente meldekortbehandlinger. sakId ${this.sakId}, behandlingId: $id" }
+    require(status != MeldekortBehandlingStatus.GODKJENT) {
+        "Bruk Utbetalingsvedtak.toMeldekortBehandlingDTO() for godkjente meldekortbehandlinger. sakId ${this.sakId}, behandlingId: $id"
+    }
     return MeldekortBehandlingDTO(
         id = id.toString(),
         meldeperiodeId = meldeperiode.id.toString(),

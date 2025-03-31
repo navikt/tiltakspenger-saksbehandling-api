@@ -47,7 +47,7 @@ sealed interface MeldekortBeregning : List<MeldeperiodeBeregningDag> {
         override val sakId: SakId,
         override val maksDagerMedTiltakspengerForPeriode: Int,
         /** Den første meldeperioden i beregninger-lista samsvarer med meldeperioden for den tilhørende meldekort-behandlingen.
-         *  Resten av lista innholder evt beregninger av påfølgende meldeperioder som ble endres som følge av en korrigering
+         *  Resten av lista innholder evt beregninger av påfølgende meldeperioder som ble endret som følge av en korrigering
          *  (dersom meldekort-behandlingen er en korrigering)
          * */
         val beregninger: NonEmptyList<MeldeperiodeBeregnet>,

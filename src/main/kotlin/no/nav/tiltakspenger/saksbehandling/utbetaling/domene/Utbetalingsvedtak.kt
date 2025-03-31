@@ -33,7 +33,7 @@ data class Utbetalingsvedtak(
     val journalføringstidspunkt: LocalDateTime?,
     val status: Utbetalingsstatus?,
 ) {
-    val periode: Periode = meldekortbehandling.periode
+    val periode: Periode = meldekortbehandling.beregningPeriode
     val ordinærBeløp: Int = meldekortbehandling.ordinærBeløp
     val barnetilleggBeløp: Int = meldekortbehandling.barnetilleggBeløp
     val totalBeløp: Int = meldekortbehandling.beløpTotal
