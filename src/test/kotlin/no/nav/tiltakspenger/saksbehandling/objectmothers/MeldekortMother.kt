@@ -290,6 +290,7 @@ interface MeldekortMother : MotherOfAllMothers {
     fun beregnMeldekortperioder(
         vurderingsperiode: Periode,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         meldeperioder: NonEmptyList<NonEmptyList<Dager.Dag>>,
@@ -312,6 +313,8 @@ interface MeldekortMother : MotherOfAllMothers {
             )
         }
 
+        val opprettet = nå(clock)
+
         return kommandoer.drop(1).fold(
             førsteBeregnetMeldekort(
                 tiltakstypePerioder = Periodisering(
@@ -323,9 +326,17 @@ interface MeldekortMother : MotherOfAllMothers {
                 fnr = fnr,
                 kommando = kommandoer.first(),
                 kjedeId = MeldeperiodeKjedeId.fraPeriode(kommandoer.first().periode),
+                beslutter = beslutter,
+                opprettet = opprettet,
             ).first,
         ) { meldekortperioder, kommando ->
-            meldekortperioder.beregnNesteMeldekort(kommando, fnr, barnetilleggsPerioder = barnetilleggsPerioder)
+            meldekortperioder.beregnNesteMeldekort(
+                kommando,
+                fnr,
+                barnetilleggsPerioder = barnetilleggsPerioder,
+                beslutter = beslutter,
+                opprettet = opprettet.plusMinutes(1),
+            )
         }
     }
 
@@ -348,6 +359,7 @@ interface MeldekortMother : MotherOfAllMothers {
         antallDagerForPeriode: Int = girRett.count { it.value },
         begrunnelse: MeldekortbehandlingBegrunnelse? = null,
         attesteringer: Attesteringer = Attesteringer.empty(),
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): Pair<MeldekortBehandlinger, MeldekortBehandling.MeldekortBehandlet> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
@@ -386,7 +398,14 @@ interface MeldekortMother : MotherOfAllMothers {
                 ),
             ),
         )
-        return meldekortBehandlinger.sendTilBeslutter(kommando, barnetilleggsPerioder, tiltakstypePerioder, clock).getOrFail()
+        return meldekortBehandlinger
+            .sendTilBeslutter(kommando, barnetilleggsPerioder, tiltakstypePerioder, clock)
+            .map { (meldekortBehandlinger, meldekort) ->
+                val iverksattMeldekort = meldekort.iverksettMeldekort(beslutter, clock).getOrFail()
+                val oppdaterteBehandlinger = meldekortBehandlinger.oppdaterMeldekortbehandling(iverksattMeldekort)
+                Pair(oppdaterteBehandlinger, iverksattMeldekort)
+            }
+            .getOrFail()
     }
 
     fun MeldekortBehandlinger.beregnNesteMeldekort(
@@ -405,6 +424,7 @@ interface MeldekortMother : MotherOfAllMothers {
         girRett: Map<LocalDate, Boolean> = kommando.dager.dager.map { it.dag to it.status.girRett() }.toMap(),
         antallDagerForPeriode: Int = girRett.count { it.value },
         attesteringer: Attesteringer = Attesteringer.empty(),
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): MeldekortBehandlinger {
         val meldekortId = kommando.meldekortId
         val sakId = kommando.sakId
@@ -419,8 +439,8 @@ interface MeldekortMother : MotherOfAllMothers {
             antallDagerForPeriode = antallDagerForPeriode,
         )
 
-        return MeldekortBehandlinger(
-            verdi = this.verdi + MeldekortBehandling.MeldekortUnderBehandling(
+        return this.leggTil(
+            MeldekortBehandling.MeldekortUnderBehandling(
                 id = meldekortId,
                 sakId = sakId,
                 saksnummer = saksnummer,
@@ -442,7 +462,12 @@ interface MeldekortMother : MotherOfAllMothers {
                 attesteringer = attesteringer,
                 sendtTilBeslutning = null,
             ),
-        ).sendTilBeslutter(kommando, barnetilleggsPerioder, tiltakstypePerioder, clock).getOrFail().first
+        ).sendTilBeslutter(kommando, barnetilleggsPerioder, tiltakstypePerioder, clock)
+            .map { (meldekortBehandlinger, meldekort) ->
+                val iverksattMeldekort = meldekort.iverksettMeldekort(beslutter, clock).getOrFail()
+                val oppdaterteBehandlinger = meldekortBehandlinger.oppdaterMeldekortbehandling(iverksattMeldekort)
+                Pair(oppdaterteBehandlinger, iverksattMeldekort)
+            }.getOrFail().first
     }
 
     fun meldeperiode(
