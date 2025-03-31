@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.ports
 
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
@@ -37,6 +38,7 @@ interface UtbetalingsvedtakRepo {
     fun oppdaterUtbetalingsstatus(
         vedtakId: VedtakId,
         status: Utbetalingsstatus,
+        metadata: Forsøkshistorikk,
         context: TransactionContext? = null,
     )
 

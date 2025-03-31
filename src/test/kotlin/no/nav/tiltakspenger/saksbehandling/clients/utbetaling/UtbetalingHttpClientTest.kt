@@ -8,13 +8,18 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.plus
 import no.nav.tiltakspenger.saksbehandling.common.withWireMockServer
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpClient
 import org.junit.jupiter.api.Test
+import java.time.temporal.ChronoUnit
 
 /**
  * Test for [UtbetalingHttpClient]
@@ -40,9 +45,12 @@ internal class UtbetalingHttpClientTest {
                 getToken = { ObjectMother.accessToken() },
             )
             val utbetaling = UtbetalingDetSkalHentesStatusFor(
+                sakId = sakId,
                 saksnummer = saksnummer,
                 vedtakId = vedtakId,
-                sakId = sakId,
+                opprettet = nå(fixedClock),
+                sendtTilUtbetalingstidspunkt = nå(fixedClock.plus(1, ChronoUnit.SECONDS)),
+                forsøkshistorikk = Forsøkshistorikk.førsteForsøk(fixedClock.plus(2, ChronoUnit.SECONDS)),
             )
             runTest {
                 pdlClient.hentUtbetalingsstatus(utbetaling) shouldBe Utbetalingsstatus.OkUtenUtbetaling.right()

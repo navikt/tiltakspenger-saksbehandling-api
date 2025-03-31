@@ -9,6 +9,9 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toForsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling.MeldekortBehandlet
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
@@ -195,6 +198,7 @@ internal class UtbetalingsvedtakPostgresRepo(
     override fun oppdaterUtbetalingsstatus(
         vedtakId: VedtakId,
         status: Utbetalingsstatus,
+        metadata: Forsøkshistorikk,
         context: TransactionContext?,
     ) {
         sessionFactory.withSession(context) { session ->
@@ -203,12 +207,14 @@ internal class UtbetalingsvedtakPostgresRepo(
                     //language=SQL
                     """
                         update utbetalingsvedtak
-                        set status = :status
+                        set status = :status,
+                        status_metadata = to_jsonb(:status_metadata::jsonb)
                         where id = :id
                     """.trimIndent(),
                     mapOf(
                         "id" to vedtakId.toString(),
                         "status" to status.toDbType(),
+                        "status_metadata" to metadata.toDbJson(),
                     ),
                 ).asUpdate,
             )
@@ -221,7 +227,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                 queryOf(
                     //language=SQL
                     """
-                            select u.id, u.sak_id, s.saksnummer 
+                            select u.id, u.sak_id, u.opprettet, u.sendt_til_utbetaling_tidspunkt, u.status_metadata, s.saksnummer 
                             from utbetalingsvedtak u 
                             join sak s on s.id = u.sak_id 
                             where (u.status is null or u.status IN ('IKKE_PÅBEGYNT', 'SENDT_TIL_OPPDRAG')) and u.sendt_til_utbetaling_tidspunkt is not null
@@ -234,6 +240,10 @@ internal class UtbetalingsvedtakPostgresRepo(
                         saksnummer = Saksnummer(row.string("saksnummer")),
                         sakId = SakId.fromString(row.string("sak_id")),
                         vedtakId = VedtakId.fromString(row.string("id")),
+                        opprettet = row.localDateTime("opprettet"),
+                        sendtTilUtbetalingstidspunkt = row.localDateTime("sendt_til_utbetaling_tidspunkt"),
+                        forsøkshistorikk = row.stringOrNull("status_metadata")?.toForsøkshistorikk(),
+
                     )
                 }.asList,
             )

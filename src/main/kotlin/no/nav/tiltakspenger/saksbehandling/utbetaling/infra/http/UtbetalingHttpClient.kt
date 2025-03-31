@@ -98,6 +98,7 @@ class UtbetalingHttpClient(
     }
 
     /**
+     * Logger alle feil(lefts), så det trengs ikke gjøres av service/domenet.
      * Nåværende versjon: https://helved-docs.intern.dev.nav.no/v2/doc/status
      * Neste versjon: https://helved-docs.intern.dev.nav.no/v3/doc/sjekk_status_pa_en_utbetaling
      */
@@ -105,7 +106,7 @@ class UtbetalingHttpClient(
         utbetaling: UtbetalingDetSkalHentesStatusFor,
     ): Either<KunneIkkeHenteUtbetalingsstatus, Utbetalingsstatus> {
         return withContext(Dispatchers.IO) {
-            val (sakId, vedtakId, saksnummer) = utbetaling
+            val (sakId, saksnummer, vedtakId) = utbetaling
             val path = "$baseUrl/api/iverksetting/${saksnummer.verdi}/${vedtakId.uuidPart()}/status"
             Either.catch {
                 val token = getToken().token
@@ -135,7 +136,10 @@ class UtbetalingHttpClient(
                         IverksettStatus.OK -> Utbetalingsstatus.Ok.right()
                         IverksettStatus.IKKE_PÅBEGYNT -> Utbetalingsstatus.IkkePåbegynt.right()
                         IverksettStatus.OK_UTEN_UTBETALING -> Utbetalingsstatus.OkUtenUtbetaling.right()
-                        null -> KunneIkkeHenteUtbetalingsstatus.left()
+                        null -> {
+                            log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Respons fra statusapiet til helved var null. Dette forventer vi ikke. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
+                            KunneIkkeHenteUtbetalingsstatus.left()
+                        }
                     }
                 }.getOrElse {
                     log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved deserialisering av utbetalingsstatus. Se sikkerlogg for mer kontekst. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }

@@ -59,6 +59,7 @@ open class UtbetalingContext(
         OppdaterUtbetalingsstatusService(
             utbetalingsvedtakRepo = utbetalingsvedtakRepo,
             utbetalingGateway = utbetalingGateway,
+            clock = clock,
         )
     }
 }

@@ -4,6 +4,7 @@ import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
@@ -13,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 class UtbetalingsvedtakFakeRepo : UtbetalingsvedtakRepo {
     private val data = Atomic(mutableMapOf<VedtakId, Utbetalingsvedtak>())
@@ -63,6 +65,7 @@ class UtbetalingsvedtakFakeRepo : UtbetalingsvedtakRepo {
     override fun oppdaterUtbetalingsstatus(
         vedtakId: VedtakId,
         status: Utbetalingsstatus,
+        metadata: Forsøkshistorikk,
         context: TransactionContext?,
     ) {
         data.get()[vedtakId] = data.get()[vedtakId]!!.oppdaterStatus(status)
@@ -73,9 +76,15 @@ class UtbetalingsvedtakFakeRepo : UtbetalingsvedtakRepo {
             it.value.status in listOf(null, Utbetalingsstatus.IkkePåbegynt, Utbetalingsstatus.SendtTilOppdrag)
         }.map {
             UtbetalingDetSkalHentesStatusFor(
-                saksnummer = it.value.saksnummer,
                 sakId = it.value.sakId,
+                saksnummer = it.value.saksnummer,
                 vedtakId = it.value.id,
+                opprettet = it.value.opprettet,
+                sendtTilUtbetalingstidspunkt = it.value.sendtTilUtbetaling!!,
+                forsøkshistorikk = Forsøkshistorikk(
+                    forrigeForsøk = it.value.sendtTilUtbetaling!!.plus(1, ChronoUnit.MICROS),
+                    antallForsøk = 1,
+                ),
             )
         }
     }
