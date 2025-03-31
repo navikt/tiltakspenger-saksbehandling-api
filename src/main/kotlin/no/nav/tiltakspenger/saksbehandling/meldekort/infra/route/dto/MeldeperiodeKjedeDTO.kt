@@ -10,7 +10,7 @@ data class MeldeperiodeKjedeDTO(
     val id: String,
     val periode: PeriodeDTO,
     val status: MeldeperiodeKjedeStatusDTO,
-    val sakHarMeldekortUnderBehandling: Boolean,
+    val periodeMedÅpenBehandling: PeriodeDTO?,
     val tiltaksnavn: List<String>,
     val meldeperioder: List<MeldeperiodeDTO>,
     val meldekortBehandlinger: List<MeldekortBehandlingDTO>,
@@ -24,7 +24,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
         id = meldeperiodeKjede.kjedeId.toString(),
         periode = meldeperiodeKjede.periode.toDTO(),
         status = toMeldeperiodeKjedeStatusDTO(kjedeId, clock),
-        sakHarMeldekortUnderBehandling = this.meldekortBehandlinger.finnesÅpenMeldekortBehandling,
+        periodeMedÅpenBehandling = this.meldekortBehandlinger.åpenMeldekortBehandling?.periode?.toDTO(),
         tiltaksnavn = this.vedtaksliste
             .valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode)
             .perioderMedVerdi.mapNotNull { it.verdi?.typeNavn },

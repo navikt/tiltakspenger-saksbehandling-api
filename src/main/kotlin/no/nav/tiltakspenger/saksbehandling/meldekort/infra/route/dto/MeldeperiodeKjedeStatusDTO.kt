@@ -17,22 +17,37 @@ enum class MeldeperiodeKjedeStatusDTO {
 }
 
 fun Sak.toMeldeperiodeKjedeStatusDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeStatusDTO {
-    val meldekortBehandling = this.hentSisteMeldekortBehandlingForKjede(kjedeId)
+    this.hentSisteMeldekortBehandlingForKjede(kjedeId)?.also {
+        return when (it.status) {
+            MeldekortBehandlingStatus.GODKJENT -> MeldeperiodeKjedeStatusDTO.GODKJENT
+            MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BESLUTNING
+            MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
+            MeldekortBehandlingStatus.IKKE_BEHANDLET -> when (it.type) {
+                MeldekortBehandlingType.FØRSTE_BEHANDLING -> MeldeperiodeKjedeStatusDTO.UNDER_BEHANDLING
+                MeldekortBehandlingType.KORRIGERING -> MeldeperiodeKjedeStatusDTO.UNDER_KORRIGERING
+            }
+        }
+    }
+
     val meldeperiode = this.hentSisteMeldeperiodeForKjede(kjedeId)
 
-    return when (meldekortBehandling?.status) {
-        MeldekortBehandlingStatus.GODKJENT -> MeldeperiodeKjedeStatusDTO.GODKJENT
-        MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BESLUTNING
-        MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
-        MeldekortBehandlingStatus.IKKE_BEHANDLET -> when (meldekortBehandling.type) {
-            MeldekortBehandlingType.FØRSTE_BEHANDLING -> MeldeperiodeKjedeStatusDTO.UNDER_BEHANDLING
-            MeldekortBehandlingType.KORRIGERING -> MeldeperiodeKjedeStatusDTO.UNDER_KORRIGERING
-        }
+    val forrigeKjede = this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
 
-        null -> when {
-            meldeperiode.helePeriodenErSperret() -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
-            !meldeperiode.erKlarTilUtfylling(clock) -> MeldeperiodeKjedeStatusDTO.IKKE_KLAR_TIL_BEHANDLING
-            else -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
+    val forrigeBehandlingStatus by lazy {
+        forrigeKjede?.let {
+            this.meldekortBehandlinger.behandledeMeldekortPerKjede[it.kjedeId]?.first()?.status
         }
+    }
+
+    /** Kan starte behandling dersom perioden er klar til utfylling og forrige behandling er godkjent,
+     *  eller dette er første meldeperiode
+     *  */
+    val kanBehandles =
+        meldeperiode.erKlarTilUtfylling(clock) && (forrigeKjede == null || forrigeBehandlingStatus == MeldekortBehandlingStatus.GODKJENT)
+
+    return when {
+        meldeperiode.helePeriodenErSperret() -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
+        kanBehandles -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
+        else -> MeldeperiodeKjedeStatusDTO.IKKE_KLAR_TIL_BEHANDLING
     }
 }

@@ -36,12 +36,14 @@ data class MeldekortBehandlinger(
 
     private val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
 
-    val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandlet> by lazy {
+    val behandledeMeldekortPerKjede: Map<MeldeperiodeKjedeId, List<MeldekortBehandlet>> by lazy {
         behandledeMeldekort
-            .groupBy { it.kjedeId }.values
-            .map { behandlingerForKjede ->
-                behandlingerForKjede.maxByOrNull { it.opprettet }!!
-            }
+            .sortedBy { it.opprettet }
+            .groupBy { it.kjedeId }
+    }
+
+    val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandlet> by lazy {
+        behandledeMeldekortPerKjede.values.map { it.last() }
     }
 
     /** Under behandling er ikke-avsluttede meldekortbehandlinger som ikke er til beslutning. */
@@ -74,7 +76,8 @@ data class MeldekortBehandlinger(
     val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy { sisteBehandledeMeldekortPerKjede.flatMap { it.beregning.dager } }
 
     /** Meldekort som er under behandling eller venter på beslutning */
-    val finnesÅpenMeldekortBehandling: Boolean by lazy { meldekortUnderBehandling != null || meldekortUnderBeslutning != null }
+    val åpenMeldekortBehandling: MeldekortBehandling? by lazy { meldekortUnderBehandling ?: meldekortUnderBeslutning }
+    val finnesÅpenMeldekortBehandling: Boolean by lazy { åpenMeldekortBehandling != null }
 
     /**
      * @throws NullPointerException Dersom det ikke er noen meldekort-behandling som kan sendes til beslutter. Eller siste meldekort ikke er i tilstanden 'under behandling'.
