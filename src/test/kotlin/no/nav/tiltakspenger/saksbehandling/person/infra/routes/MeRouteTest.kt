@@ -18,8 +18,8 @@ import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
-import no.nav.tiltakspenger.saksbehandling.person.infra.route.SAKSBEHANDLER_PATH
-import no.nav.tiltakspenger.saksbehandling.person.infra.route.meRoute
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.route.SAKSBEHANDLER_PATH
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.route.meRoute
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode

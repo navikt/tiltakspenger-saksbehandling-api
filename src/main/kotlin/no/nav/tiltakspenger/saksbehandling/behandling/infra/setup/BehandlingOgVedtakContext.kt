@@ -30,7 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.StartRevurderi
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
-import no.nav.tiltakspenger.saksbehandling.person.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseGateway
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import java.time.Clock

@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortGateway
-import no.nav.tiltakspenger.saksbehandling.person.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import java.time.Clock
 

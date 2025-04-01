@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførVedtaksbr
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
-import no.nav.tiltakspenger.saksbehandling.person.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.Clock
 import java.time.LocalDate

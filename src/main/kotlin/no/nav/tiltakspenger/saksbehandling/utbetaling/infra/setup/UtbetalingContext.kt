@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortGateway
-import no.nav.tiltakspenger.saksbehandling.person.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpClient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingsvedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingGateway

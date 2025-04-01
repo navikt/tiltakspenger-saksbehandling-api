@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.person.infra.http
+package no.nav.tiltakspenger.saksbehandling.saksbehandler.infra
 
 import arrow.core.Either
 import arrow.core.flatten
@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
-import no.nav.tiltakspenger.saksbehandling.person.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
@@ -108,8 +108,7 @@ class MicrosoftGraphApiClient(
         uri: URI,
         token: String,
     ): HttpRequest {
-        return HttpRequest
-            .newBuilder()
+        return HttpRequest.newBuilder()
             .uri(uri)
             .timeout(timeout.toJavaDuration())
             .header("Accept", "application/json")
