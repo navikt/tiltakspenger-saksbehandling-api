@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -17,27 +18,33 @@ class GenererMeldeperioderService(
 ) {
     val logger = KotlinLogging.logger { }
 
-    fun genererMeldeperioderForSaker(): List<Either<SakId, SakId>> {
-        val sakIDer: List<SakId> = sakRepo.hentSakerSomMåGenerereMeldeperioderFra(Sak.ikkeGenererEtter(clock))
-        val resultat = sakIDer.map { sakId ->
-            Either.catch {
-                val sak = sakRepo.hentForSakId(sakId)!!
-                val (sakMedNyeMeldeperioder, meldeperioder) = sak.genererMeldeperioder(clock)
-                sessionFactory.withTransactionContext { tx ->
-                    sakRepo.oppdaterFørsteOgSisteDagSomGirRett(
-                        sakId = sakId,
-                        førsteDagSomGirRett = sakMedNyeMeldeperioder.førsteDagSomGirRett,
-                        sisteDagSomGirRett = sakMedNyeMeldeperioder.sisteDagSomGirRett,
-                        sessionContext = tx,
-                    )
-                    meldeperiodeRepo.lagre(meldeperioder, tx)
+    fun genererMeldeperioderForSaker(): List<SakId> {
+        return Either.catch {
+            val sakIDer: List<SakId> = sakRepo.hentSakerSomMåGenerereMeldeperioderFra(Sak.ikkeGenererEtter(clock))
+
+            sakIDer.mapNotNull { sakId ->
+                Either.catch {
+                    val sak = sakRepo.hentForSakId(sakId)!!
+                    val (sakMedNyeMeldeperioder, meldeperioder) = sak.genererMeldeperioder(clock)
+                    sessionFactory.withTransactionContext { tx ->
+                        sakRepo.oppdaterFørsteOgSisteDagSomGirRett(
+                            sakId = sakId,
+                            førsteDagSomGirRett = sakMedNyeMeldeperioder.førsteDagSomGirRett,
+                            sisteDagSomGirRett = sakMedNyeMeldeperioder.sisteDagSomGirRett,
+                            sessionContext = tx,
+                        )
+                        meldeperiodeRepo.lagre(meldeperioder, tx)
+                    }
+
+                    sakId
+                }.getOrElse {
+                    logger.error(it) { "Feil oppstod ved generering av nye meldeperioder for sak $sakId" }
+                    null
                 }
-                sakId
-            }.mapLeft {
-                logger.error(it) { "Feil oppstod ved generering av nye meldeperioder for sak $sakId" }
-                sakId
             }
+        }.getOrElse {
+            logger.error(it) { "Feil oppstod ved generering av nye meldeperioder" }
+            emptyList()
         }
-        return resultat
     }
 }

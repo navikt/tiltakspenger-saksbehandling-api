@@ -45,7 +45,6 @@ sealed interface MeldekortBehandling {
      *  Perioden for beregningen av meldekortet.
      *  Fra og med start av meldeperioden, til og med siste dag med en beregnet utbetaling
      *  Ved korrigeringer tilbake i tid kan tilOgMed strekke seg til påfølgende meldeperioder dersom disse påvirkes av beregningen
-     *  TODO abn: Hva brukes egentlig denne til?
      * */
     val beregningPeriode: Periode get() = beregning.periode
 

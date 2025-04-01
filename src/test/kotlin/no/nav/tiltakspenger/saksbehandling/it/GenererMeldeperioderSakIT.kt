@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.it
 
-import arrow.core.Either
 import io.kotest.matchers.shouldBe
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
@@ -86,6 +85,6 @@ suspend fun TestApplicationContext.kjørSendTilMeldekortApiJobb() {
     }
 }
 
-fun TestApplicationContext.kjørGenererMeldeperiodeJobb(): List<Either<SakId, SakId>> {
+fun TestApplicationContext.kjørGenererMeldeperiodeJobb(): List<SakId> {
     return this.genererMeldeperioderService.genererMeldeperioderForSaker()
 }

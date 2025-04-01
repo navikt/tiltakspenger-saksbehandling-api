@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.jobb
 
+import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
@@ -16,50 +17,76 @@ class EndretTiltaksdeltakerJobb(
     private val log = KotlinLogging.logger {}
 
     suspend fun opprettOppgaveForEndredeDeltakere() {
-        val endredeDeltakere = tiltaksdeltakerKafkaRepository.hentAlleUtenOppgave()
+        Either.catch {
+            val endredeDeltakere = tiltaksdeltakerKafkaRepository.hentAlleUtenOppgave()
 
-        endredeDeltakere.forEach {
-            val sak = sakRepo.hentForSakId(it.sakId)
-            if (sak == null) {
-                log.error { "Fant ikke sak for sakId ${it.sakId}, skal ikke kunne skje" }
-                throw IllegalStateException("Fant ikke sak for sakId ${it.sakId}")
-            }
-            val nyesteIverksatteBehandling = finnNyesteIverksatteBehandlingForDeltakelse(sak, it.id)
-            if (nyesteIverksatteBehandling == null) {
-                log.info { "Fant ingen iverksatt behandling for sakId ${it.sakId} og ekstern deltakerId ${it.id}, sletter deltakerinnslag" }
-                tiltaksdeltakerKafkaRepository.slett(it.id)
-                return@forEach
-            }
-            log.info { "Fant behandling ${nyesteIverksatteBehandling.id} for sakId ${it.sakId} og deltakerId ${it.id}" }
+            endredeDeltakere.forEach { deltaker ->
+                val deltagelseId = deltaker.id
+                val sakId = deltaker.sakId
 
-            val tiltaksdeltakelseFraBehandling = nyesteIverksatteBehandling.getTiltaksdeltagelse(it.id)
-                ?: throw IllegalStateException("Fant ikke deltaker med id ${it.id} på behandling ${nyesteIverksatteBehandling.id}, skal ikke kunne skje")
-            if (it.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling)) {
-                log.info { "Tiltaksdeltakelse ${it.id} er endret, oppretter oppgave" }
-                val oppgaveId = oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(sak.fnr, Oppgavebehov.ENDRET_TILTAKDELTAKER)
-                tiltaksdeltakerKafkaRepository.lagreOppgaveId(it.id, oppgaveId)
-                log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse ${it.id}" }
-            } else {
-                log.info { "Tiltaksdeltakelse ${it.id} er ikke endret, sletter innslag" }
-                tiltaksdeltakerKafkaRepository.slett(it.id)
+                Either.catch {
+                    val sak = sakRepo.hentForSakId(sakId)
+                    if (sak == null) {
+                        log.error { "Fant ikke sak for sakId $sakId, skal ikke kunne skje" }
+                        throw IllegalStateException("Fant ikke sak for sakId $sakId")
+                    }
+                    val nyesteIverksatteBehandling = finnNyesteIverksatteBehandlingForDeltakelse(sak, deltagelseId)
+                    if (nyesteIverksatteBehandling == null) {
+                        log.info { "Fant ingen iverksatt behandling for sakId $sakId og ekstern deltakerId $deltagelseId, sletter deltakerinnslag" }
+                        tiltaksdeltakerKafkaRepository.slett(deltagelseId)
+                        return@forEach
+                    }
+                    log.info { "Fant behandling ${nyesteIverksatteBehandling.id} for sakId $sakId og deltakerId $deltagelseId" }
+
+                    val tiltaksdeltakelseFraBehandling = nyesteIverksatteBehandling.getTiltaksdeltagelse(deltagelseId)
+                        ?: throw IllegalStateException("Fant ikke deltaker med id $deltagelseId på behandling ${nyesteIverksatteBehandling.id}, skal ikke kunne skje")
+                    if (deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling)) {
+                        log.info { "Tiltaksdeltakelse $deltagelseId er endret, oppretter oppgave" }
+                        val oppgaveId =
+                            oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(
+                                sak.fnr,
+                                Oppgavebehov.ENDRET_TILTAKDELTAKER,
+                            )
+                        tiltaksdeltakerKafkaRepository.lagreOppgaveId(deltagelseId, oppgaveId)
+                        log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse $deltagelseId" }
+                    } else {
+                        log.info { "Tiltaksdeltakelse $deltagelseId er ikke endret, sletter innslag" }
+                        tiltaksdeltakerKafkaRepository.slett(deltagelseId)
+                    }
+                }.onLeft {
+                    log.error(it) { "Feil ved opprettelse av oppgave for endret tiltaksdeltagelse (deltagelseId $deltagelseId - sakId $sakId" }
+                }
             }
+        }.onLeft {
+            log.error(it) { "Feil ved opprettelse av oppgaver for endret tiltaksdeltagelse" }
         }
     }
 
     suspend fun opprydning() {
-        val deltakereMedOppgave = tiltaksdeltakerKafkaRepository.hentAlleMedOppgave()
+        Either.catch {
+            val deltakereMedOppgave = tiltaksdeltakerKafkaRepository.hentAlleMedOppgave()
 
-        deltakereMedOppgave.forEach {
-            if (it.oppgaveId != null) {
-                val ferdigstilt = oppgaveGateway.erFerdigstilt(it.oppgaveId)
-                if (ferdigstilt) {
-                    log.info { "Oppgave med id ${it.oppgaveId} er ferdigstilt, sletter innslag for tiltaksdeltakelse ${it.id}" }
-                    tiltaksdeltakerKafkaRepository.slett(it.id)
-                } else {
-                    log.info { "Oppgave med id ${it.oppgaveId} er ikke ferdigstilt, oppdaterer sist sjekket for tiltaksdeltakelse ${it.id}" }
-                    tiltaksdeltakerKafkaRepository.oppdaterOppgaveSistSjekket(it.id)
+            deltakereMedOppgave.forEach {
+                val deltagelseId = it.id
+                val oppgaveId = it.oppgaveId
+
+                Either.catch {
+                    if (oppgaveId != null) {
+                        val ferdigstilt = oppgaveGateway.erFerdigstilt(oppgaveId)
+                        if (ferdigstilt) {
+                            log.info { "Oppgave med id $oppgaveId er ferdigstilt, sletter innslag for tiltaksdeltakelse $deltagelseId" }
+                            tiltaksdeltakerKafkaRepository.slett(deltagelseId)
+                        } else {
+                            log.info { "Oppgave med id $oppgaveId er ikke ferdigstilt, oppdaterer sist sjekket for tiltaksdeltakelse $deltagelseId" }
+                            tiltaksdeltakerKafkaRepository.oppdaterOppgaveSistSjekket(deltagelseId)
+                        }
+                    }
+                }.onLeft {
+                    log.error(it) { "Feil ved opprydning av oppgave for tiltaksdeltagelse (deltagelseId $deltagelseId - oppgaveId $oppgaveId)" }
                 }
             }
+        }.onLeft {
+            log.error(it) { "Feil ved opprydning av oppgaver for tiltaksdeltagelse" }
         }
     }
 
