@@ -3,14 +3,13 @@ package no.nav.tiltakspenger.saksbehandling.statistikk.infra.repo.stønad
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkUtbetalingDTO
+import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import org.intellij.lang.annotations.Language
-import org.postgresql.util.PGobject
 import java.time.Clock
 
 class StatistikkStønadPostgresRepo(
@@ -175,9 +174,4 @@ class StatistikkStønadPostgresRepo(
         :utbetaling_id
         )
         """.trimIndent()
-
-    fun toPGObject(value: Any?) = PGobject().also {
-        it.type = "json"
-        it.value = value?.let { v -> objectMapper.writeValueAsString(v) }
-    }
 }

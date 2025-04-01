@@ -26,8 +26,10 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingGateway
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingHttpClient
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient
-import no.nav.tiltakspenger.saksbehandling.person.infra.kafka.LeesahConsumer
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.PersonhendelseService
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.LeesahConsumer
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseRepository
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
@@ -127,9 +129,23 @@ open class ApplicationContext(
         )
     }
 
+    open val personhendelseRepository: PersonhendelseRepository by lazy {
+        PersonhendelseRepository(
+            sessionFactory = sessionFactory as PostgresSessionFactory,
+        )
+    }
+
+    open val personhendelseService: PersonhendelseService by lazy {
+        PersonhendelseService(
+            sakRepo = sakContext.sakRepo,
+            personhendelseRepository = personhendelseRepository,
+        )
+    }
+
     open val leesahConsumer by lazy {
         LeesahConsumer(
             topic = Configuration.leesahTopic,
+            personhendelseService = personhendelseService,
         )
     }
 

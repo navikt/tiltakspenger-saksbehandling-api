@@ -85,6 +85,7 @@ internal class TestDatabaseManager {
                 """
                 TRUNCATE
                   tiltaksdeltaker_kafka,
+                  personhendelse,
                   utbetalingsvedtak,
                   statistikk_utbetaling,
                   statistikk_stonad,
