@@ -8,8 +8,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.healthRoutes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.meldekortRoutes
 import no.nav.tiltakspenger.saksbehandling.person.infra.route.hentPersonRoute
-import no.nav.tiltakspenger.saksbehandling.person.infra.route.meRoute
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.sakRoutes
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.route.meRoute
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.mottaSøknadRoute
 
 fun Route.routes(

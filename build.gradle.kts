@@ -4,12 +4,14 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 val jvmVersion = JvmTarget.JVM_21
 val kotlinxCoroutinesVersion = "1.10.1"
 val kotestVersion = "5.9.1"
-val felleslibVersion = "0.0.427"
+val felleslibVersion = "0.0.429"
 val mockkVersion = "1.13.17"
 val ktorVersion = "3.1.2"
 val testContainersVersion = "1.20.6"
 val poaoTilgangVersjon = "2025.03.17_10.46-e6359712fa6d"
 val iverksettVersjon = "1.0_20241213145703_7ff5f9c"
+val confluentVersion = "7.9.0"
+val avroVersion = "1.12.0"
 
 dependencies {
     // Align versions of all Kotlin components
@@ -82,6 +84,10 @@ dependencies {
     //POAO tilgang
     implementation("no.nav.poao-tilgang:client:$poaoTilgangVersjon")
 
+    // Avro
+    implementation("io.confluent:kafka-avro-serializer:$confluentVersion")
+    implementation("org.apache.avro:avro:$avroVersion")
+
     // DIV
     // Arrow
     implementation("io.arrow-kt:arrow-core:2.0.1")
@@ -115,6 +121,7 @@ dependencies {
     testApi("com.github.navikt.tiltakspenger-libs:persistering-domene:$felleslibVersion")
 }
 plugins {
+    id("com.github.davidmc24.gradle.plugin.avro") version "1.9.1"
     kotlin("jvm") version "2.1.20"
     id("com.diffplug.spotless") version "7.0.2"
     application
@@ -153,6 +160,14 @@ tasks {
         }
     }
 
+    compileKotlin {
+        dependsOn("generateAvroJava")
+    }
+
+    compileTestKotlin {
+        dependsOn("generateTestAvroJava")
+    }
+
     test {
         // JUnit 5 support
         useJUnitPlatform()
@@ -165,6 +180,7 @@ tasks {
             events("skipped", "failed")
             exceptionFormat = TestExceptionFormat.FULL
         }
+        dependsOn("generateAvroJava")
     }
 }
 configurations.all {
@@ -213,6 +229,7 @@ tasks {
         dependsOn("checkFlywayMigrationNames")
     }
     jar {
+        dependsOn("generateAvroJava")
         dependsOn(configurations.runtimeClasspath)
         archiveBaseName = "app"
 

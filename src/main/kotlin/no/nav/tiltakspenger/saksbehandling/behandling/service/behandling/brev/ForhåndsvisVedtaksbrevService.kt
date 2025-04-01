@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
-import no.nav.tiltakspenger.saksbehandling.person.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import java.time.LocalDate
 
 class ForhåndsvisVedtaksbrevService(

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.person.infra.route
+package no.nav.tiltakspenger.saksbehandling.saksbehandler.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode

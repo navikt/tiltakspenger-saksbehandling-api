@@ -97,6 +97,7 @@ internal fun start(
         val consumers = listOf(
             applicationContext.tiltaksdeltakerArenaConsumer,
             applicationContext.tiltaksdeltakerKometConsumer,
+            applicationContext.leesahConsumer,
         )
         consumers.forEach { it.run() }
     }

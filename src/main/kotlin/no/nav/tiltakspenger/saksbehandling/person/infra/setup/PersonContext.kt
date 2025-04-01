@@ -12,11 +12,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
-import no.nav.tiltakspenger.saksbehandling.person.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.person.PersonGateway
-import no.nav.tiltakspenger.saksbehandling.person.infra.http.MicrosoftGraphApiClient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonHttpklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.infra.MicrosoftGraphApiClient
 
 @Suppress("unused")
 open class PersonContext(
