@@ -30,6 +30,7 @@ data class MeldekortBehandlingDTO(
     val utbetalingsstatus: UtbetalingsstatusDTO,
     val godkjentTidspunkt: LocalDateTime?,
     val periode: PeriodeDTO,
+    val korrigeringer: List<MeldeperiodeKorrigeringDTO>?,
 )
 
 fun Utbetalingsvedtak.toMeldekortBehandlingDTO(): MeldekortBehandlingDTO {
@@ -55,6 +56,7 @@ fun Utbetalingsvedtak.toMeldekortBehandlingDTO(): MeldekortBehandlingDTO {
         utbetalingsstatus = this.status.toUtbetalingsstatusDTO(),
         godkjentTidspunkt = this.opprettet,
         periode = behandling.beregningPeriode.toDTO(),
+        korrigeringer = behandling.korrigeringer.map { it.tilDTO() },
     )
 }
 
@@ -85,5 +87,6 @@ fun MeldekortBehandling.toMeldekortBehandlingDTO(
         godkjentTidspunkt = iverksattTidspunkt,
         periode = this.periode.toDTO(),
         utbetalingsstatus = utbetalingsstatus,
+        korrigeringer = emptyList(),
     )
 }

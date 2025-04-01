@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
@@ -213,14 +214,22 @@ internal fun String.tilIkkeUtfylteMeldekortDager(
         .map { it.toMeldekortdag(meldekortId) }
         .toNonEmptyListOrNull()!!
 
-internal fun String.tilberegninger(): NonEmptyList<MeldekortBeregning.MeldeperiodeBeregnet> =
+private fun MeldeperiodeBeregnetDbJson.tilMeldeperiodeBeregnet(): MeldekortBeregning.MeldeperiodeBeregnet {
+    val meldekortId = MeldekortId.fromString(this.meldekortId)
+
+    return MeldekortBeregning.MeldeperiodeBeregnet(
+        kjedeId = MeldeperiodeKjedeId(this.kjedeId),
+        meldekortId = meldekortId,
+        dager = this.dager.map { dag ->
+            dag.toMeldekortdag(meldekortId) as MeldeperiodeBeregningDag.Utfylt
+        }.toNonEmptyListOrNull()!!,
+    )
+}
+
+internal fun String.tilBeregninger(): NonEmptyList<MeldekortBeregning.MeldeperiodeBeregnet> =
     deserializeList<MeldeperiodeBeregnetDbJson>(this).map {
-        val meldekortId = MeldekortId.fromString(it.meldekortId)
-        MeldekortBeregning.MeldeperiodeBeregnet(
-            kjedeId = MeldeperiodeKjedeId(it.kjedeId),
-            meldekortId = meldekortId,
-            dager = it.dager.map { dag ->
-                dag.toMeldekortdag(meldekortId) as MeldeperiodeBeregningDag.Utfylt
-            }.toNonEmptyListOrNull()!!,
-        )
+        it.tilMeldeperiodeBeregnet()
     }.toNonEmptyListOrNull()!!
+
+internal fun String.tilBeregning(): MeldekortBeregning.MeldeperiodeBeregnet =
+    deserialize<MeldeperiodeBeregnetDbJson>(this).tilMeldeperiodeBeregnet()

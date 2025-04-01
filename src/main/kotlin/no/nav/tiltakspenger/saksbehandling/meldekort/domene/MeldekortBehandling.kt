@@ -148,6 +148,8 @@ sealed interface MeldekortBehandling {
         override val type: MeldekortBehandlingType,
         override val begrunnelse: MeldekortbehandlingBegrunnelse?,
         override val attesteringer: Attesteringer,
+        // Korrigeringer av foregående meldeperioder som endret beregningen av dette meldekortet
+        val korrigeringer: List<MeldeperiodeKorrigering> = emptyList(),
     ) : MeldekortBehandling {
 
         init {
