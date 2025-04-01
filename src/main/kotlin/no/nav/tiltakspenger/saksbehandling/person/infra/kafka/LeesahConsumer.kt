@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
 import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
+import org.apache.kafka.common.serialization.StringDeserializer
 
 class LeesahConsumer(
     topic: String,
@@ -21,7 +22,7 @@ class LeesahConsumer(
     private val consumer = ManagedKafkaConsumer(
         topic = topic,
         config = kafkaConfig.avroConsumerConfig(
-            keyDeserializer = KafkaAvroDeserializer(),
+            keyDeserializer = StringDeserializer(),
             valueDeserializer = KafkaAvroDeserializer(),
             groupId = groupId,
             useSpecificAvroReader = true,
