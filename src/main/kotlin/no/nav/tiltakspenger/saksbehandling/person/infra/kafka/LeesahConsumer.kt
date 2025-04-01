@@ -20,6 +20,7 @@ class LeesahConsumer(
     private val log = KotlinLogging.logger { }
 
     private val consumer = ManagedKafkaConsumer(
+        kanLoggeKey = false,
         topic = topic,
         config = kafkaConfig.avroConsumerConfig(
             keyDeserializer = StringDeserializer(),

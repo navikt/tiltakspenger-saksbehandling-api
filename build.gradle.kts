@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 val jvmVersion = JvmTarget.JVM_21
 val kotlinxCoroutinesVersion = "1.10.1"
 val kotestVersion = "5.9.1"
-val felleslibVersion = "0.0.427"
+val felleslibVersion = "0.0.429"
 val mockkVersion = "1.13.17"
 val ktorVersion = "3.1.2"
 val testContainersVersion = "1.20.6"
