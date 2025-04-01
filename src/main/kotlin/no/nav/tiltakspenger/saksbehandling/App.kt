@@ -76,19 +76,26 @@ internal fun start(
     TaskExecutor.startJob(
         initialDelay = if (isNais) 1.minutes else 1.seconds,
         runCheckFactory = runCheckFactory,
-        tasks = listOf {
-            applicationContext.utbetalingContext.sendUtbetalingerService.send()
-            applicationContext.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
-            applicationContext.utbetalingContext.journalførUtbetalingsvedtakService.journalfør()
-            applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør()
-            applicationContext.behandlingContext.distribuerVedtaksbrevService.distribuer()
-            applicationContext.meldekortContext.oppgaveMeldekortService.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk()
-            applicationContext.genererMeldeperioderService.genererMeldeperioderForSaker()
+        tasks = listOf<suspend () -> Any>(
+            { applicationContext.utbetalingContext.sendUtbetalingerService.send() },
+            { applicationContext.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus() },
+            { applicationContext.utbetalingContext.journalførUtbetalingsvedtakService.journalfør() },
+            { applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør() },
+            { applicationContext.behandlingContext.distribuerVedtaksbrevService.distribuer() },
+            { applicationContext.meldekortContext.oppgaveMeldekortService.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk() },
+            { applicationContext.genererMeldeperioderService.genererMeldeperioderForSaker() },
+        ).let {
             if (Configuration.isNais()) {
-                applicationContext.endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
-                applicationContext.endretTiltaksdeltakerJobb.opprydning()
-                applicationContext.sendTilDatadelingService.send()
-                applicationContext.meldekortContext.sendMeldeperiodeTilBrukerService.send()
+                it.plus(
+                    listOf(
+                        { applicationContext.endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere() },
+                        { applicationContext.endretTiltaksdeltakerJobb.opprydning() },
+                        { applicationContext.sendTilDatadelingService.send() },
+                        { applicationContext.meldekortContext.sendMeldeperiodeTilBrukerService.send() },
+                    ),
+                )
+            } else {
+                it
             }
         },
     )
