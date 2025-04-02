@@ -43,6 +43,26 @@ data class OpprettOppgaveRequest(
             oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE.value,
         )
 
+        fun opprettOppgaveRequestForFattBarn(
+            fnr: Fnr,
+        ) = OpprettOppgaveRequest(
+            personident = fnr.verdi,
+            journalpostId = null,
+            beskrivelse = "Mottaker av tiltakspenger har fått barn. Dette kan påvirke tiltakspengeytelsen.",
+            behandlesAvApplikasjon = null,
+            oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE.value,
+        )
+
+        fun opprettOppgaveRequestForDoedsfall(
+            fnr: Fnr,
+        ) = OpprettOppgaveRequest(
+            personident = fnr.verdi,
+            journalpostId = null,
+            beskrivelse = "Mottaker av tiltakspenger er registrert som død.",
+            behandlesAvApplikasjon = null,
+            oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE.value,
+        )
+
         fun opprettOppgaveRequestForMeldekort(
             fnr: Fnr,
             journalpostId: JournalpostId,

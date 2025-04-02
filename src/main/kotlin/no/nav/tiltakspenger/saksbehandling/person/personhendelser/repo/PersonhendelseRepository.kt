@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
+import java.util.UUID
 
 class PersonhendelseRepository(
     private val sessionFactory: PostgresSessionFactory,
@@ -19,6 +20,14 @@ class PersonhendelseRepository(
     fun hent(fnr: Fnr): List<PersonhendelseDb> = sessionFactory.withSession {
         it.run(
             queryOf(sqlHentForFnr, fnr.verdi)
+                .map { row -> row.toPersonhendelseDb() }
+                .asList,
+        )
+    }
+
+    fun hentAlleUtenOppgave(): List<PersonhendelseDb> = sessionFactory.withSession {
+        it.run(
+            queryOf(sqlHentAlleUtenOppgave)
                 .map { row -> row.toPersonhendelseDb() }
                 .asList,
         )
@@ -39,6 +48,30 @@ class PersonhendelseRepository(
                         "oppgave_id" to personhendelseDb.oppgaveId?.toString(),
                         "sist_oppdatert" to LocalDateTime.now(),
                         "oppgave_sist_sjekket" to personhendelseDb.oppgaveSistSjekket,
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
+    fun slett(id: UUID) {
+        sessionFactory.withSession {
+            it.run(
+                queryOf(sqlSlettForId, id).asUpdate,
+            )
+        }
+    }
+
+    fun lagreOppgaveId(id: UUID, oppgaveId: OppgaveId) {
+        sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """
+                        update personhendelse set oppgave_id = :oppgave_id where id = :id
+                    """.trimIndent(),
+                    mapOf(
+                        "oppgave_id" to oppgaveId.toString(),
+                        "id" to id,
                     ),
                 ).asUpdate,
             )
@@ -85,4 +118,10 @@ class PersonhendelseRepository(
 
     @Language("SQL")
     private val sqlHentForFnr = "select * from personhendelse where fnr = ?"
+
+    @Language("SQL")
+    private val sqlHentAlleUtenOppgave = "select * from personhendelse where oppgave_id is null"
+
+    @Language("SQL")
+    private val sqlSlettForId = "delete from personhendelse where id = ?"
 }

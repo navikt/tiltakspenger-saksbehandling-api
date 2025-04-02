@@ -98,6 +98,14 @@ data class Vedtaksliste(
         return valgteTiltaksdeltakelser.overlapperMed(periode)
     }
 
+    fun harInnvilgetTiltakspengerPaDato(dato: LocalDate): Boolean {
+        return innvilgelsesperioder.any { it.inneholder(dato) }
+    }
+
+    fun harInnvilgetTiltakspengerEtterDato(dato: LocalDate): Boolean {
+        return innvilgelsesperioder.any { it.etter(dato) }
+    }
+
     /** Tidslinje for antall barn. Første og siste periode vil være 1 eller flere. Kan inneholde hull med 0 barn. */
     @Suppress("UNCHECKED_CAST")
     val barnetilleggsperioder: Periodisering<AntallBarn?> by lazy {
