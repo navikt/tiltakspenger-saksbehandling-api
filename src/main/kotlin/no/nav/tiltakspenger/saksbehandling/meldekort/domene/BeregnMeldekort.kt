@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBesl
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.IKKE_DELTATT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.SPERRET
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 private const val ANTALL_EGENMELDINGSDAGER = 3
 private const val ANTALL_ARBEIDSGIVERDAGER = 13
@@ -35,6 +36,7 @@ private const val DAGER_KARANTENE = 16L - 1
 private data class BeregnMeldekort(
     val kommando: SendMeldekortTilBeslutningKommando,
     val eksisterendeMeldekortBehandlinger: MeldekortBehandlinger,
+    val meldeperiodeBeregninger: MeldeperiodeBeregninger,
     val barnetilleggsPerioder: Periodisering<AntallBarn?>,
     val tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
 ) {
@@ -66,50 +68,59 @@ private data class BeregnMeldekort(
     }
 
     /** Returnerer beregnede dager fra kommando, og evt nye beregninger for påfølgende meldeperioder på saken */
-    fun beregn(): NonEmptyList<MeldekortBeregning.MeldeperiodeBeregnet> {
-        val oppdatertMeldekortId = kommando.meldekortId
-        val oppdatertFraOgMed = kommando.dager.first().dag
-        val oppdatertKjedeId = eksisterendeMeldekortBehandlinger
+    fun beregn(): NonEmptyList<MeldeperiodeBeregning> {
+        val innsendtSakId = kommando.sakId
+        val innsendtMeldekortId = kommando.meldekortId
+        val innsendtMeldekortFraOgMed = kommando.dager.first().dag
+        val innsendtMeldekortKjedeId = eksisterendeMeldekortBehandlinger
             .hentMeldekortBehandling(kommando.meldekortId)!!
             .kjedeId
 
+        val beregnetTs = LocalDateTime.now()
+
         return eksisterendeMeldekortBehandlinger.sisteBehandledeMeldekortPerKjede
-            .filterNot { it.kjedeId == oppdatertKjedeId }
-            .partition { it.periode.fraOgMed < oppdatertFraOgMed }
+            .filterNot { it.kjedeId == innsendtMeldekortKjedeId }
+            .partition { it.periode.fraOgMed < innsendtMeldekortFraOgMed }
             .let { (tidligereMeldekort, påfølgendeMeldekort) ->
                 /** Kjør gjennom tidligere meldekort for å sette riktig state for sykedager før vi gjør beregninger på aktuelle meldekort */
-                tidligereMeldekort.forEach { beregnEksisterendeDager(it.beregning.dager) }
+                tidligereMeldekort.forEach { beregnEksisterendeMeldekort(it) }
 
                 nonEmptyListOf(
-                    MeldekortBeregning.MeldeperiodeBeregnet(
-                        kjedeId = oppdatertKjedeId,
-                        meldekortId = oppdatertMeldekortId,
-                        dager = beregnOppdaterteDager(kommando),
+                    MeldeperiodeBeregning(
+                        kjedeId = innsendtMeldekortKjedeId,
+                        meldekortId = innsendtMeldekortId,
+                        sakId = innsendtSakId,
+                        beregnet = beregnetTs,
+                        dager = beregnInnsendteDager(kommando),
                     ),
                 ).plus(
                     /** Dersom meldekort-behandlingen er en korrigering tilbake i tid, kan utbetalinger for påfølgende meldekort potensielt
                      *  endres som følge av sykedager reglene.
                      * */
                     påfølgendeMeldekort.mapNotNull { meldekort ->
-                        val eksisterendeDager = meldekort.beregning.dager
-                        val oppdaterteDager = beregnEksisterendeDager(eksisterendeDager)
+                        val kjedeId = meldekort.kjedeId
 
-                        if (oppdaterteDager == eksisterendeDager) {
+                        val beregnedeDager = beregnEksisterendeMeldekort(meldekort)
+                        val forrigeBeregning = meldeperiodeBeregninger.beregningerPerKjede[kjedeId]?.last()
+
+                        if (beregnedeDager == forrigeBeregning?.dager) {
                             return@mapNotNull null
                         }
 
-                        MeldekortBeregning.MeldeperiodeBeregnet(
-                            kjedeId = meldekort.kjedeId,
+                        MeldeperiodeBeregning(
+                            kjedeId = kjedeId,
                             meldekortId = meldekort.id,
-                            dager = oppdaterteDager,
+                            sakId = innsendtSakId,
+                            beregnet = beregnetTs,
+                            dager = beregnedeDager,
                         )
                     },
                 )
             }
     }
 
-    private fun beregnEksisterendeDager(dager: List<MeldeperiodeBeregningDag.Utfylt>): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> =
-        dager.map { dag ->
+    private fun beregnEksisterendeMeldekort(meldekort: MeldekortBehandling.MeldekortBehandlet): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
+        return meldekort.beregning.dager.map { dag ->
             val tiltakstype: TiltakstypeSomGirRett by lazy {
                 dag.tiltakstype
                     ?: throw IllegalStateException("Tidligere meldekortdag.tiltakstype var null for meldekortdag $dag")
@@ -130,8 +141,9 @@ private data class BeregnMeldekort(
                 is DeltattUtenLønnITiltaket -> deltattUtenLønn(dato, meldekortId, tiltakstype, antallBarn)
             }
         }.toNonEmptyListOrNull()!!
+    }
 
-    private fun beregnOppdaterteDager(kommando: SendMeldekortTilBeslutningKommando): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
+    private fun beregnInnsendteDager(kommando: SendMeldekortTilBeslutningKommando): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
         val meldekortId = kommando.meldekortId
 
         return kommando.dager.map { dag ->
@@ -466,6 +478,7 @@ private enum class SykTilstand {
 
 fun SendMeldekortTilBeslutningKommando.beregn(
     eksisterendeMeldekortBehandlinger: MeldekortBehandlinger,
+    meldeperiodeBeregninger: MeldeperiodeBeregninger,
     barnetilleggsPerioder: Periodisering<AntallBarn?>,
     tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
 ) = BeregnMeldekort(
@@ -473,4 +486,5 @@ fun SendMeldekortTilBeslutningKommando.beregn(
     barnetilleggsPerioder = barnetilleggsPerioder,
     tiltakstypePerioder = tiltakstypePerioder,
     eksisterendeMeldekortBehandlinger = eksisterendeMeldekortBehandlinger,
+    meldeperiodeBeregninger = meldeperiodeBeregninger,
 ).beregn()

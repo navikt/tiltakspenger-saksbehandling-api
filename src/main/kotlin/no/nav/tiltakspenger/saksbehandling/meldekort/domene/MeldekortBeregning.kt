@@ -6,7 +6,6 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -29,20 +28,6 @@ sealed interface MeldekortBeregning : List<MeldeperiodeBeregningDag> {
     val dager: NonEmptyList<MeldeperiodeBeregningDag>
     val antallDagerMedDeltattEllerFravær: Int get() = dager.count { it.harDeltattEllerFravær }
 
-    data class MeldeperiodeBeregnet(
-        val kjedeId: MeldeperiodeKjedeId,
-        /** Id for meldekortbehandlingen som denne perioden er beregnet ut fra */
-        val meldekortId: MeldekortId,
-        val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-    ) {
-        val fraOgMed: LocalDate get() = dager.first().dato
-        val tilOgMed: LocalDate get() = dager.last().dato
-
-        init {
-            dager.validerPeriode()
-        }
-    }
-
     data class UtfyltMeldeperiode(
         override val sakId: SakId,
         override val maksDagerMedTiltakspengerForPeriode: Int,
@@ -50,7 +35,7 @@ sealed interface MeldekortBeregning : List<MeldeperiodeBeregningDag> {
          *  Resten av lista innholder evt beregninger av påfølgende meldeperioder som ble endret som følge av en korrigering
          *  (dersom meldekort-behandlingen er en korrigering)
          * */
-        val beregninger: NonEmptyList<MeldeperiodeBeregnet>,
+        val beregninger: NonEmptyList<MeldeperiodeBeregning>,
     ) : MeldekortBeregning,
         List<MeldeperiodeBeregningDag> by beregninger.first().dager {
 
@@ -104,36 +89,6 @@ sealed interface MeldekortBeregning : List<MeldeperiodeBeregningDag> {
         val tilOgMed: LocalDate get() = this.last().dato
         override val periode = Periode(fraOgMed, tilOgMed)
 
-        fun settPeriodeTilSperret(periode: Periode): IkkeUtfyltMeldeperiode {
-            return this.copy(
-                dager = this.dager.map {
-                    if (periode.inneholder(it.dato)) {
-                        MeldeperiodeBeregningDag.Utfylt.Sperret(
-                            dato = it.dato,
-                            meldekortId = it.meldekortId,
-                        )
-                    } else {
-                        it
-                    }
-                }.toNonEmptyListOrNull()!!,
-            )
-        }
-
-        /**
-         * Brukes når et nytt vedtak sperrer hele denne meldeperioden.
-         */
-        fun settAlleDagerTilSperret(): IkkeUtfyltMeldeperiode {
-            return this.copy(
-                maksDagerMedTiltakspengerForPeriode = 0,
-                dager = dager.map {
-                    MeldeperiodeBeregningDag.Utfylt.Sperret(
-                        dato = it.dato,
-                        meldekortId = it.meldekortId,
-                    )
-                }.toNonEmptyListOrNull()!!,
-            )
-        }
-
         init {
             require(dager.size == 14) { "En meldekortperiode må være 14 dager, men var ${dager.size}" }
             require(dager.first().dato.dayOfWeek == DayOfWeek.MONDAY) { "Utbetalingsperioden må starte på en mandag" }
@@ -183,16 +138,6 @@ sealed interface MeldekortBeregning : List<MeldeperiodeBeregningDag> {
                 } else {
                     throw IllegalStateException("Alle dagene i en meldekortperiode er SPERRET. Dette har vi ikke støtte for i MVP.")
                 }
-            }
-        }
-
-        fun tilBeregnetMeldekort(beregninger: NonEmptyList<MeldeperiodeBeregnet>): Either<KanIkkeSendeMeldekortTilBeslutning, UtfyltMeldeperiode> {
-            return validerAntallDager().map {
-                UtfyltMeldeperiode(
-                    sakId = sakId,
-                    maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-                    beregninger = beregninger,
-                )
             }
         }
 

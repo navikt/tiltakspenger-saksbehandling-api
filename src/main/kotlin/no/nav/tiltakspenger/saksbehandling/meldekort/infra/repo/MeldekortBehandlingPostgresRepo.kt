@@ -223,6 +223,7 @@ class MeldekortBehandlingPostgresRepo(
                         and m.status = 'GODKJENT'
                         and m.opprettet > :opprettet
                         and m.meldeperiode_kjede_id != :kjede_id
+                    order by m.opprettet
                     """,
                     "id" to meldekortId.toString(),
                     "kjede_id" to kjedeId.toString(),

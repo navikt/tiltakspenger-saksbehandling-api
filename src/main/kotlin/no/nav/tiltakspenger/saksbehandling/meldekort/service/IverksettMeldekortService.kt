@@ -73,7 +73,7 @@ class IverksettMeldekortService(
             val utbetalingsvedtak = iverksattMeldekortbehandling.opprettUtbetalingsvedtak(
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
-                forrigeUtbetalingsvedtak = eksisterendeUtbetalingsvedtak.lastOrNull()?.id,
+                forrigeUtbetalingsvedtak = eksisterendeUtbetalingsvedtak.lastOrNull(),
                 clock = clock,
             )
             val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()

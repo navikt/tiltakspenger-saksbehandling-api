@@ -36,7 +36,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinge
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -178,10 +180,13 @@ interface MeldekortMother : MotherOfAllMothers {
             tiltakstype,
             barnetilleggsPerioder,
         ),
-        beregninger: NonEmptyList<MeldekortBeregning.MeldeperiodeBeregnet> = nonEmptyListOf(
-            MeldekortBeregning.MeldeperiodeBeregnet(
+        beregnet: LocalDateTime = nå(fixedClock),
+        beregninger: NonEmptyList<MeldeperiodeBeregning> = nonEmptyListOf(
+            MeldeperiodeBeregning(
                 kjedeId = kjedeId,
                 meldekortId = meldekortId,
+                sakId = sakId,
+                beregnet = beregnet,
                 dager = dager,
             ),
         ),
@@ -399,7 +404,13 @@ interface MeldekortMother : MotherOfAllMothers {
             ),
         )
         return meldekortBehandlinger
-            .sendTilBeslutter(kommando, barnetilleggsPerioder, tiltakstypePerioder, clock)
+            .sendTilBeslutter(
+                kommando,
+                barnetilleggsPerioder,
+                tiltakstypePerioder,
+                MeldeperiodeBeregninger.empty(),
+                clock,
+            )
             .map { (meldekortBehandlinger, meldekort) ->
                 val iverksattMeldekort = meldekort.iverksettMeldekort(beslutter, clock).getOrFail()
                 val oppdaterteBehandlinger = meldekortBehandlinger.oppdaterMeldekortbehandling(iverksattMeldekort)
@@ -462,7 +473,13 @@ interface MeldekortMother : MotherOfAllMothers {
                 attesteringer = attesteringer,
                 sendtTilBeslutning = null,
             ),
-        ).sendTilBeslutter(kommando, barnetilleggsPerioder, tiltakstypePerioder, clock)
+        ).sendTilBeslutter(
+            kommando,
+            barnetilleggsPerioder,
+            tiltakstypePerioder,
+            MeldeperiodeBeregninger.empty(),
+            clock,
+        )
             .map { (meldekortBehandlinger, meldekort) ->
                 val iverksattMeldekort = meldekort.iverksettMeldekort(beslutter, clock).getOrFail()
                 val oppdaterteBehandlinger = meldekortBehandlinger.oppdaterMeldekortbehandling(iverksattMeldekort)

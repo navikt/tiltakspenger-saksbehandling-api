@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Satsdag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Satser
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -345,6 +346,45 @@ internal class MeldekortberegningKorrigeringTest {
         meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
             full = 8 + 5,
             redusert = 2 + 5,
+        )
+    }
+
+    /** TODO: fiks beregningen så denne ikke feiler
+     *  Denne feiler ettersom beregningen ikke tar høyde for flere korrigeringer som ender med å beregne en påfølgende
+     *  meldeperiode tilbake til opprinnelig tilstand
+     * */
+    @Disabled
+    @Test
+    fun `Skal korrigere en korrigering, som fører til opprinnelig beregning av neste periode`() {
+        val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+            vurderingsperiode = vurderingsperiode,
+            meldeperioder = nonEmptyListOf(
+                periodeMedFullDeltagelse(førsteDag),
+
+                periodeMedStatuser(
+                    førsteDag.plusWeeks(2),
+                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(2) { Status.SPERRET },
+                    List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(3) { Status.FRAVÆR_SYKT_BARN },
+                    List(2) { Status.SPERRET },
+                ),
+
+                periodeMedStatuser(
+                    førsteDag,
+                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(2) { Status.SPERRET },
+                    List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(1) { Status.FRAVÆR_SYKT_BARN },
+                    List(2) { Status.SPERRET },
+                ),
+
+                periodeMedFullDeltagelse(førsteDag),
+            ),
+        )
+
+        meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
+            full = 20,
         )
     }
 }

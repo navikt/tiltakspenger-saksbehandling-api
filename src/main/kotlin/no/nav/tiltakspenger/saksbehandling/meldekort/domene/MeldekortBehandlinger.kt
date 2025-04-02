@@ -87,6 +87,7 @@ data class MeldekortBehandlinger(
         kommando: SendMeldekortTilBeslutningKommando,
         barnetilleggsPerioder: Periodisering<AntallBarn?>,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
+        meldeperiodeBeregninger: MeldeperiodeBeregninger,
         clock: Clock,
     ): Either<KanIkkeSendeMeldekortTilBeslutning, Pair<MeldekortBehandlinger, MeldekortBehandlet>> {
         val meldekortId = kommando.meldekortId
@@ -115,16 +116,17 @@ data class MeldekortBehandlinger(
             }
         }
 
-        val beregnedeDager = kommando.beregn(
+        val beregninger = kommando.beregn(
             eksisterendeMeldekortBehandlinger = this,
             barnetilleggsPerioder = barnetilleggsPerioder,
             tiltakstypePerioder = tiltakstypePerioder,
+            meldeperiodeBeregninger = meldeperiodeBeregninger,
         )
 
         val beregning = MeldekortBeregning.UtfyltMeldeperiode(
             sakId = sakId,
             maksDagerMedTiltakspengerForPeriode = meldekortUnderBehandling!!.beregning.maksDagerMedTiltakspengerForPeriode,
-            beregninger = beregnedeDager,
+            beregninger = beregninger,
         )
 
         return meldekort.sendTilBeslutter(

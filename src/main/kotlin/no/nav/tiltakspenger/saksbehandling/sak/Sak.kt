@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
@@ -36,6 +37,7 @@ data class Sak(
     val vedtaksliste: Vedtaksliste,
     val meldekortBehandlinger: MeldekortBehandlinger,
     val meldeperiodeKjeder: MeldeperiodeKjeder,
+    val meldeperiodeBeregninger: MeldeperiodeBeregninger,
     val brukersMeldekort: List<BrukersMeldekort>,
     val utbetalinger: Utbetalinger,
     val soknader: List<Søknad>,

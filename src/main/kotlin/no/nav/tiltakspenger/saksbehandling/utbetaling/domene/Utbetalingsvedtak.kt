@@ -52,7 +52,7 @@ data class Utbetalingsvedtak(
 fun MeldekortBehandling.MeldekortBehandlet.opprettUtbetalingsvedtak(
     saksnummer: Saksnummer,
     fnr: Fnr,
-    forrigeUtbetalingsvedtak: VedtakId?,
+    forrigeUtbetalingsvedtak: Utbetalingsvedtak?,
     clock: Clock,
 ): Utbetalingsvedtak =
     Utbetalingsvedtak(
@@ -62,7 +62,7 @@ fun MeldekortBehandling.MeldekortBehandlet.opprettUtbetalingsvedtak(
         saksnummer = saksnummer,
         fnr = fnr,
         meldekortbehandling = this,
-        forrigeUtbetalingsvedtakId = forrigeUtbetalingsvedtak,
+        forrigeUtbetalingsvedtakId = forrigeUtbetalingsvedtak?.id,
         sendtTilUtbetaling = null,
         journalpostId = null,
         journalføringstidspunkt = null,

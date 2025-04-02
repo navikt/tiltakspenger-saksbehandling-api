@@ -7,10 +7,11 @@ import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -22,6 +23,7 @@ import java.time.LocalDateTime
 
 internal class UtbetalingDTOKorrigeringTest {
     val fnr = Fnr.fromString("09863149336")
+    val sakId = SakId.random()
     val saksnummer = Saksnummer("202410011001")
     val førstePeriode = Periode(
         LocalDate.of(2025, 1, 6),
@@ -34,10 +36,12 @@ internal class UtbetalingDTOKorrigeringTest {
         periode: Periode,
         opprettet: LocalDateTime,
         dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-        beregninger: NonEmptyList<MeldekortBeregning.MeldeperiodeBeregnet> = nonEmptyListOf(
-            MeldekortBeregning.MeldeperiodeBeregnet(
+        beregninger: NonEmptyList<MeldeperiodeBeregning> = nonEmptyListOf(
+            MeldeperiodeBeregning(
                 kjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
                 meldekortId = meldekortId,
+                beregnet = opprettet,
+                sakId = sakId,
                 dager = dager,
             ),
         ),

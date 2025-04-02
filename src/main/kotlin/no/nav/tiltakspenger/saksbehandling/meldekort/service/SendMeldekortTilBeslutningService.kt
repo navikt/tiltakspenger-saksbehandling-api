@@ -54,7 +54,13 @@ class SendMeldekortTilBeslutningService(
             throw IllegalStateException("Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: ${sak.id}, meldekortId: ${meldekortbehandling.id}")
         }
         return sak.meldekortBehandlinger
-            .sendTilBeslutter(kommando, sak.barnetilleggsperioder, sak.tiltakstypeperioder, clock)
+            .sendTilBeslutter(
+                kommando,
+                sak.barnetilleggsperioder,
+                sak.tiltakstypeperioder,
+                sak.meldeperiodeBeregninger,
+                clock,
+            )
             .map {
                 Pair(sak.oppdaterMeldekortbehandling(it.second), it.second)
             }
