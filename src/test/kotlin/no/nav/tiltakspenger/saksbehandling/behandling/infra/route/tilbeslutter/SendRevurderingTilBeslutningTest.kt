@@ -22,7 +22,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startRevurdering
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
 import org.junit.jupiter.api.Test
 
 class SendRevurderingTilBeslutningTest {
@@ -36,7 +35,6 @@ class SendRevurderingTilBeslutningTest {
                     routing { routes(tac) }
                 }
                 val (sak, _, _, revurdering) = startRevurdering(tac)
-                taBehanding(tac, revurdering.id)
 
                 val stansdato = sak.vedtaksliste.førsteDagSomGirRett!!.plusDays(1)
 
@@ -82,7 +80,6 @@ class SendRevurderingTilBeslutningTest {
                     routing { routes(tac) }
                 }
                 val (sak, _, _, revurdering) = startRevurdering(tac)
-                taBehanding(tac, revurdering.id)
 
                 val stansdato = sak.vedtaksliste.førsteDagSomGirRett!!.minusDays(2)
 
@@ -126,8 +123,6 @@ class SendRevurderingTilBeslutningTest {
                     routing { routes(tac) }
                 }
                 val (sak, _, _, revurdering) = startRevurdering(tac)
-                taBehanding(tac, revurdering.id)
-
                 val stansdato = sak.sisteDagSomGirRett!!.plusDays(2)
 
                 defaultRequest(

@@ -27,7 +27,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.oppdaterBegrunnelseForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.oppdaterFritekstForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 
@@ -40,12 +39,11 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
         virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
-        val (sak, søknad, behandling) = startBehandling(tac, fnr, virkingsperiode)
+        val (sak, søknad, behandling) = startBehandling(tac, fnr, virkingsperiode, saksbehandler)
         val sakId = sak.id
         val behandlingId = behandling.id
         oppdaterFritekstForBehandlingId(tac, sakId, behandlingId, saksbehandler)
         oppdaterBegrunnelseForBehandlingId(tac, sakId, behandlingId, saksbehandler)
-        taBehanding(tac, behandlingId, saksbehandler)
         return Tuple4(
             sak,
             søknad,

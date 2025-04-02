@@ -150,7 +150,7 @@ interface SakMother {
             saksbehandler = saksbehandler,
         )
 
-        val iverksattBehandling = førstegangsbehandling.taBehandling(saksbehandler).tilBeslutning(
+        val iverksattBehandling = førstegangsbehandling.tilBeslutning(
             SendSøknadsbehandlingTilBeslutningKommando(
                 sakId = sakId,
                 behandlingId = førstegangsbehandling.id,

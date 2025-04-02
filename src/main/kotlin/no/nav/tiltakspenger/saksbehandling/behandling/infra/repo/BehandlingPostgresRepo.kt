@@ -6,6 +6,7 @@ import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
@@ -14,6 +15,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
@@ -99,6 +101,99 @@ class BehandlingPostgresRepo(
             } else {
                 oppdaterBehandling(sistEndret, behandling, tx)
             }
+        }
+    }
+
+    /**
+     * Oppdaterer behandlingsstatus, og saksbehandler bare dersom den er null. Skal du endre saksbehandler bruk [overtaSaksbehandler]
+     */
+    override fun taBehandlingSaksbehandler(
+        behandlingId: BehandlingId,
+        saksbehandler: Saksbehandler,
+        behandlingsstatus: Behandlingsstatus,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update behandling set saksbehandler = :saksbehandler, status = :status where id = :id and saksbehandler is null""",
+                    mapOf(
+                        "id" to behandlingId.toString(),
+                        "saksbehandler" to saksbehandler.navIdent,
+                        "status" to behandlingsstatus.toDb(),
+                    ),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
+    /**
+     * Oppdaterer behandlingsstatus, og beslutter bare dersom den er null. Skal du endre beslutter bruk [overtaSaksbehandler]
+     */
+    override fun taBehandlingBeslutter(
+        behandlingId: BehandlingId,
+        beslutter: Saksbehandler,
+        behandlingsstatus: Behandlingsstatus,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update behandling set beslutter = :beslutter, status = :status where id = :id and beslutter is null""",
+                    mapOf(
+                        "id" to behandlingId.toString(),
+                        "beslutter" to beslutter.navIdent,
+                        "status" to behandlingsstatus.toDb(),
+                    ),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
+    /**
+     * Oppdaterer saksbehandler på behandlingen. Skal du inserte saksbehandler bruk [taBehandlingSaksbehandler]
+     */
+    override fun overtaSaksbehandler(
+        behandlingId: BehandlingId,
+        nySaksbehandler: Saksbehandler,
+        nåværendeSaksbehandler: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update behandling set saksbehandler = :nySaksbehandler where id = :id and saksbehandler = :lagretSaksbehandler""",
+                    mapOf(
+                        "id" to behandlingId.toString(),
+                        "nySaksbehandler" to nySaksbehandler.navIdent,
+                        "lagretSaksbehandler" to nåværendeSaksbehandler,
+                    ),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
+    /**
+     * Oppdaterer saksbehandler på behandlingen. Skal du inserte saksbehandler bruk [taBehandlingSaksbehandler]
+     * TODO - test
+     */
+    override fun overtaBeslutter(
+        behandlingId: BehandlingId,
+        nyBeslutter: Saksbehandler,
+        nåværendeBeslutter: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update behandling set beslutter = :nyBeslutter where id = :id and beslutter = :lagretBeslutter""",
+                    mapOf(
+                        "id" to behandlingId.toString(),
+                        "nyBeslutter" to nyBeslutter.navIdent,
+                        "lagretBeslutter" to nåværendeBeslutter,
+                    ),
+                ).asUpdate,
+            ) > 0
         }
     }
 
@@ -283,7 +378,8 @@ class BehandlingPostgresRepo(
                 sistEndret = sistEndret,
                 behandlingstype = string("behandlingstype").toBehandlingstype(),
                 oppgaveId = oppgaveId,
-                valgtHjemmelHarIkkeRettighet = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.toValgtHjemmelHarIkkeRettighet() ?: emptyList(),
+                valgtHjemmelHarIkkeRettighet = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.toValgtHjemmelHarIkkeRettighet()
+                    ?: emptyList(),
                 fritekstTilVedtaksbrev = stringOrNull("fritekst_vedtaksbrev")?.let { FritekstTilVedtaksbrev(it) },
                 begrunnelseVilkårsvurdering = stringOrNull("begrunnelse_vilkårsvurdering")?.let {
                     BegrunnelseVilkårsvurdering(

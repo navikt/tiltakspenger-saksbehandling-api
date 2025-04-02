@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
@@ -29,7 +28,6 @@ internal class OppdaterSaksopplysningerTest {
                 }
                 val (sak, _, behandling, _) = startBehandling(tac)
                 behandling.saksopplysninger.fødselsdato shouldBe 1.januar(2001)
-                taBehanding(tac, behandling.id, ObjectMother.saksbehandler123())
                 val personopplysningerForBrukerFraPdl = ObjectMother.personopplysningKjedeligFyr(
                     fnr = sak.fnr,
                     fødselsdato = 2.januar(2001),
@@ -55,7 +53,6 @@ internal class OppdaterSaksopplysningerTest {
                     tac,
                     sak.id,
                     behandling.id,
-                    ObjectMother.saksbehandler123(),
                 )
                 oppdatertBehandling.saksopplysninger.fødselsdato shouldBe 2.januar(2001)
             }

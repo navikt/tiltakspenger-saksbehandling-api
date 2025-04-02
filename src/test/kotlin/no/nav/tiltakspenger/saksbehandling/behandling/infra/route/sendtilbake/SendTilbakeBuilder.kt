@@ -34,7 +34,7 @@ interface SendTilbakeBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
         val (sak, søknad, behandlingId) = sendFørstegangsbehandlingTilBeslutning(tac)
-        taBehanding(tac, behandlingId, beslutter)
+        taBehanding(tac, sak.id, behandlingId, beslutter)
         return Tuple4(sak, søknad, behandlingId, sendTilbakeForBehandlingId(tac, behandlingId, begrunnelse, beslutter))
     }
 

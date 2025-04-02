@@ -16,7 +16,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Oppdate
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.StartRevurderingService
 
 internal const val BEHANDLING_PATH = "/behandling"
@@ -35,6 +37,8 @@ fun Route.behandlingRoutes(
     forhåndsvisVedtaksbrevService: ForhåndsvisVedtaksbrevService,
     startRevurderingService: StartRevurderingService,
     oppdaterBarnetilleggService: OppdaterBarnetilleggService,
+    taBehandlingService: TaBehandlingService,
+    overtaBehandlingService: OvertaBehandlingService,
 ) {
     hentBehandlingRoute(tokenService, behandlingService, auditService)
     startSøknadsbehandlingRoute(tokenService, startSøknadsbehandlingService, auditService)
@@ -47,6 +51,7 @@ fun Route.behandlingRoutes(
     startRevurderingRoute(tokenService, startRevurderingService, auditService)
     sendRevurderingTilBeslutningRoute(sendBehandlingTilBeslutningService, auditService, tokenService)
     oppdaterBarnetilleggRoute(tokenService, auditService, oppdaterBarnetilleggService)
-    taBehandlingRoute(tokenService, auditService, behandlingService)
+    taBehandlingRoute(tokenService, auditService, taBehandlingService)
     underkjennBehandlingRoute(tokenService, auditService, behandlingService)
+    overtaBehandlingRoute(tokenService, overtaBehandlingService, auditService)
 }

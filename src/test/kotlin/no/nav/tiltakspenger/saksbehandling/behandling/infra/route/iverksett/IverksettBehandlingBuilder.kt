@@ -37,7 +37,7 @@ interface IverksettBehandlingBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): Tuple4<Sak, Søknad, Behandling, String> {
         val (sak, søknad, behandlingId, _) = sendFørstegangsbehandlingTilBeslutning(tac, fnr, virkingsperiode)
-        taBehanding(tac, behandlingId, beslutter)
+        taBehanding(tac, sak.id, behandlingId, beslutter)
         val (oppdatertSak, oppdatertBehandling, jsonResponse) = iverksettForBehandlingId(
             tac,
             sak.id,

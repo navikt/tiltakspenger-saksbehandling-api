@@ -38,7 +38,7 @@ interface SendRevurderingTilBeslutterBuilder {
         val behandlingId = behandling.id
         oppdaterFritekstForBehandlingId(tac, sakId, behandlingId, saksbehandler)
         oppdaterBegrunnelseForBehandlingId(tac, sakId, behandlingId, saksbehandler)
-        taBehanding(tac, behandlingId, saksbehandler)
+        taBehanding(tac, sak.id, behandlingId, saksbehandler)
         return Tuple4(
             sak,
             søknad,

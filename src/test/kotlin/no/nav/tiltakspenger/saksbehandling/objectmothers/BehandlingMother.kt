@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
@@ -35,6 +36,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySøknad
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.personSøknad
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
@@ -46,6 +48,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -63,6 +66,35 @@ interface BehandlingMother : MotherOfAllMothers {
             tidspunkt = nå(clock),
         )
 
+    // TODO - nyBehandling() starter fra underBehandling - vi vil helst begynne fra denne, og bruke funksjoner for å bevege oss videre
+    fun nyOpprettetFørstegangsbehandling(
+        id: BehandlingId = BehandlingId.random(),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        fnr: Fnr = Fnr.random(),
+        saksbehandler: Saksbehandler = saksbehandler(),
+        søknad: Søknad = ObjectMother.nySøknad(),
+        hentSaksopplysninger: (Periode) -> Saksopplysninger = {
+            ObjectMother.saksopplysninger(
+                fom = it.fraOgMed,
+                tom = it.tilOgMed,
+            )
+        },
+    ): Behandling {
+        return runBlocking {
+            Behandling.opprettSøknadsbehandling(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                søknad = søknad,
+                saksbehandler = saksbehandler,
+                hentSaksopplysninger = hentSaksopplysninger,
+                clock = clock,
+            ).getOrFail()
+        }
+    }
+
+    // TODO - ikke bruk denne. Bruk [nyOpprettetFørstegangsbehandling]
     fun nyBehandling(
         id: BehandlingId = BehandlingId.random(),
         sakId: SakId = SakId.random(),
@@ -71,9 +103,9 @@ interface BehandlingMother : MotherOfAllMothers {
         virkningsperiode: Periode? = virkningsperiode(),
         behandlingstype: Behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
         søknad: Søknad? = if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING) ObjectMother.nySøknad() else null,
-        saksbehandlerIdent: String = ObjectMother.saksbehandler().navIdent,
+        saksbehandlerIdent: String = saksbehandler().navIdent,
         sendtTilBeslutning: LocalDateTime? = null,
-        beslutterIdent: String = ObjectMother.beslutter().navIdent,
+        beslutterIdent: String? = null,
         saksopplysninger: Saksopplysninger = saksopplysninger(),
         status: Behandlingsstatus = Behandlingsstatus.UNDER_BEHANDLING,
         attesteringer: List<Attestering> = emptyList(),
@@ -118,6 +150,86 @@ interface BehandlingMother : MotherOfAllMothers {
         )
     }
 
+    fun nyFørstegangsbehandlingKlarTilBeslutning(
+        id: BehandlingId = BehandlingId.random(),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        fnr: Fnr = Fnr.random(),
+        saksbehandler: Saksbehandler = saksbehandler(),
+        søknad: Søknad = nySøknad(),
+        sendtTilBeslutning: LocalDateTime? = null,
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nyFørstegangsbehandlingKlarTilBeslutning()"),
+        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyFørstegangsbehandlingKlarTilBeslutning()"),
+        barnetillegg: Barnetillegg? = null,
+        virkningsperiode: Periode = virkningsperiode(),
+        saksopplysninger: Saksopplysninger = saksopplysninger(),
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelse.map {
+            Pair(virkningsperiode, it.eksternDeltagelseId)
+        },
+        oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
+    ): Behandling {
+        return this.nyOpprettetFørstegangsbehandling(
+            id = id,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            saksbehandler = saksbehandler,
+            søknad = søknad,
+            hentSaksopplysninger = { saksopplysninger },
+        ).tilBeslutning(
+            kommando = SendSøknadsbehandlingTilBeslutningKommando(
+                sakId = sakId,
+                behandlingId = id,
+                saksbehandler = saksbehandler,
+                correlationId = CorrelationId.generate(),
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+                innvilgelsesperiode = virkningsperiode,
+                barnetillegg = barnetillegg,
+                tiltaksdeltakelser = valgteTiltaksdeltakelser,
+            ),
+            clock = fixedClock,
+        )
+    }
+
+    fun nyBehandlingUnderBeslutning(
+        id: BehandlingId = BehandlingId.random(),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        fnr: Fnr = Fnr.random(),
+        saksbehandler: Saksbehandler = saksbehandler(),
+        sendtTilBeslutning: LocalDateTime? = null,
+        søknad: Søknad = nySøknad(),
+        beslutter: Saksbehandler = beslutter(),
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nyBehandlingUnderBeslutning()"),
+        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyBehandlingUnderBeslutning()"),
+        barnetillegg: Barnetillegg? = null,
+        virkningsperiode: Periode = virkningsperiode(),
+        saksopplysninger: Saksopplysninger = saksopplysninger(),
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelse.map {
+            Pair(virkningsperiode, it.eksternDeltagelseId)
+        },
+        oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
+        clock: Clock = fixedClock,
+    ): Behandling {
+        return nyFørstegangsbehandlingKlarTilBeslutning(
+            id = id,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            saksbehandler = saksbehandler,
+            søknad = søknad,
+            sendtTilBeslutning = sendtTilBeslutning,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+            barnetillegg = barnetillegg,
+            virkningsperiode = virkningsperiode,
+            saksopplysninger = saksopplysninger,
+            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
+            oppgaveId = oppgaveId,
+        ).taBehandling(beslutter)
+    }
+
     fun nyVedtattBehandling(
         id: BehandlingId = BehandlingId.random(),
         sakId: SakId = SakId.random(),
@@ -126,10 +238,13 @@ interface BehandlingMother : MotherOfAllMothers {
         virkningsperiode: Periode = virkningsperiode(),
         behandlingstype: Behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
         søknad: Søknad? = if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING) ObjectMother.nySøknad() else null,
-        saksbehandlerIdent: String = ObjectMother.saksbehandler().navIdent,
+        saksbehandlerIdent: String = saksbehandler().navIdent,
         sendtTilBeslutning: LocalDateTime = førsteNovember24,
-        beslutterIdent: String = ObjectMother.beslutter().navIdent,
-        saksopplysninger: Saksopplysninger = saksopplysninger(fom = virkningsperiode.fraOgMed, tom = virkningsperiode.tilOgMed),
+        beslutterIdent: String = beslutter().navIdent,
+        saksopplysninger: Saksopplysninger = saksopplysninger(
+            fom = virkningsperiode.fraOgMed,
+            tom = virkningsperiode.tilOgMed,
+        ),
         attesteringer: List<Attestering> = emptyList(),
         opprettet: LocalDateTime = førsteNovember24,
         iverksattTidspunkt: LocalDateTime = førsteNovember24,
@@ -333,7 +448,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingUnderBeslutning(
         fnr = fnr,
         saksbehandler = saksbehandler,
     )
-    this.behandlingContext.behandlingService.taBehandling(
+    this.behandlingContext.taBehandlingService.taBehandling(
         vilkårsvurdert.behandlinger.singleOrNullOrThrow()!!.id,
         beslutter,
         correlationId = correlationId,

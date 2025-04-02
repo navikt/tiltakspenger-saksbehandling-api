@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeHenteBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeUnderkjenne
 
 interface BehandlingService {
@@ -54,12 +53,6 @@ interface BehandlingService {
         begrunnelse: String?,
         correlationId: CorrelationId,
     ): Either<KanIkkeUnderkjenne, Behandling>
-
-    suspend fun taBehandling(
-        behandlingId: BehandlingId,
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
-    ): Either<KanIkkeTaBehandling, Behandling>
 
     fun lagreBehandling(behandling: Behandling, tx: TransactionContext)
 }

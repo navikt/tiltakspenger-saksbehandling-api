@@ -32,6 +32,8 @@ fun Route.routes(
         forhåndsvisVedtaksbrevService = applicationContext.behandlingContext.forhåndsvisVedtaksbrevService,
         startRevurderingService = applicationContext.behandlingContext.startRevurderingService,
         oppdaterBarnetilleggService = applicationContext.behandlingContext.oppdaterBarnetilleggService,
+        taBehandlingService = applicationContext.behandlingContext.taBehandlingService,
+        overtaBehandlingService = applicationContext.behandlingContext.overtaBehandlingService,
     )
     hentBenkRoute(
         tokenService = applicationContext.tokenService,

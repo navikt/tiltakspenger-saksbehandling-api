@@ -6,7 +6,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.Iver
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSaksopplysninger.OppdaterSaksopplysningerBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.sendtilbake.SendTilbakeBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start.StartBehandlingBuilder
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tabehandling.TaBehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.OvertaBehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.TaBehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.SendFørstegangsbehandlingTilBeslutningBuilder
 import no.nav.tiltakspenger.saksbehandling.routes.revurdering.SendRevurderingTilBeslutterBuilder
 import no.nav.tiltakspenger.saksbehandling.routes.revurdering.StartRevurderingBuilder
@@ -25,4 +26,5 @@ object RouteBuilder :
     SendTilbakeBuilder,
     IverksettBehandlingBuilder,
     StartRevurderingBuilder,
-    OppdaterSaksopplysningerBuilder
+    OppdaterSaksopplysningerBuilder,
+    OvertaBehandlingBuilder

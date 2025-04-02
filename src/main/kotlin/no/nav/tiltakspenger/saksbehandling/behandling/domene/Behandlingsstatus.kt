@@ -5,7 +5,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
  * Det kan hende den passer for Revurdering også, men vurderer det når vi kommer dit.
  */
 enum class Behandlingsstatus {
-    /** Det står ikke en saksbehandler på behandlingen. Kan også være underkjent dersom en saksbehandler har meldt seg av behandlingen. */
+    /** Det står ikke en saksbehandler på behandlingen */
     KLAR_TIL_BEHANDLING,
 
     /** En saksbehandler står på behandlingen. Kan også være underkjent. */

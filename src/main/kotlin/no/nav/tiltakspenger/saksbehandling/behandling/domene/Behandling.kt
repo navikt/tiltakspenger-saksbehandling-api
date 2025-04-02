@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype.FØRSTEGANGSBEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype.REVURDERING
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
@@ -208,25 +209,29 @@ data class Behandling(
     /** Saksbehandler/beslutter tar eller overtar behandlingen. */
     fun taBehandling(saksbehandler: Saksbehandler): Behandling {
         return when (this.status) {
-            KLAR_TIL_BEHANDLING, UNDER_BEHANDLING -> {
+            KLAR_TIL_BEHANDLING -> {
                 check(saksbehandler.erSaksbehandler()) {
                     "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
                 }
-                this.copy(saksbehandler = saksbehandler.navIdent, status = UNDER_BEHANDLING).let {
-                    // Dersom utøvende saksbehandler er beslutter, fjern beslutter fra behandlingen.
-                    if (it.saksbehandler == it.beslutter) it.copy(beslutter = null) else it
-                }
+                require(this.saksbehandler == null) { "Saksbehandler skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
+                require(this.beslutter == null) { "Beslutter skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
+
+                this.copy(saksbehandler = saksbehandler.navIdent, status = UNDER_BEHANDLING)
             }
 
-            KLAR_TIL_BESLUTNING, UNDER_BESLUTNING -> {
+            UNDER_BEHANDLING -> throw IllegalStateException("Skal kun kunne ta behandlingen dersom det er registrert en saksbehandler fra før. For å overta behandlingen, skal andre operasjoner bli brukt")
+            KLAR_TIL_BESLUTNING -> {
                 check(saksbehandler.navIdent != this.saksbehandler) {
                     "Beslutter ($saksbehandler) kan ikke være den samme som saksbehandleren (${this.saksbehandler}"
                 }
                 check(saksbehandler.erBeslutter()) {
                     "Saksbehandler må ha beslutterrolle. Utøvende saksbehandler: $saksbehandler"
                 }
+                require(this.beslutter == null) { "Behandlingen har en eksisterende beslutter. For å overta behandlingen, bruk overta() - behandlingsId: ${this.id}" }
                 this.copy(beslutter = saksbehandler.navIdent, status = UNDER_BESLUTNING)
             }
+
+            UNDER_BESLUTNING -> throw IllegalStateException("Skal kun kunne ta behandlingen dersom det er registrert en beslutter fra før. For å overta behandlingen, skal andre operasjoner bli brukt")
 
             VEDTATT -> {
                 throw IllegalArgumentException(
@@ -237,6 +242,43 @@ data class Behandling(
             AVBRUTT -> throw IllegalArgumentException(
                 "Kan ikke ta behandling når behandlingen er AVBRUTT. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
             )
+        }
+    }
+
+    fun overta(saksbehandler: Saksbehandler, clock: Clock): Either<KunneIkkeOvertaBehandling, Behandling> {
+        return when (this.status) {
+            KLAR_TIL_BEHANDLING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBehandlingForÅOverta.left()
+            UNDER_BEHANDLING -> {
+                if (this.saksbehandler == null) {
+                    return KunneIkkeOvertaBehandling.BehandlingenErIkkeKnyttetTilEnSaksbehandlerForÅOverta.left()
+                }
+                this.copy(
+                    saksbehandler = saksbehandler.navIdent,
+                    sistEndret = LocalDateTime.now(clock),
+                ).let {
+                    // dersom det er beslutteren som overtar behandlingen, skal dem nulles ut som beslutter
+                    if (it.beslutter == saksbehandler.navIdent) it.copy(beslutter = null) else it
+                }.right()
+            }
+
+            KLAR_TIL_BESLUTNING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
+
+            UNDER_BESLUTNING -> {
+                if (this.beslutter == null) {
+                    return KunneIkkeOvertaBehandling.BehandlingenErIkkeKnyttetTilEnBeslutterForÅOverta.left()
+                }
+                if (this.saksbehandler == saksbehandler.navIdent) {
+                    return KunneIkkeOvertaBehandling.SaksbehandlerOgBeslutterKanIkkeVæreDenSamme.left()
+                }
+                this.copy(
+                    beslutter = saksbehandler.navIdent,
+                    sistEndret = LocalDateTime.now(clock),
+                ).right()
+            }
+
+            VEDTATT,
+            AVBRUTT,
+            -> KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreVedtattEllerAvbrutt.left()
         }
     }
 
@@ -351,7 +393,7 @@ data class Behandling(
             throw IllegalArgumentException("Kunne ikke oppdatere saksopplysinger. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
         }
         if (this.saksbehandler != saksbehandler.navIdent) {
-            throw IllegalArgumentException("Kunne ikke oppdatere saksopplysinger. Saksbehandler er ikke satt på behandlingen. sakId=$sakId, behandlingId=$id")
+            throw IllegalArgumentException("Kunne ikke oppdatere saksopplysinger. Saksbehandler (${saksbehandler.navIdent}) er ikke den som sitter på behandlingen (${this.saksbehandler}). sakId=$sakId, behandlingId=$id")
         }
         if (!this.erUnderBehandling) {
             throw IllegalArgumentException("Kunne ikke oppdatere saksopplysinger. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
@@ -447,6 +489,7 @@ data class Behandling(
                 }
                 // Selvom beslutter har underkjent, må vi kunne ta hen av behandlingen.
                 require(iverksattTidspunkt == null)
+                require(beslutter == null)
             }
 
             UNDER_BEHANDLING -> {
@@ -455,6 +498,9 @@ data class Behandling(
                 }
                 // Selvom beslutter har underkjent, må vi kunne ta hen av behandlingen.
                 require(iverksattTidspunkt == null)
+                if (attesteringer.isEmpty()) {
+                    require(beslutter == null) { "Bestlutter kan ikke være tilknyttet behandlingen dersom det ikke er gjort noen attesteringer" }
+                }
             }
 
             KLAR_TIL_BESLUTNING -> {

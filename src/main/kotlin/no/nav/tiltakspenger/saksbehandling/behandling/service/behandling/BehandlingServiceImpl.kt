@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeHenteBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeUnderkjenne
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -103,21 +102,6 @@ class BehandlingServiceImpl(
             sessionFactory.withTransactionContext { tx ->
                 behandlingRepo.lagre(it, tx)
             }
-        }.right()
-    }
-
-    override suspend fun taBehandling(
-        behandlingId: BehandlingId,
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
-    ): Either<KanIkkeTaBehandling, Behandling> {
-        if (!saksbehandler.erSaksbehandlerEllerBeslutter()) {
-            logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å ta behandling" }
-            return KanIkkeTaBehandling.MåVæreSaksbehandlerEllerBeslutter.left()
-        }
-        val behandling = hentBehandling(behandlingId, saksbehandler, correlationId)
-        return behandling.taBehandling(saksbehandler).also {
-            behandlingRepo.lagre(it)
         }.right()
     }
 

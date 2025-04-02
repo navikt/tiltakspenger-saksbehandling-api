@@ -23,7 +23,6 @@ internal class IverksettRevurderingTest {
                     routing { routes(tac) }
                 }
                 val (sak, _, førstegangsbehandling, revurdering) = startRevurdering(tac)
-                taBehanding(tac, revurdering.id)
                 sendRevurderingTilBeslutterForBehandlingId(
                     tac,
                     sak.id,
@@ -31,7 +30,7 @@ internal class IverksettRevurderingTest {
                     stansperiode = førstegangsbehandling.virkningsperiode!!,
                     valgteHjemler = listOf("Alder"),
                 )
-                taBehanding(tac, revurdering.id, saksbehandler = ObjectMother.beslutter())
+                taBehanding(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
                 iverksettForBehandlingId(tac, sak.id, revurdering.id)
             }
         }

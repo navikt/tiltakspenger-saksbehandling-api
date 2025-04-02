@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -10,14 +11,18 @@ import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterBehandletRevurdering
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBeslutningFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.util.Random
 
-internal class BehandlingRepoTest {
+internal class BehandlingPostgresRepoTest {
     companion object {
         val random = Random()
     }
@@ -82,6 +87,67 @@ internal class BehandlingRepoTest {
 
             behandlingRepo.hentAlleForFnr(sak1.fnr) shouldBe sak1.behandlinger
             behandlingRepo.hentAlleForFnr(sak2.fnr) shouldBe sak2.behandlinger
+        }
+    }
+
+    @Test
+    fun `en saksbehandler kan ta behandling`() {
+        withMigratedDb { testDataHelper ->
+            val behandlingRepo = testDataHelper.behandlingRepo
+            val saksbehandler = ObjectMother.saksbehandler()
+            val (_, behandling) = testDataHelper.persisterOpprettetFørstegangsbehandling()
+            testDataHelper.sessionFactory.withSession { sx ->
+                sx.run(
+                    queryOf(
+                        """update behandling set saksbehandler = null where id = :id""",
+                        mapOf("id" to behandling.id.toString()),
+                    ).asUpdate,
+                ) > 0
+            }
+
+            behandlingRepo.taBehandlingSaksbehandler(behandling.id, saksbehandler, Behandlingsstatus.UNDER_BEHANDLING)
+            behandlingRepo.hent(behandling.id).saksbehandler shouldBe saksbehandler.navIdent
+        }
+    }
+
+    @Test
+    fun `en beslutter kan ta behandling`() {
+        withMigratedDb { testDataHelper ->
+            val behandlingRepo = testDataHelper.behandlingRepo
+            val beslutter = ObjectMother.beslutter()
+            val (_, behandling) = testDataHelper.persisterKlarTilBeslutningFørstegangsbehandling()
+
+            behandling.beslutter shouldBe null
+            behandlingRepo.taBehandlingBeslutter(behandling.id, beslutter, Behandlingsstatus.UNDER_BESLUTNING)
+            behandlingRepo.hent(behandling.id).beslutter shouldBe beslutter.navIdent
+        }
+    }
+
+    @Test
+    fun `en saksbehandler kan overta behandlingen`() {
+        withMigratedDb { testDataHelper ->
+            val behandlingRepo = testDataHelper.behandlingRepo
+            val nySaksbehandler = ObjectMother.saksbehandler("nySaksbehandler")
+            val (_, behandling) = testDataHelper.persisterOpprettetFørstegangsbehandling()
+
+            behandling.saksbehandler shouldNotBe null
+            behandling.saksbehandler shouldNotBe nySaksbehandler.navIdent
+            behandlingRepo.overtaSaksbehandler(behandling.id, nySaksbehandler, behandling.saksbehandler!!)
+            behandlingRepo.hent(behandling.id).saksbehandler shouldBe nySaksbehandler.navIdent
+        }
+    }
+
+    @Test
+    fun `en beslutter kan overta behandlingen`() {
+        withMigratedDb { testDataHelper ->
+            val behandlingRepo = testDataHelper.behandlingRepo
+            val nyBeslutter = ObjectMother.beslutter("nyBeslutter")
+            val (_, behandling) = testDataHelper.persisterUnderBeslutningFørstegangsbehandling()
+
+            behandling.beslutter shouldNotBe null
+            behandling.beslutter shouldNotBe nyBeslutter.navIdent
+            behandlingRepo.overtaBeslutter(behandling.id, nyBeslutter, behandling.beslutter!!)
+            behandlingRepo.hent(behandling.id).beslutter shouldBe nyBeslutter.navIdent
         }
     }
 }

@@ -21,7 +21,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Oppdate
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.distribuering.DistribuerVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.journalføring.JournalførRammevedtakService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -173,6 +175,21 @@ open class BehandlingOgVedtakContext(
             genererStansbrevClient = genererStansvedtaksbrevGateway,
             personService = personService,
             navIdentClient = navIdentClient,
+        )
+    }
+
+    val taBehandlingService by lazy {
+        TaBehandlingService(
+            tilgangsstyringService = tilgangsstyringService,
+            behandlingRepo = behandlingRepo,
+        )
+    }
+
+    val overtaBehandlingService by lazy {
+        OvertaBehandlingService(
+            tilgangsstyringService = tilgangsstyringService,
+            behandlingRepo = behandlingRepo,
+            clock = clock,
         )
     }
 }
