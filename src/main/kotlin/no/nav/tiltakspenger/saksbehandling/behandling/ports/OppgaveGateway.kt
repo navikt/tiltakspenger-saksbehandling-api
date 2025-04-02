@@ -15,4 +15,6 @@ enum class Oppgavebehov {
     ENDRET_TILTAKDELTAKER,
     NY_SOKNAD,
     NYTT_MELDEKORT,
+    FATT_BARN,
+    DOED,
 }

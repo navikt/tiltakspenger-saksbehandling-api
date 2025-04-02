@@ -73,13 +73,15 @@ class OppgaveHttpClient(
 
     override suspend fun opprettOppgaveUtenDuplikatkontroll(fnr: Fnr, oppgavebehov: Oppgavebehov): OppgaveId {
         val callId = UUID.randomUUID()
-        val opprettOppgaveRequest = if (oppgavebehov == Oppgavebehov.ENDRET_TILTAKDELTAKER) {
-            OpprettOppgaveRequest.opprettOppgaveRequestForEndretTiltaksdeltaker(
-                fnr = fnr,
-            )
-        } else {
-            logger.error { "Ukjent oppgavebehov for oppgave uten journalpost og duplikatkontroll: ${oppgavebehov.name}" }
-            throw IllegalArgumentException("Ukjent oppgavebehov for oppgave uten journalpost og duplikatkontroll: ${oppgavebehov.name}")
+        val opprettOppgaveRequest = when (oppgavebehov) {
+            Oppgavebehov.ENDRET_TILTAKDELTAKER -> OpprettOppgaveRequest.opprettOppgaveRequestForEndretTiltaksdeltaker(fnr)
+            Oppgavebehov.FATT_BARN -> OpprettOppgaveRequest.opprettOppgaveRequestForFattBarn(fnr)
+            Oppgavebehov.DOED -> OpprettOppgaveRequest.opprettOppgaveRequestForDoedsfall(fnr)
+
+            else -> {
+                logger.error { "Ukjent oppgavebehov for oppgave uten journalpost og duplikatkontroll: ${oppgavebehov.name}" }
+                throw IllegalArgumentException("Ukjent oppgavebehov for oppgave uten journalpost og duplikatkontroll: ${oppgavebehov.name}")
+            }
         }
         return opprettOppgave(opprettOppgaveRequest, callId)
     }

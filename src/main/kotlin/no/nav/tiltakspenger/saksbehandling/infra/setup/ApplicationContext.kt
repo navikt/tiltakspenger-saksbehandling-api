@@ -28,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.Veilarbo
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.PersonhendelseService
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.jobb.PersonhendelseJobb
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.LeesahConsumer
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseRepository
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
@@ -146,6 +147,14 @@ open class ApplicationContext(
         LeesahConsumer(
             topic = Configuration.leesahTopic,
             personhendelseService = personhendelseService,
+        )
+    }
+
+    open val personhendelseJobb by lazy {
+        PersonhendelseJobb(
+            personhendelseRepository = personhendelseRepository,
+            sakRepo = sakContext.sakRepo,
+            oppgaveGateway = oppgaveGateway,
         )
     }
 
