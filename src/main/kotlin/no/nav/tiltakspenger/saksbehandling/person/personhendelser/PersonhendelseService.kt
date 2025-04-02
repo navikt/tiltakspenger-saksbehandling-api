@@ -18,6 +18,9 @@ class PersonhendelseService(
     private val log = KotlinLogging.logger { }
 
     fun behandlePersonhendelse(personhendelse: Personhendelse) {
+        if (personhendelse.forelderBarnRelasjon != null && personhendelse.forelderBarnRelasjon.minRolleForPerson == "BARN") {
+            return
+        }
         personhendelse.personidenter.forEach { ident ->
             val fnr = Fnr.tryFromString(ident) ?: return@forEach
             val saker = sakRepo.hentForFnr(fnr)

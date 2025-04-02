@@ -72,7 +72,7 @@ class PersonhendelseServiceTest {
     }
 
     @Test
-    fun `behandlePersonhendelse - forelderbarnrelasjon, finnes sak - lagrer`() {
+    fun `behandlePersonhendelse - forelderbarnrelasjon, bruker er forelder, finnes sak - lagrer`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val personhendelseRepository = testDataHelper.personhendelseRepository
             val sakPostgresRepo = testDataHelper.sakRepo
@@ -102,6 +102,31 @@ class PersonhendelseServiceTest {
             personhendelseDb.sakId shouldBe sak.id
             personhendelseDb.oppgaveId shouldBe null
             personhendelseDb.oppgaveSistSjekket shouldBe null
+        }
+    }
+
+    @Test
+    fun `behandlePersonhendelse - forelderbarnrelasjon, bruker er barn, finnes sak - ignorerer`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val personhendelseRepository = testDataHelper.personhendelseRepository
+            val sakPostgresRepo = testDataHelper.sakRepo
+            val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository)
+            val fnr = Fnr.random()
+            val sak = ObjectMother.nySak(fnr = fnr)
+            testDataHelper.persisterSakOgSøknad(
+                fnr = fnr,
+                sak = sak,
+                søknad = ObjectMother.nySøknad(
+                    personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                ),
+            )
+            val personhendelse = getPersonhendelse(fnr, null, ForelderBarnRelasjon("12345678910", "FAR", "BARN"))
+
+            personhendelseService.behandlePersonhendelse(personhendelse)
+
+            personhendelseRepository.hent(fnr) shouldBe emptyList()
         }
     }
 
