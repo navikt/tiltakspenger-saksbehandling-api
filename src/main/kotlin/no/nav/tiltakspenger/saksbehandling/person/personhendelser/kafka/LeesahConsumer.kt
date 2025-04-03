@@ -35,6 +35,7 @@ class LeesahConsumer(
         when (value.opplysningstype) {
             Opplysningstype.DOEDSFALL_V1.name,
             Opplysningstype.FORELDERBARNRELASJON_V1.name,
+            Opplysningstype.ADRESSEBESKYTTELSE_V1.name,
             -> personhendelseService.behandlePersonhendelse(value)
         }
     }

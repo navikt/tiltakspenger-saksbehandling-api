@@ -79,5 +79,6 @@ class PersonhendelseJobb(
         when (opplysningstype) {
             Opplysningstype.FORELDERBARNRELASJON_V1 -> Oppgavebehov.FATT_BARN
             Opplysningstype.DOEDSFALL_V1 -> Oppgavebehov.DOED
+            else -> throw IllegalArgumentException("Skal ikke opprette oppgave for opplysningstype $opplysningstype")
         }
 }
