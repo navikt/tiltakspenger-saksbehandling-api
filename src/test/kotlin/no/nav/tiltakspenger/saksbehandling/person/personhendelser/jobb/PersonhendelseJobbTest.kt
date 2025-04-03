@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.person.personhendelser.jobb
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class PersonhendelseJobbTest {
@@ -221,6 +223,106 @@ class PersonhendelseJobbTest {
                 personhendelseFraDb.oppgaveId shouldBe oppgaveId
 
                 coVerify(exactly = 1) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.FATT_BARN) }
+            }
+        }
+    }
+
+    @Test
+    fun `opprydning - opprettet oppgave, ikke ferdigstilt - oppdaterer sist sjekket`() {
+        coEvery { oppgaveGateway.erFerdigstilt(any()) } returns false
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val personhendelseRepository = testDataHelper.personhendelseRepository
+                val sakRepo = testDataHelper.sakRepo
+                val personhendelseJobb =
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveGateway)
+                val id = UUID.randomUUID()
+                val fnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = fnr)
+                val deltakelseFom = LocalDate.now().plusDays(3)
+                val deltakelsesTom = LocalDate.now().plusMonths(2)
+                testDataHelper.persisterIverksattFørstegangsbehandling(
+                    sakId = sak.id,
+                    fnr = fnr,
+                    deltakelseFom = deltakelseFom,
+                    deltakelseTom = deltakelsesTom,
+                    sak = sak,
+                    søknad = ObjectMother.nySøknad(
+                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                        søknadstiltak = ObjectMother.søknadstiltak(
+                            deltakelseFom = deltakelseFom,
+                            deltakelseTom = deltakelsesTom,
+                        ),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                    ),
+                )
+                val personhendelseDb = getPersonhendelseDb(
+                    id = id,
+                    fnr = fnr,
+                    opplysningstype = Opplysningstype.FORELDERBARNRELASJON_V1,
+                    personhendelseType = PersonhendelseType.ForelderBarnRelasjon("12345678910", "MOR"),
+                    sakId = sak.id,
+                    oppgaveId = oppgaveId,
+                )
+                personhendelseRepository.lagre(personhendelseDb)
+
+                personhendelseJobb.opprydning()
+
+                val oppdatertPersonhendelseDb = personhendelseRepository.hent(fnr).first()
+                oppdatertPersonhendelseDb shouldNotBe null
+                oppdatertPersonhendelseDb.oppgaveId shouldBe oppgaveId
+                oppdatertPersonhendelseDb.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe LocalDateTime.now()
+                    .truncatedTo(ChronoUnit.MINUTES)
+                coVerify(exactly = 1) { oppgaveGateway.erFerdigstilt(oppgaveId) }
+            }
+        }
+    }
+
+    @Test
+    fun `opprydning - opprettet oppgave, ferdigstilt - sletter fra db`() {
+        coEvery { oppgaveGateway.erFerdigstilt(any()) } returns true
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val personhendelseRepository = testDataHelper.personhendelseRepository
+                val sakRepo = testDataHelper.sakRepo
+                val personhendelseJobb =
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveGateway)
+                val id = UUID.randomUUID()
+                val fnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = fnr)
+                val deltakelseFom = LocalDate.now().plusDays(3)
+                val deltakelsesTom = LocalDate.now().plusMonths(2)
+                testDataHelper.persisterIverksattFørstegangsbehandling(
+                    sakId = sak.id,
+                    fnr = fnr,
+                    deltakelseFom = deltakelseFom,
+                    deltakelseTom = deltakelsesTom,
+                    sak = sak,
+                    søknad = ObjectMother.nySøknad(
+                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                        søknadstiltak = ObjectMother.søknadstiltak(
+                            deltakelseFom = deltakelseFom,
+                            deltakelseTom = deltakelsesTom,
+                        ),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                    ),
+                )
+                val personhendelseDb = getPersonhendelseDb(
+                    id = id,
+                    fnr = fnr,
+                    opplysningstype = Opplysningstype.FORELDERBARNRELASJON_V1,
+                    personhendelseType = PersonhendelseType.ForelderBarnRelasjon("12345678910", "MOR"),
+                    sakId = sak.id,
+                    oppgaveId = oppgaveId,
+                )
+                personhendelseRepository.lagre(personhendelseDb)
+
+                personhendelseJobb.opprydning()
+
+                personhendelseRepository.hent(fnr) shouldBe emptyList()
+                coVerify(exactly = 1) { oppgaveGateway.erFerdigstilt(oppgaveId) }
             }
         }
     }

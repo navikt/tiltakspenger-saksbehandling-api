@@ -45,6 +45,29 @@ class PersonhendelseJobb(
         }
     }
 
+    suspend fun opprydning() {
+        val hendelserMedOppgave = personhendelseRepository.hentAlleMedOppgave()
+        hendelserMedOppgave.forEach {
+            try {
+                val hendelseId = it.hendelseId
+                val oppgaveId = it.oppgaveId
+
+                if (oppgaveId != null) {
+                    val ferdigstilt = oppgaveGateway.erFerdigstilt(oppgaveId)
+                    if (ferdigstilt) {
+                        log.info { "Oppgave med id $oppgaveId er ferdigstilt, sletter innslag for personhendelse med hendelseId $hendelseId" }
+                        personhendelseRepository.slett(it.id)
+                    } else {
+                        log.info { "Oppgave med id $oppgaveId er ikke ferdigstilt, oppdaterer sist sjekket for personhendelse med hendelseId $hendelseId" }
+                        personhendelseRepository.oppdaterOppgaveSistSjekket(it.id)
+                    }
+                }
+            } catch (e: Exception) {
+                log.error(e) { "Noe gikk galt ved opprydning av personhendelse med id ${it.id}" }
+            }
+        }
+    }
+
     private fun mottarTiltakspengerNaEllerIFremtiden(
         sak: Sak,
         dato: LocalDate = LocalDate.now(),
