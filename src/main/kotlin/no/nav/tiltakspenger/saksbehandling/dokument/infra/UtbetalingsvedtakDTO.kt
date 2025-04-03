@@ -4,8 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periodisering.norskTidspunktFormatter
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 
@@ -15,10 +17,11 @@ private data class UtbetalingsvedtakDTO(
     val meldekortPeriode: PeriodeDTO,
     val saksbehandler: SaksbehandlerDTO,
     val beslutter: SaksbehandlerDTO,
-    val meldekortDager: List<MeldekortDagDTO>,
+    val meldekortDager: List<MeldekortDagDTO>, // TODO Erstattes av beregningSammenligning
     val tiltak: List<TiltakDTO>,
     val iverksattTidspunkt: String,
     val fødselsnummer: String,
+    val beregningSammenligning: BeregningSammenligningDTO,
 ) {
     @Suppress("unused")
     @JsonInclude
@@ -48,11 +51,34 @@ private data class UtbetalingsvedtakDTO(
         val eksternDeltagelseId: String,
         val eksternGjennomføringId: String?,
     )
+
+    data class BeregningSammenligningDTO(
+        val meldeperiode: List<MeldeperiodeDTO>,
+    )
+
+    data class MeldeperiodeDTO(
+        val tittel: String,
+        val dager: List<DagDTO>,
+    )
+
+    data class DagDTO(
+        val dato: String,
+        val status: NyOgForrigeDTO<String>,
+        val beløp: NyOgForrigeDTO<Int>,
+        val barnetillegg: NyOgForrigeDTO<Int>,
+        val prosent: NyOgForrigeDTO<Int>,
+    )
+
+    data class NyOgForrigeDTO<T>(
+        val forrige: T?,
+        val etter: T,
+    )
 }
 
 suspend fun Utbetalingsvedtak.toJsonRequest(
     hentSaksbehandlersNavn: suspend (String) -> String,
     tiltaksdeltagelser: List<Tiltaksdeltagelse>,
+    sammenlign: (MeldekortBeregning.MeldeperiodeBeregnet) -> SammenligningAvBeregninger.SammenligningPerMeldeperiode,
 ): String {
     return UtbetalingsvedtakDTO(
         fødselsnummer = fnr.verdi,
@@ -64,7 +90,7 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
             fom = periode.fraOgMed.format(norskDatoFormatter),
             tom = periode.tilOgMed.format(norskDatoFormatter),
         ),
-        // TODO Bug i arrow gjør at map ikke fungerer på NonEmptyList, konverterer til standard kotlin List før mapping
+        // Kommentar: Bug rundt serialisering av NonEmptyList gjør at vi konverterer til standard kotlin List før mapping
         meldekortDager = meldekortbehandling.beregning.dager.toList().map { dag ->
             UtbetalingsvedtakDTO.MeldekortDagDTO(
                 dato = dag.dato.format(norskDatoFormatter),
@@ -77,7 +103,44 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
         },
         tiltak = tiltaksdeltagelser.map { it.toTiltakDTO() },
         iverksattTidspunkt = opprettet.format(norskTidspunktFormatter),
+        beregningSammenligning = toBeregningDifferanseDTO(sammenlign),
     ).let { serialize(it) }
+}
+
+private fun Utbetalingsvedtak.toBeregningDifferanseDTO(sammenlign: (MeldekortBeregning.MeldeperiodeBeregnet) -> SammenligningAvBeregninger.SammenligningPerMeldeperiode): UtbetalingsvedtakDTO.BeregningSammenligningDTO {
+    return this.meldekortbehandling.beregning.beregninger
+        .map { sammenlign(it) }
+        .map { sammenligning ->
+            sammenligning.periode.let { periode ->
+                UtbetalingsvedtakDTO.MeldeperiodeDTO(
+                    tittel = "${periode.fraOgMed} - ${periode.tilOgMed}",
+                    dager = sammenligning.dager.map { dag ->
+                        UtbetalingsvedtakDTO.DagDTO(
+                            dato = dag.dato,
+                            status = UtbetalingsvedtakDTO.NyOgForrigeDTO(
+                                forrige = dag.status.forrige,
+                                etter = dag.status.ny,
+                            ),
+                            beløp = UtbetalingsvedtakDTO.NyOgForrigeDTO(
+                                forrige = dag.beløp.forrige,
+                                etter = dag.beløp.ny,
+                            ),
+                            barnetillegg = UtbetalingsvedtakDTO.NyOgForrigeDTO(
+                                forrige = dag.barnetillegg.forrige,
+                                etter = dag.barnetillegg.ny,
+                            ),
+                            prosent = UtbetalingsvedtakDTO.NyOgForrigeDTO(
+                                forrige = dag.prosent.forrige,
+                                etter = dag.prosent.ny,
+                            ),
+                        )
+                    },
+                )
+            }
+        }.let {
+            // Kommentar: Bug rundt serialisering av NonEmptyList gjør at vi konverterer til standard kotlin list
+            UtbetalingsvedtakDTO.BeregningSammenligningDTO(meldeperiode = it.toList())
+        }
 }
 
 private fun Tiltaksdeltagelse.toTiltakDTO() =
@@ -88,7 +151,10 @@ private fun Tiltaksdeltagelse.toTiltakDTO() =
         eksternGjennomføringId = gjennomføringId,
     )
 
-private suspend fun tilSaksbehadlerDto(navIdent: String, hentSaksbehandlersNavn: suspend (String) -> String): UtbetalingsvedtakDTO.SaksbehandlerDTO {
+private suspend fun tilSaksbehadlerDto(
+    navIdent: String,
+    hentSaksbehandlersNavn: suspend (String) -> String,
+): UtbetalingsvedtakDTO.SaksbehandlerDTO {
     return UtbetalingsvedtakDTO.SaksbehandlerDTO(navn = hentSaksbehandlersNavn(navIdent))
 }
 

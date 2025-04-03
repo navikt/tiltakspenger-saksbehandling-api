@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 // TODO: Flytt saksbehandlers utfylling av meldekort-dager ut til sitt eget felt på MeldekortBehandling
 
@@ -34,9 +35,11 @@ sealed interface MeldekortBeregning : List<MeldeperiodeBeregningDag> {
         /** Id for meldekortbehandlingen som denne perioden er beregnet ut fra */
         val meldekortId: MeldekortId,
         val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
+        val opprettet: LocalDateTime,
     ) {
-        val fraOgMed: LocalDate get() = dager.first().dato
-        val tilOgMed: LocalDate get() = dager.last().dato
+        val fraOgMed: LocalDate = dager.first().dato
+        val tilOgMed: LocalDate = dager.last().dato
+        val periode = Periode(fraOgMed, tilOgMed)
 
         init {
             dager.validerPeriode()
@@ -81,7 +84,8 @@ sealed interface MeldekortBeregning : List<MeldeperiodeBeregningDag> {
         /**
          * Barnetillegg uten ordinær stønad
          */
-        fun beregnTotalBarnetiillegg(): Int = beregninger.flatMap { it.dager }.sumOf { it.beregningsdag?.beløpBarnetillegg ?: 0 }
+        fun beregnTotalBarnetiillegg(): Int =
+            beregninger.flatMap { it.dager }.sumOf { it.beregningsdag?.beløpBarnetillegg ?: 0 }
 
         /**
          * Ordinær stønad + barnetillegg
