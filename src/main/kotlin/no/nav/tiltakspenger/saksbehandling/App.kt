@@ -93,6 +93,7 @@ internal fun start(
                         { applicationContext.sendTilDatadelingService.send() },
                         { applicationContext.meldekortContext.sendMeldeperiodeTilBrukerService.send() },
                         { applicationContext.personhendelseJobb.opprettOppgaveForPersonhendelser() },
+                        { applicationContext.personhendelseJobb.opprydning() },
                     ),
                 )
             } else {

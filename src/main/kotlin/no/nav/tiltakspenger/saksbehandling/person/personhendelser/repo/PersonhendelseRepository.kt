@@ -33,6 +33,25 @@ class PersonhendelseRepository(
         )
     }
 
+    fun hentAlleMedOppgave(
+        oppgaveSistSjekket: LocalDateTime = LocalDateTime.now().minusHours(1),
+    ): List<PersonhendelseDb> = sessionFactory.withSession {
+        it.run(
+            queryOf(
+                """
+                    select *
+                    from personhendelse
+                    where oppgave_id is not null
+                      and (oppgave_sist_sjekket is null or oppgave_sist_sjekket < :oppgave_sist_sjekket)
+                """.trimIndent(),
+                mapOf(
+                    "oppgave_sist_sjekket" to oppgaveSistSjekket,
+                ),
+            ).map { row -> row.toPersonhendelseDb() }
+                .asList,
+        )
+    }
+
     fun lagre(personhendelseDb: PersonhendelseDb) {
         sessionFactory.withSession { session ->
             session.run(
@@ -71,6 +90,22 @@ class PersonhendelseRepository(
                     """.trimIndent(),
                     mapOf(
                         "oppgave_id" to oppgaveId.toString(),
+                        "id" to id,
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
+    fun oppdaterOppgaveSistSjekket(id: UUID) {
+        sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """
+                        update personhendelse set oppgave_sist_sjekket = :oppgave_sist_sjekket where id = :id
+                    """.trimIndent(),
+                    mapOf(
+                        "oppgave_sist_sjekket" to LocalDateTime.now(),
                         "id" to id,
                     ),
                 ).asUpdate,
