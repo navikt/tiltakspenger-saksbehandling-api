@@ -140,6 +140,8 @@ open class ApplicationContext(
         PersonhendelseService(
             sakRepo = sakContext.sakRepo,
             personhendelseRepository = personhendelseRepository,
+            personGateway = personContext.personGateway,
+            statistikkSakRepo = statistikkContext.statistikkSakRepo,
         )
     }
 
