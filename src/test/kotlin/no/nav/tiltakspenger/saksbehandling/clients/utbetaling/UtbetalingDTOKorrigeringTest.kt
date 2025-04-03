@@ -39,6 +39,7 @@ internal class UtbetalingDTOKorrigeringTest {
                 kjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
                 meldekortId = meldekortId,
                 dager = dager,
+                opprettet = opprettet,
             ),
         ),
     ) = ObjectMother.utbetalingsvedtak(
@@ -54,6 +55,7 @@ internal class UtbetalingDTOKorrigeringTest {
                 meldekortId = meldekortId,
                 dager = dager,
                 beregninger = beregninger,
+                opprettet = opprettet,
             ),
         ),
     )

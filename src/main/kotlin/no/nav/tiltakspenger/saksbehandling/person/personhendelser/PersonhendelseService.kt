@@ -24,6 +24,10 @@ class PersonhendelseService(
 
     suspend fun behandlePersonhendelse(personhendelse: Personhendelse) {
         try {
+            if (personhendelse.forelderBarnRelasjon == null && personhendelse.doedsfall == null && personhendelse.adressebeskyttelse == null) {
+                log.info { "Kan ikke behandle hendelse med id ${personhendelse.hendelseId} og opplysningstype ${personhendelse.opplysningstype} fordi alle felter mangler. Type: ${personhendelse.endringstype}" }
+                return
+            }
             if (personhendelse.forelderBarnRelasjon != null && personhendelse.forelderBarnRelasjon.minRolleForPerson == "BARN") {
                 return
             }
@@ -87,12 +91,12 @@ class PersonhendelseService(
     }
 
     private fun Personhendelse.toPersonhendelseType(): PersonhendelseType {
-        if (doedsfall != null) {
-            return PersonhendelseType.Doedsfall(
+        return if (doedsfall != null) {
+            PersonhendelseType.Doedsfall(
                 doedsdato = doedsfall.doedsdato,
             )
         } else if (forelderBarnRelasjon != null) {
-            return PersonhendelseType.ForelderBarnRelasjon(
+            PersonhendelseType.ForelderBarnRelasjon(
                 relatertPersonsIdent = forelderBarnRelasjon.relatertPersonsIdent,
                 minRolleForPerson = forelderBarnRelasjon.minRolleForPerson,
             )

@@ -153,9 +153,7 @@ data class MeldeperiodeKjeder(
 
         // før eller samme dag
         while (!nærmesteMeldeperiode.etter(vedtaksperioder.last().tilOgMed) &&
-            !ikkeGenererEtter.isBefore(
-                nærmesteMeldeperiode.tilOgMed,
-            )
+            !ikkeGenererEtter.isBefore(nærmesteMeldeperiode.tilOgMed)
         ) {
             if (vedtaksperioder.overlapperIkke(nærmesteMeldeperiode) && !this.harMeldeperiode(nærmesteMeldeperiode)) {
                 // hvis perioden ikke overlapper, og den ikke finnes fra før, så skal ikke vi oppdatere noe

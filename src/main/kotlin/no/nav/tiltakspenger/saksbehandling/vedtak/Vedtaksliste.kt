@@ -24,7 +24,10 @@ data class Vedtaksliste(
     val tidslinje: Periodisering<Rammevedtak?> by lazy { value.toTidslinjeMedHull() }
 
     val innvilgelsesperiode: Periode? by lazy {
-        innvilgelsesperioder.ifEmpty { null }?.let { Periode(it.minOf { it.fraOgMed }, it.maxOf { it.tilOgMed }) }
+        innvilgelsesperioder.ifEmpty { null }
+            ?.let { perioder ->
+                Periode(perioder.minOf { it.fraOgMed }, perioder.maxOf { it.tilOgMed })
+            }
     }
 
     /** Nåtilstand. Sakens totale vedtaksperioder. Vil kunne ha hull dersom det f.eks. er opphold mellom 2 tiltaksdeltagelsesperioder. Avslag og delvis avslag vil ikke være med her. */

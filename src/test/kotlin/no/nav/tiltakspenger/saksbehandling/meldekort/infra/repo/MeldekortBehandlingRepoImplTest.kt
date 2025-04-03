@@ -83,6 +83,7 @@ class MeldekortBehandlingRepoImplTest {
                     startDato = meldekortBehandling.periode.fraOgMed,
                     meldekortId = meldekortBehandling.id,
                     maksDagerMedTiltakspengerForPeriode = meldekortBehandling.beregning.maksDagerMedTiltakspengerForPeriode,
+                    opprettet = meldekortBehandling.opprettet,
                 ),
                 saksbehandler = ObjectMother.saksbehandler(),
                 clock = fixedClock,
