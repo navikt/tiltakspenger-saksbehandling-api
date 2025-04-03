@@ -42,8 +42,8 @@ fun MeldekortDager.tilMeldekortDagerDbJson(): String =
         )
     }.let { serialize(it) }
 
-fun String.tilMeldekortDager(): MeldekortDager = MeldekortDager(
-    deserializeList<MeldekortDagDbJson>(this).map {
+fun String.tilMeldekortDager(maksAntallDagerForPeriode: Int): MeldekortDager {
+    val dager = deserializeList<MeldekortDagDbJson>(this).map {
         MeldekortDag(
             dato = it.dato,
             status = when (it.status) {
@@ -58,5 +58,7 @@ fun String.tilMeldekortDager(): MeldekortDager = MeldekortDager(
                 MeldekortDagStatusDb.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
             },
         )
-    },
-)
+    }
+
+    return MeldekortDager(dager, maksAntallDagerForPeriode)
+}

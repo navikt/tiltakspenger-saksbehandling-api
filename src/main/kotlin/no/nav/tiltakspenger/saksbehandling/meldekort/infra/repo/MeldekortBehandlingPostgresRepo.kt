@@ -268,7 +268,7 @@ class MeldekortBehandlingPostgresRepo(
                 session,
             )
 
-            val dager = row.string("meldekortdager").tilMeldekortDager()
+            val dager = row.string("meldekortdager").tilMeldekortDager(maksDagerMedTiltakspengerForPeriode)
 
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.GODKJENT, MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> {

@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -37,7 +37,7 @@ class SendMeldekortTilBeslutningService(
      */
     suspend fun sendMeldekortTilBeslutter(
         kommando: SendMeldekortTilBeslutningKommando,
-    ): Either<KanIkkeSendeMeldekortTilBeslutning, Pair<Sak, MeldekortBehandling.MeldekortBehandlet>> {
+    ): Either<KanIkkeSendeMeldekortTilBeslutning, Pair<Sak, MeldekortBehandlet>> {
         if (!kommando.saksbehandler.erSaksbehandler()) {
             return KanIkkeSendeMeldekortTilBeslutning.MåVæreSaksbehandler(
                 kommando.saksbehandler.roller,

@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
 data class MeldeperiodeBeregnetDTO(
     val kjedeId: String,
     val meldekortId: String,
-    val dager: List<MeldekortDagDTO>,
+    val dager: List<MeldeperiodeBeregningDagDTO>,
 )
 
 fun MeldekortBeregning.toMeldekortBeregningDTO(): List<MeldeperiodeBeregnetDTO> {
@@ -13,7 +13,7 @@ fun MeldekortBeregning.toMeldekortBeregningDTO(): List<MeldeperiodeBeregnetDTO> 
         MeldeperiodeBeregnetDTO(
             kjedeId = it.kjedeId.toString(),
             meldekortId = it.meldekortId.toString(),
-            dager = it.dager.toMeldekortDagerDTO(),
+            dager = it.dager.toMeldeperiodeBeregningDagerDTO(),
         )
     }
 }

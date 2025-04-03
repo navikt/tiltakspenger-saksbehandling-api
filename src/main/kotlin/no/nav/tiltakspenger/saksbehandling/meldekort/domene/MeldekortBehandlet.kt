@@ -61,9 +61,9 @@ data class MeldekortBehandlet(
     val beregningPeriode: Periode get() = beregning.periode
 
     /** Totalsummen for meldeperioden */
-    val beløpTotal = beregning.beregnTotaltBeløp()
-    val ordinærBeløp = beregning.beregnTotalOrdinærBeløp()
-    val barnetilleggBeløp = beregning.beregnTotalBarnetillegg()
+    override val beløpTotal = beregning.beregnTotaltBeløp()
+    override val ordinærBeløp = beregning.beregnTotalOrdinærBeløp()
+    override val barnetilleggBeløp = beregning.beregnTotalBarnetillegg()
 
     init {
         require(meldeperiode.periode.fraOgMed == beregningPeriode.fraOgMed) {

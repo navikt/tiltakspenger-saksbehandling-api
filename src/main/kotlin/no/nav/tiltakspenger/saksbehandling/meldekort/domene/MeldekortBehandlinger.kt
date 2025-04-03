@@ -132,7 +132,7 @@ data class MeldekortBehandlinger(
         )
 
         return meldekort.sendTilBeslutter(
-            dager = kommando.dager.tilMeldekortDager(),
+            dager = kommando.dager.tilMeldekortDager(meldekort.meldeperiode.antallDagerForPeriode),
             beregning = beregning,
             begrunnelse = kommando.meldekortbehandlingBegrunnelse,
             saksbehandler = kommando.saksbehandler,

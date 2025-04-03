@@ -62,6 +62,10 @@ sealed interface MeldekortBehandling {
             GODKJENT, IKKE_RETT_TIL_TILTAKSPENGER -> true
         }
 
+    val beløpTotal: Int?
+    val ordinærBeløp: Int?
+    val barnetilleggBeløp: Int?
+
     /** Merk at statusen [IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den vil bli erstattet med AVBRUTT senere. */
     fun erÅpen(): Boolean = !erAvsluttet
 

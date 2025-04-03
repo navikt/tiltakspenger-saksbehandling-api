@@ -119,30 +119,40 @@ private data class BeregnMeldekort(
             }
     }
 
+    // TODO: kan slå samme disse to funksjonene nå...
     private fun beregnEksisterendeMeldekort(meldekort: MeldekortBehandlet): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
         return meldekort.dager.map { dag ->
-            val tiltakstype: TiltakstypeSomGirRett by lazy {
-                dag.tiltakstype
-                    ?: throw IllegalStateException("Tidligere meldekortdag.tiltakstype var null for meldekortdag $dag")
-            }
+            // Er det en grunn til at denne hentes fra tidligere beregning?
+//            val tiltakstype: TiltakstypeSomGirRett by lazy {
+//                dag.tiltakstype
+//                    ?: throw IllegalStateException("Tidligere meldekortdag.tiltakstype var null for meldekortdag $dag")
+//            }
 
             val dato = dag.dato
-            val meldekortId = dag.meldekortId
+            val meldekortId = meldekort.id
             val antallBarn = barnetilleggsPerioder.hentVerdiForDag(dato) ?: AntallBarn.ZERO
 
-            when (dag) {
-                is Sperret -> sperret(dato, meldekortId)
-                is VelferdGodkjentAvNav -> gyldigFravær(dato, meldekortId, tiltakstype, antallBarn)
-                is VelferdIkkeGodkjentAvNav -> ugyldigFravær(dato, meldekortId, tiltakstype, antallBarn)
-                is SyktBarn -> fraværSykBarn(dato, meldekortId, tiltakstype, antallBarn)
-                is SykBruker -> fraværSyk(dato, meldekortId, tiltakstype, antallBarn)
-                is IkkeDeltatt -> ikkeDeltatt(dato, meldekortId, tiltakstype, antallBarn)
-                is DeltattMedLønnITiltaket -> deltattMedLønn(dato, meldekortId, tiltakstype, antallBarn)
-                is DeltattUtenLønnITiltaket -> deltattUtenLønn(dato, meldekortId, tiltakstype, antallBarn)
+            val tiltakstype: TiltakstypeSomGirRett by lazy {
+                tiltakstypePerioder.hentVerdiForDag(dato) ?: run {
+                    throw IllegalStateException("Fant ingen tiltakstype for dag $dato. tiltakstypeperiode: ${tiltakstypePerioder.totalePeriode}")
+                }
+            }
+
+            when (dag.status) {
+                MeldekortDagStatus.SPERRET -> sperret(dato, meldekortId)
+                MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> deltattUtenLønn(dato, meldekortId, tiltakstype, antallBarn)
+                MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> deltattMedLønn(dato, meldekortId, tiltakstype, antallBarn)
+                MeldekortDagStatus.IKKE_DELTATT -> ikkeDeltatt(dato, meldekortId, tiltakstype, antallBarn)
+                MeldekortDagStatus.FRAVÆR_SYK -> fraværSyk(dato, meldekortId, tiltakstype, antallBarn)
+                MeldekortDagStatus.FRAVÆR_SYKT_BARN -> fraværSykBarn(dato, meldekortId, tiltakstype, antallBarn)
+                MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV -> gyldigFravær(dato, meldekortId, tiltakstype, antallBarn)
+                MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> ugyldigFravær(dato, meldekortId, tiltakstype, antallBarn)
+                MeldekortDagStatus.IKKE_UTFYLT -> TODO()
             }
         }.toNonEmptyListOrNull()!!
     }
 
+    // See above
     private fun beregnInnsendteDager(kommando: SendMeldekortTilBeslutningKommando): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
         val meldekortId = kommando.meldekortId
 

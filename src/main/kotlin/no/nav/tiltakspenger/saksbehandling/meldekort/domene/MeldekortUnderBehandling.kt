@@ -44,6 +44,11 @@ data class MeldekortUnderBehandling(
 
     override val beslutter = null
 
+    /** Totalsummen for meldeperioden */
+    override val beløpTotal = beregning?.beregnTotaltBeløp()
+    override val ordinærBeløp = beregning?.beregnTotalOrdinærBeløp()
+    override val barnetilleggBeløp = beregning?.beregnTotalBarnetillegg()
+
     fun sendTilBeslutter(
         dager: MeldekortDager,
         beregning: MeldekortBeregning,

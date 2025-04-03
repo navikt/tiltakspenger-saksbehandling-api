@@ -47,7 +47,7 @@ fun Utbetalingsvedtak.toMeldekortBehandlingDTO(): MeldekortBehandlingDTO {
         totalBarnetilleggTilUtbetaling = behandling.barnetilleggBeløp,
         navkontor = behandling.navkontor.kontornummer,
         navkontorNavn = behandling.navkontor.kontornavn,
-        dager = behandling.beregning.toMeldekortDagerDTO(),
+        dager = behandling.dager.tilMeldekortDagerDTO(),
         beregning = behandling.beregning.toMeldekortBeregningDTO(),
         brukersMeldekortId = behandling.brukersMeldekort?.id.toString(),
         type = behandling.type.tilDTO(),
@@ -56,7 +56,7 @@ fun Utbetalingsvedtak.toMeldekortBehandlingDTO(): MeldekortBehandlingDTO {
         utbetalingsstatus = this.status.toUtbetalingsstatusDTO(),
         godkjentTidspunkt = this.opprettet,
         periode = behandling.beregningPeriode.toDTO(),
-        korrigeringer = behandling.korrigeringer.map { it.tilDTO() },
+        korrigeringer = emptyList(), // behandling.korrigeringer.map { it.tilDTO() },
     )
 }
 
@@ -78,8 +78,8 @@ fun MeldekortBehandling.toMeldekortBehandlingDTO(
         totalBarnetilleggTilUtbetaling = this.barnetilleggBeløp,
         navkontor = navkontor.kontornummer,
         navkontorNavn = navkontor.kontornavn,
-        dager = beregning.toMeldekortDagerDTO(),
-        beregning = beregning.toMeldekortBeregningDTO(),
+        dager = dager.tilMeldekortDagerDTO(),
+        beregning = beregning?.toMeldekortBeregningDTO(),
         brukersMeldekortId = brukersMeldekort?.id.toString(),
         type = type.tilDTO(),
         begrunnelse = begrunnelse?.verdi,

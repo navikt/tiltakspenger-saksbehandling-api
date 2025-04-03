@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkUtbetalingDTO
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -26,7 +26,7 @@ data class Utbetalingsvedtak(
     val saksnummer: Saksnummer,
     val fnr: Fnr,
     val opprettet: LocalDateTime,
-    val meldekortbehandling: MeldekortBehandling.MeldekortBehandlet,
+    val meldekortbehandling: MeldekortBehandlet,
     val forrigeUtbetalingsvedtakId: VedtakId?,
     val sendtTilUtbetaling: LocalDateTime?,
     val journalpostId: JournalpostId?,
@@ -49,7 +49,7 @@ data class Utbetalingsvedtak(
     }
 }
 
-fun MeldekortBehandling.MeldekortBehandlet.opprettUtbetalingsvedtak(
+fun MeldekortBehandlet.opprettUtbetalingsvedtak(
     saksnummer: Saksnummer,
     fnr: Fnr,
     forrigeUtbetalingsvedtak: Utbetalingsvedtak?,
