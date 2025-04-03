@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.person.personhendelser
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.person.pdl.leesah.Personhendelse
+import no.nav.person.pdl.leesah.adressebeskyttelse.Gradering
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
@@ -55,12 +56,19 @@ class PersonhendelseService(
         sakId: SakId,
         personhendelse: Personhendelse,
     ) {
-        log.info { "Håndterer hendelse om adressebeskyttelse med hendelsesId ${personhendelse.hendelseId}" }
-        val pdlPerson = personGateway.hentEnkelPerson(fnr)
-        if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland) {
-            log.info { "Person har adressebeskyttelse, oppdaterer. HendelseId ${personhendelse.hendelseId}" }
-            statistikkSakRepo.oppdaterAdressebeskyttelse(sakId)
-            log.info { "Har oppdatert statistikktabell for personhendelse med hendelseId ${personhendelse.hendelseId}" }
+        if (personhendelse.adressebeskyttelse != null &&
+            (
+                personhendelse.adressebeskyttelse.gradering == Gradering.STRENGT_FORTROLIG ||
+                    personhendelse.adressebeskyttelse.gradering == Gradering.STRENGT_FORTROLIG_UTLAND
+                )
+        ) {
+            log.info { "Håndterer hendelse om adressebeskyttelse med hendelsesId ${personhendelse.hendelseId}" }
+            val pdlPerson = personGateway.hentEnkelPerson(fnr)
+            if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland) {
+                log.info { "Person har adressebeskyttelse, oppdaterer. HendelseId ${personhendelse.hendelseId}" }
+                statistikkSakRepo.oppdaterAdressebeskyttelse(sakId)
+                log.info { "Har oppdatert statistikktabell for personhendelse med hendelseId ${personhendelse.hendelseId}" }
+            }
         }
     }
 
