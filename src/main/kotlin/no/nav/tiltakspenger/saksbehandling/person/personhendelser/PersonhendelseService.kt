@@ -27,6 +27,14 @@ class PersonhendelseService(
             if (personhendelse.forelderBarnRelasjon != null && personhendelse.forelderBarnRelasjon.minRolleForPerson == "BARN") {
                 return
             }
+            if (personhendelse.adressebeskyttelse != null &&
+                !(
+                    personhendelse.adressebeskyttelse.gradering == Gradering.STRENGT_FORTROLIG ||
+                        personhendelse.adressebeskyttelse.gradering == Gradering.STRENGT_FORTROLIG_UTLAND
+                    )
+            ) {
+                return
+            }
             personhendelse.personidenter.forEach { ident ->
                 val fnr = Fnr.tryFromString(ident) ?: return@forEach
                 val saker = sakRepo.hentForFnr(fnr)
@@ -56,19 +64,12 @@ class PersonhendelseService(
         sakId: SakId,
         personhendelse: Personhendelse,
     ) {
-        if (personhendelse.adressebeskyttelse != null &&
-            (
-                personhendelse.adressebeskyttelse.gradering == Gradering.STRENGT_FORTROLIG ||
-                    personhendelse.adressebeskyttelse.gradering == Gradering.STRENGT_FORTROLIG_UTLAND
-                )
-        ) {
-            log.info { "Håndterer hendelse om adressebeskyttelse med hendelsesId ${personhendelse.hendelseId}" }
-            val pdlPerson = personGateway.hentEnkelPerson(fnr)
-            if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland) {
-                log.info { "Person har adressebeskyttelse, oppdaterer. HendelseId ${personhendelse.hendelseId}" }
-                statistikkSakRepo.oppdaterAdressebeskyttelse(sakId)
-                log.info { "Har oppdatert statistikktabell for personhendelse med hendelseId ${personhendelse.hendelseId}" }
-            }
+        log.info { "Håndterer hendelse om adressebeskyttelse med hendelsesId ${personhendelse.hendelseId}" }
+        val pdlPerson = personGateway.hentEnkelPerson(fnr)
+        if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland) {
+            log.info { "Person har adressebeskyttelse, oppdaterer. HendelseId ${personhendelse.hendelseId}" }
+            statistikkSakRepo.oppdaterAdressebeskyttelse(sakId)
+            log.info { "Har oppdatert statistikktabell for personhendelse med hendelseId ${personhendelse.hendelseId}" }
         }
     }
 
