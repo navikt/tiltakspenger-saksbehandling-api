@@ -69,9 +69,8 @@ private data class BeregnMeldekort(
     fun beregn(): NonEmptyList<MeldekortBeregning.MeldeperiodeBeregnet> {
         val oppdatertMeldekortId = kommando.meldekortId
         val oppdatertFraOgMed = kommando.dager.first().dag
-        val oppdatertKjedeId = eksisterendeMeldekortBehandlinger
-            .hentMeldekortBehandling(kommando.meldekortId)!!
-            .kjedeId
+        val meldekortBehandling = eksisterendeMeldekortBehandlinger.hentMeldekortBehandling(kommando.meldekortId)!!
+        val oppdatertKjedeId = meldekortBehandling.kjedeId
 
         return eksisterendeMeldekortBehandlinger.sisteBehandledeMeldekortPerKjede
             .filterNot { it.kjedeId == oppdatertKjedeId }
@@ -85,6 +84,7 @@ private data class BeregnMeldekort(
                         kjedeId = oppdatertKjedeId,
                         meldekortId = oppdatertMeldekortId,
                         dager = beregnOppdaterteDager(kommando),
+                        opprettet = meldekortBehandling.opprettet,
                     ),
                 ).plus(
                     /** Dersom meldekort-behandlingen er en korrigering tilbake i tid, kan utbetalinger for påfølgende meldekort potensielt
@@ -102,6 +102,7 @@ private data class BeregnMeldekort(
                             kjedeId = meldekort.kjedeId,
                             meldekortId = meldekort.id,
                             dager = oppdaterteDager,
+                            opprettet = meldekort.opprettet,
                         )
                     },
                 )
@@ -468,7 +469,7 @@ fun SendMeldekortTilBeslutningKommando.beregn(
     eksisterendeMeldekortBehandlinger: MeldekortBehandlinger,
     barnetilleggsPerioder: Periodisering<AntallBarn?>,
     tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
-) = BeregnMeldekort(
+): NonEmptyList<MeldekortBeregning.MeldeperiodeBeregnet> = BeregnMeldekort(
     kommando = this,
     barnetilleggsPerioder = barnetilleggsPerioder,
     tiltakstypePerioder = tiltakstypePerioder,

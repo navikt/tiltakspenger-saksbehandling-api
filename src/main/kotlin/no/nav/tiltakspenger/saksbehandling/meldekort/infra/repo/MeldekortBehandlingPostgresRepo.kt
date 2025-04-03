@@ -233,7 +233,7 @@ class MeldekortBehandlingPostgresRepo(
                         kjedeId = MeldeperiodeKjedeId(it.string("meldeperiode_kjede_id")),
                         iverksatt = it.localDateTime("iverksatt_tidspunkt"),
                         periode = Periode(it.localDate("fra_og_med"), it.localDate("til_og_med")),
-                        dager = it.string("korrigering").tilBeregning().dager,
+                        dager = it.string("korrigering").tilBeregning(opprettet).dager,
                     )
                 }.asList,
             )
@@ -272,7 +272,7 @@ class MeldekortBehandlingPostgresRepo(
 
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.GODKJENT, MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> {
-                    val beregninger = row.string("beregninger").tilBeregninger()
+                    val beregninger = row.string("beregninger").tilBeregninger(opprettet)
 
                     val meldekortBeregning = MeldekortBeregning.UtfyltMeldeperiode(
                         sakId = sakId,
@@ -313,7 +313,7 @@ class MeldekortBehandlingPostgresRepo(
                             dager = meldekortdager.tilIkkeUtfylteMeldekortDager(id),
                         )
                     }.getOrElse {
-                        val beregninger = row.string("beregninger").tilBeregninger()
+                        val beregninger = row.string("beregninger").tilBeregninger(opprettet)
 
                         MeldekortBeregning.UtfyltMeldeperiode(
                             sakId = sakId,

@@ -123,6 +123,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 sakId = sakId,
                 startDato = meldeperiode.periode.fraOgMed,
                 barnetilleggsPerioder = barnetilleggsPerioder,
+                opprettet = opprettet,
             ),
 
         saksbehandler: String = "saksbehandler",
@@ -178,11 +179,13 @@ interface MeldekortMother : MotherOfAllMothers {
             tiltakstype,
             barnetilleggsPerioder,
         ),
+        opprettet: LocalDateTime = LocalDateTime.now(clock),
         beregninger: NonEmptyList<MeldekortBeregning.MeldeperiodeBeregnet> = nonEmptyListOf(
             MeldekortBeregning.MeldeperiodeBeregnet(
                 kjedeId = kjedeId,
                 meldekortId = meldekortId,
                 dager = dager,
+                opprettet = opprettet,
             ),
         ),
     ): MeldekortBeregning.UtfyltMeldeperiode {

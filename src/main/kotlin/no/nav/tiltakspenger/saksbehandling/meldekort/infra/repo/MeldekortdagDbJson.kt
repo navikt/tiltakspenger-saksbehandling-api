@@ -32,6 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortdagDbJs
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toTiltakstypeSomGirRett
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * @property reduksjon null dersom den ikke er utfylt
@@ -214,7 +215,7 @@ internal fun String.tilIkkeUtfylteMeldekortDager(
         .map { it.toMeldekortdag(meldekortId) }
         .toNonEmptyListOrNull()!!
 
-private fun MeldeperiodeBeregnetDbJson.tilMeldeperiodeBeregnet(): MeldekortBeregning.MeldeperiodeBeregnet {
+private fun MeldeperiodeBeregnetDbJson.tilMeldeperiodeBeregnet(opprettet: LocalDateTime): MeldekortBeregning.MeldeperiodeBeregnet {
     val meldekortId = MeldekortId.fromString(this.meldekortId)
 
     return MeldekortBeregning.MeldeperiodeBeregnet(
@@ -223,13 +224,14 @@ private fun MeldeperiodeBeregnetDbJson.tilMeldeperiodeBeregnet(): MeldekortBereg
         dager = this.dager.map { dag ->
             dag.toMeldekortdag(meldekortId) as MeldeperiodeBeregningDag.Utfylt
         }.toNonEmptyListOrNull()!!,
+        opprettet = opprettet,
     )
 }
 
-internal fun String.tilBeregninger(): NonEmptyList<MeldekortBeregning.MeldeperiodeBeregnet> =
+internal fun String.tilBeregninger(opprettet: LocalDateTime): NonEmptyList<MeldekortBeregning.MeldeperiodeBeregnet> =
     deserializeList<MeldeperiodeBeregnetDbJson>(this).map {
-        it.tilMeldeperiodeBeregnet()
+        it.tilMeldeperiodeBeregnet(opprettet)
     }.toNonEmptyListOrNull()!!
 
-internal fun String.tilBeregning(): MeldekortBeregning.MeldeperiodeBeregnet =
-    deserialize<MeldeperiodeBeregnetDbJson>(this).tilMeldeperiodeBeregnet()
+internal fun String.tilBeregning(opprettet: LocalDateTime): MeldekortBeregning.MeldeperiodeBeregnet =
+    deserialize<MeldeperiodeBeregnetDbJson>(this).tilMeldeperiodeBeregnet(opprettet)

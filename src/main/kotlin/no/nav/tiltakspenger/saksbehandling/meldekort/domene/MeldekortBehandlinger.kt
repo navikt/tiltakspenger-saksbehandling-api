@@ -80,6 +80,30 @@ data class MeldekortBehandlinger(
     val finnesÅpenMeldekortBehandling: Boolean by lazy { åpenMeldekortBehandling != null }
 
     /**
+     * TODO Henrik skal rydde her :)
+     * U4 er nåtilstand, U1, U2, U3 er forrige utbetalinger
+     * Liste med U1, U2, U3 og U4
+     * Godkjente meldekort, hente behandlingen per utbetaling
+     *
+     * takeWhile() fjerner U4
+     * plukker ut beregningene fra behandlingene og står igjen med U1-B1, U2-B1, U3-B1 og U3-B2
+     * grupperer på meldeperiode, gir to grupperinger. (U1-B1 og U3-B1) og (U2-B1 og U3-B2)
+     * maxBy henter den nyeste innad i hver gruppering
+     * står igjen med beregningstidslinja U3-B1 og U3-B2
+     */
+    fun beregningFremTilBehandling(
+        periode: Periode,
+        behandlingId: MeldekortId,
+    ): MeldekortBeregning.MeldeperiodeBeregnet? {
+        return godkjenteMeldekort
+            .takeWhile { it.id != behandlingId } // Tar alle behandlinger uten om behandlingen vi skal sammenligne med
+            .flatMap { it.beregning.beregninger } // Alle beregninger på alle behandlinger
+            .groupBy { it.periode } // Grupperer på meldeperiode
+            .map { it.value.maxBy { meldeperiodeBeregnet -> meldeperiodeBeregnet.opprettet } } // Hent den nyeste i hver meldeperiode
+            .singleOrNull { it.periode == periode } // Forventer bare en beregning for perioden eller null
+    }
+
+    /**
      * @throws NullPointerException Dersom det ikke er noen meldekort-behandling som kan sendes til beslutter. Eller siste meldekort ikke er i tilstanden 'under behandling'.
      * @throws IllegalArgumentException Dersom innsendt meldekortid ikke samsvarer med siste meldekortperiode.
      */
@@ -115,7 +139,7 @@ data class MeldekortBehandlinger(
             }
         }
 
-        val beregnedeDager = kommando.beregn(
+        val beregnedeDager: NonEmptyList<MeldekortBeregning.MeldeperiodeBeregnet> = kommando.beregn(
             eksisterendeMeldekortBehandlinger = this,
             barnetilleggsPerioder = barnetilleggsPerioder,
             tiltakstypePerioder = tiltakstypePerioder,
