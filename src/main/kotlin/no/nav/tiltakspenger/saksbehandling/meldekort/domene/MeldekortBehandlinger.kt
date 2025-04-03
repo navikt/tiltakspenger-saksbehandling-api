@@ -19,9 +19,9 @@ import java.time.Clock
 import java.time.LocalDate
 
 /**
- * Består av ingen, én eller flere [MeldekortBeregningOld].
+ * Består av ingen, én eller flere [MeldekortBehandling].
  * Vil være tom fram til første innvilgede førstegangsbehandling.
- * Kun den siste vil kunne være under behandling (åpen).
+ * Kun den en behandling kan være vil kunne være under behandling (åpen) til enhver tid.
  */
 data class MeldekortBehandlinger(
     val verdi: List<MeldekortBehandling>,

@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.UtbetalingsvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.andreMeldekortIverksatt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilSendMeldekortTilBeslutterKommando
@@ -20,7 +19,7 @@ internal class OpprettUtbetalingsvedtakServiceTest {
             val sak = this.andreMeldekortIverksatt()
             val sakId = sak.id
             meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                (sak.meldekortBehandlinger[1] as MeldekortBehandling.MeldekortUnderBehandling).tilSendMeldekortTilBeslutterKommando(ObjectMother.saksbehandler()),
+                sak.meldekortBehandlinger[1].tilSendMeldekortTilBeslutterKommando(ObjectMother.saksbehandler()),
             )
             meldekortContext.iverksettMeldekortService.iverksettMeldekort(
                 IverksettMeldekortKommando(

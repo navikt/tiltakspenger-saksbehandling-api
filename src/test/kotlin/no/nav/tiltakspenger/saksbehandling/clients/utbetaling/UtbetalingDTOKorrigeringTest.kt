@@ -53,7 +53,7 @@ internal class UtbetalingDTOKorrigeringTest {
         meldekortBehandling = ObjectMother.meldekortBehandlet(
             id = meldekortId,
             periode = periode,
-            meldekortperiodeBeregning = ObjectMother.utfyltMeldekortperiode(
+            meldekortperiodeBeregning = ObjectMother.meldekortBeregning(
                 startDato = periode.fraOgMed,
                 meldekortId = meldekortId,
                 dager = dager,

@@ -62,7 +62,7 @@ private data class BeregnMeldekort(
             "Fant ikke innsendt meldekort $meldekortId på saken"
         }
 
-        require(meldekortSomSkalUtfylles is MeldekortBehandling.MeldekortUnderBehandling) {
+        require(meldekortSomSkalUtfylles is MeldekortUnderBehandling) {
             "Innsendt meldekort $meldekortId er ikke under behandling"
         }
     }
@@ -119,8 +119,8 @@ private data class BeregnMeldekort(
             }
     }
 
-    private fun beregnEksisterendeMeldekort(meldekort: MeldekortBehandling.MeldekortBehandlet): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
-        return meldekort.beregning.dager.map { dag ->
+    private fun beregnEksisterendeMeldekort(meldekort: MeldekortBehandlet): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
+        return meldekort.dager.map { dag ->
             val tiltakstype: TiltakstypeSomGirRett by lazy {
                 dag.tiltakstype
                     ?: throw IllegalStateException("Tidligere meldekortdag.tiltakstype var null for meldekortdag $dag")

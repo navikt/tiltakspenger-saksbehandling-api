@@ -6,13 +6,12 @@ import java.time.LocalDate
 
 data class MeldekortDager(
     val verdi: List<MeldekortDag>,
+    val maksAntallDagerForPeriode: Int,
 ) : List<MeldekortDag> by verdi {
 
     val fraOgMed: LocalDate get() = this.first().dato
     val tilOgMed: LocalDate get() = this.last().dato
     val periode = Periode(fraOgMed, tilOgMed)
-
-//     val maksDagerMedTiltakspengerForPeriode: Int,
 
     init {
         require(size == 14) { "Et meldekort må ha 14 dager, men hadde $size" }
@@ -25,6 +24,30 @@ data class MeldekortDager(
             }
         }
     }
+
+    companion object {
+        /**
+         * @param meldeperiode Perioden meldekortet skal gjelde for. Må være 14 dager, starte på en mandag og slutte på en søndag.
+         * @return Meldekortdager for meldeperioden
+         * @throws IllegalStateException Dersom alle dagene i en meldekortperiode er SPERRET er den per definisjon utfylt. Dette har vi ikke støtte for i MVP.
+         */
+        fun fraMeldeperiode(
+            meldeperiode: Meldeperiode,
+        ): MeldekortDager {
+            val dager = meldeperiode.girRett.entries.map { (dato, girRett) ->
+                MeldekortDag(
+                    dato = dato,
+                    status = if (girRett) MeldekortDagStatus.IKKE_UTFYLT else MeldekortDagStatus.SPERRET,
+                )
+            }
+
+            return if (dager.any { it.status == MeldekortDagStatus.IKKE_UTFYLT }) {
+                MeldekortDager(dager, meldeperiode.antallDagerForPeriode)
+            } else {
+                throw IllegalStateException("Alle dagene i en meldekortperiode er SPERRET. Dette har vi ikke støtte for i MVP.")
+            }
+        }
+    }
 }
 
 fun Meldeperiode.tilMeldekortDager() = MeldekortDager(
@@ -34,4 +57,5 @@ fun Meldeperiode.tilMeldekortDager() = MeldekortDager(
             status = if (harRett) MeldekortDagStatus.IKKE_UTFYLT else MeldekortDagStatus.SPERRET,
         )
     },
+    this.antallDagerForPeriode,
 )

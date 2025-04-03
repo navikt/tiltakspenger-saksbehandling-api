@@ -36,11 +36,10 @@ class SendMeldekortTilBeslutningKommando(
             val status: Status,
         )
 
-        fun tilMeldekortDager() =
+        fun tilMeldekortDager(maksAntallDagerForPeriode: Int) =
             MeldekortDager(
-                this.map {
-                    MeldekortDag(dato = it.dag, status = it.status.tilMeldekortDagStatus())
-                },
+                this.map { MeldekortDag(dato = it.dag, status = it.status.tilMeldekortDagStatus()) },
+                maksAntallDagerForPeriode,
             )
     }
 
