@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregningOld
 
 data class MeldeperiodeBeregnetDTO(
     val kjedeId: String,
@@ -8,8 +8,8 @@ data class MeldeperiodeBeregnetDTO(
     val dager: List<MeldekortDagDTO>,
 )
 
-fun MeldekortBeregning.toMeldekortBeregningDTO(): List<MeldeperiodeBeregnetDTO>? {
-    if (this !is MeldekortBeregning.UtfyltMeldeperiode) {
+fun MeldekortBeregningOld.toMeldekortBeregningDTO(): List<MeldeperiodeBeregnetDTO>? {
+    if (this !is MeldekortBeregningOld.UtfyltMeldeperiode) {
         return null
     }
 

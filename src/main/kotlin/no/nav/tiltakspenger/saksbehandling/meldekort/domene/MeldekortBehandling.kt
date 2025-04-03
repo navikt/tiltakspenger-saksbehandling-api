@@ -1,8 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
@@ -13,10 +11,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.felles.Attestering
-import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
-import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
@@ -34,20 +29,15 @@ sealed interface MeldekortBehandling {
     val saksnummer: Saksnummer
     val fnr: Fnr
     val opprettet: LocalDateTime
-    val beregning: MeldekortBeregning
+    val dager: MeldekortDager
+    val beregning: MeldekortBeregning?
     val meldeperiode: Meldeperiode
     val type: MeldekortBehandlingType
 
     /** Vil kunne være null dersom vi ikke har mottatt et meldekort via vår digitale flate. Bør på sikt kunne være en liste? */
     val brukersMeldekort: BrukersMeldekort?
 
-    /**
-     *  Perioden for beregningen av meldekortet.
-     *  Fra og med start av meldeperioden, til og med siste dag med en beregnet utbetaling
-     *  Ved korrigeringer tilbake i tid kan tilOgMed strekke seg til påfølgende meldeperioder dersom disse påvirkes av beregningen
-     * */
-    val beregningPeriode: Periode get() = beregning.periode
-
+    val kjedeId: MeldeperiodeKjedeId get() = meldeperiode.kjedeId
     val periode: Periode get() = meldeperiode.periode
     val fraOgMed: LocalDate get() = periode.fraOgMed
     val tilOgMed: LocalDate get() = periode.tilOgMed
@@ -59,18 +49,11 @@ sealed interface MeldekortBehandling {
     val iverksattTidspunkt: LocalDateTime?
     val sendtTilBeslutning: LocalDateTime?
     val begrunnelse: MeldekortbehandlingBegrunnelse?
+
     val attesteringer: Attesteringer
 
     /** Denne styres kun av vedtakene. Dersom vi har en åpen meldekortbehandling (inkl. til beslutning) kan et nytt vedtak overstyre hele meldeperioden til [MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] */
     val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?
-
-    /** Totalsummen for meldeperioden */
-    val beløpTotal: Int?
-
-    val ordinærBeløp: Int?
-    val barnetilleggBeløp: Int?
-
-    val kjedeId: MeldeperiodeKjedeId get() = meldeperiode.kjedeId
 
     /** Merk at statusen [IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den vil bli erstattet med AVBRUTT senere. */
     val erAvsluttet
@@ -105,12 +88,7 @@ sealed interface MeldekortBehandling {
             is MeldekortUnderBehandling -> this.copy(
                 meldeperiode = meldeperiode,
                 ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-                beregning = MeldekortBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
-                    meldeperiode = meldeperiode,
-                    meldekortId = this.id,
-                    sakId = this.sakId,
-                    tiltakstypePerioder = tiltakstypePerioder,
-                ),
+                beregning = null,
             )
         }
     }
@@ -121,277 +99,6 @@ sealed interface MeldekortBehandling {
         beslutter: Saksbehandler,
         clock: Clock,
     ): Either<KunneIkkeUnderkjenneMeldekortBehandling, MeldekortBehandling>
-
-    /**
-     * Meldekort utfylt av saksbehandler og godkjent av beslutter.
-     * Når veileder/bruker har fylt ut meldekortet vil ikke denne klassen kunne gjenbrukes uten endringer. Kanskje vi må ha en egen klasse for veileder-/brukerutfylt meldekort.
-     *
-     * @param saksbehandler: Obligatorisk dersom meldekortet er utfylt av saksbehandler.
-     * @param beslutter: Obligatorisk dersom meldekortet er godkjent av beslutter.
-     */
-    data class MeldekortBehandlet(
-        override val id: MeldekortId,
-        override val sakId: SakId,
-        override val saksnummer: Saksnummer,
-        override val fnr: Fnr,
-        override val opprettet: LocalDateTime,
-        override val beregning: MeldekortBeregning.UtfyltMeldeperiode,
-        override val saksbehandler: String,
-        override val sendtTilBeslutning: LocalDateTime?,
-        override val beslutter: String?,
-        override val status: MeldekortBehandlingStatus,
-        override val iverksattTidspunkt: LocalDateTime?,
-        override val navkontor: Navkontor,
-        override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
-        override val brukersMeldekort: BrukersMeldekort?,
-        override val meldeperiode: Meldeperiode,
-        override val type: MeldekortBehandlingType,
-        override val begrunnelse: MeldekortbehandlingBegrunnelse?,
-        override val attesteringer: Attesteringer,
-        // Korrigeringer av foregående meldeperioder som endret beregningen av dette meldekortet
-        val korrigeringer: List<MeldeperiodeKorrigering> = emptyList(),
-    ) : MeldekortBehandling {
-
-        init {
-            require(meldeperiode.periode.fraOgMed == beregningPeriode.fraOgMed) {
-                "Fra og med dato for beregningsperioden og meldeperioden må være like"
-            }
-            require(meldeperiode.periode.tilOgMed <= beregningPeriode.tilOgMed) {
-                "Til og med dato for beregningsperioden må være nyere eller lik meldeperioden"
-            }
-            when (status) {
-                IKKE_BEHANDLET -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status IKKE_UTFYLT")
-                KLAR_TIL_BESLUTNING -> {
-                    require(iverksattTidspunkt == null)
-                    // Kommentar jah: Når vi legger til underkjenn, bør vi også legge til et atteserings objekt som for Behandling. beslutter vil da flyttes dit.
-                    requireNotNull(sendtTilBeslutning)
-                    require(beslutter == null)
-                }
-
-                GODKJENT -> {
-                    require(ikkeRettTilTiltakspengerTidspunkt == null)
-                    requireNotNull(iverksattTidspunkt)
-                    requireNotNull(beslutter)
-                    requireNotNull(sendtTilBeslutning)
-                }
-
-                IKKE_RETT_TIL_TILTAKSPENGER -> {
-                    throw IllegalStateException("I førsteomgang støtter vi kun stans av ikke-utfylte meldekort.")
-                    // require(iverksattTidspunkt == null)
-                    // require(beslutter == null)
-                    // require(sendtTilBeslutning == null)
-                }
-            }
-        }
-
-        fun iverksettMeldekort(
-            beslutter: Saksbehandler,
-            clock: Clock,
-        ): Either<KanIkkeIverksetteMeldekort, MeldekortBehandlet> {
-            if (!beslutter.erBeslutter()) {
-                return KanIkkeIverksetteMeldekort.MåVæreBeslutter(beslutter.roller).left()
-            }
-            if (saksbehandler == beslutter.navIdent) {
-                return KanIkkeIverksetteMeldekort.SaksbehandlerOgBeslutterKanIkkeVæreLik.left()
-            }
-            require(status == KLAR_TIL_BESLUTNING)
-            require(this.beslutter == null)
-
-            val attesteringer = this.attesteringer.leggTil(
-                Attestering(
-                    id = AttesteringId.random(),
-                    status = Attesteringsstatus.GODKJENT,
-                    begrunnelse = null,
-                    beslutter = beslutter.navIdent,
-                    tidspunkt = LocalDateTime.now(clock),
-                ),
-            )
-
-            return this.copy(
-                beslutter = beslutter.navIdent,
-                status = GODKJENT,
-                iverksattTidspunkt = nå(clock),
-                attesteringer = attesteringer,
-            ).right()
-        }
-
-        override fun underkjenn(
-            begrunnelse: NonBlankString,
-            beslutter: Saksbehandler,
-            clock: Clock,
-        ): Either<KunneIkkeUnderkjenneMeldekortBehandling, MeldekortUnderBehandling> {
-            if (this.status != KLAR_TIL_BESLUTNING) {
-                return KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErIkkeKlarTilBeslutning.left()
-            }
-            if (this.saksbehandler == beslutter.navIdent) {
-                return KunneIkkeUnderkjenneMeldekortBehandling.SaksbehandlerKanIkkeUnderkjenneSinEgenBehandling.left()
-            }
-            if (this.beslutter != null) {
-                return KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErAlleredeBesluttet.left()
-            }
-
-            val attesteringer = this.attesteringer.leggTil(
-                Attestering(
-                    id = AttesteringId.random(),
-                    status = Attesteringsstatus.SENDT_TILBAKE,
-                    begrunnelse = begrunnelse,
-                    beslutter = beslutter.navIdent,
-                    tidspunkt = LocalDateTime.now(clock),
-                ),
-            )
-
-            return MeldekortUnderBehandling(
-                id = id,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                opprettet = opprettet,
-                beregning = this.beregning,
-                navkontor = navkontor,
-                ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-                brukersMeldekort = brukersMeldekort,
-                meldeperiode = meldeperiode,
-                saksbehandler = saksbehandler,
-                type = type,
-                attesteringer = attesteringer,
-                begrunnelse = this.begrunnelse,
-                sendtTilBeslutning = sendtTilBeslutning,
-            ).right()
-        }
-
-        fun tilUnderBehandling(
-            nyMeldeperiode: Meldeperiode?,
-            ikkeRettTilTiltakspengerTidspunkt: LocalDateTime? = null,
-            tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
-        ): MeldekortUnderBehandling {
-            require(this.status != GODKJENT && this.status != IKKE_RETT_TIL_TILTAKSPENGER) {
-                "Kan ikke gå fra GODKJENT eller IKKE_RETT_TIL_TILTAKSPENGER til UNDER_BEHANDLING"
-            }
-            val meldeperiode = nyMeldeperiode ?: this.meldeperiode
-            return MeldekortUnderBehandling(
-                id = this.id,
-                sakId = this.sakId,
-                saksnummer = this.saksnummer,
-                fnr = this.fnr,
-                opprettet = this.opprettet,
-                beregning = MeldekortBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
-                    meldeperiode = meldeperiode,
-                    tiltakstypePerioder = tiltakstypePerioder,
-                    meldekortId = this.id,
-                    sakId = this.sakId,
-                ),
-                saksbehandler = saksbehandler,
-                navkontor = this.navkontor,
-                ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-                brukersMeldekort = brukersMeldekort,
-                meldeperiode = meldeperiode,
-                type = type,
-                begrunnelse = this.begrunnelse,
-                attesteringer = attesteringer,
-                sendtTilBeslutning = iverksattTidspunkt,
-            )
-        }
-
-        override val beløpTotal: Int = beregning.beregnTotaltBeløp()
-        override val ordinærBeløp: Int = beregning.beregnTotalOrdinærBeløp()
-        override val barnetilleggBeløp: Int = beregning.beregnTotalBarnetiillegg()
-    }
-
-    data class MeldekortUnderBehandling(
-        override val id: MeldekortId,
-        override val sakId: SakId,
-        override val saksnummer: Saksnummer,
-        override val fnr: Fnr,
-        override val opprettet: LocalDateTime,
-        /**
-         * Er [MeldekortBeregning.IkkeUtfyltMeldeperiode] dersom meldekortet ikke har blitt sendt til beslutter enda
-         * Er [MeldekortBeregning.UtfyltMeldeperiode] dersom den har vært hos beslutter, og blitt underkjent (sendt tilbake)
-         */
-        override val beregning: MeldekortBeregning,
-        override val navkontor: Navkontor,
-        override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
-        override val brukersMeldekort: BrukersMeldekort?,
-        override val meldeperiode: Meldeperiode,
-        override val saksbehandler: String,
-        override val type: MeldekortBehandlingType,
-        override val begrunnelse: MeldekortbehandlingBegrunnelse?,
-        override val attesteringer: Attesteringer,
-        override val sendtTilBeslutning: LocalDateTime?,
-    ) : MeldekortBehandling {
-        override val iverksattTidspunkt = null
-
-        /**
-         * TODO - fyll ut disse etter vi har splittet saksbehandlers meldekort og beregning
-         *
-         * Merk at disse KAN muligens eksistere dersom behandlingen har blitt underkjent (men disse er ikke i bruk per nå uansett)
-         */
-        override val beløpTotal = null
-        override val ordinærBeløp = null
-        override val barnetilleggBeløp = null
-        override val status =
-            if (ikkeRettTilTiltakspengerTidspunkt == null) IKKE_BEHANDLET else IKKE_RETT_TIL_TILTAKSPENGER
-
-        override val beslutter = null
-
-        fun sendTilBeslutter(
-            beregning: MeldekortBeregning.UtfyltMeldeperiode,
-            begrunnelse: MeldekortbehandlingBegrunnelse?,
-            saksbehandler: Saksbehandler,
-            clock: Clock,
-        ): Either<KanIkkeSendeMeldekortTilBeslutning, MeldekortBehandlet> {
-            // TODO: gjør noe med denne sjekken når vi splitter beregning/utfylling. Dette blir litt rart :D
-            require(Periode(beregning.dager.first().dato, beregning.dager.last().dato) == this.meldeperiode.periode) {
-                "Når man fyller ut et meldekort må meldekortperioden være den samme som den som er opprettet. Opprettet periode: ${this.beregning.periode}, utfylt periode: ${beregning.periode}"
-            }
-            require(sakId == beregning.sakId)
-            if (!saksbehandler.erSaksbehandler()) {
-                return KanIkkeSendeMeldekortTilBeslutning.MåVæreSaksbehandler(saksbehandler.roller).left()
-            }
-            if (!erKlarTilUtfylling()) {
-                // John har avklart med Sølvi og Taulant at vi bør ha en begrensning på at vi kan fylle ut et meldekort hvis dagens dato er innenfor meldekortperioden eller senere.
-                // Dette kan endres på ved behov.
-                return KanIkkeSendeMeldekortTilBeslutning.MeldekortperiodenKanIkkeVæreFremITid.left()
-            }
-            return MeldekortBehandlet(
-                id = this.id,
-                sakId = this.sakId,
-                saksnummer = this.saksnummer,
-                fnr = this.fnr,
-                opprettet = this.opprettet,
-                beregning = beregning,
-                saksbehandler = saksbehandler.navIdent,
-                sendtTilBeslutning = nå(clock),
-                beslutter = this.beslutter,
-                status = KLAR_TIL_BESLUTNING,
-                iverksattTidspunkt = null,
-                navkontor = this.navkontor,
-                ikkeRettTilTiltakspengerTidspunkt = null,
-                brukersMeldekort = brukersMeldekort,
-                meldeperiode = meldeperiode,
-                type = type,
-                begrunnelse = begrunnelse,
-                attesteringer = attesteringer,
-            ).right()
-        }
-
-        fun erKlarTilUtfylling(): Boolean {
-            return !LocalDate.now().isBefore(periode.fraOgMed)
-        }
-
-        override fun underkjenn(
-            begrunnelse: NonBlankString,
-            beslutter: Saksbehandler,
-            clock: Clock,
-        ): Either<KunneIkkeUnderkjenneMeldekortBehandling, MeldekortBehandling> {
-            return KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErIkkeKlarTilBeslutning.left()
-        }
-
-        init {
-            if (status == IKKE_RETT_TIL_TILTAKSPENGER) {
-                require(beregning.dager.all { it is MeldeperiodeBeregningDag.Utfylt.Sperret })
-            }
-        }
-    }
 }
 
 /**
@@ -403,7 +110,7 @@ fun Sak.opprettMeldekortBehandling(
     navkontor: Navkontor,
     saksbehandler: Saksbehandler,
     clock: Clock,
-): MeldekortBehandling.MeldekortUnderBehandling {
+): MeldekortUnderBehandling {
     if (this.meldekortBehandlinger.finnesÅpenMeldekortBehandling) {
         throw IllegalStateException("Kan ikke opprette ny meldekortbehandling når det finnes en åpen behandling på saken (sak $id - kjedeId $kjedeId)")
     }
@@ -439,7 +146,8 @@ fun Sak.opprettMeldekortBehandling(
         if (behandlingerKnyttetTilKjede.isEmpty()) MeldekortBehandlingType.FØRSTE_BEHANDLING else MeldekortBehandlingType.KORRIGERING
 
     val meldekortId = MeldekortId.random()
-    return MeldekortBehandling.MeldekortUnderBehandling(
+
+    return MeldekortUnderBehandling(
         id = meldekortId,
         sakId = this.id,
         saksnummer = this.saksnummer,
@@ -451,14 +159,10 @@ fun Sak.opprettMeldekortBehandling(
         meldeperiode = meldeperiode,
         saksbehandler = saksbehandler.navIdent,
         type = type,
-        beregning = MeldekortBeregning.IkkeUtfyltMeldeperiode.fraPeriode(
-            meldeperiode = meldeperiode,
-            meldekortId = meldekortId,
-            sakId = this.id,
-            tiltakstypePerioder = this.vedtaksliste.tiltakstypeperioder,
-        ),
         begrunnelse = null,
         attesteringer = Attesteringer.empty(),
         sendtTilBeslutning = null,
+        beregning = null,
+        dager = meldeperiode.tilMeldekortDager(),
     )
 }

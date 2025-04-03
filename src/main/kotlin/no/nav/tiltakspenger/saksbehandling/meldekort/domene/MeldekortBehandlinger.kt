@@ -14,14 +14,12 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.InnsendteDagerMåMatcheMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling.MeldekortBehandlet
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Status
 import java.time.Clock
 import java.time.LocalDate
 
 /**
- * Består av ingen, én eller flere [MeldekortBeregning].
+ * Består av ingen, én eller flere [MeldekortBeregningOld].
  * Vil være tom fram til første innvilgede førstegangsbehandling.
  * Kun den siste vil kunne være under behandling (åpen).
  */
@@ -64,7 +62,7 @@ data class MeldekortBehandlinger(
 
     /** Merk at denne går helt tilbake til siste godkjente, utbetalte dag. Dette er ikke nødvendigvis den siste godkjente meldeperioden. */
     val sisteUtbetalteMeldekortDag: LocalDate? by lazy {
-        godkjenteMeldekort.flatMap { it.beregning.dager }.lastOrNull { it.beløp > 0 }?.dato
+        godkjenteMeldekort.flatMap { it.beregning.first().dager }.lastOrNull { it.beløp > 0 }?.dato
     }
 
     /**
@@ -73,7 +71,9 @@ data class MeldekortBehandlinger(
      *  Obs!! Med korrigeringer kan vi ikke stole på beregninger fra disse dagene, ettersom korrigering kan påvirke dager etter det korrigerte meldekortet
      *  TODO: Bør løses når vi splitter meldekort-utfylling og meldekort-beregning
      *  */
-    val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy { sisteBehandledeMeldekortPerKjede.flatMap { it.beregning.dager } }
+    val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy {
+        sisteBehandledeMeldekortPerKjede.flatMap { it.beregning.first().dager }
+    }
 
     /** Meldekort som er under behandling eller venter på beslutning */
     val åpenMeldekortBehandling: MeldekortBehandling? by lazy { meldekortUnderBehandling ?: meldekortUnderBeslutning }
@@ -93,6 +93,8 @@ data class MeldekortBehandlinger(
         val meldekortId = kommando.meldekortId
         val meldekort = meldekortUnderBehandling
 
+        require(kommando.sakId == sakId)
+
         requireNotNull(meldekort) {
             "Fant ingen meldekort under behandling på saken"
         }
@@ -105,12 +107,12 @@ data class MeldekortBehandlinger(
             return InnsendteDagerMåMatcheMeldeperiode.left()
         }
 
-        kommando.dager.dager.zip(meldekort.beregning.dager).forEach { (dagA, dagB) ->
-            if (dagA.status == Status.SPERRET && dagB !is MeldeperiodeBeregningDag.Utfylt.Sperret) {
+        kommando.dager.dager.zip(meldekort.dager).forEach { (dagA, dagB) ->
+            if (dagA.status == Status.SPERRET && dagB.status != MeldekortDagStatus.SPERRET) {
                 log.error { "Kan ikke endre dag til sperret. Nåværende tilstand: $utfylteDager. Innsendte dager: ${kommando.dager}" }
                 return KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagTilSperret.left()
             }
-            if (dagA.status != Status.SPERRET && dagB is MeldeperiodeBeregningDag.Utfylt.Sperret) {
+            if (dagA.status != Status.SPERRET && dagB.status == MeldekortDagStatus.SPERRET) {
                 log.error { "Kan ikke endre dag fra sperret. Nåværende tilstand: $utfylteDager. Innsendte dager: ${kommando.dager}" }
                 return KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagFraSperret.left()
             }
@@ -123,17 +125,18 @@ data class MeldekortBehandlinger(
             meldeperiodeBeregninger = meldeperiodeBeregninger,
         )
 
-        val beregning = MeldekortBeregning.UtfyltMeldeperiode(
+        val beregning = MeldekortBeregning(
             sakId = sakId,
-            maksDagerMedTiltakspengerForPeriode = meldekortUnderBehandling!!.beregning.maksDagerMedTiltakspengerForPeriode,
+            meldekortId = meldekortId,
             beregninger = beregninger,
         )
 
         return meldekort.sendTilBeslutter(
-            beregning,
-            kommando.meldekortbehandlingBegrunnelse,
-            kommando.saksbehandler,
-            clock,
+            dager = kommando.dager.tilMeldekortDager(),
+            beregning = beregning,
+            begrunnelse = kommando.meldekortbehandlingBegrunnelse,
+            saksbehandler = kommando.saksbehandler,
+            clock = clock,
         )
             .map {
                 Pair(
