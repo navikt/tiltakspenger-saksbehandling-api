@@ -1,17 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.clients.utbetaling
 
 import arrow.core.NonEmptyList
-import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -36,15 +33,6 @@ internal class UtbetalingDTOKorrigeringTest {
         periode: Periode,
         opprettet: LocalDateTime,
         dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-        beregninger: NonEmptyList<MeldeperiodeBeregning> = nonEmptyListOf(
-            MeldeperiodeBeregning(
-                kjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
-                meldekortId = meldekortId,
-                beregnet = opprettet,
-                sakId = sakId,
-                dager = dager,
-            ),
-        ),
     ) = ObjectMother.utbetalingsvedtak(
         fnr = fnr,
         saksnummer = saksnummer,
@@ -56,8 +44,7 @@ internal class UtbetalingDTOKorrigeringTest {
             meldekortperiodeBeregning = ObjectMother.meldekortBeregning(
                 startDato = periode.fraOgMed,
                 meldekortId = meldekortId,
-                dager = dager,
-                beregninger = beregninger,
+                beregningDager = dager,
             ),
         ),
     )

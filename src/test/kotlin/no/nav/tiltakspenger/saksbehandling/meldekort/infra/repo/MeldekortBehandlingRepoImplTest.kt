@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -82,11 +83,12 @@ class MeldekortBehandlingRepoImplTest {
                     sakId = sak.id,
                     startDato = meldekortBehandling.periode.fraOgMed,
                     meldekortId = meldekortBehandling.id,
-                    maksDagerMedTiltakspengerForPeriode = meldekortBehandling.beregning.maksDagerMedTiltakspengerForPeriode,
+                    maksDagerMedTiltakspengerForPeriode = meldekortBehandling.meldeperiode.antallDagerForPeriode,
                 ),
                 saksbehandler = ObjectMother.saksbehandler(),
                 clock = fixedClock,
                 begrunnelse = null,
+                dager = MeldekortDager.fraMeldeperiode(meldekortBehandling.meldeperiode), // TODO: ikke dette
             ).getOrFail()
 
             meldekortRepo.oppdater(oppdatertMeldekortBehandling)

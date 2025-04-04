@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Satsdag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Satser
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -353,7 +352,6 @@ internal class MeldekortberegningKorrigeringTest {
      *  Denne feiler ettersom beregningen ikke tar høyde for flere korrigeringer som ender med å beregne en påfølgende
      *  meldeperiode tilbake til opprinnelig tilstand
      * */
-    @Disabled
     @Test
     fun `Skal korrigere en korrigering, som fører til opprinnelig beregning av neste periode`() {
         val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(

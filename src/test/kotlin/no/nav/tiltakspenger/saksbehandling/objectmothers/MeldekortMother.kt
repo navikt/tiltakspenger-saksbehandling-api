@@ -176,51 +176,27 @@ interface MeldekortMother : MotherOfAllMothers {
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         maksDagerMedTiltakspengerForPeriode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
-        dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt> = maksAntallDeltattTiltaksdagerIMeldekortperiode(
+        beregningDager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt> = maksAntallDeltattTiltaksdagerIMeldekortperiode(
             startDato,
             meldekortId,
             tiltakstype,
             barnetilleggsPerioder,
         ),
         beregnet: LocalDateTime = nå(fixedClock),
-        beregninger: NonEmptyList<MeldeperiodeBeregning> = nonEmptyListOf(
-            MeldeperiodeBeregning(
-                kjedeId = kjedeId,
-                meldekortId = meldekortId,
-                sakId = sakId,
-                beregnet = beregnet,
-                dager = dager,
-            ),
-        ),
     ): MeldekortBeregning {
         return MeldekortBeregning(
             sakId = sakId,
             meldekortId = meldekortId,
-            beregninger = beregninger,
+            beregninger = nonEmptyListOf(
+                MeldeperiodeBeregning(
+                    kjedeId = kjedeId,
+                    meldekortId = meldekortId,
+                    sakId = sakId,
+                    beregnet = beregnet,
+                    dager = beregningDager,
+                ),
+            ),
         )
-    }
-
-    /**
-     * @param startDato Må starte på en mandag.
-     */
-    fun ikkeUtfylteMeldekortDager(
-        sakId: SakId = SakId.random(),
-        periode: Periode,
-        startDato: LocalDate = LocalDate.of(2023, 1, 2),
-        meldekortId: MeldekortId = MeldekortId.random(),
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?> = Periodisering(
-            TiltakstypeSomGirRett.GRUPPE_AMO,
-            periode,
-        ),
-        maksDagerMedTiltakspengerForPeriode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-    ): MeldekortDager {
-        val meldeperiode = meldeperiode(
-            periode = periode,
-            sakId = sakId,
-            antallDagerForPeriode = maksDagerMedTiltakspengerForPeriode,
-        )
-
-        return MeldekortDager.fraMeldeperiode(meldeperiode)
     }
 
     fun maksAntallDeltattTiltaksdagerIMeldekortperiode(
@@ -319,10 +295,7 @@ interface MeldekortMother : MotherOfAllMothers {
 
         return kommandoer.drop(1).foldIndexed(
             førsteBeregnetMeldekort(
-                tiltakstypePerioder = Periodisering(
-                    TiltakstypeSomGirRett.GRUPPE_AMO,
-                    kommandoer.first().periode,
-                ),
+                vurderingsperiode = vurderingsperiode,
                 meldekortId = kommandoer.first().meldekortId,
                 sakId = sakId,
                 fnr = fnr,
@@ -333,8 +306,9 @@ interface MeldekortMother : MotherOfAllMothers {
             ).first,
         ) { index, meldekortperioder, kommando ->
             meldekortperioder.beregnNesteMeldekort(
-                kommando,
-                fnr,
+                kommando = kommando,
+                fnr = fnr,
+                vurderingsperiode = vurderingsperiode,
                 barnetilleggsPerioder = barnetilleggsPerioder,
                 beslutter = beslutter,
                 opprettet = opprettet.plusMinutes(1 + index.toLong()),
@@ -344,9 +318,10 @@ interface MeldekortMother : MotherOfAllMothers {
 
     fun førsteBeregnetMeldekort(
         kommando: SendMeldekortTilBeslutningKommando,
+        vurderingsperiode: Periode,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?> = Periodisering(
             TiltakstypeSomGirRett.GRUPPE_AMO,
-            kommando.periode,
+            vurderingsperiode,
         ),
         meldekortId: MeldekortId,
         sakId: SakId,
@@ -401,7 +376,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 kommando,
                 barnetilleggsPerioder,
                 tiltakstypePerioder,
-                MeldeperiodeBeregninger.fraMeldekortBehandlinger(meldekortBehandlinger),
+                MeldeperiodeBeregninger(meldekortBehandlinger),
                 clock,
             )
             .map { (meldekortBehandlinger, meldekort) ->
@@ -414,6 +389,7 @@ interface MeldekortMother : MotherOfAllMothers {
 
     fun MeldekortBehandlinger.beregnNesteMeldekort(
         kommando: SendMeldekortTilBeslutningKommando,
+        vurderingsperiode: Periode,
         fnr: Fnr,
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
@@ -423,7 +399,7 @@ interface MeldekortMother : MotherOfAllMothers {
         barnetilleggsPerioder: Periodisering<AntallBarn?>,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?> = Periodisering(
             TiltakstypeSomGirRett.GRUPPE_AMO,
-            kommando.periode,
+            vurderingsperiode,
         ),
         girRett: Map<LocalDate, Boolean> = kommando.dager.dager.map { it.dag to it.status.girRett() }.toMap(),
         antallDagerForPeriode: Int = girRett.count { it.value },
@@ -466,7 +442,7 @@ interface MeldekortMother : MotherOfAllMothers {
             kommando,
             barnetilleggsPerioder,
             tiltakstypePerioder,
-            MeldeperiodeBeregninger.fraMeldekortBehandlinger(this),
+            MeldeperiodeBeregninger(this),
             clock,
         )
             .map { (meldekortBehandlinger, meldekort) ->

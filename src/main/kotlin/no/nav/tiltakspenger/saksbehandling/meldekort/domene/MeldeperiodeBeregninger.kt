@@ -4,32 +4,17 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 
 data class MeldeperiodeBeregninger(
-    val verdi: List<MeldeperiodeBeregning>,
-) : List<MeldeperiodeBeregning> by verdi {
+    val meldekortBehandlinger: MeldekortBehandlinger,
+) {
+    private val beregningerSortert =
+        meldekortBehandlinger.godkjenteMeldekort.flatMap { it.beregning.beregninger }.sortedBy { it.beregnet }
 
-    private val beregningerSortert by lazy { this.sortedBy { it.beregnet } }
-
-    val beregningerPerKjede: Map<MeldeperiodeKjedeId, List<MeldeperiodeBeregning>> by lazy {
+    val beregningerForKjede: Map<MeldeperiodeKjedeId, List<MeldeperiodeBeregning>> =
         beregningerSortert.groupBy { it.kjedeId }
-    }
 
-    val beregningerPerMeldekort: Map<MeldekortId, List<MeldeperiodeBeregning>> by lazy {
+    val sisteBeregningForKjede: Map<MeldeperiodeKjedeId, MeldeperiodeBeregning> =
+        beregningerForKjede.entries.associate { it.key to it.value.last() }
+
+    val beregningerForMeldekort: Map<MeldekortId, List<MeldeperiodeBeregning>> =
         beregningerSortert.groupBy { it.meldekortId }
-    }
-
-    init {
-        verdi.zipWithNext { a, b ->
-            require(a.kjedeId == b.kjedeId || a.tilOgMed < b.fraOgMed) {
-                "Meldekortperiodene må være sammenhengende og sortert, men var ${verdi.map { it.periode }}"
-            }
-        }
-    }
-
-    companion object {
-        fun fraMeldekortBehandlinger(meldekortBehandlinger: MeldekortBehandlinger): MeldeperiodeBeregninger {
-            return MeldeperiodeBeregninger(
-                meldekortBehandlinger.godkjenteMeldekort.flatMap { it.beregning.beregninger },
-            )
-        }
-    }
 }
