@@ -92,6 +92,7 @@ object Configuration {
                 "ARENA_TILTAKSDELTAKER_TOPIC" to "arena.tiltaksdeltaker",
                 "KOMET_TILTAKSDELTAKER_TOPIC" to "komet.tiltaksdeltaker",
                 "LEESAH_TOPIC" to "pdl.leesah",
+                "AKTOR_V2_TOPIC" to "pdl.aktor",
             ),
         )
 
@@ -130,6 +131,7 @@ object Configuration {
                 "ARENA_TILTAKSDELTAKER_TOPIC" to "teamarenanais.aapen-arena-tiltakdeltakerendret-v1-q2",
                 "KOMET_TILTAKSDELTAKER_TOPIC" to "amt.deltaker-v1",
                 "LEESAH_TOPIC" to "pdl.leesah-v1",
+                "AKTOR_V2_TOPIC" to "pdl.aktor-v2",
             ),
         )
     private val prodProperties =
@@ -167,6 +169,7 @@ object Configuration {
                 "ARENA_TILTAKSDELTAKER_TOPIC" to "teamarenanais.aapen-arena-tiltakdeltakerendret-v1-p",
                 "KOMET_TILTAKSDELTAKER_TOPIC" to "amt.deltaker-v1",
                 "LEESAH_TOPIC" to "pdl.leesah-v1",
+                "AKTOR_V2_TOPIC" to "pdl.aktor-v2",
             ),
         )
 
@@ -251,6 +254,7 @@ object Configuration {
     val arenaTiltaksdeltakerTopic: String by lazy { config()[Key("ARENA_TILTAKSDELTAKER_TOPIC", stringType)] }
     val kometTiltaksdeltakerTopic: String by lazy { config()[Key("KOMET_TILTAKSDELTAKER_TOPIC", stringType)] }
     val leesahTopic: String by lazy { config()[Key("LEESAH_TOPIC", stringType)] }
+    val aktorV2Topic: String by lazy { config()[Key("AKTOR_V2_TOPIC", stringType)] }
 
     fun httpPort() = config()[Key("application.httpPort", intType)]
 

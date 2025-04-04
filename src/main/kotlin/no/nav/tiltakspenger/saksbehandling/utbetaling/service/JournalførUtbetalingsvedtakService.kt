@@ -7,6 +7,8 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.sammenlign
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
@@ -34,12 +36,21 @@ class JournalførUtbetalingsvedtakService(
                 log.info { "Journalfører utbetalingsvedtak. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
                 Either.catch {
                     val sak = sakRepo.hentForSakId(utbetalingsvedtak.sakId)!!
+                    val sammenligning = { beregningEtter: MeldekortBeregning.MeldeperiodeBeregnet ->
+                        val beregningFør = sak.meldekortBehandlinger.beregningFremTilBehandling(
+                            beregningEtter.periode,
+                            utbetalingsvedtak.meldekortbehandling.id,
+                        )
+                        sammenlign(beregningFør, beregningEtter)
+                    }
                     val tiltak = sak.vedtaksliste.hentTiltaksdataForPeriode(utbetalingsvedtak.periode)
                     val pdfOgJson =
                         genererUtbetalingsvedtakGateway.genererUtbetalingsvedtak(
                             utbetalingsvedtak,
+                            sammenligning = sammenligning,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-                            tiltaksdeltagelser = tiltak.mapNotNull { it }.ifEmpty { throw IllegalStateException("Forventet at et det skal finnes tilbaksdeltagelse for utbetalingsvedtaksperioden") },
+                            tiltaksdeltagelser = tiltak.mapNotNull { it }
+                                .ifEmpty { throw IllegalStateException("Forventet at et det skal finnes tilbaksdeltagelse for utbetalingsvedtaksperioden") },
                         ).getOrElse { return@forEach }
                     log.info { "Pdf generert for utbetalingsvedtak. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
                     val journalpostId = journalførMeldekortGateway.journalførMeldekortBehandling(

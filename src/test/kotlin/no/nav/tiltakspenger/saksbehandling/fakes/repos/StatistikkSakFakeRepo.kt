@@ -12,4 +12,19 @@ class StatistikkSakFakeRepo : StatistikkSakRepo {
     override fun lagre(dto: StatistikkSakDTO, context: TransactionContext?) {
         data.get()[SakId.fromString(dto.sakId)] = dto
     }
+
+    override fun oppdaterAdressebeskyttelse(sakId: SakId) {
+        val statistikkSak = data.get()[sakId]
+        statistikkSak?.let {
+            data.get()[sakId] = it.copy(
+                opprettetAv = "-5",
+                saksbehandler = "-5",
+                ansvarligBeslutter = "-5",
+            )
+        }
+    }
+
+    override fun hent(sakId: SakId): List<StatistikkSakDTO> {
+        return data.get()[sakId]?.let { listOf(it) } ?: emptyList()
+    }
 }

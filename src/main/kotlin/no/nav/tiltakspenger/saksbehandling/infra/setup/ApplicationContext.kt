@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingGateway
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingHttpClient
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient
+import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.AktorV2Consumer
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.PersonhendelseService
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.jobb.PersonhendelseJobb
@@ -140,6 +141,8 @@ open class ApplicationContext(
         PersonhendelseService(
             sakRepo = sakContext.sakRepo,
             personhendelseRepository = personhendelseRepository,
+            personGateway = personContext.personGateway,
+            statistikkSakRepo = statistikkContext.statistikkSakRepo,
         )
     }
 
@@ -155,6 +158,12 @@ open class ApplicationContext(
             personhendelseRepository = personhendelseRepository,
             sakRepo = sakContext.sakRepo,
             oppgaveGateway = oppgaveGateway,
+        )
+    }
+
+    open val aktorV2Consumer by lazy {
+        AktorV2Consumer(
+            topic = Configuration.aktorV2Topic,
         )
     }
 

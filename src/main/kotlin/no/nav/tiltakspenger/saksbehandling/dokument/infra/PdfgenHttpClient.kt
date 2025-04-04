@@ -19,6 +19,8 @@ import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -135,12 +137,14 @@ internal class PdfgenHttpClient(
         utbetalingsvedtak: Utbetalingsvedtak,
         tiltaksdeltagelser: List<Tiltaksdeltagelse>,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        sammenligning: (MeldekortBeregning.MeldeperiodeBeregnet) -> SammenligningAvBeregninger.SammenligningPerMeldeperiode,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
                 utbetalingsvedtak.toJsonRequest(
                     hentSaksbehandlersNavn,
                     tiltaksdeltagelser,
+                    sammenligning,
                 )
             },
             errorContext = "SakId: ${utbetalingsvedtak.sakId}, saksnummer: ${utbetalingsvedtak.saksnummer}, vedtakId: ${utbetalingsvedtak.id}",

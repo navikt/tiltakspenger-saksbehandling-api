@@ -1,10 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.infra.repo.sak
 
+import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.BehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.BehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.BehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.StatistikkSakDTO
 import org.intellij.lang.annotations.Language
 
@@ -15,6 +20,39 @@ internal class StatistikkSakRepoImpl(
         sessionFactory.withTransaction(context) { tx ->
             lagre(dto, tx)
         }
+    }
+
+    override fun oppdaterAdressebeskyttelse(sakId: SakId) {
+        sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """
+                        update statistikk_sak set opprettetAv = :verdi, saksbehandler = :verdi, ansvarligbeslutter = :verdi where sak_id = :sak_id
+                    """.trimIndent(),
+                    mapOf(
+                        "verdi" to "-5",
+                        "sak_id" to sakId.toString(),
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
+    // Denne brukes kun for tester
+    override fun hent(sakId: SakId): List<StatistikkSakDTO> = sessionFactory.withSession {
+        it.run(
+            queryOf(
+                """
+                    select *
+                    from statistikk_sak
+                    where sak_id = :sak_id
+                """.trimIndent(),
+                mapOf(
+                    "sak_id" to sakId.toString(),
+                ),
+            ).map { row -> row.toStatistikkSakDTO() }
+                .asList,
+        )
     }
 
     companion object {
@@ -38,9 +76,9 @@ internal class StatistikkSakRepoImpl(
                         "forventetOppstartTidspunkt" to dto.forventetOppstartTidspunkt,
                         "tekniskTidspunkt" to dto.tekniskTidspunkt,
                         "sakYtelse" to dto.sakYtelse,
-                        "behandlingType" to dto.behandlingType.toString(),
-                        "behandlingStatus" to dto.behandlingStatus.toString(),
-                        "behandlingResultat" to dto.behandlingResultat.toString(),
+                        "behandlingType" to dto.behandlingType.name,
+                        "behandlingStatus" to dto.behandlingStatus.name,
+                        "behandlingResultat" to dto.behandlingResultat?.name,
                         "resultatBegrunnelse" to dto.resultatBegrunnelse,
                         "behandlingMetode" to dto.behandlingMetode,
                         "opprettetAv" to dto.opprettetAv,
@@ -122,4 +160,37 @@ internal class StatistikkSakRepoImpl(
         )
         """.trimIndent()
     }
+
+    private fun Row.toStatistikkSakDTO() =
+        StatistikkSakDTO(
+            sakId = string("sak_id"),
+            saksnummer = string("saksnummer"),
+            behandlingId = string("behandlingid"),
+            relatertBehandlingId = stringOrNull("relatertbehandlingid"),
+            fnr = string("fnr"),
+            mottattTidspunkt = localDateTime("mottatt_tidspunkt"),
+            registrertTidspunkt = localDateTime("registrerttidspunkt"),
+            ferdigBehandletTidspunkt = localDateTimeOrNull("ferdigbehandlettidspunkt"),
+            vedtakTidspunkt = localDateTimeOrNull("vedtaktidspunkt"),
+            endretTidspunkt = localDateTime("endrettidspunkt"),
+            utbetaltTidspunkt = localDateTimeOrNull("utbetalttidspunkt"),
+            søknadsformat = string("soknadsformat"),
+            forventetOppstartTidspunkt = localDateOrNull("forventetoppstarttidspunkt"),
+            tekniskTidspunkt = localDateTime("teknisktidspunkt"),
+            sakYtelse = string("sakytelse"),
+            behandlingType = BehandlingType.valueOf(string("behandlingtype")),
+            behandlingStatus = BehandlingStatus.valueOf(string("behandlingstatus")),
+            behandlingResultat = stringOrNull("behandlingresultat")?.let { BehandlingResultat.valueOf(it) },
+            resultatBegrunnelse = stringOrNull("resultatbegrunnelse"),
+            behandlingMetode = string("behandlingmetode"),
+            opprettetAv = string("opprettetav"),
+            saksbehandler = stringOrNull("saksbehandler"),
+            ansvarligBeslutter = stringOrNull("ansvarligbeslutter"),
+            tilbakekrevingsbeløp = doubleOrNull("tilbakekrevingsbelop"),
+            funksjonellPeriodeFom = localDateOrNull("funksjonellperiode_fra_og_med"),
+            funksjonellPeriodeTom = localDateOrNull("funksjonellperiode_til_og_med"),
+            avsender = string("avsender"),
+            versjon = string("versjon"),
+            hendelse = string("hendelse"),
+        )
 }

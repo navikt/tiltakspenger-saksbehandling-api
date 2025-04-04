@@ -486,7 +486,7 @@ fun SendMeldekortTilBeslutningKommando.beregn(
     meldeperiodeBeregninger: MeldeperiodeBeregninger,
     barnetilleggsPerioder: Periodisering<AntallBarn?>,
     tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
-) = BeregnMeldekort(
+): NonEmptyList<MeldeperiodeBeregnet> = BeregnMeldekort(
     kommando = this,
     barnetilleggsPerioder = barnetilleggsPerioder,
     tiltakstypePerioder = tiltakstypePerioder,

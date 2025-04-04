@@ -107,6 +107,7 @@ internal fun start(
             applicationContext.tiltaksdeltakerArenaConsumer,
             applicationContext.tiltaksdeltakerKometConsumer,
             applicationContext.leesahConsumer,
+            applicationContext.aktorV2Consumer,
         )
         consumers.forEach { it.run() }
     }

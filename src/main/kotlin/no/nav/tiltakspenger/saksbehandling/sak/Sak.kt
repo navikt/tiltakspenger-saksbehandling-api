@@ -145,8 +145,9 @@ data class Sak(
     }
 
     fun genererMeldeperioder(clock: Clock): Pair<Sak, List<Meldeperiode>> {
-        val ikkeGenererEtter = ikkeGenererEtter(clock)
-        return this.meldeperiodeKjeder.genererMeldeperioder(this.vedtaksliste, ikkeGenererEtter, clock)
+        val ikkeGenererEtterDato = ikkeGenererEtter(clock)
+        return this.meldeperiodeKjeder
+            .genererMeldeperioder(this.vedtaksliste, ikkeGenererEtterDato, clock)
             .let { this.copy(meldeperiodeKjeder = it.first) to it.second }
     }
 
