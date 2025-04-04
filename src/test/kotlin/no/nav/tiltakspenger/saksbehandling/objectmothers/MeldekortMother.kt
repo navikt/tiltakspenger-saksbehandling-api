@@ -42,7 +42,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingB
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -185,13 +184,10 @@ interface MeldekortMother : MotherOfAllMothers {
         ),
     ): MeldekortBeregning {
         return MeldekortBeregning(
-            sakId = sakId,
-            meldekortId = meldekortId,
-            beregninger = nonEmptyListOf(
+            nonEmptyListOf(
                 MeldeperiodeBeregning(
                     kjedeId = kjedeId,
                     meldekortId = meldekortId,
-                    sakId = sakId,
                     dager = beregningDager,
                 ),
             ),
@@ -378,7 +374,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 kommando,
                 barnetilleggsPerioder,
                 tiltakstypePerioder,
-                MeldeperiodeBeregninger(meldekortBehandlinger),
+                meldekortBehandlinger.meldeperiodeBeregninger,
                 clock,
             )
             .map { (meldekortBehandlinger, meldekort) ->
@@ -444,7 +440,7 @@ interface MeldekortMother : MotherOfAllMothers {
             kommando,
             barnetilleggsPerioder,
             tiltakstypePerioder,
-            MeldeperiodeBeregninger(this),
+            this.meldeperiodeBeregninger,
             clock,
         )
             .map { (meldekortBehandlinger, meldekort) ->

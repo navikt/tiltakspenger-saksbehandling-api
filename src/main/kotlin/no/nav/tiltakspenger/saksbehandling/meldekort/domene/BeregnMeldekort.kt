@@ -68,7 +68,6 @@ private data class BeregnMeldekort(
 
     /** Returnerer beregnede dager fra kommando, og evt nye beregninger for påfølgende meldeperioder på saken */
     fun beregn(): NonEmptyList<MeldeperiodeBeregning> {
-        val innsendtSakId = kommando.sakId
         val innsendtMeldekortId = kommando.meldekortId
         val innsendtMeldekortFraOgMed = kommando.dager.first().dag
         val innsendtMeldekortKjedeId = eksisterendeMeldekortBehandlinger
@@ -86,7 +85,6 @@ private data class BeregnMeldekort(
                     MeldeperiodeBeregning(
                         kjedeId = innsendtMeldekortKjedeId,
                         meldekortId = innsendtMeldekortId,
-                        sakId = innsendtSakId,
                         dager = beregnInnsendteDager(kommando),
                     ),
                 ).plus(
@@ -106,7 +104,6 @@ private data class BeregnMeldekort(
                         MeldeperiodeBeregning(
                             kjedeId = kjedeId,
                             meldekortId = meldekort.id,
-                            sakId = innsendtSakId,
                             dager = beregnedeDager,
                         )
                     },

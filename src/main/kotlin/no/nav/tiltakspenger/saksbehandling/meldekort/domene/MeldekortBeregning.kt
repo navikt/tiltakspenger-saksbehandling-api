@@ -1,14 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import arrow.core.NonEmptyList
-import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import java.time.LocalDate
 
 data class MeldekortBeregning(
-    val sakId: SakId,
-    val meldekortId: MeldekortId,
     val beregninger: NonEmptyList<MeldeperiodeBeregning>,
 ) : List<MeldeperiodeBeregning> by beregninger {
     val fraOgMed: LocalDate get() = this.first().fraOgMed

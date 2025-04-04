@@ -3,16 +3,14 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import java.time.DayOfWeek
 import java.time.LocalDate
 
 data class MeldeperiodeBeregning(
-    /** Id for meldekortbehandlingen som gjorde denne beregningen */
+    /** Id for meldekortbehandlingen som utløste denne beregningen */
     val meldekortId: MeldekortId,
     val kjedeId: MeldeperiodeKjedeId,
-    val sakId: SakId,
     val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
 ) {
     val fraOgMed: LocalDate get() = dager.first().dato

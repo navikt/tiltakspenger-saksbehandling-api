@@ -9,17 +9,18 @@ data class MeldeperiodeBeregninger(
     private val godkjenteMeldekort = meldekortBehandlinger.godkjenteMeldekort
         .sortedBy { it.iverksattTidspunkt }
 
-    private val meldeperiodeBeregninger = godkjenteMeldekort
-        .flatMap { it.beregning.beregninger }
+    private val meldeperiodeBeregninger by lazy {
+        godkjenteMeldekort
+            .flatMap { it.beregning.beregninger }
+    }
 
-    val beregningerForKjede: Map<MeldeperiodeKjedeId, List<MeldeperiodeBeregning>> =
+    val beregningerForKjede: Map<MeldeperiodeKjedeId, List<MeldeperiodeBeregning>> by lazy {
         meldeperiodeBeregninger.groupBy { it.kjedeId }
+    }
 
-    val sisteBeregningForKjede: Map<MeldeperiodeKjedeId, MeldeperiodeBeregning> =
+    val sisteBeregningForKjede: Map<MeldeperiodeKjedeId, MeldeperiodeBeregning> by lazy {
         beregningerForKjede.entries.associate { it.key to it.value.last() }
-
-    val beregningerForMeldekort: Map<MeldekortId, List<MeldeperiodeBeregning>> =
-        meldeperiodeBeregninger.groupBy { it.meldekortId }
+    }
 
     fun sisteBeregningFør(meldekortId: MeldekortId, kjedeId: MeldeperiodeKjedeId): MeldeperiodeBeregning? {
         return beregningerForKjede[kjedeId]?.takeWhile { it.meldekortId != meldekortId }?.last()

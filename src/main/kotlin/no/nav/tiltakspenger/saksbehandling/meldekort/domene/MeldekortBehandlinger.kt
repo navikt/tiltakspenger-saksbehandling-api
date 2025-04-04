@@ -78,7 +78,7 @@ data class MeldekortBehandlinger(
     val åpenMeldekortBehandling: MeldekortBehandling? by lazy { meldekortUnderBehandling ?: meldekortUnderBeslutning }
     val finnesÅpenMeldekortBehandling: Boolean by lazy { åpenMeldekortBehandling != null }
 
-    val meldeperiodeBeregninger = MeldeperiodeBeregninger(this)
+    val meldeperiodeBeregninger by lazy { MeldeperiodeBeregninger(this) }
 
     /**
      * @throws NullPointerException Dersom det ikke er noen meldekort-behandling som kan sendes til beslutter. Eller siste meldekort ikke er i tilstanden 'under behandling'.
@@ -126,11 +126,7 @@ data class MeldekortBehandlinger(
             meldeperiodeBeregninger = meldeperiodeBeregninger,
         )
 
-        val beregning = MeldekortBeregning(
-            sakId = sakId,
-            meldekortId = meldekortId,
-            beregninger = beregninger,
-        )
+        val beregning = MeldekortBeregning(beregninger)
 
         return meldekort.sendTilBeslutter(
             dager = kommando.dager.tilMeldekortDager(meldekort.meldeperiode.antallDagerForPeriode),

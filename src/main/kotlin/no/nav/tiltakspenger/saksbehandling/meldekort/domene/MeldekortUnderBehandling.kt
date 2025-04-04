@@ -59,7 +59,6 @@ data class MeldekortUnderBehandling(
         require(dager.periode == this.meldeperiode.periode) {
             "Perioden for meldekortet må være lik meldeperioden"
         }
-        require(sakId == beregning.sakId)
         if (!saksbehandler.erSaksbehandler()) {
             return KanIkkeSendeMeldekortTilBeslutning.MåVæreSaksbehandler(saksbehandler.roller).left()
         }

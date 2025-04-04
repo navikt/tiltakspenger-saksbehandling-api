@@ -4,7 +4,6 @@ import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
@@ -174,20 +173,19 @@ private fun ReduksjonAvYtelsePåGrunnAvFravær.toDb(): ReduksjonAvYtelsePåGrunn
         ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort -> ReduksjonAvYtelsePåGrunnAvFraværDb.YtelsenFallerBort
     }
 
-private fun MeldeperiodeBeregningDbJson.tilMeldeperiodeBeregning(sakId: SakId): MeldeperiodeBeregning {
+private fun MeldeperiodeBeregningDbJson.tilMeldeperiodeBeregning(): MeldeperiodeBeregning {
     val meldekortId = MeldekortId.fromString(this.meldekortId)
 
     return MeldeperiodeBeregning(
         kjedeId = MeldeperiodeKjedeId(this.kjedeId),
         meldekortId = meldekortId,
-        sakId = sakId,
         dager = this.dager.map { dag ->
             dag.tilMeldeperiodeBeregningDag(meldekortId) as MeldeperiodeBeregningDag.Utfylt
         }.toNonEmptyListOrNull()!!,
     )
 }
 
-fun String.tilBeregninger(sakId: SakId): NonEmptyList<MeldeperiodeBeregning> =
+fun String.tilBeregninger(): NonEmptyList<MeldeperiodeBeregning> =
     deserializeList<MeldeperiodeBeregningDbJson>(this).map {
-        it.tilMeldeperiodeBeregning(sakId)
+        it.tilMeldeperiodeBeregning()
     }.toNonEmptyListOrNull()!!
