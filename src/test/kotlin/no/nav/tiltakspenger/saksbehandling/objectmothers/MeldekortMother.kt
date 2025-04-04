@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
@@ -183,7 +183,6 @@ interface MeldekortMother : MotherOfAllMothers {
             tiltakstype,
             barnetilleggsPerioder,
         ),
-        beregnet: LocalDateTime = nå(fixedClock),
     ): MeldekortBeregning {
         return MeldekortBeregning(
             sakId = sakId,
@@ -193,7 +192,6 @@ interface MeldekortMother : MotherOfAllMothers {
                     kjedeId = kjedeId,
                     meldekortId = meldekortId,
                     sakId = sakId,
-                    beregnet = beregnet,
                     dager = beregningDager,
                 ),
             ),
@@ -267,6 +265,7 @@ interface MeldekortMother : MotherOfAllMothers {
     }
 
     fun beregnMeldekortperioder(
+        clock: Clock = TikkendeKlokke(),
         vurderingsperiode: Periode,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
@@ -296,6 +295,7 @@ interface MeldekortMother : MotherOfAllMothers {
 
         return kommandoer.drop(1).foldIndexed(
             førsteBeregnetMeldekort(
+                clock = clock,
                 vurderingsperiode = vurderingsperiode,
                 meldekortId = kommandoer.first().meldekortId,
                 sakId = sakId,
@@ -307,6 +307,7 @@ interface MeldekortMother : MotherOfAllMothers {
             ).first,
         ) { index, meldekortperioder, kommando ->
             meldekortperioder.beregnNesteMeldekort(
+                clock = clock,
                 kommando = kommando,
                 fnr = fnr,
                 vurderingsperiode = vurderingsperiode,
@@ -328,7 +329,7 @@ interface MeldekortMother : MotherOfAllMothers {
         sakId: SakId,
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         fnr: Fnr = Fnr.random(),
-        clock: Clock = fixedClock,
+        clock: Clock = TikkendeKlokke(),
         opprettet: LocalDateTime = nå(clock),
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
@@ -395,7 +396,7 @@ interface MeldekortMother : MotherOfAllMothers {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
-        clock: Clock = fixedClock,
+        clock: Clock = TikkendeKlokke(),
         opprettet: LocalDateTime = nå(clock),
         barnetilleggsPerioder: Periodisering<AntallBarn?>,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?> = Periodisering(

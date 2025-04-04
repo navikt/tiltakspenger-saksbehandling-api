@@ -6,9 +6,7 @@ import kotliquery.Session
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
-import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -23,11 +21,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinge
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingBegrunnelse
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKorrigering
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import java.time.LocalDateTime
 
 class MeldekortBehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -206,41 +202,6 @@ class MeldekortBehandlingPostgresRepo(
             }
         }
 
-        /** Henter korrigeringer på tidligere meldeperioder som endret beregningen i perioden til dette meldekortet */
-        private fun hentKorrigeringer(
-            meldekortId: MeldekortId,
-            kjedeId: MeldeperiodeKjedeId,
-            opprettet: LocalDateTime,
-            session: Session,
-        ): List<MeldeperiodeKorrigering> {
-            return session.run(
-                sqlQuery(
-                    """
-                    select
-                        m.*,
-                        korrigering
-                    from meldekortbehandling m, jsonb_array_elements(beregninger) korrigering
-                    where korrigering->>'meldekortId' = :id
-                        and m.status = 'GODKJENT'
-                        and m.opprettet > :opprettet
-                        and m.meldeperiode_kjede_id != :kjede_id
-                    order by m.opprettet
-                    """,
-                    "id" to meldekortId.toString(),
-                    "kjede_id" to kjedeId.toString(),
-                    "opprettet" to opprettet,
-                ).map {
-                    MeldeperiodeKorrigering(
-                        meldekortId = MeldekortId.fromString(it.string("id")),
-                        kjedeId = MeldeperiodeKjedeId(it.string("meldeperiode_kjede_id")),
-                        iverksatt = it.localDateTime("iverksatt_tidspunkt"),
-                        periode = Periode(it.localDate("fra_og_med"), it.localDate("til_og_med")),
-                        dager = it.string("korrigering").tilBeregning().dager,
-                    )
-                }.asList,
-            )
-        }
-
         private fun fromRow(
             row: Row,
             session: Session,
@@ -275,7 +236,7 @@ class MeldekortBehandlingPostgresRepo(
 
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.GODKJENT, MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> {
-                    val beregninger = row.string("beregninger").tilBeregninger()
+                    val beregninger = row.string("beregninger").tilBeregninger(sakId)
 
                     val meldekortBeregning = MeldekortBeregning(
                         sakId = sakId,
@@ -307,7 +268,7 @@ class MeldekortBehandlingPostgresRepo(
                 }
                 // TODO jah: Her blander vi sammen behandlingsstatus og om man har rett/ikke-rett. Det er mulig at man har startet en meldekortbehandling også endres statusen til IKKE_RETT_TIL_TILTAKSPENGER. Da vil behandlingen sånn som koden er nå implisitt avsluttes. Det kan hende vi bør endre dette når vi skiller grunnlag, innsending og behandling.
                 MeldekortBehandlingStatus.IKKE_BEHANDLET, MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> {
-                    val beregning = row.stringOrNull("beregninger")?.tilBeregninger()?.let {
+                    val beregning = row.stringOrNull("beregninger")?.tilBeregninger(sakId)?.let {
                         MeldekortBeregning(
                             sakId = sakId,
                             meldekortId = id,

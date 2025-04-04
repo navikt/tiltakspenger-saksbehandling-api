@@ -7,14 +7,12 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 data class MeldeperiodeBeregning(
     /** Id for meldekortbehandlingen som gjorde denne beregningen */
     val meldekortId: MeldekortId,
     val kjedeId: MeldeperiodeKjedeId,
     val sakId: SakId,
-    val beregnet: LocalDateTime,
     val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
 ) {
     val fraOgMed: LocalDate get() = dager.first().dato

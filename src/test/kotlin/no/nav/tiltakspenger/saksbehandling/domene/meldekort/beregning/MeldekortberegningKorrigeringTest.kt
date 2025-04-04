@@ -348,10 +348,6 @@ internal class MeldekortberegningKorrigeringTest {
         )
     }
 
-    /** TODO: fiks beregningen så denne ikke feiler
-     *  Denne feiler ettersom beregningen ikke tar høyde for flere korrigeringer som ender med å beregne en påfølgende
-     *  meldeperiode tilbake til opprinnelig tilstand
-     * */
     @Test
     fun `Skal korrigere en korrigering, som fører til opprinnelig beregning av neste periode`() {
         val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(

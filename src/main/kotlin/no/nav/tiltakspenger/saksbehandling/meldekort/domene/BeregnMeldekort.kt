@@ -27,7 +27,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBesl
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.IKKE_DELTATT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.SPERRET
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 private const val ANTALL_EGENMELDINGSDAGER = 3
 private const val ANTALL_ARBEIDSGIVERDAGER = 13
@@ -76,8 +75,6 @@ private data class BeregnMeldekort(
             .hentMeldekortBehandling(kommando.meldekortId)!!
             .kjedeId
 
-        val beregnetTs = LocalDateTime.now()
-
         return eksisterendeMeldekortBehandlinger.sisteBehandledeMeldekortPerKjede
             .filterNot { it.kjedeId == innsendtMeldekortKjedeId }
             .partition { it.periode.fraOgMed < innsendtMeldekortFraOgMed }
@@ -90,7 +87,6 @@ private data class BeregnMeldekort(
                         kjedeId = innsendtMeldekortKjedeId,
                         meldekortId = innsendtMeldekortId,
                         sakId = innsendtSakId,
-                        beregnet = beregnetTs,
                         dager = beregnInnsendteDager(kommando),
                     ),
                 ).plus(
@@ -111,7 +107,6 @@ private data class BeregnMeldekort(
                             kjedeId = kjedeId,
                             meldekortId = meldekort.id,
                             sakId = innsendtSakId,
-                            beregnet = beregnetTs,
                             dager = beregnedeDager,
                         )
                     },

@@ -6,15 +6,26 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 data class MeldeperiodeBeregninger(
     val meldekortBehandlinger: MeldekortBehandlinger,
 ) {
-    private val beregningerSortert =
-        meldekortBehandlinger.godkjenteMeldekort.flatMap { it.beregning.beregninger }.sortedBy { it.beregnet }
+    private val godkjenteMeldekort = meldekortBehandlinger.godkjenteMeldekort
+        .sortedBy { it.iverksattTidspunkt }
+
+    private val meldeperiodeBeregninger = godkjenteMeldekort
+        .flatMap { it.beregning.beregninger }
 
     val beregningerForKjede: Map<MeldeperiodeKjedeId, List<MeldeperiodeBeregning>> =
-        beregningerSortert.groupBy { it.kjedeId }
+        meldeperiodeBeregninger.groupBy { it.kjedeId }
 
     val sisteBeregningForKjede: Map<MeldeperiodeKjedeId, MeldeperiodeBeregning> =
         beregningerForKjede.entries.associate { it.key to it.value.last() }
 
     val beregningerForMeldekort: Map<MeldekortId, List<MeldeperiodeBeregning>> =
-        beregningerSortert.groupBy { it.meldekortId }
+        meldeperiodeBeregninger.groupBy { it.meldekortId }
+
+    init {
+        godkjenteMeldekort.zipWithNext { a, b ->
+            require(a.iverksattTidspunkt!! < b.iverksattTidspunkt!!) {
+                "Meldekortene må ha unike iverksatt tidspunkt og være sorterte - Fant ${a.id} ${a.iverksattTidspunkt} / ${b.id} ${b.iverksattTidspunkt}"
+            }
+        }
+    }
 }
