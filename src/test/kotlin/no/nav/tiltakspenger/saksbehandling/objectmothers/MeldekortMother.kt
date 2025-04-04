@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.common.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
+import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
@@ -565,7 +566,11 @@ fun MeldekortBehandling.tilSendMeldekortTilBeslutterKommando(
                 MeldekortDagStatus.FRAVÆR_SYKT_BARN -> SendMeldekortTilBeslutningKommando.Status.FRAVÆR_SYKT_BARN
                 MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV -> SendMeldekortTilBeslutningKommando.Status.FRAVÆR_VELFERD_GODKJENT_AV_NAV
                 MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> SendMeldekortTilBeslutningKommando.Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-                MeldekortDagStatus.IKKE_UTFYLT -> throw IllegalStateException("Alle dager må være utfylt")
+                MeldekortDagStatus.IKKE_UTFYLT -> if (dag.dato.erHelg()) {
+                    SendMeldekortTilBeslutningKommando.Status.IKKE_DELTATT
+                } else {
+                    SendMeldekortTilBeslutningKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
+                }
             },
         )
     }.toNonEmptyListOrNull()!!
