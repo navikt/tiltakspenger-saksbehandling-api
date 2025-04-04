@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestSaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
+import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseRepository
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseRepository
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
@@ -45,6 +46,7 @@ internal class TestDataHelper(
     val personRepo = PersonPostgresRepo(sessionFactory)
     val tiltaksdeltakerKafkaRepository = TiltaksdeltakerKafkaRepository(sessionFactory)
     val personhendelseRepository = PersonhendelseRepository(sessionFactory)
+    val identhendelseRepository = IdenthendelseRepository(sessionFactory)
 }
 
 private val dbManager = TestDatabaseManager()

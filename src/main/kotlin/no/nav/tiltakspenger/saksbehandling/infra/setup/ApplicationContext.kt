@@ -26,7 +26,9 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingGateway
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingHttpClient
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient
+import no.nav.tiltakspenger.saksbehandling.person.identhendelser.IdenthendelseService
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.AktorV2Consumer
+import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseRepository
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.PersonhendelseService
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.jobb.PersonhendelseJobb
@@ -146,6 +148,19 @@ open class ApplicationContext(
         )
     }
 
+    open val identhendelseRepository: IdenthendelseRepository by lazy {
+        IdenthendelseRepository(
+            sessionFactory = sessionFactory as PostgresSessionFactory,
+        )
+    }
+
+    open val identhendelseService: IdenthendelseService by lazy {
+        IdenthendelseService(
+            sakRepo = sakContext.sakRepo,
+            identhendelseRepository = identhendelseRepository,
+        )
+    }
+
     open val leesahConsumer by lazy {
         LeesahConsumer(
             topic = Configuration.leesahTopic,
@@ -164,6 +179,7 @@ open class ApplicationContext(
     open val aktorV2Consumer by lazy {
         AktorV2Consumer(
             topic = Configuration.aktorV2Topic,
+            identhendelseService = identhendelseService,
         )
     }
 
