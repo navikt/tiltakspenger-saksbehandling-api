@@ -80,27 +80,38 @@ data class MeldekortBehandlinger(
     val finnesÅpenMeldekortBehandling: Boolean by lazy { åpenMeldekortBehandling != null }
 
     /**
-     * TODO Henrik skal rydde her :)
+     * Tar alle behandlinger frem til behandling vi ønsker å sammenligne med. Alle beregningene for behandlingene
+     * legges flatt og grupperes på meldeperiode. Deretter hentes den nyeste beregningen i hver gruppering.
+     *
+     * TODO Henrik endrer dette når han forstår eksempelet bedre
+     * John: Et eksempel fordi dette er en veldig tilspisset løsning:
+     *
+     *           U1-B1                    U2-B1
+     * |-----------------------|-----------------------|
+     *           U3-B1                    U3-B2
+     * |-----------------------|-----------------------|
+     *           U4-B1                    U4-B2
+     * |-----------------------|-----------------------| (nåtilstand)
+     *
      * U4 er nåtilstand, U1, U2, U3 er forrige utbetalinger
      * Liste med U1, U2, U3 og U4
      * Godkjente meldekort, hente behandlingen per utbetaling
-     *
-     * takeWhile() fjerner U4
-     * plukker ut beregningene fra behandlingene og står igjen med U1-B1, U2-B1, U3-B1 og U3-B2
-     * grupperer på meldeperiode, gir to grupperinger. (U1-B1 og U3-B1) og (U2-B1 og U3-B2)
-     * maxBy henter den nyeste innad i hver gruppering
-     * står igjen med beregningstidslinja U3-B1 og U3-B2
+     * - takeWhile() fjerner U4
+     * - plukker ut beregningene fra behandlingene og står igjen med U1-B1, U2-B1, U3-B1 og U3-B2
+     * - grupperer på meldeperiode, gir to grupperinger. (U1-B1 og U3-B1) og (U2-B1 og U3-B2)
+     * - maxBy henter den nyeste innad i hver gruppering
+     *  står igjen med beregningstidslinja U3-B1 og U3-B2
      */
     fun beregningFremTilBehandling(
         periode: Periode,
         behandlingId: MeldekortId,
     ): MeldekortBeregning.MeldeperiodeBeregnet? {
         return godkjenteMeldekort
-            .takeWhile { it.id != behandlingId } // Tar alle behandlinger uten om behandlingen vi skal sammenligne med
-            .flatMap { it.beregning.beregninger } // Alle beregninger på alle behandlinger
-            .groupBy { it.periode } // Grupperer på meldeperiode
-            .map { it.value.maxBy { meldeperiodeBeregnet -> meldeperiodeBeregnet.opprettet } } // Hent den nyeste i hver meldeperiode
-            .singleOrNull { it.periode == periode } // Forventer bare en beregning for perioden eller null
+            .takeWhile { behandletMeldekort -> behandletMeldekort.id != behandlingId }
+            .flatMap { it.beregning.beregninger }
+            .groupBy { it.periode }
+            .map { it.value.maxBy { meldeperiodeBeregnet -> meldeperiodeBeregnet.opprettet } }
+            .singleOrNull { it.periode == periode }
     }
 
     /**

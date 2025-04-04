@@ -21,8 +21,8 @@ class UtbetalingsvedtakDTOTest {
         )
     }
 
-    private fun sammenlign(sammenligning: MeldekortBeregning.MeldeperiodeBeregnet): SammenligningAvBeregninger.SammenligningPerMeldeperiode {
-        return SammenligningAvBeregninger.SammenligningPerMeldeperiode(
+    private fun sammenlign(sammenligning: MeldekortBeregning.MeldeperiodeBeregnet): SammenligningAvBeregninger.MeldeperiodeSammenligninger {
+        return SammenligningAvBeregninger.MeldeperiodeSammenligninger(
             periode = sammenligning.periode,
             dager = emptyList(),
         )
