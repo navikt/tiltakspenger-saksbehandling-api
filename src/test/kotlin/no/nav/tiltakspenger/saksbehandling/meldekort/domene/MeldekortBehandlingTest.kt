@@ -52,7 +52,7 @@ class MeldekortBehandlingTest {
         )
 
         actual.getOrFail().let {
-            it.shouldBeInstanceOf<MeldekortBehandling.MeldekortUnderBehandling>()
+            it.shouldBeInstanceOf<MeldekortUnderBehandling>()
             it.attesteringer.size shouldBe 1
             it.attesteringer.first().shouldBeEqualToIgnoringFields(expetcedAttestering, Attestering::id)
         }

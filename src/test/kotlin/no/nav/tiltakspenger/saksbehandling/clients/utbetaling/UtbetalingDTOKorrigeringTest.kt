@@ -1,16 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.clients.utbetaling
 
 import arrow.core.NonEmptyList
-import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -22,6 +20,7 @@ import java.time.LocalDateTime
 
 internal class UtbetalingDTOKorrigeringTest {
     val fnr = Fnr.fromString("09863149336")
+    val sakId = SakId.random()
     val saksnummer = Saksnummer("202410011001")
     val førstePeriode = Periode(
         LocalDate.of(2025, 1, 6),
@@ -34,14 +33,6 @@ internal class UtbetalingDTOKorrigeringTest {
         periode: Periode,
         opprettet: LocalDateTime,
         dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-        beregninger: NonEmptyList<MeldekortBeregning.MeldeperiodeBeregnet> = nonEmptyListOf(
-            MeldekortBeregning.MeldeperiodeBeregnet(
-                kjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
-                meldekortId = meldekortId,
-                dager = dager,
-                opprettet = opprettet,
-            ),
-        ),
     ) = ObjectMother.utbetalingsvedtak(
         fnr = fnr,
         saksnummer = saksnummer,
@@ -50,12 +41,10 @@ internal class UtbetalingDTOKorrigeringTest {
         meldekortBehandling = ObjectMother.meldekortBehandlet(
             id = meldekortId,
             periode = periode,
-            meldekortperiodeBeregning = ObjectMother.utfyltMeldekortperiode(
+            meldekortperiodeBeregning = ObjectMother.meldekortBeregning(
                 startDato = periode.fraOgMed,
                 meldekortId = meldekortId,
-                dager = dager,
-                beregninger = beregninger,
-                opprettet = opprettet,
+                beregningDager = dager,
             ),
         ),
     )

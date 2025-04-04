@@ -214,6 +214,7 @@ internal class SakPostgresRepo(
     override fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate, limit: Int): List<SakId> {
         return sessionFactory.withSessionContext { sessionContext ->
             sessionContext.withSession { session ->
+                @Suppress("SqlAggregates")
                 session.run(
                     queryOf(
                         // language=SQL
@@ -266,6 +267,7 @@ internal class SakPostgresRepo(
                     MeldekortBehandlingPostgresRepo.hentForSakId(id, session) ?: MeldekortBehandlinger.empty()
                 val meldeperiodekjeder = MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(id, session)
                 val soknader = SøknadDAO.hentForSakId(id, session)
+
                 Sak(
                     id = id,
                     saksnummer = Saksnummer(verdi = string("saksnummer")),

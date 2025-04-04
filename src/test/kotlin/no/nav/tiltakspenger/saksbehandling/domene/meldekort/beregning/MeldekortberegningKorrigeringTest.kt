@@ -347,4 +347,38 @@ internal class MeldekortberegningKorrigeringTest {
             redusert = 2 + 5,
         )
     }
+
+    @Test
+    fun `Skal korrigere en korrigering, som fører til opprinnelig beregning av neste periode`() {
+        val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+            vurderingsperiode = vurderingsperiode,
+            meldeperioder = nonEmptyListOf(
+                periodeMedFullDeltagelse(førsteDag),
+
+                periodeMedStatuser(
+                    førsteDag.plusWeeks(2),
+                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(2) { Status.SPERRET },
+                    List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(3) { Status.FRAVÆR_SYKT_BARN },
+                    List(2) { Status.SPERRET },
+                ),
+
+                periodeMedStatuser(
+                    førsteDag,
+                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(2) { Status.SPERRET },
+                    List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(1) { Status.FRAVÆR_SYKT_BARN },
+                    List(2) { Status.SPERRET },
+                ),
+
+                periodeMedFullDeltagelse(førsteDag),
+            ),
+        )
+
+        meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
+            full = 20,
+        )
+    }
 }

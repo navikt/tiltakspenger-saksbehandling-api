@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periodisering.norskTidspunktFormatter
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SammenligningAvBeregninger
@@ -78,7 +79,7 @@ private data class UtbetalingsvedtakDTO(
 suspend fun Utbetalingsvedtak.toJsonRequest(
     hentSaksbehandlersNavn: suspend (String) -> String,
     tiltaksdeltagelser: List<Tiltaksdeltagelse>,
-    sammenlign: (MeldekortBeregning.MeldeperiodeBeregnet) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
+    sammenlign: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
 ): String {
     return UtbetalingsvedtakDTO(
         fødselsnummer = fnr.verdi,
@@ -108,7 +109,7 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
 }
 
 private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
-    sammenlign: (MeldekortBeregning.MeldeperiodeBeregnet) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
+    sammenlign: (MeldekortBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
 ): UtbetalingsvedtakDTO.SammenligningAvBeregningerDTO {
     return this.meldekortbehandling.beregning.beregninger
         .map { sammenlign(it) }

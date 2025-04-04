@@ -35,6 +35,12 @@ class SendMeldekortTilBeslutningKommando(
             val dag: LocalDate,
             val status: Status,
         )
+
+        fun tilMeldekortDager(maksAntallDagerForPeriode: Int) =
+            MeldekortDager(
+                this.map { MeldekortDag(dato = it.dag, status = it.status.tilMeldekortDagStatus()) },
+                maksAntallDagerForPeriode,
+            )
     }
 
     enum class Status {
@@ -71,5 +77,16 @@ class SendMeldekortTilBeslutningKommando(
         }
 
         fun girRett() = SPERRET != this
+
+        fun tilMeldekortDagStatus() = when (this) {
+            SPERRET -> MeldekortDagStatus.SPERRET
+            DELTATT_UTEN_LØNN_I_TILTAKET -> MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET
+            DELTATT_MED_LØNN_I_TILTAKET -> MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET
+            IKKE_DELTATT -> MeldekortDagStatus.IKKE_DELTATT
+            FRAVÆR_SYK -> MeldekortDagStatus.FRAVÆR_SYK
+            FRAVÆR_SYKT_BARN -> MeldekortDagStatus.FRAVÆR_SYKT_BARN
+            FRAVÆR_VELFERD_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV
+            FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
+        }
     }
 }

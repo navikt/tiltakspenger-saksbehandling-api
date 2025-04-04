@@ -10,7 +10,7 @@ data class MeldeperiodeKorrigeringDTO(
     val kjedeId: String,
     val periode: PeriodeDTO,
     val iverksatt: LocalDateTime,
-    val dager: List<MeldekortDagDTO>,
+    val dager: List<MeldeperiodeBeregningDagDTO>,
 )
 
 fun MeldeperiodeKorrigering.tilDTO(): MeldeperiodeKorrigeringDTO = MeldeperiodeKorrigeringDTO(
@@ -18,5 +18,5 @@ fun MeldeperiodeKorrigering.tilDTO(): MeldeperiodeKorrigeringDTO = MeldeperiodeK
     kjedeId = this.kjedeId.toString(),
     periode = periode.toDTO(),
     iverksatt = this.iverksatt,
-    dager = this.dager.toMeldekortDagerDTO(),
+    dager = this.dager.toMeldeperiodeBeregningDagerDTO(),
 )

@@ -40,8 +40,8 @@ data class SammenligningAvBeregninger(
 }
 
 fun sammenlign(
-    forrigeBeregning: MeldekortBeregning.MeldeperiodeBeregnet?,
-    nyBeregning: MeldekortBeregning.MeldeperiodeBeregnet,
+    forrigeBeregning: MeldeperiodeBeregning?,
+    nyBeregning: MeldeperiodeBeregning,
 ): SammenligningAvBeregninger.MeldeperiodeSammenligninger {
     // I de fleste cases er det ikke gjort noen korrigering, dermed er det bare nåtilstand som gjelder og det vil ikke finnes noen  "forrige" beregning
     if (forrigeBeregning == null) {
@@ -118,17 +118,5 @@ private fun MeldeperiodeBeregningDag.toStatus(): MeldekortDagStatus =
         is VelferdGodkjentAvNav -> MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV
         is VelferdIkkeGodkjentAvNav -> MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
         is IkkeDeltatt -> MeldekortDagStatus.IKKE_DELTATT
-        is Sperret -> MeldekortDagStatus.IKKE_RETT
+        is Sperret -> MeldekortDagStatus.SPERRET
     }
-
-enum class MeldekortDagStatus {
-    IKKE_RETT,
-    IKKE_UTFYLT,
-    DELTATT_UTEN_LØNN_I_TILTAKET,
-    DELTATT_MED_LØNN_I_TILTAKET,
-    IKKE_DELTATT,
-    FRAVÆR_SYK,
-    FRAVÆR_SYKT_BARN,
-    FRAVÆR_VELFERD_GODKJENT_AV_NAV,
-    FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV,
-}
