@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -31,6 +30,8 @@ data class MeldekortBehandlinger(
 
     val periode: Periode by lazy { Periode(verdi.first().fraOgMed, verdi.last().tilOgMed) }
     val sakId: SakId by lazy { verdi.first().sakId }
+
+    val meldeperiodeBeregninger = MeldeperiodeBeregninger.fraMeldekortBehandlinger(this)
 
     private val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
 
@@ -233,10 +234,4 @@ data class MeldekortBehandlinger(
             )
         }
     }
-}
-
-fun NonEmptyList<MeldekortBehandling>.tilMeldekortperioder(): MeldekortBehandlinger {
-    return MeldekortBehandlinger(
-        verdi = this,
-    )
 }

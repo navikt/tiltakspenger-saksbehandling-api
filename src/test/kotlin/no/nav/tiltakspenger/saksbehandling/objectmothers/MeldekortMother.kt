@@ -401,7 +401,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 kommando,
                 barnetilleggsPerioder,
                 tiltakstypePerioder,
-                MeldeperiodeBeregninger.empty(),
+                MeldeperiodeBeregninger.fraMeldekortBehandlinger(meldekortBehandlinger),
                 clock,
             )
             .map { (meldekortBehandlinger, meldekort) ->
@@ -466,7 +466,7 @@ interface MeldekortMother : MotherOfAllMothers {
             kommando,
             barnetilleggsPerioder,
             tiltakstypePerioder,
-            MeldeperiodeBeregninger.empty(),
+            MeldeperiodeBeregninger.fraMeldekortBehandlinger(this),
             clock,
         )
             .map { (meldekortBehandlinger, meldekort) ->

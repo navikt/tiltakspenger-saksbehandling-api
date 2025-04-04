@@ -26,7 +26,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPersonMedSkjerming
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -70,7 +69,6 @@ class SakServiceImpl(
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             soknader = emptyList(),
-            meldeperiodeBeregninger = MeldeperiodeBeregninger.empty(),
         )
         sakRepo.opprettSak(sak)
         logger.info { "Opprettet ny sak med saksnummer ${sak.saksnummer}, correlationId $correlationId" }

@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostg
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
@@ -280,7 +279,6 @@ internal class SakPostgresRepo(
                     meldeperiodeKjeder = meldeperiodekjeder,
                     brukersMeldekort = BrukersMeldekortPostgresRepo.hentForSakId(id, session),
                     soknader = soknader,
-                    meldeperiodeBeregninger = MeldeperiodeBeregninger.empty(),
                 ).also { sak ->
                     localDateOrNull("første_dag_som_gir_rett").also {
                         require(sak.førsteDagSomGirRett == it) {

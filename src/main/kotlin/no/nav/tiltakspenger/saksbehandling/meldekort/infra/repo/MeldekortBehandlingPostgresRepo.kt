@@ -24,7 +24,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKorrigering
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortperioder
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -200,7 +199,11 @@ class MeldekortBehandlingPostgresRepo(
                     """,
                     "sakId" to sakId.toString(),
                 ).map { fromRow(it, session) }.asList,
-            ).let { it.toNonEmptyListOrNull()?.tilMeldekortperioder() }
+            ).let { behandlinger ->
+                behandlinger.toNonEmptyListOrNull()?.let {
+                    MeldekortBehandlinger(it)
+                }
+            }
         }
 
         /** Henter korrigeringer på tidligere meldeperioder som endret beregningen i perioden til dette meldekortet */
