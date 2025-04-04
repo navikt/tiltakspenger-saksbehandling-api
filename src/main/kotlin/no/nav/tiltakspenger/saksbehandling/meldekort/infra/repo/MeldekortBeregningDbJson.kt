@@ -174,7 +174,7 @@ private fun ReduksjonAvYtelsePåGrunnAvFravær.toDb(): ReduksjonAvYtelsePåGrunn
         ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort -> ReduksjonAvYtelsePåGrunnAvFraværDb.YtelsenFallerBort
     }
 
-private fun MeldeperiodeBeregningDbJson.tilMeldeperiodeBeregnet(sakId: SakId): MeldeperiodeBeregning {
+private fun MeldeperiodeBeregningDbJson.tilMeldeperiodeBeregning(sakId: SakId): MeldeperiodeBeregning {
     val meldekortId = MeldekortId.fromString(this.meldekortId)
 
     return MeldeperiodeBeregning(
@@ -189,5 +189,5 @@ private fun MeldeperiodeBeregningDbJson.tilMeldeperiodeBeregnet(sakId: SakId): M
 
 fun String.tilBeregninger(sakId: SakId): NonEmptyList<MeldeperiodeBeregning> =
     deserializeList<MeldeperiodeBeregningDbJson>(this).map {
-        it.tilMeldeperiodeBeregnet(sakId)
+        it.tilMeldeperiodeBeregning(sakId)
     }.toNonEmptyListOrNull()!!

@@ -5,7 +5,7 @@ import arrow.core.right
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
@@ -17,7 +17,7 @@ class GenererFakeUtbetalingsvedtakGateway : GenererUtbetalingsvedtakGateway {
         utbetalingsvedtak: Utbetalingsvedtak,
         tiltaksdeltagelser: List<Tiltaksdeltagelse>,
         hentSaksbehandlersNavn: suspend (String) -> String,
-        sammenligning: (MeldekortBeregning.MeldeperiodeBeregnet) -> SammenligningAvBeregninger.SammenligningPerMeldeperiode,
+        sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.SammenligningPerMeldeperiode,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response.right()
     }

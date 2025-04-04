@@ -22,7 +22,7 @@ data class MeldekortBehandlingDTO(
     val navkontor: String,
     val navkontorNavn: String?,
     val dager: List<MeldekortDagDTO>,
-    val beregning: List<MeldeperiodeBeregnetDTO>?,
+    val beregning: List<MeldeperiodeBeregningDTO>?,
     val brukersMeldekortId: String?,
     val type: MeldekortBehandlingTypeDTO,
     val begrunnelse: String?,

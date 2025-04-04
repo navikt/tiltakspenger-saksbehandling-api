@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.sammenlign
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortGateway
@@ -36,10 +36,10 @@ class JournalførUtbetalingsvedtakService(
                 log.info { "Journalfører utbetalingsvedtak. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
                 Either.catch {
                     val sak = sakRepo.hentForSakId(utbetalingsvedtak.sakId)!!
-                    val sammenligning = { beregningEtter: MeldekortBeregning.MeldeperiodeBeregnet ->
-                        val beregningFør = sak.meldekortBehandlinger.beregningFremTilBehandling(
-                            beregningEtter.periode,
-                            utbetalingsvedtak.meldekortbehandling.id,
+                    val sammenligning = { beregningEtter: MeldeperiodeBeregning ->
+                        val beregningFør = sak.meldeperiodeBeregninger.sisteBeregningFør(
+                            beregningEtter.meldekortId,
+                            beregningEtter.kjedeId,
                         )
                         sammenlign(beregningFør, beregningEtter)
                     }

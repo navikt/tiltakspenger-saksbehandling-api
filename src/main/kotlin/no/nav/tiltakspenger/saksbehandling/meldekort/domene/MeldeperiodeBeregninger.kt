@@ -21,6 +21,10 @@ data class MeldeperiodeBeregninger(
     val beregningerForMeldekort: Map<MeldekortId, List<MeldeperiodeBeregning>> =
         meldeperiodeBeregninger.groupBy { it.meldekortId }
 
+    fun sisteBeregningFør(meldekortId: MeldekortId, kjedeId: MeldeperiodeKjedeId): MeldeperiodeBeregning? {
+        return beregningerForKjede[kjedeId]?.takeWhile { it.meldekortId != meldekortId }?.last()
+    }
+
     init {
         godkjenteMeldekort.zipWithNext { a, b ->
             require(a.iverksattTidspunkt!! < b.iverksattTidspunkt!!) {

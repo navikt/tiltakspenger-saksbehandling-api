@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.clients.pdfgen
 
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.toJsonRequest
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
@@ -21,7 +21,7 @@ class UtbetalingsvedtakDTOTest {
         )
     }
 
-    private fun sammenlign(sammenligning: MeldekortBeregning.MeldeperiodeBeregnet): SammenligningAvBeregninger.SammenligningPerMeldeperiode {
+    private fun sammenlign(sammenligning: MeldeperiodeBeregning): SammenligningAvBeregninger.SammenligningPerMeldeperiode {
         return SammenligningAvBeregninger.SammenligningPerMeldeperiode(
             periode = sammenligning.periode,
             dager = emptyList(),

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periodisering.norskTidspunktFormatter
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SammenligningAvBeregninger
@@ -78,7 +78,7 @@ private data class UtbetalingsvedtakDTO(
 suspend fun Utbetalingsvedtak.toJsonRequest(
     hentSaksbehandlersNavn: suspend (String) -> String,
     tiltaksdeltagelser: List<Tiltaksdeltagelse>,
-    sammenlign: (MeldekortBeregning.MeldeperiodeBeregnet) -> SammenligningAvBeregninger.SammenligningPerMeldeperiode,
+    sammenlign: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.SammenligningPerMeldeperiode,
 ): String {
     return UtbetalingsvedtakDTO(
         fødselsnummer = fnr.verdi,
@@ -107,7 +107,7 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
     ).let { serialize(it) }
 }
 
-private fun Utbetalingsvedtak.toBeregningDifferanseDTO(sammenlign: (MeldekortBeregning.MeldeperiodeBeregnet) -> SammenligningAvBeregninger.SammenligningPerMeldeperiode): UtbetalingsvedtakDTO.BeregningSammenligningDTO {
+private fun Utbetalingsvedtak.toBeregningDifferanseDTO(sammenlign: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.SammenligningPerMeldeperiode): UtbetalingsvedtakDTO.BeregningSammenligningDTO {
     return this.meldekortbehandling.beregning.beregninger
         .map { sammenlign(it) }
         .map { sammenligning ->
