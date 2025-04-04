@@ -137,7 +137,7 @@ internal class PdfgenHttpClient(
         utbetalingsvedtak: Utbetalingsvedtak,
         tiltaksdeltagelser: List<Tiltaksdeltagelse>,
         hentSaksbehandlersNavn: suspend (String) -> String,
-        sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.SammenligningPerMeldeperiode,
+        sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {

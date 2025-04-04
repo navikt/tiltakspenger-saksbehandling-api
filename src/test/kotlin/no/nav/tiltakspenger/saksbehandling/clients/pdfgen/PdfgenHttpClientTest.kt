@@ -22,8 +22,8 @@ class PdfgenHttpClientTest {
         }
     }
 
-    private fun sammenlign(sammenligning: MeldeperiodeBeregning): SammenligningAvBeregninger.SammenligningPerMeldeperiode {
-        return SammenligningAvBeregninger.SammenligningPerMeldeperiode(
+    private fun sammenlign(sammenligning: MeldeperiodeBeregning): SammenligningAvBeregninger.MeldeperiodeSammenligninger {
+        return SammenligningAvBeregninger.MeldeperiodeSammenligninger(
             periode = sammenligning.periode,
             dager = emptyList(),
         )
