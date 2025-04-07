@@ -11,7 +11,7 @@ data class MeldekortBeregning(
     val tilOgMed: LocalDate get() = this.last().tilOgMed
     val periode = Periode(fraOgMed, tilOgMed)
 
-    val dagerPåMeldekortet = beregninger.first().dager
+    val dagerFraMeldekortet = beregninger.first().dager
     val alleDagerBeregnet = beregninger.flatMap { it.dager }
 
     init {

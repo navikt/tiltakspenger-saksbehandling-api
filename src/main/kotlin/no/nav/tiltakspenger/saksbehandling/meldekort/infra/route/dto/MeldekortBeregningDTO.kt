@@ -8,7 +8,7 @@ data class MeldeperiodeBeregningDTO(
     val dager: List<MeldeperiodeBeregningDagDTO>,
 )
 
-fun MeldekortBeregning.toMeldekortBeregningDTO(): List<MeldeperiodeBeregningDTO> {
+fun MeldekortBeregning.tilMeldekortBeregningDTO(): List<MeldeperiodeBeregningDTO> {
     return this.toList().map {
         MeldeperiodeBeregningDTO(
             kjedeId = it.kjedeId.toString(),
