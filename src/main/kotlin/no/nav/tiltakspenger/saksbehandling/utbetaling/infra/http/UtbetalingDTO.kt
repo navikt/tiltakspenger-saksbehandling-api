@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -34,7 +35,7 @@ fun Utbetalingsvedtak.toDTO(
 
     val tidligereUtbetalinger = forrigeUtbetalingJson
         ?.let { deserialize<IverksettV2Dto>(it) }
-        ?.hentIkkeOppdaterteUtbetalinger(nyeOgOppdaterteUtbetalinger) ?: emptyList()
+        ?.hentIkkeOppdaterteUtbetalinger(meldekortbehandling.beregning) ?: emptyList()
 
     return IverksettV2Dto(
         sakId = vedtak.saksnummer.toString(),
@@ -55,15 +56,10 @@ fun Utbetalingsvedtak.toDTO(
     ).let { serialize(it) }
 }
 
-private fun IverksettV2Dto.hentIkkeOppdaterteUtbetalinger(oppdaterteUtbetalinger: List<UtbetalingV2Dto>): List<UtbetalingV2Dto> {
-    val oppdaterteMeldekortIder = oppdaterteUtbetalinger.map {
-        val stønadsdata = it.stønadsdata as StønadsdataTiltakspengerV2Dto
-        stønadsdata.meldekortId
-    }
-
-    return this.vedtak.utbetalinger.filterNot { tidligereUtbetaling ->
+private fun IverksettV2Dto.hentIkkeOppdaterteUtbetalinger(meldekortBeregning: MeldekortBeregning): List<UtbetalingV2Dto> {
+    return this.vedtak.utbetalinger.filter { tidligereUtbetaling ->
         val stønadsdata = tidligereUtbetaling.stønadsdata as StønadsdataTiltakspengerV2Dto
-        oppdaterteMeldekortIder.contains(stønadsdata.meldekortId)
+        meldekortBeregning.beregninger.none { it.kjedeId.verdi == stønadsdata.meldekortId }
     }
 }
 

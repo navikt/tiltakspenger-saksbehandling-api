@@ -71,7 +71,7 @@ data class MeldekortBehandlet(
             "Til og med dato for beregningsperioden må være nyere eller lik meldeperioden"
         }
         when (status) {
-            IKKE_BEHANDLET -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status IKKE_UTFYLT")
+            IKKE_BEHANDLET -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status IKKE_BEHANDLET")
             KLAR_TIL_BESLUTNING -> {
                 require(iverksattTidspunkt == null)
                 // Kommentar jah: Når vi legger til underkjenn, bør vi også legge til et atteserings objekt som for Behandling. beslutter vil da flyttes dit.

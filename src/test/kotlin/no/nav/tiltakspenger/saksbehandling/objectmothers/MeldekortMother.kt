@@ -239,6 +239,27 @@ interface MeldekortMother : MotherOfAllMothers {
         }.toNonEmptyListOrNull()!!
     }
 
+    fun tiltaksdagerMedLønn(
+        startDato: LocalDate,
+        meldekortId: MeldekortId,
+        tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
+        antallDager: Int = 5,
+        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
+    ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattMedLønnITiltaket> {
+        require(antallDager in 1..5) {
+            "Antall sammenhengende dager vil aldri være mer mindre enn 1 eller mer enn 5, men var $antallDager"
+        }
+        return List(antallDager) { index ->
+            val dato = startDato.plusDays(index.toLong())
+            MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattMedLønnITiltaket.create(
+                dato = dato,
+                meldekortId = meldekortId,
+                tiltakstype = tiltakstype,
+                antallBarn = barnetilleggsPerioder.hentVerdiForDag(dato) ?: AntallBarn.ZERO,
+            )
+        }.toNonEmptyListOrNull()!!
+    }
+
     fun ikkeTiltaksdager(
         startDato: LocalDate,
         meldekortId: MeldekortId,

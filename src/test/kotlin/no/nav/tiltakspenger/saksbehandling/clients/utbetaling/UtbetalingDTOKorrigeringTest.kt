@@ -294,4 +294,169 @@ internal class UtbetalingDTOKorrigeringTest {
 
         korrigertJson.shouldEqualJson(forventetKorrigertJson)
     }
+
+    @Test
+    fun `Skal korrigere til deltatt med lønn`() {
+        val førsteMeldekortId = MeldekortId.random()
+        val korrigertMeldekortId = MeldekortId.random()
+
+        val førsteUtbetalingsvedtak = lagUtbetalingsVedtak(
+            id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6"),
+            meldekortId = førsteMeldekortId,
+            periode = førstePeriode,
+            opprettet = LocalDateTime.parse("2025-01-01T00:00:00.000001"),
+            dager = ObjectMother.maksAntallDeltattTiltaksdagerIMeldekortperiode(
+                startDato = førstePeriode.fraOgMed,
+                meldekortId = førsteMeldekortId,
+                tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+            ),
+        )
+
+        val korrigertUtbetalingsvedtak = lagUtbetalingsVedtak(
+            id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S7"),
+            meldekortId = korrigertMeldekortId,
+            opprettet = LocalDateTime.parse("2025-01-19T00:00:00.000001"),
+            periode = førstePeriode,
+            dager = ObjectMother.tiltaksdager(
+                startDato = førstePeriode.fraOgMed,
+                meldekortId = korrigertMeldekortId,
+                tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                antallDager = 5,
+            ).plus(
+                ObjectMother.ikkeTiltaksdager(
+                    startDato = førstePeriode.fraOgMed.plusDays(5),
+                    meldekortId = korrigertMeldekortId,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                    antallDager = 2,
+                ),
+            ).plus(
+                ObjectMother.tiltaksdagerMedLønn(
+                    startDato = førstePeriode.fraOgMed.plusDays(7),
+                    meldekortId = korrigertMeldekortId,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                    antallDager = 5,
+                ),
+            ).plus(
+                ObjectMother.ikkeTiltaksdager(
+                    startDato = førstePeriode.fraOgMed.plusDays(12),
+                    meldekortId = korrigertMeldekortId,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                    antallDager = 2,
+                ),
+            ).toNonEmptyListOrNull()!!,
+        )
+
+        val førsteJson = førsteUtbetalingsvedtak.toDTO(null)
+
+        @Language("JSON")
+        val forventetKorrigertJson =
+            """
+            {
+              "sakId": "202410011001",
+              "behandlingId": "0SZ5FBEE6YZG8S7",
+              "iverksettingId": null,
+              "personident": {
+                "verdi": "09863149336"
+              },
+              "vedtak": {
+                "vedtakstidspunkt": "2025-01-19T00:00:00.000001",
+                "saksbehandlerId": "saksbehandler",
+                "beslutterId": "beslutter",
+                "utbetalinger": [
+                  {
+                    "beløp": 298,
+                    "satstype": "DAGLIG_INKL_HELG",
+                    "fraOgMedDato": "2025-01-06",
+                    "tilOgMedDato": "2025-01-10",
+                    "stønadsdata": {
+                      "stønadstype": "GRUPPE_AMO",
+                      "barnetillegg": false,
+                      "brukersNavKontor": "0220",
+                      "meldekortId": "2025-01-06/2025-01-19"
+                    }
+                  }
+                ]
+              },
+              "forrigeIverksetting": null
+            }
+            """.trimIndent()
+
+        korrigertUtbetalingsvedtak.toDTO(førsteJson).shouldEqualJson(forventetKorrigertJson)
+    }
+
+    @Test
+    fun `Skal korrigere til null-beløp`() {
+        val førsteMeldekortId = MeldekortId.random()
+        val korrigertMeldekortId = MeldekortId.random()
+
+        val førsteUtbetalingsvedtak = lagUtbetalingsVedtak(
+            id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6"),
+            meldekortId = førsteMeldekortId,
+            periode = førstePeriode,
+            opprettet = LocalDateTime.parse("2025-01-01T00:00:00.000001"),
+            dager = ObjectMother.maksAntallDeltattTiltaksdagerIMeldekortperiode(
+                startDato = førstePeriode.fraOgMed,
+                meldekortId = førsteMeldekortId,
+                tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+            ),
+        )
+
+        val korrigertUtbetalingsvedtak = lagUtbetalingsVedtak(
+            id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S7"),
+            meldekortId = korrigertMeldekortId,
+            opprettet = LocalDateTime.parse("2025-01-19T00:00:00.000001"),
+            periode = førstePeriode,
+            dager = ObjectMother.tiltaksdagerMedLønn(
+                startDato = førstePeriode.fraOgMed,
+                meldekortId = korrigertMeldekortId,
+                tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                antallDager = 5,
+            ).plus(
+                ObjectMother.ikkeTiltaksdager(
+                    startDato = førstePeriode.fraOgMed.plusDays(5),
+                    meldekortId = korrigertMeldekortId,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                    antallDager = 2,
+                ),
+            ).plus(
+                ObjectMother.tiltaksdagerMedLønn(
+                    startDato = førstePeriode.fraOgMed.plusDays(7),
+                    meldekortId = korrigertMeldekortId,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                    antallDager = 5,
+                ),
+            ).plus(
+                ObjectMother.ikkeTiltaksdager(
+                    startDato = førstePeriode.fraOgMed.plusDays(12),
+                    meldekortId = korrigertMeldekortId,
+                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                    antallDager = 2,
+                ),
+            ).toNonEmptyListOrNull()!!,
+        )
+
+        val førsteJson = førsteUtbetalingsvedtak.toDTO(null)
+
+        @Language("JSON")
+        val forventetKorrigertJson =
+            """
+            {
+              "sakId": "202410011001",
+              "behandlingId": "0SZ5FBEE6YZG8S7",
+              "iverksettingId": null,
+              "personident": {
+                "verdi": "09863149336"
+              },
+              "vedtak": {
+                "vedtakstidspunkt": "2025-01-19T00:00:00.000001",
+                "saksbehandlerId": "saksbehandler",
+                "beslutterId": "beslutter",
+                "utbetalinger": []
+              },
+              "forrigeIverksetting": null
+            }
+            """.trimIndent()
+
+        korrigertUtbetalingsvedtak.toDTO(førsteJson).shouldEqualJson(forventetKorrigertJson)
+    }
 }
