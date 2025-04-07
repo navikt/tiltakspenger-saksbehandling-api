@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeIverksetteMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
@@ -56,7 +57,7 @@ class IverksettMeldekortService(
         val meldekortBehandling: MeldekortBehandling = sak.hentMeldekortBehandling(meldekortId)
             ?: throw IllegalArgumentException("Fant ikke meldekort med id $meldekortId i sak $sakId")
 
-        require(meldekortBehandling is MeldekortBehandling.MeldekortBehandlet) {
+        require(meldekortBehandling is MeldekortBehandlet) {
             "Meldekortet må være behandlet for å iverksettes"
         }
         require(meldekortBehandling.beslutter == null && meldekortBehandling.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING) {
@@ -73,7 +74,7 @@ class IverksettMeldekortService(
             val utbetalingsvedtak = iverksattMeldekortbehandling.opprettUtbetalingsvedtak(
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
-                forrigeUtbetalingsvedtak = eksisterendeUtbetalingsvedtak.lastOrNull()?.id,
+                forrigeUtbetalingsvedtak = eksisterendeUtbetalingsvedtak.lastOrNull(),
                 clock = clock,
             )
             val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()

@@ -29,7 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekor
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.KunneIkkeHenteSak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.MeldekortperiodenKanIkkeVæreFremITid
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.MåVæreSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingBegrunnelse
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
@@ -76,7 +76,7 @@ private data class Body(
                 }.toNonEmptyListOrNull()!!,
             ),
             meldekortId = meldekortId,
-            meldekortbehandlingBegrunnelse = begrunnelse?.let { MeldekortbehandlingBegrunnelse(verdi = it) },
+            meldekortbehandlingBegrunnelse = begrunnelse?.let { MeldekortBehandlingBegrunnelse(verdi = it) },
         )
     }
 }

@@ -1,16 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
-import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.toNonEmptyListOrNull
 import kotliquery.Row
 import kotliquery.Session
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
-import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -18,19 +14,16 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.felles.toAttesteringer
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling.MeldekortBehandlet
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingBegrunnelse
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKorrigering
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortperioder
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import java.time.LocalDateTime
 
 class MeldekortBehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -92,8 +85,8 @@ class MeldekortBehandlingPostgresRepo(
                     "opprettet" to meldekortBehandling.opprettet,
                     "fra_og_med" to meldekortBehandling.fraOgMed,
                     "til_og_med" to meldekortBehandling.tilOgMed,
-                    "meldekortdager" to meldekortBehandling.beregning.tilMeldekortdagerDbJson(),
-                    "beregninger" to meldekortBehandling.beregning.tilBeregningerDbJson(),
+                    "meldekortdager" to meldekortBehandling.dager.tilMeldekortDagerDbJson(),
+                    "beregninger" to meldekortBehandling.beregning?.tilBeregningerDbJson(),
                     "saksbehandler" to meldekortBehandling.saksbehandler,
                     "beslutter" to meldekortBehandling.beslutter,
                     "status" to meldekortBehandling.status.toDb(),
@@ -132,8 +125,8 @@ class MeldekortBehandlingPostgresRepo(
                     where id = :id
                     """,
                     "id" to meldekortBehandling.id.toString(),
-                    "meldekortdager" to meldekortBehandling.beregning.tilMeldekortdagerDbJson(),
-                    "beregninger" to meldekortBehandling.beregning.tilBeregningerDbJson(),
+                    "meldekortdager" to meldekortBehandling.dager.tilMeldekortDagerDbJson(),
+                    "beregninger" to meldekortBehandling.beregning?.tilBeregningerDbJson(),
                     "saksbehandler" to meldekortBehandling.saksbehandler,
                     "beslutter" to meldekortBehandling.beslutter,
                     "status" to meldekortBehandling.status.toDb(),
@@ -202,41 +195,11 @@ class MeldekortBehandlingPostgresRepo(
                     """,
                     "sakId" to sakId.toString(),
                 ).map { fromRow(it, session) }.asList,
-            ).let { it.toNonEmptyListOrNull()?.tilMeldekortperioder() }
-        }
-
-        /** Henter korrigeringer på tidligere meldeperioder som endret beregningen i perioden til dette meldekortet */
-        private fun hentKorrigeringer(
-            meldekortId: MeldekortId,
-            kjedeId: MeldeperiodeKjedeId,
-            opprettet: LocalDateTime,
-            session: Session,
-        ): List<MeldeperiodeKorrigering> {
-            return session.run(
-                sqlQuery(
-                    """
-                    select
-                        m.*,
-                        korrigering
-                    from meldekortbehandling m, jsonb_array_elements(beregninger) korrigering
-                    where korrigering->>'meldekortId' = :id
-                        and m.status = 'GODKJENT'
-                        and m.opprettet > :opprettet
-                        and m.meldeperiode_kjede_id != :kjede_id
-                    """,
-                    "id" to meldekortId.toString(),
-                    "kjede_id" to kjedeId.toString(),
-                    "opprettet" to opprettet,
-                ).map {
-                    MeldeperiodeKorrigering(
-                        meldekortId = MeldekortId.fromString(it.string("id")),
-                        kjedeId = MeldeperiodeKjedeId(it.string("meldeperiode_kjede_id")),
-                        iverksatt = it.localDateTime("iverksatt_tidspunkt"),
-                        periode = Periode(it.localDate("fra_og_med"), it.localDate("til_og_med")),
-                        dager = it.string("korrigering").tilBeregning(opprettet).dager,
-                    )
-                }.asList,
-            )
+            ).let { behandlinger ->
+                behandlinger.toNonEmptyListOrNull()?.let {
+                    MeldekortBehandlinger(it)
+                }
+            }
         }
 
         private fun fromRow(
@@ -257,7 +220,7 @@ class MeldekortBehandlingPostgresRepo(
             val opprettet = row.localDateTime("opprettet")
             val ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt")
             val type = row.string("type").tilMeldekortBehandlingType()
-            val begrunnelse = row.stringOrNull("begrunnelse")?.let { MeldekortbehandlingBegrunnelse(verdi = it) }
+            val begrunnelse = row.stringOrNull("begrunnelse")?.let { MeldekortBehandlingBegrunnelse(verdi = it) }
 
             val navkontor = Navkontor(kontornummer = navkontorEnhetsnummer, kontornavn = navkontorNavn)
             val attesteringer = row.string("attesteringer").toAttesteringer().toAttesteringer()
@@ -268,19 +231,14 @@ class MeldekortBehandlingPostgresRepo(
                 meldeperiodeId,
                 session,
             )
-            val meldekortdager = row.string("meldekortdager")
+
+            val dager = row.string("meldekortdager").tilMeldekortDager(maksDagerMedTiltakspengerForPeriode)
 
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.GODKJENT, MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> {
-                    val beregninger = row.string("beregninger").tilBeregninger(opprettet)
+                    val beregninger = row.string("beregninger").tilBeregninger()
 
-                    val meldekortBeregning = MeldekortBeregning.UtfyltMeldeperiode(
-                        sakId = sakId,
-                        maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-                        beregninger = beregninger,
-                    )
-
-                    val korrigeringer = hentKorrigeringer(id, meldeperiode.kjedeId, opprettet, session)
+                    val meldekortBeregning = MeldekortBeregning(beregninger)
 
                     MeldekortBehandlet(
                         id = id,
@@ -288,7 +246,6 @@ class MeldekortBehandlingPostgresRepo(
                         saksnummer = saksnummer,
                         fnr = fnr,
                         opprettet = opprettet,
-                        beregning = meldekortBeregning,
                         navkontor = navkontor,
                         ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                         brukersMeldekort = brukersMeldekort,
@@ -301,33 +258,22 @@ class MeldekortBehandlingPostgresRepo(
                         beslutter = row.stringOrNull("beslutter"),
                         status = status,
                         iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
-                        korrigeringer = korrigeringer,
+                        beregning = meldekortBeregning,
+                        dager = dager,
                     )
                 }
                 // TODO jah: Her blander vi sammen behandlingsstatus og om man har rett/ikke-rett. Det er mulig at man har startet en meldekortbehandling også endres statusen til IKKE_RETT_TIL_TILTAKSPENGER. Da vil behandlingen sånn som koden er nå implisitt avsluttes. Det kan hende vi bør endre dette når vi skiller grunnlag, innsending og behandling.
                 MeldekortBehandlingStatus.IKKE_BEHANDLET, MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> {
-                    val beregning = Either.catch {
-                        MeldekortBeregning.IkkeUtfyltMeldeperiode(
-                            sakId = sakId,
-                            maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-                            dager = meldekortdager.tilIkkeUtfylteMeldekortDager(id),
-                        )
-                    }.getOrElse {
-                        val beregninger = row.string("beregninger").tilBeregninger(opprettet)
-
-                        MeldekortBeregning.UtfyltMeldeperiode(
-                            sakId = sakId,
-                            maksDagerMedTiltakspengerForPeriode = maksDagerMedTiltakspengerForPeriode,
-                            beregninger = beregninger,
-                        )
+                    val beregning = row.stringOrNull("beregninger")?.tilBeregninger()?.let {
+                        MeldekortBeregning(it)
                     }
+
                     MeldekortUnderBehandling(
                         id = id,
                         sakId = sakId,
                         saksnummer = saksnummer,
                         fnr = fnr,
                         opprettet = opprettet,
-                        beregning = beregning,
                         navkontor = navkontor,
                         ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                         brukersMeldekort = brukersMeldekort,
@@ -337,6 +283,8 @@ class MeldekortBehandlingPostgresRepo(
                         begrunnelse = begrunnelse,
                         attesteringer = attesteringer,
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
+                        beregning = beregning,
+                        dager = dager,
                     )
                 }
             }

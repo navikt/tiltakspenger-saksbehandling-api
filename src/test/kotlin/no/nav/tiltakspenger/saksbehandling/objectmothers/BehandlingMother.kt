@@ -34,7 +34,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySøknad
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.personSøknad
@@ -531,7 +530,7 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
         beslutter = beslutter,
     )
     tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-        (sak.meldekortBehandlinger.first() as MeldekortBehandling.MeldekortUnderBehandling).tilSendMeldekortTilBeslutterKommando(
+        sak.meldekortBehandlinger.first().tilSendMeldekortTilBeslutterKommando(
             saksbehandler,
         ),
     )
@@ -558,7 +557,7 @@ suspend fun TestApplicationContext.førsteMeldekortIverksatt(
     )
     tac.meldekortContext.iverksettMeldekortService.iverksettMeldekort(
         IverksettMeldekortKommando(
-            meldekortId = (sak.meldekortBehandlinger.first() as MeldekortBehandling.MeldekortBehandlet).id,
+            meldekortId = sak.meldekortBehandlinger.first().id,
             sakId = sak.id,
             beslutter = beslutter,
             correlationId = correlationId,
