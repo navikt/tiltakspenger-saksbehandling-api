@@ -13,6 +13,8 @@ data class MeldekortDager(
     val tilOgMed: LocalDate get() = this.last().dato
     val periode = Periode(fraOgMed, tilOgMed)
 
+    private val antallDagerMedDeltattEllerFravær: Int get() = this.count { it.harDeltattEllerFravær }
+
     init {
         require(size == 14) { "Et meldekort må ha 14 dager, men hadde $size" }
         require(fraOgMed.dayOfWeek == DayOfWeek.MONDAY) { "Meldekortet må starte på en mandag" }
@@ -22,6 +24,10 @@ data class MeldekortDager(
             require(fraOgMed.plusDays(index.toLong()) == dag.dato) {
                 "Datoene må være sammenhengende og sortert, men var ${this.map { it.dato }}"
             }
+        }
+
+        require(maksAntallDagerForPeriode >= antallDagerMedDeltattEllerFravær) {
+            "For mange dager utfylt - $antallDagerMedDeltattEllerFravær var utfylt, maks antall for perioden er $maksAntallDagerForPeriode"
         }
     }
 

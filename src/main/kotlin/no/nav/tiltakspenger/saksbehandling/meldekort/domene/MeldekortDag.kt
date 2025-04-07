@@ -14,7 +14,22 @@ import java.time.LocalDate
 data class MeldekortDag(
     val dato: LocalDate,
     val status: MeldekortDagStatus,
-)
+) {
+    val harDeltattEllerFravær = when (status) {
+        MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET,
+        MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET,
+        MeldekortDagStatus.FRAVÆR_SYK,
+        MeldekortDagStatus.FRAVÆR_SYKT_BARN,
+        MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV,
+        MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV,
+        -> true
+
+        MeldekortDagStatus.SPERRET,
+        MeldekortDagStatus.IKKE_UTFYLT,
+        MeldekortDagStatus.IKKE_DELTATT,
+        -> false
+    }
+}
 
 enum class MeldekortDagStatus {
     SPERRET,

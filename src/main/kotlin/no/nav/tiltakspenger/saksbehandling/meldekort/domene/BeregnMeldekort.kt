@@ -104,8 +104,7 @@ private data class BeregnMeldekort(
                 meldekort.id,
                 it.dato,
                 it.tilMeldekortDagStatus(),
-                { it.tiltakstype },
-            )
+            ) { it.tiltakstype }
         }.toNonEmptyListOrNull()!!
     }
 
@@ -116,8 +115,7 @@ private data class BeregnMeldekort(
                 kommando.meldekortId,
                 dato,
                 it.status.tilMeldekortDagStatus(),
-                { tiltakstypePerioder.hentVerdiForDag(dato) },
-            )
+            ) { tiltakstypePerioder.hentVerdiForDag(dato) }
         }.toNonEmptyListOrNull()!!
     }
 
@@ -131,7 +129,9 @@ private data class BeregnMeldekort(
 
         val tiltakstype by lazy {
             hentTiltakstype() ?: run {
-                throw IllegalStateException("Fant ingen tiltakstype for dag $dato for meldekort $meldekortId tiltakstypeperiode: ${tiltakstypePerioder.totalePeriode}")
+                throw IllegalStateException(
+                    "Fant ingen tiltakstype for dag $dato for meldekort $meldekortId",
+                )
             }
         }
 
