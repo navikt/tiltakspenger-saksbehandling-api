@@ -1,8 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.infra.repo.stønad
 
+import com.fasterxml.jackson.module.kotlin.readValue
+import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
@@ -93,6 +98,39 @@ class StatistikkStønadPostgresRepo(
         )
     }
 
+    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
+        sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """
+                        update statistikk_stonad set bruker_id = :nytt_fnr where bruker_id = :gammelt_fnr
+                    """.trimIndent(),
+                    mapOf(
+                        "nytt_fnr" to nyttFnr.verdi,
+                        "gammelt_fnr" to gammeltFnr.verdi,
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
+    // Denne brukes kun for tester
+    override fun hent(sakId: SakId): List<StatistikkStønadDTO> = sessionFactory.withSession {
+        it.run(
+            queryOf(
+                """
+                    select *
+                    from statistikk_stonad
+                    where sak_id = :sak_id
+                """.trimIndent(),
+                mapOf(
+                    "sak_id" to sakId.toString(),
+                ),
+            ).map { row -> row.toStatistikkStonadDTO() }
+                .asList,
+        )
+    }
+
     @Language("SQL")
     private val lagreSql =
         """
@@ -174,4 +212,28 @@ class StatistikkStønadPostgresRepo(
         :utbetaling_id
         )
         """.trimIndent()
+
+    private fun Row.toStatistikkStonadDTO() =
+        StatistikkStønadDTO(
+            id = uuid("id"),
+            brukerId = string("bruker_id"),
+            sakId = string("sak_id"),
+            saksnummer = string("saksnummer"),
+            resultat = string("resultat"),
+            sakDato = localDate("sak_dato"),
+            sakFraDato = localDate("gyldig_fra_dato"),
+            sakTilDato = localDate("gyldig_til_dato"),
+            ytelse = string("ytelse"),
+            søknadId = stringOrNull("soknad_id"),
+            søknadDato = localDateOrNull("soknad_dato"),
+            søknadFraDato = localDateOrNull("gyldig_fra_dato_soknad"),
+            søknadTilDato = localDateOrNull("gyldig_til_dato_soknad"),
+            vedtakId = string("vedtak_id"),
+            vedtaksType = string("type"),
+            vedtakDato = localDate("vedtak_dato"),
+            vedtakFom = localDate("fra_og_med"),
+            vedtakTom = localDate("til_og_med"),
+            fagsystem = string("fagsystem"),
+            tiltaksdeltakelser = objectMapper.readValue(string("tiltaksdeltakelser")),
+        )
 }

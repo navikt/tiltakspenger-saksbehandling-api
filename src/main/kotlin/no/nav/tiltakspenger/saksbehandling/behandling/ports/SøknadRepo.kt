@@ -21,4 +21,6 @@ interface SøknadRepo {
     fun finnSakIdForTiltaksdeltakelse(eksternId: String): SakId?
 
     fun lagreAvbruttSøknad(søknad: Søknad, txContext: TransactionContext? = null)
+
+    fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr)
 }

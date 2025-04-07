@@ -108,4 +108,13 @@ class SakFakeRepo(
             return it
         }
     }
+
+    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
+        val sak = data.get().values.find { it.fnr == gammeltFnr }
+        sak?.let {
+            data.get()[it.id] = it.copy(
+                fnr = nyttFnr,
+            )
+        }
+    }
 }

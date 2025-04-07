@@ -247,6 +247,22 @@ internal class SakPostgresRepo(
         }
     }
 
+    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
+        sessionFactory.withSessionContext { sessionContext ->
+            sessionContext.withSession { session ->
+                session.run(
+                    queryOf(
+                        """update sak set fnr = :nytt_fnr where fnr = :gammelt_fnr""",
+                        mapOf(
+                            "nytt_fnr" to nyttFnr.verdi,
+                            "gammelt_fnr" to gammeltFnr.verdi,
+                        ),
+                    ).asUpdate,
+                )
+            }
+        }
+    }
+
     private fun sakFinnes(
         sakId: SakId,
         session: Session,

@@ -93,6 +93,7 @@ object Configuration {
                 "KOMET_TILTAKSDELTAKER_TOPIC" to "komet.tiltaksdeltaker",
                 "LEESAH_TOPIC" to "pdl.leesah",
                 "AKTOR_V2_TOPIC" to "pdl.aktor",
+                "IDENTHENDELSE_TOPIC" to "tpts.identhendelse",
             ),
         )
 
@@ -132,6 +133,7 @@ object Configuration {
                 "KOMET_TILTAKSDELTAKER_TOPIC" to "amt.deltaker-v1",
                 "LEESAH_TOPIC" to "pdl.leesah-v1",
                 "AKTOR_V2_TOPIC" to "pdl.aktor-v2",
+                "IDENTHENDELSE_TOPIC" to "tpts.identhendelse-v1",
             ),
         )
     private val prodProperties =
@@ -170,6 +172,7 @@ object Configuration {
                 "KOMET_TILTAKSDELTAKER_TOPIC" to "amt.deltaker-v1",
                 "LEESAH_TOPIC" to "pdl.leesah-v1",
                 "AKTOR_V2_TOPIC" to "pdl.aktor-v2",
+                "IDENTHENDELSE_TOPIC" to "tpts.identhendelse-v1",
             ),
         )
 
@@ -255,6 +258,7 @@ object Configuration {
     val kometTiltaksdeltakerTopic: String by lazy { config()[Key("KOMET_TILTAKSDELTAKER_TOPIC", stringType)] }
     val leesahTopic: String by lazy { config()[Key("LEESAH_TOPIC", stringType)] }
     val aktorV2Topic: String by lazy { config()[Key("AKTOR_V2_TOPIC", stringType)] }
+    val identhendelseTopic: String by lazy { config()[Key("IDENTHENDELSE_TOPIC", stringType)] }
 
     fun httpPort() = config()[Key("application.httpPort", intType)]
 

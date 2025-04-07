@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
+import java.util.UUID
 
 class IdenthendelseRepository(
     private val sessionFactory: PostgresSessionFactory,
@@ -40,6 +41,54 @@ class IdenthendelseRepository(
                 .map { row -> row.toIdenthendelseDb() }
                 .asList,
         )
+    }
+
+    fun hent(id: UUID): IdenthendelseDb? = sessionFactory.withSession {
+        it.run(
+            queryOf(sqlHentForId, id)
+                .map { row -> row.toIdenthendelseDb() }
+                .asSingle,
+        )
+    }
+
+    fun hentAlleSomIkkeErBehandlet(): List<IdenthendelseDb> = sessionFactory.withSession {
+        it.run(
+            queryOf(sqlHentAlleSomIkkeErBehandlet)
+                .map { row -> row.toIdenthendelseDb() }
+                .asList,
+        )
+    }
+
+    fun oppdaterProdusertHendelse(id: UUID) {
+        sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """
+                        update identhendelse set produsert_hendelse = :produsert_hendelse where id = :id
+                    """.trimIndent(),
+                    mapOf(
+                        "produsert_hendelse" to LocalDateTime.now(),
+                        "id" to id,
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
+    fun oppdaterOppdatertDatabase(id: UUID) {
+        sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """
+                        update identhendelse set oppdatert_database = :oppdatert_database where id = :id
+                    """.trimIndent(),
+                    mapOf(
+                        "oppdatert_database" to LocalDateTime.now(),
+                        "id" to id,
+                    ),
+                ).asUpdate,
+            )
+        }
     }
 
     private fun Row.toIdenthendelseDb() =
@@ -77,4 +126,10 @@ class IdenthendelseRepository(
 
     @Language("SQL")
     private val sqlHentForGammeltFnr = "select * from identhendelse where gammelt_fnr = ?"
+
+    @Language("SQL")
+    private val sqlHentForId = "select * from identhendelse where id = ?"
+
+    @Language("SQL")
+    private val sqlHentAlleSomIkkeErBehandlet = "select * from identhendelse where produsert_hendelse is null or oppdatert_database is null"
 }

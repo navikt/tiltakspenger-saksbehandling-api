@@ -169,6 +169,22 @@ internal object SøknadDAO {
         }
     }
 
+    fun oppdaterFnr(
+        gammeltFnr: Fnr,
+        nyttFnr: Fnr,
+        session: Session,
+    ) {
+        session.run(
+            queryOf(
+                """update søknad set fnr = :nytt_fnr where fnr = :gammelt_fnr""",
+                mapOf(
+                    "nytt_fnr" to nyttFnr.verdi,
+                    "gammelt_fnr" to gammeltFnr.verdi,
+                ),
+            ).asUpdate,
+        )
+    }
+
     private fun lagreSøknad(
         søknad: Søknad,
         session: Session,
