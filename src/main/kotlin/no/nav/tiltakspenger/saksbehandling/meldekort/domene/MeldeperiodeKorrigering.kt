@@ -11,5 +11,5 @@ data class MeldeperiodeKorrigering(
     val kjedeId: MeldeperiodeKjedeId,
     val periode: Periode,
     val iverksatt: LocalDateTime,
-    val dager: NonEmptyList<MeldeperiodeBeregningDag>,
+    val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
 )
