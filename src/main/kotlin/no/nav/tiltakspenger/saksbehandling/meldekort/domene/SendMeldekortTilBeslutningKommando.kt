@@ -12,7 +12,7 @@ import java.time.LocalDate
 /**
  * Representerer en saksbehandler som fyller ut hele meldekortet, godkjenner og sender til beslutter.
  * Denne flyten vil bli annerledes for veileder og bruker.
- * Vi gjør ingen validering i denne klassen, det gjøres heller av [no.nav.tiltakspenger.meldekort.domene.MeldekortBehandling.MeldekortBehandlet]
+ * Vi gjør ingen validering i denne klassen, det gjøres heller av [MeldekortBehandlet]
  *
  */
 class SendMeldekortTilBeslutningKommando(
@@ -21,7 +21,7 @@ class SendMeldekortTilBeslutningKommando(
     val saksbehandler: Saksbehandler,
     val dager: Dager,
     val correlationId: CorrelationId,
-    val meldekortbehandlingBegrunnelse: MeldekortbehandlingBegrunnelse?,
+    val meldekortbehandlingBegrunnelse: MeldekortBehandlingBegrunnelse?,
 ) {
     val periode: Periode = Periode(dager.first().dag, dager.last().dag)
 

@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
-import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
 import java.time.LocalDate
@@ -48,7 +47,7 @@ sealed interface MeldekortBehandling {
     val navkontor: Navkontor
     val iverksattTidspunkt: LocalDateTime?
     val sendtTilBeslutning: LocalDateTime?
-    val begrunnelse: MeldekortbehandlingBegrunnelse?
+    val begrunnelse: MeldekortBehandlingBegrunnelse?
 
     val attesteringer: Attesteringer
 
@@ -86,7 +85,6 @@ sealed interface MeldekortBehandling {
             is MeldekortBehandlet -> this.tilUnderBehandling(
                 nyMeldeperiode = meldeperiode,
                 ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-                tiltakstypePerioder = tiltakstypePerioder,
             )
 
             is MeldekortUnderBehandling -> this.copy(
@@ -103,70 +101,4 @@ sealed interface MeldekortBehandling {
         beslutter: Saksbehandler,
         clock: Clock,
     ): Either<KunneIkkeUnderkjenneMeldekortBehandling, MeldekortBehandling>
-}
-
-/**
- * TODO post-mvp jah: Ved revurderinger av rammevedtaket, så må vi basere oss på både forrige meldekort og revurderingsvedtaket. Dette løser vi å flytte mer logikk til Sak.kt.
- * TODO post-mvp jah: Når vi implementerer delvis innvilgelse vil hele meldekortperioder kunne bli SPERRET.
- */
-fun Sak.opprettMeldekortBehandling(
-    kjedeId: MeldeperiodeKjedeId,
-    navkontor: Navkontor,
-    saksbehandler: Saksbehandler,
-    clock: Clock,
-): MeldekortUnderBehandling {
-    if (this.meldekortBehandlinger.finnesÅpenMeldekortBehandling) {
-        throw IllegalStateException("Kan ikke opprette ny meldekortbehandling når det finnes en åpen behandling på saken (sak $id - kjedeId $kjedeId)")
-    }
-
-    val meldeperiodekjede: MeldeperiodeKjede = this.meldeperiodeKjeder.hentMeldeperiodekjedeForKjedeId(kjedeId)
-        ?: throw IllegalStateException("Kan ikke opprette meldekortbehandling for kjedeId $kjedeId som ikke finnes")
-    val meldeperiode: Meldeperiode = meldeperiodekjede.hentSisteMeldeperiode()
-    val behandlingerKnyttetTilKjede = this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(kjedeId)
-
-    if (this.meldekortBehandlinger.isEmpty()) {
-        require(meldeperiode == this.meldeperiodeKjeder.first().hentSisteMeldeperiode()) {
-            "Dette er første meldekortbehandling på saken og må da behandle den første meldeperiode kjeden. sakId: ${this.id}, meldeperiodekjedeId: ${meldeperiodekjede.kjedeId}"
-        }
-    }
-
-    this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
-        ?.also { foregåendeMeldeperiodekjede ->
-            this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(foregåendeMeldeperiodekjede.kjedeId).also {
-                if (it.none { it.status == GODKJENT }) {
-                    throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige kjede er godkjent")
-                }
-            }
-        }
-
-    if (meldeperiode.ingenDagerGirRett) {
-        throw IllegalStateException("Kan ikke starte behandling på meldeperiode uten dager som gir rett til tiltakspenger")
-    }
-
-    // TODO abn: må støtte flere brukers meldekort på samme kjede før vi åpner for korrigering fra bruker
-    val brukersMeldekort = this.brukersMeldekort.find { it.kjedeId == kjedeId }
-
-    val type =
-        if (behandlingerKnyttetTilKjede.isEmpty()) MeldekortBehandlingType.FØRSTE_BEHANDLING else MeldekortBehandlingType.KORRIGERING
-
-    val meldekortId = MeldekortId.random()
-
-    return MeldekortUnderBehandling(
-        id = meldekortId,
-        sakId = this.id,
-        saksnummer = this.saksnummer,
-        fnr = this.fnr,
-        opprettet = nå(clock),
-        navkontor = navkontor,
-        ikkeRettTilTiltakspengerTidspunkt = null,
-        brukersMeldekort = brukersMeldekort,
-        meldeperiode = meldeperiode,
-        saksbehandler = saksbehandler.navIdent,
-        type = type,
-        begrunnelse = null,
-        attesteringer = Attesteringer.empty(),
-        sendtTilBeslutning = null,
-        beregning = null,
-        dager = meldeperiode.tilMeldekortDager(),
-    )
 }

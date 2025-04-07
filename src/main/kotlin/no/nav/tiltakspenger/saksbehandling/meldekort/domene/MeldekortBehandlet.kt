@@ -10,8 +10,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -26,7 +24,7 @@ import java.time.Clock
 import java.time.LocalDateTime
 
 /**
- * Meldekort utfylt av saksbehandler og godkjent av beslutter.
+ * Meldekort utfylt av saksbehandler og sendt til beslutning eller godkjent av beslutter.
  * Når veileder/bruker har fylt ut meldekortet vil ikke denne klassen kunne gjenbrukes uten endringer. Kanskje vi må ha en egen klasse for veileder-/brukerutfylt meldekort.
  *
  * @param saksbehandler: Obligatorisk dersom meldekortet er utfylt av saksbehandler.
@@ -48,7 +46,7 @@ data class MeldekortBehandlet(
     override val brukersMeldekort: BrukersMeldekort?,
     override val meldeperiode: Meldeperiode,
     override val type: MeldekortBehandlingType,
-    override val begrunnelse: MeldekortbehandlingBegrunnelse?,
+    override val begrunnelse: MeldekortBehandlingBegrunnelse?,
     override val attesteringer: Attesteringer,
     override val beregning: MeldekortBeregning,
     override val dager: MeldekortDager,
@@ -164,7 +162,7 @@ data class MeldekortBehandlet(
             saksbehandler = saksbehandler,
             type = type,
             attesteringer = attesteringer,
-            begrunnelse = MeldekortbehandlingBegrunnelse(begrunnelse.toString()),
+            begrunnelse = MeldekortBehandlingBegrunnelse(begrunnelse.toString()),
             sendtTilBeslutning = sendtTilBeslutning,
             dager = dager,
         ).right()
@@ -173,7 +171,6 @@ data class MeldekortBehandlet(
     fun tilUnderBehandling(
         nyMeldeperiode: Meldeperiode?,
         ikkeRettTilTiltakspengerTidspunkt: LocalDateTime? = null,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
     ): MeldekortUnderBehandling {
         require(this.status != GODKJENT && this.status != IKKE_RETT_TIL_TILTAKSPENGER) {
             "Kan ikke gå fra GODKJENT eller IKKE_RETT_TIL_TILTAKSPENGER til UNDER_BEHANDLING"

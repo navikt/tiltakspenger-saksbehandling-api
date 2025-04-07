@@ -8,7 +8,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 
 data class MeldeperiodeBeregning(
-    /** Id for meldekortbehandlingen som utløste denne beregningen */
+    /** Meldekortbehandlingen som utløste denne beregningen */
     val meldekortId: MeldekortId,
     val kjedeId: MeldeperiodeKjedeId,
     val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,

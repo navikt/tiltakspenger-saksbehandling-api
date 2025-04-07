@@ -58,7 +58,6 @@ class SendMeldekortTilBeslutningService(
                 kommando,
                 sak.barnetilleggsperioder,
                 sak.tiltakstypeperioder,
-                sak.meldeperiodeBeregninger,
                 clock,
             )
             .map {
