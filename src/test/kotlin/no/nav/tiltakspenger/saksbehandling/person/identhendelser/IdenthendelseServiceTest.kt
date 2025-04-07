@@ -110,6 +110,7 @@ class IdenthendelseServiceTest {
                 )
 
                 identhendelseRepository.hent(gammeltFnr) shouldBe emptyList()
+                identhendelseRepository.hent(nyttFnr) shouldBe emptyList()
             }
         }
     }
@@ -155,6 +156,56 @@ class IdenthendelseServiceTest {
                         ),
                     )
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `behandleIdenthendelse - finnes sak på to gamle fnr - feiler`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val identhendelseRepository = testDataHelper.identhendelseRepository
+                val sakPostgresRepo = testDataHelper.sakRepo
+                val identhendelseService = IdenthendelseService(sakPostgresRepo, identhendelseRepository)
+                val gammeltFnr = Fnr.random()
+                val gammeltFnr2 = Fnr.random()
+                val nyttFnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = gammeltFnr)
+                testDataHelper.persisterSakOgSøknad(
+                    fnr = gammeltFnr,
+                    sak = sak,
+                    søknad = ObjectMother.nySøknad(
+                        personopplysninger = ObjectMother.personSøknad(fnr = gammeltFnr),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                    ),
+                )
+                val sak2 = ObjectMother.nySak(fnr = gammeltFnr2, saksnummer = Saksnummer.genererSaknummer(løpenr = "1000"))
+                testDataHelper.persisterSakOgSøknad(
+                    fnr = gammeltFnr2,
+                    sak = sak2,
+                    søknad = ObjectMother.nySøknad(
+                        personopplysninger = ObjectMother.personSøknad(fnr = gammeltFnr2),
+                        sakId = sak2.id,
+                        saksnummer = sak2.saksnummer,
+                    ),
+                )
+
+                assertFailsWith<IllegalStateException> {
+                    identhendelseService.behandleIdenthendelse(
+                        Aktor(
+                            listOf(
+                                Identifikator(nyttFnr.verdi, Type.FOLKEREGISTERIDENT, true),
+                                Identifikator(gammeltFnr.verdi, Type.FOLKEREGISTERIDENT, false),
+                                Identifikator(gammeltFnr2.verdi, Type.FOLKEREGISTERIDENT, false),
+                                Identifikator("1234567890123", Type.AKTORID, true),
+                            ),
+                        ),
+                    )
+                }
+
+                identhendelseRepository.hent(gammeltFnr) shouldBe emptyList()
+                identhendelseRepository.hent(gammeltFnr2) shouldBe emptyList()
             }
         }
     }
