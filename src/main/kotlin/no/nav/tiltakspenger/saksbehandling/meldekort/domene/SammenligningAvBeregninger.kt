@@ -14,70 +14,70 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregnin
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SammenligningAvBeregninger.DagSammenligning
 
 data class SammenligningAvBeregninger(
-    val meldeperiode: List<SammenligningPerMeldeperiode>,
+    val meldeperiode: List<MeldeperiodeSammenligninger>,
 ) {
-    data class SammenligningPerMeldeperiode(
+    data class MeldeperiodeSammenligninger(
         val periode: Periode,
         val dager: List<DagSammenligning>,
     )
 
     data class DagSammenligning(
         val dato: String,
-        val status: NyOgForrige<String>,
-        val beløp: NyOgForrige<Int>,
-        val barnetillegg: NyOgForrige<Int>,
-        val prosent: NyOgForrige<Int>,
+        val status: ForrigeOgGjeldende<String>,
+        val beløp: ForrigeOgGjeldende<Int>,
+        val barnetillegg: ForrigeOgGjeldende<Int>,
+        val prosent: ForrigeOgGjeldende<Int>,
     )
 
-    data class NyOgForrige<T>(
+    /**
+     * Holder på forrige og gjeldende verdi for en gitt type. Gjeldende verdi er enten nåværende tilstand
+     * eller verdien som ble gjeldende etter en endring
+     */
+    data class ForrigeOgGjeldende<T>(
         val forrige: T?,
-        val ny: T,
-    )
-
-    data class MeldeperiodeFørEtter(
-        val meldeperiode: Meldeperiode,
-        val beregningsdager: List<Beregningsdag>,
+        val gjeldende: T,
     )
 }
 
 fun sammenlign(
     forrigeBeregning: MeldekortBeregning.MeldeperiodeBeregnet?,
     nyBeregning: MeldekortBeregning.MeldeperiodeBeregnet,
-): SammenligningAvBeregninger.SammenligningPerMeldeperiode {
+): SammenligningAvBeregninger.MeldeperiodeSammenligninger {
+    // I de fleste cases er det ikke gjort noen korrigering, dermed er det bare nåtilstand som gjelder og det vil ikke finnes noen  "forrige" beregning
     if (forrigeBeregning == null) {
-        return SammenligningAvBeregninger.SammenligningPerMeldeperiode(
+        return SammenligningAvBeregninger.MeldeperiodeSammenligninger(
             periode = nyBeregning.periode,
             dager = nyBeregning.dager.map {
                 DagSammenligning(
                     dato = it.dato.format(norskUkedagOgDatoUtenÅrFormatter),
-                    status = SammenligningAvBeregninger.NyOgForrige(
+                    status = SammenligningAvBeregninger.ForrigeOgGjeldende(
                         forrige = null,
-                        ny = it.toStatus().toString(),
+                        gjeldende = it.toStatus().toString(),
                     ),
-                    beløp = SammenligningAvBeregninger.NyOgForrige(
+                    beløp = SammenligningAvBeregninger.ForrigeOgGjeldende(
                         forrige = null,
-                        ny = it.beløp,
+                        gjeldende = it.beløp,
                     ),
-                    barnetillegg = SammenligningAvBeregninger.NyOgForrige(
+                    barnetillegg = SammenligningAvBeregninger.ForrigeOgGjeldende(
                         forrige = null,
-                        ny = it.beløpBarnetillegg,
+                        gjeldende = it.beløpBarnetillegg,
                     ),
-                    prosent = SammenligningAvBeregninger.NyOgForrige(
+                    prosent = SammenligningAvBeregninger.ForrigeOgGjeldende(
                         forrige = null,
-                        ny = it.prosent,
+                        gjeldende = it.prosent,
                     ),
                 )
             },
         )
     }
-
+    // Hvis det er gjort en korrigering, så må vi sammenligne forrige og gjeldende beregning (det vil si de korrigerte verdiene)
     require(forrigeBeregning.periode == nyBeregning.periode) { "Periodene må være like" }
 
-    return SammenligningAvBeregninger.SammenligningPerMeldeperiode(
+    return SammenligningAvBeregninger.MeldeperiodeSammenligninger(
         periode = forrigeBeregning.periode,
         dager = forrigeBeregning.dager
             .zip(nyBeregning.dager)
-            .map { (forrige, ny) -> sammenlign(forrige, ny) },
+            .map { (forrige, gjeldende) -> sammenlign(forrige, gjeldende) },
     )
 }
 
@@ -89,21 +89,21 @@ private fun sammenlign(
 
     return DagSammenligning(
         dato = forrigeBeregning.dato.format(norskUkedagOgDatoUtenÅrFormatter),
-        status = SammenligningAvBeregninger.NyOgForrige(
+        status = SammenligningAvBeregninger.ForrigeOgGjeldende(
             forrige = forrigeBeregning.toStatus().toString(),
-            ny = nyBeregning.toStatus().toString(),
+            gjeldende = nyBeregning.toStatus().toString(),
         ),
-        beløp = SammenligningAvBeregninger.NyOgForrige(
+        beløp = SammenligningAvBeregninger.ForrigeOgGjeldende(
             forrige = forrigeBeregning.beløp,
-            ny = nyBeregning.beløp,
+            gjeldende = nyBeregning.beløp,
         ),
-        barnetillegg = SammenligningAvBeregninger.NyOgForrige(
+        barnetillegg = SammenligningAvBeregninger.ForrigeOgGjeldende(
             forrige = forrigeBeregning.beløpBarnetillegg,
-            ny = nyBeregning.beløpBarnetillegg,
+            gjeldende = nyBeregning.beløpBarnetillegg,
         ),
-        prosent = SammenligningAvBeregninger.NyOgForrige(
+        prosent = SammenligningAvBeregninger.ForrigeOgGjeldende(
             forrige = forrigeBeregning.prosent,
-            ny = nyBeregning.prosent,
+            gjeldende = nyBeregning.prosent,
         ),
     )
 }

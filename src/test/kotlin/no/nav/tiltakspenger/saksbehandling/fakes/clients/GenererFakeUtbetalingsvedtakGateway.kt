@@ -17,7 +17,7 @@ class GenererFakeUtbetalingsvedtakGateway : GenererUtbetalingsvedtakGateway {
         utbetalingsvedtak: Utbetalingsvedtak,
         tiltaksdeltagelser: List<Tiltaksdeltagelse>,
         hentSaksbehandlersNavn: suspend (String) -> String,
-        sammenligning: (MeldekortBeregning.MeldeperiodeBeregnet) -> SammenligningAvBeregninger.SammenligningPerMeldeperiode,
+        sammenligning: (MeldekortBeregning.MeldeperiodeBeregnet) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response.right()
     }
