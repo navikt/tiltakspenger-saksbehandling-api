@@ -12,7 +12,7 @@ data class MeldeperiodeBeregning(
     val meldekortId: MeldekortId,
     val kjedeId: MeldeperiodeKjedeId,
     val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-) {
+) : List<MeldeperiodeBeregningDag.Utfylt> by dager {
     val fraOgMed: LocalDate get() = dager.first().dato
     val tilOgMed: LocalDate get() = dager.last().dato
     val periode = Periode(fraOgMed, tilOgMed)
@@ -31,4 +31,10 @@ data class MeldeperiodeBeregning(
                 .all { (a, b) -> a.meldekortId == b.meldekortId },
         ) { "Alle dager må tilhøre samme meldekort, men var: ${dager.map { it.meldekortId }}" }
     }
+
+    fun beregnTotalOrdinærBeløp(): Int = this.sumOf { it.beregningsdag?.beløp ?: 0 }
+
+    fun beregnTotalBarnetillegg(): Int = this.sumOf { it.beregningsdag?.beløpBarnetillegg ?: 0 }
+
+    fun beregnTotaltBeløp(): Int = beregnTotalOrdinærBeløp() + beregnTotalBarnetillegg()
 }

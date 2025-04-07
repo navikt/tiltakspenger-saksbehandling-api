@@ -23,16 +23,15 @@ data class MeldekortBeregning(
     /**
      * Ordinær stønad, ikke med barnetillegg
      */
-    fun beregnTotalOrdinærBeløp(): Int = beregninger.flatMap { it.dager }.sumOf { it.beregningsdag?.beløp ?: 0 }
+    fun beregnTotalOrdinærBeløp(): Int = beregninger.sumOf { it.beregnTotalOrdinærBeløp() }
 
     /**
      * Barnetillegg uten ordinær stønad
      */
-    fun beregnTotalBarnetillegg(): Int =
-        beregninger.flatMap { it.dager }.sumOf { it.beregningsdag?.beløpBarnetillegg ?: 0 }
+    fun beregnTotalBarnetillegg(): Int = beregninger.sumOf { it.beregnTotalBarnetillegg() }
 
     /**
      * Ordinær stønad + barnetillegg
      */
-    fun beregnTotaltBeløp(): Int = beregnTotalOrdinærBeløp() + beregnTotalBarnetillegg()
+    fun beregnTotaltBeløp(): Int = beregninger.sumOf { it.beregnTotaltBeløp() }
 }

@@ -114,6 +114,51 @@ internal class MeldekortberegningKorrigeringTest {
     }
 
     @Test
+    fun `Skal beregne sykedager to perioder frem i tid ved korrigering til 0-beløp`() {
+        val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+            vurderingsperiode = vurderingsperiode,
+            meldeperioder = nonEmptyListOf(
+                periodeMedStatuser(
+                    førsteDag,
+                    List(2) { Status.SPERRET },
+                    List(3) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(2) { Status.SPERRET },
+                    List(5) { Status.FRAVÆR_SYK },
+                    List(2) { Status.SPERRET },
+                ),
+
+                periodeMedStatuser(
+                    førsteDag.plusWeeks(2),
+                    List(5) { Status.FRAVÆR_SYK },
+                    List(2) { Status.SPERRET },
+                    List(5) { Status.FRAVÆR_SYK },
+                    List(2) { Status.SPERRET },
+                ),
+
+                periodeMedStatuser(
+                    førsteDag.plusWeeks(4),
+                    List(1) { Status.FRAVÆR_SYK },
+                    List(13) { Status.SPERRET },
+                ),
+
+                periodeMedStatuser(
+                    førsteDag,
+                    List(2) { Status.SPERRET },
+                    List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                    List(1) { Status.FRAVÆR_SYK },
+                    List(2) { Status.SPERRET },
+                    List(5) { Status.FRAVÆR_SYK },
+                    List(2) { Status.SPERRET },
+                ),
+            ),
+        )
+
+        val sisteKjedeId = meldekortbehandlinger.last().kjedeId
+
+        meldekortbehandlinger.meldeperiodeBeregninger.sisteBeregningForKjede[sisteKjedeId]!!.beregnTotaltBeløp() shouldBe 0
+    }
+
+    @Test
     fun `Skal beregne sykedager frem i tid ved korrigering med barnetillegg`() {
         val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
             vurderingsperiode = vurderingsperiode,
