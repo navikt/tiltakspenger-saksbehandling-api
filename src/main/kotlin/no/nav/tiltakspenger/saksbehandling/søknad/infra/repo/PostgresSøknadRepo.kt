@@ -49,4 +49,14 @@ internal class PostgresSøknadRepo(
             SøknadDAO.lagreAvbruttSøknad(søknad.id, søknad.avbrutt!!, it)
         }
     }
+
+    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
+        sessionFactory.withSession {
+            SøknadDAO.oppdaterFnr(
+                gammeltFnr = gammeltFnr,
+                nyttFnr = nyttFnr,
+                session = it,
+            )
+        }
+    }
 }

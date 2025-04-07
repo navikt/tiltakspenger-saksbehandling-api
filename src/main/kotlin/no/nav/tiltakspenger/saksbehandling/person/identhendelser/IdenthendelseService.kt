@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.logging.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseDb
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseRepository
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.util.UUID
 
 class IdenthendelseService(
@@ -25,36 +26,41 @@ class IdenthendelseService(
                 throw IllegalArgumentException("Ny ident må være gyldig fnr")
             }
 
-            val historiskeFnrOgNpid = personidenter.filter { it.historisk && it.identtype != Identtype.AKTORID }
-
-            var antallSaker = 0
-            if (sakRepo.hentForFnr(nyttFnr).saker.isNotEmpty()) {
-                log.warn { "Fant sak på nytt fnr" }
-                antallSaker += 1
-            }
-            historiskeFnrOgNpid.forEach {
+            val identOgSakMap = mutableMapOf<Fnr, Sak>()
+            personidenter.filter { it.historisk && it.identtype != Identtype.AKTORID }.forEach {
                 val fnr = Fnr.tryFromString(it.ident) ?: return@forEach
                 val saker = sakRepo.hentForFnr(fnr)
                 if (saker.saker.isNotEmpty()) {
-                    antallSaker += 1
-                    if (antallSaker > 1) {
-                        log.error { "Fant flere saker knyttet til samme nye fnr, kan ikke behandle identendringen. Se sikkerlogg for mer informasjon" }
-                        sikkerlogg.error { "Fant flere saker knyttet til samme nye fnr, kan ikke behandle identendringen: $personidenter" }
-                        throw IllegalStateException("Fant flere saker knyttet til samme nye fnr, kan ikke behandle identendringen")
-                    }
                     val sak = saker.saker.single()
-                    val identhendelseDb = IdenthendelseDb(
-                        id = UUID.randomUUID(),
-                        gammeltFnr = fnr,
-                        nyttFnr = nyttFnr,
-                        personidenter = personidenter,
-                        sakId = sak.id,
-                        produsertHendelse = null,
-                        oppdatertDatabase = null,
-                    )
-                    identhendelseRepository.lagre(identhendelseDb)
-                    log.info { "Lagret identhendelse med id ${identhendelseDb.id}" }
+                    identOgSakMap[fnr] = sak
                 }
+            }
+
+            val harSakForNyttFnr = sakRepo.hentForFnr(nyttFnr).saker.isNotEmpty()
+            if (harSakForNyttFnr) {
+                log.warn { "Fant sak for nytt fnr" }
+            }
+
+            if (identOgSakMap.entries.size > 1 || (harSakForNyttFnr && identOgSakMap.entries.isNotEmpty())) {
+                log.error { "Fant flere saker knyttet til samme nye fnr, kan ikke behandle identendringen. Se sikkerlogg for mer informasjon" }
+                sikkerlogg.error { "Fant flere saker knyttet til samme nye fnr, kan ikke behandle identendringen: $personidenter" }
+                throw IllegalStateException("Fant flere saker knyttet til samme nye fnr, kan ikke behandle identendringen")
+            }
+
+            identOgSakMap.entries.forEach {
+                val fnr = it.key
+                val sak = it.value
+                val identhendelseDb = IdenthendelseDb(
+                    id = UUID.randomUUID(),
+                    gammeltFnr = fnr,
+                    nyttFnr = nyttFnr,
+                    personidenter = personidenter,
+                    sakId = sak.id,
+                    produsertHendelse = null,
+                    oppdatertDatabase = null,
+                )
+                identhendelseRepository.lagre(identhendelseDb)
+                log.info { "Lagret identhendelse med id ${identhendelseDb.id}" }
             }
         } catch (e: Exception) {
             log.error(e) { "Noe gikk galt ved håndtering av identhendelse" }

@@ -34,6 +34,17 @@ class SøknadFakeRepo : SøknadRepo {
         data.get()[søknad.id] = søknad
     }
 
+    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
+        val soknad = data.get().values.find { it.fnr == gammeltFnr }
+        soknad?.let {
+            data.get()[it.id] = it.copy(
+                personopplysninger = it.personopplysninger.copy(
+                    fnr = nyttFnr,
+                ),
+            )
+        }
+    }
+
     fun hentForSakId(sakId: SakId): List<Søknad> {
         return data.get().filter { it.value.sakId == sakId }.values.toList()
     }

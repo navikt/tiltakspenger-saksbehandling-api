@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.fakes.repos
 
 import arrow.atomic.Atomic
+import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO
@@ -17,5 +19,18 @@ class StatistikkStønadFakeRepo : StatistikkStønadRepo {
 
     override fun lagre(dto: StatistikkUtbetalingDTO, context: TransactionContext?) {
         utbetalingsdata.get()[dto.id] = dto
+    }
+
+    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
+        val statistikkStønadDTO = stønadsdata.get().values.find { it.brukerId == gammeltFnr.verdi }
+        statistikkStønadDTO?.let {
+            stønadsdata.get()[it.sakId] = it.copy(
+                brukerId = nyttFnr.verdi,
+            )
+        }
+    }
+
+    override fun hent(sakId: SakId): List<StatistikkStønadDTO> {
+        return stønadsdata.get()[sakId.toString()]?.let { listOf(it) } ?: emptyList()
     }
 }

@@ -94,6 +94,7 @@ internal fun start(
                         { applicationContext.meldekortContext.sendMeldeperiodeTilBrukerService.send() },
                         { applicationContext.personhendelseJobb.opprettOppgaveForPersonhendelser() },
                         { applicationContext.personhendelseJobb.opprydning() },
+                        { applicationContext.identhendelseJobb.behandleIdenthendelser() },
                     ),
                 )
             } else {

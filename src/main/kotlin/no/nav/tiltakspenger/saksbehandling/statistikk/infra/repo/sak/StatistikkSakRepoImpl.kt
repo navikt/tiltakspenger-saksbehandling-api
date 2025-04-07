@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.statistikk.infra.repo.sak
 import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -53,6 +54,22 @@ internal class StatistikkSakRepoImpl(
             ).map { row -> row.toStatistikkSakDTO() }
                 .asList,
         )
+    }
+
+    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
+        sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """
+                        update statistikk_sak set fnr = :nytt_fnr where fnr = :gammelt_fnr
+                    """.trimIndent(),
+                    mapOf(
+                        "nytt_fnr" to nyttFnr.verdi,
+                        "gammelt_fnr" to gammeltFnr.verdi,
+                    ),
+                ).asUpdate,
+            )
+        }
     }
 
     companion object {

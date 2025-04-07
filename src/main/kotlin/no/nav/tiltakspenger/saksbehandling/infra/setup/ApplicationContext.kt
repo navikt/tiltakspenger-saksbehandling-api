@@ -8,6 +8,8 @@ import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.common.GenerellSystembruker
 import no.nav.tiltakspenger.libs.common.GenerellSystembrukerrolle
 import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
+import no.nav.tiltakspenger.libs.kafka.Producer
+import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
@@ -27,7 +29,9 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingGa
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingHttpClient
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.IdenthendelseService
+import no.nav.tiltakspenger.saksbehandling.person.identhendelser.jobb.IdenthendelseJobb
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.AktorV2Consumer
+import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseKafkaProducer
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseRepository
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.PersonhendelseService
@@ -180,6 +184,24 @@ open class ApplicationContext(
         AktorV2Consumer(
             topic = Configuration.aktorV2Topic,
             identhendelseService = identhendelseService,
+        )
+    }
+
+    open val identhendelseKafkaProducer by lazy {
+        IdenthendelseKafkaProducer(
+            kafkaProducer = Producer(KafkaConfigImpl()),
+            topic = Configuration.identhendelseTopic,
+        )
+    }
+
+    open val identhendelseJobb by lazy {
+        IdenthendelseJobb(
+            identhendelseRepository = identhendelseRepository,
+            identhendelseKafkaProducer = identhendelseKafkaProducer,
+            sakRepo = sakContext.sakRepo,
+            søknadRepo = søknadContext.søknadRepo,
+            statistikkSakRepo = statistikkContext.statistikkSakRepo,
+            statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
         )
     }
 
