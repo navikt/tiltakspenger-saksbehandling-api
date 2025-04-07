@@ -11,7 +11,8 @@ data class MeldekortBeregning(
     val tilOgMed: LocalDate get() = this.last().tilOgMed
     val periode = Periode(fraOgMed, tilOgMed)
 
-    val dager = beregninger.flatMap { it.dager }
+    val dagerPåMeldekortet = beregninger.first().dager
+    val alleDagerBeregnet = beregninger.flatMap { it.dager }
 
     init {
         require(beregninger.zipWithNext().all { (a, b) -> a.tilOgMed < b.fraOgMed }) {

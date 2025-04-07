@@ -2,15 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.norskUkedagOgDatoUtenÅrFormatter
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeUtfylt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattMedLønnITiltaket
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SykBruker
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SyktBarn
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdGodkjentAvNav
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdIkkeGodkjentAvNav
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Sperret
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SammenligningAvBeregninger.DagSammenligning
 
 data class SammenligningAvBeregninger(
@@ -52,7 +43,7 @@ fun sammenlign(
                     dato = it.dato.format(norskUkedagOgDatoUtenÅrFormatter),
                     status = SammenligningAvBeregninger.ForrigeOgGjeldende(
                         forrige = null,
-                        gjeldende = it.toStatus().toString(),
+                        gjeldende = it.tilMeldekortDagStatus().toString(),
                     ),
                     beløp = SammenligningAvBeregninger.ForrigeOgGjeldende(
                         forrige = null,
@@ -90,8 +81,8 @@ private fun sammenlign(
     return DagSammenligning(
         dato = forrigeBeregning.dato.format(norskUkedagOgDatoUtenÅrFormatter),
         status = SammenligningAvBeregninger.ForrigeOgGjeldende(
-            forrige = forrigeBeregning.toStatus().toString(),
-            gjeldende = nyBeregning.toStatus().toString(),
+            forrige = forrigeBeregning.tilMeldekortDagStatus().toString(),
+            gjeldende = nyBeregning.tilMeldekortDagStatus().toString(),
         ),
         beløp = SammenligningAvBeregninger.ForrigeOgGjeldende(
             forrige = forrigeBeregning.beløp,
@@ -107,16 +98,3 @@ private fun sammenlign(
         ),
     )
 }
-
-private fun MeldeperiodeBeregningDag.toStatus(): MeldekortDagStatus =
-    when (this) {
-        is IkkeUtfylt -> MeldekortDagStatus.IKKE_UTFYLT
-        is DeltattMedLønnITiltaket -> MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET
-        is DeltattUtenLønnITiltaket -> MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET
-        is SykBruker -> MeldekortDagStatus.FRAVÆR_SYK
-        is SyktBarn -> MeldekortDagStatus.FRAVÆR_SYKT_BARN
-        is VelferdGodkjentAvNav -> MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-        is VelferdIkkeGodkjentAvNav -> MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-        is IkkeDeltatt -> MeldekortDagStatus.IKKE_DELTATT
-        is Sperret -> MeldekortDagStatus.SPERRET
-    }

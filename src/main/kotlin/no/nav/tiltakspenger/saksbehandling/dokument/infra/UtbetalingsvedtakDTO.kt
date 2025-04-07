@@ -91,7 +91,7 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
             tom = periode.tilOgMed.format(norskDatoFormatter),
         ),
         // Kommentar: Bug rundt serialisering av NonEmptyList gjør at vi konverterer til standard kotlin List før mapping
-        meldekortDager = meldekortbehandling.beregning.dager.toList().map { dag ->
+        meldekortDager = meldekortbehandling.beregning.alleDagerBeregnet.toList().map { dag ->
             UtbetalingsvedtakDTO.MeldekortDagDTO(
                 dato = dag.dato.format(norskDatoFormatter),
                 status = dag.toStatus(),
