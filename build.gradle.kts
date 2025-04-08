@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val jvmVersion = JvmTarget.JVM_21
-val kotlinxCoroutinesVersion = "1.10.1"
+val kotlinxCoroutinesVersion = "1.10.2"
 val kotestVersion = "5.9.1"
 val felleslibVersion = "0.0.429"
 val mockkVersion = "1.13.17"
@@ -102,7 +102,7 @@ dependencies {
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("io.mockk:mockk-dsl-jvm:$mockkVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
     testImplementation("io.kotest:kotest-extensions:$kotestVersion")
