@@ -5,7 +5,7 @@ import java.time.LocalDate
 
 data class MeldekortDagDTO(
     val dato: LocalDate,
-    val status: MeldekortDagStatusMotFrontendDTO,
+    val status: MeldekortDagStatusDTO,
 )
 
 fun MeldekortDager.tilMeldekortDagerDTO(): List<MeldekortDagDTO> {

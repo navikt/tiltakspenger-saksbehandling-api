@@ -11,8 +11,8 @@ data class MeldeperiodeBeregning(
     /** Meldekortbehandlingen som utløste denne beregningen */
     val meldekortId: MeldekortId,
     val kjedeId: MeldeperiodeKjedeId,
-    val dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
-) : List<MeldeperiodeBeregningDag.Utfylt> by dager {
+    val dager: NonEmptyList<MeldeperiodeBeregningDag>,
+) : List<MeldeperiodeBeregningDag> by dager {
     val fraOgMed: LocalDate get() = dager.first().dato
     val tilOgMed: LocalDate get() = dager.last().dato
     val periode = Periode(fraOgMed, tilOgMed)

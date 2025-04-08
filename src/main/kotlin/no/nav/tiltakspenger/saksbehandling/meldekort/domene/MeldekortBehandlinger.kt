@@ -70,7 +70,7 @@ data class MeldekortBehandlinger(
      *  Obs!! Med korrigeringer kan vi ikke stole på beregninger fra disse dagene, ettersom korrigering kan påvirke dager etter det korrigerte meldekortet
      *  TODO: Bør løses når vi splitter meldekort-utfylling og meldekort-beregning
      *  */
-    val utfylteDager: List<MeldeperiodeBeregningDag.Utfylt> by lazy {
+    val utfylteDager: List<MeldeperiodeBeregningDag> by lazy {
         sisteBehandledeMeldekortPerKjede.flatMap { it.beregning.first().dager }
     }
 

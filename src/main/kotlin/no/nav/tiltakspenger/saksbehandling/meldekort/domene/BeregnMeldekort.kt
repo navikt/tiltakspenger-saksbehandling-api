@@ -7,14 +7,14 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattMedLønnITiltaket
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SykBruker
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SyktBarn
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdGodkjentAvNav
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdIkkeGodkjentAvNav
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Sperret
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Syk.SykBruker
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.VelferdGodkjentAvNav
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.VelferdIkkeGodkjentAvNav
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeDeltatt
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Sperret
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort
@@ -98,7 +98,7 @@ private data class BeregnMeldekort(
             }
     }
 
-    private fun beregnEksisterendeMeldekort(meldekort: MeldekortBehandlet): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
+    private fun beregnEksisterendeMeldekort(meldekort: MeldekortBehandlet): NonEmptyList<MeldeperiodeBeregningDag> {
         return meldekort.beregning.dagerFraMeldekortet.map {
             beregnDag(
                 meldekort.id,
@@ -108,7 +108,7 @@ private data class BeregnMeldekort(
         }.toNonEmptyListOrNull()!!
     }
 
-    private fun beregnInnsendteDager(kommando: SendMeldekortTilBeslutningKommando): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
+    private fun beregnInnsendteDager(kommando: SendMeldekortTilBeslutningKommando): NonEmptyList<MeldeperiodeBeregningDag> {
         return kommando.dager.map {
             val dato = it.dag
             beregnDag(
@@ -124,7 +124,7 @@ private data class BeregnMeldekort(
         dato: LocalDate,
         status: MeldekortDagStatus,
         hentTiltakstype: () -> TiltakstypeSomGirRett?,
-    ): MeldeperiodeBeregningDag.Utfylt {
+    ): MeldeperiodeBeregningDag {
         val antallBarn = barnetilleggsPerioder.hentVerdiForDag(dato) ?: AntallBarn.ZERO
 
         val tiltakstype by lazy {
@@ -168,7 +168,7 @@ private data class BeregnMeldekort(
                 antallBarn,
             )
 
-            MeldekortDagStatus.IKKE_UTFYLT -> throw IllegalStateException("Alle dager på meldekortet må være utfylt - $dato var ikke utfylt")
+            MeldekortDagStatus.IKKE_UTFYLT -> throw IllegalStateException("Alle dager på meldekortet må være utfylt - $dato var ikke utfylt på $meldekortId")
         }
     }
 

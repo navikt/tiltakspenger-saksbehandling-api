@@ -5,7 +5,7 @@ import java.time.LocalDate
 
 data class MeldeperiodeBeregningDagDTO(
     val dato: LocalDate,
-    val status: MeldekortDagStatusMotFrontendDTO,
+    val status: MeldekortDagStatusDTO,
     val reduksjonAvYtelsePåGrunnAvFravær: ReduksjonAvYtelsePåGrunnAvFraværDTO?,
     val beregningsdag: BeregningsdagDTO?,
 )
@@ -14,7 +14,7 @@ fun List<MeldeperiodeBeregningDag>.toMeldeperiodeBeregningDagerDTO() = this.map 
     MeldeperiodeBeregningDagDTO(
         dato = it.dato,
         status = it.tilMeldekortDagStatusDTO(),
-        reduksjonAvYtelsePåGrunnAvFravær = it.reduksjon?.toReduksjonAvYtelsePåGrunnAvFraværDTO(),
+        reduksjonAvYtelsePåGrunnAvFravær = it.reduksjon.toReduksjonAvYtelsePåGrunnAvFraværDTO(),
         beregningsdag = it.beregningsdag?.toBeregningsdagDTO(),
     )
 }

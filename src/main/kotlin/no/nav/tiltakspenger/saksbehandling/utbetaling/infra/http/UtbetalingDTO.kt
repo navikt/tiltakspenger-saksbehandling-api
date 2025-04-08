@@ -57,18 +57,19 @@ fun Utbetalingsvedtak.toDTO(
 }
 
 private fun IverksettV2Dto.hentIkkeOppdaterteUtbetalinger(meldekortBeregning: MeldekortBeregning): List<UtbetalingV2Dto> {
-    return this.vedtak.utbetalinger.filter { tidligereUtbetaling ->
+    val oppdaterteKjeder = meldekortBeregning.beregninger.map { it.kjedeId.verdi }.toSet()
+    return this.vedtak.utbetalinger.filterNot { tidligereUtbetaling ->
         val stønadsdata = tidligereUtbetaling.stønadsdata as StønadsdataTiltakspengerV2Dto
-        meldekortBeregning.beregninger.none { it.kjedeId.verdi == stønadsdata.meldekortId }
+        oppdaterteKjeder.contains(stønadsdata.meldekortId)
     }
 }
 
-private fun List<MeldeperiodeBeregningDag.Utfylt>.toUtbetalingDto(
+private fun List<MeldeperiodeBeregningDag>.toUtbetalingDto(
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
     kjedeId: MeldeperiodeKjedeId,
 ): List<UtbetalingV2Dto> {
-    return this.fold((listOf())) { acc: List<UtbetalingV2Dto>, meldekortdag ->
+    return this.fold(listOf()) { acc: List<UtbetalingV2Dto>, meldekortdag ->
         when (val sisteUtbetalingsperiode = acc.lastOrNull()) {
             null -> {
                 meldekortdag.genererUtbetalingsperiode(
@@ -108,7 +109,7 @@ private fun MeldekortBehandlet.toUtbetalingDto(
     }.flatten()
 }
 
-private fun MeldeperiodeBeregningDag.Utfylt.genererUtbetalingsperiode(
+private fun MeldeperiodeBeregningDag.genererUtbetalingsperiode(
     kjedeId: MeldeperiodeKjedeId,
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
@@ -136,7 +137,7 @@ private fun MeldeperiodeBeregningDag.Utfylt.genererUtbetalingsperiode(
 }
 
 private fun UtbetalingV2Dto.leggTil(
-    meldekortdag: MeldeperiodeBeregningDag.Utfylt,
+    meldekortdag: MeldeperiodeBeregningDag,
     kjedeId: MeldeperiodeKjedeId,
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,

@@ -9,15 +9,14 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeUtfylt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattMedLønnITiltaket
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SykBruker
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SyktBarn
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdGodkjentAvNav
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdIkkeGodkjentAvNav
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Utfylt.Sperret
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Syk.SykBruker
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.VelferdGodkjentAvNav
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.VelferdIkkeGodkjentAvNav
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeDeltatt
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Sperret
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.StatusDb.DELTATT_MED_LØNN_I_TILTAKET
@@ -27,7 +26,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBere
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.StatusDb.FRAVÆR_VELFERD_GODKJENT_AV_NAV
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.StatusDb.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.StatusDb.IKKE_DELTATT
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.StatusDb.IKKE_UTFYLT
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.StatusDb.SPERRET
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toTiltakstypeSomGirRett
@@ -45,7 +43,6 @@ private data class MeldeperiodeBeregningDagDbJson(
 ) {
     enum class StatusDb {
         SPERRET,
-        IKKE_UTFYLT,
         DELTATT_UTEN_LØNN_I_TILTAKET,
         DELTATT_MED_LØNN_I_TILTAKET,
         IKKE_DELTATT,
@@ -75,7 +72,6 @@ private data class MeldeperiodeBeregningDagDbJson(
         val parsedBeregningsdag = beregningsdag?.toBeregningsdag()
         return when (status) {
             SPERRET -> Sperret(meldekortId, parsedDato)
-            IKKE_UTFYLT -> IkkeUtfylt(meldekortId, parsedDato, parsedTiltakstype!!)
             DELTATT_UTEN_LØNN_I_TILTAKET -> DeltattUtenLønnITiltaket.fromDb(
                 meldekortId,
                 parsedDato,
@@ -146,7 +142,7 @@ fun MeldekortBeregning.tilBeregningerDbJson(): String {
     }.let { serialize(it) }
 }
 
-private fun List<MeldeperiodeBeregningDag.Utfylt>.toDbJson() = this.map { meldekortdag ->
+private fun List<MeldeperiodeBeregningDag>.toDbJson() = this.map { meldekortdag ->
     MeldeperiodeBeregningDagDbJson(
         tiltakstype = meldekortdag.tiltakstype?.toDb(),
         dato = meldekortdag.dato.toString(),
@@ -179,9 +175,7 @@ private fun MeldeperiodeBeregningDbJson.tilMeldeperiodeBeregning(): Meldeperiode
     return MeldeperiodeBeregning(
         kjedeId = MeldeperiodeKjedeId(this.kjedeId),
         meldekortId = meldekortId,
-        dager = this.dager.map { dag ->
-            dag.tilMeldeperiodeBeregningDag(meldekortId) as MeldeperiodeBeregningDag.Utfylt
-        }.toNonEmptyListOrNull()!!,
+        dager = this.dager.map { it.tilMeldeperiodeBeregningDag(meldekortId) }.toNonEmptyListOrNull()!!,
     )
 }
 

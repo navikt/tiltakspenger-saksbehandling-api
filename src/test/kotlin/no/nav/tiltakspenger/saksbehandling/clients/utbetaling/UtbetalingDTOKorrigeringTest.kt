@@ -32,7 +32,7 @@ internal class UtbetalingDTOKorrigeringTest {
         meldekortId: MeldekortId,
         periode: Periode,
         opprettet: LocalDateTime,
-        dager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt>,
+        dager: NonEmptyList<MeldeperiodeBeregningDag>,
     ) = ObjectMother.utbetalingsvedtak(
         fnr = fnr,
         saksnummer = saksnummer,

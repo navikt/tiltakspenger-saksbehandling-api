@@ -176,7 +176,7 @@ interface MeldekortMother : MotherOfAllMothers {
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         maksDagerMedTiltakspengerForPeriode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
-        beregningDager: NonEmptyList<MeldeperiodeBeregningDag.Utfylt> = maksAntallDeltattTiltaksdagerIMeldekortperiode(
+        beregningDager: NonEmptyList<MeldeperiodeBeregningDag> = maksAntallDeltattTiltaksdagerIMeldekortperiode(
             startDato,
             meldekortId,
             tiltakstype,
@@ -199,7 +199,7 @@ interface MeldekortMother : MotherOfAllMothers {
         meldekortId: MeldekortId,
         tiltakstype: TiltakstypeSomGirRett,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
-    ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt> {
+    ): NonEmptyList<MeldeperiodeBeregningDag> {
         return (
             tiltaksdager(
                 startDato = startDato,
@@ -224,13 +224,13 @@ interface MeldekortMother : MotherOfAllMothers {
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         antallDager: Int = 5,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
-    ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket> {
+    ): NonEmptyList<MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket> {
         require(antallDager in 1..5) {
             "Antall sammenhengende dager vil aldri være mer mindre enn 1 eller mer enn 5, men var $antallDager"
         }
         return List(antallDager) { index ->
             val dato = startDato.plusDays(index.toLong())
-            MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket.create(
+            MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket.create(
                 dato = dato,
                 meldekortId = meldekortId,
                 tiltakstype = tiltakstype,
@@ -245,13 +245,13 @@ interface MeldekortMother : MotherOfAllMothers {
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         antallDager: Int = 5,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
-    ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattMedLønnITiltaket> {
+    ): NonEmptyList<MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket> {
         require(antallDager in 1..5) {
             "Antall sammenhengende dager vil aldri være mer mindre enn 1 eller mer enn 5, men var $antallDager"
         }
         return List(antallDager) { index ->
             val dato = startDato.plusDays(index.toLong())
-            MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattMedLønnITiltaket.create(
+            MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket.create(
                 dato = dato,
                 meldekortId = meldekortId,
                 tiltakstype = tiltakstype,
@@ -266,13 +266,13 @@ interface MeldekortMother : MotherOfAllMothers {
         antallDager: Int = 2,
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
-    ): NonEmptyList<MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt> {
+    ): NonEmptyList<MeldeperiodeBeregningDag.IkkeDeltatt> {
         require(antallDager in 1..5) {
             "Antall sammenhengende dager vil aldri være mer mindre enn 1 eller mer enn 5, men var $antallDager"
         }
         return List(antallDager) { index ->
             val dato = startDato.plusDays(index.toLong())
-            MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt.create(
+            MeldeperiodeBeregningDag.IkkeDeltatt.create(
                 dato = dato,
                 meldekortId = meldekortId,
                 tiltakstype = tiltakstype,

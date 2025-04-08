@@ -166,23 +166,21 @@ private suspend fun tilSaksbehadlerDto(
 
 private fun MeldeperiodeBeregningDag.toStatus(): String {
     return when (this) {
-        is MeldeperiodeBeregningDag.IkkeUtfylt -> "Ikke utfylt"
-        is MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattMedLønnITiltaket -> "Deltatt med lønn i tiltaket"
-        is MeldeperiodeBeregningDag.Utfylt.Deltatt.DeltattUtenLønnITiltaket -> "Deltatt uten lønn i tiltaket"
-        is MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SykBruker -> "Syk bruker"
-        is MeldeperiodeBeregningDag.Utfylt.Fravær.Syk.SyktBarn -> "Sykt barn"
-        is MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdGodkjentAvNav -> "Velferd godkjent av Nav"
-        is MeldeperiodeBeregningDag.Utfylt.Fravær.Velferd.VelferdIkkeGodkjentAvNav -> "Velferd ikke godkjent av Nav"
-        is MeldeperiodeBeregningDag.Utfylt.IkkeDeltatt -> "Ikke deltatt"
-        is MeldeperiodeBeregningDag.Utfylt.Sperret -> "Ikke rett på tiltakspenger"
+        is MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket -> "Deltatt med lønn i tiltaket"
+        is MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket -> "Deltatt uten lønn i tiltaket"
+        is MeldeperiodeBeregningDag.Fravær.Syk.SykBruker -> "Syk bruker"
+        is MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn -> "Sykt barn"
+        is MeldeperiodeBeregningDag.Fravær.Velferd.VelferdGodkjentAvNav -> "Velferd godkjent av Nav"
+        is MeldeperiodeBeregningDag.Fravær.Velferd.VelferdIkkeGodkjentAvNav -> "Velferd ikke godkjent av Nav"
+        is MeldeperiodeBeregningDag.IkkeDeltatt -> "Ikke deltatt"
+        is MeldeperiodeBeregningDag.Sperret -> "Ikke rett på tiltakspenger"
     }
 }
 
-private fun MeldeperiodeBeregningDag.toReduksjon(): String? {
+private fun MeldeperiodeBeregningDag.toReduksjon(): String {
     return when (reduksjon) {
         ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon -> "Ingen reduksjon"
         ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon -> "Reduksjon"
         ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort -> "Ytelsen faller bort"
-        null -> null
     }
 }
