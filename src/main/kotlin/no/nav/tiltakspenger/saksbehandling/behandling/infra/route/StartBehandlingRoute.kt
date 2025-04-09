@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppretteBeha
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil.ikkeTilgang
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
@@ -63,7 +64,7 @@ fun Route.startSøknadsbehandlingRoute(
                                 contextMessage = "Oppretter behandling fra søknad og starter behandlingen",
                                 correlationId = correlationId,
                             )
-
+                            MetricRegister.STARTET_BEHANDLING.inc()
                             call.respond(HttpStatusCode.OK, it.toDTO())
                         },
                     )

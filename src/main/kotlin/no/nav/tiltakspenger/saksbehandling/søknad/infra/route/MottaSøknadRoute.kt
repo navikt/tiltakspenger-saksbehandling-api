@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.soknad.SøknadDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
+import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 private val logger = KotlinLogging.logger {}
@@ -43,6 +44,7 @@ fun Route.mottaSøknadRoute(
                 ),
                 systembruker = systembruker,
             )
+            MetricRegister.MOTTATT_SOKNAD.inc()
             call.respond(message = "OK", status = HttpStatusCode.OK)
         }
     }
