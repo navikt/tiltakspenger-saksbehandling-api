@@ -14,7 +14,7 @@ data class SammenligningAvBeregninger(
 
     data class DagSammenligning(
         val dato: String,
-        val status: ForrigeOgGjeldende<String>,
+        val status: ForrigeOgGjeldende<MeldeperiodeBeregningDag>,
         val beløp: ForrigeOgGjeldende<Int>,
         val barnetillegg: ForrigeOgGjeldende<Int>,
         val prosent: ForrigeOgGjeldende<Int>,
@@ -43,7 +43,7 @@ fun sammenlign(
                     dato = it.dato.format(norskUkedagOgDatoUtenÅrFormatter),
                     status = SammenligningAvBeregninger.ForrigeOgGjeldende(
                         forrige = null,
-                        gjeldende = it.tilMeldekortDagStatus().toString(),
+                        gjeldende = it,
                     ),
                     beløp = SammenligningAvBeregninger.ForrigeOgGjeldende(
                         forrige = null,
@@ -81,8 +81,8 @@ private fun sammenlign(
     return DagSammenligning(
         dato = forrigeBeregning.dato.format(norskUkedagOgDatoUtenÅrFormatter),
         status = SammenligningAvBeregninger.ForrigeOgGjeldende(
-            forrige = forrigeBeregning.tilMeldekortDagStatus().toString(),
-            gjeldende = nyBeregning.tilMeldekortDagStatus().toString(),
+            forrige = forrigeBeregning,
+            gjeldende = nyBeregning,
         ),
         beløp = SammenligningAvBeregninger.ForrigeOgGjeldende(
             forrige = forrigeBeregning.beløp,

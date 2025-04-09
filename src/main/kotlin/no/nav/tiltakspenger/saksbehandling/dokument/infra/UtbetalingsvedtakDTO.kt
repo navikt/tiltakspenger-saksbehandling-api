@@ -124,8 +124,8 @@ private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
                         UtbetalingsvedtakDTO.DagSammenligningDTO(
                             dato = dag.dato,
                             status = UtbetalingsvedtakDTO.ForrigeOgGjeldendeDTO(
-                                forrige = dag.status.forrige,
-                                gjeldende = dag.status.gjeldende,
+                                forrige = dag.status.forrige?.toStatus(),
+                                gjeldende = dag.status.gjeldende.toStatus(),
                             ),
                             beløp = UtbetalingsvedtakDTO.ForrigeOgGjeldendeDTO(
                                 forrige = dag.beløp.forrige,
@@ -168,11 +168,11 @@ private fun MeldeperiodeBeregningDag.toStatus(): String {
     return when (this) {
         is MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket -> "Deltatt med lønn i tiltaket"
         is MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket -> "Deltatt uten lønn i tiltaket"
-        is MeldeperiodeBeregningDag.Fravær.Syk.SykBruker -> "Syk bruker"
-        is MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn -> "Sykt barn"
-        is MeldeperiodeBeregningDag.Fravær.Velferd.VelferdGodkjentAvNav -> "Velferd godkjent av Nav"
-        is MeldeperiodeBeregningDag.Fravær.Velferd.VelferdIkkeGodkjentAvNav -> "Velferd ikke godkjent av Nav"
-        is MeldeperiodeBeregningDag.IkkeDeltatt -> "Ikke deltatt"
+        is MeldeperiodeBeregningDag.Fravær.Syk.SykBruker -> "Fravær - Syk"
+        is MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn -> "Fravær - Sykt barn"
+        is MeldeperiodeBeregningDag.Fravær.Velferd.VelferdGodkjentAvNav -> "Godkjent fravær - Velferd"
+        is MeldeperiodeBeregningDag.Fravær.Velferd.VelferdIkkeGodkjentAvNav -> "Ikke godkjent fravær - Velferd"
+        is MeldeperiodeBeregningDag.IkkeDeltatt -> "Ikke tiltak denne dagen"
         is MeldeperiodeBeregningDag.Sperret -> "Ikke rett på tiltakspenger"
     }
 }
