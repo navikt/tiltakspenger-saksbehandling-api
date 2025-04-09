@@ -1,19 +1,61 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
+import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
+import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
+
+data class MeldekortBeregningDTO(
+    val totalBeløp: BeløpDTO,
+    val beregningForMeldekortetsPeriode: MeldeperiodeBeregningDTO,
+    val beregningerForPåfølgendePerioder: List<MeldeperiodeBeregningDTO>,
+)
+
+data class MeldeperiodeKorrigeringDTO(
+    val meldekortId: String,
+    val kjedeId: String,
+    val periode: PeriodeDTO,
+    val beregning: MeldeperiodeBeregningDTO,
+)
 
 data class MeldeperiodeBeregningDTO(
-    val kjedeId: String,
-    val meldekortId: String,
+    val beløp: BeløpDTO,
     val dager: List<MeldeperiodeBeregningDagDTO>,
 )
 
-fun MeldekortBeregning.tilMeldekortBeregningDTO(): List<MeldeperiodeBeregningDTO> {
-    return this.toList().map {
-        MeldeperiodeBeregningDTO(
-            kjedeId = it.kjedeId.toString(),
-            meldekortId = it.meldekortId.toString(),
-            dager = it.dager.toMeldeperiodeBeregningDagerDTO(),
-        )
-    }
+data class BeløpDTO(
+    val totalt: Int,
+    val ordinært: Int,
+    val barnetillegg: Int,
+)
+
+fun MeldekortBeregning.tilMeldekortBeregningDTO(): MeldekortBeregningDTO {
+    return MeldekortBeregningDTO(
+        totalBeløp = BeløpDTO(
+            totalt = beregnTotaltBeløp(),
+            ordinært = beregnTotalOrdinærBeløp(),
+            barnetillegg = beregnTotalBarnetillegg(),
+        ),
+        beregningForMeldekortetsPeriode = beregningForMeldekortetsPeriode.tilMeldeperiodeBeregningDTO(),
+        beregningerForPåfølgendePerioder = beregningerForPåfølgendePerioder.map { it.tilMeldeperiodeBeregningDTO() },
+    )
 }
+
+fun MeldeperiodeBeregning.tilMeldeperiodeBeregningDTO(): MeldeperiodeBeregningDTO {
+    return MeldeperiodeBeregningDTO(
+        beløp = BeløpDTO(
+            totalt = beregnTotaltBeløp(),
+            ordinært = beregnTotalOrdinærBeløp(),
+            barnetillegg = beregnTotalBarnetillegg(),
+        ),
+        dager = this.tilMeldeperiodeBeregningDagerDTO(),
+    )
+}
+
+fun MeldeperiodeBeregning.tilMeldeperiodeKorrigeringDTO(): MeldeperiodeKorrigeringDTO =
+    MeldeperiodeKorrigeringDTO(
+        meldekortId = meldekortId.toString(),
+        kjedeId = kjedeId.verdi,
+        periode = periode.toDTO(),
+        beregning = this.tilMeldeperiodeBeregningDTO(),
+    )

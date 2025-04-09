@@ -94,7 +94,7 @@ internal class UtbetalingDTOTest {
                 antallBarn = AntallBarn(1),
             ),
         )
-        utbetalingsvedtak.meldekortbehandling.beregning.alleDagerBeregnet.map { it.beregningsdag }.forEach {
+        utbetalingsvedtak.meldekortbehandling.beregning.alleDager.map { it.beregningsdag }.forEach {
             withClue("Beregningsdag $it") {
                 if (it!!.beløp > 0) it.beløpBarnetillegg shouldBe 52
             }
@@ -189,7 +189,7 @@ internal class UtbetalingDTOTest {
                 antallBarn = AntallBarn(2),
             ),
         )
-        utbetalingsvedtak.meldekortbehandling.beregning.alleDagerBeregnet.map { it.beregningsdag }.forEach {
+        utbetalingsvedtak.meldekortbehandling.beregning.alleDager.map { it.beregningsdag }.forEach {
             withClue("Beregningsdag $it") {
                 if (it!!.beløp > 0) it.beløpBarnetillegg shouldBe 104
             }

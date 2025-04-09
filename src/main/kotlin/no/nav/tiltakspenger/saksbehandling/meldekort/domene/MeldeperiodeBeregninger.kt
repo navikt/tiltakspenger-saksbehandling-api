@@ -10,8 +10,7 @@ data class MeldeperiodeBeregninger(
         .sortedBy { it.iverksattTidspunkt }
 
     private val meldeperiodeBeregninger by lazy {
-        godkjenteMeldekort
-            .flatMap { it.beregning.beregninger }
+        godkjenteMeldekort.flatMap { it.beregning.beregninger }
     }
 
     val beregningerForKjede: Map<MeldeperiodeKjedeId, List<MeldeperiodeBeregning>> by lazy {
