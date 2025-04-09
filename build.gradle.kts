@@ -125,7 +125,7 @@ dependencies {
     testApi("com.github.navikt.tiltakspenger-libs:persistering-domene:$felleslibVersion")
 }
 plugins {
-    id("com.github.davidmc24.gradle.plugin.avro") version "1.9.1"
+    id("io.github.androa.gradle.plugin.avro") version "0.0.11"
     kotlin("jvm") version "2.1.20"
     id("com.diffplug.spotless") version "7.0.3"
     application
@@ -164,14 +164,6 @@ tasks {
         }
     }
 
-    compileKotlin {
-        dependsOn("generateAvroJava")
-    }
-
-    compileTestKotlin {
-        dependsOn("generateTestAvroJava")
-    }
-
     test {
         // JUnit 5 support
         useJUnitPlatform()
@@ -184,7 +176,6 @@ tasks {
             events("skipped", "failed")
             exceptionFormat = TestExceptionFormat.FULL
         }
-        dependsOn("generateAvroJava")
     }
 }
 configurations.all {
@@ -233,7 +224,6 @@ tasks {
         dependsOn("checkFlywayMigrationNames")
     }
     jar {
-        dependsOn("generateAvroJava")
         dependsOn(configurations.runtimeClasspath)
         archiveBaseName = "app"
 
