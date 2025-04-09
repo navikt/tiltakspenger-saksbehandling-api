@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeIverksetteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettBehandlingService
+import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil.måVæreBeslutter
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
@@ -50,6 +51,7 @@ fun Route.iverksettBehandlingRoute(
                                 correlationId = correlationId,
                                 sakId = sakId,
                             )
+                            MetricRegister.IVERKSATT_BEHANDLING.inc()
                             call.respond(message = it.toDTO(), status = HttpStatusCode.OK)
                         },
                     )

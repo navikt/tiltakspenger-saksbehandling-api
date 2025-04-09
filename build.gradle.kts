@@ -12,6 +12,7 @@ val poaoTilgangVersjon = "2025.03.17_10.46-e6359712fa6d"
 val iverksettVersjon = "1.0_20241213145703_7ff5f9c"
 val confluentVersion = "7.9.0"
 val avroVersion = "1.12.0"
+val prometeusVersion = "1.14.5"
 
 dependencies {
     // Align versions of all Kotlin components
@@ -58,6 +59,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-utils:$ktorVersion")
+    implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
 
     implementation("com.natpryce:konfig:1.6.10.0")
 
@@ -67,6 +69,8 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
     implementation("io.ktor:ktor-http:$ktorVersion")
+
+    implementation("io.micrometer:micrometer-registry-prometheus:$prometeusVersion")
 
     // Auth
     api("com.auth0:java-jwt:4.5.0")
