@@ -67,11 +67,13 @@ private data class UtbetalingsvedtakDTO(
         val beløp: ForrigeOgGjeldendeDTO<Int>,
         val barnetillegg: ForrigeOgGjeldendeDTO<Int>,
         val prosent: ForrigeOgGjeldendeDTO<Int>,
+        val harEndretSeg: Boolean = status.harEndretSeg || beløp.harEndretSeg || barnetillegg.harEndretSeg || prosent.harEndretSeg,
     )
 
     data class ForrigeOgGjeldendeDTO<T>(
         val forrige: T?,
         val gjeldende: T,
+        val harEndretSeg: Boolean = forrige != null && forrige != gjeldende,
     )
 }
 
