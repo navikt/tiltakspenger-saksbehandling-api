@@ -4,9 +4,10 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAttesteringDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregninger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import java.time.LocalDateTime
 
@@ -32,9 +33,17 @@ data class MeldekortBehandlingDTO(
     val korrigering: MeldeperiodeKorrigeringDTO?,
 )
 
-fun Utbetalingsvedtak.toMeldekortBehandlingDTO(meldeperiodeBeregninger: MeldeperiodeBeregninger): MeldekortBehandlingDTO {
+fun Utbetalingsvedtak.toMeldekortBehandlingDTO(meldekortBehandlinger: MeldekortBehandlinger): MeldekortBehandlingDTO {
     val behandling = this.meldekortbehandling
-    val sisteBeregning = meldeperiodeBeregninger.sisteBeregningForKjede[behandling.kjedeId]
+    val korrigering = meldekortBehandlinger.meldeperiodeBeregninger.sisteBeregningForKjede[behandling.kjedeId]?.let {
+        val forrigeBehandling = meldekortBehandlinger.hentMeldekortBehandling(it.meldekortId) as MeldekortBehandlet
+
+        if (forrigeBehandling.kjedeId == behandling.kjedeId) {
+            null
+        } else {
+            forrigeBehandling.tilMeldeperiodeKorrigeringDTO(it.kjedeId)
+        }
+    }
 
     return MeldekortBehandlingDTO(
         id = behandling.id.toString(),
@@ -54,14 +63,7 @@ fun Utbetalingsvedtak.toMeldekortBehandlingDTO(meldeperiodeBeregninger: Meldeper
         periode = behandling.beregningPeriode.toDTO(),
         dager = behandling.dager.tilMeldekortDagerDTO(),
         beregning = behandling.beregning.tilMeldekortBeregningDTO(),
-        korrigering = sisteBeregning
-            ?.let {
-                if (behandling.beregning.beregningForMeldekortetsPeriode == it) {
-                    null
-                } else {
-                    it.tilMeldeperiodeKorrigeringDTO()
-                }
-            },
+        korrigering = korrigering,
     )
 }
 

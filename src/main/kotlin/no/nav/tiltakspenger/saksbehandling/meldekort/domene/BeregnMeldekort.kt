@@ -90,7 +90,7 @@ private data class BeregnMeldekort(
 
                         MeldeperiodeBeregning(
                             kjedeId = kjedeId,
-                            meldekortId = meldekort.id,
+                            meldekortId = innsendtMeldekortId,
                             dager = beregnedeDager,
                         )
                     },

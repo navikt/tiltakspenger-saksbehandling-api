@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 
@@ -52,10 +54,10 @@ fun MeldeperiodeBeregning.tilMeldeperiodeBeregningDTO(): MeldeperiodeBeregningDT
     )
 }
 
-fun MeldeperiodeBeregning.tilMeldeperiodeKorrigeringDTO(): MeldeperiodeKorrigeringDTO =
+fun MeldekortBehandlet.tilMeldeperiodeKorrigeringDTO(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKorrigeringDTO =
     MeldeperiodeKorrigeringDTO(
-        meldekortId = meldekortId.toString(),
-        kjedeId = kjedeId.verdi,
+        meldekortId = id.toString(),
+        kjedeId = kjedeId.toString(),
         periode = periode.toDTO(),
-        beregning = this.tilMeldeperiodeBeregningDTO(),
+        beregning = this.beregning.find { it.kjedeId == kjedeId }!!.tilMeldeperiodeBeregningDTO(),
     )

@@ -34,7 +34,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
             .map {
                 // Bruker vedtaket istedenfor behandlingen dersom det finnes ett.
                 this.utbetalinger.hentUtbetalingForBehandlingId(it.id)
-                    ?.toMeldekortBehandlingDTO(this.meldeperiodeBeregninger)
+                    ?.toMeldekortBehandlingDTO(this.meldekortBehandlinger)
                     ?: it.toMeldekortBehandlingDTO(UtbetalingsstatusDTO.IKKE_GODKJENT)
             },
         brukersMeldekort = this.brukersMeldekort
