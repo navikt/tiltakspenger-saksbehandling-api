@@ -16,7 +16,7 @@ class AktorV2Consumer(
     private val identhendelseService: IdenthendelseService,
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
-    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "latest") else LocalKafkaConfig(),
+    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "none") else LocalKafkaConfig(),
 ) : Consumer<String, Aktor?> {
     private val consumer = ManagedKafkaConsumer(
         kanLoggeKey = false,
