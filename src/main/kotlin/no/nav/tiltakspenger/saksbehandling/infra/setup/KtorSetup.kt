@@ -56,7 +56,7 @@ fun Application.metrics() {
         registry = appMicrometerRegistry
     }
     routing {
-        get("/internal/prometheus") {
+        get("/metrics") {
             call.respond(appMicrometerRegistry.scrape())
         }
     }
