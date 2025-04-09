@@ -36,7 +36,10 @@ data class MeldekortBehandlingDTO(
 fun Utbetalingsvedtak.toMeldekortBehandlingDTO(meldekortBehandlinger: MeldekortBehandlinger): MeldekortBehandlingDTO {
     val behandling = this.meldekortbehandling
     val korrigering = meldekortBehandlinger.meldeperiodeBeregninger.sisteBeregningForKjede[behandling.kjedeId]?.let {
-        val forrigeBehandling = meldekortBehandlinger.hentMeldekortBehandling(it.meldekortId) as MeldekortBehandlet
+        val forrigeBehandling = meldekortBehandlinger.hentMeldekortBehandling(it.beregningMeldekortId)
+        if (forrigeBehandling !is MeldekortBehandlet) {
+            return@let null
+        }
 
         if (forrigeBehandling.kjedeId == behandling.kjedeId) {
             null

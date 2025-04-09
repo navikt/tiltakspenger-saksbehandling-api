@@ -236,9 +236,7 @@ class MeldekortBehandlingPostgresRepo(
 
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.GODKJENT, MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> {
-                    val beregninger = row.string("beregninger").tilBeregninger()
-
-                    val meldekortBeregning = MeldekortBeregning(beregninger)
+                    val beregninger = row.string("beregninger").tilBeregninger(id)
 
                     MeldekortBehandlet(
                         id = id,
@@ -258,13 +256,13 @@ class MeldekortBehandlingPostgresRepo(
                         beslutter = row.stringOrNull("beslutter"),
                         status = status,
                         iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
-                        beregning = meldekortBeregning,
+                        beregning = MeldekortBeregning(beregninger),
                         dager = dager,
                     )
                 }
                 // TODO jah: Her blander vi sammen behandlingsstatus og om man har rett/ikke-rett. Det er mulig at man har startet en meldekortbehandling også endres statusen til IKKE_RETT_TIL_TILTAKSPENGER. Da vil behandlingen sånn som koden er nå implisitt avsluttes. Det kan hende vi bør endre dette når vi skiller grunnlag, innsending og behandling.
                 MeldekortBehandlingStatus.IKKE_BEHANDLET, MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> {
-                    val beregning = row.stringOrNull("beregninger")?.tilBeregninger()?.let {
+                    val beregning = row.stringOrNull("beregninger")?.tilBeregninger(id)?.let {
                         MeldekortBeregning(it)
                     }
 

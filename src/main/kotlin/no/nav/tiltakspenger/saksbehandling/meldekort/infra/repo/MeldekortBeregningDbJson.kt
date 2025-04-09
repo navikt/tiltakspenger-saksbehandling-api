@@ -66,35 +66,31 @@ private data class MeldeperiodeBeregningDagDbJson(
             }
     }
 
-    fun tilMeldeperiodeBeregningDag(meldekortId: MeldekortId): MeldeperiodeBeregningDag {
+    fun tilMeldeperiodeBeregningDag(): MeldeperiodeBeregningDag {
         val parsedDato = LocalDate.parse(dato)
         val parsedTiltakstype = tiltakstype?.toTiltakstypeSomGirRett()
         val parsedBeregningsdag = beregningsdag?.toBeregningsdag()
         return when (status) {
-            SPERRET -> Sperret(meldekortId, parsedDato)
+            SPERRET -> Sperret(parsedDato)
             DELTATT_UTEN_LØNN_I_TILTAKET -> DeltattUtenLønnITiltaket.fromDb(
-                meldekortId,
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
             )
 
             DELTATT_MED_LØNN_I_TILTAKET -> DeltattMedLønnITiltaket.fromDb(
-                meldekortId,
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
             )
 
             IKKE_DELTATT -> IkkeDeltatt.fromDb(
-                meldekortId,
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
             )
 
             FRAVÆR_SYK -> SykBruker.fromDb(
-                meldekortId,
                 parsedDato,
                 parsedTiltakstype!!,
                 reduksjon!!.toDomain(),
@@ -102,7 +98,6 @@ private data class MeldeperiodeBeregningDagDbJson(
             )
 
             FRAVÆR_SYKT_BARN -> SyktBarn.fromDb(
-                meldekortId,
                 parsedDato,
                 parsedTiltakstype!!,
                 reduksjon!!.toDomain(),
@@ -110,14 +105,12 @@ private data class MeldeperiodeBeregningDagDbJson(
             )
 
             FRAVÆR_VELFERD_GODKJENT_AV_NAV -> VelferdGodkjentAvNav.fromDb(
-                meldekortId,
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
             )
 
             FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> VelferdIkkeGodkjentAvNav.fromDb(
-                meldekortId,
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
@@ -136,7 +129,7 @@ fun MeldekortBeregning.tilBeregningerDbJson(): String {
     return this.map {
         MeldeperiodeBeregningDbJson(
             kjedeId = it.kjedeId.toString(),
-            meldekortId = it.meldekortId.toString(),
+            meldekortId = it.dagerMeldekortId.toString(),
             dager = it.dager.toDbJson(),
         )
     }.let { serialize(it) }
@@ -169,17 +162,16 @@ private fun ReduksjonAvYtelsePåGrunnAvFravær.toDb(): ReduksjonAvYtelsePåGrunn
         ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort -> ReduksjonAvYtelsePåGrunnAvFraværDb.YtelsenFallerBort
     }
 
-private fun MeldeperiodeBeregningDbJson.tilMeldeperiodeBeregning(): MeldeperiodeBeregning {
-    val meldekortId = MeldekortId.fromString(this.meldekortId)
-
+private fun MeldeperiodeBeregningDbJson.tilMeldeperiodeBeregning(meldekortId: MeldekortId): MeldeperiodeBeregning {
     return MeldeperiodeBeregning(
         kjedeId = MeldeperiodeKjedeId(this.kjedeId),
-        meldekortId = meldekortId,
-        dager = this.dager.map { it.tilMeldeperiodeBeregningDag(meldekortId) }.toNonEmptyListOrNull()!!,
+        beregningMeldekortId = meldekortId,
+        dagerMeldekortId = MeldekortId.fromString(this.meldekortId),
+        dager = this.dager.map { it.tilMeldeperiodeBeregningDag() }.toNonEmptyListOrNull()!!,
     )
 }
 
-fun String.tilBeregninger(): NonEmptyList<MeldeperiodeBeregning> =
+fun String.tilBeregninger(meldekortId: MeldekortId): NonEmptyList<MeldeperiodeBeregning> =
     deserializeList<MeldeperiodeBeregningDbJson>(this).map {
-        it.tilMeldeperiodeBeregning()
+        it.tilMeldeperiodeBeregning(meldekortId)
     }.toNonEmptyListOrNull()!!

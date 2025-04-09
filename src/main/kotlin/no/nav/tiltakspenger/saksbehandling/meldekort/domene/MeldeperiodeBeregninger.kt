@@ -22,7 +22,7 @@ data class MeldeperiodeBeregninger(
     }
 
     fun sisteBeregningFør(meldekortId: MeldekortId, kjedeId: MeldeperiodeKjedeId): MeldeperiodeBeregning? {
-        return beregningerForKjede[kjedeId]?.takeWhile { it.meldekortId != meldekortId }?.lastOrNull()
+        return beregningerForKjede[kjedeId]?.takeWhile { it.beregningMeldekortId != meldekortId }?.lastOrNull()
     }
 
     init {

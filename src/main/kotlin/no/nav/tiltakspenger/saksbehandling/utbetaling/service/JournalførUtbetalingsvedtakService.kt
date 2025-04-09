@@ -38,7 +38,7 @@ class JournalførUtbetalingsvedtakService(
                     val sak = sakRepo.hentForSakId(utbetalingsvedtak.sakId)!!
                     val sammenligning = { beregningEtter: MeldeperiodeBeregning ->
                         val beregningFør = sak.meldeperiodeBeregninger.sisteBeregningFør(
-                            beregningEtter.meldekortId,
+                            beregningEtter.beregningMeldekortId,
                             beregningEtter.kjedeId,
                         )
                         sammenlign(beregningFør, beregningEtter)

@@ -7,11 +7,15 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import java.time.DayOfWeek
 import java.time.LocalDate
 
-/** @property meldekortId Id for meldekort-behandlingen som utløste denne beregningen.
- *  Denne kan være ulik meldekort-id'en for dagene dersom beregningen er et resultat av en korrigering
- *  som påvirket en påfølgende meldeperiode */
+/** @property beregningMeldekortId Id for meldekort-behandlingen som utløste denne beregningen.
+ *  Denne kan være ulik [dagerMeldekortId] for beregninger som er et resultat av en korrigering
+ *  som påvirket en påfølgende meldeperiode
+ *  @property dagerMeldekortId Id for meldekort-behandlingen med utfylte dager for beregningen
+ *  av denne perioden
+ *  */
 data class MeldeperiodeBeregning(
-    val meldekortId: MeldekortId,
+    val beregningMeldekortId: MeldekortId,
+    val dagerMeldekortId: MeldekortId,
     val kjedeId: MeldeperiodeKjedeId,
     val dager: NonEmptyList<MeldeperiodeBeregningDag>,
 ) : List<MeldeperiodeBeregningDag> by dager {
@@ -28,10 +32,6 @@ data class MeldeperiodeBeregning(
                 "Datoene må være sammenhengende og sortert, men var ${dager.map { it.dato }}"
             }
         }
-        require(
-            dager.zipWithNext()
-                .all { (a, b) -> a.meldekortId == b.meldekortId },
-        ) { "Alle dager må tilhøre samme meldekort, men var: ${dager.map { it.meldekortId }}" }
     }
 
     fun beregnTotalOrdinærBeløp(): Int = this.sumOf { it.beregningsdag?.beløp ?: 0 }

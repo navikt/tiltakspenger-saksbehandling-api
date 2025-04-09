@@ -187,7 +187,8 @@ interface MeldekortMother : MotherOfAllMothers {
             nonEmptyListOf(
                 MeldeperiodeBeregning(
                     kjedeId = kjedeId,
-                    meldekortId = meldekortId,
+                    beregningMeldekortId = meldekortId,
+                    dagerMeldekortId = meldekortId,
                     dager = beregningDager,
                 ),
             ),
@@ -232,7 +233,6 @@ interface MeldekortMother : MotherOfAllMothers {
             val dato = startDato.plusDays(index.toLong())
             MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket.create(
                 dato = dato,
-                meldekortId = meldekortId,
                 tiltakstype = tiltakstype,
                 antallBarn = barnetilleggsPerioder.hentVerdiForDag(dato) ?: AntallBarn.ZERO,
             )
@@ -253,7 +253,6 @@ interface MeldekortMother : MotherOfAllMothers {
             val dato = startDato.plusDays(index.toLong())
             MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket.create(
                 dato = dato,
-                meldekortId = meldekortId,
                 tiltakstype = tiltakstype,
                 antallBarn = barnetilleggsPerioder.hentVerdiForDag(dato) ?: AntallBarn.ZERO,
             )
@@ -274,7 +273,6 @@ interface MeldekortMother : MotherOfAllMothers {
             val dato = startDato.plusDays(index.toLong())
             MeldeperiodeBeregningDag.IkkeDeltatt.create(
                 dato = dato,
-                meldekortId = meldekortId,
                 tiltakstype = tiltakstype,
                 antallBarn = barnetilleggsPerioder.hentVerdiForDag(dato) ?: AntallBarn.ZERO,
             )
