@@ -31,6 +31,8 @@ data class MeldekortBehandlinger(
     val periode: Periode by lazy { Periode(verdi.first().fraOgMed, verdi.last().tilOgMed) }
     val sakId: SakId by lazy { verdi.first().sakId }
 
+    val meldeperiodeBeregninger by lazy { MeldeperiodeBeregninger(this) }
+
     private val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
 
     val behandledeMeldekortPerKjede: Map<MeldeperiodeKjedeId, List<MeldekortBehandlet>> by lazy {
@@ -64,21 +66,14 @@ data class MeldekortBehandlinger(
         godkjenteMeldekort.flatMap { it.beregning.first().dager }.lastOrNull { it.beløp > 0 }?.dato
     }
 
-    /**
-     *  Vil kun returnere hele meldekortperioder som er utfylt. Dersom siste meldekortperiode er delvis utfylt, vil ikke disse komme med.
-     *
-     *  Obs!! Med korrigeringer kan vi ikke stole på beregninger fra disse dagene, ettersom korrigering kan påvirke dager etter det korrigerte meldekortet
-     *  TODO: Bør løses når vi splitter meldekort-utfylling og meldekort-beregning
-     *  */
+    /** Vil kun returnere hele meldekortperioder som er utfylt og godkjent */
     val utfylteDager: List<MeldeperiodeBeregningDag> by lazy {
-        sisteBehandledeMeldekortPerKjede.flatMap { it.beregning.first().dager }
+        meldeperiodeBeregninger.sisteBeregningForKjede.values.flatMap { it.dager }
     }
 
     /** Meldekort som er under behandling eller venter på beslutning */
     val åpenMeldekortBehandling: MeldekortBehandling? by lazy { meldekortUnderBehandling ?: meldekortUnderBeslutning }
     val finnesÅpenMeldekortBehandling: Boolean by lazy { åpenMeldekortBehandling != null }
-
-    val meldeperiodeBeregninger by lazy { MeldeperiodeBeregninger(this) }
 
     /**
      * @throws NullPointerException Dersom det ikke er noen meldekort-behandling som kan sendes til beslutter. Eller siste meldekort ikke er i tilstanden 'under behandling'.
@@ -109,11 +104,11 @@ data class MeldekortBehandlinger(
 
         kommando.dager.dager.zip(meldekort.dager).forEach { (dagA, dagB) ->
             if (dagA.status == Status.SPERRET && dagB.status != MeldekortDagStatus.SPERRET) {
-                log.error { "Kan ikke endre dag til sperret. Nåværende tilstand: $utfylteDager. Innsendte dager: ${kommando.dager}" }
+                log.error { "Kan ikke endre dag til sperret. Nåværende tilstand: ${meldekort.dager}. Innsendte dager: ${kommando.dager}" }
                 return KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagTilSperret.left()
             }
             if (dagA.status != Status.SPERRET && dagB.status == MeldekortDagStatus.SPERRET) {
-                log.error { "Kan ikke endre dag fra sperret. Nåværende tilstand: $utfylteDager. Innsendte dager: ${kommando.dager}" }
+                log.error { "Kan ikke endre dag fra sperret. Nåværende tilstand: ${meldekort.dager}. Innsendte dager: ${kommando.dager}" }
                 return KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagFraSperret.left()
             }
         }
