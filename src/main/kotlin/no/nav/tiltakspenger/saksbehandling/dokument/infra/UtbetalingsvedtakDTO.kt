@@ -21,6 +21,7 @@ private data class UtbetalingsvedtakDTO(
     val tiltak: List<TiltakDTO>,
     val iverksattTidspunkt: String,
     val fødselsnummer: String,
+    val begrunnelse: String? = null,
     val sammenligningAvBeregninger: SammenligningAvBeregningerDTO,
 ) {
     @Suppress("unused")
@@ -54,6 +55,7 @@ private data class UtbetalingsvedtakDTO(
 
     data class SammenligningAvBeregningerDTO(
         val meldeperioder: List<MeldeperiodeSammenligningerDTO>,
+        val begrunnelse: String?,
     )
 
     data class MeldeperiodeSammenligningerDTO(
@@ -113,7 +115,7 @@ private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
     sammenlign: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
 ): UtbetalingsvedtakDTO.SammenligningAvBeregningerDTO {
     return this.meldekortbehandling.beregning.beregninger
-        .map { sammenlign(it) }
+        .map { beregninger -> sammenlign(beregninger) }
         .map { sammenligningPerMeldeperiode ->
             sammenligningPerMeldeperiode.periode.let { periode ->
                 val fraOgMed = periode.fraOgMed.format(norskDatoFormatter)
@@ -147,7 +149,10 @@ private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
             }
         }.let {
             // Kommentar: Bug rundt serialisering av NonEmptyList gjør at vi konverterer til standard kotlin list
-            UtbetalingsvedtakDTO.SammenligningAvBeregningerDTO(meldeperioder = it.toList())
+            UtbetalingsvedtakDTO.SammenligningAvBeregningerDTO(
+                meldeperioder = it.toList(),
+                begrunnelse = this.meldekortbehandling.begrunnelse?.verdi,
+            )
         }
 }
 
