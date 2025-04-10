@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
+import java.time.LocalDateTime
 
 data class MeldekortBeregningDTO(
     val totalBeløp: BeløpDTO,
@@ -17,6 +18,7 @@ data class MeldeperiodeKorrigeringDTO(
     val meldekortId: String,
     val kjedeId: String,
     val periode: PeriodeDTO,
+    val iverksatt: LocalDateTime?,
     val beregning: MeldeperiodeBeregningDTO,
 )
 
@@ -56,8 +58,9 @@ fun MeldeperiodeBeregning.tilMeldeperiodeBeregningDTO(): MeldeperiodeBeregningDT
 
 fun MeldekortBehandlet.tilMeldeperiodeKorrigeringDTO(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKorrigeringDTO =
     MeldeperiodeKorrigeringDTO(
-        meldekortId = id.toString(),
+        meldekortId = this.id.toString(),
         kjedeId = kjedeId.toString(),
-        periode = periode.toDTO(),
+        periode = this.periode.toDTO(),
+        iverksatt = this.iverksattTidspunkt,
         beregning = this.beregning.find { it.kjedeId == kjedeId }!!.tilMeldeperiodeBeregningDTO(),
     )

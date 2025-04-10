@@ -3,9 +3,13 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 
+/** @property korrigering Korrigering på en tidligere meldeperiodekjede, som har påvirket denne kjeden,
+ *  og er nyere enn siste meldekortbehandling på denne kjeden. Dvs en korrigering som har overstyrt
+ *  beregningen for perioden til denne kjeden. */
 data class MeldeperiodeKjedeDTO(
     val id: String,
     val periode: PeriodeDTO,
@@ -15,10 +19,23 @@ data class MeldeperiodeKjedeDTO(
     val meldeperioder: List<MeldeperiodeDTO>,
     val meldekortBehandlinger: List<MeldekortBehandlingDTO>,
     val brukersMeldekort: BrukersMeldekortDTO?,
+    val korrigering: MeldeperiodeKorrigeringDTO?,
 )
 
 fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeDTO {
     val meldeperiodeKjede = this.meldeperiodeKjeder.single { it.kjedeId == kjedeId }
+    val korrigering = meldeperiodeBeregninger.sisteBeregningForKjede[kjedeId]?.let {
+        val forrigeBehandling = meldekortBehandlinger.hentMeldekortBehandling(it.beregningMeldekortId)
+        if (forrigeBehandling !is MeldekortBehandlet) {
+            return@let null
+        }
+
+        if (forrigeBehandling.kjedeId == kjedeId) {
+            null
+        } else {
+            forrigeBehandling.tilMeldeperiodeKorrigeringDTO(it.kjedeId)
+        }
+    }
 
     return MeldeperiodeKjedeDTO(
         id = meldeperiodeKjede.kjedeId.toString(),
@@ -34,12 +51,13 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
             .map {
                 // Bruker vedtaket istedenfor behandlingen dersom det finnes ett.
                 this.utbetalinger.hentUtbetalingForBehandlingId(it.id)
-                    ?.toMeldekortBehandlingDTO(this.meldekortBehandlinger)
+                    ?.toMeldekortBehandlingDTO()
                     ?: it.toMeldekortBehandlingDTO(UtbetalingsstatusDTO.IKKE_GODKJENT)
             },
         brukersMeldekort = this.brukersMeldekort
             .find { it.kjedeId == kjedeId }
             ?.toBrukersMeldekortDTO(),
+        korrigering = korrigering,
     )
 }
 

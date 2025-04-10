@@ -4,10 +4,8 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAttesteringDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import java.time.LocalDateTime
 
@@ -29,24 +27,10 @@ data class MeldekortBehandlingDTO(
     val periode: PeriodeDTO,
     val dager: List<MeldekortDagDTO>,
     val beregning: MeldekortBeregningDTO?,
-    /** Eventuell korrigering på tidligere meldeperioder som også korrigerte perioden for denne behandlingen */
-    val korrigering: MeldeperiodeKorrigeringDTO?,
 )
 
-fun Utbetalingsvedtak.toMeldekortBehandlingDTO(meldekortBehandlinger: MeldekortBehandlinger): MeldekortBehandlingDTO {
+fun Utbetalingsvedtak.toMeldekortBehandlingDTO(): MeldekortBehandlingDTO {
     val behandling = this.meldekortbehandling
-    val korrigering = meldekortBehandlinger.meldeperiodeBeregninger.sisteBeregningForKjede[behandling.kjedeId]?.let {
-        val forrigeBehandling = meldekortBehandlinger.hentMeldekortBehandling(it.beregningMeldekortId)
-        if (forrigeBehandling !is MeldekortBehandlet) {
-            return@let null
-        }
-
-        if (forrigeBehandling.kjedeId == behandling.kjedeId) {
-            null
-        } else {
-            forrigeBehandling.tilMeldeperiodeKorrigeringDTO(it.kjedeId)
-        }
-    }
 
     return MeldekortBehandlingDTO(
         id = behandling.id.toString(),
@@ -66,7 +50,6 @@ fun Utbetalingsvedtak.toMeldekortBehandlingDTO(meldekortBehandlinger: MeldekortB
         periode = behandling.beregningPeriode.toDTO(),
         dager = behandling.dager.tilMeldekortDagerDTO(),
         beregning = behandling.beregning.tilMeldekortBeregningDTO(),
-        korrigering = korrigering,
     )
 }
 
@@ -94,6 +77,5 @@ fun MeldekortBehandling.toMeldekortBehandlingDTO(
         periode = this.periode.toDTO(),
         dager = dager.tilMeldekortDagerDTO(),
         beregning = beregning?.tilMeldekortBeregningDTO(),
-        korrigering = null,
     )
 }
