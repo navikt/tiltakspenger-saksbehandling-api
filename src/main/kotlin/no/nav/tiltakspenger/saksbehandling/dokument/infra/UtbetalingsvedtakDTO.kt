@@ -24,6 +24,7 @@ private data class UtbetalingsvedtakDTO(
     val fødselsnummer: String,
     val begrunnelse: String? = null,
     val sammenligningAvBeregninger: SammenligningAvBeregningerDTO,
+    val korrigering: Boolean,
 ) {
     @Suppress("unused")
     @JsonInclude
@@ -57,7 +58,6 @@ private data class UtbetalingsvedtakDTO(
     data class SammenligningAvBeregningerDTO(
         val meldeperioder: List<MeldeperiodeSammenligningerDTO>,
         val begrunnelse: String?,
-        val korrigering: Boolean,
     )
 
     data class MeldeperiodeSammenligningerDTO(
@@ -109,6 +109,7 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
         },
         tiltak = tiltaksdeltagelser.map { it.toTiltakDTO() },
         iverksattTidspunkt = opprettet.format(norskTidspunktFormatter),
+        korrigering = meldekortbehandling.type == MeldekortBehandlingType.KORRIGERING,
         sammenligningAvBeregninger = toBeregningSammenligningDTO(sammenlign),
     ).let { serialize(it) }
 }
@@ -154,7 +155,6 @@ private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
             UtbetalingsvedtakDTO.SammenligningAvBeregningerDTO(
                 meldeperioder = it.toList(),
                 begrunnelse = this.meldekortbehandling.begrunnelse?.verdi,
-                korrigering = this.meldekortbehandling.type == MeldekortBehandlingType.KORRIGERING,
             )
         }
 }
