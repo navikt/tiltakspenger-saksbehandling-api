@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periodisering.norskTidspunktFormatter
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
@@ -56,6 +57,7 @@ private data class UtbetalingsvedtakDTO(
     data class SammenligningAvBeregningerDTO(
         val meldeperioder: List<MeldeperiodeSammenligningerDTO>,
         val begrunnelse: String?,
+        val korrigering: Boolean,
     )
 
     data class MeldeperiodeSammenligningerDTO(
@@ -152,6 +154,7 @@ private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
             UtbetalingsvedtakDTO.SammenligningAvBeregningerDTO(
                 meldeperioder = it.toList(),
                 begrunnelse = this.meldekortbehandling.begrunnelse?.verdi,
+                korrigering = this.meldekortbehandling.type == MeldekortBehandlingType.KORRIGERING,
             )
         }
 }
