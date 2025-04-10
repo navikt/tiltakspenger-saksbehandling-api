@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 
-/** @property korrigering Korrigering på en tidligere meldeperiodekjede, som har påvirket denne kjeden,
+/** @property korrigeringFraTidligerePeriode Korrigering på en tidligere meldeperiodekjede, som har påvirket denne kjeden,
  *  og er nyere enn siste meldekortbehandling på denne kjeden. Dvs en korrigering som har overstyrt
  *  beregningen for perioden til denne kjeden. */
 data class MeldeperiodeKjedeDTO(
@@ -19,7 +19,7 @@ data class MeldeperiodeKjedeDTO(
     val meldeperioder: List<MeldeperiodeDTO>,
     val meldekortBehandlinger: List<MeldekortBehandlingDTO>,
     val brukersMeldekort: BrukersMeldekortDTO?,
-    val korrigering: MeldeperiodeKorrigeringDTO?,
+    val korrigeringFraTidligerePeriode: MeldeperiodeKorrigeringDTO?,
 )
 
 fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeDTO {
@@ -57,7 +57,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
         brukersMeldekort = this.brukersMeldekort
             .find { it.kjedeId == kjedeId }
             ?.toBrukersMeldekortDTO(),
-        korrigering = korrigering,
+        korrigeringFraTidligerePeriode = korrigering,
     )
 }
 
