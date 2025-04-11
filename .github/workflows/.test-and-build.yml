@@ -37,7 +37,7 @@ jobs:
           java-version: 21
 
       - name: Test and build application
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           arguments: build --info installDist
 
@@ -47,8 +47,6 @@ jobs:
         if: inputs.buildImage == true
         with:
           team: tpts
-          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
-          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
 
       - name: Notify Slack in case of build failure
         if: failure() && github.ref == 'refs/heads/main'
