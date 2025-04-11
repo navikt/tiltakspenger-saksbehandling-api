@@ -25,7 +25,7 @@ private const val ANTALL_ARBEIDSGIVERDAGER = 13
 private const val DAGER_KARANTENE = 16L - 1
 
 private data class BeregnMeldekort(
-    val kommando: SendMeldekortTilBeslutningKommando,
+    val kommando: OppdaterMeldekortKommando,
     val meldekortBehandlinger: MeldekortBehandlinger,
     val barnetilleggsPerioder: Periodisering<AntallBarn?>,
     val tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
@@ -110,7 +110,7 @@ private data class BeregnMeldekort(
         }.toNonEmptyListOrNull()!!
     }
 
-    private fun beregnInnsendteDager(kommando: SendMeldekortTilBeslutningKommando): NonEmptyList<MeldeperiodeBeregningDag> {
+    private fun beregnInnsendteDager(kommando: OppdaterMeldekortKommando): NonEmptyList<MeldeperiodeBeregningDag> {
         return kommando.dager.map {
             val dato = it.dag
             beregnDag(
@@ -427,7 +427,7 @@ private enum class SykTilstand {
     Karantene,
 }
 
-fun SendMeldekortTilBeslutningKommando.beregn(
+fun OppdaterMeldekortKommando.beregn(
     eksisterendeMeldekortBehandlinger: MeldekortBehandlinger,
     barnetilleggsPerioder: Periodisering<AntallBarn?>,
     tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
