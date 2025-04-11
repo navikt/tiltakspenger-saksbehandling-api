@@ -36,6 +36,7 @@ internal data class SøknadDTO(
     val visVedlegg: Boolean,
 ) {
     data class TiltaksdeltagelseFraSøknadDTO(
+        val id: String,
         val fraOgMed: String?,
         val tilOgMed: String?,
         val typeKode: String,
@@ -110,6 +111,7 @@ fun PeriodeSpm.toPeriodeDTO(): PeriodeDTO? {
 
 internal fun Søknadstiltak.toDTO(): SøknadDTO.TiltaksdeltagelseFraSøknadDTO {
     return SøknadDTO.TiltaksdeltagelseFraSøknadDTO(
+        id = id,
         fraOgMed = this.deltakelseFom.toString(),
         tilOgMed = this.deltakelseTom.toString(),
         typeKode = this.typeKode,
