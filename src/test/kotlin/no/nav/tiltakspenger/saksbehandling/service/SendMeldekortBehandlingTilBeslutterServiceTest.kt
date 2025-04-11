@@ -32,7 +32,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 val tac = this
                 val sak = this.meldekortBehandlingOpprettet(correlationId = correlationId)
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
-                tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
+                tac.meldekortContext.oppdaterMeldekortService.sendMeldekortTilBeslutter(
                     OppdaterMeldekortKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
@@ -65,7 +65,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed.minusDays(1)
-                tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
+                tac.meldekortContext.oppdaterMeldekortService.sendMeldekortTilBeslutter(
                     OppdaterMeldekortKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
@@ -110,7 +110,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
-                tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
+                tac.meldekortContext.oppdaterMeldekortService.sendMeldekortTilBeslutter(
                     OppdaterMeldekortKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
@@ -155,7 +155,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
-                tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
+                tac.meldekortContext.oppdaterMeldekortService.sendMeldekortTilBeslutter(
                     OppdaterMeldekortKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
@@ -199,7 +199,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
-                tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
+                tac.meldekortContext.oppdaterMeldekortService.sendMeldekortTilBeslutter(
                     OppdaterMeldekortKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
@@ -244,7 +244,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
-                tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
+                tac.meldekortContext.oppdaterMeldekortService.sendMeldekortTilBeslutter(
                     OppdaterMeldekortKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,

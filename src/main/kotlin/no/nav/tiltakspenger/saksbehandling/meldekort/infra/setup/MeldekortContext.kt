@@ -74,7 +74,7 @@ open class MeldekortContext(
             clock = clock,
         )
     }
-    val sendMeldekortTilBeslutterService by lazy {
+    val oppdaterMeldekortService by lazy {
         OppdaterMeldekortService(
             tilgangsstyringService = tilgangsstyringService,
             personService = personService,

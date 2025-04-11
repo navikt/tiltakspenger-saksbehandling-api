@@ -30,7 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortSe
 import java.time.Clock
 
 fun Route.sendMeldekortTilBeslutterRoute(
-    sendMeldekortTilBeslutterService: OppdaterMeldekortService,
+    oppdaterMeldekortService: OppdaterMeldekortService,
     auditService: AuditService,
     tokenService: TokenService,
     clock: Clock,
@@ -49,7 +49,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
                             sakId = sakId,
                             correlationId = correlationId,
                         )
-                        sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(kommando).fold(
+                        oppdaterMeldekortService.sendMeldekortTilBeslutter(kommando).fold(
                             ifLeft = {
                                 when (it) {
                                     is MeldekortperiodenKanIkkeVæreFremITid -> {

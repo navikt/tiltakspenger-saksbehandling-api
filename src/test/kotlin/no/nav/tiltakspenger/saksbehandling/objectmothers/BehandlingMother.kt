@@ -529,7 +529,7 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
         saksbehandler = saksbehandler,
         beslutter = beslutter,
     )
-    tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
+    tac.meldekortContext.oppdaterMeldekortService.sendMeldekortTilBeslutter(
         sak.meldekortBehandlinger.first().tilSendMeldekortTilBeslutterKommando(
             saksbehandler,
         ),

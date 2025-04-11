@@ -40,10 +40,10 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
             override suspend fun validerOgHentBruker(token: String) = ObjectMother.saksbehandler().right()
         }
         val auditService = mockk<AuditService>()
-        val sendMeldekortTilBeslutterService = mockk<OppdaterMeldekortService>()
+        val oppdaterMeldekortService = mockk<OppdaterMeldekortService>()
         coEvery { auditService.logMedMeldekortId(any(), any(), any(), any(), any()) } returns Unit
         coEvery {
-            sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(any())
+            oppdaterMeldekortService.sendMeldekortTilBeslutter(any())
         } returns KanIkkeOppdatereMeldekort.ForMangeDagerUtfylt(14, 15).left()
         val request = """
             {
@@ -60,7 +60,7 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
                         sendMeldekortTilBeslutterRoute(
                             tokenService = tokenService,
                             auditService = auditService,
-                            sendMeldekortTilBeslutterService = sendMeldekortTilBeslutterService,
+                            oppdaterMeldekortService = oppdaterMeldekortService,
                             clock = fixedClock,
                         )
                     }
