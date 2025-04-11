@@ -58,6 +58,12 @@ private data class UtbetalingsvedtakDTO(
     data class SammenligningAvBeregningerDTO(
         val meldeperioder: List<MeldeperiodeSammenligningerDTO>,
         val begrunnelse: String?,
+        val totalDifferanse: Int = meldeperioder
+            .flatMap { it.dager }
+            .sumOf {
+                (it.beløp.gjeldende - (it.beløp.forrige ?: 0))
+                +(it.barnetillegg.gjeldende - (it.barnetillegg.forrige ?: 0))
+            },
     )
 
     data class MeldeperiodeSammenligningerDTO(
