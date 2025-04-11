@@ -60,6 +60,7 @@ private data class UtbetalingsvedtakDTO(
         val begrunnelse: String?,
         val totalDifferanse: Int = meldeperioder
             .flatMap { it.dager }
+            .filter { it.beløp.harEndretSeg || it.barnetillegg.harEndretSeg }
             .sumOf {
                 (it.beløp.gjeldende - (it.beløp.forrige ?: 0))
                 +(it.barnetillegg.gjeldende - (it.barnetillegg.forrige ?: 0))
