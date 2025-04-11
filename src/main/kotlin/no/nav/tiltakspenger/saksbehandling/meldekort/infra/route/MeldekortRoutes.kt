@@ -15,7 +15,7 @@ import java.time.Clock
 fun Route.meldekortRoutes(
     opprettMeldekortBehandlingService: OpprettMeldekortBehandlingService,
     iverksettMeldekortService: IverksettMeldekortService,
-    sendMeldekortTilBeslutterService: OppdaterMeldekortService,
+    oppdaterMeldekortService: OppdaterMeldekortService,
     auditService: AuditService,
     sakService: SakService,
     tokenService: TokenService,
@@ -25,7 +25,8 @@ fun Route.meldekortRoutes(
 ) {
     hentMeldekortRoute(sakService, auditService, tokenService, clock)
     iverksettMeldekortRoute(iverksettMeldekortService, auditService, tokenService, clock)
-    sendMeldekortTilBeslutterRoute(sendMeldekortTilBeslutterService, auditService, tokenService, clock)
+    sendMeldekortTilBeslutterRoute(oppdaterMeldekortService, auditService, tokenService, clock)
+    oppdaterMeldekortBehandlingRoute(oppdaterMeldekortService, auditService, tokenService, clock)
     opprettMeldekortBehandlingRoute(opprettMeldekortBehandlingService, auditService, tokenService, clock)
     mottaMeldekortRoutes(mottaBrukerutfyltMeldekortService)
     underkjennMeldekortBehandlingRoute(underkjennMeldekortBehandlingService, auditService, tokenService)
