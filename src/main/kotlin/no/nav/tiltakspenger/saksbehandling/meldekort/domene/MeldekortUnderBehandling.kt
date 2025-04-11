@@ -51,23 +51,47 @@ data class MeldekortUnderBehandling(
     override val ordinærBeløp = beregning?.beregnTotalOrdinærBeløp()
     override val barnetilleggBeløp = beregning?.beregnTotalBarnetillegg()
 
+    fun oppdater(
+        dager: MeldekortDager,
+        beregning: MeldekortBeregning,
+        begrunnelse: MeldekortBehandlingBegrunnelse?,
+        saksbehandler: Saksbehandler,
+    ): Either<KanIkkeOppdatereMeldekort, MeldekortUnderBehandling> {
+        require(dager.periode == this.meldeperiode.periode) {
+            "Perioden for meldekortet må være lik meldeperioden"
+        }
+        if (!saksbehandler.erSaksbehandler()) {
+            return KanIkkeOppdatereMeldekort.MåVæreSaksbehandler(saksbehandler.roller).left()
+        }
+        if (!erKlarTilUtfylling()) {
+            // John har avklart med Sølvi og Taulant at vi bør ha en begrensning på at vi kan fylle ut et meldekort hvis dagens dato er innenfor meldekortperioden eller senere.
+            // Dette kan endres på ved behov.
+            return KanIkkeOppdatereMeldekort.MeldekortperiodenKanIkkeVæreFremITid.left()
+        }
+        return this.copy(
+            dager = dager,
+            begrunnelse = begrunnelse,
+            beregning = beregning,
+        ).right()
+    }
+
     fun sendTilBeslutter(
         dager: MeldekortDager,
         beregning: MeldekortBeregning,
         begrunnelse: MeldekortBehandlingBegrunnelse?,
         saksbehandler: Saksbehandler,
         clock: Clock,
-    ): Either<KanIkkeSendeMeldekortTilBeslutning, MeldekortBehandlet> {
+    ): Either<KanIkkeOppdatereMeldekort, MeldekortBehandlet> {
         require(dager.periode == this.meldeperiode.periode) {
             "Perioden for meldekortet må være lik meldeperioden"
         }
         if (!saksbehandler.erSaksbehandler()) {
-            return KanIkkeSendeMeldekortTilBeslutning.MåVæreSaksbehandler(saksbehandler.roller).left()
+            return KanIkkeOppdatereMeldekort.MåVæreSaksbehandler(saksbehandler.roller).left()
         }
         if (!erKlarTilUtfylling()) {
             // John har avklart med Sølvi og Taulant at vi bør ha en begrensning på at vi kan fylle ut et meldekort hvis dagens dato er innenfor meldekortperioden eller senere.
             // Dette kan endres på ved behov.
-            return KanIkkeSendeMeldekortTilBeslutning.MeldekortperiodenKanIkkeVæreFremITid.left()
+            return KanIkkeOppdatereMeldekort.MeldekortperiodenKanIkkeVæreFremITid.left()
         }
         return MeldekortBehandlet(
             id = this.id,

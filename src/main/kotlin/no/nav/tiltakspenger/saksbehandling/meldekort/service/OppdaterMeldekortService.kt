@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -12,18 +13,19 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonServi
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.lang.IllegalStateException
 import java.time.Clock
 
 /**
- * Har ansvar for å ta imot et utfylt meldekort og sende det til beslutter.
+ * Har ansvar for å ta imot et utfylt meldekort, lagre det og evt sende det til beslutter.
  */
-class SendMeldekortTilBeslutningService(
+class OppdaterMeldekortService(
     private val tilgangsstyringService: TilgangsstyringService,
     private val personService: PersonService,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
@@ -32,27 +34,11 @@ class SendMeldekortTilBeslutningService(
 ) {
     private val logger = KotlinLogging.logger {}
 
-    /**
-     * @throws IllegalStateException Dersom vi ikke fant saken.
-     */
     suspend fun sendMeldekortTilBeslutter(
-        kommando: SendMeldekortTilBeslutningKommando,
-    ): Either<KanIkkeSendeMeldekortTilBeslutning, Pair<Sak, MeldekortBehandlet>> {
-        if (!kommando.saksbehandler.erSaksbehandler()) {
-            return KanIkkeSendeMeldekortTilBeslutning.MåVæreSaksbehandler(
-                kommando.saksbehandler.roller,
-            ).left()
-        }
+        kommando: OppdaterMeldekortKommando,
+    ): Either<KanIkkeOppdatereMeldekort, Pair<Sak, MeldekortBehandlet>> {
+        val sak = hentSak(kommando).getOrElse { return it.left() }
 
-        kastHvisIkkeTilgangTilPerson(kommando.saksbehandler, kommando.meldekortId, kommando.correlationId)
-        val sak = sakService.hentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
-            .getOrElse { return KanIkkeSendeMeldekortTilBeslutning.KunneIkkeHenteSak(it).left() }
-
-        val meldekortbehandling = sak.hentMeldekortBehandling(kommando.meldekortId)!!
-        val meldeperiode = meldekortbehandling.meldeperiode
-        if (!sak.erSisteVersjonAvMeldeperiode(meldeperiode)) {
-            throw IllegalStateException("Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: ${sak.id}, meldekortId: ${meldekortbehandling.id}")
-        }
         return sak.meldekortBehandlinger
             .sendTilBeslutter(
                 kommando,
@@ -67,6 +53,48 @@ class SendMeldekortTilBeslutningService(
                 meldekortBehandlingRepo.oppdater(meldekort)
                 logger.info { "Meldekort med id ${meldekort.id} sendt til beslutter. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
             }
+    }
+
+    suspend fun oppdaterMeldekort(
+        kommando: OppdaterMeldekortKommando,
+    ): Either<KanIkkeOppdatereMeldekort, Pair<Sak, MeldekortUnderBehandling>> {
+        val sak = hentSak(kommando).getOrElse { return it.left() }
+
+        return sak.meldekortBehandlinger
+            .oppdaterMeldekort(
+                kommando,
+                sak.barnetilleggsperioder,
+                sak.tiltakstypeperioder,
+            )
+            .map {
+                Pair(sak.oppdaterMeldekortbehandling(it.second), it.second)
+            }
+            .onRight { (_, meldekort) ->
+                meldekortBehandlingRepo.oppdater(meldekort)
+                logger.info { "Meldekort under behandling med id ${meldekort.id} oppdatert. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
+            }
+    }
+
+    private suspend fun hentSak(
+        kommando: OppdaterMeldekortKommando,
+    ): Either<KanIkkeOppdatereMeldekort, Sak> {
+        if (!kommando.saksbehandler.erSaksbehandler()) {
+            return KanIkkeOppdatereMeldekort.MåVæreSaksbehandler(
+                kommando.saksbehandler.roller,
+            ).left()
+        }
+
+        kastHvisIkkeTilgangTilPerson(kommando.saksbehandler, kommando.meldekortId, kommando.correlationId)
+        val sak = sakService.hentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
+            .getOrElse { return KanIkkeOppdatereMeldekort.KunneIkkeHenteSak(it).left() }
+
+        val meldekortbehandling = sak.hentMeldekortBehandling(kommando.meldekortId)!!
+        val meldeperiode = meldekortbehandling.meldeperiode
+        if (!sak.erSisteVersjonAvMeldeperiode(meldeperiode)) {
+            throw IllegalStateException("Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: ${sak.id}, meldekortId: ${meldekortbehandling.id}")
+        }
+
+        return sak.right()
     }
 
     private suspend fun kastHvisIkkeTilgangTilPerson(

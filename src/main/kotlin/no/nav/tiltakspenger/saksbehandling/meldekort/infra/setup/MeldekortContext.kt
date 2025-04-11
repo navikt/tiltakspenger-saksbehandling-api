@@ -19,9 +19,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiHttpClien
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppgaveMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortBehandlingService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldeperiodeTilBrukerService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
@@ -75,7 +75,7 @@ open class MeldekortContext(
         )
     }
     val sendMeldekortTilBeslutterService by lazy {
-        SendMeldekortTilBeslutningService(
+        OppdaterMeldekortService(
             tilgangsstyringService = tilgangsstyringService,
             personService = personService,
             meldekortBehandlingRepo = meldekortBehandlingRepo,

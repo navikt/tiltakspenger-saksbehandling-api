@@ -11,12 +11,12 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager.Dag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.IKKE_DELTATT
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Status.SPERRET
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager.Dag
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_DELTATT
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.SPERRET
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.meldekortBehandlingOpprettet
 import org.junit.jupiter.api.Test
@@ -33,12 +33,12 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 val sak = this.meldekortBehandlingOpprettet(correlationId = correlationId)
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                    SendMeldekortTilBeslutningKommando(
+                    OppdaterMeldekortKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        dager = SendMeldekortTilBeslutningKommando.Dager(
+                        dager = OppdaterMeldekortKommando.Dager(
                             dager = nonEmptyListOf(
                                 Dag(
                                     dag = ikkeUtfyltMeldekort.fraOgMed,
@@ -48,7 +48,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                         ),
                         meldekortbehandlingBegrunnelse = null,
                     ),
-                ) shouldBe KanIkkeSendeMeldekortTilBeslutning.InnsendteDagerMåMatcheMeldeperiode.left()
+                ) shouldBe KanIkkeOppdatereMeldekort.InnsendteDagerMåMatcheMeldeperiode.left()
             }
         }
     }
@@ -66,12 +66,12 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed.minusDays(1)
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                    SendMeldekortTilBeslutningKommando(
+                    OppdaterMeldekortKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        dager = SendMeldekortTilBeslutningKommando.Dager(
+                        dager = OppdaterMeldekortKommando.Dager(
                             dager = dager(
                                 førsteDag,
                                 SPERRET,
@@ -93,7 +93,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                         ),
                         meldekortbehandlingBegrunnelse = null,
                     ),
-                ) shouldBe KanIkkeSendeMeldekortTilBeslutning.InnsendteDagerMåMatcheMeldeperiode.left()
+                ) shouldBe KanIkkeOppdatereMeldekort.InnsendteDagerMåMatcheMeldeperiode.left()
             }
         }
     }
@@ -111,12 +111,12 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                    SendMeldekortTilBeslutningKommando(
+                    OppdaterMeldekortKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        dager = SendMeldekortTilBeslutningKommando.Dager(
+                        dager = OppdaterMeldekortKommando.Dager(
                             dager = dager(
                                 førsteDag,
                                 SPERRET,
@@ -138,7 +138,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                         ),
                         meldekortbehandlingBegrunnelse = null,
                     ),
-                ) shouldBe KanIkkeSendeMeldekortTilBeslutning.InnsendteDagerMåMatcheMeldeperiode.left()
+                ) shouldBe KanIkkeOppdatereMeldekort.InnsendteDagerMåMatcheMeldeperiode.left()
             }
         }
     }
@@ -156,12 +156,12 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                    SendMeldekortTilBeslutningKommando(
+                    OppdaterMeldekortKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        dager = SendMeldekortTilBeslutningKommando.Dager(
+                        dager = OppdaterMeldekortKommando.Dager(
                             dager = dager(
                                 førsteDag,
                                 SPERRET,
@@ -182,7 +182,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                         ),
                         meldekortbehandlingBegrunnelse = null,
                     ),
-                ) shouldBe KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagTilSperret.left()
+                ) shouldBe KanIkkeOppdatereMeldekort.KanIkkeEndreDagTilSperret.left()
             }
         }
     }
@@ -200,12 +200,12 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                    SendMeldekortTilBeslutningKommando(
+                    OppdaterMeldekortKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        dager = SendMeldekortTilBeslutningKommando.Dager(
+                        dager = OppdaterMeldekortKommando.Dager(
                             dager = dager(
                                 førsteDag,
                                 // Denne linjen skal gi oss feil
@@ -227,7 +227,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                         ),
                         meldekortbehandlingBegrunnelse = null,
                     ),
-                ) shouldBe KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagFraSperret.left()
+                ) shouldBe KanIkkeOppdatereMeldekort.KanIkkeEndreDagFraSperret.left()
             }
         }
     }
@@ -245,12 +245,12 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                 val ikkeUtfyltMeldekort = sak.meldekortBehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
-                    SendMeldekortTilBeslutningKommando(
+                    OppdaterMeldekortKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        dager = SendMeldekortTilBeslutningKommando.Dager(
+                        dager = OppdaterMeldekortKommando.Dager(
                             dager = dager(
                                 førsteDag,
                                 SPERRET,
@@ -278,14 +278,14 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
 
     private fun dager(
         førsteDag: LocalDate,
-        vararg statuser: SendMeldekortTilBeslutningKommando.Status,
+        vararg statuser: OppdaterMeldekortKommando.Status,
     ): NonEmptyList<Dag> {
         return dager(førsteDag, statuser.toList())
     }
 
     private fun dager(
         førsteDag: LocalDate,
-        statuser: List<SendMeldekortTilBeslutningKommando.Status>,
+        statuser: List<OppdaterMeldekortKommando.Status>,
     ): NonEmptyList<Dag> {
         return statuser.mapIndexed { index, status ->
             Dag(
