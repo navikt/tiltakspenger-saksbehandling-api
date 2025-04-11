@@ -6,15 +6,15 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Satsdag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Satser
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-private typealias Dag = SendMeldekortTilBeslutningKommando.Dager.Dag
-private typealias Status = SendMeldekortTilBeslutningKommando.Status
+private typealias Dag = OppdaterMeldekortKommando.Dager.Dag
+private typealias Status = OppdaterMeldekortKommando.Status
 
 internal class MeldekortberegningKorrigeringTest {
     private val førsteDag = LocalDate.of(2024, 1, 1)

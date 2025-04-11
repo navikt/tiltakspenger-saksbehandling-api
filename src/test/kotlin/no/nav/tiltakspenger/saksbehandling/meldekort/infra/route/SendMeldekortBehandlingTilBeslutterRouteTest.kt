@@ -25,8 +25,8 @@ import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutningService
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortService
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
@@ -40,11 +40,11 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
             override suspend fun validerOgHentBruker(token: String) = ObjectMother.saksbehandler().right()
         }
         val auditService = mockk<AuditService>()
-        val sendMeldekortTilBeslutterService = mockk<SendMeldekortTilBeslutningService>()
+        val sendMeldekortTilBeslutterService = mockk<OppdaterMeldekortService>()
         coEvery { auditService.logMedMeldekortId(any(), any(), any(), any(), any()) } returns Unit
         coEvery {
             sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(any())
-        } returns KanIkkeSendeMeldekortTilBeslutning.ForMangeDagerUtfylt(14, 15).left()
+        } returns KanIkkeOppdatereMeldekort.ForMangeDagerUtfylt(14, 15).left()
         val request = """
             {
               "dager": [

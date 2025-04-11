@@ -6,16 +6,16 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager.Dag
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager.Dag
 import java.time.LocalDate
 
 /**
- * Representerer en saksbehandler som fyller ut hele meldekortet, godkjenner og sender til beslutter.
+ * Representerer en saksbehandler som fyller ut hele meldekortet, godkjenner, lagrer og eventuelt sender til beslutter.
  * Denne flyten vil bli annerledes for veileder og bruker.
  * Vi gjør ingen validering i denne klassen, det gjøres heller av [MeldekortBehandlet]
  *
  */
-class SendMeldekortTilBeslutningKommando(
+class OppdaterMeldekortKommando(
     val sakId: SakId,
     val meldekortId: MeldekortId,
     val saksbehandler: Saksbehandler,

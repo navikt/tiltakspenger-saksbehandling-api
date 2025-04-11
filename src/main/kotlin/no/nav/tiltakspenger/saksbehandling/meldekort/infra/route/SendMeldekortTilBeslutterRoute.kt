@@ -22,18 +22,17 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.ForMangeDagerUtfylt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagFraSperret
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.KanIkkeEndreDagTilSperret
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.KunneIkkeHenteSak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.MeldekortperiodenKanIkkeVæreFremITid
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutning.MåVæreSaksbehandler
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort.ForMangeDagerUtfylt
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort.KanIkkeEndreDagFraSperret
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort.KanIkkeEndreDagTilSperret
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort.KunneIkkeHenteSak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort.MeldekortperiodenKanIkkeVæreFremITid
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort.MåVæreSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutningKommando.Dager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutningService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortService
 import java.time.Clock
 import java.time.LocalDate
 
@@ -42,8 +41,8 @@ private data class Body(
     val begrunnelse: String? = null,
 ) {
     data class Dag(
-        val dato: String,
-        val status: String,
+        val dato: LocalDate,
+        val status: OppdaterMeldekortKommando.Status,
     )
 
     fun toDomain(
@@ -51,27 +50,16 @@ private data class Body(
         meldekortId: MeldekortId,
         sakId: SakId,
         correlationId: CorrelationId,
-    ): SendMeldekortTilBeslutningKommando {
-        return SendMeldekortTilBeslutningKommando(
+    ): OppdaterMeldekortKommando {
+        return OppdaterMeldekortKommando(
             sakId = sakId,
             saksbehandler = saksbehandler,
             correlationId = correlationId,
-            dager = Dager(
+            dager = OppdaterMeldekortKommando.Dager(
                 this.dager.map { dag ->
-                    Dager.Dag(
-                        dag = LocalDate.parse(dag.dato),
-                        status =
-                        when (dag.status) {
-                            "SPERRET" -> SendMeldekortTilBeslutningKommando.Status.SPERRET
-                            "DELTATT_UTEN_LØNN_I_TILTAKET" -> SendMeldekortTilBeslutningKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
-                            "DELTATT_MED_LØNN_I_TILTAKET" -> SendMeldekortTilBeslutningKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
-                            "IKKE_DELTATT" -> SendMeldekortTilBeslutningKommando.Status.IKKE_DELTATT
-                            "FRAVÆR_SYK" -> SendMeldekortTilBeslutningKommando.Status.FRAVÆR_SYK
-                            "FRAVÆR_SYKT_BARN" -> SendMeldekortTilBeslutningKommando.Status.FRAVÆR_SYKT_BARN
-                            "FRAVÆR_VELFERD_GODKJENT_AV_NAV" -> SendMeldekortTilBeslutningKommando.Status.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-                            "FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV" -> SendMeldekortTilBeslutningKommando.Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-                            else -> throw IllegalArgumentException("Ukjent status: ${dag.status}")
-                        },
+                    OppdaterMeldekortKommando.Dager.Dag(
+                        dag = dag.dato,
+                        status = dag.status,
                     )
                 }.toNonEmptyListOrNull()!!,
             ),
@@ -82,7 +70,7 @@ private data class Body(
 }
 
 fun Route.sendMeldekortTilBeslutterRoute(
-    sendMeldekortTilBeslutterService: SendMeldekortTilBeslutningService,
+    sendMeldekortTilBeslutterService: OppdaterMeldekortService,
     auditService: AuditService,
     tokenService: TokenService,
     clock: Clock,
@@ -139,7 +127,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
                                         kode = "kan_ikke_endre_dager_som_er_sperret",
                                     )
 
-                                    KanIkkeSendeMeldekortTilBeslutning.InnsendteDagerMåMatcheMeldeperiode -> call.respond400BadRequest(
+                                    KanIkkeOppdatereMeldekort.InnsendteDagerMåMatcheMeldeperiode -> call.respond400BadRequest(
                                         melding = "Innsendte dager må matche meldeperiode.",
                                         kode = "innsendte_dager_må_matche_meldeperiode",
                                     )

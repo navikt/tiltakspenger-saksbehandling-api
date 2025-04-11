@@ -7,15 +7,15 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.frameldekortapi.mottaMeldekortRoutes
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMeldekortService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortBehandlingService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingService
 import java.time.Clock
 
 fun Route.meldekortRoutes(
     opprettMeldekortBehandlingService: OpprettMeldekortBehandlingService,
     iverksettMeldekortService: IverksettMeldekortService,
-    sendMeldekortTilBeslutterService: SendMeldekortTilBeslutningService,
+    sendMeldekortTilBeslutterService: OppdaterMeldekortService,
     auditService: AuditService,
     sakService: SakService,
     tokenService: TokenService,
