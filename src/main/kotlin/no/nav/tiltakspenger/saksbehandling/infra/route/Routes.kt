@@ -49,7 +49,7 @@ fun Route.routes(
     )
     meldekortRoutes(
         iverksettMeldekortService = applicationContext.meldekortContext.iverksettMeldekortService,
-        sendMeldekortTilBeslutterService = applicationContext.meldekortContext.sendMeldekortTilBeslutterService,
+        oppdaterMeldekortService = applicationContext.meldekortContext.sendMeldekortTilBeslutterService,
         opprettMeldekortBehandlingService = applicationContext.meldekortContext.opprettMeldekortBehandlingService,
         auditService = applicationContext.personContext.auditService,
         sakService = applicationContext.sakContext.sakService,
