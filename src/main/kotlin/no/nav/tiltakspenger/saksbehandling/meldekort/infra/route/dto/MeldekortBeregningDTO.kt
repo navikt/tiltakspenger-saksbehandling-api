@@ -23,6 +23,8 @@ data class MeldeperiodeKorrigeringDTO(
 )
 
 data class MeldeperiodeBeregningDTO(
+    val kjedeId: String,
+    val periode: PeriodeDTO,
     val beløp: BeløpDTO,
     val dager: List<MeldeperiodeBeregningDagDTO>,
 )
@@ -47,6 +49,8 @@ fun MeldekortBeregning.tilMeldekortBeregningDTO(): MeldekortBeregningDTO {
 
 fun MeldeperiodeBeregning.tilMeldeperiodeBeregningDTO(): MeldeperiodeBeregningDTO {
     return MeldeperiodeBeregningDTO(
+        kjedeId = this.kjedeId.toString(),
+        periode = this.periode.toDTO(),
         beløp = BeløpDTO(
             totalt = beregnTotaltBeløp(),
             ordinært = beregnTotalOrdinærBeløp(),
