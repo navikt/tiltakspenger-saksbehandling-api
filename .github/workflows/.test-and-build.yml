@@ -36,10 +36,11 @@ jobs:
           distribution: 'temurin'
           java-version: 21
 
-      - name: Test and build application
+      - name: Setup gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          arguments: build --info installDist
+
+      - name: Test and build application
+        run: ./gradlew build --info installDist
 
       - name: Build and push docker image
         uses: nais/docker-build-push@v0
