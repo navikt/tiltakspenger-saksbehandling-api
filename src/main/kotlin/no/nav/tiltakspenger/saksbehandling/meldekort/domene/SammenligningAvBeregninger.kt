@@ -10,7 +10,6 @@ data class SammenligningAvBeregninger(
     data class MeldeperiodeSammenligninger(
         val periode: Periode,
         val dager: List<DagSammenligning>,
-        val totaltBeløp: Int,
     )
 
     data class DagSammenligning(
@@ -39,7 +38,6 @@ fun sammenlign(
     if (forrigeBeregning == null) {
         return SammenligningAvBeregninger.MeldeperiodeSammenligninger(
             periode = nyBeregning.periode,
-            totaltBeløp = nyBeregning.beregnTotaltBeløp(),
             dager = nyBeregning.dager.map {
                 DagSammenligning(
                     dato = it.dato.format(norskUkedagOgDatoUtenÅrFormatter),
@@ -68,7 +66,6 @@ fun sammenlign(
 
     return SammenligningAvBeregninger.MeldeperiodeSammenligninger(
         periode = forrigeBeregning.periode,
-        totaltBeløp = forrigeBeregning.beregnTotaltBeløp(),
         dager = forrigeBeregning.dager
             .zip(nyBeregning.dager)
             .map { (forrige, gjeldende) -> sammenlign(forrige, gjeldende) },

@@ -58,7 +58,13 @@ private data class UtbetalingsvedtakDTO(
     data class SammenligningAvBeregningerDTO(
         val meldeperioder: List<MeldeperiodeSammenligningerDTO>,
         val begrunnelse: String?,
-        val totalDifferanse: Int,
+        val totalDifferanse: Int = meldeperioder
+            .flatMap { it.dager }
+            .filter { it.beløp.harEndretSeg || it.barnetillegg.harEndretSeg }
+            .sumOf {
+                (it.beløp.gjeldende - (it.beløp.forrige ?: 0))
+                +(it.barnetillegg.gjeldende - (it.barnetillegg.forrige ?: 0))
+            },
     )
 
     data class MeldeperiodeSammenligningerDTO(
@@ -79,7 +85,6 @@ private data class UtbetalingsvedtakDTO(
         val forrige: T?,
         val gjeldende: T,
         val harEndretSeg: Boolean = forrige != null && forrige != gjeldende,
-        val differanse: Int? = null,
     )
 }
 
@@ -139,12 +144,10 @@ private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
                             beløp = UtbetalingsvedtakDTO.ForrigeOgGjeldendeDTO(
                                 forrige = dag.beløp.forrige,
                                 gjeldende = dag.beløp.gjeldende,
-                                differanse = dag.beløp.gjeldende - (dag.beløp.forrige ?: 0),
                             ),
                             barnetillegg = UtbetalingsvedtakDTO.ForrigeOgGjeldendeDTO(
                                 forrige = dag.barnetillegg.forrige,
                                 gjeldende = dag.barnetillegg.gjeldende,
-                                differanse = dag.barnetillegg.gjeldende - (dag.barnetillegg.forrige ?: 0),
                             ),
                             prosent = UtbetalingsvedtakDTO.ForrigeOgGjeldendeDTO(
                                 forrige = dag.prosent.forrige,
@@ -154,12 +157,11 @@ private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
                     },
                 )
             }
-        }.let { it ->
+        }.let {
             // Kommentar: Bug rundt serialisering av NonEmptyList gjør at vi konverterer til standard kotlin list
             UtbetalingsvedtakDTO.SammenligningAvBeregningerDTO(
                 meldeperioder = it.toList(),
                 begrunnelse = this.meldekortbehandling.begrunnelse?.verdi,
-                totalDifferanse = it.toList().flatMap { it.dager }.sumOf { dag -> dag.beløp.differanse ?: 0 },
             )
         }
 }
