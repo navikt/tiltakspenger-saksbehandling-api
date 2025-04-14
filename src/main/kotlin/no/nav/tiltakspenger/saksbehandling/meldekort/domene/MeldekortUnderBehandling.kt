@@ -93,7 +93,7 @@ data class MeldekortUnderBehandling(
             brukersMeldekort = brukersMeldekort,
             meldeperiode = meldeperiode,
             type = type,
-            begrunnelse = begrunnelse,
+            begrunnelse = kommando.begrunnelse,
             attesteringer = attesteringer,
             dager = dager,
         ).right()
