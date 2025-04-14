@@ -25,6 +25,7 @@ class UtbetalingsvedtakDTOTest {
         return SammenligningAvBeregninger.MeldeperiodeSammenligninger(
             periode = sammenligning.periode,
             dager = emptyList(),
+            differanseFraForrige = 0,
         )
     }
 }
