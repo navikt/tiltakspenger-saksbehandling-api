@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.periodisering.norskTidspunktFormatter
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
@@ -18,7 +17,6 @@ private data class UtbetalingsvedtakDTO(
     val meldekortPeriode: PeriodeDTO,
     val saksbehandler: SaksbehandlerDTO,
     val beslutter: SaksbehandlerDTO,
-    val meldekortDager: List<MeldekortDagDTO>, // TODO Erstattes av beregningSammenligning
     val tiltak: List<TiltakDTO>,
     val iverksattTidspunkt: String,
     val fødselsnummer: String,
@@ -28,7 +26,9 @@ private data class UtbetalingsvedtakDTO(
 ) {
     @Suppress("unused")
     @JsonInclude
-    val barnetillegg: Boolean = meldekortDager.map { it.beløpBarnetillegg }.any { it > 0 }
+    val barnetillegg: Boolean = sammenligningAvBeregninger.meldeperioder
+        .flatMap { it.dager }
+        .any { it.barnetillegg.gjeldende > 0 }
 
     data class SaksbehandlerDTO(
         val navn: String,
@@ -37,15 +37,6 @@ private data class UtbetalingsvedtakDTO(
     data class PeriodeDTO(
         val fom: String,
         val tom: String,
-    )
-
-    data class MeldekortDagDTO(
-        val dato: String,
-        val status: String,
-        val beløp: Int,
-        val beløpBarnetillegg: Int,
-        val prosent: Int,
-        val reduksjon: String?,
     )
 
     data class TiltakDTO(
@@ -90,25 +81,14 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
 ): String {
     return UtbetalingsvedtakDTO(
         fødselsnummer = fnr.verdi,
-        saksbehandler = tilSaksbehadlerDto(saksbehandler, hentSaksbehandlersNavn),
-        beslutter = tilSaksbehadlerDto(beslutter, hentSaksbehandlersNavn),
+        saksbehandler = tilSaksbehandlerDto(saksbehandler, hentSaksbehandlersNavn),
+        beslutter = tilSaksbehandlerDto(beslutter, hentSaksbehandlersNavn),
         meldekortId = meldekortId.toString(),
         saksnummer = saksnummer.toString(),
         meldekortPeriode = UtbetalingsvedtakDTO.PeriodeDTO(
             fom = periode.fraOgMed.format(norskDatoFormatter),
             tom = periode.tilOgMed.format(norskDatoFormatter),
         ),
-        // Kommentar: Bug rundt serialisering av NonEmptyList gjør at vi konverterer til standard kotlin List før mapping
-        meldekortDager = meldekortbehandling.beregning.alleDager.toList().map { dag ->
-            UtbetalingsvedtakDTO.MeldekortDagDTO(
-                dato = dag.dato.format(norskDatoFormatter),
-                status = dag.toStatus(),
-                beløp = dag.beløp,
-                beløpBarnetillegg = dag.beløpBarnetillegg,
-                prosent = dag.prosent,
-                reduksjon = dag.toReduksjon(),
-            )
-        },
         tiltak = tiltaksdeltagelser.map { it.toTiltakDTO() },
         iverksattTidspunkt = opprettet.format(norskTidspunktFormatter),
         korrigering = meldekortbehandling.type == MeldekortBehandlingType.KORRIGERING,
@@ -171,7 +151,7 @@ private fun Tiltaksdeltagelse.toTiltakDTO() =
         eksternGjennomføringId = gjennomføringId,
     )
 
-private suspend fun tilSaksbehadlerDto(
+private suspend fun tilSaksbehandlerDto(
     navIdent: String,
     hentSaksbehandlersNavn: suspend (String) -> String,
 ): UtbetalingsvedtakDTO.SaksbehandlerDTO {
@@ -188,13 +168,5 @@ private fun MeldeperiodeBeregningDag.toStatus(): String {
         is MeldeperiodeBeregningDag.Fravær.Velferd.VelferdIkkeGodkjentAvNav -> "Ikke godkjent fravær - Velferd"
         is MeldeperiodeBeregningDag.IkkeDeltatt -> "Ikke tiltak denne dagen"
         is MeldeperiodeBeregningDag.Sperret -> "Ikke rett på tiltakspenger"
-    }
-}
-
-private fun MeldeperiodeBeregningDag.toReduksjon(): String {
-    return when (reduksjon) {
-        ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon -> "Ingen reduksjon"
-        ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon -> "Reduksjon"
-        ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort -> "Ytelsen faller bort"
     }
 }
