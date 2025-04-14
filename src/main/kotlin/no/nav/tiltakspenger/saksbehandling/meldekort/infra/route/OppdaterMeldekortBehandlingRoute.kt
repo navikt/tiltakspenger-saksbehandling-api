@@ -29,15 +29,17 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperi
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortService
 import java.time.Clock
 
-fun Route.sendMeldekortTilBeslutterRoute(
+private const val PATH = "/sak/{sakId}/meldekort/{meldekortId}/oppdater"
+
+fun Route.oppdaterMeldekortBehandlingRoute(
     oppdaterMeldekortService: OppdaterMeldekortService,
     auditService: AuditService,
     tokenService: TokenService,
     clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
-    post("/sak/{sakId}/meldekort/{meldekortId}") {
-        logger.debug { "Mottatt post-request på /sak/{sakId}/meldekort/{meldekortId} - saksbehandler har fylt ut meldekortet og sendt til beslutter" }
+    post(PATH) {
+        logger.debug { "Mottatt post-request på $PATH - saksbehandler har oppdatert et meldekort under behandling" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withMeldekortId { meldekortId ->
@@ -49,7 +51,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
                             sakId = sakId,
                             correlationId = correlationId,
                         )
-                        oppdaterMeldekortService.sendMeldekortTilBeslutter(kommando).fold(
+                        oppdaterMeldekortService.oppdaterMeldekort(kommando).fold(
                             ifLeft = {
                                 when (it) {
                                     is MeldekortperiodenKanIkkeVæreFremITid -> {
@@ -61,21 +63,21 @@ fun Route.sendMeldekortTilBeslutterRoute(
 
                                     is MåVæreSaksbehandler -> {
                                         call.respond400BadRequest(
-                                            melding = "Kan ikke sende meldekort til beslutter. Krever saksbehandler-rolle.",
+                                            melding = "Kan ikke oppdatere meldekort. Krever saksbehandler-rolle.",
                                             kode = "må_være_saksbehandler",
                                         )
                                     }
 
                                     is KanIkkeOppdatereMeldekort.MåVæreSaksbehandlerForMeldekortet -> {
                                         call.respond400BadRequest(
-                                            melding = "Kan ikke sende meldekort til beslutter. Må ha tatt saksbehandler-rollen for meldekort-behandlingen.",
+                                            melding = "Kan ikke oppdatere meldekort. Må ha tatt saksbehandler-rollen for meldekort-behandlingen.",
                                             kode = "må_være_saksbehandler_for_meldekortet",
                                         )
                                     }
 
                                     is ForMangeDagerUtfylt -> {
                                         call.respond400BadRequest(
-                                            melding = "Kan ikke sende meldekort til beslutter. For mange dager er utfylt. Maks antall for dette meldekortet er ${it.maksDagerMedTiltakspengerForPeriode}, mens antall utfylte dager er ${it.antallDagerUtfylt}.",
+                                            melding = "Kan ikke oppdatere meldekort. For mange dager er utfylt. Maks antall for dette meldekortet er ${it.maksDagerMedTiltakspengerForPeriode}, mens antall utfylte dager er ${it.antallDagerUtfylt}.",
                                             kode = "for_mange_dager_utfylt",
                                         )
                                     }
@@ -105,7 +107,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
                                     meldekortId = meldekortId,
                                     navIdent = saksbehandler.navIdent,
                                     action = AuditLogEvent.Action.UPDATE,
-                                    contextMessage = "Saksbehandler har fylt ut meldekortet og sendt til beslutter",
+                                    contextMessage = "Saksbehandler har oppdatert et meldekort under behandling",
                                     correlationId = correlationId,
                                 )
                                 call.respond(message = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock), status = HttpStatusCode.OK)
