@@ -58,17 +58,12 @@ private data class UtbetalingsvedtakDTO(
     data class SammenligningAvBeregningerDTO(
         val meldeperioder: List<MeldeperiodeSammenligningerDTO>,
         val begrunnelse: String?,
-        val totalDifferanse: Int = meldeperioder
-            .flatMap { it.dager }
-            .filter { it.beløp.harEndretSeg || it.barnetillegg.harEndretSeg }
-            .sumOf {
-                (it.beløp.gjeldende - (it.beløp.forrige ?: 0))
-                +(it.barnetillegg.gjeldende - (it.barnetillegg.forrige ?: 0))
-            },
+        val totalDifferanse: Int,
     )
 
     data class MeldeperiodeSammenligningerDTO(
         val tittel: String,
+        val differanseFraForrige: Int,
         val dager: List<DagSammenligningDTO>,
     )
 
@@ -134,6 +129,7 @@ private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
 
                 UtbetalingsvedtakDTO.MeldeperiodeSammenligningerDTO(
                     tittel = tittel,
+                    differanseFraForrige = sammenligningPerMeldeperiode.differanseFraForrige,
                     dager = sammenligningPerMeldeperiode.dager.map { dag ->
                         UtbetalingsvedtakDTO.DagSammenligningDTO(
                             dato = dag.dato,
@@ -157,11 +153,12 @@ private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
                     },
                 )
             }
-        }.let {
+        }.let { meldeperiodeSammenligninger ->
             // Kommentar: Bug rundt serialisering av NonEmptyList gjør at vi konverterer til standard kotlin list
             UtbetalingsvedtakDTO.SammenligningAvBeregningerDTO(
-                meldeperioder = it.toList(),
+                meldeperioder = meldeperiodeSammenligninger.toList(),
                 begrunnelse = this.meldekortbehandling.begrunnelse?.verdi,
+                totalDifferanse = meldeperiodeSammenligninger.toList().sumOf { it.differanseFraForrige },
             )
         }
 }
