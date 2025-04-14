@@ -46,7 +46,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                                 ),
                             ),
                         ),
-                        meldekortbehandlingBegrunnelse = null,
+                        begrunnelse = null,
                     ),
                 ) shouldBe KanIkkeOppdatereMeldekort.InnsendteDagerMåMatcheMeldeperiode.left()
             }
@@ -91,7 +91,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                                 IKKE_DELTATT,
                             ),
                         ),
-                        meldekortbehandlingBegrunnelse = null,
+                        begrunnelse = null,
                     ),
                 ) shouldBe KanIkkeOppdatereMeldekort.InnsendteDagerMåMatcheMeldeperiode.left()
             }
@@ -136,7 +136,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                                 SPERRET,
                             ),
                         ),
-                        meldekortbehandlingBegrunnelse = null,
+                        begrunnelse = null,
                     ),
                 ) shouldBe KanIkkeOppdatereMeldekort.InnsendteDagerMåMatcheMeldeperiode.left()
             }
@@ -180,7 +180,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                                 SPERRET,
                             ),
                         ),
-                        meldekortbehandlingBegrunnelse = null,
+                        begrunnelse = null,
                     ),
                 ) shouldBe KanIkkeOppdatereMeldekort.KanIkkeEndreDagTilSperret.left()
             }
@@ -225,7 +225,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
                             ),
                         ),
-                        meldekortbehandlingBegrunnelse = null,
+                        begrunnelse = null,
                     ),
                 ) shouldBe KanIkkeOppdatereMeldekort.KanIkkeEndreDagFraSperret.left()
             }
@@ -269,7 +269,7 @@ internal class SendMeldekortBehandlingTilBeslutterServiceTest {
                                 IKKE_DELTATT,
                             ),
                         ),
-                        meldekortbehandlingBegrunnelse = null,
+                        begrunnelse = null,
                     ),
                 ).getOrFail()
             }

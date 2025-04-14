@@ -68,6 +68,13 @@ fun Route.oppdaterMeldekortBehandlingRoute(
                                         )
                                     }
 
+                                    is KanIkkeOppdatereMeldekort.MåVæreSaksbehandlerForMeldekortet -> {
+                                        call.respond400BadRequest(
+                                            melding = "Kan ikke oppdatere meldekort. Må ha tatt saksbehandler-rollen for meldekort-behandlingen.",
+                                            kode = "må_være_saksbehandler_for_meldekortet",
+                                        )
+                                    }
+
                                     is ForMangeDagerUtfylt -> {
                                         call.respond400BadRequest(
                                             melding = "Kan ikke oppdatere meldekort. For mange dager er utfylt. Maks antall for dette meldekortet er ${it.maksDagerMedTiltakspengerForPeriode}, mens antall utfylte dager er ${it.antallDagerUtfylt}.",

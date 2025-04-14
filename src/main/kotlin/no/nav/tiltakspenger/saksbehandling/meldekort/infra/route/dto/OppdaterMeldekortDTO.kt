@@ -37,7 +37,7 @@ data class OppdaterMeldekortDTO(
                 }.toNonEmptyListOrNull()!!,
             ),
             meldekortId = meldekortId,
-            meldekortbehandlingBegrunnelse = begrunnelse?.let { MeldekortBehandlingBegrunnelse(verdi = it) },
+            begrunnelse = begrunnelse?.let { MeldekortBehandlingBegrunnelse(verdi = it) },
         )
     }
 }

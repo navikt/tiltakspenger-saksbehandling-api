@@ -10,9 +10,9 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørsteg
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.tilOppdaterMeldekortKommando
 import org.junit.jupiter.api.Test
 
 class MeldekortBehandlingRepoImplTest {
@@ -85,10 +85,10 @@ class MeldekortBehandlingRepoImplTest {
                     meldekortId = meldekortBehandling.id,
                     maksDagerMedTiltakspengerForPeriode = meldekortBehandling.meldeperiode.antallDagerForPeriode,
                 ),
-                saksbehandler = ObjectMother.saksbehandler(),
+                kommando = meldekortBehandling.tilOppdaterMeldekortKommando(
+                    ObjectMother.saksbehandler(),
+                ),
                 clock = fixedClock,
-                begrunnelse = null,
-                dager = MeldekortDager.fraMeldeperiode(meldekortBehandling.meldeperiode), // TODO: ikke dette
             ).getOrFail()
 
             meldekortRepo.oppdater(oppdatertMeldekortBehandling)

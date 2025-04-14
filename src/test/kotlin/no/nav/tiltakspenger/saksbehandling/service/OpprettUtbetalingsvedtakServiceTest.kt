@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.fakes.repos.UtbetalingsvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.andreMeldekortIverksatt
-import no.nav.tiltakspenger.saksbehandling.objectmothers.tilSendMeldekortTilBeslutterKommando
+import no.nav.tiltakspenger.saksbehandling.objectmothers.tilOppdaterMeldekortKommando
 import org.junit.jupiter.api.Test
 
 internal class OpprettUtbetalingsvedtakServiceTest {
@@ -19,7 +19,7 @@ internal class OpprettUtbetalingsvedtakServiceTest {
             val sak = this.andreMeldekortIverksatt()
             val sakId = sak.id
             meldekortContext.oppdaterMeldekortService.sendMeldekortTilBeslutter(
-                sak.meldekortBehandlinger[1].tilSendMeldekortTilBeslutterKommando(ObjectMother.saksbehandler()),
+                sak.meldekortBehandlinger[1].tilOppdaterMeldekortKommando(ObjectMother.saksbehandler()),
             )
             meldekortContext.iverksettMeldekortService.iverksettMeldekort(
                 IverksettMeldekortKommando(

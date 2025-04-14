@@ -88,10 +88,8 @@ data class MeldekortBehandlinger(
         ).getOrElse { return it.left() }
 
         return meldekort.oppdater(
-            dager = kommando.dager.tilMeldekortDager(meldekort.meldeperiode.antallDagerForPeriode),
+            kommando = kommando,
             beregning = beregning,
-            begrunnelse = kommando.meldekortbehandlingBegrunnelse,
-            saksbehandler = kommando.saksbehandler,
         )
             .map {
                 Pair(
@@ -114,10 +112,8 @@ data class MeldekortBehandlinger(
         ).getOrElse { return it.left() }
 
         return meldekort.sendTilBeslutter(
-            dager = kommando.dager.tilMeldekortDager(meldekort.meldeperiode.antallDagerForPeriode),
+            kommando = kommando,
             beregning = beregning,
-            begrunnelse = kommando.meldekortbehandlingBegrunnelse,
-            saksbehandler = kommando.saksbehandler,
             clock = clock,
         )
             .map {

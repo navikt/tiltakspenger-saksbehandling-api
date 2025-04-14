@@ -302,7 +302,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 saksbehandler = saksbehandler,
                 dager = Dager(meldeperiode),
                 correlationId = CorrelationId.generate(),
-                meldekortbehandlingBegrunnelse = begrunnelse,
+                begrunnelse = begrunnelse,
             )
         }
 
@@ -563,9 +563,27 @@ interface MeldekortMother : MotherOfAllMothers {
             oppgaveId = null,
         )
     }
+
+    fun oppdaterMeldekortKommando(
+        sakId: SakId = SakId.random(),
+        meldekortId: MeldekortId = MeldekortId.random(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        begrunnelse: MeldekortBehandlingBegrunnelse? = null,
+        correlationId: CorrelationId = CorrelationId.generate(),
+        dager: Dager,
+    ): OppdaterMeldekortKommando {
+        return OppdaterMeldekortKommando(
+            sakId = sakId,
+            meldekortId = meldekortId,
+            saksbehandler = saksbehandler,
+            dager = dager,
+            begrunnelse = begrunnelse,
+            correlationId = correlationId,
+        )
+    }
 }
 
-fun MeldekortBehandling.tilSendMeldekortTilBeslutterKommando(
+fun MeldekortBehandling.tilOppdaterMeldekortKommando(
     saksbehandler: Saksbehandler,
 ): OppdaterMeldekortKommando {
     val dager = dager.map { dag ->
@@ -589,12 +607,10 @@ fun MeldekortBehandling.tilSendMeldekortTilBeslutterKommando(
         )
     }.toNonEmptyListOrNull()!!
 
-    return OppdaterMeldekortKommando(
+    return ObjectMother.oppdaterMeldekortKommando(
         sakId = sakId,
         meldekortId = id,
         saksbehandler = saksbehandler,
         dager = Dager(dager),
-        correlationId = CorrelationId.generate(),
-        meldekortbehandlingBegrunnelse = null,
     )
 }

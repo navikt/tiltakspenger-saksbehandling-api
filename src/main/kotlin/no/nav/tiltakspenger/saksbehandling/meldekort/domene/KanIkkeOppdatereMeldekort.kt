@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHente
 sealed interface KanIkkeOppdatereMeldekort {
     data object MeldekortperiodenKanIkkeVæreFremITid : KanIkkeOppdatereMeldekort
     data class MåVæreSaksbehandler(val roller: Saksbehandlerroller) : KanIkkeOppdatereMeldekort
+    data object MåVæreSaksbehandlerForMeldekortet : KanIkkeOppdatereMeldekort
     data class ForMangeDagerUtfylt(
         val maksDagerMedTiltakspengerForPeriode: Int,
         val antallDagerUtfylt: Int,

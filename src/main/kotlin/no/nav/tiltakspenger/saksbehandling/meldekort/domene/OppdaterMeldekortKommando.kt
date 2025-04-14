@@ -20,8 +20,8 @@ class OppdaterMeldekortKommando(
     val meldekortId: MeldekortId,
     val saksbehandler: Saksbehandler,
     val dager: Dager,
+    val begrunnelse: MeldekortBehandlingBegrunnelse?,
     val correlationId: CorrelationId,
-    val meldekortbehandlingBegrunnelse: MeldekortBehandlingBegrunnelse?,
 ) {
     val periode: Periode = Periode(dager.first().dag, dager.last().dag)
 
@@ -29,7 +29,6 @@ class OppdaterMeldekortKommando(
         val dager: NonEmptyList<Dag>,
     ) : List<Dag> by dager {
         val antallDager: Int = dager.size
-        val antallDagerMedFraværEllerDeltatt: Int = dager.count { it.status.deltattEllerFravær() }
 
         data class Dag(
             val dag: LocalDate,
@@ -54,27 +53,6 @@ class OppdaterMeldekortKommando(
         FRAVÆR_VELFERD_GODKJENT_AV_NAV,
         FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV,
         ;
-
-        fun erFravær(): Boolean {
-            return when (this) {
-                FRAVÆR_SYK, FRAVÆR_SYKT_BARN, FRAVÆR_VELFERD_GODKJENT_AV_NAV, FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> true
-                SPERRET, DELTATT_UTEN_LØNN_I_TILTAKET, DELTATT_MED_LØNN_I_TILTAKET, IKKE_DELTATT -> false
-            }
-        }
-
-        fun harDeltatt(): Boolean {
-            return when (this) {
-                DELTATT_UTEN_LØNN_I_TILTAKET, DELTATT_MED_LØNN_I_TILTAKET -> true
-                SPERRET, IKKE_DELTATT, FRAVÆR_SYK, FRAVÆR_SYKT_BARN, FRAVÆR_VELFERD_GODKJENT_AV_NAV, FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> false
-            }
-        }
-
-        fun deltattEllerFravær(): Boolean {
-            return when (this) {
-                DELTATT_UTEN_LØNN_I_TILTAKET, DELTATT_MED_LØNN_I_TILTAKET, FRAVÆR_SYK, FRAVÆR_SYKT_BARN, FRAVÆR_VELFERD_GODKJENT_AV_NAV, FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> true
-                SPERRET, IKKE_DELTATT -> false
-            }
-        }
 
         fun girRett() = SPERRET != this
 
