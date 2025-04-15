@@ -4,7 +4,6 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 import java.time.LocalDate
 
 enum class InnmeldtStatusDb {
@@ -22,8 +21,8 @@ data class BrukersMeldekortDagDbJson(
     val status: InnmeldtStatusDb,
 )
 
-fun LagreBrukersMeldekortKommando.toDbJson(): String {
-    return dager.map {
+fun List<BrukersMeldekort.BrukersMeldekortDag>.toDbJson(): String {
+    return this.map {
         BrukersMeldekortDagDbJson(
             dato = it.dato,
             status = when (it.status) {
