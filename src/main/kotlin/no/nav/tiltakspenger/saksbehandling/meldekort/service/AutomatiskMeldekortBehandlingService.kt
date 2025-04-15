@@ -39,7 +39,8 @@ class AutomatiskMeldekortBehandlingService(
 
             meldekortListe.forEach { meldekort ->
                 Either.catch {
-                    opprettMeldekortBehandling(meldekort)
+                    val meldekortBehandling = opprettMeldekortBehandling(meldekort)
+                    logger.info { "Opprettet automatisk behandling ${meldekortBehandling.id} for brukers meldekort $${meldekort.id} på sak ${meldekort.sakId}" }
                 }.onLeft {
                     logger.error(it) { "Feil ved automatisk behandling av meldekort fra bruker ${meldekort.id} - ${it.message}" }
                 }
@@ -94,16 +95,14 @@ class AutomatiskMeldekortBehandlingService(
 
         sessionFactory.withTransactionContext { tx ->
             meldekortBehandlingRepo.lagre(meldekortBehandling, tx)
+            utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
+            statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             brukersMeldekortRepo.markerMeldekortSomBehandlet(
                 meldekortId = meldekortId,
                 behandletTidspunkt = nå(clock),
                 tx,
             )
-            utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
-            statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
         }
-
-        logger.info { "Opprettet automatisk behandling ${meldekortBehandling.id} for brukers meldekort $meldekortId på sak $sakId" }
 
         return meldekortBehandling
     }
