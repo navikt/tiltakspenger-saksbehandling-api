@@ -7,7 +7,6 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
@@ -126,14 +125,6 @@ data class MeldekortUnderBehandling(
 
     fun erKlarTilUtfylling(): Boolean {
         return !LocalDate.now().isBefore(periode.fraOgMed)
-    }
-
-    override fun underkjenn(
-        begrunnelse: NonBlankString,
-        beslutter: Saksbehandler,
-        clock: Clock,
-    ): Either<KunneIkkeUnderkjenneMeldekortBehandling, MeldekortBehandling> {
-        return KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErIkkeKlarTilBeslutning.left()
     }
 
     init {

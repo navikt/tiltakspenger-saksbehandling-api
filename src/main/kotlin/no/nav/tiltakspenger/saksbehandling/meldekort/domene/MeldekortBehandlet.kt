@@ -123,7 +123,7 @@ data class MeldekortBehandlet(
         ).right()
     }
 
-    override fun underkjenn(
+    fun underkjenn(
         begrunnelse: NonBlankString,
         beslutter: Saksbehandler,
         clock: Clock,

@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
-import arrow.core.left
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -15,18 +14,6 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 class MeldekortBehandlingTest {
-
-    @Test
-    fun `kan ikke underkjenne en MeldekortUnderBehandling`() {
-        val meldekortBehandling = ObjectMother.meldekortUnderBehandling()
-
-        meldekortBehandling.underkjenn(
-            begrunnelse = NonBlankString.create("skal ikke kunne underkjenne"),
-            beslutter = ObjectMother.saksbehandler(),
-            clock = ObjectMother.clock,
-        ) shouldBe KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErIkkeKlarTilBeslutning.left()
-    }
-
     @Test
     fun `underkjenner en MeldekortBehandlet`() {
         val meldekortBehandlet = ObjectMother.meldekortBehandlet(

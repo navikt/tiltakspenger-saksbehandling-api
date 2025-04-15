@@ -27,6 +27,8 @@ class BrukersMeldekortPostgresRepo(
                     insert into meldekort_bruker (
                         id,
                         meldeperiode_id,
+                        meldeperiode_kjede_id,
+                        meldeperiode_versjon,
                         sak_id,
                         mottatt,
                         dager,
@@ -36,6 +38,8 @@ class BrukersMeldekortPostgresRepo(
                     ) values (
                         :id,
                         :meldeperiode_id,
+                        (SELECT kjede_id FROM meldeperiode WHERE id = :meldeperiode_id),
+                        (SELECT versjon FROM meldeperiode WHERE id = :meldeperiode_id),
                         :sak_id,
                         :mottatt,
                         to_jsonb(:dager::jsonb),
@@ -45,7 +49,7 @@ class BrukersMeldekortPostgresRepo(
                     )
                     """,
                     "id" to brukersMeldekort.id.toString(),
-                    "meldeperiode_id" to brukersMeldekort.meldeperiode.id.toString(),
+                    "meldeperiode_id" to brukersMeldekort.meldeperiodeId.toString(),
                     "sak_id" to brukersMeldekort.sakId.toString(),
                     "mottatt" to brukersMeldekort.mottatt,
                     "dager" to brukersMeldekort.dager.toDbJson(),

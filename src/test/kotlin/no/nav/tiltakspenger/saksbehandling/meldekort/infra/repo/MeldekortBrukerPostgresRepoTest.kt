@@ -18,22 +18,23 @@ class MeldekortBrukerPostgresRepoTest {
                 deltakelseFom = 1.januar(2024),
                 deltakelseTom = 31.mars(2024),
             )
-            val meldeperioder = sak.meldeperiodeKjeder.first()
+            val meldeperiode = sak.meldeperiodeKjeder.first().first()
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
 
             val nyttBrukersMeldekort = ObjectMother.lagreBrukersMeldekortKommando(
-                meldeperiodeId = meldeperioder.first().id,
-                mottatt = meldeperioder.first().opprettet.plus(1, ChronoUnit.MILLIS),
-                sakId = meldeperioder.first().sakId,
-                periode = meldeperioder.first().periode,
-            )
+                meldeperiodeId = meldeperiode.id,
+                mottatt = meldeperiode.opprettet.plus(1, ChronoUnit.MILLIS),
+                sakId = meldeperiode.sakId,
+                periode = meldeperiode.periode,
+            ).tilBrukersMeldekort(meldeperiode)
+
             meldekortBrukerRepo.lagre(nyttBrukersMeldekort)
 
-            meldekortBrukerRepo.hentForSakId(meldeperioder.first().sakId) shouldBe listOf(
+            meldekortBrukerRepo.hentForSakId(meldeperiode.sakId) shouldBe listOf(
                 BrukersMeldekort(
                     id = nyttBrukersMeldekort.id,
                     mottatt = nyttBrukersMeldekort.mottatt,
-                    meldeperiode = meldeperioder.first(),
+                    meldeperiode = meldeperiode,
                     sakId = nyttBrukersMeldekort.sakId,
                     dager = nyttBrukersMeldekort.dager,
                     journalpostId = nyttBrukersMeldekort.journalpostId,

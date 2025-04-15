@@ -5,7 +5,6 @@ import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.logging.sikkerlogg
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
@@ -16,9 +15,9 @@ class MottaBrukerutfyltMeldekortService(
 ) {
     val logger = KotlinLogging.logger { }
 
-    fun mottaBrukerutfyltMeldekort(lagreKommando: LagreBrukersMeldekortKommando): Either<KanIkkeLagreBrukersMeldekort, Unit> {
-        val meldeperiodeId = lagreKommando.meldeperiodeId
-        val meldekortId = lagreKommando.id
+    fun mottaBrukerutfyltMeldekort(kommando: LagreBrukersMeldekortKommando): Either<KanIkkeLagreBrukersMeldekort, Unit> {
+        val meldekortId = kommando.id
+        val meldeperiodeId = kommando.meldeperiodeId
 
         val meldeperiode = meldeperiodeRepo.hentForMeldeperiodeId(meldeperiodeId)
 
@@ -26,20 +25,11 @@ class MottaBrukerutfyltMeldekortService(
             "Fant ikke meldeperioden $meldeperiodeId for meldekortet $meldekortId"
         }
 
-        val brukersMeldekort = lagreKommando.tilBrukersMeldekort(meldeperiode)
+        val nyttMeldekort = kommando.tilBrukersMeldekort(meldeperiode)
 
-        lagre(brukersMeldekort).onLeft {
-            return it.left()
-        }
-
-        return Unit.right()
-    }
-
-    private fun lagre(meldekort: BrukersMeldekort): Either<KanIkkeLagreBrukersMeldekort, Unit> {
         Either.catch {
-            brukersMeldekortRepo.lagre(lagreKommando)
+            brukersMeldekortRepo.lagre(nyttMeldekort)
         }.onLeft {
-            val meldekortId = lagreKommando.id
             val eksisterendeMeldekort = brukersMeldekortRepo.hentForMeldekortId(meldekortId)
 
             if (eksisterendeMeldekort == null) {
@@ -50,7 +40,7 @@ class MottaBrukerutfyltMeldekortService(
                 return KanIkkeLagreBrukersMeldekort.UkjentFeil.left()
             }
 
-            if (kommandoMatcherMeldekort(lagreKommando, eksisterendeMeldekort)) {
+            if (nyttMeldekort == eksisterendeMeldekort) {
                 logger.info { "Meldekortet med id $meldekortId var allerede lagret med samme data" }
                 return KanIkkeLagreBrukersMeldekort.AlleredeLagretUtenDiff.left()
             }
@@ -66,14 +56,22 @@ class MottaBrukerutfyltMeldekortService(
         return Unit.right()
     }
 
-    private fun kommandoMatcherMeldekort(lagreKommando: LagreBrukersMeldekortKommando, meldekort: BrukersMeldekort): Boolean {
-        return lagreKommando.id == meldekort.id &&
-            lagreKommando.meldeperiodeId == meldekort.meldeperiode.id &&
-            lagreKommando.sakId == meldekort.sakId &&
-            lagreKommando.journalpostId == meldekort.journalpostId &&
-            lagreKommando.dager == meldekort.dager &&
-            lagreKommando.mottatt == meldekort.mottatt
-    }
+//    private suspend fun behandleMeldekort(meldekort: BrukersMeldekort) {
+//        val sakId = meldekort.sakId
+//
+//        // TODO: sjekk noe greier her :D
+//        val sak = sakRepo.hentForSakId(sakId)!!
+//
+//        val navkontor = Either.catch {
+//            navkontorService.hentOppfolgingsenhet(sak.fnr)
+//        }.getOrElse {
+//            with("Kunne ikke hente navkontor for sak $sakId") {
+//                logger.error { this }
+//                no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg.error(it) { "$this - fnr ${sak.fnr.verdi}" }
+//            }
+//            return
+//        }
+//    }
 }
 
 sealed interface KanIkkeLagreBrukersMeldekort {

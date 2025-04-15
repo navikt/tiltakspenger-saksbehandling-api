@@ -1,12 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
-import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -41,7 +38,7 @@ sealed interface MeldekortBehandling {
     val fraOgMed: LocalDate get() = periode.fraOgMed
     val tilOgMed: LocalDate get() = periode.tilOgMed
 
-    val saksbehandler: String
+    val saksbehandler: String?
     val beslutter: String?
     val status: MeldekortBehandlingStatus
     val navkontor: Navkontor
@@ -92,13 +89,8 @@ sealed interface MeldekortBehandling {
                 ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                 beregning = null,
             )
+
+            is MeldekortBehandletAutomatisk -> null
         }
     }
-
-    // TODO - test
-    fun underkjenn(
-        begrunnelse: NonBlankString,
-        beslutter: Saksbehandler,
-        clock: Clock,
-    ): Either<KunneIkkeUnderkjenneMeldekortBehandling, MeldekortBehandling>
 }

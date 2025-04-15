@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
@@ -25,15 +26,13 @@ private const val ANTALL_ARBEIDSGIVERDAGER = 13
 private const val DAGER_KARANTENE = 16L - 1
 
 private data class BeregnMeldekort(
-    val kommando: OppdaterMeldekortKommando,
+    val innsendtMeldekortId: MeldekortId,
+    val innsendtKjedeId: MeldeperiodeKjedeId,
+    val innsendteDager: MeldekortDager,
     val meldekortBehandlinger: MeldekortBehandlinger,
     val barnetilleggsPerioder: Periodisering<AntallBarn?>,
     val tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
 ) {
-    private val innsendtMeldekortId = kommando.meldekortId
-    private val meldekortSomSkalUtfylles = meldekortBehandlinger
-        .hentMeldekortBehandling(innsendtMeldekortId)!!
-
     private var sykTilstand: SykTilstand = SykTilstand.FullUtbetaling
     private var egenmeldingsdagerSyk: Int = ANTALL_EGENMELDINGSDAGER
     private var sykKaranteneDag: LocalDate? = null
@@ -44,25 +43,14 @@ private data class BeregnMeldekort(
     private var syktBarnKaranteneDag: LocalDate? = null
     private var sisteSyktBarnSykedag: LocalDate? = null
 
-    init {
-        require(meldekortBehandlinger.sakId == kommando.sakId) {
-            "SakId på eksisterende meldekortperiode ${meldekortBehandlinger.sakId} er ikke likt sakId på kommando ${kommando.sakId}"
-        }
-
-        require(meldekortSomSkalUtfylles is MeldekortUnderBehandling) {
-            "Innsendt meldekort $innsendtMeldekortId er ikke under behandling"
-        }
-    }
-
     /** Returnerer beregnede dager fra kommando, og evt nye beregninger for påfølgende meldeperioder på saken */
     fun beregn(): NonEmptyList<MeldeperiodeBeregning> {
-        val innsendtMeldekortFraOgMed = kommando.dager.first().dag
-        val innsendtMeldekortKjedeId = meldekortSomSkalUtfylles.kjedeId
+        val innsendtMeldekortFraOgMed = innsendteDager.first().dato
 
         val meldeperiodeBeregninger = meldekortBehandlinger.meldeperiodeBeregninger
 
         return meldekortBehandlinger.sisteBehandledeMeldekortPerKjede
-            .filterNot { it.kjedeId == innsendtMeldekortKjedeId }
+            .filterNot { it.kjedeId == innsendtKjedeId }
             .partition { it.periode.fraOgMed < innsendtMeldekortFraOgMed }
             .let { (tidligereMeldekort, påfølgendeMeldekort) ->
                 /** Kjør gjennom tidligere meldekort for å sette riktig state for sykedager før vi gjør beregninger på aktuelle meldekort */
@@ -70,10 +58,10 @@ private data class BeregnMeldekort(
 
                 nonEmptyListOf(
                     MeldeperiodeBeregning(
-                        kjedeId = innsendtMeldekortKjedeId,
+                        kjedeId = innsendtKjedeId,
                         beregningMeldekortId = innsendtMeldekortId,
                         dagerMeldekortId = innsendtMeldekortId,
-                        dager = beregnInnsendteDager(kommando),
+                        dager = beregnInnsendteDager(),
                     ),
                 ).plus(
                     /** Dersom meldekort-behandlingen er en korrigering tilbake i tid, kan utbetalinger for påfølgende meldekort potensielt
@@ -110,14 +98,13 @@ private data class BeregnMeldekort(
         }.toNonEmptyListOrNull()!!
     }
 
-    private fun beregnInnsendteDager(kommando: OppdaterMeldekortKommando): NonEmptyList<MeldeperiodeBeregningDag> {
-        return kommando.dager.map {
-            val dato = it.dag
+    private fun beregnInnsendteDager(): NonEmptyList<MeldeperiodeBeregningDag> {
+        return innsendteDager.map {
             beregnDag(
-                kommando.meldekortId,
-                dato,
-                it.status.tilMeldekortDagStatus(),
-            ) { tiltakstypePerioder.hentVerdiForDag(dato) }
+                innsendtMeldekortId,
+                it.dato,
+                it.status,
+            ) { tiltakstypePerioder.hentVerdiForDag(it.dato) }
         }.toNonEmptyListOrNull()!!
     }
 
@@ -428,12 +415,42 @@ private enum class SykTilstand {
 }
 
 fun OppdaterMeldekortKommando.beregn(
-    eksisterendeMeldekortBehandlinger: MeldekortBehandlinger,
+    meldekortBehandlinger: MeldekortBehandlinger,
+    barnetilleggsPerioder: Periodisering<AntallBarn?>,
+    tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
+): NonEmptyList<MeldeperiodeBeregning> {
+    val meldekortId = this.meldekortId
+
+    require(meldekortBehandlinger.sakId == this.sakId) {
+        "SakId på eksisterende meldekortperiode ${meldekortBehandlinger.sakId} er ikke likt sakId på kommando $sakId"
+    }
+
+    val meldekortSomBehandles = meldekortBehandlinger.hentMeldekortBehandling(meldekortId)
+
+    require(meldekortSomBehandles is MeldekortUnderBehandling) {
+        "Innsendt meldekort $meldekortId er ikke under behandling"
+    }
+
+    return BeregnMeldekort(
+        innsendtMeldekortId = this.meldekortId,
+        innsendtKjedeId = meldekortSomBehandles.kjedeId,
+        innsendteDager = this.dager.tilMeldekortDager(meldekortSomBehandles.meldeperiode.antallDagerSomGirRett),
+        barnetilleggsPerioder = barnetilleggsPerioder,
+        tiltakstypePerioder = tiltakstypePerioder,
+        meldekortBehandlinger = meldekortBehandlinger,
+    ).beregn()
+}
+
+fun BrukersMeldekort.beregn(
+    meldekortBehandlingId: MeldekortId,
+    meldekortBehandlinger: MeldekortBehandlinger,
     barnetilleggsPerioder: Periodisering<AntallBarn?>,
     tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
 ): NonEmptyList<MeldeperiodeBeregning> = BeregnMeldekort(
-    kommando = this,
+    innsendtMeldekortId = meldekortBehandlingId,
+    innsendtKjedeId = this.kjedeId,
+    innsendteDager = this.tilMeldekortDager(),
     barnetilleggsPerioder = barnetilleggsPerioder,
     tiltakstypePerioder = tiltakstypePerioder,
-    meldekortBehandlinger = eksisterendeMeldekortBehandlinger,
+    meldekortBehandlinger = meldekortBehandlinger,
 ).beregn()

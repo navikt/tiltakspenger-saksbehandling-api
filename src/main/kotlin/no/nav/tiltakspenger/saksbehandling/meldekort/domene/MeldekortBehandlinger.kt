@@ -162,7 +162,7 @@ data class MeldekortBehandlinger(
         }
 
         val beregninger = kommando.beregn(
-            eksisterendeMeldekortBehandlinger = this,
+            meldekortBehandlinger = this,
             barnetilleggsPerioder = barnetilleggsPerioder,
             tiltakstypePerioder = tiltakstypePerioder,
         )
