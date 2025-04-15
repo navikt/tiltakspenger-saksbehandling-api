@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilB
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepoTest.Companion.random
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -626,7 +626,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
             saksnummer = sak.saksnummer,
         ),
     clock: Clock = this.clock,
-): Pair<Sak, MeldekortBehandlet> {
+): Pair<Sak, MeldekortBehandletManuelt> {
     val (sak) = persisterIverksattFørstegangsbehandling(
         sakId = sakId,
         fnr = fnr,

@@ -24,16 +24,14 @@ data class MeldekortBehandletAutomatisk(
     override val navkontor: Navkontor,
     override val iverksattTidspunkt: LocalDateTime?,
     override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
-) : MeldekortBehandling {
+) : MeldekortBehandling.Behandlet {
     override val status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT
     override val type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING
 
-    override val beløpTotal = beregning.beregnTotaltBeløp()
-    override val ordinærBeløp = beregning.beregnTotalOrdinærBeløp()
-    override val barnetilleggBeløp = beregning.beregnTotalBarnetillegg()
+    // TODO: Hva skal vi sette her? :D
+    override val saksbehandler: String = "E313373"
+    override val beslutter: String = "E313373"
 
-    override val saksbehandler = null
-    override val beslutter = null
     override val sendtTilBeslutning = null
     override val begrunnelse = null
     override val attesteringer = Attesteringer.empty()
@@ -53,7 +51,7 @@ fun Sak.opprettAutomatiskBehandling(
     val behandlingerKnyttetTilKjede = this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(kjedeId)
 
     require(behandlingerKnyttetTilKjede.isEmpty()) {
-        "Meldeperiodekjeden $kjedeId har allerede behandlinger. Vi støtter ikke automatisk korrigering fra bruker."
+        "Meldeperiodekjeden $kjedeId har allerede minst en behandling. Vi støtter ikke automatisk korrigering fra bruker."
     }
 
     val meldeperiodekjede: MeldeperiodeKjede = this.meldeperiodeKjeder.hentMeldeperiodekjedeForKjedeId(kjedeId)

@@ -38,7 +38,7 @@ sealed interface MeldekortBehandling {
     val fraOgMed: LocalDate get() = periode.fraOgMed
     val tilOgMed: LocalDate get() = periode.tilOgMed
 
-    val saksbehandler: String?
+    val saksbehandler: String
     val beslutter: String?
     val status: MeldekortBehandlingStatus
     val navkontor: Navkontor
@@ -79,7 +79,7 @@ sealed interface MeldekortBehandling {
 
         val ikkeRettTilTiltakspengerTidspunkt = if (meldeperiode.ingenDagerGirRett) nå(clock) else null
         return when (this) {
-            is MeldekortBehandlet -> this.tilUnderBehandling(
+            is MeldekortBehandletManuelt -> this.tilUnderBehandling(
                 nyMeldeperiode = meldeperiode,
                 ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
             )
@@ -92,5 +92,19 @@ sealed interface MeldekortBehandling {
 
             is MeldekortBehandletAutomatisk -> null
         }
+    }
+
+    sealed interface Behandlet : MeldekortBehandling {
+        override val beregning: MeldekortBeregning
+        override val beløpTotal: Int get() = beregning.beregnTotaltBeløp()
+        override val ordinærBeløp: Int get() = beregning.beregnTotalOrdinærBeløp()
+        override val barnetilleggBeløp: Int get() = beregning.beregnTotalBarnetillegg()
+
+        /**
+         *  Perioden for beregningen av meldekortet.
+         *  Fra og med start av meldeperioden, til og med siste dag med en beregnet utbetaling
+         *  Ved korrigeringer tilbake i tid kan tilOgMed strekke seg til påfølgende meldeperioder dersom disse påvirkes av beregningen
+         * */
+        val beregningPeriode: Periode get() = beregning.periode
     }
 }

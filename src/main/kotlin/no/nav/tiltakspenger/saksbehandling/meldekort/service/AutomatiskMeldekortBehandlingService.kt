@@ -7,18 +7,24 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.logging.sikkerlogg
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettAutomatiskBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.opprettUtbetalingsvedtak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.tilStatistikk
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import java.time.Clock
 
 class AutomatiskMeldekortBehandlingService(
     private val brukersMeldekortRepo: BrukersMeldekortRepo,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakRepo: SakRepo,
+    private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
+    private val statistikkStønadRepo: StatistikkStønadRepo,
     private val navkontorService: NavkontorService,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
@@ -70,12 +76,21 @@ class AutomatiskMeldekortBehandlingService(
             throw it
         }
 
+        val utbetalingsvedtak = meldekortBehandling.opprettUtbetalingsvedtak(
+            saksnummer = sak.saksnummer,
+            fnr = sak.fnr,
+            forrigeUtbetalingsvedtak = sak.utbetalinger.lastOrNull(),
+            clock = clock,
+        )
+
         Either.catch {
             sak.leggTilMeldekortbehandling(meldekortBehandling)
+                .leggTilUtbetalingsvedtak(utbetalingsvedtak)
         }.onLeft {
             logger.error(it) { "Automatisk behandling for brukers meldekort $meldekortId kunne ikke legges til sak $sakId" }
             throw it
         }
+        val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()
 
         sessionFactory.withTransactionContext { tx ->
             meldekortBehandlingRepo.lagre(meldekortBehandling, tx)
@@ -84,6 +99,8 @@ class AutomatiskMeldekortBehandlingService(
                 behandletTidspunkt = nå(clock),
                 tx,
             )
+            utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
+            statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
         }
 
         logger.info { "Opprettet automatisk behandling ${meldekortBehandling.id} for brukers meldekort $meldekortId på sak $sakId" }
