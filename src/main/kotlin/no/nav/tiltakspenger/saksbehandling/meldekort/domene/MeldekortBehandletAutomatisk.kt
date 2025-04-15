@@ -22,11 +22,10 @@ data class MeldekortBehandletAutomatisk(
     override val meldeperiode: Meldeperiode,
     override val brukersMeldekort: BrukersMeldekort,
     override val navkontor: Navkontor,
-    override val iverksattTidspunkt: LocalDateTime?,
-    override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
+    override val type: MeldekortBehandlingType,
 ) : MeldekortBehandling.Behandlet {
     override val status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
-    override val type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING
+    override val iverksattTidspunkt: LocalDateTime = opprettet
 
     // TODO: Hva skal vi sette her? :D
     override val saksbehandler: String = "E313373"
@@ -34,7 +33,14 @@ data class MeldekortBehandletAutomatisk(
 
     override val sendtTilBeslutning = null
     override val begrunnelse = null
+    override val ikkeRettTilTiltakspengerTidspunkt = null
     override val attesteringer = Attesteringer.empty()
+
+    init {
+        require(type == MeldekortBehandlingType.FØRSTE_BEHANDLING) {
+            "Vi støtter ikke automatisk behandling av korrigering fra bruker"
+        }
+    }
 }
 
 fun Sak.opprettAutomatiskBehandling(
@@ -104,7 +110,6 @@ fun Sak.opprettAutomatiskBehandling(
         meldeperiode = meldeperiode,
         dager = dager,
         beregning = MeldekortBeregning(beregninger),
-        iverksattTidspunkt = null,
-        ikkeRettTilTiltakspengerTidspunkt = null,
+        type = MeldekortBehandlingType.FØRSTE_BEHANDLING,
     )
 }

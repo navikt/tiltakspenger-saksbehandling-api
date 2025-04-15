@@ -238,8 +238,6 @@ class MeldekortBehandlingPostgresRepo(
                 MeldekortBeregning(it)
             }
 
-            val iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt")
-
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> {
                     MeldekortBehandletAutomatisk(
@@ -249,12 +247,11 @@ class MeldekortBehandlingPostgresRepo(
                         fnr = fnr,
                         opprettet = opprettet,
                         navkontor = navkontor,
-                        ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                         brukersMeldekort = brukersMeldekort!!,
                         meldeperiode = meldeperiode,
-                        iverksattTidspunkt = iverksattTidspunkt,
                         beregning = beregning!!,
                         dager = dager,
+                        type = type,
                     )
                 }
 
@@ -276,7 +273,7 @@ class MeldekortBehandlingPostgresRepo(
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
                         beslutter = row.stringOrNull("beslutter"),
                         status = status,
-                        iverksattTidspunkt = iverksattTidspunkt,
+                        iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
                         beregning = beregning!!,
                         dager = dager,
                     )
