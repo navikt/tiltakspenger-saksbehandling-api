@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import arrow.core.NonEmptyList
+import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import java.time.LocalDate
 
@@ -20,6 +21,11 @@ data class MeldekortBeregning(
     init {
         require(beregninger.zipWithNext().all { (a, b) -> a.tilOgMed < b.fraOgMed }) {
             "Beregnede meldeperioder må være sortert og ikke ha overlapp - $beregninger"
+        }
+        beregninger.nonDistinctBy { it.kjedeId }.also {
+            require(it.isEmpty()) {
+                "Kan ikke ha mer enn en beregning for hver meldeperiodekjede på samme meldekort - $beregninger"
+            }
         }
     }
 

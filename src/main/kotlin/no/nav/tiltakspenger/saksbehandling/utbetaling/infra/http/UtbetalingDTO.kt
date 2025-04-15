@@ -37,6 +37,10 @@ fun Utbetalingsvedtak.toDTO(
         ?.let { deserialize<IverksettV2Dto>(it) }
         ?.hentIkkeOppdaterteUtbetalinger(meldekortbehandling.beregning) ?: emptyList()
 
+    val utbetalinger = tidligereUtbetalinger.plus(nyeOgOppdaterteUtbetalinger).sortedBy { it.fraOgMedDato }
+
+    utbetalinger.valider()
+
     return IverksettV2Dto(
         sakId = vedtak.saksnummer.toString(),
         // Brukes som dedupliseringsnøkkel av helved dersom iverksettingId er null.
@@ -49,11 +53,24 @@ fun Utbetalingsvedtak.toDTO(
             vedtakstidspunkt = vedtak.opprettet,
             saksbehandlerId = vedtak.saksbehandler,
             beslutterId = vedtak.beslutter,
-            utbetalinger = tidligereUtbetalinger.plus(nyeOgOppdaterteUtbetalinger),
+            utbetalinger = utbetalinger,
         ),
         forrigeIverksetting =
         vedtak.forrigeUtbetalingsvedtakId?.let { ForrigeIverksettingV2Dto(behandlingId = it.uuidPart()) },
     ).let { serialize(it) }
+}
+
+private fun List<UtbetalingV2Dto>.valider() {
+    this.groupBy {
+        val stønadsdata = it.stønadsdata as StønadsdataTiltakspengerV2Dto
+        stønadsdata.barnetillegg
+    }.values.forEach {
+        it.zipWithNext().forEach { (a, b) ->
+            require(a.tilOgMedDato < b.fraOgMedDato) {
+                "Utbetalingsperiodene kan ikke ha overlap - $a $b"
+            }
+        }
+    }
 }
 
 private fun IverksettV2Dto.hentIkkeOppdaterteUtbetalinger(meldekortBeregning: MeldekortBeregning): List<UtbetalingV2Dto> {

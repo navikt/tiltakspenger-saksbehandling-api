@@ -128,18 +128,6 @@ internal class UtbetalingDTOTest {
                     }
                   },
                   {
-                    "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
-                    "fraOgMedDato": "2023-01-09",
-                    "tilOgMedDato": "2023-01-13",
-                    "stønadsdata": {
-                      "stønadstype": "GRUPPE_AMO",
-                      "barnetillegg": false,
-                      "brukersNavKontor": "0220",
-                      "meldekortId": "2023-01-02/2023-01-15"
-                    }
-                  },
-                  {
                     "beløp": 52,
                     "satstype": "DAGLIG_INKL_HELG",
                     "fraOgMedDato": "2023-01-02",
@@ -147,6 +135,18 @@ internal class UtbetalingDTOTest {
                     "stønadsdata": {
                       "stønadstype": "GRUPPE_AMO",
                       "barnetillegg": true,
+                      "brukersNavKontor": "0220",
+                      "meldekortId": "2023-01-02/2023-01-15"
+                    }
+                  },
+                  {
+                    "beløp": 268,
+                    "satstype": "DAGLIG_INKL_HELG",
+                    "fraOgMedDato": "2023-01-09",
+                    "tilOgMedDato": "2023-01-13",
+                    "stønadsdata": {
+                      "stønadstype": "GRUPPE_AMO",
+                      "barnetillegg": false,
                       "brukersNavKontor": "0220",
                       "meldekortId": "2023-01-02/2023-01-15"
                     }
@@ -223,18 +223,6 @@ internal class UtbetalingDTOTest {
                     }
                   },
                   {
-                    "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
-                    "fraOgMedDato": "2023-01-09",
-                    "tilOgMedDato": "2023-01-13",
-                    "stønadsdata": {
-                      "stønadstype": "GRUPPE_AMO",
-                      "barnetillegg": false,
-                      "brukersNavKontor": "0220",
-                      "meldekortId": "2023-01-02/2023-01-15"
-                    }
-                  },
-                  {
                     "beløp": 104,
                     "satstype": "DAGLIG_INKL_HELG",
                     "fraOgMedDato": "2023-01-02",
@@ -242,6 +230,18 @@ internal class UtbetalingDTOTest {
                     "stønadsdata": {
                       "stønadstype": "GRUPPE_AMO",
                       "barnetillegg": true,
+                      "brukersNavKontor": "0220",
+                      "meldekortId": "2023-01-02/2023-01-15"
+                    }
+                  },
+                  {
+                    "beløp": 268,
+                    "satstype": "DAGLIG_INKL_HELG",
+                    "fraOgMedDato": "2023-01-09",
+                    "tilOgMedDato": "2023-01-13",
+                    "stønadsdata": {
+                      "stønadstype": "GRUPPE_AMO",
+                      "barnetillegg": false,
                       "brukersNavKontor": "0220",
                       "meldekortId": "2023-01-02/2023-01-15"
                     }
@@ -321,18 +321,6 @@ internal class UtbetalingDTOTest {
                     }
                   },
                   {
-                    "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
-                    "fraOgMedDato": "2023-01-09",
-                    "tilOgMedDato": "2023-01-13",
-                    "stønadsdata": {
-                      "stønadstype": "GRUPPE_AMO",
-                      "barnetillegg": false,
-                      "brukersNavKontor": "0220",
-                      "meldekortId": "2023-01-02/2023-01-15"
-                    }
-                  },
-                  {
                     "beløp": 52,
                     "satstype": "DAGLIG_INKL_HELG",
                     "fraOgMedDato": "2023-01-02",
@@ -340,6 +328,18 @@ internal class UtbetalingDTOTest {
                     "stønadsdata": {
                       "stønadstype": "GRUPPE_AMO",
                       "barnetillegg": true,
+                      "brukersNavKontor": "0220",
+                      "meldekortId": "2023-01-02/2023-01-15"
+                    }
+                  },
+                  {
+                    "beløp": 268,
+                    "satstype": "DAGLIG_INKL_HELG",
+                    "fraOgMedDato": "2023-01-09",
+                    "tilOgMedDato": "2023-01-13",
+                    "stønadsdata": {
+                      "stønadstype": "GRUPPE_AMO",
+                      "barnetillegg": false,
                       "brukersNavKontor": "0220",
                       "meldekortId": "2023-01-02/2023-01-15"
                     }
@@ -423,19 +423,6 @@ internal class UtbetalingDTOTest {
                     }
                   },
                   {
-                    "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
-                    "fraOgMedDato": "2023-01-09",
-                    "tilOgMedDato": "2023-01-13",
-                    "stønadsdata": {
-                      "stønadstype": "GRUPPE_AMO",
-                      "barnetillegg": false,
-                      "brukersNavKontor": "0220",
-                      "meldekortId": "2023-01-02/2023-01-15"
-                    }
-                  },
-                  
-                  {
                     "beløp": 52,
                     "satstype": "DAGLIG_INKL_HELG",
                     "fraOgMedDato": "2023-01-03",
@@ -443,6 +430,18 @@ internal class UtbetalingDTOTest {
                     "stønadsdata": {
                       "stønadstype": "GRUPPE_AMO",
                       "barnetillegg": true,
+                      "brukersNavKontor": "0220",
+                      "meldekortId": "2023-01-02/2023-01-15"
+                    }
+                  },
+                  {
+                    "beløp": 268,
+                    "satstype": "DAGLIG_INKL_HELG",
+                    "fraOgMedDato": "2023-01-09",
+                    "tilOgMedDato": "2023-01-13",
+                    "stønadsdata": {
+                      "stønadstype": "GRUPPE_AMO",
+                      "barnetillegg": false,
                       "brukersNavKontor": "0220",
                       "meldekortId": "2023-01-02/2023-01-15"
                     }
@@ -530,19 +529,6 @@ internal class UtbetalingDTOTest {
                     }
                   },
                   {
-                    "beløp": 268,
-                    "satstype": "DAGLIG_INKL_HELG",
-                    "fraOgMedDato": "2023-01-09",
-                    "tilOgMedDato": "2023-01-13",
-                    "stønadsdata": {
-                      "stønadstype": "GRUPPE_AMO",
-                      "barnetillegg": false,
-                      "brukersNavKontor": "0220",
-                      "meldekortId": "2023-01-02/2023-01-15"
-                    }
-                  },
-                  
-                  {
                     "beløp": 52,
                     "satstype": "DAGLIG_INKL_HELG",
                     "fraOgMedDato": "2023-01-02",
@@ -562,6 +548,18 @@ internal class UtbetalingDTOTest {
                     "stønadsdata": {
                       "stønadstype": "GRUPPE_AMO",
                       "barnetillegg": true,
+                      "brukersNavKontor": "0220",
+                      "meldekortId": "2023-01-02/2023-01-15"
+                    }
+                  },
+                  {
+                    "beløp": 268,
+                    "satstype": "DAGLIG_INKL_HELG",
+                    "fraOgMedDato": "2023-01-09",
+                    "tilOgMedDato": "2023-01-13",
+                    "stønadsdata": {
+                      "stønadstype": "GRUPPE_AMO",
+                      "barnetillegg": false,
                       "brukersNavKontor": "0220",
                       "meldekortId": "2023-01-02/2023-01-15"
                     }
