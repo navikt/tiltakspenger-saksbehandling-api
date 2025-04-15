@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
-import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -29,7 +29,7 @@ data class BrukersMeldekort(
     val oppgaveId: OppgaveId?,
 ) {
     val kjedeId: MeldeperiodeKjedeId = meldeperiode.kjedeId
-    val meldeperiodeVersjon: HendelseVersjon = meldeperiode.versjon
+    val meldeperiodeId: MeldeperiodeId = meldeperiode.id
     val periode: Periode = meldeperiode.periode
 
     data class BrukersMeldekortDag(
@@ -45,6 +45,18 @@ data class BrukersMeldekort(
         require(dager.last().dato == periode.tilOgMed) { "Siste dag i meldekortet må være lik siste dag i meldeperioden" }
         require(dager.size.toLong() == periode.antallDager) { "Antall dager i meldekortet må være lik antall dager i meldeperioden" }
     }
+
+    fun tilMeldekortDager(): MeldekortDager {
+        return MeldekortDager(
+            maksAntallDagerForPeriode = meldeperiode.antallDagerSomGirRett,
+            verdi = dager.map {
+                MeldekortDag(
+                    dato = it.dato,
+                    status = it.status.tilMeldekortDagStatus(),
+                )
+            },
+        )
+    }
 }
 
 enum class InnmeldtStatus {
@@ -55,4 +67,15 @@ enum class InnmeldtStatus {
     IKKE_REGISTRERT,
     IKKE_DELTATT,
     IKKE_RETT_TIL_TILTAKSPENGER,
+    ;
+
+    fun tilMeldekortDagStatus(): MeldekortDagStatus = when (this) {
+        DELTATT -> MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET
+        FRAVÆR_SYK -> MeldekortDagStatus.FRAVÆR_SYK
+        FRAVÆR_SYKT_BARN -> MeldekortDagStatus.FRAVÆR_SYKT_BARN
+        FRAVÆR_ANNET -> MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV
+        IKKE_REGISTRERT -> MeldekortDagStatus.IKKE_DELTATT
+        IKKE_DELTATT -> MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
+        IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortDagStatus.SPERRET
+    }
 }

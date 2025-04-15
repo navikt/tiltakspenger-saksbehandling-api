@@ -6,13 +6,12 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 
 class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) : BrukersMeldekortRepo {
     private val data = Atomic(mutableMapOf<MeldekortId, BrukersMeldekort>())
 
-    override fun lagre(brukersMeldekort: LagreBrukersMeldekortKommando, sessionContext: SessionContext?) {
+    override fun lagre(brukersMeldekort: BrukersMeldekort, sessionContext: SessionContext?) {
         val meldeperiode = meldeperiodeFakeRepo.hentForMeldeperiodeId(brukersMeldekort.meldeperiodeId)
 
         requireNotNull(meldeperiode) { "Ingen meldeperiode for ${brukersMeldekort.meldeperiodeId}" }
@@ -47,7 +46,7 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
         meldeperiodeId: MeldeperiodeId,
         sessionContext: SessionContext?,
     ): BrukersMeldekort? {
-        return data.get().values.find { it.meldeperiode.id == meldeperiodeId }
+        return data.get().values.find { it.meldeperiodeId == meldeperiodeId }
     }
 
     override fun hentMeldekortSomIkkeSkalGodkjennesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
