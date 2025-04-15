@@ -70,12 +70,12 @@ data class MeldekortUnderBehandling(
         kommando: OppdaterMeldekortKommando,
         beregning: MeldekortBeregning,
         clock: Clock,
-    ): Either<KanIkkeOppdatereMeldekort, MeldekortBehandlet> {
+    ): Either<KanIkkeOppdatereMeldekort, MeldekortBehandletManuelt> {
         val dager = validerOppdateringOgHentDager(kommando).getOrElse {
             return it.left()
         }
 
-        return MeldekortBehandlet(
+        return MeldekortBehandletManuelt(
             id = this.id,
             sakId = this.sakId,
             saksnummer = this.saksnummer,

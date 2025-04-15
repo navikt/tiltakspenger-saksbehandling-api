@@ -34,15 +34,15 @@ data class MeldekortBehandlinger(
 
     val meldeperiodeBeregninger by lazy { MeldeperiodeBeregninger(this) }
 
-    private val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
+    private val behandledeMeldekort: List<MeldekortBehandletManuelt> by lazy { verdi.filterIsInstance<MeldekortBehandletManuelt>() }
 
-    val behandledeMeldekortPerKjede: Map<MeldeperiodeKjedeId, List<MeldekortBehandlet>> by lazy {
+    val behandledeMeldekortPerKjede: Map<MeldeperiodeKjedeId, List<MeldekortBehandletManuelt>> by lazy {
         behandledeMeldekort
             .sortedBy { it.opprettet }
             .groupBy { it.kjedeId }
     }
 
-    val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandlet> by lazy {
+    val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandletManuelt> by lazy {
         behandledeMeldekortPerKjede.values.map { it.last() }
     }
 
@@ -51,13 +51,13 @@ data class MeldekortBehandlinger(
         verdi.filterIsInstance<MeldekortUnderBehandling>().singleOrNullOrThrow()
     }
 
-    private val meldekortUnderBeslutning: MeldekortBehandlet? by lazy {
+    private val meldekortUnderBeslutning: MeldekortBehandletManuelt? by lazy {
         behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING }.singleOrNullOrThrow()
     }
 
-    val godkjenteMeldekort: List<MeldekortBehandlet> by lazy { behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
+    val godkjenteMeldekort: List<MeldekortBehandletManuelt> by lazy { behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
 
-    val sisteGodkjenteMeldekort: MeldekortBehandlet? by lazy { godkjenteMeldekort.lastOrNull() }
+    val sisteGodkjenteMeldekort: MeldekortBehandletManuelt? by lazy { godkjenteMeldekort.lastOrNull() }
 
     @Suppress("unused")
     val sisteGodkjenteMeldekortDag: LocalDate? by lazy { sisteGodkjenteMeldekort?.tilOgMed }
@@ -104,7 +104,7 @@ data class MeldekortBehandlinger(
         barnetilleggsPerioder: Periodisering<AntallBarn?>,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
         clock: Clock,
-    ): Either<KanIkkeOppdatereMeldekort, Pair<MeldekortBehandlinger, MeldekortBehandlet>> {
+    ): Either<KanIkkeOppdatereMeldekort, Pair<MeldekortBehandlinger, MeldekortBehandletManuelt>> {
         val (meldekort, beregning) = beregnOppdatering(
             kommando,
             barnetilleggsPerioder,

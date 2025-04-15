@@ -99,6 +99,8 @@ open class MeldekortContext(
             brukersMeldekortRepo = brukersMeldekortRepo,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakRepo = sakRepo,
+            utbetalingsvedtakRepo = utbetalingsvedtakRepo,
+            statistikkStønadRepo = statistikkStønadRepo,
             navkontorService = navkontorService,
             sessionFactory = sessionFactory,
             clock = clock,

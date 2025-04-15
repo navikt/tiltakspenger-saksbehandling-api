@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -30,7 +29,7 @@ import java.time.LocalDateTime
  * @param saksbehandler: Obligatorisk dersom meldekortet er utfylt av saksbehandler.
  * @param beslutter: Obligatorisk dersom meldekortet er godkjent av beslutter.
  */
-data class MeldekortBehandlet(
+data class MeldekortBehandletManuelt(
     override val id: MeldekortId,
     override val sakId: SakId,
     override val saksnummer: Saksnummer,
@@ -50,18 +49,7 @@ data class MeldekortBehandlet(
     override val attesteringer: Attesteringer,
     override val beregning: MeldekortBeregning,
     override val dager: MeldekortDager,
-) : MeldekortBehandling {
-    /**
-     *  Perioden for beregningen av meldekortet.
-     *  Fra og med start av meldeperioden, til og med siste dag med en beregnet utbetaling
-     *  Ved korrigeringer tilbake i tid kan tilOgMed strekke seg til påfølgende meldeperioder dersom disse påvirkes av beregningen
-     * */
-    val beregningPeriode: Periode get() = beregning.periode
-
-    /** Totalsummen for meldeperioden */
-    override val beløpTotal = beregning.beregnTotaltBeløp()
-    override val ordinærBeløp = beregning.beregnTotalOrdinærBeløp()
-    override val barnetilleggBeløp = beregning.beregnTotalBarnetillegg()
+) : MeldekortBehandling.Behandlet {
 
     init {
         require(meldeperiode.periode.fraOgMed == beregningPeriode.fraOgMed) {
@@ -95,7 +83,7 @@ data class MeldekortBehandlet(
     fun iverksettMeldekort(
         beslutter: Saksbehandler,
         clock: Clock,
-    ): Either<KanIkkeIverksetteMeldekort, MeldekortBehandlet> {
+    ): Either<KanIkkeIverksetteMeldekort, MeldekortBehandletManuelt> {
         if (!beslutter.erBeslutter()) {
             return KanIkkeIverksetteMeldekort.MåVæreBeslutter(beslutter.roller).left()
         }
