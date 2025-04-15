@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -9,16 +8,37 @@ import no.nav.tiltakspenger.libs.logging.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 
 class MottaBrukerutfyltMeldekortService(
     private val brukersMeldekortRepo: BrukersMeldekortRepo,
+    private val meldeperiodeRepo: MeldeperiodeRepo,
 ) {
     val logger = KotlinLogging.logger { }
 
     fun mottaBrukerutfyltMeldekort(lagreKommando: LagreBrukersMeldekortKommando): Either<KanIkkeLagreBrukersMeldekort, Unit> {
+        val meldeperiodeId = lagreKommando.meldeperiodeId
+        val meldekortId = lagreKommando.id
+
+        val meldeperiode = meldeperiodeRepo.hentForMeldeperiodeId(meldeperiodeId)
+
+        requireNotNull(meldeperiode) {
+            "Fant ikke meldeperioden $meldeperiodeId for meldekortet $meldekortId"
+        }
+
+        val brukersMeldekort = lagreKommando.tilBrukersMeldekort(meldeperiode)
+
+        lagre(brukersMeldekort).onLeft {
+            return it.left()
+        }
+
+        return Unit.right()
+    }
+
+    private fun lagre(meldekort: BrukersMeldekort): Either<KanIkkeLagreBrukersMeldekort, Unit> {
         Either.catch {
-            return brukersMeldekortRepo.lagre(lagreKommando).right()
-        }.getOrElse {
+            brukersMeldekortRepo.lagre(lagreKommando)
+        }.onLeft {
             val meldekortId = lagreKommando.id
             val eksisterendeMeldekort = brukersMeldekortRepo.hentForMeldekortId(meldekortId)
 
@@ -42,6 +62,8 @@ class MottaBrukerutfyltMeldekortService(
 
             return KanIkkeLagreBrukersMeldekort.AlleredeLagretMedDiff.left()
         }
+
+        return Unit.right()
     }
 
     private fun kommandoMatcherMeldekort(lagreKommando: LagreBrukersMeldekortKommando, meldekort: BrukersMeldekort): Boolean {

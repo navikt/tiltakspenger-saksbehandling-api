@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 
@@ -18,7 +17,7 @@ class BrukersMeldekortPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : BrukersMeldekortRepo {
     override fun lagre(
-        brukersMeldekort: LagreBrukersMeldekortKommando,
+        brukersMeldekort: BrukersMeldekort,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->
@@ -28,8 +27,6 @@ class BrukersMeldekortPostgresRepo(
                     insert into meldekort_bruker (
                         id,
                         meldeperiode_id,
-                        meldeperiode_kjede_id,
-                        meldeperiode_versjon,
                         sak_id,
                         mottatt,
                         dager,
@@ -39,8 +36,6 @@ class BrukersMeldekortPostgresRepo(
                     ) values (
                         :id,
                         :meldeperiode_id,
-                        (SELECT kjede_id FROM meldeperiode WHERE id = :meldeperiode_id),
-                        (SELECT versjon FROM meldeperiode WHERE id = :meldeperiode_id),
                         :sak_id,
                         :mottatt,
                         to_jsonb(:dager::jsonb),
@@ -50,10 +45,10 @@ class BrukersMeldekortPostgresRepo(
                     )
                     """,
                     "id" to brukersMeldekort.id.toString(),
-                    "meldeperiode_id" to brukersMeldekort.meldeperiodeId.toString(),
+                    "meldeperiode_id" to brukersMeldekort.meldeperiode.id.toString(),
                     "sak_id" to brukersMeldekort.sakId.toString(),
                     "mottatt" to brukersMeldekort.mottatt,
-                    "dager" to brukersMeldekort.toDbJson(),
+                    "dager" to brukersMeldekort.dager.toDbJson(),
                     "journalpost_id" to brukersMeldekort.journalpostId.toString(),
                     "oppgave_id" to brukersMeldekort.oppgaveId?.toString(),
                 ).asUpdate,

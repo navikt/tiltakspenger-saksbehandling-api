@@ -5,11 +5,10 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 
 interface BrukersMeldekortRepo {
     fun lagre(
-        brukersMeldekort: LagreBrukersMeldekortKommando,
+        brukersMeldekort: BrukersMeldekort,
         sessionContext: SessionContext? = null,
     )
 
