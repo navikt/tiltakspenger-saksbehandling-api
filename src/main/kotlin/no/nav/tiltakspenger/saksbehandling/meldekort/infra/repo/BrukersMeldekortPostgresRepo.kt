@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
+import java.time.LocalDateTime
 
 class BrukersMeldekortPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -34,7 +35,8 @@ class BrukersMeldekortPostgresRepo(
                         dager,
                         journalpost_id,
                         oppgave_id,
-                        behandles_automatisk
+                        behandles_automatisk,
+                        behandlet_tidspunkt
                     ) values (
                         :id,
                         :meldeperiode_id,
@@ -45,7 +47,8 @@ class BrukersMeldekortPostgresRepo(
                         to_jsonb(:dager::jsonb),
                         :journalpost_id,
                         :oppgave_id,
-                        false
+                        :behandles_automatisk,
+                        :behandlet_tidspunkt
                     )
                     """,
                     "id" to brukersMeldekort.id.toString(),
@@ -55,6 +58,8 @@ class BrukersMeldekortPostgresRepo(
                     "dager" to brukersMeldekort.dager.toDbJson(),
                     "journalpost_id" to brukersMeldekort.journalpostId.toString(),
                     "oppgave_id" to brukersMeldekort.oppgaveId?.toString(),
+                    "behandles_automatisk" to brukersMeldekort.behandlesAutomatisk,
+                    "behandlet_tidspunkt" to brukersMeldekort.behandletTidspunkt,
                 ).asUpdate,
             )
         }
@@ -63,8 +68,9 @@ class BrukersMeldekortPostgresRepo(
     /**
      * Oppdaterer et meldekort som allerede er lagret i databasen.
      */
-    override fun oppdater(
-        brukersMeldekort: BrukersMeldekort,
+    override fun oppdaterOppgaveId(
+        meldekortId: MeldekortId,
+        oppgaveId: OppgaveId,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->
@@ -72,11 +78,11 @@ class BrukersMeldekortPostgresRepo(
                 sqlQuery(
                     """
                 update meldekort_bruker 
-                set oppgave_id = :oppgave_id
+                    set oppgave_id = :oppgave_id
                 where id = :id
                 """,
-                    "id" to brukersMeldekort.id.toString(),
-                    "oppgave_id" to brukersMeldekort.oppgaveId?.toString(),
+                    "id" to meldekortId.toString(),
+                    "oppgave_id" to oppgaveId.toString(),
                 ).asUpdate,
             )
         }
@@ -106,7 +112,42 @@ class BrukersMeldekortPostgresRepo(
         }
     }
 
-    override fun hentMeldekortSomIkkeSkalGodkjennesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
+    override fun hentMeldekortSomSkalBehandlesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
+        return sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select *
+                        from meldekort_bruker
+                    where behandles_automatisk is true
+                    and behandlet_tidspunkt is null
+                    """,
+                ).map { row -> fromRow(row, session) }.asList,
+            )
+        }
+    }
+
+    override fun markerMeldekortSomBehandlet(
+        meldekortId: MeldekortId,
+        behandletTidspunkt: LocalDateTime,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                update meldekort_bruker 
+                    set behandlet_tidspunkt = :behandlet_tidspunkt
+                where id = :id
+                """,
+                    "id" to meldekortId.toString(),
+                    "behandlet_tidspunkt" to behandletTidspunkt,
+                ).asUpdate,
+            )
+        }
+    }
+
+    override fun hentMeldekortSomDetSkalOpprettesOppgaveFor(sessionContext: SessionContext?): List<BrukersMeldekort> {
         return sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
@@ -115,6 +156,7 @@ class BrukersMeldekortPostgresRepo(
                         from meldekort_bruker 
                     where journalpost_id is not null
                     and oppgave_id is null
+                    and behandles_automatisk is false
                     """,
                 ).map { row -> fromRow(row, session) }.asList,
             )
@@ -185,6 +227,8 @@ class BrukersMeldekortPostgresRepo(
                 dager = row.string("dager").toMeldekortDager(),
                 journalpostId = JournalpostId(row.string("journalpost_id")),
                 oppgaveId = row.stringOrNull("oppgave_id")?.let { OppgaveId(it) },
+                behandlesAutomatisk = row.boolean("behandles_automatisk"),
+                behandletTidspunkt = row.localDateTimeOrNull("behandlet_tidspunkt"),
             )
         }
     }

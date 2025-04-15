@@ -26,7 +26,7 @@ class MeldekortBrukerPostgresRepoTest {
                 mottatt = meldeperiode.opprettet.plus(1, ChronoUnit.MILLIS),
                 sakId = meldeperiode.sakId,
                 periode = meldeperiode.periode,
-            ).tilBrukersMeldekort(meldeperiode)
+            ).tilBrukersMeldekort(meldeperiode, false)
 
             meldekortBrukerRepo.lagre(nyttBrukersMeldekort)
 
@@ -39,6 +39,8 @@ class MeldekortBrukerPostgresRepoTest {
                     dager = nyttBrukersMeldekort.dager,
                     journalpostId = nyttBrukersMeldekort.journalpostId,
                     oppgaveId = nyttBrukersMeldekort.oppgaveId,
+                    behandlesAutomatisk = false,
+                    behandletTidspunkt = null,
                 ),
             )
         }

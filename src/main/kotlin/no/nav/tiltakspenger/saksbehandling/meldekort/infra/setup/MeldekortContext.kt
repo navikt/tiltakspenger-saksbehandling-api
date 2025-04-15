@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiHttpClientGateway
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppgaveMeldekortService
@@ -88,6 +89,16 @@ open class MeldekortContext(
         OpprettMeldekortBehandlingService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakService = sakService,
+            navkontorService = navkontorService,
+            sessionFactory = sessionFactory,
+            clock = clock,
+        )
+    }
+    val automatiskMeldekortBehandlingService by lazy {
+        AutomatiskMeldekortBehandlingService(
+            brukersMeldekortRepo = brukersMeldekortRepo,
+            meldekortBehandlingRepo = meldekortBehandlingRepo,
+            sakRepo = sakRepo,
             navkontorService = navkontorService,
             sessionFactory = sessionFactory,
             clock = clock,
