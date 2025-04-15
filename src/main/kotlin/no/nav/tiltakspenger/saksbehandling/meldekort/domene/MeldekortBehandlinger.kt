@@ -231,6 +231,12 @@ data class MeldekortBehandlinger(
         )
     }
 
+    fun leggTil(behandling: MeldekortBehandletAutomatisk): MeldekortBehandlinger {
+        return MeldekortBehandlinger(
+            verdi = verdi.plus(behandling).sortedBy { it.fraOgMed },
+        )
+    }
+
     init {
         verdi.zipWithNext { a, b ->
             require(a.kjedeId == b.kjedeId || a.tilOgMed < b.fraOgMed) {

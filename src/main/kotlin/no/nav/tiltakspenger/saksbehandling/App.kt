@@ -82,7 +82,7 @@ internal fun start(
             { applicationContext.utbetalingContext.journalførUtbetalingsvedtakService.journalfør() },
             { applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør() },
             { applicationContext.behandlingContext.distribuerVedtaksbrevService.distribuer() },
-            { applicationContext.meldekortContext.oppgaveMeldekortService.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk() },
+            { applicationContext.meldekortContext.oppgaveMeldekortService.opprettOppgaveForMeldekortSomIkkeBehandlesAutomatisk() },
             { applicationContext.genererMeldeperioderService.genererMeldeperioderForSaker() },
         ).let {
             if (Configuration.isNais()) {
@@ -97,6 +97,12 @@ internal fun start(
                         { applicationContext.identhendelseJobb.behandleIdenthendelser() },
                     ),
                 )
+            } else {
+                it
+            }
+        }.let {
+            if (!Configuration.isProd()) {
+                it.plus { applicationContext.meldekortContext.automatiskMeldekortBehandlingService.behandleBrukersMeldekort() }
             } else {
                 it
             }

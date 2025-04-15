@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
+import java.time.LocalDateTime
 
 interface BrukersMeldekortRepo {
     fun lagre(
@@ -12,8 +14,9 @@ interface BrukersMeldekortRepo {
         sessionContext: SessionContext? = null,
     )
 
-    fun oppdater(
-        brukersMeldekort: BrukersMeldekort,
+    fun oppdaterOppgaveId(
+        meldekortId: MeldekortId,
+        oppgaveId: OppgaveId,
         sessionContext: SessionContext? = null,
     )
 
@@ -32,7 +35,17 @@ interface BrukersMeldekortRepo {
         sessionContext: SessionContext? = null,
     ): BrukersMeldekort?
 
-    fun hentMeldekortSomIkkeSkalGodkjennesAutomatisk(
+    fun hentMeldekortSomDetSkalOpprettesOppgaveFor(
         sessionContext: SessionContext? = null,
     ): List<BrukersMeldekort>
+
+    fun hentMeldekortSomSkalBehandlesAutomatisk(
+        sessionContext: SessionContext? = null,
+    ): List<BrukersMeldekort>
+
+    fun markerMeldekortSomBehandlet(
+        meldekortId: MeldekortId,
+        behandletTidspunkt: LocalDateTime,
+        sessionContext: SessionContext? = null,
+    )
 }

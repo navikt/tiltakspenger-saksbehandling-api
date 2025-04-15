@@ -7,6 +7,8 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
+import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
+import java.time.LocalDateTime
 
 class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) : BrukersMeldekortRepo {
     private val data = Atomic(mutableMapOf<MeldekortId, BrukersMeldekort>())
@@ -25,11 +27,17 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
             dager = brukersMeldekort.dager,
             journalpostId = brukersMeldekort.journalpostId,
             oppgaveId = brukersMeldekort.oppgaveId,
+            behandlesAutomatisk = brukersMeldekort.behandlesAutomatisk,
+            behandletTidspunkt = brukersMeldekort.behandletTidspunkt,
         )
     }
 
-    override fun oppdater(brukersMeldekort: BrukersMeldekort, sessionContext: SessionContext?) {
-        data.get()[brukersMeldekort.id] = brukersMeldekort
+    override fun oppdaterOppgaveId(
+        meldekortId: MeldekortId,
+        oppgaveId: OppgaveId,
+        sessionContext: SessionContext?,
+    ) {
+        data.get()[meldekortId] = data.get()[meldekortId]!!.copy(oppgaveId = oppgaveId)
     }
 
     override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): List<BrukersMeldekort> {
@@ -49,7 +57,19 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
         return data.get().values.find { it.meldeperiodeId == meldeperiodeId }
     }
 
-    override fun hentMeldekortSomIkkeSkalGodkjennesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
+    override fun hentMeldekortSomDetSkalOpprettesOppgaveFor(sessionContext: SessionContext?): List<BrukersMeldekort> {
         return data.get().values.filter { it.oppgaveId == null }
+    }
+
+    override fun hentMeldekortSomSkalBehandlesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
+        TODO("Not yet implemented")
+    }
+
+    override fun markerMeldekortSomBehandlet(
+        meldekortId: MeldekortId,
+        behandletTidspunkt: LocalDateTime,
+        sessionContext: SessionContext?,
+    ) {
+        TODO("Not yet implemented")
     }
 }

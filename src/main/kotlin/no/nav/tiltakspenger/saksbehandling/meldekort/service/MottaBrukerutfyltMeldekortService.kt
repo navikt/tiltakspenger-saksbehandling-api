@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 class MottaBrukerutfyltMeldekortService(
     private val brukersMeldekortRepo: BrukersMeldekortRepo,
     private val meldeperiodeRepo: MeldeperiodeRepo,
+    private val behandlesAutomatisk: Boolean,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -25,7 +26,7 @@ class MottaBrukerutfyltMeldekortService(
             "Fant ikke meldeperioden $meldeperiodeId for meldekortet $meldekortId"
         }
 
-        val nyttMeldekort = kommando.tilBrukersMeldekort(meldeperiode)
+        val nyttMeldekort = kommando.tilBrukersMeldekort(meldeperiode, behandlesAutomatisk)
 
         Either.catch {
             brukersMeldekortRepo.lagre(nyttMeldekort)
@@ -55,23 +56,6 @@ class MottaBrukerutfyltMeldekortService(
 
         return Unit.right()
     }
-
-//    private suspend fun behandleMeldekort(meldekort: BrukersMeldekort) {
-//        val sakId = meldekort.sakId
-//
-//        // TODO: sjekk noe greier her :D
-//        val sak = sakRepo.hentForSakId(sakId)!!
-//
-//        val navkontor = Either.catch {
-//            navkontorService.hentOppfolgingsenhet(sak.fnr)
-//        }.getOrElse {
-//            with("Kunne ikke hente navkontor for sak $sakId") {
-//                logger.error { this }
-//                no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg.error(it) { "$this - fnr ${sak.fnr.verdi}" }
-//            }
-//            return
-//        }
-//    }
 }
 
 sealed interface KanIkkeLagreBrukersMeldekort {
