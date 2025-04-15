@@ -25,7 +25,7 @@ data class MeldekortBehandletAutomatisk(
     override val iverksattTidspunkt: LocalDateTime?,
     override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
 ) : MeldekortBehandling.Behandlet {
-    override val status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT
+    override val status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
     override val type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING
 
     // TODO: Hva skal vi sette her? :D

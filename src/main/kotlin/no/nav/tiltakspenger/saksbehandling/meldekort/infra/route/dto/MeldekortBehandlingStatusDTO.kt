@@ -7,6 +7,7 @@ enum class MeldekortBehandlingStatusDTO {
     KLAR_TIL_UTFYLLING,
     KLAR_TIL_BESLUTNING,
     GODKJENT,
+    AUTOMATISK_BEHANDLET,
     IKKE_RETT_TIL_TILTAKSPENGER,
 }
 
@@ -16,5 +17,6 @@ fun MeldekortBehandling.toStatusDTO(): MeldekortBehandlingStatusDTO {
         MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldekortBehandlingStatusDTO.KLAR_TIL_BESLUTNING
         MeldekortBehandlingStatus.GODKJENT -> MeldekortBehandlingStatusDTO.GODKJENT
         MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortBehandlingStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
+        MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> MeldekortBehandlingStatusDTO.AUTOMATISK_BEHANDLET
     }
 }
