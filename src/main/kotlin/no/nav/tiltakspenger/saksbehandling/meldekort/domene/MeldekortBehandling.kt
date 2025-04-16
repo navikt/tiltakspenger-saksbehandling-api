@@ -128,7 +128,7 @@ fun Sak.validerOgHentMeldeperiodeForBehandling(kjedeId: MeldeperiodeKjedeId): Me
     this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
         ?.also { foregåendeMeldeperiodekjede ->
             this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(foregåendeMeldeperiodekjede.kjedeId).also { behandlinger ->
-                if (behandlinger.none { it.status == GODKJENT }) {
+                if (behandlinger.none { it.status == GODKJENT || it.status == AUTOMATISK_BEHANDLET }) {
                     throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige kjede er godkjent")
                 }
             }
