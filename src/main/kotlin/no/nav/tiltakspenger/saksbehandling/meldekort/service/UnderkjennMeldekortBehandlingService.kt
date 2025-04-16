@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankStrin
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KunneIkkeUnderkjenneMeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UnderkjennMeldekortBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
@@ -20,6 +21,10 @@ class UnderkjennMeldekortBehandlingService(
     suspend fun underkjenn(command: UnderkjennMeldekortBehandlingCommand): Either<KunneIkkeUnderkjenneMeldekortBehandling, MeldekortBehandling> {
         val meldekortBehandling = meldekortBehandlingRepo.hent(command.meldekortId)
             ?: throw IllegalStateException("Fant ikke meldekortBehandling for id ${command.meldekortId}")
+
+        if (meldekortBehandling !is MeldekortBehandletManuelt) {
+            return KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErIkkeKlarTilBeslutning.left()
+        }
 
         tilgangsstyringService.harTilgangTilPerson(meldekortBehandling.fnr, command.saksbehandler.roller, command.correlationId).onLeft {
             throw TilgangException("Feil ved tilgangssjekk til person ved sending av behandling tilbake til saksbehandler. Feilen var $it")

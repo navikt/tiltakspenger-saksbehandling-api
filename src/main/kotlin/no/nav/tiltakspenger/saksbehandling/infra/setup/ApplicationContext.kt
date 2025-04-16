@@ -288,6 +288,8 @@ open class ApplicationContext(
     val mottaBrukerutfyltMeldekortService by lazy {
         MottaBrukerutfyltMeldekortService(
             brukersMeldekortRepo = meldekortContext.brukersMeldekortRepo,
+            meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
+            kanBehandleAutomatisk = !Configuration.isProd(),
         )
     }
 

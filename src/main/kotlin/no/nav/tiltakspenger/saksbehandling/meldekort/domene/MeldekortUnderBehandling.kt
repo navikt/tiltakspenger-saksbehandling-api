@@ -7,7 +7,6 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
@@ -71,12 +70,12 @@ data class MeldekortUnderBehandling(
         kommando: OppdaterMeldekortKommando,
         beregning: MeldekortBeregning,
         clock: Clock,
-    ): Either<KanIkkeOppdatereMeldekort, MeldekortBehandlet> {
+    ): Either<KanIkkeOppdatereMeldekort, MeldekortBehandletManuelt> {
         val dager = validerOppdateringOgHentDager(kommando).getOrElse {
             return it.left()
         }
 
-        return MeldekortBehandlet(
+        return MeldekortBehandletManuelt(
             id = this.id,
             sakId = this.sakId,
             saksnummer = this.saksnummer,
@@ -128,14 +127,6 @@ data class MeldekortUnderBehandling(
         return !LocalDate.now().isBefore(periode.fraOgMed)
     }
 
-    override fun underkjenn(
-        begrunnelse: NonBlankString,
-        beslutter: Saksbehandler,
-        clock: Clock,
-    ): Either<KunneIkkeUnderkjenneMeldekortBehandling, MeldekortBehandling> {
-        return KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErIkkeKlarTilBeslutning.left()
-    }
-
     init {
         if (status == IKKE_RETT_TIL_TILTAKSPENGER) {
             require(dager.all { it.status == MeldekortDagStatus.SPERRET })
@@ -147,43 +138,15 @@ data class MeldekortUnderBehandling(
  * TODO post-mvp jah: Ved revurderinger av rammevedtaket, så må vi basere oss på både forrige meldekort og revurderingsvedtaket. Dette løser vi å flytte mer logikk til Sak.kt.
  * TODO post-mvp jah: Når vi implementerer delvis innvilgelse vil hele meldekortperioder kunne bli SPERRET.
  */
-fun Sak.opprettMeldekortBehandling(
+fun Sak.opprettManuellMeldekortBehandling(
     kjedeId: MeldeperiodeKjedeId,
     navkontor: Navkontor,
     saksbehandler: Saksbehandler,
     clock: Clock,
 ): MeldekortUnderBehandling {
-    if (this.meldekortBehandlinger.finnesÅpenMeldekortBehandling) {
-        throw IllegalStateException("Kan ikke opprette ny meldekortbehandling når det finnes en åpen behandling på saken (sak $id - kjedeId $kjedeId)")
-    }
+    val meldeperiode = validerOgHentMeldeperiodeForBehandling(kjedeId)
 
-    val meldeperiodekjede: MeldeperiodeKjede = this.meldeperiodeKjeder.hentMeldeperiodekjedeForKjedeId(kjedeId)
-        ?: throw IllegalStateException("Kan ikke opprette meldekortbehandling for kjedeId $kjedeId som ikke finnes")
-    val meldeperiode: Meldeperiode = meldeperiodekjede.hentSisteMeldeperiode()
     val behandlingerKnyttetTilKjede = this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(kjedeId)
-
-    if (this.meldekortBehandlinger.isEmpty()) {
-        require(meldeperiode == this.meldeperiodeKjeder.first().hentSisteMeldeperiode()) {
-            "Dette er første meldekortbehandling på saken og må da behandle den første meldeperiode kjeden. sakId: ${this.id}, meldeperiodekjedeId: ${meldeperiodekjede.kjedeId}"
-        }
-    }
-
-    this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
-        ?.also { foregåendeMeldeperiodekjede ->
-            this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(foregåendeMeldeperiodekjede.kjedeId).also {
-                if (it.none { it.status == MeldekortBehandlingStatus.GODKJENT }) {
-                    throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige kjede er godkjent")
-                }
-            }
-        }
-
-    if (meldeperiode.ingenDagerGirRett) {
-        throw IllegalStateException("Kan ikke starte behandling på meldeperiode uten dager som gir rett til tiltakspenger")
-    }
-
-    // TODO abn: må støtte flere brukers meldekort på samme kjede før vi åpner for korrigering fra bruker
-    val brukersMeldekort = this.brukersMeldekort.find { it.kjedeId == kjedeId }
-
     val type =
         if (behandlingerKnyttetTilKjede.isEmpty()) MeldekortBehandlingType.FØRSTE_BEHANDLING else MeldekortBehandlingType.KORRIGERING
 
@@ -197,7 +160,7 @@ fun Sak.opprettMeldekortBehandling(
         opprettet = nå(clock),
         navkontor = navkontor,
         ikkeRettTilTiltakspengerTidspunkt = null,
-        brukersMeldekort = brukersMeldekort,
+        brukersMeldekort = null,
         meldeperiode = meldeperiode,
         saksbehandler = saksbehandler.navIdent,
         type = type,

@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
@@ -36,7 +36,7 @@ class OppdaterMeldekortService(
 
     suspend fun sendMeldekortTilBeslutter(
         kommando: OppdaterMeldekortKommando,
-    ): Either<KanIkkeOppdatereMeldekort, Pair<Sak, MeldekortBehandlet>> {
+    ): Either<KanIkkeOppdatereMeldekort, Pair<Sak, MeldekortBehandletManuelt>> {
         val sak = hentSak(kommando).getOrElse { return it.left() }
 
         return sak.meldekortBehandlinger

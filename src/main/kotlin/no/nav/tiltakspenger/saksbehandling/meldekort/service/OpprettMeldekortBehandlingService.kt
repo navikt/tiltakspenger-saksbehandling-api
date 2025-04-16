@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettMeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettManuellMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -49,7 +49,7 @@ class OpprettMeldekortBehandlingService(
         }
 
         val meldekortBehandling = Either.catch {
-            sak.opprettMeldekortBehandling(
+            sak.opprettManuellMeldekortBehandling(
                 kjedeId = kjedeId,
                 navkontor = navkontor,
                 saksbehandler = saksbehandler,

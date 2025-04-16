@@ -12,6 +12,7 @@ enum class MeldeperiodeKjedeStatusDTO {
     UNDER_BEHANDLING,
     KLAR_TIL_BESLUTNING,
     GODKJENT,
+    AUTOMATISK_BEHANDLET,
 }
 
 fun Sak.toMeldeperiodeKjedeStatusDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeStatusDTO {
@@ -21,6 +22,7 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock)
             MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BESLUTNING
             MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
             MeldekortBehandlingStatus.IKKE_BEHANDLET -> MeldeperiodeKjedeStatusDTO.UNDER_BEHANDLING
+            MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> MeldeperiodeKjedeStatusDTO.AUTOMATISK_BEHANDLET
         }
     }
 

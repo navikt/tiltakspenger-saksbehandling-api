@@ -7,6 +7,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
@@ -37,6 +38,7 @@ class OppgaveMeldekortServiceTest {
             val meldekort = mockk<BrukersMeldekort>()
             every { meldekort.journalpostId } returns journalpostId
             every { meldekort.sakId } returns SakId.random()
+            every { meldekort.id } returns MeldekortId.random()
             every {
                 meldekort.copy(
                     id = any(),
@@ -49,11 +51,11 @@ class OppgaveMeldekortServiceTest {
                 )
             } returns meldekort
 
-            coEvery { brukersMeldekortRepo.hentMeldekortSomIkkeSkalGodkjennesAutomatisk() } returns listOf(meldekort)
+            coEvery { brukersMeldekortRepo.hentMeldekortSomDetSkalOpprettesOppgaveFor() } returns listOf(meldekort)
             coEvery { sakRepo.hentForSakId(any()) } returns mockk(relaxed = true)
-            coJustRun { brukersMeldekortRepo.oppdater(any()) }
+            coJustRun { brukersMeldekortRepo.oppdaterOppgaveId(any(), any()) }
 
-            service.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk()
+            service.opprettOppgaveForMeldekortSomIkkeBehandlesAutomatisk()
 
             coVerify {
                 oppgaveGateway.opprettOppgave(
@@ -71,10 +73,10 @@ class OppgaveMeldekortServiceTest {
             val meldekort = mockk<BrukersMeldekort>()
             every { meldekort.journalpostId } returns JournalpostIdGenerator().neste()
             every { meldekort.sakId } returns SakId.random()
-            coEvery { brukersMeldekortRepo.hentMeldekortSomIkkeSkalGodkjennesAutomatisk() } returns listOf(meldekort)
+            coEvery { brukersMeldekortRepo.hentMeldekortSomDetSkalOpprettesOppgaveFor() } returns listOf(meldekort)
             coEvery { sakRepo.hentForSakId(any()) } returns null
 
-            service.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk()
+            service.opprettOppgaveForMeldekortSomIkkeBehandlesAutomatisk()
 
             coVerify(exactly = 0) { oppgaveGateway.opprettOppgave(any(), any(), any()) }
         }
@@ -84,11 +86,11 @@ class OppgaveMeldekortServiceTest {
     fun `skal opprette oppgaver for gyldige meldekort`() {
         runTest {
             val meldekort = (1..20).map { mockk<BrukersMeldekort>(relaxed = true) }
-            coEvery { brukersMeldekortRepo.hentMeldekortSomIkkeSkalGodkjennesAutomatisk() } returns meldekort
+            coEvery { brukersMeldekortRepo.hentMeldekortSomDetSkalOpprettesOppgaveFor() } returns meldekort
             coEvery { sakRepo.hentForSakId(any()) } returns mockk(relaxed = true)
-            coJustRun { brukersMeldekortRepo.oppdater(any()) }
+            coJustRun { brukersMeldekortRepo.oppdaterOppgaveId(any(), any()) }
 
-            service.opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk()
+            service.opprettOppgaveForMeldekortSomIkkeBehandlesAutomatisk()
 
             coVerify(exactly = meldekort.size) {
                 oppgaveGateway.opprettOppgave(any(), any(), Oppgavebehov.NYTT_MELDEKORT)

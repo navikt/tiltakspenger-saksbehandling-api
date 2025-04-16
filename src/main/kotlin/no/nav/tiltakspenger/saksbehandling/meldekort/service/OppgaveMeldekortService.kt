@@ -15,25 +15,26 @@ class OppgaveMeldekortService(
     private val log = KotlinLogging.logger {}
 
     // På sikt vil man bare opprette oppgave for meldekort som trenger en manuell gjennomgang, for meldekort skal generelt godkjennes maskinelt.
-    suspend fun opprettOppgaveForMeldekortSomIkkeGodkjennesAutomatisk() {
+    suspend fun opprettOppgaveForMeldekortSomIkkeBehandlesAutomatisk() {
         Either.catch {
             log.debug { "Henter meldekort som det skal opprettes oppgaver for" }
-            val meldekortList = brukersMeldekortRepo.hentMeldekortSomIkkeSkalGodkjennesAutomatisk()
+            val meldekortList = brukersMeldekortRepo.hentMeldekortSomDetSkalOpprettesOppgaveFor()
 
             log.debug { "Fant ${meldekortList.size} meldekort som det skal opprettes oppgaver for" }
             meldekortList.forEach { meldekort ->
+                val meldekortId = meldekort.id
                 Either.catch {
                     val journalpostId = meldekort.journalpostId
                     val sak = sakRepo.hentForSakId(meldekort.sakId)
                         ?: log.warn { "Fant ikke sak for sakId ${meldekort.sakId}" }.let { return@forEach }
 
-                    log.info { "Oppretter oppgave for meldekortId ${meldekort.id}" }
+                    log.info { "Oppretter oppgave for meldekortId $meldekortId" }
                     val oppgaveId = oppgaveGateway.opprettOppgave(sak.fnr, journalpostId, Oppgavebehov.NYTT_MELDEKORT)
 
-                    log.info { "Opprettet oppgave med id $oppgaveId for meldekort med id ${meldekort.id}" }
-                    brukersMeldekortRepo.oppdater(meldekort.copy(oppgaveId = oppgaveId))
+                    log.info { "Opprettet oppgave med id $oppgaveId for meldekort med id $meldekortId" }
+                    brukersMeldekortRepo.oppdaterOppgaveId(meldekortId = meldekortId, oppgaveId = oppgaveId)
                 }.onLeft {
-                    log.error(it) { "Feil ved opprettelse av oppgave for meldekort ${meldekort.id}" }
+                    log.error(it) { "Feil ved opprettelse av oppgave for meldekort $meldekortId" }
                 }
             }
         }.onLeft {

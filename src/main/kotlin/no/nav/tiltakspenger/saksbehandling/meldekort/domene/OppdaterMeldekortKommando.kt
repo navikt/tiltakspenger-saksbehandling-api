@@ -12,7 +12,7 @@ import java.time.LocalDate
 /**
  * Representerer en saksbehandler som fyller ut hele meldekortet, godkjenner, lagrer og eventuelt sender til beslutter.
  * Denne flyten vil bli annerledes for veileder og bruker.
- * Vi gjør ingen validering i denne klassen, det gjøres heller av [MeldekortBehandlet]
+ * Vi gjør ingen validering i denne klassen, det gjøres heller av [MeldekortBehandletManuelt]
  *
  */
 class OppdaterMeldekortKommando(

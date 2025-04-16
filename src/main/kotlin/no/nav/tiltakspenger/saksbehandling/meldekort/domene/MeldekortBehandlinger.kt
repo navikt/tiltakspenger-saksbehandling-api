@@ -34,15 +34,17 @@ data class MeldekortBehandlinger(
 
     val meldeperiodeBeregninger by lazy { MeldeperiodeBeregninger(this) }
 
-    private val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
+    private val behandledeMeldekort: List<MeldekortBehandling.Behandlet> by lazy {
+        verdi.filterIsInstance<MeldekortBehandling.Behandlet>()
+    }
 
-    val behandledeMeldekortPerKjede: Map<MeldeperiodeKjedeId, List<MeldekortBehandlet>> by lazy {
+    val behandledeMeldekortPerKjede: Map<MeldeperiodeKjedeId, List<MeldekortBehandling.Behandlet>> by lazy {
         behandledeMeldekort
             .sortedBy { it.opprettet }
             .groupBy { it.kjedeId }
     }
 
-    val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandlet> by lazy {
+    val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandling.Behandlet> by lazy {
         behandledeMeldekortPerKjede.values.map { it.last() }
     }
 
@@ -51,13 +53,15 @@ data class MeldekortBehandlinger(
         verdi.filterIsInstance<MeldekortUnderBehandling>().singleOrNullOrThrow()
     }
 
-    private val meldekortUnderBeslutning: MeldekortBehandlet? by lazy {
-        behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING }.singleOrNullOrThrow()
+    private val meldekortUnderBeslutning: MeldekortBehandletManuelt? by lazy {
+        behandledeMeldekort.filter {
+            it.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
+        }.singleOrNullOrThrow() as MeldekortBehandletManuelt?
     }
 
-    val godkjenteMeldekort: List<MeldekortBehandlet> by lazy { behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
+    val godkjenteMeldekort: List<MeldekortBehandling.Behandlet> by lazy { behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
 
-    val sisteGodkjenteMeldekort: MeldekortBehandlet? by lazy { godkjenteMeldekort.lastOrNull() }
+    val sisteGodkjenteMeldekort: MeldekortBehandling.Behandlet? by lazy { godkjenteMeldekort.lastOrNull() }
 
     @Suppress("unused")
     val sisteGodkjenteMeldekortDag: LocalDate? by lazy { sisteGodkjenteMeldekort?.tilOgMed }
@@ -104,7 +108,7 @@ data class MeldekortBehandlinger(
         barnetilleggsPerioder: Periodisering<AntallBarn?>,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
         clock: Clock,
-    ): Either<KanIkkeOppdatereMeldekort, Pair<MeldekortBehandlinger, MeldekortBehandlet>> {
+    ): Either<KanIkkeOppdatereMeldekort, Pair<MeldekortBehandlinger, MeldekortBehandletManuelt>> {
         val (meldekort, beregning) = beregnOppdatering(
             kommando,
             barnetilleggsPerioder,
@@ -162,7 +166,7 @@ data class MeldekortBehandlinger(
         }
 
         val beregninger = kommando.beregn(
-            eksisterendeMeldekortBehandlinger = this,
+            meldekortBehandlinger = this,
             barnetilleggsPerioder = barnetilleggsPerioder,
             tiltakstypePerioder = tiltakstypePerioder,
         )
@@ -226,6 +230,12 @@ data class MeldekortBehandlinger(
     }
 
     fun leggTil(behandling: MeldekortUnderBehandling): MeldekortBehandlinger {
+        return MeldekortBehandlinger(
+            verdi = verdi.plus(behandling).sortedBy { it.fraOgMed },
+        )
+    }
+
+    fun leggTil(behandling: MeldekortBehandletAutomatisk): MeldekortBehandlinger {
         return MeldekortBehandlinger(
             verdi = verdi.plus(behandling).sortedBy { it.fraOgMed },
         )
