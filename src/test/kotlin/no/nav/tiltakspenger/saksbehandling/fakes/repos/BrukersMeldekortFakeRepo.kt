@@ -72,4 +72,8 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
     ) {
         TODO("Not yet implemented")
     }
+
+    override fun markerMeldekortSomIkkeAutomatiskBehandlet(meldekortId: MeldekortId, sessionContext: SessionContext?) {
+        TODO("Not yet implemented")
+    }
 }

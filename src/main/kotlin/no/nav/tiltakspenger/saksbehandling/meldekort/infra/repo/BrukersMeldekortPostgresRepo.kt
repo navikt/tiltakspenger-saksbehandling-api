@@ -147,6 +147,21 @@ class BrukersMeldekortPostgresRepo(
         }
     }
 
+    override fun markerMeldekortSomIkkeAutomatiskBehandlet(meldekortId: MeldekortId, sessionContext: SessionContext?) {
+        sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                update meldekort_bruker 
+                    set behandles_automatisk = false
+                where id = :id
+                """,
+                    "id" to meldekortId.toString(),
+                ).asUpdate,
+            )
+        }
+    }
+
     override fun hentMeldekortSomDetSkalOpprettesOppgaveFor(sessionContext: SessionContext?): List<BrukersMeldekort> {
         return sessionFactory.withSession(sessionContext) { session ->
             session.run(

@@ -48,4 +48,9 @@ interface BrukersMeldekortRepo {
         behandletTidspunkt: LocalDateTime,
         sessionContext: SessionContext? = null,
     )
+
+    fun markerMeldekortSomIkkeAutomatiskBehandlet(
+        meldekortId: MeldekortId,
+        sessionContext: SessionContext? = null,
+    )
 }
