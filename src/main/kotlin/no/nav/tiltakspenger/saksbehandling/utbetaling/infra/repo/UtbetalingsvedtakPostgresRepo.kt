@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toForsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
@@ -282,7 +282,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                     .hentForMeldekortId(
                         MeldekortId.fromString(string("meldekort_id")),
                         session,
-                    )!! as MeldekortBehandletManuelt,
+                    ) as MeldekortBehandling.Behandlet,
                 sendtTilUtbetaling = localDateTimeOrNull("sendt_til_utbetaling_tidspunkt"),
                 journalpostId = stringOrNull("journalpost_id")?.let { JournalpostId(it) },
                 journalføringstidspunkt = localDateTimeOrNull("journalføringstidspunkt"),

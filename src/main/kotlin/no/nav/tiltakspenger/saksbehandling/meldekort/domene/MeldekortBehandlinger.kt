@@ -34,15 +34,17 @@ data class MeldekortBehandlinger(
 
     val meldeperiodeBeregninger by lazy { MeldeperiodeBeregninger(this) }
 
-    private val behandledeMeldekort: List<MeldekortBehandletManuelt> by lazy { verdi.filterIsInstance<MeldekortBehandletManuelt>() }
+    private val behandledeMeldekort: List<MeldekortBehandling.Behandlet> by lazy {
+        verdi.filterIsInstance<MeldekortBehandling.Behandlet>()
+    }
 
-    val behandledeMeldekortPerKjede: Map<MeldeperiodeKjedeId, List<MeldekortBehandletManuelt>> by lazy {
+    val behandledeMeldekortPerKjede: Map<MeldeperiodeKjedeId, List<MeldekortBehandling.Behandlet>> by lazy {
         behandledeMeldekort
             .sortedBy { it.opprettet }
             .groupBy { it.kjedeId }
     }
 
-    val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandletManuelt> by lazy {
+    val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandling.Behandlet> by lazy {
         behandledeMeldekortPerKjede.values.map { it.last() }
     }
 
@@ -52,12 +54,14 @@ data class MeldekortBehandlinger(
     }
 
     private val meldekortUnderBeslutning: MeldekortBehandletManuelt? by lazy {
-        behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING }.singleOrNullOrThrow()
+        behandledeMeldekort.filter {
+            it.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
+        }.singleOrNullOrThrow() as MeldekortBehandletManuelt?
     }
 
-    val godkjenteMeldekort: List<MeldekortBehandletManuelt> by lazy { behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
+    val godkjenteMeldekort: List<MeldekortBehandling.Behandlet> by lazy { behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
 
-    val sisteGodkjenteMeldekort: MeldekortBehandletManuelt? by lazy { godkjenteMeldekort.lastOrNull() }
+    val sisteGodkjenteMeldekort: MeldekortBehandling.Behandlet? by lazy { godkjenteMeldekort.lastOrNull() }
 
     @Suppress("unused")
     val sisteGodkjenteMeldekortDag: LocalDate? by lazy { sisteGodkjenteMeldekort?.tilOgMed }
