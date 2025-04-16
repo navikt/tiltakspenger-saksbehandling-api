@@ -163,8 +163,8 @@ data class MeldekortBehandletManuelt(
         nyMeldeperiode: Meldeperiode?,
         ikkeRettTilTiltakspengerTidspunkt: LocalDateTime? = null,
     ): MeldekortUnderBehandling {
-        require(this.status != GODKJENT && this.status != IKKE_RETT_TIL_TILTAKSPENGER) {
-            "Kan ikke gå fra GODKJENT eller IKKE_RETT_TIL_TILTAKSPENGER til UNDER_BEHANDLING"
+        require(this.status !in listOf(GODKJENT, IKKE_RETT_TIL_TILTAKSPENGER, AUTOMATISK_BEHANDLET)) {
+            "Kan ikke gå fra GODKJENT, AUTOMATISK_BEHANDLET eller IKKE_RETT_TIL_TILTAKSPENGER til UNDER_BEHANDLING"
         }
         val meldeperiode = nyMeldeperiode ?: this.meldeperiode
         return MeldekortUnderBehandling(

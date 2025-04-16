@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 class MottaBrukerutfyltMeldekortService(
     private val brukersMeldekortRepo: BrukersMeldekortRepo,
     private val meldeperiodeRepo: MeldeperiodeRepo,
-    private val behandlesAutomatisk: Boolean,
+    private val kanBehandleAutomatisk: Boolean,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -26,7 +26,7 @@ class MottaBrukerutfyltMeldekortService(
             "Fant ikke meldeperioden $meldeperiodeId for meldekortet $meldekortId"
         }
 
-        val nyttMeldekort = kommando.tilBrukersMeldekort(meldeperiode, behandlesAutomatisk)
+        val nyttMeldekort = kommando.tilBrukersMeldekort(meldeperiode, kanBehandleAutomatisk)
 
         Either.catch {
             brukersMeldekortRepo.lagre(nyttMeldekort)

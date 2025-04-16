@@ -56,7 +56,8 @@ class MeldekortBehandlingPostgresRepo(
                         navkontor_navn,
                         type,
                         begrunnelse,
-                        attesteringer
+                        attesteringer,
+                        brukers_meldekort_id
                     ) values (
                         :id,
                         :meldeperiode_kjede_id,
@@ -76,7 +77,8 @@ class MeldekortBehandlingPostgresRepo(
                         :navkontor_navn,
                         :type,
                         :begrunnelse,
-                        to_jsonb(:attesteringer::jsonb)
+                        to_jsonb(:attesteringer::jsonb),
+                        :brukers_meldekort_id
                     )
                     """,
                     "id" to meldekortBehandling.id.toString(),
@@ -98,6 +100,7 @@ class MeldekortBehandlingPostgresRepo(
                     "type" to meldekortBehandling.type.tilDb(),
                     "begrunnelse" to meldekortBehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortBehandling.attesteringer.toDbJson(),
+                    "brukers_meldekort_id" to meldekortBehandling.brukersMeldekort?.id?.toString(),
                 ).asUpdate,
             )
         }
@@ -228,18 +231,24 @@ class MeldekortBehandlingPostgresRepo(
 
             val saksbehandler = row.string("saksbehandler")
 
-            val brukersMeldekort = BrukersMeldekortPostgresRepo.hentForMeldeperiodeId(
-                meldeperiodeId,
-                session,
-            )
-
             val dager = row.string("meldekortdager").tilMeldekortDager(maksDagerMedTiltakspengerForPeriode)
             val beregning = row.stringOrNull("beregninger")?.tilBeregninger(id)?.let {
                 MeldekortBeregning(it)
             }
 
+            val brukersMeldekort = row.stringOrNull("brukers_meldekort_id")?.let {
+                BrukersMeldekortPostgresRepo.hentForMeldekortId(
+                    MeldekortId.fromString(it),
+                    session,
+                )
+            }
+
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> {
+                    requireNotNull(brukersMeldekort) {
+                        "Fant ikke brukers meldekort for automatisk meldekortbehandling $id"
+                    }
+
                     MeldekortBehandletAutomatisk(
                         id = id,
                         sakId = sakId,
@@ -247,11 +256,12 @@ class MeldekortBehandlingPostgresRepo(
                         fnr = fnr,
                         opprettet = opprettet,
                         navkontor = navkontor,
-                        brukersMeldekort = brukersMeldekort!!,
+                        brukersMeldekort = brukersMeldekort,
                         meldeperiode = meldeperiode,
                         beregning = beregning!!,
                         dager = dager,
                         type = type,
+                        status = status,
                     )
                 }
 
