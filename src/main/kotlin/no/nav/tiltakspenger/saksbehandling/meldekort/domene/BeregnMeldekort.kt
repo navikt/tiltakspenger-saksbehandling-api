@@ -88,7 +88,7 @@ private data class BeregnMeldekort(
             }
     }
 
-    private fun beregnEksisterendeMeldekort(meldekort: MeldekortBehandletManuelt): NonEmptyList<MeldeperiodeBeregningDag> {
+    private fun beregnEksisterendeMeldekort(meldekort: MeldekortBehandling.Behandlet): NonEmptyList<MeldeperiodeBeregningDag> {
         return meldekort.beregning.dagerFraMeldekortet.map {
             beregnDag(
                 meldekort.id,
