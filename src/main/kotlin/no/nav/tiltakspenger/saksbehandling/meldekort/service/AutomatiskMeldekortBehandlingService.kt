@@ -43,6 +43,7 @@ class AutomatiskMeldekortBehandlingService(
                     logger.info { "Opprettet automatisk behandling ${meldekortBehandling.id} for brukers meldekort $${meldekort.id} på sak ${meldekort.sakId}" }
                 }.onLeft {
                     logger.error(it) { "Feil ved automatisk behandling av meldekort fra bruker ${meldekort.id} - ${it.message}" }
+                    brukersMeldekortRepo.markerMeldekortSomIkkeAutomatiskBehandlet(meldekort.id)
                 }
             }
         }.onLeft {
@@ -73,7 +74,7 @@ class AutomatiskMeldekortBehandlingService(
                 clock = clock,
             )
         }.getOrElse {
-            logger.error(it) { "Kunne ikke opprette automatisk behandling for brukers meldekort $meldekortId" }
+            logger.error(it) { "Kan ikke opprette automatisk behandling for brukers meldekort $meldekortId" }
             throw it
         }
 
@@ -91,6 +92,7 @@ class AutomatiskMeldekortBehandlingService(
             logger.error(it) { "Automatisk behandling for brukers meldekort $meldekortId kunne ikke legges til sak $sakId" }
             throw it
         }
+
         val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()
 
         sessionFactory.withTransactionContext { tx ->
