@@ -41,7 +41,7 @@ data class LagreBrukersMeldekortKommando(
             journalpostId = journalpostId,
             oppgaveId = oppgaveId,
             behandlesAutomatisk = behandlesAutomatisk,
-            behandletTidspunkt = null,
+            behandletStatus = null,
         )
     }
 }

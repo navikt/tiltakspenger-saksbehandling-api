@@ -6,9 +6,9 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
-import java.time.LocalDateTime
 
 class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) : BrukersMeldekortRepo {
     private val data = Atomic(mutableMapOf<MeldekortId, BrukersMeldekort>())
@@ -28,7 +28,7 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
             journalpostId = brukersMeldekort.journalpostId,
             oppgaveId = brukersMeldekort.oppgaveId,
             behandlesAutomatisk = brukersMeldekort.behandlesAutomatisk,
-            behandletTidspunkt = brukersMeldekort.behandletTidspunkt,
+            behandletStatus = brukersMeldekort.behandletStatus,
         )
     }
 
@@ -65,15 +65,11 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
         TODO("Not yet implemented")
     }
 
-    override fun markerMeldekortSomBehandlet(
+    override fun oppdaterAutomatiskBehandletStatus(
         meldekortId: MeldekortId,
-        behandletTidspunkt: LocalDateTime,
+        status: MeldekortBehandletAutomatiskStatus,
         sessionContext: SessionContext?,
     ) {
-        TODO("Not yet implemented")
-    }
-
-    override fun markerMeldekortSomIkkeAutomatiskBehandlet(meldekortId: MeldekortId, sessionContext: SessionContext?) {
         TODO("Not yet implemented")
     }
 }

@@ -1,15 +1,22 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingFeilet
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
 import java.time.LocalDateTime
+
+private val logger = KotlinLogging.logger {}
 
 data class MeldekortBehandletAutomatisk(
     override val id: MeldekortId,
@@ -54,26 +61,28 @@ fun Sak.opprettAutomatiskMeldekortBehandling(
     meldekort: BrukersMeldekort,
     navkontor: Navkontor,
     clock: Clock,
-): MeldekortBehandletAutomatisk {
+): Either<AutomatiskMeldekortbehandlingFeilet, MeldekortBehandletAutomatisk> {
+    val meldekortId = meldekort.id
     val kjedeId = meldekort.kjedeId
 
     val meldeperiode = validerOgHentMeldeperiodeForBehandling(kjedeId)
 
     val behandlingerKnyttetTilKjede = this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(kjedeId)
 
-    require(meldekort.behandlesAutomatisk) {
-        "Brukers meldekort ${meldekort.id} kan ikke behandles automatisk"
+    if (!meldekort.behandlesAutomatisk) {
+        logger.error { "Brukers meldekort $meldekortId skal ikke behandles automatisk" }
+        return AutomatiskMeldekortbehandlingFeilet.SkalIkkeBehandlesAutomatisk.left()
     }
-    require(behandlingerKnyttetTilKjede.isEmpty()) {
-        "Meldeperiodekjeden $kjedeId har allerede minst en behandling. Vi støtter ikke automatisk korrigering fra bruker."
+    if (behandlingerKnyttetTilKjede.isNotEmpty()) {
+        logger.error { "Meldeperiodekjeden $kjedeId har allerede minst en behandling. Vi støtter ikke automatisk korrigering fra bruker (meldekort id $meldekortId)" }
+        return AutomatiskMeldekortbehandlingFeilet.AlleredeBehandlet.left()
     }
-    require(meldekort.meldeperiode == meldeperiode) {
-        "Meldeperioden for brukers meldekort må være like siste meldeperiode på kjeden for å kunne behandles"
+    if (meldekort.meldeperiode != meldeperiode) {
+        logger.error { "Meldeperioden for brukers meldekort må være like siste meldeperiode på kjeden for å kunne behandles (meldekort id $meldekortId)" }
+        return AutomatiskMeldekortbehandlingFeilet.UtdatertMeldeperiode.left()
     }
 
     val meldekortBehandlingId = MeldekortId.random()
-
-    val dager = meldekort.tilMeldekortDager()
 
     val beregninger = meldekort.beregn(
         meldekortBehandlingId = meldekortBehandlingId,
@@ -91,9 +100,9 @@ fun Sak.opprettAutomatiskMeldekortBehandling(
         navkontor = navkontor,
         brukersMeldekort = meldekort,
         meldeperiode = meldeperiode,
-        dager = dager,
+        dager = meldekort.tilMeldekortDager(),
         beregning = MeldekortBeregning(beregninger),
         type = MeldekortBehandlingType.FØRSTE_BEHANDLING,
         status = MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
-    )
+    ).right()
 }

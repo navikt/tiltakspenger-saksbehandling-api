@@ -40,7 +40,7 @@ class MeldekortBrukerPostgresRepoTest {
                     journalpostId = nyttBrukersMeldekort.journalpostId,
                     oppgaveId = nyttBrukersMeldekort.oppgaveId,
                     behandlesAutomatisk = false,
-                    behandletTidspunkt = null,
+                    behandletStatus = null,
                 ),
             )
         }

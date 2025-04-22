@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
@@ -527,7 +528,7 @@ interface MeldekortMother : MotherOfAllMothers {
             addAll(dagerFraPeriode.subList(12, 14).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
         },
         behandlesAutomatisk: Boolean = false,
-        behandletTidspunkt: LocalDateTime? = null,
+        behandletStatus: MeldekortBehandletAutomatiskStatus? = null,
     ): BrukersMeldekort {
         return BrukersMeldekort(
             id = id,
@@ -538,7 +539,7 @@ interface MeldekortMother : MotherOfAllMothers {
             journalpostId = JournalpostIdGenerator().neste(),
             oppgaveId = null,
             behandlesAutomatisk = behandlesAutomatisk,
-            behandletTidspunkt = behandletTidspunkt,
+            behandletStatus = behandletStatus,
         )
     }
 

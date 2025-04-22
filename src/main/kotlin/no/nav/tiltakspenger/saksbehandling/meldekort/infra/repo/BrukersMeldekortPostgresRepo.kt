@@ -10,9 +10,9 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
-import java.time.LocalDateTime
 
 class BrukersMeldekortPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -36,7 +36,7 @@ class BrukersMeldekortPostgresRepo(
                         journalpost_id,
                         oppgave_id,
                         behandles_automatisk,
-                        behandlet_tidspunkt
+                        behandlet_status
                     ) values (
                         :id,
                         :meldeperiode_id,
@@ -48,7 +48,7 @@ class BrukersMeldekortPostgresRepo(
                         :journalpost_id,
                         :oppgave_id,
                         :behandles_automatisk,
-                        :behandlet_tidspunkt
+                        :behandlet_status
                     )
                     """,
                     "id" to brukersMeldekort.id.toString(),
@@ -59,7 +59,7 @@ class BrukersMeldekortPostgresRepo(
                     "journalpost_id" to brukersMeldekort.journalpostId.toString(),
                     "oppgave_id" to brukersMeldekort.oppgaveId?.toString(),
                     "behandles_automatisk" to brukersMeldekort.behandlesAutomatisk,
-                    "behandlet_tidspunkt" to brukersMeldekort.behandletTidspunkt,
+                    "behandlet_status" to brukersMeldekort.behandletStatus?.tilDb(),
                 ).asUpdate,
             )
         }
@@ -120,43 +120,28 @@ class BrukersMeldekortPostgresRepo(
                     select *
                         from meldekort_bruker
                     where behandles_automatisk is true
-                    and behandlet_tidspunkt is null
+                    and behandlet_status is null
                     """,
                 ).map { row -> fromRow(row, session) }.asList,
             )
         }
     }
 
-    override fun markerMeldekortSomBehandlet(
+    override fun oppdaterAutomatiskBehandletStatus(
         meldekortId: MeldekortId,
-        behandletTidspunkt: LocalDateTime,
+        status: MeldekortBehandletAutomatiskStatus,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
                     """
-                update meldekort_bruker 
-                    set behandlet_tidspunkt = :behandlet_tidspunkt
-                where id = :id
-                """,
+                    update meldekort_bruker 
+                        set behandlet_status = :behandlet_status
+                    where id = :id
+                    """,
                     "id" to meldekortId.toString(),
-                    "behandlet_tidspunkt" to behandletTidspunkt,
-                ).asUpdate,
-            )
-        }
-    }
-
-    override fun markerMeldekortSomIkkeAutomatiskBehandlet(meldekortId: MeldekortId, sessionContext: SessionContext?) {
-        sessionFactory.withSession(sessionContext) { session ->
-            session.run(
-                sqlQuery(
-                    """
-                update meldekort_bruker 
-                    set behandles_automatisk = false
-                where id = :id
-                """,
-                    "id" to meldekortId.toString(),
+                    "behandlet_status" to status.tilDb(),
                 ).asUpdate,
             )
         }
@@ -243,7 +228,7 @@ class BrukersMeldekortPostgresRepo(
                 journalpostId = JournalpostId(row.string("journalpost_id")),
                 oppgaveId = row.stringOrNull("oppgave_id")?.let { OppgaveId(it) },
                 behandlesAutomatisk = row.boolean("behandles_automatisk"),
-                behandletTidspunkt = row.localDateTimeOrNull("behandlet_tidspunkt"),
+                behandletStatus = row.stringOrNull("behandlet_status")?.tilMeldekortBehandletAutomatiskStatus(),
             )
         }
     }

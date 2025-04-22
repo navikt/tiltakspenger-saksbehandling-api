@@ -28,7 +28,7 @@ data class BrukersMeldekort(
     val journalpostId: JournalpostId,
     val oppgaveId: OppgaveId?,
     val behandlesAutomatisk: Boolean,
-    val behandletTidspunkt: LocalDateTime?,
+    val behandletStatus: MeldekortBehandletAutomatiskStatus?,
 ) {
     val kjedeId: MeldeperiodeKjedeId = meldeperiode.kjedeId
     val meldeperiodeId: MeldeperiodeId = meldeperiode.id
