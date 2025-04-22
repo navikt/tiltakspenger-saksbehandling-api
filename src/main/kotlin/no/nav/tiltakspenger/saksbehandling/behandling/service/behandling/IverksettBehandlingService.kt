@@ -105,15 +105,6 @@ class IverksettBehandlingService(
                 vedtak,
             )
 
-        Either.catch {
-            behandling.oppgaveId?.let { id ->
-                logger.info { "Ferdigstiller oppgave med id $id for behandling med behandlingsId $behandlingId" }
-                oppgaveGateway.ferdigstillOppgave(id)
-            }
-        }.onLeft {
-            return KanIkkeIverksetteBehandling.KunneIkkeOppretteOppgave.left()
-        }
-
         when (behandling.behandlingstype) {
             Behandlingstype.FØRSTEGANGSBEHANDLING -> oppdatertSak.iverksettFørstegangsbehandling(
                 vedtak = vedtak,
@@ -126,6 +117,15 @@ class IverksettBehandlingService(
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk,
             )
+        }
+
+        Either.catch {
+            behandling.oppgaveId?.let { id ->
+                logger.info { "Ferdigstiller oppgave med id $id for behandling med behandlingsId $behandlingId" }
+                oppgaveGateway.ferdigstillOppgave(id)
+            }
+        }.onLeft {
+            return KanIkkeIverksetteBehandling.KunneIkkeOppretteOppgave.left()
         }
 
         return iverksattBehandling.right()
