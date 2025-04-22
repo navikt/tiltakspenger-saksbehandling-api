@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 
@@ -121,6 +121,7 @@ class BrukersMeldekortPostgresRepo(
                         from meldekort_bruker
                     where behandles_automatisk is true
                     and behandlet_status is null
+                    limit 100
                     """,
                 ).map { row -> fromRow(row, session) }.asList,
             )
@@ -129,7 +130,7 @@ class BrukersMeldekortPostgresRepo(
 
     override fun oppdaterAutomatiskBehandletStatus(
         meldekortId: MeldekortId,
-        status: MeldekortBehandletAutomatiskStatus,
+        status: BrukersMeldekortBehandletAutomatiskStatus,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->

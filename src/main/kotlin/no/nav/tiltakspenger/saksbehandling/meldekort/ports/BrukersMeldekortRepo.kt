@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 
 interface BrukersMeldekortRepo {
@@ -45,7 +45,7 @@ interface BrukersMeldekortRepo {
 
     fun oppdaterAutomatiskBehandletStatus(
         meldekortId: MeldekortId,
-        status: MeldekortBehandletAutomatiskStatus,
+        status: BrukersMeldekortBehandletAutomatiskStatus,
         sessionContext: SessionContext? = null,
     )
 }

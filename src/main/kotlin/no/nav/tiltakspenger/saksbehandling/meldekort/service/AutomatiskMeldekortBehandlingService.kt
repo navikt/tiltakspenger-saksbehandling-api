@@ -10,8 +10,8 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettAutomatiskMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
@@ -53,7 +53,7 @@ class AutomatiskMeldekortBehandlingService(
                     logger.error(it) { "Ukjent feil ved automatisk behandling av meldekort fra bruker ${meldekort.id} - ${it.message}" }
                     brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                         meldekort.id,
-                        MeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
+                        BrukersMeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
                     )
                 }
             }
@@ -117,7 +117,7 @@ class AutomatiskMeldekortBehandlingService(
             statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                 meldekortId = meldekortId,
-                status = MeldekortBehandletAutomatiskStatus.BEHANDLET,
+                status = BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET,
                 tx,
             )
         }
@@ -134,12 +134,12 @@ sealed interface AutomatiskMeldekortbehandlingFeilet {
     data object AlleredeBehandlet : AutomatiskMeldekortbehandlingFeilet
     data object UtdatertMeldeperiode : AutomatiskMeldekortbehandlingFeilet
 
-    fun tilMeldekortBehandletAutomatiskStatus(): MeldekortBehandletAutomatiskStatus = when (this) {
-        AlleredeBehandlet -> MeldekortBehandletAutomatiskStatus.TIDLIGERE_BEHANDLET
-        BehandlingFeiletPåSak -> MeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK
-        HenteNavkontorFeilet -> MeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET
-        SkalIkkeBehandlesAutomatisk -> MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK
-        UtbetalingFeiletPåSak -> MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK
-        UtdatertMeldeperiode -> MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE
+    fun tilMeldekortBehandletAutomatiskStatus(): BrukersMeldekortBehandletAutomatiskStatus = when (this) {
+        AlleredeBehandlet -> BrukersMeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
+        BehandlingFeiletPåSak -> BrukersMeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK
+        HenteNavkontorFeilet -> BrukersMeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET
+        SkalIkkeBehandlesAutomatisk -> BrukersMeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK
+        UtbetalingFeiletPåSak -> BrukersMeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK
+        UtdatertMeldeperiode -> BrukersMeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE
     }
 }
