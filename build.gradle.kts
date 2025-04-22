@@ -94,7 +94,7 @@ dependencies {
 
     // DIV
     // Arrow
-    implementation("io.arrow-kt:arrow-core:2.0.1")
+    implementation("io.arrow-kt:arrow-core:2.1.0")
 
     // Caffeine
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")
