@@ -72,6 +72,7 @@ open class MeldekortContext(
             tilgangsstyringService = tilgangsstyringService,
             personService = personService,
             clock = clock,
+            oppgaveGateway = oppgaveGateway,
         )
     }
     val oppdaterMeldekortService by lazy {
