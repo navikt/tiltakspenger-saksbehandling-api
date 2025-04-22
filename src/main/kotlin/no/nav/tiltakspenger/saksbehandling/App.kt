@@ -85,6 +85,7 @@ internal fun start(
             { applicationContext.meldekortContext.oppgaveMeldekortService.opprettOppgaveForMeldekortSomIkkeBehandlesAutomatisk() },
             { applicationContext.genererMeldeperioderService.genererMeldeperioderForSaker() },
             { applicationContext.meldekortContext.sendMeldeperiodeTilBrukerService.send() },
+            { applicationContext.meldekortContext.automatiskMeldekortBehandlingService.behandleBrukersMeldekort() },
         ).let {
             if (Configuration.isNais()) {
                 it.plus(
@@ -97,12 +98,6 @@ internal fun start(
                         { applicationContext.identhendelseJobb.behandleIdenthendelser() },
                     ),
                 )
-            } else {
-                it
-            }
-        }.let {
-            if (!Configuration.isProd()) {
-                it.plus { applicationContext.meldekortContext.automatiskMeldekortBehandlingService.behandleBrukersMeldekort() }
             } else {
                 it
             }
