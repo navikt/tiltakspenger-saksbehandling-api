@@ -12,8 +12,6 @@ on:
         description: "Docker image"
         value: ${{ jobs.build.outputs.IMAGE }}
     secrets:
-      NAIS_WORKLOAD_IDENTITY_PROVIDER:
-        required: true
       SLACK_VARSEL_WEBHOOK_URL:
         required: true
 
