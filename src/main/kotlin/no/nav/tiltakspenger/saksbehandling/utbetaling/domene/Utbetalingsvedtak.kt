@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkUtbetalingDTO
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -43,6 +44,7 @@ data class Utbetalingsvedtak(
     val beslutter: String = meldekortbehandling.beslutter!!
     val brukerNavkontor: Navkontor = meldekortbehandling.navkontor
     val meldeperiode: Meldeperiode = meldekortbehandling.meldeperiode
+    val automatiskBehandlet = meldekortbehandling is MeldekortBehandletAutomatisk
 
     fun oppdaterStatus(status: Utbetalingsstatus?): Utbetalingsvedtak {
         return this.copy(status = status)

@@ -44,11 +44,20 @@ class JournalførUtbetalingsvedtakService(
                         sammenlign(beregningFør, beregningEtter)
                     }
                     val tiltak = sak.vedtaksliste.hentTiltaksdataForPeriode(utbetalingsvedtak.periode)
+
+                    // TODO: tilpass pdfgen-template for å ikke vise saksbehandler/beslutter ved automatisk behandling
+                    val hentSaksbehandlersNavn: suspend (String) -> String =
+                        if (utbetalingsvedtak.automatiskBehandlet) {
+                            { "Automatisk behandlet" }
+                        } else {
+                            navIdentClient::hentNavnForNavIdent
+                        }
+
                     val pdfOgJson =
                         genererUtbetalingsvedtakGateway.genererUtbetalingsvedtak(
                             utbetalingsvedtak,
                             sammenligning = sammenligning,
-                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                            hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                             tiltaksdeltagelser = tiltak.mapNotNull { it }
                                 .ifEmpty { throw IllegalStateException("Forventet at et det skal finnes tilbaksdeltagelse for utbetalingsvedtaksperioden") },
                         ).getOrElse { return@forEach }

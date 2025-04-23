@@ -13,6 +13,8 @@ import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 private const val APPLICATION_NAME = "tiltakspenger-saksbehandling-api"
 const val KAFKA_CONSUMER_GROUP_ID = "$APPLICATION_NAME-consumer"
 
+const val AUTOMATISK_SAKSBEHANDLER_ID = "tp-sak"
+
 enum class Profile {
     LOCAL,
     DEV,

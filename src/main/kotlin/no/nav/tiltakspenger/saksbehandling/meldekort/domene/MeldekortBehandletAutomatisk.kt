@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingFeilet
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -33,13 +34,12 @@ data class MeldekortBehandletAutomatisk(
     override val status: MeldekortBehandlingStatus,
 ) : MeldekortBehandling.Behandlet {
     // Automatiske behandlinger iverksettes umiddelbart
-    override val iverksattTidspunkt: LocalDateTime = opprettet
+    override val iverksattTidspunkt = opprettet
+    override val sendtTilBeslutning = opprettet
 
-    // TODO: Hva skal vi sette her?
-    override val saksbehandler: String = "E313373"
-    override val beslutter: String = "E313373"
+    override val saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID
+    override val beslutter = AUTOMATISK_SAKSBEHANDLER_ID
 
-    override val sendtTilBeslutning = null
     override val begrunnelse = null
     override val ikkeRettTilTiltakspengerTidspunkt = null
     override val attesteringer = Attesteringer.empty()
