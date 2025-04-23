@@ -65,7 +65,9 @@ fun Sak.opprettAutomatiskMeldekortBehandling(
     val meldekortId = meldekort.id
     val kjedeId = meldekort.kjedeId
 
-    val meldeperiode = validerOgHentMeldeperiodeForBehandling(kjedeId)
+    validerOpprettMeldekortBehandling(kjedeId)
+
+    val sisteMeldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
 
     val behandlingerKnyttetTilKjede = this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(kjedeId)
 
@@ -77,7 +79,7 @@ fun Sak.opprettAutomatiskMeldekortBehandling(
         logger.error { "Meldeperiodekjeden $kjedeId har allerede minst en behandling. Vi støtter ikke automatisk korrigering fra bruker (meldekort id $meldekortId)" }
         return AutomatiskMeldekortbehandlingFeilet.AlleredeBehandlet.left()
     }
-    if (meldekort.meldeperiode != meldeperiode) {
+    if (meldekort.meldeperiode != sisteMeldeperiode) {
         logger.error { "Meldeperioden for brukers meldekort må være like siste meldeperiode på kjeden for å kunne behandles (meldekort id $meldekortId)" }
         return AutomatiskMeldekortbehandlingFeilet.UtdatertMeldeperiode.left()
     }
@@ -99,7 +101,7 @@ fun Sak.opprettAutomatiskMeldekortBehandling(
         opprettet = nå(clock),
         navkontor = navkontor,
         brukersMeldekort = meldekort,
-        meldeperiode = meldeperiode,
+        meldeperiode = sisteMeldeperiode,
         dager = meldekort.tilMeldekortDager(),
         beregning = MeldekortBeregning(beregninger),
         type = MeldekortBehandlingType.FØRSTE_BEHANDLING,

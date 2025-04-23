@@ -78,7 +78,6 @@ data class MeldekortBehandlinger(
 
     /** Meldekort som er under behandling eller venter på beslutning */
     val åpenMeldekortBehandling: MeldekortBehandling? by lazy { meldekortUnderBehandling ?: meldekortUnderBeslutning }
-    val finnesÅpenMeldekortBehandling: Boolean by lazy { åpenMeldekortBehandling != null }
 
     fun oppdaterMeldekort(
         kommando: OppdaterMeldekortKommando,
@@ -257,6 +256,9 @@ data class MeldekortBehandlinger(
             require(it.size == it.distinct().size) {
                 "Meldekort må ha unik id"
             }
+        }
+        require(meldekortUnderBehandling == null || meldekortUnderBeslutning == null) {
+            "Kan ikke ha meldekort både under behandling og under beslutning"
         }
     }
 

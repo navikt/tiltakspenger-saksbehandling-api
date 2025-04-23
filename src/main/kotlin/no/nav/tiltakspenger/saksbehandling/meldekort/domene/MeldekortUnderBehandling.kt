@@ -144,11 +144,13 @@ fun Sak.opprettManuellMeldekortBehandling(
     saksbehandler: Saksbehandler,
     clock: Clock,
 ): MeldekortUnderBehandling {
-    val meldeperiode = validerOgHentMeldeperiodeForBehandling(kjedeId)
+    validerOpprettMeldekortBehandling(kjedeId)
 
-    val behandlingerKnyttetTilKjede = this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(kjedeId)
+    val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
+
+    val behandlingerForKjede = this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(kjedeId)
     val type =
-        if (behandlingerKnyttetTilKjede.isEmpty()) MeldekortBehandlingType.FØRSTE_BEHANDLING else MeldekortBehandlingType.KORRIGERING
+        if (behandlingerForKjede.isEmpty()) MeldekortBehandlingType.FØRSTE_BEHANDLING else MeldekortBehandlingType.KORRIGERING
 
     val meldekortId = MeldekortId.random()
 
