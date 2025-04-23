@@ -73,6 +73,11 @@ class IverksettBehandlingService(
             }
         }
         val behandling = sak.hentBehandling(behandlingId)!!
+
+        if (behandling.beslutter != beslutter.navIdent) {
+            return KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter(eiesAvBeslutter = behandling.beslutter).left()
+        }
+
         val attestering = Attestering(
             status = Attesteringsstatus.GODKJENT,
             begrunnelse = null,

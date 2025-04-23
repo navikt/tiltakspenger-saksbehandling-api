@@ -21,6 +21,9 @@ fun Sak.sendFørstegangsbehandlingTilBeslutning(
     if (overlapperEllerTilstøterNyInnvilgelsesperiodeMedEksisterende(behandling.id, kommando.innvilgelsesperiode)) {
         return KanIkkeSendeTilBeslutter.PeriodenOverlapperEllerTilstøterMedAnnenBehandling.left()
     }
+    if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {
+        return KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(eiesAvSaksbehandler = behandling.saksbehandler).left()
+    }
     val oppdatertBehandling = behandling.tilBeslutning(kommando, clock)
     return (this.copy(behandlinger = this.behandlinger.oppdaterBehandling(oppdatertBehandling)) to oppdatertBehandling).right()
 }

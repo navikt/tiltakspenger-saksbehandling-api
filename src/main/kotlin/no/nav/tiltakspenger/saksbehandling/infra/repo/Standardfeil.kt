@@ -39,6 +39,11 @@ object Standardfeil {
         "ikke_implementert",
     )
 
+    fun behandlingenEiesAvAnnenSaksbehandler(eiesAvSaksbehandler: String?) = ErrorJson(
+        "Du kan ikke utføre handlinger på en behandling som ikke er tildelt deg. Behandlingen er tildelt $eiesAvSaksbehandler",
+        "behandling_eies_av_annen_saksbehandler",
+    )
+
     fun serverfeil(): ErrorJson = ErrorJson(
         "Noe gikk galt på serversiden",
         "server_feil",

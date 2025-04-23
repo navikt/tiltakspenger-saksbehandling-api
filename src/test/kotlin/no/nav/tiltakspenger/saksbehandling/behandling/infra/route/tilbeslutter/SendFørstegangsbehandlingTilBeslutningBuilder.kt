@@ -4,6 +4,7 @@ import arrow.core.Tuple4
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -112,7 +113,7 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
         }
     }
 
-    suspend fun ApplicationTestBuilder.sendFørstegangsbehandlingTilBeslutningReturnerResponskode(
+    suspend fun ApplicationTestBuilder.sendFørstegangsbehandlingTilBeslutningReturnerRespons(
         tac: TestApplicationContext,
         sakId: SakId,
         behandlingId: BehandlingId,
@@ -121,7 +122,7 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
         begrunnelseVilkårsvurdering: String = "begrunnelse",
         innvilgelsesperiode: Periode = Periode(1.januar(2023), 31.mars(2023)),
         eksternDeltagelseId: String,
-    ): HttpStatusCode {
+    ): HttpResponse {
         defaultRequest(
             HttpMethod.Post,
             url {
@@ -154,7 +155,7 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
                 """.trimIndent(),
             )
         }.apply {
-            return this.status
+            return this
         }
     }
 }
