@@ -28,7 +28,7 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
             journalpostId = brukersMeldekort.journalpostId,
             oppgaveId = brukersMeldekort.oppgaveId,
             behandlesAutomatisk = brukersMeldekort.behandlesAutomatisk,
-            behandletStatus = brukersMeldekort.behandletStatus,
+            behandletAutomatiskStatus = brukersMeldekort.behandletAutomatiskStatus,
         )
     }
 
@@ -68,6 +68,7 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
     override fun oppdaterAutomatiskBehandletStatus(
         meldekortId: MeldekortId,
         status: BrukersMeldekortBehandletAutomatiskStatus,
+        behandlesAutomatisk: Boolean,
         sessionContext: SessionContext?,
     ) {
         TODO("Not yet implemented")

@@ -40,7 +40,7 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock)
      *  eller dette er første meldeperiode
      *  */
     val kanBehandles =
-        meldeperiode.erKlarTilUtfylling(clock) && (forrigeKjede == null || forrigeBehandlingStatus == MeldekortBehandlingStatus.GODKJENT)
+        meldeperiode.erKlarTilUtfylling(clock) && (forrigeKjede == null || forrigeBehandlingStatus == MeldekortBehandlingStatus.GODKJENT || forrigeBehandlingStatus == MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET)
 
     return when {
         meldeperiode.helePeriodenErSperret() -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER

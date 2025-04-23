@@ -528,7 +528,7 @@ interface MeldekortMother : MotherOfAllMothers {
             addAll(dagerFraPeriode.subList(12, 14).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
         },
         behandlesAutomatisk: Boolean = false,
-        behandletStatus: BrukersMeldekortBehandletAutomatiskStatus? = null,
+        behandletAutomatiskStatus: BrukersMeldekortBehandletAutomatiskStatus? = null,
     ): BrukersMeldekort {
         return BrukersMeldekort(
             id = id,
@@ -539,7 +539,7 @@ interface MeldekortMother : MotherOfAllMothers {
             journalpostId = JournalpostIdGenerator().neste(),
             oppgaveId = null,
             behandlesAutomatisk = behandlesAutomatisk,
-            behandletStatus = behandletStatus,
+            behandletAutomatiskStatus = behandletAutomatiskStatus,
         )
     }
 

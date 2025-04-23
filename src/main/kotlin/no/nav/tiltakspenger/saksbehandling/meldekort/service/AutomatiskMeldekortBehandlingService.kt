@@ -45,6 +45,7 @@ class AutomatiskMeldekortBehandlingService(
                         brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                             meldekort.id,
                             it.tilMeldekortBehandletAutomatiskStatus(),
+                            false,
                         )
                     }.onRight {
                         logger.info { "Opprettet automatisk behandling ${it.id} for brukers meldekort $${meldekort.id} på sak ${meldekort.sakId}" }
@@ -54,6 +55,7 @@ class AutomatiskMeldekortBehandlingService(
                     brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                         meldekort.id,
                         BrukersMeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
+                        false,
                     )
                 }
             }
@@ -118,6 +120,7 @@ class AutomatiskMeldekortBehandlingService(
             brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                 meldekortId = meldekortId,
                 status = BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET,
+                behandlesAutomatisk = true,
                 tx,
             )
         }

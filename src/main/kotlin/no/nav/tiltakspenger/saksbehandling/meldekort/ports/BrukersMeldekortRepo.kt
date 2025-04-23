@@ -46,6 +46,7 @@ interface BrukersMeldekortRepo {
     fun oppdaterAutomatiskBehandletStatus(
         meldekortId: MeldekortId,
         status: BrukersMeldekortBehandletAutomatiskStatus,
+        behandlesAutomatisk: Boolean,
         sessionContext: SessionContext? = null,
     )
 }

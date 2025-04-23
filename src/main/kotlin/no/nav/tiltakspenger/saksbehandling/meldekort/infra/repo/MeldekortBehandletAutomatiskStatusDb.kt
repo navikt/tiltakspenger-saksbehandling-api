@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
-import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 
 private enum class MeldekortBehandletAutomatiskStatusDb {
@@ -26,15 +25,13 @@ fun BrukersMeldekortBehandletAutomatiskStatus.tilDb(): String = when (this) {
 }.toString()
 
 fun String.tilMeldekortBehandletAutomatiskStatus(): BrukersMeldekortBehandletAutomatiskStatus =
-    deserialize<MeldekortBehandletAutomatiskStatusDb>(this).let {
-        when (it) {
-            MeldekortBehandletAutomatiskStatusDb.BEHANDLET -> BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET
-            MeldekortBehandletAutomatiskStatusDb.UKJENT_FEIL -> BrukersMeldekortBehandletAutomatiskStatus.UKJENT_FEIL
-            MeldekortBehandletAutomatiskStatusDb.HENTE_NAVKONTOR_FEILET -> BrukersMeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET
-            MeldekortBehandletAutomatiskStatusDb.BEHANDLING_FEILET_PÅ_SAK -> BrukersMeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK
-            MeldekortBehandletAutomatiskStatusDb.UTBETALING_FEILET_PÅ_SAK -> BrukersMeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK
-            MeldekortBehandletAutomatiskStatusDb.SKAL_IKKE_BEHANDLES_AUTOMATISK -> BrukersMeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK
-            MeldekortBehandletAutomatiskStatusDb.ALLEREDE_BEHANDLET -> BrukersMeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
-            MeldekortBehandletAutomatiskStatusDb.UTDATERT_MELDEPERIODE -> BrukersMeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE
-        }
+    when (MeldekortBehandletAutomatiskStatusDb.valueOf(this)) {
+        MeldekortBehandletAutomatiskStatusDb.BEHANDLET -> BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET
+        MeldekortBehandletAutomatiskStatusDb.UKJENT_FEIL -> BrukersMeldekortBehandletAutomatiskStatus.UKJENT_FEIL
+        MeldekortBehandletAutomatiskStatusDb.HENTE_NAVKONTOR_FEILET -> BrukersMeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET
+        MeldekortBehandletAutomatiskStatusDb.BEHANDLING_FEILET_PÅ_SAK -> BrukersMeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK
+        MeldekortBehandletAutomatiskStatusDb.UTBETALING_FEILET_PÅ_SAK -> BrukersMeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK
+        MeldekortBehandletAutomatiskStatusDb.SKAL_IKKE_BEHANDLES_AUTOMATISK -> BrukersMeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK
+        MeldekortBehandletAutomatiskStatusDb.ALLEREDE_BEHANDLET -> BrukersMeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
+        MeldekortBehandletAutomatiskStatusDb.UTDATERT_MELDEPERIODE -> BrukersMeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE
     }

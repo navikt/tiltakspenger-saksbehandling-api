@@ -36,7 +36,7 @@ class BrukersMeldekortPostgresRepo(
                         journalpost_id,
                         oppgave_id,
                         behandles_automatisk,
-                        behandlet_status
+                        behandlet_automatisk_status
                     ) values (
                         :id,
                         :meldeperiode_id,
@@ -48,7 +48,7 @@ class BrukersMeldekortPostgresRepo(
                         :journalpost_id,
                         :oppgave_id,
                         :behandles_automatisk,
-                        :behandlet_status
+                        :behandlet_automatisk_status
                     )
                     """,
                     "id" to brukersMeldekort.id.toString(),
@@ -59,7 +59,7 @@ class BrukersMeldekortPostgresRepo(
                     "journalpost_id" to brukersMeldekort.journalpostId.toString(),
                     "oppgave_id" to brukersMeldekort.oppgaveId?.toString(),
                     "behandles_automatisk" to brukersMeldekort.behandlesAutomatisk,
-                    "behandlet_status" to brukersMeldekort.behandletStatus?.tilDb(),
+                    "behandlet_automatisk_status" to brukersMeldekort.behandletAutomatiskStatus?.tilDb(),
                 ).asUpdate,
             )
         }
@@ -120,7 +120,7 @@ class BrukersMeldekortPostgresRepo(
                     select *
                         from meldekort_bruker
                     where behandles_automatisk is true
-                    and behandlet_status is null
+                    and behandlet_automatisk_status is null
                     limit 100
                     """,
                 ).map { row -> fromRow(row, session) }.asList,
@@ -131,18 +131,21 @@ class BrukersMeldekortPostgresRepo(
     override fun oppdaterAutomatiskBehandletStatus(
         meldekortId: MeldekortId,
         status: BrukersMeldekortBehandletAutomatiskStatus,
+        behandlesAutomatisk: Boolean,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
                     """
-                    update meldekort_bruker 
-                        set behandlet_status = :behandlet_status
+                    update meldekort_bruker set
+                        behandlet_automatisk_status = :behandlet_automatisk_status,
+                        behandles_automatisk = :behandles_automatisk
                     where id = :id
                     """,
                     "id" to meldekortId.toString(),
-                    "behandlet_status" to status.tilDb(),
+                    "behandlet_automatisk_status" to status.tilDb(),
+                    "behandles_automatisk" to behandlesAutomatisk,
                 ).asUpdate,
             )
         }
@@ -229,7 +232,8 @@ class BrukersMeldekortPostgresRepo(
                 journalpostId = JournalpostId(row.string("journalpost_id")),
                 oppgaveId = row.stringOrNull("oppgave_id")?.let { OppgaveId(it) },
                 behandlesAutomatisk = row.boolean("behandles_automatisk"),
-                behandletStatus = row.stringOrNull("behandlet_status")?.tilMeldekortBehandletAutomatiskStatus(),
+                behandletAutomatiskStatus = row.stringOrNull("behandlet_automatisk_status")
+                    ?.tilMeldekortBehandletAutomatiskStatus(),
             )
         }
     }
