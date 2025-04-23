@@ -108,4 +108,5 @@ internal fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJ
         "Innvilgelsesperioden overlapper/tilstøter med eksisterende perioder på saken",
         "innvilgelsesperiode_overlapper_eller_tilstøter_med_eksisternede_perioder",
     )
+    is KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler -> HttpStatusCode.BadRequest to Standardfeil.behandlingenEiesAvAnnenSaksbehandler(this.eiesAvSaksbehandler)
 }

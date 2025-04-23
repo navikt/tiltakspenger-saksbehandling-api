@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 import arrow.core.Tuple4
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -78,6 +79,26 @@ interface IverksettBehandlingBuilder {
             val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             val behandling = sak.behandlinger.hentBehandling(behandlingId)!!
             return Triple(sak, behandling, bodyAsText)
+        }
+    }
+
+    suspend fun ApplicationTestBuilder.iverksettForBehandlingIdReturnerRespons(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        behandlingId: BehandlingId,
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
+    ): HttpResponse {
+        defaultRequest(
+            HttpMethod.Post,
+            url {
+                protocol = URLProtocol.HTTPS
+                path("/sak/$sakId/behandling/$behandlingId/iverksett")
+            },
+            jwt = tac.jwtGenerator.createJwtForSaksbehandler(
+                saksbehandler = beslutter,
+            ),
+        ).apply {
+            return this
         }
     }
 }
