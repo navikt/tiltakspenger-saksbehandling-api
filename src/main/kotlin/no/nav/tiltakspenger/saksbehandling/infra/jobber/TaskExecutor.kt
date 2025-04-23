@@ -40,7 +40,7 @@ internal class TaskExecutor(
                     sikkerLogg = sikkerlogg,
                     // Ref callIdMdc(CALL_ID_MDC_KEY) i KtorSetup.kt
                     mdcCallIdKey = CALL_ID_MDC_KEY,
-                    runJobCheck = listOf(runCheckFactory.leaderPod(), runCheckFactory.isReady()),
+                    runJobCheck = listOf(runCheckFactory.isReady(), runCheckFactory.leaderPod()),
                     // Denne kjører så ofte at vi ønsker ikke bli spammet av logging.
                     enableDebuggingLogging = false,
                     job = { correlationId ->

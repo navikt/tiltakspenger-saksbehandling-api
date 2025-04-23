@@ -73,7 +73,7 @@ internal fun start(
         )
     }
 
-    TaskExecutor.startJob(
+    val jobber: TaskExecutor = TaskExecutor.startJob(
         initialDelay = if (isNais) 1.minutes else 1.seconds,
         runCheckFactory = runCheckFactory,
         tasks = listOf<suspend () -> Any>(
@@ -116,6 +116,7 @@ internal fun start(
     Runtime.getRuntime().addShutdownHook(
         Thread {
             server.application.attributes.put(isReadyKey, false)
+            jobber.stop()
             server.stop(gracePeriodMillis = 5_000, timeoutMillis = 30_000)
         },
     )
