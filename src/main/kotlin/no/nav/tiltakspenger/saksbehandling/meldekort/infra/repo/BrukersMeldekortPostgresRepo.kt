@@ -117,10 +117,13 @@ class BrukersMeldekortPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                    select *
-                        from meldekort_bruker
+                    select distinct on (mk.sak_id)
+                        mk.*
+                    from meldekort_bruker mk
+                    join meldeperiode mp on mp.id = mk.meldeperiode_id
                     where behandles_automatisk is true
                     and behandlet_automatisk_status is null
+                    order by mk.sak_id, mp.fra_og_med
                     limit 100
                     """,
                 ).map { row -> fromRow(row, session) }.asList,
