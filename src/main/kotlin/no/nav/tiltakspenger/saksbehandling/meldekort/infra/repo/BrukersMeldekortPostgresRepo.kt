@@ -34,7 +34,8 @@ class BrukersMeldekortPostgresRepo(
                         mottatt,
                         dager,
                         journalpost_id,
-                        oppgave_id
+                        oppgave_id,
+                        behandles_automatisk
                     ) values (
                         :id,
                         :meldeperiode_id,
@@ -44,7 +45,8 @@ class BrukersMeldekortPostgresRepo(
                         :mottatt,
                         to_jsonb(:dager::jsonb),
                         :journalpost_id,
-                        :oppgave_id
+                        :oppgave_id,
+                        false
                     )
                     """,
                     "id" to brukersMeldekort.id.toString(),
