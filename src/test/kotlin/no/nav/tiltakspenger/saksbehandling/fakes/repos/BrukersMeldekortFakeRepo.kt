@@ -62,7 +62,8 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
     }
 
     override fun hentMeldekortSomSkalBehandlesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
-        TODO("Not yet implemented")
+        return data.get().values.filter { it.behandlesAutomatisk && it.behandletAutomatiskStatus == null }
+            .sortedBy { it.periode.fraOgMed }.distinctBy { it.sakId }
     }
 
     override fun oppdaterAutomatiskBehandletStatus(
@@ -71,6 +72,9 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
         behandlesAutomatisk: Boolean,
         sessionContext: SessionContext?,
     ) {
-        TODO("Not yet implemented")
+        data.get()[meldekortId] = data.get()[meldekortId]!!.copy(
+            behandlesAutomatisk = behandlesAutomatisk,
+            behandletAutomatiskStatus = status,
+        )
     }
 }

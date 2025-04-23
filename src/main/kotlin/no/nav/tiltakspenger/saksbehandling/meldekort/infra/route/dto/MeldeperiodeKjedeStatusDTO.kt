@@ -30,9 +30,9 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock)
 
     val forrigeKjede = this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
 
-    val forrigeBehandlingStatus by lazy {
+    val forrigeBehandling by lazy {
         forrigeKjede?.let {
-            this.meldekortBehandlinger.behandledeMeldekortPerKjede[it.kjedeId]?.first()?.status
+            this.meldekortBehandlinger.behandledeMeldekortPerKjede[it.kjedeId]?.first()
         }
     }
 
@@ -40,7 +40,7 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock)
      *  eller dette er første meldeperiode
      *  */
     val kanBehandles =
-        meldeperiode.erKlarTilUtfylling(clock) && (forrigeKjede == null || forrigeBehandlingStatus == MeldekortBehandlingStatus.GODKJENT || forrigeBehandlingStatus == MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET)
+        meldeperiode.erKlarTilUtfylling(clock) && (forrigeKjede == null || forrigeBehandling?.erAvsluttet == true)
 
     return when {
         meldeperiode.helePeriodenErSperret() -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
