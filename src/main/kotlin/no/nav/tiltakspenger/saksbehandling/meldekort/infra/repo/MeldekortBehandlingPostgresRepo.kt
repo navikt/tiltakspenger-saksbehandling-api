@@ -3,10 +3,12 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 import arrow.core.toNonEmptyListOrNull
 import kotliquery.Row
 import kotliquery.Session
+import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -160,6 +162,26 @@ class MeldekortBehandlingPostgresRepo(
         }
     }
 
+    override fun overtaSaksbehandler(
+        meldekortId: MeldekortId,
+        nySaksbehandler: Saksbehandler,
+        nåværendeSaksbehandler: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update meldekortbehandling set saksbehandler = :nySaksbehandler where id = :id and saksbehandler = :lagretSaksbehandler""",
+                    mapOf(
+                        "id" to meldekortId.toString(),
+                        "nySaksbehandler" to nySaksbehandler.navIdent,
+                        "lagretSaksbehandler" to nåværendeSaksbehandler,
+                    ),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
     companion object {
         internal fun hentForMeldekortId(
             meldekortId: MeldekortId,
@@ -290,7 +312,7 @@ class MeldekortBehandlingPostgresRepo(
                 }
 
                 // TODO jah: Her blander vi sammen behandlingsstatus og om man har rett/ikke-rett. Det er mulig at man har startet en meldekortbehandling også endres statusen til IKKE_RETT_TIL_TILTAKSPENGER. Da vil behandlingen sånn som koden er nå implisitt avsluttes. Det kan hende vi bør endre dette når vi skiller grunnlag, innsending og behandling.
-                MeldekortBehandlingStatus.IKKE_BEHANDLET, MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> {
+                MeldekortBehandlingStatus.UNDER_BEHANDLING, MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> {
                     MeldekortUnderBehandling(
                         id = id,
                         sakId = sakId,

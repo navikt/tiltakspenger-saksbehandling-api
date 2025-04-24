@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppgaveMeldekortSer
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldeperiodeTilBrukerService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.OvertaMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import java.time.Clock
@@ -134,6 +135,13 @@ open class MeldekortContext(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             tilgangsstyringService = tilgangsstyringService,
             clock = clock,
+        )
+    }
+
+    val overtaMeldekortBehandlingService by lazy {
+        OvertaMeldekortBehandlingService(
+            tilgangsstyringService = tilgangsstyringService,
+            meldekortBehandlingRepo = meldekortBehandlingRepo,
         )
     }
 }

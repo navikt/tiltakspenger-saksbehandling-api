@@ -17,7 +17,7 @@ private enum class MeldekortBehandlingStatusDb {
 
 fun String.toMeldekortBehandlingStatus(): MeldekortBehandlingStatus =
     when (MeldekortBehandlingStatusDb.valueOf(this)) {
-        MeldekortBehandlingStatusDb.KLAR_TIL_UTFYLLING -> MeldekortBehandlingStatus.IKKE_BEHANDLET
+        MeldekortBehandlingStatusDb.KLAR_TIL_UTFYLLING -> MeldekortBehandlingStatus.UNDER_BEHANDLING
         MeldekortBehandlingStatusDb.KLAR_TIL_BESLUTNING -> MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
         MeldekortBehandlingStatusDb.GODKJENT -> MeldekortBehandlingStatus.GODKJENT
         MeldekortBehandlingStatusDb.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
@@ -26,7 +26,7 @@ fun String.toMeldekortBehandlingStatus(): MeldekortBehandlingStatus =
 
 fun MeldekortBehandlingStatus.toDb(): String =
     when (this) {
-        MeldekortBehandlingStatus.IKKE_BEHANDLET -> MeldekortBehandlingStatusDb.KLAR_TIL_UTFYLLING
+        MeldekortBehandlingStatus.UNDER_BEHANDLING -> MeldekortBehandlingStatusDb.KLAR_TIL_UTFYLLING
         MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldekortBehandlingStatusDb.KLAR_TIL_BESLUTNING
         MeldekortBehandlingStatus.GODKJENT -> MeldekortBehandlingStatusDb.GODKJENT
         MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortBehandlingStatusDb.IKKE_RETT_TIL_TILTAKSPENGER

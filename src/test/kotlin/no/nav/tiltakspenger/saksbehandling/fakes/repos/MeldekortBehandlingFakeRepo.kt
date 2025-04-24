@@ -4,10 +4,12 @@ import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 
 class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
@@ -41,6 +43,26 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
 
     override fun hent(meldekortId: MeldekortId, sessionContext: SessionContext?): MeldekortBehandling? {
         return data.get()[meldekortId]
+    }
+
+    override fun overtaSaksbehandler(
+        meldekortId: MeldekortId,
+        nySaksbehandler: Saksbehandler,
+        nåværendeSaksbehandler: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val meldekortBehandling = data.get()[meldekortId]
+        require(meldekortBehandling != null && meldekortBehandling.saksbehandler == nåværendeSaksbehandler) {
+            "Meldekortbehandling med id $meldekortId finnes ikke eller har ikke saksbehandler $nåværendeSaksbehandler"
+        }
+        if (meldekortBehandling is MeldekortUnderBehandling) {
+            data.get()[meldekortId] = meldekortBehandling.copy(
+                saksbehandler = nySaksbehandler.navIdent,
+            )
+            return true
+        } else {
+            throw IllegalStateException("Kan ikke endre saksbehandler for meldekort som ikke er under behandling")
+        }
     }
 
     fun hentFnrForMeldekortId(
