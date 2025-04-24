@@ -14,6 +14,7 @@ data class MeldeperiodeKjedeDTO(
     val id: String,
     val periode: PeriodeDTO,
     val status: MeldeperiodeKjedeStatusDTO,
+    val automatiskBehandlingStatus: BrukersMeldekortBehandletAutomatiskStatusDTO?,
     val periodeMedÅpenBehandling: PeriodeDTO?,
     val tiltaksnavn: List<String>,
     val meldeperioder: List<MeldeperiodeDTO>,
@@ -37,10 +38,14 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
         }
     }
 
+    val brukersMeldekort = this.brukersMeldekort
+        .find { it.kjedeId == kjedeId }
+
     return MeldeperiodeKjedeDTO(
         id = meldeperiodeKjede.kjedeId.toString(),
         periode = meldeperiodeKjede.periode.toDTO(),
         status = toMeldeperiodeKjedeStatusDTO(kjedeId, clock),
+        automatiskBehandlingStatus = brukersMeldekort?.tilBehandletAutomatiskStatusDTO(),
         periodeMedÅpenBehandling = this.meldekortBehandlinger.åpenMeldekortBehandling?.periode?.toDTO(),
         tiltaksnavn = this.vedtaksliste
             .valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode)
@@ -54,9 +59,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
                     ?.toMeldekortBehandlingDTO()
                     ?: it.toMeldekortBehandlingDTO(UtbetalingsstatusDTO.IKKE_GODKJENT)
             },
-        brukersMeldekort = this.brukersMeldekort
-            .find { it.kjedeId == kjedeId }
-            ?.toBrukersMeldekortDTO(),
+        brukersMeldekort = brukersMeldekort ?.toBrukersMeldekortDTO(),
         korrigeringFraTidligerePeriode = korrigering,
     )
 }
