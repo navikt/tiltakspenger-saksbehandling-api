@@ -283,7 +283,7 @@ class MeldekortBehandlingPostgresRepo(
                     )
                 }
                 // TODO jah: Her blander vi sammen behandlingsstatus og om man har rett/ikke-rett. Det er mulig at man har startet en meldekortbehandling også endres statusen til IKKE_RETT_TIL_TILTAKSPENGER. Da vil behandlingen sånn som koden er nå implisitt avsluttes. Det kan hende vi bør endre dette når vi skiller grunnlag, innsending og behandling.
-                MeldekortBehandlingStatus.IKKE_BEHANDLET, MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> {
+                MeldekortBehandlingStatus.UNDER_BEHANDLING, MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> {
                     val beregning = row.stringOrNull("beregninger")?.tilBeregninger(id)?.let {
                         MeldekortBeregning(it)
                     }

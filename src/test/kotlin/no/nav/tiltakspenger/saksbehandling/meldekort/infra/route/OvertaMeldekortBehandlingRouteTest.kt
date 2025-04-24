@@ -52,7 +52,7 @@ class OvertaMeldekortBehandlingRouteTest {
                     JSONObject(it).getString("saksbehandler") shouldBe "123"
                     val oppdatertMeldekortbehandling = tac.meldekortContext.meldekortBehandlingRepo.hent(meldekortBehandling.id)
                     oppdatertMeldekortbehandling shouldNotBe null
-                    oppdatertMeldekortbehandling?.status shouldBe MeldekortBehandlingStatus.IKKE_BEHANDLET
+                    oppdatertMeldekortbehandling?.status shouldBe MeldekortBehandlingStatus.UNDER_BEHANDLING
                     oppdatertMeldekortbehandling?.saksbehandler shouldBe "123"
                 }
             }
