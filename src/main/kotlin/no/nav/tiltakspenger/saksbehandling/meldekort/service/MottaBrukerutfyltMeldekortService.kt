@@ -41,7 +41,7 @@ class MottaBrukerutfyltMeldekortService(
                 return KanIkkeLagreBrukersMeldekort.UkjentFeil.left()
             }
 
-            if (nyttMeldekort == eksisterendeMeldekort) {
+            if (kommando.matcherBrukersMeldekort(eksisterendeMeldekort)) {
                 logger.info { "Meldekortet med id $meldekortId var allerede lagret med samme data" }
                 return KanIkkeLagreBrukersMeldekort.AlleredeLagretUtenDiff.left()
             }
