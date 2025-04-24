@@ -20,7 +20,6 @@ internal fun NonEmptyList<NonEmptyList<DagMedForventning>>.assertForventning(vur
     val actual = ObjectMother.beregnMeldekortperioder(
         vurderingsperiode = vurderingsperiode,
         meldeperioder = this.map { outer -> outer.map { OppdaterMeldekortKommando.Dager.Dag(it.dag, it.status) } },
-
     )
     actual.utfylteDager.forEachIndexed { index, it ->
         (it.dato to it.reduksjon) shouldBe (this.flatten()[index].dag to flatten()[index].forventning)

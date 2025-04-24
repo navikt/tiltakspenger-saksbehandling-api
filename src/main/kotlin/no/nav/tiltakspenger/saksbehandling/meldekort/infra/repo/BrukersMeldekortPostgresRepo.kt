@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 
@@ -18,7 +18,7 @@ class BrukersMeldekortPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : BrukersMeldekortRepo {
     override fun lagre(
-        brukersMeldekort: LagreBrukersMeldekortKommando,
+        brukersMeldekort: BrukersMeldekort,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->
@@ -35,7 +35,8 @@ class BrukersMeldekortPostgresRepo(
                         dager,
                         journalpost_id,
                         oppgave_id,
-                        behandles_automatisk
+                        behandles_automatisk,
+                        behandlet_automatisk_status
                     ) values (
                         :id,
                         :meldeperiode_id,
@@ -46,26 +47,27 @@ class BrukersMeldekortPostgresRepo(
                         to_jsonb(:dager::jsonb),
                         :journalpost_id,
                         :oppgave_id,
-                        false
+                        :behandles_automatisk,
+                        :behandlet_automatisk_status
                     )
                     """,
                     "id" to brukersMeldekort.id.toString(),
                     "meldeperiode_id" to brukersMeldekort.meldeperiodeId.toString(),
                     "sak_id" to brukersMeldekort.sakId.toString(),
                     "mottatt" to brukersMeldekort.mottatt,
-                    "dager" to brukersMeldekort.toDbJson(),
+                    "dager" to brukersMeldekort.dager.toDbJson(),
                     "journalpost_id" to brukersMeldekort.journalpostId.toString(),
                     "oppgave_id" to brukersMeldekort.oppgaveId?.toString(),
+                    "behandles_automatisk" to brukersMeldekort.behandlesAutomatisk,
+                    "behandlet_automatisk_status" to brukersMeldekort.behandletAutomatiskStatus?.tilDb(),
                 ).asUpdate,
             )
         }
     }
 
-    /**
-     * Oppdaterer et meldekort som allerede er lagret i databasen.
-     */
-    override fun oppdater(
-        brukersMeldekort: BrukersMeldekort,
+    override fun oppdaterOppgaveId(
+        meldekortId: MeldekortId,
+        oppgaveId: OppgaveId,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->
@@ -73,11 +75,11 @@ class BrukersMeldekortPostgresRepo(
                 sqlQuery(
                     """
                 update meldekort_bruker 
-                set oppgave_id = :oppgave_id
+                    set oppgave_id = :oppgave_id
                 where id = :id
                 """,
-                    "id" to brukersMeldekort.id.toString(),
-                    "oppgave_id" to brukersMeldekort.oppgaveId?.toString(),
+                    "id" to meldekortId.toString(),
+                    "oppgave_id" to oppgaveId.toString(),
                 ).asUpdate,
             )
         }
@@ -107,7 +109,50 @@ class BrukersMeldekortPostgresRepo(
         }
     }
 
-    override fun hentMeldekortSomIkkeSkalGodkjennesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
+    override fun hentMeldekortSomSkalBehandlesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
+        return sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select distinct on (mk.sak_id)
+                        mk.*
+                    from meldekort_bruker mk
+                    join meldeperiode mp on mp.id = mk.meldeperiode_id
+                    where behandles_automatisk is true
+                    and behandlet_automatisk_status is distinct from :erBehandletStatus
+                    order by mk.sak_id, mp.fra_og_med
+                    limit 100
+                    """,
+                    "erBehandletStatus" to BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET.tilDb(),
+                ).map { row -> fromRow(row, session) }.asList,
+            )
+        }
+    }
+
+    override fun oppdaterAutomatiskBehandletStatus(
+        meldekortId: MeldekortId,
+        status: BrukersMeldekortBehandletAutomatiskStatus,
+        behandlesAutomatisk: Boolean,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    update meldekort_bruker set
+                        behandlet_automatisk_status = :behandlet_automatisk_status,
+                        behandles_automatisk = :behandles_automatisk
+                    where id = :id
+                    """,
+                    "id" to meldekortId.toString(),
+                    "behandlet_automatisk_status" to status.tilDb(),
+                    "behandles_automatisk" to behandlesAutomatisk,
+                ).asUpdate,
+            )
+        }
+    }
+
+    override fun hentMeldekortSomDetSkalOpprettesOppgaveFor(sessionContext: SessionContext?): List<BrukersMeldekort> {
         return sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
@@ -116,6 +161,7 @@ class BrukersMeldekortPostgresRepo(
                         from meldekort_bruker 
                     where journalpost_id is not null
                     and oppgave_id is null
+                    and behandles_automatisk is false
                     """,
                 ).map { row -> fromRow(row, session) }.asList,
             )
@@ -186,6 +232,9 @@ class BrukersMeldekortPostgresRepo(
                 dager = row.string("dager").toMeldekortDager(),
                 journalpostId = JournalpostId(row.string("journalpost_id")),
                 oppgaveId = row.stringOrNull("oppgave_id")?.let { OppgaveId(it) },
+                behandlesAutomatisk = row.boolean("behandles_automatisk"),
+                behandletAutomatiskStatus = row.stringOrNull("behandlet_automatisk_status")
+                    ?.tilMeldekortBehandletAutomatiskStatus(),
             )
         }
     }

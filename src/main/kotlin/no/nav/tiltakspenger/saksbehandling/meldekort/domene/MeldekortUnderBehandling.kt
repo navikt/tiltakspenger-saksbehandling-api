@@ -7,11 +7,11 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
@@ -73,12 +73,12 @@ data class MeldekortUnderBehandling(
         kommando: OppdaterMeldekortKommando,
         beregning: MeldekortBeregning,
         clock: Clock,
-    ): Either<KanIkkeOppdatereMeldekort, MeldekortBehandlet> {
+    ): Either<KanIkkeOppdatereMeldekort, MeldekortBehandletManuelt> {
         val dager = validerOppdateringOgHentDager(kommando).getOrElse {
             return it.left()
         }
 
-        return MeldekortBehandlet(
+        return MeldekortBehandletManuelt(
             id = this.id,
             sakId = this.sakId,
             saksnummer = this.saksnummer,
@@ -130,14 +130,6 @@ data class MeldekortUnderBehandling(
         return !LocalDate.now().isBefore(periode.fraOgMed)
     }
 
-    override fun underkjenn(
-        begrunnelse: NonBlankString,
-        beslutter: Saksbehandler,
-        clock: Clock,
-    ): Either<KunneIkkeUnderkjenneMeldekortBehandling, MeldekortBehandling> {
-        return KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErIkkeKlarTilBeslutning.left()
-    }
-
     override fun overta(
         saksbehandler: Saksbehandler,
     ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
@@ -147,9 +139,11 @@ data class MeldekortUnderBehandling(
                     saksbehandler = saksbehandler.navIdent,
                 ).right()
             }
+
             KLAR_TIL_BESLUTNING,
             GODKJENT,
             IKKE_RETT_TIL_TILTAKSPENGER,
+            AUTOMATISK_BEHANDLET,
             -> throw IllegalStateException("Kan ikke overta meldekortbehandling med status ${this.status}")
         }
     }
@@ -165,45 +159,19 @@ data class MeldekortUnderBehandling(
  * TODO post-mvp jah: Ved revurderinger av rammevedtaket, så må vi basere oss på både forrige meldekort og revurderingsvedtaket. Dette løser vi å flytte mer logikk til Sak.kt.
  * TODO post-mvp jah: Når vi implementerer delvis innvilgelse vil hele meldekortperioder kunne bli SPERRET.
  */
-fun Sak.opprettMeldekortBehandling(
+fun Sak.opprettManuellMeldekortBehandling(
     kjedeId: MeldeperiodeKjedeId,
     navkontor: Navkontor,
     saksbehandler: Saksbehandler,
     clock: Clock,
 ): MeldekortUnderBehandling {
-    if (this.meldekortBehandlinger.finnesÅpenMeldekortBehandling) {
-        throw IllegalStateException("Kan ikke opprette ny meldekortbehandling når det finnes en åpen behandling på saken (sak $id - kjedeId $kjedeId)")
-    }
+    validerOpprettMeldekortBehandling(kjedeId)
 
-    val meldeperiodekjede: MeldeperiodeKjede = this.meldeperiodeKjeder.hentMeldeperiodekjedeForKjedeId(kjedeId)
-        ?: throw IllegalStateException("Kan ikke opprette meldekortbehandling for kjedeId $kjedeId som ikke finnes")
-    val meldeperiode: Meldeperiode = meldeperiodekjede.hentSisteMeldeperiode()
-    val behandlingerKnyttetTilKjede = this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(kjedeId)
+    val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
 
-    if (this.meldekortBehandlinger.isEmpty()) {
-        require(meldeperiode == this.meldeperiodeKjeder.first().hentSisteMeldeperiode()) {
-            "Dette er første meldekortbehandling på saken og må da behandle den første meldeperiode kjeden. sakId: ${this.id}, meldeperiodekjedeId: ${meldeperiodekjede.kjedeId}"
-        }
-    }
-
-    this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
-        ?.also { foregåendeMeldeperiodekjede ->
-            this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(foregåendeMeldeperiodekjede.kjedeId).also {
-                if (it.none { it.status == MeldekortBehandlingStatus.GODKJENT }) {
-                    throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige kjede er godkjent")
-                }
-            }
-        }
-
-    if (meldeperiode.ingenDagerGirRett) {
-        throw IllegalStateException("Kan ikke starte behandling på meldeperiode uten dager som gir rett til tiltakspenger")
-    }
-
-    // TODO abn: må støtte flere brukers meldekort på samme kjede før vi åpner for korrigering fra bruker
-    val brukersMeldekort = this.brukersMeldekort.find { it.kjedeId == kjedeId }
-
+    val behandlingerForKjede = this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(kjedeId)
     val type =
-        if (behandlingerKnyttetTilKjede.isEmpty()) MeldekortBehandlingType.FØRSTE_BEHANDLING else MeldekortBehandlingType.KORRIGERING
+        if (behandlingerForKjede.isEmpty()) MeldekortBehandlingType.FØRSTE_BEHANDLING else MeldekortBehandlingType.KORRIGERING
 
     val meldekortId = MeldekortId.random()
 
@@ -215,7 +183,7 @@ fun Sak.opprettMeldekortBehandling(
         opprettet = nå(clock),
         navkontor = navkontor,
         ikkeRettTilTiltakspengerTidspunkt = null,
-        brukersMeldekort = brukersMeldekort,
+        brukersMeldekort = null,
         meldeperiode = meldeperiode,
         saksbehandler = saksbehandler.navIdent,
         type = type,

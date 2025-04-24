@@ -4,5 +4,6 @@ enum class MeldekortBehandlingStatus {
     UNDER_BEHANDLING,
     KLAR_TIL_BESLUTNING,
     GODKJENT,
+    AUTOMATISK_BEHANDLET,
     IKKE_RETT_TIL_TILTAKSPENGER,
 }

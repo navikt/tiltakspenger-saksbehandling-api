@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import java.time.LocalDate
@@ -25,7 +25,7 @@ interface UtbetalingsvedtakMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         periode: Periode = Periode(2.januar(2023), 15.januar(2023)),
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
-        meldekortBehandling: MeldekortBehandlet = ObjectMother.meldekortBehandlet(
+        meldekortBehandling: MeldekortBehandletManuelt = ObjectMother.meldekortBehandletManuelt(
             sakId = sakId,
             fnr = fnr,
             periode = periode,

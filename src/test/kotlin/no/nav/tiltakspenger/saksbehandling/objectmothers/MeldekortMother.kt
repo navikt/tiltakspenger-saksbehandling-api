@@ -27,9 +27,11 @@ import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
@@ -101,7 +103,7 @@ interface MeldekortMother : MotherOfAllMothers {
         )
     }
 
-    fun meldekortBehandlet(
+    fun meldekortBehandletManuelt(
         id: MeldekortId = MeldekortId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
@@ -139,8 +141,8 @@ interface MeldekortMother : MotherOfAllMothers {
         type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
         attesteringer: Attesteringer = Attesteringer.empty(),
         begrunnelse: MeldekortBehandlingBegrunnelse? = null,
-    ): MeldekortBehandlet {
-        return MeldekortBehandlet(
+    ): MeldekortBehandletManuelt {
+        return MeldekortBehandletManuelt(
             id = id,
             sakId = sakId,
             saksnummer = saksnummer,
@@ -160,6 +162,59 @@ interface MeldekortMother : MotherOfAllMothers {
             begrunnelse = begrunnelse,
             attesteringer = attesteringer,
             dager = dager,
+        )
+    }
+
+    fun meldekortBehandletAutomatisk(
+        id: MeldekortId = MeldekortId.random(),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+        fnr: Fnr = Fnr.random(),
+        periode: Periode = Periode(6.januar(2025), 19.januar(2025)),
+        kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
+        opprettet: LocalDateTime = nå(clock),
+        antallDagerForPeriode: Int = 10,
+        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
+        navkontor: Navkontor = ObjectMother.navkontor(),
+        meldeperiode: Meldeperiode = meldeperiode(
+            periode = periode,
+            kjedeId = kjedeId,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+            antallDagerForPeriode = antallDagerForPeriode,
+        ),
+        dager: MeldekortDager = MeldekortDager.fraMeldeperiode(meldeperiode),
+        beregning: MeldekortBeregning =
+            meldekortBeregning(
+                meldekortId = id,
+                sakId = sakId,
+                startDato = meldeperiode.periode.fraOgMed,
+                barnetilleggsPerioder = barnetilleggsPerioder,
+            ),
+        type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
+        status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT,
+        brukersMeldekort: BrukersMeldekort = brukersMeldekort(
+            sakId = sakId,
+            meldeperiode = meldeperiode,
+            behandlesAutomatisk = true,
+            mottatt = nå(clock),
+        ),
+    ): MeldekortBehandletAutomatisk {
+        return MeldekortBehandletAutomatisk(
+            id = id,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+            navkontor = navkontor,
+            brukersMeldekort = brukersMeldekort,
+            meldeperiode = meldeperiode,
+            dager = dager,
+            beregning = beregning,
+            type = type,
+            status = status,
         )
     }
 
@@ -354,7 +409,7 @@ interface MeldekortMother : MotherOfAllMothers {
         begrunnelse: MeldekortBehandlingBegrunnelse? = null,
         attesteringer: Attesteringer = Attesteringer.empty(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-    ): Pair<MeldekortBehandlinger, MeldekortBehandlet> {
+    ): Pair<MeldekortBehandlinger, MeldekortBehandletManuelt> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
             kjedeId = kjedeId,
@@ -526,6 +581,8 @@ interface MeldekortMother : MotherOfAllMothers {
             addAll(dagerFraPeriode.subList(7, 12).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT, it) })
             addAll(dagerFraPeriode.subList(12, 14).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
         },
+        behandlesAutomatisk: Boolean = false,
+        behandletAutomatiskStatus: BrukersMeldekortBehandletAutomatiskStatus? = null,
     ): BrukersMeldekort {
         return BrukersMeldekort(
             id = id,
@@ -535,6 +592,8 @@ interface MeldekortMother : MotherOfAllMothers {
             dager = dager,
             journalpostId = JournalpostIdGenerator().neste(),
             oppgaveId = null,
+            behandlesAutomatisk = behandlesAutomatisk,
+            behandletAutomatiskStatus = behandletAutomatiskStatus,
         )
     }
 
@@ -560,7 +619,6 @@ interface MeldekortMother : MotherOfAllMothers {
             sakId = sakId,
             dager = dager,
             journalpostId = JournalpostIdGenerator().neste(),
-            oppgaveId = null,
         )
     }
 

@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørsteg
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettMeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettManuellMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilOppdaterMeldekortKommando
 import org.junit.jupiter.api.Test
@@ -27,7 +27,7 @@ class MeldekortBehandlingRepoImplTest {
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
-            val meldekort = ObjectMother.meldekortBehandlet(
+            val meldekort = ObjectMother.meldekortBehandletManuelt(
                 sakId = sak.id,
                 fnr = sak.fnr,
                 saksnummer = sak.saksnummer,
@@ -45,7 +45,7 @@ class MeldekortBehandlingRepoImplTest {
 
             val oppdatertSak = sakRepo.hentForSakId(sak.id)!!
 
-            val nesteMeldekort = oppdatertSak.opprettMeldekortBehandling(
+            val nesteMeldekort = oppdatertSak.opprettManuellMeldekortBehandling(
                 oppdatertSak.meldeperiodeKjeder[1].kjedeId,
                 ObjectMother.navkontor(),
                 ObjectMother.saksbehandler(),
@@ -67,7 +67,7 @@ class MeldekortBehandlingRepoImplTest {
                 deltakelseFom = 1.januar(2024),
                 deltakelseTom = 31.mars(2024),
             )
-            val meldekortBehandling = sak.opprettMeldekortBehandling(
+            val meldekortBehandling = sak.opprettManuellMeldekortBehandling(
                 sak.meldeperiodeKjeder.first().kjedeId,
                 ObjectMother.navkontor(),
                 ObjectMother.saksbehandler(),

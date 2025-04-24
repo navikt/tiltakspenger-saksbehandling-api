@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
@@ -113,7 +113,7 @@ private fun List<MeldeperiodeBeregningDag>.toUtbetalingDto(
     }
 }
 
-private fun MeldekortBehandlet.toUtbetalingDto(
+private fun MeldekortBehandling.Behandlet.toUtbetalingDto(
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
 ): List<UtbetalingV2Dto> {

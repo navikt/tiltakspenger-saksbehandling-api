@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 
@@ -26,7 +26,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
     val meldeperiodeKjede = this.meldeperiodeKjeder.single { it.kjedeId == kjedeId }
     val korrigering = meldeperiodeBeregninger.sisteBeregningForKjede[kjedeId]?.let {
         val forrigeBehandling = meldekortBehandlinger.hentMeldekortBehandling(it.beregningMeldekortId)
-        if (forrigeBehandling !is MeldekortBehandlet) {
+        if (forrigeBehandling !is MeldekortBehandletManuelt) {
             return@let null
         }
 

@@ -38,7 +38,7 @@ internal class UtbetalingDTOKorrigeringTest {
         saksnummer = saksnummer,
         id = id,
         opprettet = opprettet,
-        meldekortBehandling = ObjectMother.meldekortBehandlet(
+        meldekortBehandling = ObjectMother.meldekortBehandletManuelt(
             id = meldekortId,
             periode = periode,
             meldekortperiodeBeregning = ObjectMother.meldekortBeregning(

@@ -9,11 +9,11 @@ import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
@@ -31,7 +31,7 @@ import java.time.LocalDateTime
  * @param saksbehandler: Obligatorisk dersom meldekortet er utfylt av saksbehandler.
  * @param beslutter: Obligatorisk dersom meldekortet er godkjent av beslutter.
  */
-data class MeldekortBehandlet(
+data class MeldekortBehandletManuelt(
     override val id: MeldekortId,
     override val sakId: SakId,
     override val saksnummer: Saksnummer,
@@ -51,18 +51,7 @@ data class MeldekortBehandlet(
     override val attesteringer: Attesteringer,
     override val beregning: MeldekortBeregning,
     override val dager: MeldekortDager,
-) : MeldekortBehandling {
-    /**
-     *  Perioden for beregningen av meldekortet.
-     *  Fra og med start av meldeperioden, til og med siste dag med en beregnet utbetaling
-     *  Ved korrigeringer tilbake i tid kan tilOgMed strekke seg til påfølgende meldeperioder dersom disse påvirkes av beregningen
-     * */
-    val beregningPeriode: Periode get() = beregning.periode
-
-    /** Totalsummen for meldeperioden */
-    override val beløpTotal = beregning.beregnTotaltBeløp()
-    override val ordinærBeløp = beregning.beregnTotalOrdinærBeløp()
-    override val barnetilleggBeløp = beregning.beregnTotalBarnetillegg()
+) : MeldekortBehandling.Behandlet {
 
     init {
         require(meldeperiode.periode.fraOgMed == beregningPeriode.fraOgMed) {
@@ -90,13 +79,15 @@ data class MeldekortBehandlet(
             IKKE_RETT_TIL_TILTAKSPENGER -> {
                 throw IllegalStateException("I førsteomgang støtter vi kun stans av ikke-utfylte meldekort.")
             }
+
+            AUTOMATISK_BEHANDLET -> throw IllegalStateException("Et manuelt behandlet meldekort kan ikke ha status AUTOMATISK_BEHANDLET")
         }
     }
 
     fun iverksettMeldekort(
         beslutter: Saksbehandler,
         clock: Clock,
-    ): Either<KanIkkeIverksetteMeldekort, MeldekortBehandlet> {
+    ): Either<KanIkkeIverksetteMeldekort, MeldekortBehandletManuelt> {
         if (!beslutter.erBeslutter()) {
             return KanIkkeIverksetteMeldekort.MåVæreBeslutter(beslutter.roller).left()
         }
@@ -124,7 +115,7 @@ data class MeldekortBehandlet(
         ).right()
     }
 
-    override fun underkjenn(
+    fun underkjenn(
         begrunnelse: NonBlankString,
         beslutter: Saksbehandler,
         clock: Clock,
@@ -179,6 +170,7 @@ data class MeldekortBehandlet(
             KLAR_TIL_BESLUTNING -> KunneIkkeOvertaMeldekortBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
             GODKJENT,
             IKKE_RETT_TIL_TILTAKSPENGER,
+            AUTOMATISK_BEHANDLET,
             -> KunneIkkeOvertaMeldekortBehandling.BehandlingenKanIkkeVæreGodkjentEllerIkkeRett.left()
         }
     }
@@ -187,8 +179,8 @@ data class MeldekortBehandlet(
         nyMeldeperiode: Meldeperiode?,
         ikkeRettTilTiltakspengerTidspunkt: LocalDateTime? = null,
     ): MeldekortUnderBehandling {
-        require(this.status != GODKJENT && this.status != IKKE_RETT_TIL_TILTAKSPENGER) {
-            "Kan ikke gå fra GODKJENT eller IKKE_RETT_TIL_TILTAKSPENGER til UNDER_BEHANDLING"
+        require(this.status !in listOf(GODKJENT, IKKE_RETT_TIL_TILTAKSPENGER, AUTOMATISK_BEHANDLET)) {
+            "Kan ikke gå fra GODKJENT, AUTOMATISK_BEHANDLET eller IKKE_RETT_TIL_TILTAKSPENGER til UNDER_BEHANDLING"
         }
         val meldeperiode = nyMeldeperiode ?: this.meldeperiode
         return MeldekortUnderBehandling(

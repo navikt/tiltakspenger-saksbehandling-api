@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
-import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import java.time.LocalDateTime
 
 /**
@@ -24,5 +23,32 @@ data class LagreBrukersMeldekortKommando(
     val sakId: SakId,
     val dager: List<BrukersMeldekortDag>,
     val journalpostId: JournalpostId,
-    val oppgaveId: OppgaveId?,
-)
+) {
+
+    fun tilBrukersMeldekort(meldeperiode: Meldeperiode, behandlesAutomatisk: Boolean): BrukersMeldekort {
+        require(meldeperiode.id == meldeperiodeId) {
+            "Meldeperioden må matche meldekortets meldeperiodeId - Forventet ${meldeperiode.id} - fikk $meldeperiodeId"
+        }
+
+        return BrukersMeldekort(
+            id = id,
+            mottatt = mottatt,
+            meldeperiode = meldeperiode,
+            sakId = sakId,
+            dager = dager,
+            journalpostId = journalpostId,
+            oppgaveId = null,
+            behandlesAutomatisk = behandlesAutomatisk,
+            behandletAutomatiskStatus = null,
+        )
+    }
+
+    fun matcherBrukersMeldekort(brukersMeldekort: BrukersMeldekort): Boolean {
+        return this.id == brukersMeldekort.id &&
+            this.mottatt == brukersMeldekort.mottatt &&
+            this.meldeperiodeId == brukersMeldekort.meldeperiodeId &&
+            this.sakId == brukersMeldekort.sakId &&
+            this.dager == brukersMeldekort.dager &&
+            this.journalpostId == brukersMeldekort.journalpostId
+    }
+}

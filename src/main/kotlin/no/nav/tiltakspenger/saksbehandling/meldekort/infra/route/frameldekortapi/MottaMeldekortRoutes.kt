@@ -74,6 +74,5 @@ private fun BrukerutfyltMeldekortDTO.toDomain(): LagreBrukersMeldekortKommando {
             )
         },
         journalpostId = JournalpostId(this.journalpostId),
-        oppgaveId = null,
     )
 }

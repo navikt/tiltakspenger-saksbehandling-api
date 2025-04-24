@@ -92,5 +92,10 @@ internal fun KunneIkkeOvertaMeldekortBehandling.tilStatusOgErrorJson(): Pair<Htt
             "Behandlingen må være under beslutning for å overta",
             "behandling_må_være_under_beslutning",
         )
+
+        KunneIkkeOvertaMeldekortBehandling.KanIkkeOvertaAutomatiskBehandling -> HttpStatusCode.BadRequest to ErrorJson(
+            "Behandlingen kan ikke være en automatisk behandling",
+            "behandling_kan_ikke_være_automatisk",
+        )
     }
 }

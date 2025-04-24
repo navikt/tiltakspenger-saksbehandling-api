@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
-import arrow.core.left
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -14,22 +13,10 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
-class MeldekortBehandlingTest {
-
-    @Test
-    fun `kan ikke underkjenne en MeldekortUnderBehandling`() {
-        val meldekortBehandling = ObjectMother.meldekortUnderBehandling()
-
-        meldekortBehandling.underkjenn(
-            begrunnelse = NonBlankString.create("skal ikke kunne underkjenne"),
-            beslutter = ObjectMother.saksbehandler(),
-            clock = ObjectMother.clock,
-        ) shouldBe KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErIkkeKlarTilBeslutning.left()
-    }
-
+class MeldekortBehandlingManuellTest {
     @Test
     fun `underkjenner en MeldekortBehandlet`() {
-        val meldekortBehandlet = ObjectMother.meldekortBehandlet(
+        val meldekortBehandlet = ObjectMother.meldekortBehandletManuelt(
             status = MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING,
             iverksattTidspunkt = null,
             beslutter = null,
@@ -42,7 +29,7 @@ class MeldekortBehandlingTest {
             clock = fixedClock,
         )
 
-        val expetcedAttestering = Attestering(
+        val expectedAttestering = Attestering(
             // ignorert
             id = AttesteringId.random(),
             status = Attesteringsstatus.SENDT_TILBAKE,
@@ -54,7 +41,7 @@ class MeldekortBehandlingTest {
         actual.getOrFail().let {
             it.shouldBeInstanceOf<MeldekortUnderBehandling>()
             it.attesteringer.size shouldBe 1
-            it.attesteringer.first().shouldBeEqualToIgnoringFields(expetcedAttestering, Attestering::id)
+            it.attesteringer.first().shouldBeEqualToIgnoringFields(expectedAttestering, Attestering::id)
         }
     }
 }

@@ -9,7 +9,8 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkUtbetalingDTO
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlet
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -26,7 +27,7 @@ data class Utbetalingsvedtak(
     val saksnummer: Saksnummer,
     val fnr: Fnr,
     val opprettet: LocalDateTime,
-    val meldekortbehandling: MeldekortBehandlet,
+    val meldekortbehandling: MeldekortBehandling.Behandlet,
     val forrigeUtbetalingsvedtakId: VedtakId?,
     val sendtTilUtbetaling: LocalDateTime?,
     val journalpostId: JournalpostId?,
@@ -43,13 +44,14 @@ data class Utbetalingsvedtak(
     val beslutter: String = meldekortbehandling.beslutter!!
     val brukerNavkontor: Navkontor = meldekortbehandling.navkontor
     val meldeperiode: Meldeperiode = meldekortbehandling.meldeperiode
+    val automatiskBehandlet = meldekortbehandling is MeldekortBehandletAutomatisk
 
     fun oppdaterStatus(status: Utbetalingsstatus?): Utbetalingsvedtak {
         return this.copy(status = status)
     }
 }
 
-fun MeldekortBehandlet.opprettUtbetalingsvedtak(
+fun MeldekortBehandling.Behandlet.opprettUtbetalingsvedtak(
     saksnummer: Saksnummer,
     fnr: Fnr,
     forrigeUtbetalingsvedtak: Utbetalingsvedtak?,

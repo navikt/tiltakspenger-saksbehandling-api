@@ -21,7 +21,7 @@ import java.time.LocalDate
 /**
  * Består av ingen, én eller flere [MeldekortBehandling].
  * Vil være tom fram til første innvilgede førstegangsbehandling.
- * Kun den en behandling kan være vil kunne være under behandling (åpen) til enhver tid.
+ * Kun en behandling kan være under behandling (åpen) til enhver tid.
  */
 data class MeldekortBehandlinger(
     val verdi: List<MeldekortBehandling>,
@@ -34,15 +34,17 @@ data class MeldekortBehandlinger(
 
     val meldeperiodeBeregninger by lazy { MeldeperiodeBeregninger(this) }
 
-    private val behandledeMeldekort: List<MeldekortBehandlet> by lazy { verdi.filterIsInstance<MeldekortBehandlet>() }
+    private val behandledeMeldekort: List<MeldekortBehandling.Behandlet> by lazy {
+        verdi.filterIsInstance<MeldekortBehandling.Behandlet>()
+    }
 
-    val behandledeMeldekortPerKjede: Map<MeldeperiodeKjedeId, List<MeldekortBehandlet>> by lazy {
+    val behandledeMeldekortPerKjede: Map<MeldeperiodeKjedeId, List<MeldekortBehandling.Behandlet>> by lazy {
         behandledeMeldekort
             .sortedBy { it.opprettet }
             .groupBy { it.kjedeId }
     }
 
-    val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandlet> by lazy {
+    val sisteBehandledeMeldekortPerKjede: List<MeldekortBehandling.Behandlet> by lazy {
         behandledeMeldekortPerKjede.values.map { it.last() }
     }
 
@@ -51,13 +53,19 @@ data class MeldekortBehandlinger(
         verdi.filterIsInstance<MeldekortUnderBehandling>().singleOrNullOrThrow()
     }
 
-    private val meldekortUnderBeslutning: MeldekortBehandlet? by lazy {
-        behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING }.singleOrNullOrThrow()
+    private val meldekortUnderBeslutning: MeldekortBehandletManuelt? by lazy {
+        behandledeMeldekort.filter {
+            it.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
+        }.singleOrNullOrThrow() as MeldekortBehandletManuelt?
     }
 
-    val godkjenteMeldekort: List<MeldekortBehandlet> by lazy { behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
+    val godkjenteMeldekort: List<MeldekortBehandling.Behandlet> by lazy {
+        behandledeMeldekort.filter {
+            it.status == MeldekortBehandlingStatus.GODKJENT || it.status == MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
+        }
+    }
 
-    val sisteGodkjenteMeldekort: MeldekortBehandlet? by lazy { godkjenteMeldekort.lastOrNull() }
+    val sisteGodkjenteMeldekort: MeldekortBehandling.Behandlet? by lazy { godkjenteMeldekort.lastOrNull() }
 
     @Suppress("unused")
     val sisteGodkjenteMeldekortDag: LocalDate? by lazy { sisteGodkjenteMeldekort?.tilOgMed }
@@ -74,7 +82,6 @@ data class MeldekortBehandlinger(
 
     /** Meldekort som er under behandling eller venter på beslutning */
     val åpenMeldekortBehandling: MeldekortBehandling? by lazy { meldekortUnderBehandling ?: meldekortUnderBeslutning }
-    val finnesÅpenMeldekortBehandling: Boolean by lazy { åpenMeldekortBehandling != null }
 
     fun oppdaterMeldekort(
         kommando: OppdaterMeldekortKommando,
@@ -104,7 +111,7 @@ data class MeldekortBehandlinger(
         barnetilleggsPerioder: Periodisering<AntallBarn?>,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
         clock: Clock,
-    ): Either<KanIkkeOppdatereMeldekort, Pair<MeldekortBehandlinger, MeldekortBehandlet>> {
+    ): Either<KanIkkeOppdatereMeldekort, Pair<MeldekortBehandlinger, MeldekortBehandletManuelt>> {
         val (meldekort, beregning) = beregnOppdatering(
             kommando,
             barnetilleggsPerioder,
@@ -162,7 +169,7 @@ data class MeldekortBehandlinger(
         }
 
         val beregninger = kommando.beregn(
-            eksisterendeMeldekortBehandlinger = this,
+            meldekortBehandlinger = this,
             barnetilleggsPerioder = barnetilleggsPerioder,
             tiltakstypePerioder = tiltakstypePerioder,
         )
@@ -231,6 +238,12 @@ data class MeldekortBehandlinger(
         )
     }
 
+    fun leggTil(behandling: MeldekortBehandletAutomatisk): MeldekortBehandlinger {
+        return MeldekortBehandlinger(
+            verdi = verdi.plus(behandling).sortedBy { it.fraOgMed },
+        )
+    }
+
     init {
         verdi.zipWithNext { a, b ->
             require(a.kjedeId == b.kjedeId || a.tilOgMed < b.fraOgMed) {
@@ -247,6 +260,9 @@ data class MeldekortBehandlinger(
             require(it.size == it.distinct().size) {
                 "Meldekort må ha unik id"
             }
+        }
+        require(meldekortUnderBehandling == null || meldekortUnderBeslutning == null) {
+            "Kan ikke ha meldekort både under behandling og under beslutning"
         }
     }
 

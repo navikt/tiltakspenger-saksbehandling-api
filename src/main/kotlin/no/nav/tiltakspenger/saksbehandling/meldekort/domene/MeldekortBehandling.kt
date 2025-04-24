@@ -4,7 +4,6 @@ import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
@@ -12,16 +11,22 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
+
+/**
+ * TODO: splitt denne i separate hierarkier for 1. alle states av manuell behandling og 2. automatisk behandling
+ * */
 
 sealed interface MeldekortBehandling {
     val id: MeldekortId
@@ -34,9 +39,8 @@ sealed interface MeldekortBehandling {
     val meldeperiode: Meldeperiode
     val type: MeldekortBehandlingType
 
-    /** Vil kunne være null dersom vi ikke har mottatt et meldekort via vår digitale flate. Bør på sikt kunne være en liste? */
+    /** Pdd har kun automatiske behandlinger tilknyttet et brukers meldekort */
     val brukersMeldekort: BrukersMeldekort?
-
     val kjedeId: MeldeperiodeKjedeId get() = meldeperiode.kjedeId
     val periode: Periode get() = meldeperiode.periode
     val fraOgMed: LocalDate get() = periode.fraOgMed
@@ -59,7 +63,7 @@ sealed interface MeldekortBehandling {
     val erAvsluttet
         get() = when (status) {
             UNDER_BEHANDLING, KLAR_TIL_BESLUTNING -> false
-            GODKJENT, IKKE_RETT_TIL_TILTAKSPENGER -> true
+            GODKJENT, AUTOMATISK_BEHANDLET, IKKE_RETT_TIL_TILTAKSPENGER -> true
         }
 
     val beløpTotal: Int?
@@ -83,7 +87,7 @@ sealed interface MeldekortBehandling {
 
         val ikkeRettTilTiltakspengerTidspunkt = if (meldeperiode.ingenDagerGirRett) nå(clock) else null
         return when (this) {
-            is MeldekortBehandlet -> this.tilUnderBehandling(
+            is MeldekortBehandletManuelt -> this.tilUnderBehandling(
                 nyMeldeperiode = meldeperiode,
                 ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
             )
@@ -93,17 +97,60 @@ sealed interface MeldekortBehandling {
                 ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                 beregning = null,
             )
+
+            is MeldekortBehandletAutomatisk -> null
         }
     }
 
-    // TODO - test
-    fun underkjenn(
-        begrunnelse: NonBlankString,
-        beslutter: Saksbehandler,
-        clock: Clock,
-    ): Either<KunneIkkeUnderkjenneMeldekortBehandling, MeldekortBehandling>
+    fun overta(saksbehandler: Saksbehandler): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling>
 
-    fun overta(
-        saksbehandler: Saksbehandler,
-    ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling>
+    sealed interface Behandlet : MeldekortBehandling {
+        override val beregning: MeldekortBeregning
+        override val beløpTotal: Int get() = beregning.beregnTotaltBeløp()
+        override val ordinærBeløp: Int get() = beregning.beregnTotalOrdinærBeløp()
+        override val barnetilleggBeløp: Int get() = beregning.beregnTotalBarnetillegg()
+
+        /**
+         *  Perioden for beregningen av meldekortet.
+         *  Fra og med start av meldeperioden, til og med siste dag med en beregnet utbetaling
+         *  Ved korrigeringer tilbake i tid kan tilOgMed strekke seg til påfølgende meldeperioder dersom disse påvirkes av beregningen
+         * */
+        val beregningPeriode: Periode get() = beregning.periode
+    }
+}
+
+fun Sak.validerOpprettMeldekortBehandling(kjedeId: MeldeperiodeKjedeId) {
+    val meldeperiodekjede = this.meldeperiodeKjeder.hentMeldeperiodekjedeForKjedeId(kjedeId)!!
+    val meldeperiode = meldeperiodekjede.hentSisteMeldeperiode()
+
+    val åpenBehandling = this.meldekortBehandlinger.åpenMeldekortBehandling
+
+    if (åpenBehandling != null) {
+        throw IllegalStateException(
+            "Kan ikke opprette ny meldekortbehandling dersom en behandling er åpen på saken - ${åpenBehandling.id} er åpen på ${this.id}",
+        )
+    }
+
+    if (this.meldekortBehandlinger.isEmpty() &&
+        meldeperiode != this.meldeperiodeKjeder.first()
+            .hentSisteMeldeperiode()
+    ) {
+        throw IllegalStateException(
+            "Dette er første meldekortbehandling på saken og må da behandle den første meldeperiode kjeden. sakId: ${this.id}, meldeperiodekjedeId: ${meldeperiodekjede.kjedeId}",
+        )
+    }
+
+    this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
+        ?.also { foregåendeMeldeperiodekjede ->
+            this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(foregåendeMeldeperiodekjede.kjedeId)
+                .also { behandlinger ->
+                    if (behandlinger.none { it.status == GODKJENT || it.status == AUTOMATISK_BEHANDLET }) {
+                        throw IllegalStateException("Kan ikke opprette ny meldekortbehandling før forrige kjede er godkjent")
+                    }
+                }
+        }
+
+    if (meldeperiode.ingenDagerGirRett) {
+        throw IllegalStateException("Kan ikke starte behandling på meldeperiode uten dager som gir rett til tiltakspenger")
+    }
 }

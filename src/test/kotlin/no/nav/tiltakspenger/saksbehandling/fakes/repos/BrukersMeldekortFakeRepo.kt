@@ -6,13 +6,14 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
+import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 
 class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) : BrukersMeldekortRepo {
     private val data = Atomic(mutableMapOf<MeldekortId, BrukersMeldekort>())
 
-    override fun lagre(brukersMeldekort: LagreBrukersMeldekortKommando, sessionContext: SessionContext?) {
+    override fun lagre(brukersMeldekort: BrukersMeldekort, sessionContext: SessionContext?) {
         val meldeperiode = meldeperiodeFakeRepo.hentForMeldeperiodeId(brukersMeldekort.meldeperiodeId)
 
         requireNotNull(meldeperiode) { "Ingen meldeperiode for ${brukersMeldekort.meldeperiodeId}" }
@@ -26,11 +27,17 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
             dager = brukersMeldekort.dager,
             journalpostId = brukersMeldekort.journalpostId,
             oppgaveId = brukersMeldekort.oppgaveId,
+            behandlesAutomatisk = brukersMeldekort.behandlesAutomatisk,
+            behandletAutomatiskStatus = brukersMeldekort.behandletAutomatiskStatus,
         )
     }
 
-    override fun oppdater(brukersMeldekort: BrukersMeldekort, sessionContext: SessionContext?) {
-        data.get()[brukersMeldekort.id] = brukersMeldekort
+    override fun oppdaterOppgaveId(
+        meldekortId: MeldekortId,
+        oppgaveId: OppgaveId,
+        sessionContext: SessionContext?,
+    ) {
+        data.get()[meldekortId] = data.get()[meldekortId]!!.copy(oppgaveId = oppgaveId)
     }
 
     override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): List<BrukersMeldekort> {
@@ -47,10 +54,27 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
         meldeperiodeId: MeldeperiodeId,
         sessionContext: SessionContext?,
     ): BrukersMeldekort? {
-        return data.get().values.find { it.meldeperiode.id == meldeperiodeId }
+        return data.get().values.find { it.meldeperiodeId == meldeperiodeId }
     }
 
-    override fun hentMeldekortSomIkkeSkalGodkjennesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
+    override fun hentMeldekortSomDetSkalOpprettesOppgaveFor(sessionContext: SessionContext?): List<BrukersMeldekort> {
         return data.get().values.filter { it.oppgaveId == null }
+    }
+
+    override fun hentMeldekortSomSkalBehandlesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
+        return data.get().values.filter { it.behandlesAutomatisk && it.behandletAutomatiskStatus == null }
+            .sortedBy { it.periode.fraOgMed }.distinctBy { it.sakId }
+    }
+
+    override fun oppdaterAutomatiskBehandletStatus(
+        meldekortId: MeldekortId,
+        status: BrukersMeldekortBehandletAutomatiskStatus,
+        behandlesAutomatisk: Boolean,
+        sessionContext: SessionContext?,
+    ) {
+        data.get()[meldekortId] = data.get()[meldekortId]!!.copy(
+            behandlesAutomatisk = behandlesAutomatisk,
+            behandletAutomatiskStatus = status,
+        )
     }
 }

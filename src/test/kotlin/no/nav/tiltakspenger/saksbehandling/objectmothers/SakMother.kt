@@ -173,7 +173,6 @@ interface SakMother {
             )
 
         val sakMedIverksattBehandling = sak.copy(behandlinger = Behandlinger(iverksattBehandling))
-
         val sakMedVedtak = sakMedIverksattBehandling.opprettVedtak(iverksattBehandling, clock)
 
         return Triple(sakMedVedtak.first, sakMedVedtak.second, iverksattBehandling)

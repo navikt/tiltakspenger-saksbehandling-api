@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
@@ -152,6 +153,10 @@ data class Sak(
     }
 
     fun leggTilMeldekortbehandling(behandling: MeldekortUnderBehandling): Sak {
+        return this.copy(meldekortBehandlinger = this.meldekortBehandlinger.leggTil(behandling))
+    }
+
+    fun leggTilMeldekortbehandling(behandling: MeldekortBehandletAutomatisk): Sak {
         return this.copy(meldekortBehandlinger = this.meldekortBehandlinger.leggTil(behandling))
     }
 
