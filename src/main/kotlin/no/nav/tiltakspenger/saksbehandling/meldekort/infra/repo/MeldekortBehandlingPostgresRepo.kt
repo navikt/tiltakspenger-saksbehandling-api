@@ -3,10 +3,12 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 import arrow.core.toNonEmptyListOrNull
 import kotliquery.Row
 import kotliquery.Session
+import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -153,6 +155,26 @@ class MeldekortBehandlingPostgresRepo(
     override fun hent(meldekortId: MeldekortId, sessionContext: SessionContext?): MeldekortBehandling? {
         return sessionFactory.withSession(sessionContext) { session ->
             hentForMeldekortId(meldekortId, session)
+        }
+    }
+
+    override fun overtaSaksbehandler(
+        meldekortId: MeldekortId,
+        nySaksbehandler: Saksbehandler,
+        nåværendeSaksbehandler: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update meldekortbehandling set saksbehandler = :nySaksbehandler where id = :id and saksbehandler = :lagretSaksbehandler""",
+                    mapOf(
+                        "id" to meldekortId.toString(),
+                        "nySaksbehandler" to nySaksbehandler.navIdent,
+                        "lagretSaksbehandler" to nåværendeSaksbehandler,
+                    ),
+                ).asUpdate,
+            ) > 0
         }
     }
 

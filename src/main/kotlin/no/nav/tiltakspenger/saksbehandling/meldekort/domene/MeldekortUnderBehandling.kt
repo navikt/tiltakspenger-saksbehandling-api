@@ -12,9 +12,11 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -134,6 +136,22 @@ data class MeldekortUnderBehandling(
         clock: Clock,
     ): Either<KunneIkkeUnderkjenneMeldekortBehandling, MeldekortBehandling> {
         return KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErIkkeKlarTilBeslutning.left()
+    }
+
+    override fun overta(
+        saksbehandler: Saksbehandler,
+    ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
+        return when (this.status) {
+            IKKE_BEHANDLET -> {
+                this.copy(
+                    saksbehandler = saksbehandler.navIdent,
+                ).right()
+            }
+            KLAR_TIL_BESLUTNING,
+            GODKJENT,
+            -> throw IllegalStateException("Meldekort under behandling kan ikke ha status ${this.status}")
+            IKKE_RETT_TIL_TILTAKSPENGER -> KunneIkkeOvertaMeldekortBehandling.BehandlingenKanIkkeVæreGodkjentEllerIkkeRett.left()
+        }
     }
 
     init {

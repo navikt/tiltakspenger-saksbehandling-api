@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
@@ -166,6 +167,20 @@ data class MeldekortBehandlet(
             sendtTilBeslutning = sendtTilBeslutning,
             dager = dager,
         ).right()
+    }
+
+    // TODO: Vi må innføre en ny status UNDER_BESLUTNING der beslutter er tildelt for at det skal gi mening å overta
+    // behandlingen som er til beslutning. Kommer i egen endring.
+    override fun overta(
+        saksbehandler: Saksbehandler,
+    ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
+        return when (this.status) {
+            IKKE_BEHANDLET -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status IKKE_BEHANDLET")
+            KLAR_TIL_BESLUTNING -> KunneIkkeOvertaMeldekortBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
+            GODKJENT,
+            IKKE_RETT_TIL_TILTAKSPENGER,
+            -> KunneIkkeOvertaMeldekortBehandling.BehandlingenKanIkkeVæreGodkjentEllerIkkeRett.left()
+        }
     }
 
     fun tilUnderBehandling(

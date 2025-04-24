@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
@@ -101,4 +102,8 @@ sealed interface MeldekortBehandling {
         beslutter: Saksbehandler,
         clock: Clock,
     ): Either<KunneIkkeUnderkjenneMeldekortBehandling, MeldekortBehandling>
+
+    fun overta(
+        saksbehandler: Saksbehandler,
+    ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling>
 }

@@ -56,6 +56,7 @@ fun Route.routes(
         tokenService = applicationContext.tokenService,
         mottaBrukerutfyltMeldekortService = applicationContext.mottaBrukerutfyltMeldekortService,
         underkjennMeldekortBehandlingService = applicationContext.meldekortContext.underkjennMeldekortBehandlingService,
+        overtaMeldekortBehandlingService = applicationContext.meldekortContext.overtaMeldekortBehandlingService,
         clock = applicationContext.clock,
     )
     mottaSøknadRoute(
