@@ -35,7 +35,6 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 sakId = meldeperiode.sakId,
                 mottatt = LocalDateTime.now(),
                 journalpostId = JournalpostId("asdf"),
-                oppgaveId = null,
                 dager = meldeperiode.girRett.entries.map {
                     BrukersMeldekort.BrukersMeldekortDag(
                         status = if (it.value) InnmeldtStatus.DELTATT else InnmeldtStatus.IKKE_REGISTRERT,
@@ -70,7 +69,6 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 sakId = meldeperiode.sakId,
                 mottatt = LocalDateTime.now(),
                 journalpostId = JournalpostId("asdf"),
-                oppgaveId = null,
                 dager = meldeperiode.girRett.entries.map {
                     BrukersMeldekort.BrukersMeldekortDag(
                         status = if (it.value) InnmeldtStatus.DELTATT else InnmeldtStatus.IKKE_REGISTRERT,
@@ -85,7 +83,6 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 sakId = meldeperiode.sakId,
                 mottatt = lagreKommando.mottatt.minusDays(1),
                 journalpostId = JournalpostId("asdf"),
-                oppgaveId = null,
                 dager = meldeperiode.girRett.entries.map {
                     BrukersMeldekort.BrukersMeldekortDag(
                         status = if (it.value) InnmeldtStatus.DELTATT else InnmeldtStatus.IKKE_REGISTRERT,

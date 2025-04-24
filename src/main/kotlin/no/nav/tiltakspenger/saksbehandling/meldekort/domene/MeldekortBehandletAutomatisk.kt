@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingFeilet
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -61,7 +60,7 @@ fun Sak.opprettAutomatiskMeldekortBehandling(
     meldekort: BrukersMeldekort,
     navkontor: Navkontor,
     clock: Clock,
-): Either<AutomatiskMeldekortbehandlingFeilet, MeldekortBehandletAutomatisk> {
+): Either<BrukersMeldekortBehandletAutomatiskStatus, MeldekortBehandletAutomatisk> {
     val meldekortId = meldekort.id
     val kjedeId = meldekort.kjedeId
 
@@ -73,15 +72,15 @@ fun Sak.opprettAutomatiskMeldekortBehandling(
 
     if (!meldekort.behandlesAutomatisk) {
         logger.error { "Brukers meldekort $meldekortId skal ikke behandles automatisk" }
-        return AutomatiskMeldekortbehandlingFeilet.SkalIkkeBehandlesAutomatisk.left()
+        return BrukersMeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK.left()
     }
     if (behandlingerKnyttetTilKjede.isNotEmpty()) {
         logger.error { "Meldeperiodekjeden $kjedeId har allerede minst en behandling. Vi støtter ikke automatisk korrigering fra bruker (meldekort id $meldekortId)" }
-        return AutomatiskMeldekortbehandlingFeilet.AlleredeBehandlet.left()
+        return BrukersMeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET.left()
     }
     if (meldekort.meldeperiode != sisteMeldeperiode) {
         logger.error { "Meldeperioden for brukers meldekort må være like siste meldeperiode på kjeden for å kunne behandles (meldekort id $meldekortId)" }
-        return AutomatiskMeldekortbehandlingFeilet.UtdatertMeldeperiode.left()
+        return BrukersMeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE.left()
     }
 
     val meldekortBehandlingId = MeldekortId.random()

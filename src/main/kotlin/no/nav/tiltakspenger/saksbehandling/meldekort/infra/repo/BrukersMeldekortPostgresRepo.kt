@@ -122,7 +122,6 @@ class BrukersMeldekortPostgresRepo(
                     from meldekort_bruker mk
                     join meldeperiode mp on mp.id = mk.meldeperiode_id
                     where behandles_automatisk is true
-                    and behandlet_automatisk_status is null
                     order by mk.sak_id, mp.fra_og_med
                     limit 100
                     """,
@@ -134,7 +133,7 @@ class BrukersMeldekortPostgresRepo(
     override fun oppdaterAutomatiskBehandletStatus(
         meldekortId: MeldekortId,
         status: BrukersMeldekortBehandletAutomatiskStatus,
-        behandlesAutomatisk: Boolean,
+        retryBehandling: Boolean,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->
@@ -148,7 +147,7 @@ class BrukersMeldekortPostgresRepo(
                     """,
                     "id" to meldekortId.toString(),
                     "behandlet_automatisk_status" to status.tilDb(),
-                    "behandles_automatisk" to behandlesAutomatisk,
+                    "behandles_automatisk" to retryBehandling,
                 ).asUpdate,
             )
         }

@@ -44,7 +44,7 @@ class AutomatiskMeldekortBehandlingService(
                     opprettMeldekortBehandling(meldekort).onLeft {
                         brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                             meldekort.id,
-                            it.tilMeldekortBehandletAutomatiskStatus(),
+                            it,
                             false,
                         )
                     }.onRight {
@@ -66,7 +66,7 @@ class AutomatiskMeldekortBehandlingService(
 
     private suspend fun opprettMeldekortBehandling(
         meldekort: BrukersMeldekort,
-    ): Either<AutomatiskMeldekortbehandlingFeilet, MeldekortBehandletAutomatisk> {
+    ): Either<BrukersMeldekortBehandletAutomatiskStatus, MeldekortBehandletAutomatisk> {
         val meldekortId = meldekort.id
         val sakId = meldekort.sakId
 
@@ -79,7 +79,7 @@ class AutomatiskMeldekortBehandlingService(
                 logger.error { this }
                 sikkerlogg.error(it) { "$this - fnr ${sak.fnr.verdi}" }
             }
-            return AutomatiskMeldekortbehandlingFeilet.HenteNavkontorFeilet.left()
+            return BrukersMeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET.left()
         }
 
         val meldekortBehandling = sak.opprettAutomatiskMeldekortBehandling(
@@ -101,14 +101,14 @@ class AutomatiskMeldekortBehandlingService(
             sak.leggTilMeldekortbehandling(meldekortBehandling)
         }.onLeft {
             logger.error(it) { "Automatisk behandling av brukers meldekort $meldekortId kunne ikke legges til sak $sakId" }
-            return AutomatiskMeldekortbehandlingFeilet.BehandlingFeiletPåSak.left()
+            return BrukersMeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK.left()
         }
 
         Either.catch {
             sak.leggTilUtbetalingsvedtak(utbetalingsvedtak)
         }.onLeft {
             logger.error(it) { "Utbetalingsvedtak for automatisk behandling av brukers meldekort $meldekortId kunne ikke legges til sak $sakId" }
-            return AutomatiskMeldekortbehandlingFeilet.UtbetalingFeiletPåSak.left()
+            return BrukersMeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK.left()
         }
 
         val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()
@@ -120,29 +120,11 @@ class AutomatiskMeldekortBehandlingService(
             brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                 meldekortId = meldekortId,
                 status = BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET,
-                behandlesAutomatisk = true,
+                retryBehandling = false,
                 tx,
             )
         }
 
         return meldekortBehandling.right()
-    }
-}
-
-sealed interface AutomatiskMeldekortbehandlingFeilet {
-    data object HenteNavkontorFeilet : AutomatiskMeldekortbehandlingFeilet
-    data object BehandlingFeiletPåSak : AutomatiskMeldekortbehandlingFeilet
-    data object UtbetalingFeiletPåSak : AutomatiskMeldekortbehandlingFeilet
-    data object SkalIkkeBehandlesAutomatisk : AutomatiskMeldekortbehandlingFeilet
-    data object AlleredeBehandlet : AutomatiskMeldekortbehandlingFeilet
-    data object UtdatertMeldeperiode : AutomatiskMeldekortbehandlingFeilet
-
-    fun tilMeldekortBehandletAutomatiskStatus(): BrukersMeldekortBehandletAutomatiskStatus = when (this) {
-        AlleredeBehandlet -> BrukersMeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
-        BehandlingFeiletPåSak -> BrukersMeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK
-        HenteNavkontorFeilet -> BrukersMeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET
-        SkalIkkeBehandlesAutomatisk -> BrukersMeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK
-        UtbetalingFeiletPåSak -> BrukersMeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK
-        UtdatertMeldeperiode -> BrukersMeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE
     }
 }

@@ -565,7 +565,6 @@ interface MeldekortMother : MotherOfAllMothers {
             sakId = sakId,
             dager = dager,
             journalpostId = JournalpostIdGenerator().neste(),
-            oppgaveId = null,
         )
     }
 
