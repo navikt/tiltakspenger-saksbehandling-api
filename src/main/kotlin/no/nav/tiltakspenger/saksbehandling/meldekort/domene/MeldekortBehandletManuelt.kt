@@ -170,6 +170,7 @@ data class MeldekortBehandletManuelt(
             KLAR_TIL_BESLUTNING -> KunneIkkeOvertaMeldekortBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
             GODKJENT,
             IKKE_RETT_TIL_TILTAKSPENGER,
+            AUTOMATISK_BEHANDLET,
             -> KunneIkkeOvertaMeldekortBehandling.BehandlingenKanIkkeVæreGodkjentEllerIkkeRett.left()
         }
     }

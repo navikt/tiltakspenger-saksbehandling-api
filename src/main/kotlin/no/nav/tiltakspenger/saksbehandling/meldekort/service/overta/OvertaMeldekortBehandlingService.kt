@@ -36,6 +36,7 @@ class OvertaMeldekortBehandlingService(
                 MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING,
                 MeldekortBehandlingStatus.GODKJENT,
                 MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
+                MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
                 -> throw IllegalStateException("Meldekortbehandlingen er i en ugyldig status for å kunne overta")
             }
         }

@@ -7,9 +7,11 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -41,6 +43,7 @@ data class MeldekortBehandletAutomatisk(
 
     override val begrunnelse = null
     override val ikkeRettTilTiltakspengerTidspunkt = null
+
     override val attesteringer = Attesteringer.empty()
 
     init {
@@ -53,6 +56,10 @@ data class MeldekortBehandletAutomatisk(
         require(brukersMeldekort.behandlesAutomatisk) {
             "Brukers meldekort ${brukersMeldekort.id} må være satt til å behandles automatisk"
         }
+    }
+
+    override fun overta(saksbehandler: Saksbehandler): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
+        return KunneIkkeOvertaMeldekortBehandling.KanIkkeOvertaAutomatiskBehandling.left()
     }
 }
 
