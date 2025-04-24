@@ -69,11 +69,11 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
     override fun oppdaterAutomatiskBehandletStatus(
         meldekortId: MeldekortId,
         status: BrukersMeldekortBehandletAutomatiskStatus,
-        retryBehandling: Boolean,
+        behandlesAutomatisk: Boolean,
         sessionContext: SessionContext?,
     ) {
         data.get()[meldekortId] = data.get()[meldekortId]!!.copy(
-            behandlesAutomatisk = retryBehandling,
+            behandlesAutomatisk = behandlesAutomatisk,
             behandletAutomatiskStatus = status,
         )
     }

@@ -120,7 +120,7 @@ class AutomatiskMeldekortBehandlingService(
             brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                 meldekortId = meldekortId,
                 status = BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET,
-                retryBehandling = false,
+                behandlesAutomatisk = true,
                 tx,
             )
         }

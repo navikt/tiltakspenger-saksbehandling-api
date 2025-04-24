@@ -65,9 +65,6 @@ class BrukersMeldekortPostgresRepo(
         }
     }
 
-    /**
-     * Oppdaterer et meldekort som allerede er lagret i databasen.
-     */
     override fun oppdaterOppgaveId(
         meldekortId: MeldekortId,
         oppgaveId: OppgaveId,
@@ -122,9 +119,11 @@ class BrukersMeldekortPostgresRepo(
                     from meldekort_bruker mk
                     join meldeperiode mp on mp.id = mk.meldeperiode_id
                     where behandles_automatisk is true
+                    and behandlet_automatisk_status is distinct from :erBehandletStatus
                     order by mk.sak_id, mp.fra_og_med
                     limit 100
                     """,
+                    "erBehandletStatus" to BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET.tilDb(),
                 ).map { row -> fromRow(row, session) }.asList,
             )
         }
@@ -133,7 +132,7 @@ class BrukersMeldekortPostgresRepo(
     override fun oppdaterAutomatiskBehandletStatus(
         meldekortId: MeldekortId,
         status: BrukersMeldekortBehandletAutomatiskStatus,
-        retryBehandling: Boolean,
+        behandlesAutomatisk: Boolean,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->
@@ -147,7 +146,7 @@ class BrukersMeldekortPostgresRepo(
                     """,
                     "id" to meldekortId.toString(),
                     "behandlet_automatisk_status" to status.tilDb(),
-                    "behandles_automatisk" to retryBehandling,
+                    "behandles_automatisk" to behandlesAutomatisk,
                 ).asUpdate,
             )
         }
