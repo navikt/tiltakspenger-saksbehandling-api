@@ -149,8 +149,8 @@ data class MeldekortUnderBehandling(
             }
             KLAR_TIL_BESLUTNING,
             GODKJENT,
-            -> throw IllegalStateException("Meldekort under behandling kan ikke ha status ${this.status}")
-            IKKE_RETT_TIL_TILTAKSPENGER -> KunneIkkeOvertaMeldekortBehandling.BehandlingenKanIkkeVæreGodkjentEllerIkkeRett.left()
+            IKKE_RETT_TIL_TILTAKSPENGER,
+            -> throw IllegalStateException("Kan ikke overta meldekortbehandling med status ${this.status}")
         }
     }
 
