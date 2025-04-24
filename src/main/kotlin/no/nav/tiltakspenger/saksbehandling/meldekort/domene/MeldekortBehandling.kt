@@ -13,9 +13,10 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.UNDER_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
@@ -57,7 +58,7 @@ sealed interface MeldekortBehandling {
     /** Merk at statusen [IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den vil bli erstattet med AVBRUTT senere. */
     val erAvsluttet
         get() = when (status) {
-            IKKE_BEHANDLET, KLAR_TIL_BESLUTNING -> false
+            UNDER_BEHANDLING, KLAR_TIL_BESLUTNING -> false
             GODKJENT, IKKE_RETT_TIL_TILTAKSPENGER -> true
         }
 
@@ -101,4 +102,8 @@ sealed interface MeldekortBehandling {
         beslutter: Saksbehandler,
         clock: Clock,
     ): Either<KunneIkkeUnderkjenneMeldekortBehandling, MeldekortBehandling>
+
+    fun overta(
+        saksbehandler: Saksbehandler,
+    ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling>
 }
