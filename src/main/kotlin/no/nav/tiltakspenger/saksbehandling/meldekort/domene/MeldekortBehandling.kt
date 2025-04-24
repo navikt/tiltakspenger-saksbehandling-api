@@ -120,8 +120,16 @@ sealed interface MeldekortBehandling {
 }
 
 fun Sak.validerOpprettMeldekortBehandling(kjedeId: MeldeperiodeKjedeId) {
-    val meldeperiodekjede: MeldeperiodeKjede = this.meldeperiodeKjeder.hentMeldeperiodekjedeForKjedeId(kjedeId)!!
-    val meldeperiode: Meldeperiode = meldeperiodekjede.hentSisteMeldeperiode()
+    val meldeperiodekjede = this.meldeperiodeKjeder.hentMeldeperiodekjedeForKjedeId(kjedeId)!!
+    val meldeperiode = meldeperiodekjede.hentSisteMeldeperiode()
+
+    val åpenBehandling = this.meldekortBehandlinger.åpenMeldekortBehandling
+
+    if (åpenBehandling != null) {
+        throw IllegalStateException(
+            "Kan ikke opprette ny meldekortbehandling dersom en behandling er åpen på saken - ${åpenBehandling.id} er åpen på ${this.id}",
+        )
+    }
 
     if (this.meldekortBehandlinger.isEmpty() &&
         meldeperiode != this.meldeperiodeKjeder.first()
