@@ -25,7 +25,7 @@ interface UtbetalingsvedtakMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         periode: Periode = Periode(2.januar(2023), 15.januar(2023)),
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
-        meldekortBehandling: MeldekortBehandletManuelt = ObjectMother.meldekortBehandlet(
+        meldekortBehandling: MeldekortBehandletManuelt = ObjectMother.meldekortBehandletManuelt(
             sakId = sakId,
             fnr = fnr,
             periode = periode,

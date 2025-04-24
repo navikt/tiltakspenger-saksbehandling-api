@@ -642,7 +642,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         clock = clock,
     )
     val meldeperioder = sak.meldeperiodeKjeder.meldeperioder
-    val behandletMeldekort = ObjectMother.meldekortBehandlet(
+    val behandletMeldekort = ObjectMother.meldekortBehandletManuelt(
         sakId = sak.id,
         fnr = sak.fnr,
         saksnummer = sak.saksnummer,

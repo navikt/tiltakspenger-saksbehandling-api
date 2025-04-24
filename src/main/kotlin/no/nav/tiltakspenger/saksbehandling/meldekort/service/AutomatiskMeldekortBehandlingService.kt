@@ -48,7 +48,7 @@ class AutomatiskMeldekortBehandlingService(
                             false,
                         )
                     }.onRight {
-                        logger.info { "Opprettet automatisk behandling ${it.id} for brukers meldekort $${meldekort.id} på sak ${meldekort.sakId}" }
+                        logger.info { "Opprettet automatisk behandling ${it.id} for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId}" }
                     }
                 }.onLeft {
                     logger.error(it) { "Ukjent feil ved automatisk behandling av meldekort fra bruker ${meldekort.id} - ${it.message}" }

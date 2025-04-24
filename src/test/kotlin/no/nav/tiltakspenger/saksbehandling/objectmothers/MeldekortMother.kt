@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.Bru
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
@@ -102,7 +103,7 @@ interface MeldekortMother : MotherOfAllMothers {
         )
     }
 
-    fun meldekortBehandlet(
+    fun meldekortBehandletManuelt(
         id: MeldekortId = MeldekortId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
@@ -161,6 +162,59 @@ interface MeldekortMother : MotherOfAllMothers {
             begrunnelse = begrunnelse,
             attesteringer = attesteringer,
             dager = dager,
+        )
+    }
+
+    fun meldekortBehandletAutomatisk(
+        id: MeldekortId = MeldekortId.random(),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+        fnr: Fnr = Fnr.random(),
+        periode: Periode = Periode(6.januar(2025), 19.januar(2025)),
+        kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
+        opprettet: LocalDateTime = nå(clock),
+        antallDagerForPeriode: Int = 10,
+        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
+        navkontor: Navkontor = ObjectMother.navkontor(),
+        meldeperiode: Meldeperiode = meldeperiode(
+            periode = periode,
+            kjedeId = kjedeId,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+            antallDagerForPeriode = antallDagerForPeriode,
+        ),
+        dager: MeldekortDager = MeldekortDager.fraMeldeperiode(meldeperiode),
+        beregning: MeldekortBeregning =
+            meldekortBeregning(
+                meldekortId = id,
+                sakId = sakId,
+                startDato = meldeperiode.periode.fraOgMed,
+                barnetilleggsPerioder = barnetilleggsPerioder,
+            ),
+        type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
+        status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT,
+        brukersMeldekort: BrukersMeldekort = brukersMeldekort(
+            sakId = sakId,
+            meldeperiode = meldeperiode,
+            behandlesAutomatisk = true,
+            mottatt = nå(clock),
+        ),
+    ): MeldekortBehandletAutomatisk {
+        return MeldekortBehandletAutomatisk(
+            id = id,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+            navkontor = navkontor,
+            brukersMeldekort = brukersMeldekort,
+            meldeperiode = meldeperiode,
+            dager = dager,
+            beregning = beregning,
+            type = type,
+            status = status,
         )
     }
 

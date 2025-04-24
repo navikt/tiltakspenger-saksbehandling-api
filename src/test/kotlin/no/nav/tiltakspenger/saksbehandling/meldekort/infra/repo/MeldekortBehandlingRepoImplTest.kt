@@ -27,7 +27,7 @@ class MeldekortBehandlingRepoImplTest {
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
-            val meldekort = ObjectMother.meldekortBehandlet(
+            val meldekort = ObjectMother.meldekortBehandletManuelt(
                 sakId = sak.id,
                 fnr = sak.fnr,
                 saksnummer = sak.saksnummer,

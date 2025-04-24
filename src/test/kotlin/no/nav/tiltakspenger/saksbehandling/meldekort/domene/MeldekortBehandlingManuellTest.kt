@@ -13,10 +13,10 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
-class MeldekortBehandlingTest {
+class MeldekortBehandlingManuellTest {
     @Test
     fun `underkjenner en MeldekortBehandlet`() {
-        val meldekortBehandlet = ObjectMother.meldekortBehandlet(
+        val meldekortBehandlet = ObjectMother.meldekortBehandletManuelt(
             status = MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING,
             iverksattTidspunkt = null,
             beslutter = null,
@@ -29,7 +29,7 @@ class MeldekortBehandlingTest {
             clock = fixedClock,
         )
 
-        val expetcedAttestering = Attestering(
+        val expectedAttestering = Attestering(
             // ignorert
             id = AttesteringId.random(),
             status = Attesteringsstatus.SENDT_TILBAKE,
@@ -41,7 +41,7 @@ class MeldekortBehandlingTest {
         actual.getOrFail().let {
             it.shouldBeInstanceOf<MeldekortUnderBehandling>()
             it.attesteringer.size shouldBe 1
-            it.attesteringer.first().shouldBeEqualToIgnoringFields(expetcedAttestering, Attestering::id)
+            it.attesteringer.first().shouldBeEqualToIgnoringFields(expectedAttestering, Attestering::id)
         }
     }
 }
