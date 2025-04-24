@@ -59,7 +59,11 @@ data class MeldekortBehandlinger(
         }.singleOrNullOrThrow() as MeldekortBehandletManuelt?
     }
 
-    val godkjenteMeldekort: List<MeldekortBehandling.Behandlet> by lazy { behandledeMeldekort.filter { it.status == MeldekortBehandlingStatus.GODKJENT } }
+    val godkjenteMeldekort: List<MeldekortBehandling.Behandlet> by lazy {
+        behandledeMeldekort.filter {
+            it.status == MeldekortBehandlingStatus.GODKJENT || it.status == MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
+        }
+    }
 
     val sisteGodkjenteMeldekort: MeldekortBehandling.Behandlet? by lazy { godkjenteMeldekort.lastOrNull() }
 

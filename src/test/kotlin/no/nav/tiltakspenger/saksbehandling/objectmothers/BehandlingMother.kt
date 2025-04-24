@@ -72,9 +72,9 @@ interface BehandlingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
-        søknad: Søknad = ObjectMother.nySøknad(),
+        søknad: Søknad = nySøknad(),
         hentSaksopplysninger: (Periode) -> Saksopplysninger = {
-            ObjectMother.saksopplysninger(
+            saksopplysninger(
                 fom = it.fraOgMed,
                 tom = it.tilOgMed,
             )
@@ -101,7 +101,7 @@ interface BehandlingMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         virkningsperiode: Periode? = virkningsperiode(),
         behandlingstype: Behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
-        søknad: Søknad? = if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING) ObjectMother.nySøknad() else null,
+        søknad: Søknad? = if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING) nySøknad() else null,
         saksbehandlerIdent: String = saksbehandler().navIdent,
         sendtTilBeslutning: LocalDateTime? = null,
         beslutterIdent: String? = null,
@@ -236,7 +236,7 @@ interface BehandlingMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         virkningsperiode: Periode = virkningsperiode(),
         behandlingstype: Behandlingstype = Behandlingstype.FØRSTEGANGSBEHANDLING,
-        søknad: Søknad? = if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING) ObjectMother.nySøknad() else null,
+        søknad: Søknad? = if (behandlingstype == Behandlingstype.FØRSTEGANGSBEHANDLING) nySøknad() else null,
         saksbehandlerIdent: String = saksbehandler().navIdent,
         sendtTilBeslutning: LocalDateTime = førsteNovember24,
         beslutterIdent: String = beslutter().navIdent,
@@ -311,7 +311,7 @@ suspend fun TestApplicationContext.nySøknad(
     tiltaksdeltagelse: Tiltaksdeltagelse? = null,
     søknadstiltak: Søknadstiltak? = tiltaksdeltagelse?.toSøknadstiltak(),
     sak: Sak = ObjectMother.nySak(fnr = fnr),
-    søknad: Søknad = ObjectMother.nySøknad(
+    søknad: Søknad = nySøknad(
         fnr = fnr,
         personopplysninger = personopplysningerFraSøknad,
         tidsstempelHosOss = tidsstempelHosOss,
@@ -357,7 +357,7 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
     tiltaksdeltagelse: Tiltaksdeltagelse? = null,
     søknadstiltak: Søknadstiltak? = tiltaksdeltagelse?.toSøknadstiltak(),
     sak: Sak = ObjectMother.nySak(fnr = fnr),
-    søknad: Søknad = ObjectMother.nySøknad(
+    søknad: Søknad = nySøknad(
         fnr = fnr,
         personopplysninger = personopplysningerFraSøknad,
         tidsstempelHosOss = tidsstempelHosOss,
@@ -481,11 +481,33 @@ suspend fun TestApplicationContext.førstegangsbehandlingIverksatt(
             sakId = underBeslutning.id,
         )
     }
+
     return this.sakContext.sakService.hentForSakId(
         underBeslutning.id,
         saksbehandler,
         correlationId = correlationId,
     ).getOrFail()
+}
+
+suspend fun TestApplicationContext.førstegangsbehandlingIverksattMedMeldeperioder(
+    periode: Periode = ObjectMother.virkningsperiode(),
+    fnr: Fnr = Fnr.random(),
+    saksbehandler: Saksbehandler = saksbehandler(),
+    beslutter: Saksbehandler = beslutter(),
+    clock: Clock = fixedClock,
+    correlationId: CorrelationId = CorrelationId.generate(),
+): Sak {
+    val (sak, meldeperioder) = førstegangsbehandlingIverksatt(
+        periode = periode,
+        fnr = fnr,
+        saksbehandler = saksbehandler,
+        beslutter = beslutter,
+        correlationId = correlationId,
+    ).genererMeldeperioder(clock)
+
+    this.meldekortContext.meldeperiodeRepo.lagre(meldeperioder)
+
+    return sak
 }
 
 suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
