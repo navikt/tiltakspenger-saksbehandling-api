@@ -53,9 +53,6 @@ data class MeldekortBehandletAutomatisk(
         require(status === MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET) {
             "Ugyldig status for automatisk behandling: $status"
         }
-        require(brukersMeldekort.behandlesAutomatisk) {
-            "Brukers meldekort ${brukersMeldekort.id} må være satt til å behandles automatisk"
-        }
     }
 
     override fun overta(saksbehandler: Saksbehandler): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
