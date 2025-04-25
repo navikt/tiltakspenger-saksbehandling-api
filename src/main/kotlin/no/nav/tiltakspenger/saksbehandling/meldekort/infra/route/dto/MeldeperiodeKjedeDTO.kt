@@ -14,7 +14,7 @@ data class MeldeperiodeKjedeDTO(
     val id: String,
     val periode: PeriodeDTO,
     val status: MeldeperiodeKjedeStatusDTO,
-    val automatiskBehandlingStatus: BrukersMeldekortBehandletAutomatiskStatusDTO?,
+    val behandletAutomatiskStatus: BrukersMeldekortBehandletAutomatiskStatusDTO?,
     val periodeMedÅpenBehandling: PeriodeDTO?,
     val tiltaksnavn: List<String>,
     val meldeperioder: List<MeldeperiodeDTO>,
@@ -45,7 +45,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
         id = meldeperiodeKjede.kjedeId.toString(),
         periode = meldeperiodeKjede.periode.toDTO(),
         status = toMeldeperiodeKjedeStatusDTO(kjedeId, clock),
-        automatiskBehandlingStatus = brukersMeldekort?.tilBehandletAutomatiskStatusDTO(),
+        behandletAutomatiskStatus = brukersMeldekort?.tilBehandletAutomatiskStatusDTO(),
         periodeMedÅpenBehandling = this.meldekortBehandlinger.åpenMeldekortBehandling?.periode?.toDTO(),
         tiltaksnavn = this.vedtaksliste
             .valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode)

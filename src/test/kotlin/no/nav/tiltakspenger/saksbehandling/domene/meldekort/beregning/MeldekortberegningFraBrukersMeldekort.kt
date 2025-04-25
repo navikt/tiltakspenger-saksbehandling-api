@@ -21,6 +21,9 @@ private typealias KommandoStatus = OppdaterMeldekortKommando.Status
 
 /** Tester at beregning av brukers meldekort gir samme resultat som ved utfylling av saksbehandler */
 class MeldekortberegningFraBrukersMeldekort {
+    private val periodeSomStarterPåMandag = Periode(6.januar(2025), 31.mars(2025))
+    private val periodeSomStarterPåTorsdag = Periode(9.januar(2025), 31.mars(2025))
+
     private fun kommandoDager(fraDato: LocalDate, statuser: List<KommandoStatus>) =
         statuser
             .mapIndexed { index, status ->
@@ -41,11 +44,15 @@ class MeldekortberegningFraBrukersMeldekort {
             }
             .toNonEmptyListOrNull()!!
 
-    private fun sammenlign(kommandoStatuser: List<KommandoStatus>, brukersStatuser: List<InnmeldtStatus>) {
+    private fun sammenlign(
+        kommandoStatuser: List<KommandoStatus>,
+        brukersStatuser: List<InnmeldtStatus>,
+        virkningsperiode: Periode,
+    ) {
         val clock = fixedClockAt(1.april(2025))
 
         val (sak) = ObjectMother.nySakMedVedtak(
-            virkningsperiode = Periode(6.januar(2025), 31.mars(2025)),
+            virkningsperiode = virkningsperiode,
             clock = clock,
         ).first.genererMeldeperioder(clock)
 
@@ -110,6 +117,8 @@ class MeldekortberegningFraBrukersMeldekort {
                 List(5) { InnmeldtStatus.DELTATT },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
             ).flatten(),
+
+            periodeSomStarterPåMandag,
         )
     }
 
@@ -129,6 +138,8 @@ class MeldekortberegningFraBrukersMeldekort {
                 List(5) { InnmeldtStatus.DELTATT },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
             ).flatten(),
+
+            periodeSomStarterPåMandag,
         )
     }
 
@@ -148,6 +159,8 @@ class MeldekortberegningFraBrukersMeldekort {
                 List(5) { InnmeldtStatus.DELTATT },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
             ).flatten(),
+
+            periodeSomStarterPåMandag,
         )
     }
 
@@ -167,6 +180,8 @@ class MeldekortberegningFraBrukersMeldekort {
                 List(5) { InnmeldtStatus.DELTATT },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
             ).flatten(),
+
+            periodeSomStarterPåMandag,
         )
     }
 
@@ -186,6 +201,31 @@ class MeldekortberegningFraBrukersMeldekort {
                 List(5) { InnmeldtStatus.DELTATT },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
             ).flatten(),
+
+            periodeSomStarterPåMandag,
+        )
+    }
+
+    @Test
+    fun `Skal beregne med dager uten rett likt`() {
+        sammenlign(
+            listOf(
+                List(3) { KommandoStatus.SPERRET },
+                List(2) { KommandoStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV },
+                List(2) { KommandoStatus.IKKE_DELTATT },
+                List(5) { KommandoStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
+                List(2) { KommandoStatus.IKKE_DELTATT },
+            ).flatten(),
+
+            listOf(
+                List(3) { InnmeldtStatus.IKKE_REGISTRERT },
+                List(2) { InnmeldtStatus.IKKE_DELTATT },
+                List(2) { InnmeldtStatus.IKKE_REGISTRERT },
+                List(5) { InnmeldtStatus.DELTATT },
+                List(2) { InnmeldtStatus.IKKE_REGISTRERT },
+            ).flatten(),
+
+            periodeSomStarterPåTorsdag,
         )
     }
 }
