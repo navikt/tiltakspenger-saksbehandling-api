@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortSe
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppgaveMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldeperiodeTilBrukerService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.OvertaMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
@@ -140,6 +141,13 @@ open class MeldekortContext(
 
     val overtaMeldekortBehandlingService by lazy {
         OvertaMeldekortBehandlingService(
+            tilgangsstyringService = tilgangsstyringService,
+            meldekortBehandlingRepo = meldekortBehandlingRepo,
+        )
+    }
+
+    val taMeldekortBehandlingService by lazy {
+        TaMeldekortBehandlingService(
             tilgangsstyringService = tilgangsstyringService,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
         )

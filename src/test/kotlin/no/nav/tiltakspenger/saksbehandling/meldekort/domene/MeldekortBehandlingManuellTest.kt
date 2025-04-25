@@ -17,9 +17,9 @@ class MeldekortBehandlingManuellTest {
     @Test
     fun `underkjenner en MeldekortBehandlet`() {
         val meldekortBehandlet = ObjectMother.meldekortBehandletManuelt(
-            status = MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING,
+            status = MeldekortBehandlingStatus.UNDER_BESLUTNING,
             iverksattTidspunkt = null,
-            beslutter = null,
+            beslutter = ObjectMother.saksbehandler().navIdent,
             opprettet = LocalDateTime.now(fixedClock),
         )
 

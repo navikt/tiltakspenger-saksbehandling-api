@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.UNDER_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -62,7 +63,7 @@ sealed interface MeldekortBehandling {
     /** Merk at statusen [IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den vil bli erstattet med AVBRUTT senere. */
     val erAvsluttet
         get() = when (status) {
-            UNDER_BEHANDLING, KLAR_TIL_BESLUTNING -> false
+            UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, UNDER_BESLUTNING -> false
             GODKJENT, AUTOMATISK_BEHANDLET, IKKE_RETT_TIL_TILTAKSPENGER -> true
         }
 
@@ -103,6 +104,8 @@ sealed interface MeldekortBehandling {
     }
 
     fun overta(saksbehandler: Saksbehandler): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling>
+
+    fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling
 
     sealed interface Behandlet : MeldekortBehandling {
         override val beregning: MeldekortBeregning

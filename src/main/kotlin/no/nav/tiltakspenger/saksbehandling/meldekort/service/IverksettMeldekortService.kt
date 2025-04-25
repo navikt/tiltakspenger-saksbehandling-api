@@ -62,7 +62,7 @@ class IverksettMeldekortService(
         require(meldekortBehandling is MeldekortBehandletManuelt) {
             "Meldekortet må være behandlet for å iverksettes"
         }
-        require(meldekortBehandling.beslutter == null && meldekortBehandling.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING) {
+        require(meldekortBehandling.beslutter != null && meldekortBehandling.status == MeldekortBehandlingStatus.UNDER_BESLUTNING) {
             "Meldekort $meldekortId er allerede iverksatt"
         }
 

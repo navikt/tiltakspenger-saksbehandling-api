@@ -58,6 +58,10 @@ data class MeldekortBehandletAutomatisk(
     override fun overta(saksbehandler: Saksbehandler): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
         return KunneIkkeOvertaMeldekortBehandling.KanIkkeOvertaAutomatiskBehandling.left()
     }
+
+    override fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
+        throw IllegalStateException("Kan ikke tildele automatisk behandlet meldekort")
+    }
 }
 
 fun Sak.opprettAutomatiskMeldekortBehandling(

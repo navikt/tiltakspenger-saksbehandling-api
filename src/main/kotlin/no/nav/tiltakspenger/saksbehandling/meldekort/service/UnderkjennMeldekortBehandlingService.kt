@@ -23,7 +23,7 @@ class UnderkjennMeldekortBehandlingService(
             ?: throw IllegalStateException("Fant ikke meldekortBehandling for id ${command.meldekortId}")
 
         if (meldekortBehandling !is MeldekortBehandletManuelt) {
-            return KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErIkkeKlarTilBeslutning.left()
+            return KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErIkkeUnderBeslutning.left()
         }
 
         tilgangsstyringService.harTilgangTilPerson(meldekortBehandling.fnr, command.saksbehandler.roller, command.correlationId).onLeft {

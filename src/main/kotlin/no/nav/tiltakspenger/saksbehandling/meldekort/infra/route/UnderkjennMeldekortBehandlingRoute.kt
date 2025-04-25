@@ -79,8 +79,8 @@ internal fun KunneIkkeUnderkjenneMeldekortBehandling.toErrorJson(): Pair<HttpSta
         "behandlingen_er_besluttet",
     )
 
-    KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErIkkeKlarTilBeslutning -> HttpStatusCode.BadRequest to ErrorJson(
-        "Behandlingen er ikke klar til beslutning",
+    KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErIkkeUnderBeslutning -> HttpStatusCode.BadRequest to ErrorJson(
+        "Behandlingen er ikke under beslutning",
         "behandlingen_er_ikke_klar_til_beslutning",
     )
 
