@@ -13,7 +13,6 @@ private enum class InnmeldtStatusDTO {
     FRAVÆR_ANNET,
     IKKE_REGISTRERT,
     IKKE_DELTATT,
-    IKKE_RETT_TIL_TILTAKSPENGER,
 }
 
 enum class BrukersMeldekortBehandletAutomatiskStatusDTO {
@@ -32,6 +31,7 @@ data class BrukersMeldekortDTO(
     val id: String,
     val mottatt: LocalDateTime,
     val dager: List<DagDTO>,
+    val behandletAutomatiskStatus: BrukersMeldekortBehandletAutomatiskStatusDTO?,
 ) {
     data class DagDTO(
         val status: String,
@@ -49,6 +49,7 @@ fun BrukersMeldekort.toBrukersMeldekortDTO(): BrukersMeldekortDTO {
                 dato = it.dato,
             )
         },
+        behandletAutomatiskStatus = tilBehandletAutomatiskStatusDTO(),
     )
 }
 
@@ -78,5 +79,4 @@ private fun InnmeldtStatus.toInnmeldtStatusString(): String = when (this) {
     InnmeldtStatus.FRAVÆR_ANNET -> InnmeldtStatusDTO.FRAVÆR_ANNET
     InnmeldtStatus.IKKE_REGISTRERT -> InnmeldtStatusDTO.IKKE_REGISTRERT
     InnmeldtStatus.IKKE_DELTATT -> InnmeldtStatusDTO.IKKE_DELTATT
-    InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER -> InnmeldtStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
 }.toString()

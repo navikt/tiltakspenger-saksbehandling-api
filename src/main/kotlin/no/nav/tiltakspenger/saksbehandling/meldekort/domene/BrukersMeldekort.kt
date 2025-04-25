@@ -54,7 +54,12 @@ data class BrukersMeldekort(
             verdi = dager.map {
                 MeldekortDag(
                     dato = it.dato,
-                    status = it.status.tilMeldekortDagStatus(),
+                    status =
+                    if (meldeperiode.girRett[it.dato] == true) {
+                        it.status.tilMeldekortDagStatus()
+                    } else {
+                        MeldekortDagStatus.SPERRET
+                    },
                 )
             },
         )
@@ -68,7 +73,6 @@ enum class InnmeldtStatus {
     FRAVÆR_ANNET,
     IKKE_REGISTRERT,
     IKKE_DELTATT,
-    IKKE_RETT_TIL_TILTAKSPENGER,
     ;
 
     fun tilMeldekortDagStatus(): MeldekortDagStatus = when (this) {
@@ -78,6 +82,5 @@ enum class InnmeldtStatus {
         FRAVÆR_ANNET -> MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV
         IKKE_REGISTRERT -> MeldekortDagStatus.IKKE_DELTATT
         IKKE_DELTATT -> MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-        IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortDagStatus.SPERRET
     }
 }
