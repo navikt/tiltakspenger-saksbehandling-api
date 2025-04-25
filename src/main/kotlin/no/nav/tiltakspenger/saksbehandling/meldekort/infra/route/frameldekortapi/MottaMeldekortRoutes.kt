@@ -69,7 +69,6 @@ private fun BrukerutfyltMeldekortDTO.toDomain(): LagreBrukersMeldekortKommando {
                     BrukerutfyltMeldekortDTO.Status.FRAVÆR_ANNET -> InnmeldtStatus.FRAVÆR_ANNET
                     BrukerutfyltMeldekortDTO.Status.IKKE_DELTATT -> InnmeldtStatus.IKKE_DELTATT
                     BrukerutfyltMeldekortDTO.Status.IKKE_REGISTRERT -> InnmeldtStatus.IKKE_REGISTRERT
-                    BrukerutfyltMeldekortDTO.Status.IKKE_RETT_TIL_TILTAKSPENGER -> InnmeldtStatus.IKKE_REGISTRERT
                 },
             )
         },
