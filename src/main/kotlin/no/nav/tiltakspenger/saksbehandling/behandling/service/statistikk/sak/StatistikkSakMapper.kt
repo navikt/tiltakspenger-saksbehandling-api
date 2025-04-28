@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak
 
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.Clock
@@ -45,6 +47,7 @@ fun genererStatistikkForNyFørstegangsbehandling(
         avsender = "tiltakspenger-saksbehandling-api",
         versjon = versjon,
         hendelse = "opprettet_behandling",
+        behandlingAarsak = BehandlingAarsak.SOKNAD,
     )
 }
 
@@ -95,5 +98,30 @@ fun genererSaksstatistikkForRammevedtak(
         avsender = "tiltakspenger-saksbehandling-api",
         versjon = versjon,
         hendelse = "iverksatt_behandling",
+        behandlingAarsak = behandling.getBehandlingAarsak(),
     )
 }
+
+private fun Behandling.getBehandlingAarsak(): BehandlingAarsak? {
+    if (this.erFørstegangsbehandling) {
+        return BehandlingAarsak.SOKNAD
+    }
+    if (this.erRevurdering && this.valgtHjemmelHarIkkeRettighet.isNotEmpty()) {
+        val valgtHjemmel = valgtHjemmelHarIkkeRettighet.first()
+        return valgtHjemmel.toBehandlingAarsak()
+    }
+    return null
+}
+
+private fun ValgtHjemmelHarIkkeRettighet.toBehandlingAarsak() =
+    when (this) {
+        ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak -> BehandlingAarsak.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK
+        ValgtHjemmelForStans.Alder -> BehandlingAarsak.ALDER
+        ValgtHjemmelForStans.Livsoppholdytelser -> BehandlingAarsak.LIVSOPPHOLDYTELSER
+        ValgtHjemmelForStans.Institusjonsopphold -> BehandlingAarsak.INSTITUSJONSOPPHOLD
+        ValgtHjemmelForStans.Kvalifiseringsprogrammet -> BehandlingAarsak.KVALIFISERINGSPROGRAMMET
+        ValgtHjemmelForStans.Introduksjonsprogrammet -> BehandlingAarsak.INTRODUKSJONSPROGRAMMET
+        ValgtHjemmelForStans.LønnFraTiltaksarrangør -> BehandlingAarsak.LONN_FRA_TILTAKSARRANGOR
+        ValgtHjemmelForStans.LønnFraAndre -> BehandlingAarsak.LONN_FRA_ANDRE
+        else -> null
+    }

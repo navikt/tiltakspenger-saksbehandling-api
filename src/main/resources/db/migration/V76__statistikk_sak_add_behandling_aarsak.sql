@@ -1,0 +1,1 @@
+ALTER TABLE statistikk_sak ADD COLUMN IF NOT EXISTS behandling_aarsak VARCHAR;

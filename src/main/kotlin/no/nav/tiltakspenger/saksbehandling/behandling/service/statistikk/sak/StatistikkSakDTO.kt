@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+// Grensenittet for denne tabellen eies av DVH og er definert her:
 // https://confluence.adeo.no/display/navdvh/Teknisk+beskrivelse+av+behov+til+felles+saksbehandlingsstatistikk
 data class StatistikkSakDTO(
     val sakId: String,
@@ -56,6 +57,8 @@ data class StatistikkSakDTO(
     // commit hash
     val versjon: String,
     val hendelse: String,
+    /** Årsaken til behandlingen */
+    val behandlingAarsak: BehandlingAarsak?,
 )
 
 enum class Format {
@@ -93,4 +96,16 @@ enum class BehandlingType {
 enum class BehandlingMetode {
     MANUELL,
     AUTOMATISK,
+}
+
+enum class BehandlingAarsak {
+    SOKNAD,
+    DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK,
+    ALDER,
+    LIVSOPPHOLDYTELSER,
+    KVALIFISERINGSPROGRAMMET,
+    INTRODUKSJONSPROGRAMMET,
+    LONN_FRA_TILTAKSARRANGOR,
+    LONN_FRA_ANDRE,
+    INSTITUSJONSOPPHOLD,
 }
