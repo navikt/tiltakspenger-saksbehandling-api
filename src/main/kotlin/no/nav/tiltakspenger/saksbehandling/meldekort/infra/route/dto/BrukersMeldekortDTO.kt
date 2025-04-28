@@ -7,12 +7,13 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 private enum class InnmeldtStatusDTO {
-    DELTATT,
+    DELTATT_UTEN_LØNN_I_TILTAKET,
+    DELTATT_MED_LØNN_I_TILTAKET,
     FRAVÆR_SYK,
     FRAVÆR_SYKT_BARN,
-    FRAVÆR_ANNET,
+    FRAVÆR_VELFERD_GODKJENT_AV_NAV,
+    FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV,
     IKKE_REGISTRERT,
-    IKKE_DELTATT,
 }
 
 enum class BrukersMeldekortBehandletAutomatiskStatusDTO {
@@ -73,10 +74,11 @@ fun BrukersMeldekort.tilBehandletAutomatiskStatusDTO(): BrukersMeldekortBehandle
 }
 
 private fun InnmeldtStatus.toInnmeldtStatusString(): String = when (this) {
-    InnmeldtStatus.DELTATT -> InnmeldtStatusDTO.DELTATT
+    InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> InnmeldtStatusDTO.DELTATT_UTEN_LØNN_I_TILTAKET
+    InnmeldtStatus.DELTATT_MED_LØNN_I_TILTAKET -> InnmeldtStatusDTO.DELTATT_MED_LØNN_I_TILTAKET
     InnmeldtStatus.FRAVÆR_SYK -> InnmeldtStatusDTO.FRAVÆR_SYK
     InnmeldtStatus.FRAVÆR_SYKT_BARN -> InnmeldtStatusDTO.FRAVÆR_SYKT_BARN
-    InnmeldtStatus.FRAVÆR_ANNET -> InnmeldtStatusDTO.FRAVÆR_ANNET
+    InnmeldtStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV -> InnmeldtStatusDTO.FRAVÆR_VELFERD_GODKJENT_AV_NAV
+    InnmeldtStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> InnmeldtStatusDTO.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
     InnmeldtStatus.IKKE_REGISTRERT -> InnmeldtStatusDTO.IKKE_REGISTRERT
-    InnmeldtStatus.IKKE_DELTATT -> InnmeldtStatusDTO.IKKE_DELTATT
 }.toString()

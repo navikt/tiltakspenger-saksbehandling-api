@@ -578,9 +578,9 @@ interface MeldekortMother : MotherOfAllMothers {
         dager: List<BrukersMeldekortDag> = buildList {
             val dagerFraPeriode = meldeperiode.periode.tilDager()
             require(dagerFraPeriode.size == 14)
-            addAll(dagerFraPeriode.take(5).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT, it) })
+            addAll(dagerFraPeriode.take(5).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET, it) })
             addAll(dagerFraPeriode.subList(5, 7).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
-            addAll(dagerFraPeriode.subList(7, 12).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT, it) })
+            addAll(dagerFraPeriode.subList(7, 12).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET, it) })
             addAll(dagerFraPeriode.subList(12, 14).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
         },
         behandlesAutomatisk: Boolean = false,
@@ -608,9 +608,9 @@ interface MeldekortMother : MotherOfAllMothers {
         dager: List<BrukersMeldekortDag> = buildList {
             val dagerFraPeriode = periode.tilDager()
             require(dagerFraPeriode.size == 14)
-            addAll(dagerFraPeriode.take(5).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT, it) })
+            addAll(dagerFraPeriode.take(5).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET, it) })
             addAll(dagerFraPeriode.subList(5, 7).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
-            addAll(dagerFraPeriode.subList(7, 12).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT, it) })
+            addAll(dagerFraPeriode.subList(7, 12).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET, it) })
             addAll(dagerFraPeriode.subList(12, 14).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
         },
     ): LagreBrukersMeldekortKommando {

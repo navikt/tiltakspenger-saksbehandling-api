@@ -37,7 +37,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 journalpostId = JournalpostId("asdf"),
                 dager = meldeperiode.girRett.entries.map {
                     BrukersMeldekort.BrukersMeldekortDag(
-                        status = if (it.value) InnmeldtStatus.DELTATT else InnmeldtStatus.IKKE_REGISTRERT,
+                        status = if (it.value) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_REGISTRERT,
                         dato = it.key,
                     )
                 },
@@ -71,7 +71,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 journalpostId = JournalpostId("asdf"),
                 dager = meldeperiode.girRett.entries.map {
                     BrukersMeldekort.BrukersMeldekortDag(
-                        status = if (it.value) InnmeldtStatus.DELTATT else InnmeldtStatus.IKKE_REGISTRERT,
+                        status = if (it.value) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_REGISTRERT,
                         dato = it.key,
                     )
                 },
@@ -85,7 +85,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 journalpostId = JournalpostId("asdf"),
                 dager = meldeperiode.girRett.entries.map {
                     BrukersMeldekort.BrukersMeldekortDag(
-                        status = if (it.value) InnmeldtStatus.DELTATT else InnmeldtStatus.IKKE_REGISTRERT,
+                        status = if (it.value) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_REGISTRERT,
                         dato = it.key,
                     )
                 },
