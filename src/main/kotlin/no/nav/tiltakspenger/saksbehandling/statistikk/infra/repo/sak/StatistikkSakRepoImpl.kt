@@ -8,12 +8,20 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.BehandlingAarsak
 import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.BehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.BehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.StatistikkSakDTO
 import org.intellij.lang.annotations.Language
 
+/**
+ * Denne tabellen brukes for å dele data med DVH. Se DTO-klassen for lenke til grensesnitt.
+ * DVH fanger kun opp nye rader i tabellen, ikke oppdateringer, så endringer som man ønsker at DVH skal få med seg må
+ * komme som nye rader. DVH bruker kombinasjonen behandlingid + endrettidspunkt for å identifisere en hendelse, så
+ * ved f.eks. teknisk patching av data må man inserte en ny rad med samme behandlingid + endrettidspunkt og endringene
+ * man ønsker å gjøre pr rad som skal patches.
+ */
 internal class StatistikkSakRepoImpl(
     private val sessionFactory: PostgresSessionFactory,
 ) : StatistikkSakRepo {
@@ -23,6 +31,7 @@ internal class StatistikkSakRepoImpl(
         }
     }
 
+    // DVH håndterer selv adressebeskyttelse, så dette gjør vi mest for vår egen del.
     override fun oppdaterAdressebeskyttelse(sakId: SakId) {
         sessionFactory.withSession {
             it.run(
@@ -107,6 +116,7 @@ internal class StatistikkSakRepoImpl(
                         "hendelse" to dto.hendelse,
                         "avsender" to dto.avsender,
                         "versjon" to dto.versjon,
+                        "behandling_aarsak" to dto.behandlingAarsak?.name,
                     ),
                 ).asUpdateAndReturnGeneratedKey,
             )
@@ -143,7 +153,8 @@ internal class StatistikkSakRepoImpl(
             funksjonellperiode_til_og_med,
             hendelse,
             avsender,
-            versjon
+            versjon,
+            behandling_aarsak
         ) values (
             :sakId,
             :saksnummer,
@@ -173,7 +184,8 @@ internal class StatistikkSakRepoImpl(
             :funksjonellPeriodeTom,
             :hendelse,
             :avsender,
-            :versjon
+            :versjon,
+            :behandling_aarsak
         )
         """.trimIndent()
     }
@@ -209,5 +221,6 @@ internal class StatistikkSakRepoImpl(
             avsender = string("avsender"),
             versjon = string("versjon"),
             hendelse = string("hendelse"),
+            behandlingAarsak = stringOrNull("behandling_aarsak")?.let { BehandlingAarsak.valueOf(it) },
         )
 }
