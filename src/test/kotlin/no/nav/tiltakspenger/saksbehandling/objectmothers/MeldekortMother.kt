@@ -451,7 +451,8 @@ interface MeldekortMother : MotherOfAllMothers {
                 clock,
             )
             .map { (meldekortBehandlinger, meldekort) ->
-                val iverksattMeldekort = meldekort.iverksettMeldekort(beslutter, clock).getOrFail()
+                val tildeltMeldekort = meldekort.taMeldekortBehandling(beslutter) as MeldekortBehandletManuelt
+                val iverksattMeldekort = tildeltMeldekort.iverksettMeldekort(beslutter, clock).getOrFail()
                 val oppdaterteBehandlinger = meldekortBehandlinger.oppdaterMeldekortbehandling(iverksattMeldekort)
                 Pair(oppdaterteBehandlinger, iverksattMeldekort)
             }
@@ -516,7 +517,8 @@ interface MeldekortMother : MotherOfAllMothers {
             clock,
         )
             .map { (meldekortBehandlinger, meldekort) ->
-                val iverksattMeldekort = meldekort.iverksettMeldekort(beslutter, clock).getOrFail()
+                val tildeltMeldekort = meldekort.taMeldekortBehandling(beslutter) as MeldekortBehandletManuelt
+                val iverksattMeldekort = tildeltMeldekort.iverksettMeldekort(beslutter, clock).getOrFail()
                 val oppdaterteBehandlinger = meldekortBehandlinger.oppdaterMeldekortbehandling(iverksattMeldekort)
                 Pair(oppdaterteBehandlinger, iverksattMeldekort)
             }.getOrFail().first

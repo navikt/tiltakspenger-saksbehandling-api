@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.UNDER_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -68,7 +69,11 @@ data class MeldekortBehandletManuelt(
                 requireNotNull(sendtTilBeslutning)
                 require(beslutter == null)
             }
-
+            UNDER_BESLUTNING -> {
+                require(iverksattTidspunkt == null)
+                requireNotNull(sendtTilBeslutning)
+                requireNotNull(beslutter)
+            }
             GODKJENT -> {
                 require(ikkeRettTilTiltakspengerTidspunkt == null)
                 requireNotNull(iverksattTidspunkt)
@@ -94,8 +99,12 @@ data class MeldekortBehandletManuelt(
         if (saksbehandler == beslutter.navIdent) {
             return KanIkkeIverksetteMeldekort.SaksbehandlerOgBeslutterKanIkkeVæreLik.left()
         }
-        require(status == KLAR_TIL_BESLUTNING)
-        require(this.beslutter == null)
+        require(status == UNDER_BESLUTNING) {
+            "Kan ikke iverksette meldekort som ikke er under beslutning"
+        }
+        require(this.beslutter == beslutter.navIdent) {
+            "Kan ikke iverksette meldekort som man ikke er beslutter for"
+        }
 
         val attesteringer = this.attesteringer.leggTil(
             Attestering(
@@ -120,14 +129,17 @@ data class MeldekortBehandletManuelt(
         beslutter: Saksbehandler,
         clock: Clock,
     ): Either<KunneIkkeUnderkjenneMeldekortBehandling, MeldekortUnderBehandling> {
-        if (this.status != KLAR_TIL_BESLUTNING) {
-            return KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErIkkeKlarTilBeslutning.left()
+        if (this.status != UNDER_BESLUTNING) {
+            return KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErIkkeUnderBeslutning.left()
         }
         if (this.saksbehandler == beslutter.navIdent) {
             return KunneIkkeUnderkjenneMeldekortBehandling.SaksbehandlerKanIkkeUnderkjenneSinEgenBehandling.left()
         }
-        if (this.beslutter != null) {
+        if (this.iverksattTidspunkt != null) {
             return KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErAlleredeBesluttet.left()
+        }
+        require(this.beslutter == beslutter.navIdent) {
+            "Kan ikke underkjenne meldekort som man ikke er beslutter for"
         }
 
         val attesteringer = this.attesteringer.leggTil(
@@ -160,18 +172,56 @@ data class MeldekortBehandletManuelt(
         ).right()
     }
 
-    // TODO: Vi må innføre en ny status UNDER_BESLUTNING der beslutter er tildelt for at det skal gi mening å overta
-    // behandlingen som er til beslutning. Kommer i egen endring.
     override fun overta(
         saksbehandler: Saksbehandler,
     ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
         return when (this.status) {
             UNDER_BEHANDLING -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status UNDER_BEHANDLING")
             KLAR_TIL_BESLUTNING -> KunneIkkeOvertaMeldekortBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
+            UNDER_BESLUTNING -> {
+                if (this.beslutter == null) {
+                    return KunneIkkeOvertaMeldekortBehandling.BehandlingenErIkkeKnyttetTilEnBeslutterForÅOverta.left()
+                }
+                if (this.saksbehandler == saksbehandler.navIdent) {
+                    return KunneIkkeOvertaMeldekortBehandling.SaksbehandlerOgBeslutterKanIkkeVæreDenSamme.left()
+                }
+                this.copy(
+                    beslutter = saksbehandler.navIdent,
+                ).right()
+            }
             GODKJENT,
             IKKE_RETT_TIL_TILTAKSPENGER,
             AUTOMATISK_BEHANDLET,
             -> KunneIkkeOvertaMeldekortBehandling.BehandlingenKanIkkeVæreGodkjentEllerIkkeRett.left()
+        }
+    }
+
+    override fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
+        return when (this.status) {
+            KLAR_TIL_BESLUTNING -> {
+                check(saksbehandler.navIdent != this.saksbehandler) {
+                    "Beslutter ($saksbehandler) kan ikke være den samme som saksbehandleren (${this.saksbehandler}"
+                }
+                check(saksbehandler.erBeslutter()) {
+                    "Saksbehandler må ha beslutterrolle. Utøvende saksbehandler: $saksbehandler"
+                }
+                require(this.beslutter == null) { "Meldekortbehandlingen har en eksisterende beslutter. For å overta meldekortbehandlingen, bruk overta() - meldekortId: ${this.id}" }
+                this.copy(
+                    beslutter = saksbehandler.navIdent,
+                    status = UNDER_BESLUTNING,
+                )
+            }
+
+            UNDER_BEHANDLING,
+            UNDER_BESLUTNING,
+            GODKJENT,
+            AUTOMATISK_BEHANDLET,
+            IKKE_RETT_TIL_TILTAKSPENGER,
+            -> {
+                throw IllegalArgumentException(
+                    "Kan ikke ta meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
+                )
+            }
         }
     }
 

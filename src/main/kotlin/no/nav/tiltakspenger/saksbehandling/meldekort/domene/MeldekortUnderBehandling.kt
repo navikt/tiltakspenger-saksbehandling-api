@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.UNDER_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -141,11 +142,16 @@ data class MeldekortUnderBehandling(
             }
 
             KLAR_TIL_BESLUTNING,
+            UNDER_BESLUTNING,
             GODKJENT,
             IKKE_RETT_TIL_TILTAKSPENGER,
             AUTOMATISK_BEHANDLET,
             -> throw IllegalStateException("Kan ikke overta meldekortbehandling med status ${this.status}")
         }
+    }
+
+    override fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
+        throw IllegalStateException("Kan ikke tildele meldekortbehandling som ikke er klar til beslutning")
     }
 
     init {

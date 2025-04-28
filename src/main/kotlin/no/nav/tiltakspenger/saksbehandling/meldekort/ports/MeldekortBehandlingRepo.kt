@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 
 interface MeldekortBehandlingRepo {
@@ -37,6 +38,20 @@ interface MeldekortBehandlingRepo {
         meldekortId: MeldekortId,
         nySaksbehandler: Saksbehandler,
         nåværendeSaksbehandler: String,
+        sessionContext: SessionContext? = null,
+    ): Boolean
+
+    fun overtaBeslutter(
+        meldekortId: MeldekortId,
+        nyBeslutter: Saksbehandler,
+        nåværendeBeslutter: String,
+        sessionContext: SessionContext? = null,
+    ): Boolean
+
+    fun taBehandlingBeslutter(
+        meldekortId: MeldekortId,
+        beslutter: Saksbehandler,
+        meldekortBehandlingStatus: MeldekortBehandlingStatus,
         sessionContext: SessionContext? = null,
     ): Boolean
 }

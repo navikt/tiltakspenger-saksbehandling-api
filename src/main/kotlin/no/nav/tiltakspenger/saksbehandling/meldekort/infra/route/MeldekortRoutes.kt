@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortS
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortBehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.OvertaMeldekortBehandlingService
 import java.time.Clock
@@ -23,6 +24,7 @@ fun Route.meldekortRoutes(
     mottaBrukerutfyltMeldekortService: MottaBrukerutfyltMeldekortService,
     underkjennMeldekortBehandlingService: UnderkjennMeldekortBehandlingService,
     overtaMeldekortBehandlingService: OvertaMeldekortBehandlingService,
+    taMeldekortBehandlingService: TaMeldekortBehandlingService,
     clock: Clock,
 ) {
     hentMeldekortRoute(sakService, auditService, tokenService, clock)
@@ -32,5 +34,6 @@ fun Route.meldekortRoutes(
     opprettMeldekortBehandlingRoute(opprettMeldekortBehandlingService, auditService, tokenService, clock)
     overtaMeldekortBehandlingRoute(tokenService, overtaMeldekortBehandlingService, auditService)
     mottaMeldekortRoutes(mottaBrukerutfyltMeldekortService)
+    taMeldekortBehandlingRoute(tokenService, auditService, taMeldekortBehandlingService)
     underkjennMeldekortBehandlingRoute(underkjennMeldekortBehandlingService, auditService, tokenService)
 }

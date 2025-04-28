@@ -21,6 +21,11 @@ internal class OpprettUtbetalingsvedtakServiceTest {
             meldekortContext.oppdaterMeldekortService.sendMeldekortTilBeslutter(
                 sak.meldekortBehandlinger[1].tilOppdaterMeldekortKommando(ObjectMother.saksbehandler()),
             )
+            meldekortContext.taMeldekortBehandlingService.taMeldekortBehandling(
+                meldekortId = sak.meldekortBehandlinger[1].id,
+                saksbehandler = ObjectMother.beslutter(),
+                correlationId = CorrelationId.generate(),
+            )
             meldekortContext.iverksettMeldekortService.iverksettMeldekort(
                 IverksettMeldekortKommando(
                     meldekortId = sak.meldekortBehandlinger[1].id,

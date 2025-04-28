@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.toDb
 import no.nav.tiltakspenger.saksbehandling.felles.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
@@ -182,6 +183,46 @@ class MeldekortBehandlingPostgresRepo(
         }
     }
 
+    override fun overtaBeslutter(
+        meldekortId: MeldekortId,
+        nyBeslutter: Saksbehandler,
+        nåværendeBeslutter: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update meldekortbehandling set beslutter = :nyBeslutter where id = :id and beslutter = :lagretBeslutter""",
+                    mapOf(
+                        "id" to meldekortId.toString(),
+                        "nyBeslutter" to nyBeslutter.navIdent,
+                        "lagretBeslutter" to nåværendeBeslutter,
+                    ),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
+    override fun taBehandlingBeslutter(
+        meldekortId: MeldekortId,
+        beslutter: Saksbehandler,
+        meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update meldekortbehandling set beslutter = :beslutter, status = :status where id = :id and beslutter is null""",
+                    mapOf(
+                        "id" to meldekortId.toString(),
+                        "beslutter" to beslutter.navIdent,
+                        "status" to meldekortBehandlingStatus.toDb(),
+                    ),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
     companion object {
         internal fun hentForMeldekortId(
             meldekortId: MeldekortId,
@@ -287,7 +328,7 @@ class MeldekortBehandlingPostgresRepo(
                     )
                 }
 
-                MeldekortBehandlingStatus.GODKJENT, MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> {
+                MeldekortBehandlingStatus.GODKJENT, MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING, MeldekortBehandlingStatus.UNDER_BESLUTNING -> {
                     MeldekortBehandletManuelt(
                         id = id,
                         sakId = sakId,

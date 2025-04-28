@@ -59,6 +59,39 @@ class OvertaMeldekortBehandlingRouteTest {
         }
     }
 
+    @Test
+    fun `beslutter kan overta meldekortbehandling`() {
+        with(TestApplicationContext()) {
+            val tac = this
+            testApplication {
+                application {
+                    jacksonSerialization()
+                    routing { routes(tac) }
+                }
+                val (sak, _, _) = this.iverksett(tac)
+                val beslutterIdent = "Z12345"
+                val meldekortBehandling = ObjectMother.meldekortBehandletManuelt(
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                    fnr = sak.fnr,
+                    beslutter = beslutterIdent,
+                    status = MeldekortBehandlingStatus.UNDER_BESLUTNING,
+                    iverksattTidspunkt = null,
+                )
+
+                tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling)
+
+                overtaMeldekortBehandling(tac, meldekortBehandling.sakId, meldekortBehandling.id, beslutterIdent, ObjectMother.saksbehandler123()).also {
+                    JSONObject(it).getString("beslutter") shouldBe "123"
+                    val oppdatertMeldekortbehandling = tac.meldekortContext.meldekortBehandlingRepo.hent(meldekortBehandling.id)
+                    oppdatertMeldekortbehandling shouldNotBe null
+                    oppdatertMeldekortbehandling?.status shouldBe MeldekortBehandlingStatus.UNDER_BESLUTNING
+                    oppdatertMeldekortbehandling?.beslutter shouldBe "123"
+                }
+            }
+        }
+    }
+
     private suspend fun ApplicationTestBuilder.overtaMeldekortBehandling(
         tac: TestApplicationContext,
         sakId: SakId,

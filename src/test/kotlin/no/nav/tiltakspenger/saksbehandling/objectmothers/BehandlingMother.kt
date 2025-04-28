@@ -577,6 +577,11 @@ suspend fun TestApplicationContext.førsteMeldekortIverksatt(
         saksbehandler = saksbehandler,
         beslutter = beslutter,
     )
+    tac.meldekortContext.taMeldekortBehandlingService.taMeldekortBehandling(
+        meldekortId = sak.meldekortBehandlinger.first().id,
+        saksbehandler = beslutter,
+        correlationId = correlationId,
+    )
     tac.meldekortContext.iverksettMeldekortService.iverksettMeldekort(
         IverksettMeldekortKommando(
             meldekortId = sak.meldekortBehandlinger.first().id,

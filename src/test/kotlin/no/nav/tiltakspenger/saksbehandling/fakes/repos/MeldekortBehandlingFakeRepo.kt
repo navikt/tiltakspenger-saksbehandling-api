@@ -7,7 +7,9 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
@@ -62,6 +64,47 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
             return true
         } else {
             throw IllegalStateException("Kan ikke endre saksbehandler for meldekort som ikke er under behandling")
+        }
+    }
+
+    override fun overtaBeslutter(
+        meldekortId: MeldekortId,
+        nyBeslutter: Saksbehandler,
+        nåværendeBeslutter: String,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val meldekortBehandling = data.get()[meldekortId]
+        require(meldekortBehandling != null && meldekortBehandling.beslutter == nåværendeBeslutter) {
+            "Meldekortbehandling med id $meldekortId finnes ikke eller har ikke beslutter $nåværendeBeslutter"
+        }
+        if (meldekortBehandling is MeldekortBehandletManuelt) {
+            data.get()[meldekortId] = meldekortBehandling.copy(
+                beslutter = nyBeslutter.navIdent,
+            )
+            return true
+        } else {
+            throw IllegalStateException("Kan ikke endre beslutter for meldekort som ikke er manuelt behandlet")
+        }
+    }
+
+    override fun taBehandlingBeslutter(
+        meldekortId: MeldekortId,
+        beslutter: Saksbehandler,
+        meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val meldekortBehandling = data.get()[meldekortId]
+        require(meldekortBehandling != null && meldekortBehandling.beslutter == null && meldekortBehandling.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING) {
+            "Meldekortbehandling med id $meldekortId finnes ikke eller har ikke status KLAR_TIL_BESLUTNING eller har allerede beslutter"
+        }
+        if (meldekortBehandling is MeldekortBehandletManuelt) {
+            data.get()[meldekortId] = meldekortBehandling.copy(
+                beslutter = beslutter.navIdent,
+                status = MeldekortBehandlingStatus.UNDER_BESLUTNING,
+            )
+            return true
+        } else {
+            throw IllegalStateException("Kan ikke endre beslutter for meldekort som ikke er manuelt behandlet")
         }
     }
 
