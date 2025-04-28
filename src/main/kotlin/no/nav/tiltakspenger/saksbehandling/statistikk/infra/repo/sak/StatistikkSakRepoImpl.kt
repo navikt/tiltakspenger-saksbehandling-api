@@ -18,7 +18,9 @@ import org.intellij.lang.annotations.Language
 /**
  * Denne tabellen brukes for å dele data med DVH. Se DTO-klassen for lenke til grensesnitt.
  * DVH fanger kun opp nye rader i tabellen, ikke oppdateringer, så endringer som man ønsker at DVH skal få med seg må
- * komme som nye rader.
+ * komme som nye rader. DVH bruker kombinasjonen behandlingid + endrettidspunkt for å identifisere en hendelse, så
+ * ved f.eks. teknisk patching av data må man inserte en ny rad med samme behandlingid + endrettidspunkt og endringene
+ * man ønsker å gjøre pr rad som skal patches.
  */
 internal class StatistikkSakRepoImpl(
     private val sessionFactory: PostgresSessionFactory,
