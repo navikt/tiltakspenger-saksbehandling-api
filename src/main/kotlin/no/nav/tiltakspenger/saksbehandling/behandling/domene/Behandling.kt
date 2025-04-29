@@ -292,7 +292,7 @@ data class Behandling(
                 require(this.saksbehandler == saksbehandler.navIdent) {
                     return KanIkkeLeggeTilbakeBehandling.MåVæreSaksbehandlerEllerBeslutterForBehandlingen.left()
                 }
-                require(this.beslutter == null) { "Beslutter skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
+                require(this.beslutter == null) { "Beslutter skal ikke kunne være satt på behandlingen dersom den er UNDER_BEHANDLING" }
 
                 this.copy(saksbehandler = null, status = KLAR_TIL_BEHANDLING).right()
             }
