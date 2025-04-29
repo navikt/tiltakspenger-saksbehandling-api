@@ -197,6 +197,46 @@ class BehandlingPostgresRepo(
         }
     }
 
+    override fun leggTilbakeBehandlingSaksbehandler(
+        behandlingId: BehandlingId,
+        nåværendeSaksbehandler: Saksbehandler,
+        behandlingsstatus: Behandlingsstatus,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update behandling set saksbehandler = null, status = :status where id = :id and saksbehandler = :lagretSaksbehandler""",
+                    mapOf(
+                        "id" to behandlingId.toString(),
+                        "lagretSaksbehandler" to nåværendeSaksbehandler.navIdent,
+                        "status" to behandlingsstatus.toDb(),
+                    ),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
+    override fun leggTilbakeBehandlingBeslutter(
+        behandlingId: BehandlingId,
+        nåværendeBeslutter: Saksbehandler,
+        behandlingsstatus: Behandlingsstatus,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update behandling set beslutter = null, status = :status where id = :id and beslutter = :lagretBeslutter""",
+                    mapOf(
+                        "id" to behandlingId.toString(),
+                        "lagretBeslutter" to nåværendeBeslutter.navIdent,
+                        "status" to behandlingsstatus.toDb(),
+                    ),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
     companion object {
         fun hentOrNull(
             behandlingId: BehandlingId,

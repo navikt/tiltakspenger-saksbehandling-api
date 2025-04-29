@@ -282,6 +282,44 @@ data class Behandling(
         }
     }
 
+    fun leggTilbakeBehandling(saksbehandler: Saksbehandler): Either<KanIkkeLeggeTilbakeBehandling, Behandling> {
+        return when (this.status) {
+            KLAR_TIL_BEHANDLING -> throw IllegalStateException("Kan ikke legge tilbake behandling som ikke er påbegynt")
+            UNDER_BEHANDLING -> {
+                check(saksbehandler.erSaksbehandler()) {
+                    "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
+                }
+                require(this.saksbehandler == saksbehandler.navIdent) {
+                    return KanIkkeLeggeTilbakeBehandling.MåVæreSaksbehandlerEllerBeslutterForBehandlingen.left()
+                }
+                require(this.beslutter == null) { "Beslutter skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
+
+                this.copy(saksbehandler = null, status = KLAR_TIL_BEHANDLING).right()
+            }
+
+            KLAR_TIL_BESLUTNING -> throw IllegalStateException("Kan ikke legge tilbake behandling som er klar til beslutning")
+            UNDER_BESLUTNING -> {
+                check(saksbehandler.erBeslutter()) {
+                    "Saksbehandler må ha beslutterrolle. Utøvende saksbehandler: $saksbehandler"
+                }
+                require(this.beslutter == saksbehandler.navIdent) {
+                    return KanIkkeLeggeTilbakeBehandling.MåVæreSaksbehandlerEllerBeslutterForBehandlingen.left()
+                }
+                this.copy(beslutter = null, status = KLAR_TIL_BESLUTNING).right()
+            }
+
+            VEDTATT -> {
+                throw IllegalArgumentException(
+                    "Kan ikke legge tilbake behandling når behandlingen er VEDTATT. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
+                )
+            }
+
+            AVBRUTT -> throw IllegalArgumentException(
+                "Kan ikke legge tilbake behandling når behandlingen er AVBRUTT. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
+            )
+        }
+    }
+
     fun tilBeslutning(
         kommando: SendSøknadsbehandlingTilBeslutningKommando,
         clock: Clock,
