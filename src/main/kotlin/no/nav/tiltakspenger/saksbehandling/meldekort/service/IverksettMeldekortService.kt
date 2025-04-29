@@ -6,6 +6,7 @@ import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
@@ -20,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeIverksetteMel
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -33,6 +35,7 @@ class IverksettMeldekortService(
     val sakService: SakService,
     val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     val meldeperiodeRepo: MeldeperiodeRepo,
+    val brukersMeldekortRepo: BrukersMeldekortRepo,
     val sessionFactory: SessionFactory,
     private val tilgangsstyringService: TilgangsstyringService,
     private val personService: PersonService,
@@ -86,10 +89,7 @@ class IverksettMeldekortService(
                 utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
                 statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             }
-            meldekortBehandling.brukersMeldekort?.oppgaveId?.let { id ->
-                log.info { "Ferdigstiller oppgave med id $id for meldekort med meldekortbehandling-id ${meldekortBehandling.id}" }
-                oppgaveGateway.ferdigstillOppgave(id)
-            }
+            ferdigstillOppgave(meldeperiode.id, meldekortId)
             sak.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
                 .leggTilUtbetalingsvedtak(utbetalingsvedtak) to utbetalingsvedtak
         }
@@ -111,5 +111,16 @@ class IverksettMeldekortService(
             }.onRight {
                 if (!it) throw TilgangException("Saksbehandler ${saksbehandler.navIdent} har ikke tilgang til person")
             }
+    }
+
+    private suspend fun ferdigstillOppgave(
+        meldeperiodeId: MeldeperiodeId,
+        meldekortId: MeldekortId,
+    ) {
+        val brukersMeldekort = brukersMeldekortRepo.hentForMeldeperiodeId(meldeperiodeId)
+        brukersMeldekort?.oppgaveId?.let { id ->
+            log.info { "Ferdigstiller oppgave med id $id for meldekort med meldekortId $meldekortId" }
+            oppgaveGateway.ferdigstillOppgave(id)
+        }
     }
 }
