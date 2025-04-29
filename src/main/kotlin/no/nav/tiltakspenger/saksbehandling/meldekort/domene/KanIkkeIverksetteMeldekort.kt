@@ -7,4 +7,6 @@ sealed interface KanIkkeIverksetteMeldekort {
     data class MåVæreBeslutter(val roller: Saksbehandlerroller) : KanIkkeIverksetteMeldekort
     data object SaksbehandlerOgBeslutterKanIkkeVæreLik : KanIkkeIverksetteMeldekort
     data class KunneIkkeHenteSak(val underliggende: KunneIkkeHenteSakForSakId) : KanIkkeIverksetteMeldekort
+    data object BehandlingenErIkkeUnderBeslutning : KanIkkeIverksetteMeldekort
+    data object MåVæreBeslutterForMeldekortet : KanIkkeIverksetteMeldekort
 }

@@ -100,10 +100,10 @@ data class MeldekortBehandletManuelt(
             return KanIkkeIverksetteMeldekort.SaksbehandlerOgBeslutterKanIkkeVæreLik.left()
         }
         require(status == UNDER_BESLUTNING) {
-            "Kan ikke iverksette meldekort som ikke er under beslutning"
+            return KanIkkeIverksetteMeldekort.BehandlingenErIkkeUnderBeslutning.left()
         }
         require(this.beslutter == beslutter.navIdent) {
-            "Kan ikke iverksette meldekort som man ikke er beslutter for"
+            return KanIkkeIverksetteMeldekort.MåVæreBeslutterForMeldekortet.left()
         }
 
         val attesteringer = this.attesteringer.leggTil(
@@ -139,7 +139,7 @@ data class MeldekortBehandletManuelt(
             return KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErAlleredeBesluttet.left()
         }
         require(this.beslutter == beslutter.navIdent) {
-            "Kan ikke underkjenne meldekort som man ikke er beslutter for"
+            return KunneIkkeUnderkjenneMeldekortBehandling.MåVæreBeslutterForMeldekortet.left()
         }
 
         val attesteringer = this.attesteringer.leggTil(

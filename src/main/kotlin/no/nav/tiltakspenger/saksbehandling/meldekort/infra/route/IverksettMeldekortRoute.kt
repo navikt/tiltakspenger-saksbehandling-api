@@ -68,6 +68,15 @@ fun Route.iverksettMeldekortRoute(
                                         ikkeTilgang("Må ha en av rollene ${u.kreverEnAvRollene} for å hente sak"),
                                     )
                                 }
+
+                                KanIkkeIverksetteMeldekort.BehandlingenErIkkeUnderBeslutning -> call.respond400BadRequest(
+                                    melding = "Du kan ikke godkjenne meldekort som ikke er under beslutning",
+                                    kode = "meldekort_må_være_under_beslutning",
+                                )
+                                KanIkkeIverksetteMeldekort.MåVæreBeslutterForMeldekortet -> call.respond400BadRequest(
+                                    melding = "Du kan ikke godkjenne meldekortet da du ikke er beslutter for denne meldekortbehandlingen",
+                                    kode = "må_være_beslutter_for_meldekortet",
+                                )
                             }
                         },
                         { call.respond(HttpStatusCode.OK, it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock)) },

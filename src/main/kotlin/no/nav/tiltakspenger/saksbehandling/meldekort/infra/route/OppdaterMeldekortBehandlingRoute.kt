@@ -70,7 +70,7 @@ fun Route.oppdaterMeldekortBehandlingRoute(
 
                                     is KanIkkeOppdatereMeldekort.MåVæreSaksbehandlerForMeldekortet -> {
                                         call.respond400BadRequest(
-                                            melding = "Kan ikke oppdatere meldekort. Må ha tatt saksbehandler-rollen for meldekort-behandlingen.",
+                                            melding = "Du kan ikke oppdatere meldekortet da du ikke er saksbehandler for denne meldekortbehandlingen",
                                             kode = "må_være_saksbehandler_for_meldekortet",
                                         )
                                     }
