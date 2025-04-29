@@ -112,9 +112,9 @@ class MeldekortberegningFraBrukersMeldekort {
             ).flatten(),
 
             listOf(
-                List(5) { InnmeldtStatus.DELTATT },
+                List(5) { InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
-                List(5) { InnmeldtStatus.DELTATT },
+                List(5) { InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
             ).flatten(),
 
@@ -135,7 +135,7 @@ class MeldekortberegningFraBrukersMeldekort {
             listOf(
                 List(5) { InnmeldtStatus.FRAVÆR_SYK },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
-                List(5) { InnmeldtStatus.DELTATT },
+                List(5) { InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
             ).flatten(),
 
@@ -156,7 +156,7 @@ class MeldekortberegningFraBrukersMeldekort {
             listOf(
                 List(5) { InnmeldtStatus.FRAVÆR_SYKT_BARN },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
-                List(5) { InnmeldtStatus.DELTATT },
+                List(5) { InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
             ).flatten(),
 
@@ -175,9 +175,9 @@ class MeldekortberegningFraBrukersMeldekort {
             ).flatten(),
 
             listOf(
-                List(5) { InnmeldtStatus.FRAVÆR_ANNET },
+                List(5) { InnmeldtStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
-                List(5) { InnmeldtStatus.DELTATT },
+                List(5) { InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
             ).flatten(),
 
@@ -196,9 +196,9 @@ class MeldekortberegningFraBrukersMeldekort {
             ).flatten(),
 
             listOf(
-                List(5) { InnmeldtStatus.IKKE_DELTATT },
+                List(5) { InnmeldtStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
-                List(5) { InnmeldtStatus.DELTATT },
+                List(5) { InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
             ).flatten(),
 
@@ -219,9 +219,9 @@ class MeldekortberegningFraBrukersMeldekort {
 
             listOf(
                 List(3) { InnmeldtStatus.IKKE_REGISTRERT },
-                List(2) { InnmeldtStatus.IKKE_DELTATT },
+                List(2) { InnmeldtStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
-                List(5) { InnmeldtStatus.DELTATT },
+                List(5) { InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
                 List(2) { InnmeldtStatus.IKKE_REGISTRERT },
             ).flatten(),
 

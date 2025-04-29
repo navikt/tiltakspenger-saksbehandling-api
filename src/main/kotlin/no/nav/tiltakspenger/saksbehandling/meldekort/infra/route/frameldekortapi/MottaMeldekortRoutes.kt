@@ -63,11 +63,11 @@ private fun BrukerutfyltMeldekortDTO.toDomain(): LagreBrukersMeldekortKommando {
             BrukersMeldekortDag(
                 dato = it.key,
                 status = when (it.value) {
-                    BrukerutfyltMeldekortDTO.Status.DELTATT -> InnmeldtStatus.DELTATT
+                    BrukerutfyltMeldekortDTO.Status.DELTATT -> InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET
                     BrukerutfyltMeldekortDTO.Status.FRAVÆR_SYK -> InnmeldtStatus.FRAVÆR_SYK
                     BrukerutfyltMeldekortDTO.Status.FRAVÆR_SYKT_BARN -> InnmeldtStatus.FRAVÆR_SYKT_BARN
-                    BrukerutfyltMeldekortDTO.Status.FRAVÆR_ANNET -> InnmeldtStatus.FRAVÆR_ANNET
-                    BrukerutfyltMeldekortDTO.Status.IKKE_DELTATT -> InnmeldtStatus.IKKE_DELTATT
+                    BrukerutfyltMeldekortDTO.Status.FRAVÆR_ANNET -> InnmeldtStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV
+                    BrukerutfyltMeldekortDTO.Status.IKKE_DELTATT -> InnmeldtStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
                     BrukerutfyltMeldekortDTO.Status.IKKE_REGISTRERT -> InnmeldtStatus.IKKE_REGISTRERT
                 },
             )

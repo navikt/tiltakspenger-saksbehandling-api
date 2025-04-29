@@ -7,12 +7,13 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import java.time.LocalDate
 
 enum class InnmeldtStatusDb {
-    DELTATT,
+    DELTATT_UTEN_LØNN_I_TILTAKET,
+    DELTATT_MED_LØNN_I_TILTAKET,
     FRAVÆR_SYK,
     FRAVÆR_SYKT_BARN,
-    FRAVÆR_ANNET,
+    FRAVÆR_VELFERD_GODKJENT_AV_NAV,
+    FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV,
     IKKE_REGISTRERT,
-    IKKE_DELTATT,
 }
 
 data class BrukersMeldekortDagDbJson(
@@ -25,12 +26,13 @@ fun List<BrukersMeldekort.BrukersMeldekortDag>.toDbJson(): String {
         BrukersMeldekortDagDbJson(
             dato = it.dato,
             status = when (it.status) {
-                InnmeldtStatus.DELTATT -> InnmeldtStatusDb.DELTATT
+                InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> InnmeldtStatusDb.DELTATT_UTEN_LØNN_I_TILTAKET
+                InnmeldtStatus.DELTATT_MED_LØNN_I_TILTAKET -> InnmeldtStatusDb.DELTATT_MED_LØNN_I_TILTAKET
                 InnmeldtStatus.FRAVÆR_SYK -> InnmeldtStatusDb.FRAVÆR_SYK
                 InnmeldtStatus.FRAVÆR_SYKT_BARN -> InnmeldtStatusDb.FRAVÆR_SYKT_BARN
-                InnmeldtStatus.FRAVÆR_ANNET -> InnmeldtStatusDb.FRAVÆR_ANNET
+                InnmeldtStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV -> InnmeldtStatusDb.FRAVÆR_VELFERD_GODKJENT_AV_NAV
+                InnmeldtStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> InnmeldtStatusDb.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
                 InnmeldtStatus.IKKE_REGISTRERT -> InnmeldtStatusDb.IKKE_REGISTRERT
-                InnmeldtStatus.IKKE_DELTATT -> InnmeldtStatusDb.IKKE_DELTATT
             },
         )
     }.let { serialize(it) }
@@ -41,12 +43,13 @@ fun String.toMeldekortDager(): List<BrukersMeldekort.BrukersMeldekortDag> {
         BrukersMeldekort.BrukersMeldekortDag(
             dato = it.dato,
             status = when (it.status) {
-                InnmeldtStatusDb.DELTATT -> InnmeldtStatus.DELTATT
+                InnmeldtStatusDb.DELTATT_UTEN_LØNN_I_TILTAKET -> InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET
+                InnmeldtStatusDb.DELTATT_MED_LØNN_I_TILTAKET -> InnmeldtStatus.DELTATT_MED_LØNN_I_TILTAKET
                 InnmeldtStatusDb.FRAVÆR_SYK -> InnmeldtStatus.FRAVÆR_SYK
                 InnmeldtStatusDb.FRAVÆR_SYKT_BARN -> InnmeldtStatus.FRAVÆR_SYKT_BARN
-                InnmeldtStatusDb.FRAVÆR_ANNET -> InnmeldtStatus.FRAVÆR_ANNET
+                InnmeldtStatusDb.FRAVÆR_VELFERD_GODKJENT_AV_NAV -> InnmeldtStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV
                 InnmeldtStatusDb.IKKE_REGISTRERT -> InnmeldtStatus.IKKE_REGISTRERT
-                InnmeldtStatusDb.IKKE_DELTATT -> InnmeldtStatus.IKKE_DELTATT
+                InnmeldtStatusDb.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> InnmeldtStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
             },
         )
     }

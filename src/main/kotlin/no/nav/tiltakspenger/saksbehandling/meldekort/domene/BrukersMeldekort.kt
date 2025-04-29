@@ -67,20 +67,22 @@ data class BrukersMeldekort(
 }
 
 enum class InnmeldtStatus {
-    DELTATT,
+    DELTATT_UTEN_LØNN_I_TILTAKET,
+    DELTATT_MED_LØNN_I_TILTAKET,
     FRAVÆR_SYK,
     FRAVÆR_SYKT_BARN,
-    FRAVÆR_ANNET,
+    FRAVÆR_VELFERD_GODKJENT_AV_NAV,
+    FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV,
     IKKE_REGISTRERT,
-    IKKE_DELTATT,
     ;
 
     fun tilMeldekortDagStatus(): MeldekortDagStatus = when (this) {
-        DELTATT -> MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET
+        DELTATT_UTEN_LØNN_I_TILTAKET -> MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET
+        DELTATT_MED_LØNN_I_TILTAKET -> MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET
         FRAVÆR_SYK -> MeldekortDagStatus.FRAVÆR_SYK
         FRAVÆR_SYKT_BARN -> MeldekortDagStatus.FRAVÆR_SYKT_BARN
-        FRAVÆR_ANNET -> MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV
+        FRAVÆR_VELFERD_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV
+        FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
         IKKE_REGISTRERT -> MeldekortDagStatus.IKKE_DELTATT
-        IKKE_DELTATT -> MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
     }
 }
