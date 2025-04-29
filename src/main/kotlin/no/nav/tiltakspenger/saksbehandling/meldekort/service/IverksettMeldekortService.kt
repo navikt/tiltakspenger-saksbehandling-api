@@ -66,7 +66,7 @@ class IverksettMeldekortService(
             "Meldekortet må være behandlet for å iverksettes"
         }
         require(meldekortBehandling.beslutter != null && meldekortBehandling.status == MeldekortBehandlingStatus.UNDER_BESLUTNING) {
-            "Meldekort $meldekortId er allerede iverksatt"
+            return KanIkkeIverksetteMeldekort.BehandlingenErIkkeUnderBeslutning.left()
         }
 
         val meldeperiode = meldekortBehandling.meldeperiode

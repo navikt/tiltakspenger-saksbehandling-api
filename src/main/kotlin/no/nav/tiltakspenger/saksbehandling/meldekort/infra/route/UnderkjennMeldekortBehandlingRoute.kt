@@ -88,4 +88,9 @@ internal fun KunneIkkeUnderkjenneMeldekortBehandling.toErrorJson(): Pair<HttpSta
         "Du kan ikke underkjenne din egen behandling",
         "kan_ikke_underkjenne_egen_behandling",
     )
+
+    KunneIkkeUnderkjenneMeldekortBehandling.MåVæreBeslutterForMeldekortet -> HttpStatusCode.BadRequest to ErrorJson(
+        "Du kan ikke underkjenne meldekortet da du ikke er beslutter for denne meldekortbehandlingen",
+        "må_være_beslutter_for_meldekortet",
+    )
 }

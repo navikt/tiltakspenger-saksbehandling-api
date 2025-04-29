@@ -68,7 +68,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
 
                                     is KanIkkeOppdatereMeldekort.MåVæreSaksbehandlerForMeldekortet -> {
                                         call.respond400BadRequest(
-                                            melding = "Kan ikke sende meldekort til beslutter. Må ha tatt saksbehandler-rollen for meldekort-behandlingen.",
+                                            melding = "Du kan ikke sende meldekortet til beslutter da du ikke er saksbehandler for denne meldekortbehandlingen",
                                             kode = "må_være_saksbehandler_for_meldekortet",
                                         )
                                     }
