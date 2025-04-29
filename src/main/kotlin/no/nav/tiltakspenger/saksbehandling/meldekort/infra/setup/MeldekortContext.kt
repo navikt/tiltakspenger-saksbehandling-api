@@ -68,6 +68,7 @@ open class MeldekortContext(
         IverksettMeldekortService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             meldeperiodeRepo = meldeperiodeRepo,
+            brukersMeldekortRepo = brukersMeldekortRepo,
             sessionFactory = sessionFactory,
             sakService = sakService,
             utbetalingsvedtakRepo = utbetalingsvedtakRepo,
