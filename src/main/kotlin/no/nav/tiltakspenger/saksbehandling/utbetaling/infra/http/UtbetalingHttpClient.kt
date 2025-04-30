@@ -11,9 +11,14 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
@@ -150,6 +155,69 @@ class UtbetalingHttpClient(
                 log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ukjent feil ved henting av utbetalingsstatus. Se sikkerlogg for mer kontekst. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
                 sikkerlogg.error(it) { "Ukjent feil ved henting av utbetalingsstatus. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
                 KunneIkkeHenteUtbetalingsstatus
+            }.flatten()
+        }
+    }
+
+    /**
+     * Logger alle feil(lefts), så det trengs ikke gjøres av service/domenet.
+     * Nåværende versjon: https://helved-docs.intern.dev.nav.no/v2/doc/simulering
+     */
+    override suspend fun simuler(
+        behandling: MeldekortBehandling,
+        brukersNavkontor: Navkontor,
+        forrigeUtbetalingJson: String?,
+        forrigeVedtakId: VedtakId?,
+    ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
+        return withContext(Dispatchers.IO) {
+            val sakId = behandling.sakId
+            val saksnummer = behandling.saksnummer
+            val behandlingId = behandling.id
+            val path = "$baseUrl/api/simulering/v2"
+            val jsonPayload = behandling.toSimuleringRequest(
+                brukersNavkontor = brukersNavkontor,
+                forrigeUtbetalingJson = forrigeUtbetalingJson,
+                forrigeVedtakId = forrigeVedtakId,
+            )
+            Either.catch {
+                val token = getToken().token
+                val request = HttpRequest
+                    .newBuilder()
+                    .uri(URI.create(path))
+                    .timeout(timeout.toJavaDuration())
+                    .header("Authorization", "Bearer $token")
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
+                    .build()
+
+                val requestHeaders = request.headers().map().filterKeys { it != "Authorization" }
+                val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
+                val httpResponseBody = httpResponse.body()
+                val status = httpResponse.statusCode()
+                val responseHeaders = httpResponse.headers().map()
+                if (status != 200) {
+                    log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved simulering. Status var ulik 200. Se sikkerlogg for mer kontekst. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
+                    sikkerlogg.error { "Feil ved simulering. Status var ulik 200. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, httpResponseBody: $httpResponseBody, path: $path, status: $status, requestHeaders: $requestHeaders, responseHeaders: $responseHeaders" }
+                    return@catch KunneIkkeSimulere.left()
+                }
+                Either.catch {
+                    SimuleringMedMetadata(
+                        httpResponseBody.toSimulering(
+                            validerSaksnummer = saksnummer,
+                            validerFnr = behandling.fnr,
+                        ),
+                        httpResponseBody,
+                    ).right()
+                }.getOrElse {
+                    log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved deserialisering av simulering. Se sikkerlogg for mer kontekst. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
+                    sikkerlogg.error(it) { "Feil ved deserialisering av simulering. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, jsonResponse: $httpResponseBody, path: $path, status: $status" }
+                    KunneIkkeSimulere.left()
+                }
+            }.mapLeft {
+                log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ukjent feil ved simulering. Se sikkerlogg for mer kontekst. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
+                sikkerlogg.error(it) { "Ukjent feil ved simulering. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
+                KunneIkkeSimulere
             }.flatten()
         }
     }

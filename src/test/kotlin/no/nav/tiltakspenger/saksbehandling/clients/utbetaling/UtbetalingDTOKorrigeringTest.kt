@@ -34,11 +34,13 @@ internal class UtbetalingDTOKorrigeringTest {
         opprettet: LocalDateTime,
         dager: NonEmptyList<MeldeperiodeBeregningDag>,
     ) = ObjectMother.utbetalingsvedtak(
+        sakId = sakId,
         fnr = fnr,
         saksnummer = saksnummer,
         id = id,
         opprettet = opprettet,
         meldekortBehandling = ObjectMother.meldekortBehandletManuelt(
+            sakId = sakId,
             id = meldekortId,
             periode = periode,
             meldekortperiodeBeregning = ObjectMother.meldekortBeregning(
@@ -46,6 +48,8 @@ internal class UtbetalingDTOKorrigeringTest {
                 meldekortId = meldekortId,
                 beregningDager = dager,
             ),
+            fnr = fnr,
+            saksnummer = saksnummer,
         ),
     )
 

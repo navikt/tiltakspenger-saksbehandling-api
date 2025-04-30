@@ -18,6 +18,7 @@ import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
 import no.nav.utsjekk.kontrakter.iverksett.StønadsdataTiltakspengerV2Dto
 import no.nav.utsjekk.kontrakter.iverksett.UtbetalingV2Dto
 import no.nav.utsjekk.kontrakter.iverksett.VedtaksdetaljerV2Dto
+import java.time.LocalDateTime
 import kotlin.collections.fold
 
 /**
@@ -26,37 +27,44 @@ import kotlin.collections.fold
 fun Utbetalingsvedtak.toDTO(
     forrigeUtbetalingJson: String?,
 ): String {
-    val vedtak: Utbetalingsvedtak = this
+    return this.meldekortbehandling.toDTO(
+        forrigeUtbetalingJson = forrigeUtbetalingJson,
+        brukersNavkontor = brukerNavkontor,
+        behandlingId = id.uuidPart(),
+        opprettet = opprettet,
+        forrigeIverksetting = forrigeUtbetalingsvedtakId?.let { ForrigeIverksettingV2Dto(behandlingId = it.uuidPart()) },
+        saksbehandler = saksbehandler,
+        beslutter = beslutter,
+    )
+}
 
-    val utbetalingerStønad = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = false)
-    val utbetalingerBarnetillegg = meldekortbehandling.toUtbetalingDto(vedtak.brukerNavkontor, barnetillegg = true)
-
-    val nyeOgOppdaterteUtbetalinger = utbetalingerStønad.plus(utbetalingerBarnetillegg)
-
-    val tidligereUtbetalinger = forrigeUtbetalingJson
-        ?.let { deserialize<IverksettV2Dto>(it) }
-        ?.hentIkkeOppdaterteUtbetalinger(meldekortbehandling.beregning) ?: emptyList()
-
-    val utbetalinger = tidligereUtbetalinger.plus(nyeOgOppdaterteUtbetalinger).sortedBy { it.fraOgMedDato }
-
-    utbetalinger.valider()
-
+private fun MeldekortBehandling.toDTO(
+    forrigeUtbetalingJson: String?,
+    brukersNavkontor: Navkontor,
+    behandlingId: String,
+    opprettet: LocalDateTime,
+    forrigeIverksetting: ForrigeIverksettingV2Dto?,
+    saksbehandler: String,
+    beslutter: String,
+): String {
     return IverksettV2Dto(
-        sakId = vedtak.saksnummer.toString(),
+        sakId = saksnummer.toString(),
         // Brukes som dedupliseringsnøkkel av helved dersom iverksettingId er null.
-        behandlingId = vedtak.id.uuidPart(),
+        behandlingId = behandlingId,
         // Dersom en vedtaksløsning har behov for å sende flere utbetalinger per behandling/vedtak, kan dette feltet brukes for å skille de. Denne blir brukt som delytelseId mot OS/UR. Se slack tråd: https://nav-it.slack.com/archives/C06SJTR2X3L/p1724136342664969
         iverksettingId = null,
-        personident = Personident(verdi = vedtak.fnr.verdi),
+        personident = Personident(verdi = fnr.verdi),
         vedtak =
         VedtaksdetaljerV2Dto(
-            vedtakstidspunkt = vedtak.opprettet,
-            saksbehandlerId = vedtak.saksbehandler,
-            beslutterId = vedtak.beslutter,
-            utbetalinger = utbetalinger,
+            vedtakstidspunkt = opprettet,
+            saksbehandlerId = saksbehandler,
+            beslutterId = beslutter,
+            utbetalinger = toUtbetalinger(
+                brukersNavkontor = brukersNavkontor,
+                forrigeUtbetalingJson = forrigeUtbetalingJson,
+            ),
         ),
-        forrigeIverksetting =
-        vedtak.forrigeUtbetalingsvedtakId?.let { ForrigeIverksettingV2Dto(behandlingId = it.uuidPart()) },
+        forrigeIverksetting = forrigeIverksetting,
     ).let { serialize(it) }
 }
 
@@ -113,11 +121,33 @@ private fun List<MeldeperiodeBeregningDag>.toUtbetalingDto(
     }
 }
 
-private fun MeldekortBehandling.Behandlet.toUtbetalingDto(
+/**
+ * Brukes både av simulering og iverksetting.
+ */
+internal fun MeldekortBehandling.toUtbetalinger(
+    brukersNavkontor: Navkontor,
+    forrigeUtbetalingJson: String?,
+): List<UtbetalingV2Dto> {
+    val utbetalingerStønad = this.toUtbetalingDto(brukersNavkontor, barnetillegg = false)
+    val utbetalingerBarnetillegg = this.toUtbetalingDto(brukersNavkontor, barnetillegg = true)
+
+    val nyeOgOppdaterteUtbetalinger = utbetalingerStønad.plus(utbetalingerBarnetillegg)
+
+    val tidligereUtbetalinger = forrigeUtbetalingJson
+        ?.let { deserialize<IverksettV2Dto>(it) }
+        ?.hentIkkeOppdaterteUtbetalinger(this.beregning!!) ?: emptyList()
+
+    val utbetalinger = tidligereUtbetalinger.plus(nyeOgOppdaterteUtbetalinger).sortedBy { it.fraOgMedDato }
+
+    utbetalinger.valider()
+    return utbetalinger
+}
+
+private fun MeldekortBehandling.toUtbetalingDto(
     brukersNavKontor: Navkontor,
     barnetillegg: Boolean,
 ): List<UtbetalingV2Dto> {
-    return this.beregning.beregninger.map {
+    return this.beregning!!.beregninger.map {
         it.dager.toUtbetalingDto(
             brukersNavKontor,
             barnetillegg,

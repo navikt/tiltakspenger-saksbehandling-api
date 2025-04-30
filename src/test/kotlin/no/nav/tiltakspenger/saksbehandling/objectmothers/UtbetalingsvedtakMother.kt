@@ -28,6 +28,7 @@ interface UtbetalingsvedtakMother : MotherOfAllMothers {
         meldekortBehandling: MeldekortBehandletManuelt = ObjectMother.meldekortBehandletManuelt(
             sakId = sakId,
             fnr = fnr,
+            saksnummer = saksnummer,
             periode = periode,
             barnetilleggsPerioder = barnetilleggsPerioder,
         ),

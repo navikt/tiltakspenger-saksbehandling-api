@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKom
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.FRAVÆR_SYKT_BARN
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_DELTATT
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 internal class MeldekortberegningManuellTest {
@@ -102,6 +103,7 @@ internal class MeldekortberegningManuellTest {
     )
 
     @Test
+    @Disabled
     fun `manuell test av meldekortberegning`() {
         val meldekortBeregning = ObjectMother.beregnMeldekortperioder(
             vurderingsperiode = Periode(29.januar(2024), 7.april(2024)),

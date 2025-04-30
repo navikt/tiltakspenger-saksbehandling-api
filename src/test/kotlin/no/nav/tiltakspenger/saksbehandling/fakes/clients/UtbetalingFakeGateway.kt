@@ -7,7 +7,11 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
@@ -33,6 +37,15 @@ class UtbetalingFakeGateway : UtbetalingGateway {
         utbetaling: UtbetalingDetSkalHentesStatusFor,
     ): Either<KunneIkkeHenteUtbetalingsstatus, Utbetalingsstatus> {
         return Utbetalingsstatus.Ok.right()
+    }
+
+    override suspend fun simuler(
+        behandling: MeldekortBehandling,
+        brukersNavkontor: Navkontor,
+        forrigeUtbetalingJson: String?,
+        forrigeVedtakId: VedtakId?,
+    ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
+        TODO("Not yet implemented")
     }
 
     data class Utbetaling(

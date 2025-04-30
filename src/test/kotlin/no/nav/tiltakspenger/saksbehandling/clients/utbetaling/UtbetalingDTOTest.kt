@@ -100,7 +100,6 @@ internal class UtbetalingDTOTest {
             }
         }
         val actual = utbetalingsvedtak.toDTO(null)
-        println(actual)
         actual.shouldEqualJson(
             """
             {
@@ -195,7 +194,6 @@ internal class UtbetalingDTOTest {
             }
         }
         val actual = utbetalingsvedtak.toDTO(null)
-        println(actual)
         actual.shouldEqualJson(
             """
             {
@@ -293,7 +291,6 @@ internal class UtbetalingDTOTest {
             ),
         )
         val actual = utbetalingsvedtak.toDTO(null)
-        println(actual)
         actual.shouldEqualJson(
             """
             {
@@ -395,7 +392,6 @@ internal class UtbetalingDTOTest {
             ),
         )
         val actual = utbetalingsvedtak.toDTO(null)
-        println(actual)
         actual.shouldEqualJson(
             """
             {
@@ -501,7 +497,6 @@ internal class UtbetalingDTOTest {
             ),
         )
         val actual = utbetalingsvedtak.toDTO(null)
-        println(actual)
         actual.shouldEqualJson(
             """
             {
