@@ -107,6 +107,8 @@ sealed interface MeldekortBehandling {
 
     fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling
 
+    fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): Either<KanIkkeLeggeTilbakeMeldekortBehandling, MeldekortBehandling>
+
     sealed interface Behandlet : MeldekortBehandling {
         override val beregning: MeldekortBeregning
         override val beløpTotal: Int get() = beregning.beregnTotaltBeløp()

@@ -1,0 +1,63 @@
+package no.nav.tiltakspenger.saksbehandling.meldekort.service
+
+import arrow.core.Either
+import arrow.core.left
+import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeLeggeTilbakeMeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
+
+class LeggTilbakeMeldekortBehandlingService(
+    private val tilgangsstyringService: TilgangsstyringService,
+    private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
+) {
+    val logger = KotlinLogging.logger { }
+
+    suspend fun leggTilbakeMeldekortBehandling(
+        meldekortId: MeldekortId,
+        saksbehandler: Saksbehandler,
+        correlationId: CorrelationId,
+    ): Either<KanIkkeLeggeTilbakeMeldekortBehandling, MeldekortBehandling> {
+        val meldekortBehandling = meldekortBehandlingRepo.hent(meldekortId)
+            ?: throw IllegalStateException("Fant ikke meldekortBehandling for id $meldekortId")
+        tilgangsstyringService.harTilgangTilPerson(meldekortBehandling.fnr, saksbehandler.roller, correlationId)
+            .onLeft {
+                throw TilgangException("Feil ved tilgangssjekk til person når saksbehandler/beslutter legger tilbake meldekortbehandling. Feilen var $it")
+            }.onRight {
+                if (!it) throw TilgangException("Saksbehandler ${saksbehandler.navIdent} har ikke tilgang til person")
+            }
+
+        if (!saksbehandler.erSaksbehandlerEllerBeslutter()) {
+            logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å legge tilbake meldekortbehandling" }
+            return KanIkkeLeggeTilbakeMeldekortBehandling.MåVæreSaksbehandlerEllerBeslutter.left()
+        }
+
+        return meldekortBehandling.leggTilbakeMeldekortBehandling(saksbehandler).onRight {
+            when (it.status) {
+                MeldekortBehandlingStatus.UNDER_BEHANDLING -> meldekortBehandlingRepo.leggTilbakeBehandlingSaksbehandler(
+                    it.id,
+                    saksbehandler,
+                    it.status,
+                )
+
+                MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> meldekortBehandlingRepo.leggTilbakeBehandlingBeslutter(
+                    it.id,
+                    saksbehandler,
+                    it.status,
+                )
+
+                MeldekortBehandlingStatus.UNDER_BESLUTNING,
+                MeldekortBehandlingStatus.GODKJENT,
+                MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
+                MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
+                -> throw IllegalStateException("Meldekortbehandlingen er i en ugyldig status for å kunne legge tilbake")
+            }
+        }
+    }
+}

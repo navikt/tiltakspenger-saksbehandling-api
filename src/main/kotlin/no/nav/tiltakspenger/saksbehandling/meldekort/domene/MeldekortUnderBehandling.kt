@@ -181,6 +181,33 @@ data class MeldekortUnderBehandling(
         }
     }
 
+    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): Either<KanIkkeLeggeTilbakeMeldekortBehandling, MeldekortBehandling> {
+        return when (this.status) {
+            UNDER_BEHANDLING -> {
+                check(saksbehandler.erSaksbehandler()) {
+                    "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
+                }
+                require(this.saksbehandler == saksbehandler.navIdent) {
+                    return KanIkkeLeggeTilbakeMeldekortBehandling.MåVæreSaksbehandlerEllerBeslutterForBehandlingen.left()
+                }
+                this.copy(
+                    saksbehandler = null,
+                ).right()
+            }
+
+            KLAR_TIL_BESLUTNING,
+            UNDER_BESLUTNING,
+            GODKJENT,
+            AUTOMATISK_BEHANDLET,
+            IKKE_RETT_TIL_TILTAKSPENGER,
+            -> {
+                throw IllegalArgumentException(
+                    "Kan ikke ta meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
+                )
+            }
+        }
+    }
+
     init {
         if (status == IKKE_RETT_TIL_TILTAKSPENGER) {
             require(dager.all { it.status == MeldekortDagStatus.SPERRET })

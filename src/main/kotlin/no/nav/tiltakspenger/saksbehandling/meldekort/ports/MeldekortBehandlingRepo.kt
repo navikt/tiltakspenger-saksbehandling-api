@@ -61,4 +61,18 @@ interface MeldekortBehandlingRepo {
         meldekortBehandlingStatus: MeldekortBehandlingStatus,
         sessionContext: SessionContext? = null,
     ): Boolean
+
+    fun leggTilbakeBehandlingSaksbehandler(
+        meldekortId: MeldekortId,
+        nåværendeSaksbehandler: Saksbehandler,
+        meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sessionContext: SessionContext? = null,
+    ): Boolean
+
+    fun leggTilbakeBehandlingBeslutter(
+        meldekortId: MeldekortId,
+        nåværendeBeslutter: Saksbehandler,
+        meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sessionContext: SessionContext? = null,
+    ): Boolean
 }

@@ -243,6 +243,46 @@ class MeldekortBehandlingPostgresRepo(
         }
     }
 
+    override fun leggTilbakeBehandlingSaksbehandler(
+        meldekortId: MeldekortId,
+        nåværendeSaksbehandler: Saksbehandler,
+        meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update meldekortbehandling set saksbehandler = null, status = :status where id = :id and saksbehandler = :lagretSaksbehandler""",
+                    mapOf(
+                        "id" to meldekortId.toString(),
+                        "lagretSaksbehandler" to nåværendeSaksbehandler.navIdent,
+                        "status" to meldekortBehandlingStatus.toDb(),
+                    ),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
+    override fun leggTilbakeBehandlingBeslutter(
+        meldekortId: MeldekortId,
+        nåværendeBeslutter: Saksbehandler,
+        meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update meldekortbehandling set beslutter = null, status = :status where id = :id and beslutter = :lagretBeslutter""",
+                    mapOf(
+                        "id" to meldekortId.toString(),
+                        "lagretBeslutter" to nåværendeBeslutter.navIdent,
+                        "status" to meldekortBehandlingStatus.toDb(),
+                    ),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
     companion object {
         internal fun hentForMeldekortId(
             meldekortId: MeldekortId,
