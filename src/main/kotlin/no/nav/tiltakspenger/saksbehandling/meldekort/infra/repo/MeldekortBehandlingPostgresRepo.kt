@@ -352,7 +352,7 @@ class MeldekortBehandlingPostgresRepo(
             val navkontor = Navkontor(kontornummer = navkontorEnhetsnummer, kontornavn = navkontorNavn)
             val attesteringer = row.string("attesteringer").toAttesteringer().toAttesteringer()
 
-            val saksbehandler = row.string("saksbehandler")
+            val saksbehandler = row.stringOrNull("saksbehandler")
 
             val dager = row.string("meldekortdager").tilMeldekortDager(maksDagerMedTiltakspengerForPeriode)
             val beregning = row.stringOrNull("beregninger")?.tilBeregninger(id)?.let {
@@ -399,7 +399,7 @@ class MeldekortBehandlingPostgresRepo(
                         ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                         brukersMeldekort = brukersMeldekort,
                         meldeperiode = meldeperiode,
-                        saksbehandler = saksbehandler,
+                        saksbehandler = saksbehandler!!,
                         type = type,
                         begrunnelse = begrunnelse,
                         attesteringer = attesteringer,
