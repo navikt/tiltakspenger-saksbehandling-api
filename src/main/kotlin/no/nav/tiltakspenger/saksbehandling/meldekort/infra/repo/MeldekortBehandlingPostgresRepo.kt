@@ -203,6 +203,26 @@ class MeldekortBehandlingPostgresRepo(
         }
     }
 
+    override fun taBehandlingSaksbehandler(
+        meldekortId: MeldekortId,
+        saksbehandler: Saksbehandler,
+        meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update meldekortbehandling set saksbehandler = :saksbehandler, status = :status where id = :id and saksbehandler is null""",
+                    mapOf(
+                        "id" to meldekortId.toString(),
+                        "saksbehandler" to saksbehandler.navIdent,
+                        "status" to meldekortBehandlingStatus.toDb(),
+                    ),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
     override fun taBehandlingBeslutter(
         meldekortId: MeldekortId,
         beslutter: Saksbehandler,
@@ -216,6 +236,46 @@ class MeldekortBehandlingPostgresRepo(
                     mapOf(
                         "id" to meldekortId.toString(),
                         "beslutter" to beslutter.navIdent,
+                        "status" to meldekortBehandlingStatus.toDb(),
+                    ),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
+    override fun leggTilbakeBehandlingSaksbehandler(
+        meldekortId: MeldekortId,
+        nåværendeSaksbehandler: Saksbehandler,
+        meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update meldekortbehandling set saksbehandler = null, status = :status where id = :id and saksbehandler = :lagretSaksbehandler""",
+                    mapOf(
+                        "id" to meldekortId.toString(),
+                        "lagretSaksbehandler" to nåværendeSaksbehandler.navIdent,
+                        "status" to meldekortBehandlingStatus.toDb(),
+                    ),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
+    override fun leggTilbakeBehandlingBeslutter(
+        meldekortId: MeldekortId,
+        nåværendeBeslutter: Saksbehandler,
+        meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update meldekortbehandling set beslutter = null, status = :status where id = :id and beslutter = :lagretBeslutter""",
+                    mapOf(
+                        "id" to meldekortId.toString(),
+                        "lagretBeslutter" to nåværendeBeslutter.navIdent,
                         "status" to meldekortBehandlingStatus.toDb(),
                     ),
                 ).asUpdate,
@@ -292,7 +352,7 @@ class MeldekortBehandlingPostgresRepo(
             val navkontor = Navkontor(kontornummer = navkontorEnhetsnummer, kontornavn = navkontorNavn)
             val attesteringer = row.string("attesteringer").toAttesteringer().toAttesteringer()
 
-            val saksbehandler = row.string("saksbehandler")
+            val saksbehandler = row.stringOrNull("saksbehandler")
 
             val dager = row.string("meldekortdager").tilMeldekortDager(maksDagerMedTiltakspengerForPeriode)
             val beregning = row.stringOrNull("beregninger")?.tilBeregninger(id)?.let {
@@ -339,7 +399,7 @@ class MeldekortBehandlingPostgresRepo(
                         ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                         brukersMeldekort = brukersMeldekort,
                         meldeperiode = meldeperiode,
-                        saksbehandler = saksbehandler,
+                        saksbehandler = saksbehandler!!,
                         type = type,
                         begrunnelse = begrunnelse,
                         attesteringer = attesteringer,

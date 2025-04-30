@@ -13,7 +13,7 @@ data class MeldekortBehandlingDTO(
     val id: String,
     val meldeperiodeId: String,
     val brukersMeldekortId: String?,
-    val saksbehandler: String,
+    val saksbehandler: String?,
     val beslutter: String?,
     val opprettet: LocalDateTime,
     val godkjentTidspunkt: LocalDateTime?,

@@ -47,7 +47,7 @@ sealed interface MeldekortBehandling {
     val fraOgMed: LocalDate get() = periode.fraOgMed
     val tilOgMed: LocalDate get() = periode.tilOgMed
 
-    val saksbehandler: String
+    val saksbehandler: String?
     val beslutter: String?
     val status: MeldekortBehandlingStatus
     val navkontor: Navkontor
@@ -106,6 +106,8 @@ sealed interface MeldekortBehandling {
     fun overta(saksbehandler: Saksbehandler): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling>
 
     fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling
+
+    fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): Either<KanIkkeLeggeTilbakeMeldekortBehandling, MeldekortBehandling>
 
     sealed interface Behandlet : MeldekortBehandling {
         override val beregning: MeldekortBeregning
