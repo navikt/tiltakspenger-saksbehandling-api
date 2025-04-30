@@ -122,6 +122,40 @@ class BehandlingFakeRepo : BehandlingRepo {
         return true
     }
 
+    override fun leggTilbakeBehandlingSaksbehandler(
+        behandlingId: BehandlingId,
+        nåværendeSaksbehandler: Saksbehandler,
+        behandlingsstatus: Behandlingsstatus,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val behandling = data.get()[behandlingId]
+        require(behandling != null && behandling.saksbehandler == nåværendeSaksbehandler.navIdent) {
+            "Behandling med id $behandlingId finnes ikke eller har ikke saksbehandler $nåværendeSaksbehandler"
+        }
+        data.get()[behandlingId] = data.get()[behandlingId]!!.copy(
+            saksbehandler = null,
+            status = behandlingsstatus,
+        )
+        return true
+    }
+
+    override fun leggTilbakeBehandlingBeslutter(
+        behandlingId: BehandlingId,
+        nåværendeBeslutter: Saksbehandler,
+        behandlingsstatus: Behandlingsstatus,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val behandling = data.get()[behandlingId]
+        require(behandling != null && behandling.beslutter == nåværendeBeslutter.navIdent) {
+            "Behandling med id $behandlingId finnes ikke eller har ikke beslutter $nåværendeBeslutter"
+        }
+        data.get()[behandlingId] = data.get()[behandlingId]!!.copy(
+            beslutter = null,
+            status = behandlingsstatus,
+        )
+        return true
+    }
+
     fun hentBehandlingerForSakId(sakId: SakId): Behandlinger {
         return Behandlinger(
             data.get().values.filter { it.sakId == sakId },

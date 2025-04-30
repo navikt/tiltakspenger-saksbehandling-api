@@ -60,4 +60,18 @@ interface BehandlingRepo {
         nåværendeBeslutter: String,
         sessionContext: SessionContext? = null,
     ): Boolean
+
+    fun leggTilbakeBehandlingSaksbehandler(
+        behandlingId: BehandlingId,
+        nåværendeSaksbehandler: Saksbehandler,
+        behandlingsstatus: Behandlingsstatus,
+        sessionContext: SessionContext? = null,
+    ): Boolean
+
+    fun leggTilbakeBehandlingBeslutter(
+        behandlingId: BehandlingId,
+        nåværendeBeslutter: Saksbehandler,
+        behandlingsstatus: Behandlingsstatus,
+        sessionContext: SessionContext? = null,
+    ): Boolean
 }

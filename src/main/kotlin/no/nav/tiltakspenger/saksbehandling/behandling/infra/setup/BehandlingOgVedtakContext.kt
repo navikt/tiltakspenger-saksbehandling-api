@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRep
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingServiceImpl
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBarnetilleggService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
@@ -190,6 +191,13 @@ open class BehandlingOgVedtakContext(
             tilgangsstyringService = tilgangsstyringService,
             behandlingRepo = behandlingRepo,
             clock = clock,
+        )
+    }
+
+    val leggTilbakeBehandlingService by lazy {
+        LeggTilbakeBehandlingService(
+            tilgangsstyringService = tilgangsstyringService,
+            behandlingRepo = behandlingRepo,
         )
     }
 }
