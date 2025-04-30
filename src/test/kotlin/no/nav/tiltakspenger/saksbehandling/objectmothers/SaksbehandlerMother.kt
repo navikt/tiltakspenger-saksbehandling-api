@@ -50,6 +50,22 @@ interface SaksbehandlerMother : MotherOfAllMothers {
         brukernavn = brukernavn,
     )
 
+    fun beslutter123(
+        klientId: String = "klientId",
+        klientnavn: String = "klientnavn",
+        @Suppress("UNCHECKED_CAST") scopes: GenerellSystembrukerroller<GenerellSystembrukerrolle> = Systembrukerroller(
+            emptySet(),
+        ) as GenerellSystembrukerroller<GenerellSystembrukerrolle>,
+    ) = Saksbehandler(
+        navIdent = "123",
+        brukernavn = "Test Testesen",
+        epost = "Test.Testesen@nav.no",
+        roller = Saksbehandlerroller(listOf(Saksbehandlerrolle.BESLUTTER)),
+        klientId = klientId,
+        klientnavn = klientnavn,
+        scopes = scopes,
+    )
+
     fun saksbehandlerMedKode6(
         navIdent: String = "Z12345",
         brukernavn: String = "Sak Behandler",

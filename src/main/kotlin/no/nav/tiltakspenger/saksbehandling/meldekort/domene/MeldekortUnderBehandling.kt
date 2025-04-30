@@ -136,6 +136,12 @@ data class MeldekortUnderBehandling(
     ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
         return when (this.status) {
             UNDER_BEHANDLING -> {
+                check(saksbehandler.erSaksbehandler()) {
+                    "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
+                }
+                if (this.saksbehandler == null) {
+                    return KunneIkkeOvertaMeldekortBehandling.BehandlingenErIkkeKnyttetTilEnSaksbehandlerForÅOverta.left()
+                }
                 this.copy(
                     saksbehandler = saksbehandler.navIdent,
                 ).right()

@@ -81,7 +81,7 @@ class OvertaMeldekortBehandlingRouteTest {
 
                 tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling)
 
-                overtaMeldekortBehandling(tac, meldekortBehandling.sakId, meldekortBehandling.id, beslutterIdent, ObjectMother.saksbehandler123()).also {
+                overtaMeldekortBehandling(tac, meldekortBehandling.sakId, meldekortBehandling.id, beslutterIdent, ObjectMother.beslutter123()).also {
                     JSONObject(it).getString("beslutter") shouldBe "123"
                     val oppdatertMeldekortbehandling = tac.meldekortContext.meldekortBehandlingRepo.hent(meldekortBehandling.id)
                     oppdatertMeldekortbehandling shouldNotBe null

@@ -249,6 +249,9 @@ data class Behandling(
         return when (this.status) {
             KLAR_TIL_BEHANDLING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBehandlingForÅOverta.left()
             UNDER_BEHANDLING -> {
+                check(saksbehandler.erSaksbehandler()) {
+                    "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
+                }
                 if (this.saksbehandler == null) {
                     return KunneIkkeOvertaBehandling.BehandlingenErIkkeKnyttetTilEnSaksbehandlerForÅOverta.left()
                 }
@@ -264,6 +267,9 @@ data class Behandling(
             KLAR_TIL_BESLUTNING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
 
             UNDER_BESLUTNING -> {
+                check(saksbehandler.erBeslutter()) {
+                    "Saksbehandler må ha beslutterrolle. Utøvende saksbehandler: $saksbehandler"
+                }
                 if (this.beslutter == null) {
                     return KunneIkkeOvertaBehandling.BehandlingenErIkkeKnyttetTilEnBeslutterForÅOverta.left()
                 }

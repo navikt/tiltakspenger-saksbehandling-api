@@ -78,6 +78,11 @@ internal fun KunneIkkeOvertaMeldekortBehandling.tilStatusOgErrorJson(): Pair<Htt
             "behandlingen_kan_ikke_være_godkjent_eller_ikke_rett",
         )
 
+        KunneIkkeOvertaMeldekortBehandling.BehandlingenErIkkeKnyttetTilEnSaksbehandlerForÅOverta -> HttpStatusCode.BadRequest to ErrorJson(
+            "Behandlingen har ikke en eksisterende saksbehandler å overta fra",
+            "behandlingen_har_ikke_eksisterende_saksbehandler",
+        )
+
         KunneIkkeOvertaMeldekortBehandling.BehandlingenErIkkeKnyttetTilEnBeslutterForÅOverta -> HttpStatusCode.BadRequest to ErrorJson(
             "Behandlingen har ikke en eksisterende beslutter å overta fra",
             "behandlingen_har_ikke_eksisterende_beslutter",
