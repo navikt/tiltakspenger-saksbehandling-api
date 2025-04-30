@@ -6,4 +6,8 @@ data class Revurderinger(
     init {
         require(revurderinger.all { it.erRevurdering })
     }
+
+    fun harÅpenRevurdering(): Boolean {
+        return revurderinger.any { !it.erAvsluttet }
+    }
 }

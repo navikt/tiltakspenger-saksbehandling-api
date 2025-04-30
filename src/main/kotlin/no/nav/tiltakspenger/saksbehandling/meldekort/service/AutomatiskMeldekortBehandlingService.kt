@@ -72,6 +72,10 @@ class AutomatiskMeldekortBehandlingService(
 
         val sak = sakRepo.hentForSakId(sakId)!!
 
+        if (sak.revurderinger.harÅpenRevurdering()) {
+            return BrukersMeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING.left()
+        }
+
         val navkontor = Either.catch {
             navkontorService.hentOppfolgingsenhet(sak.fnr)
         }.getOrElse {

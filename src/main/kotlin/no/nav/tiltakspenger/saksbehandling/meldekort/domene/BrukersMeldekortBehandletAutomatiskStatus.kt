@@ -9,4 +9,5 @@ enum class BrukersMeldekortBehandletAutomatiskStatus {
     SKAL_IKKE_BEHANDLES_AUTOMATISK,
     ALLEREDE_BEHANDLET,
     UTDATERT_MELDEPERIODE,
+    ER_UNDER_REVURDERING,
 }

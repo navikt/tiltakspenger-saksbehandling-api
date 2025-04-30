@@ -26,6 +26,7 @@ enum class BrukersMeldekortBehandletAutomatiskStatusDTO {
     SKAL_IKKE_BEHANDLES_AUTOMATISK,
     ALLEREDE_BEHANDLET,
     UTDATERT_MELDEPERIODE,
+    ER_UNDER_REVURDERING,
 }
 
 data class BrukersMeldekortDTO(
@@ -64,6 +65,7 @@ fun BrukersMeldekort.tilBehandletAutomatiskStatusDTO(): BrukersMeldekortBehandle
         BrukersMeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK -> BrukersMeldekortBehandletAutomatiskStatusDTO.SKAL_IKKE_BEHANDLES_AUTOMATISK
         BrukersMeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET -> BrukersMeldekortBehandletAutomatiskStatusDTO.ALLEREDE_BEHANDLET
         BrukersMeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE -> BrukersMeldekortBehandletAutomatiskStatusDTO.UTDATERT_MELDEPERIODE
+        BrukersMeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING -> BrukersMeldekortBehandletAutomatiskStatusDTO.ER_UNDER_REVURDERING
         null ->
             if (this.behandlesAutomatisk) {
                 BrukersMeldekortBehandletAutomatiskStatusDTO.VENTER_BEHANDLING
