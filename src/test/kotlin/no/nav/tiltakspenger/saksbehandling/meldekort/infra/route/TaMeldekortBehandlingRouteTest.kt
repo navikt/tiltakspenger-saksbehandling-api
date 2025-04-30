@@ -46,4 +46,36 @@ class TaMeldekortBehandlingRouteTest {
             }
         }
     }
+
+    @Test
+    fun `saksbehandler kan ta meldekortbehandling`() {
+        with(TestApplicationContext()) {
+            val tac = this
+            testApplication {
+                application {
+                    jacksonSerialization()
+                    routing { routes(tac) }
+                }
+                val (sak, _, _) = this.iverksett(tac)
+                val saksbehandlerIdent = "Z12345"
+                val saksbehandler = ObjectMother.saksbehandler(navIdent = saksbehandlerIdent)
+                val meldekortBehandling = ObjectMother.meldekortUnderBehandling(
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                    fnr = sak.fnr,
+                    saksbehandler = null,
+                    status = MeldekortBehandlingStatus.UNDER_BEHANDLING,
+                )
+
+                tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling)
+
+                taMeldekortBehanding(tac, meldekortBehandling.sakId, meldekortBehandling.id, saksbehandler).also {
+                    val oppdatertMeldekortbehandling = tac.meldekortContext.meldekortBehandlingRepo.hent(meldekortBehandling.id)
+                    oppdatertMeldekortbehandling shouldNotBe null
+                    oppdatertMeldekortbehandling?.status shouldBe MeldekortBehandlingStatus.UNDER_BEHANDLING
+                    oppdatertMeldekortbehandling?.saksbehandler shouldBe saksbehandlerIdent
+                }
+            }
+        }
+    }
 }

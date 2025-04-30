@@ -87,6 +87,26 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
         }
     }
 
+    override fun taBehandlingSaksbehandler(
+        meldekortId: MeldekortId,
+        saksbehandler: Saksbehandler,
+        meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        val meldekortBehandling = data.get()[meldekortId]
+        require(meldekortBehandling != null && meldekortBehandling.saksbehandler == null && meldekortBehandling.status == MeldekortBehandlingStatus.UNDER_BEHANDLING) {
+            "Meldekortbehandling med id $meldekortId finnes ikke eller har ikke status UNDER_BEHANDLING eller har allerede saksbehandler"
+        }
+        if (meldekortBehandling is MeldekortUnderBehandling) {
+            data.get()[meldekortId] = meldekortBehandling.copy(
+                saksbehandler = saksbehandler.navIdent,
+            )
+            return true
+        } else {
+            throw IllegalStateException("Kan ikke endre saksbehandler for meldekort som ikke er under behandling")
+        }
+    }
+
     override fun taBehandlingBeslutter(
         meldekortId: MeldekortId,
         beslutter: Saksbehandler,

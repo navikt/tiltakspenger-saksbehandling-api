@@ -29,23 +29,36 @@ class TaMeldekortBehandlingService(
             ?: throw IllegalStateException("Fant ikke meldekortBehandling for id $meldekortId")
         tilgangsstyringService.harTilgangTilPerson(meldekortBehandling.fnr, saksbehandler.roller, correlationId)
             .onLeft {
-                throw TilgangException("Feil ved tilgangssjekk til person når beslutter tar behandling. Feilen var $it")
+                throw TilgangException("Feil ved tilgangssjekk til person når saksbehandler/beslutter tar behandling. Feilen var $it")
             }.onRight {
                 if (!it) throw TilgangException("Saksbehandler ${saksbehandler.navIdent} har ikke tilgang til person")
             }
 
-        if (!saksbehandler.erBeslutter()) {
+        if (!saksbehandler.erSaksbehandlerEllerBeslutter()) {
             logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å ta behandling" }
             return KanIkkeTaBehandling.MåVæreSaksbehandlerEllerBeslutter.left()
         }
 
         return meldekortBehandling.taMeldekortBehandling(saksbehandler).also {
-            require(it.status == MeldekortBehandlingStatus.UNDER_BESLUTNING)
-            meldekortBehandlingRepo.taBehandlingBeslutter(
-                it.id,
-                saksbehandler,
-                it.status,
-            )
+            when (it.status) {
+                MeldekortBehandlingStatus.UNDER_BEHANDLING -> meldekortBehandlingRepo.taBehandlingSaksbehandler(
+                    it.id,
+                    saksbehandler,
+                    it.status,
+                )
+
+                MeldekortBehandlingStatus.UNDER_BESLUTNING -> meldekortBehandlingRepo.taBehandlingBeslutter(
+                    it.id,
+                    saksbehandler,
+                    it.status,
+                )
+
+                MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING,
+                MeldekortBehandlingStatus.GODKJENT,
+                MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
+                MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
+                -> throw IllegalStateException("Meldekortbehandlingen er i en ugyldig status for å kunne tildele seg selv")
+            }
         }.right()
     }
 }

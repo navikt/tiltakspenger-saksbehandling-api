@@ -203,6 +203,26 @@ class MeldekortBehandlingPostgresRepo(
         }
     }
 
+    override fun taBehandlingSaksbehandler(
+        meldekortId: MeldekortId,
+        saksbehandler: Saksbehandler,
+        meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sessionContext: SessionContext?,
+    ): Boolean {
+        return sessionFactory.withSession(sessionContext) { sx ->
+            sx.run(
+                queryOf(
+                    """update meldekortbehandling set saksbehandler = :saksbehandler, status = :status where id = :id and saksbehandler is null""",
+                    mapOf(
+                        "id" to meldekortId.toString(),
+                        "saksbehandler" to saksbehandler.navIdent,
+                        "status" to meldekortBehandlingStatus.toDb(),
+                    ),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
     override fun taBehandlingBeslutter(
         meldekortId: MeldekortId,
         beslutter: Saksbehandler,

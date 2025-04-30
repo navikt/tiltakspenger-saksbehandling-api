@@ -48,6 +48,13 @@ interface MeldekortBehandlingRepo {
         sessionContext: SessionContext? = null,
     ): Boolean
 
+    fun taBehandlingSaksbehandler(
+        meldekortId: MeldekortId,
+        saksbehandler: Saksbehandler,
+        meldekortBehandlingStatus: MeldekortBehandlingStatus,
+        sessionContext: SessionContext? = null,
+    ): Boolean
+
     fun taBehandlingBeslutter(
         meldekortId: MeldekortId,
         beslutter: Saksbehandler,

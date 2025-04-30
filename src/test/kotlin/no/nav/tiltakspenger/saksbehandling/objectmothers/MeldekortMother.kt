@@ -63,7 +63,7 @@ interface MeldekortMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         periode: Periode = Periode(6.januar(2025), 19.januar(2025)),
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
-        saksbehandler: String = "saksbehandler",
+        saksbehandler: String? = "saksbehandler",
         beslutter: String = "beslutter",
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT,

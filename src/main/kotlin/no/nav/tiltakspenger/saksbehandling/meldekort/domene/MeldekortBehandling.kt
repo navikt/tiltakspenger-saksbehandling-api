@@ -47,7 +47,7 @@ sealed interface MeldekortBehandling {
     val fraOgMed: LocalDate get() = periode.fraOgMed
     val tilOgMed: LocalDate get() = periode.tilOgMed
 
-    val saksbehandler: String
+    val saksbehandler: String?
     val beslutter: String?
     val status: MeldekortBehandlingStatus
     val navkontor: Navkontor

@@ -35,7 +35,7 @@ data class MeldekortUnderBehandling(
     override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
     override val brukersMeldekort: BrukersMeldekort?,
     override val meldeperiode: Meldeperiode,
-    override val saksbehandler: String,
+    override val saksbehandler: String?,
     override val type: MeldekortBehandlingType,
     override val begrunnelse: MeldekortBehandlingBegrunnelse?,
     override val attesteringer: Attesteringer,
@@ -157,7 +157,28 @@ data class MeldekortUnderBehandling(
     }
 
     override fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
-        throw IllegalStateException("Kan ikke tildele meldekortbehandling som ikke er klar til beslutning")
+        return when (this.status) {
+            UNDER_BEHANDLING -> {
+                check(saksbehandler.erSaksbehandler()) {
+                    "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
+                }
+                require(this.saksbehandler == null) { "Meldekortbehandlingen har en eksisterende saksbehandler. For å overta meldekortbehandlingen, bruk overta() - meldekortId: ${this.id}" }
+                this.copy(
+                    saksbehandler = saksbehandler.navIdent,
+                )
+            }
+
+            KLAR_TIL_BESLUTNING,
+            UNDER_BESLUTNING,
+            GODKJENT,
+            AUTOMATISK_BEHANDLET,
+            IKKE_RETT_TIL_TILTAKSPENGER,
+            -> {
+                throw IllegalArgumentException(
+                    "Kan ikke ta meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
+                )
+            }
+        }
     }
 
     init {
