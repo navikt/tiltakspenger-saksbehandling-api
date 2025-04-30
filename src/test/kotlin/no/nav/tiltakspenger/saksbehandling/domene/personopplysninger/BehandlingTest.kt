@@ -91,11 +91,11 @@ class BehandlingTest {
         @Test
         fun `en beslutter kan overta behandlingen`() {
             val behandling = ObjectMother.nyBehandlingUnderBeslutning()
-            val nySaksbehandler = ObjectMother.saksbehandler("nyNavIdent")
-            val overtaBehandling = behandling.overta(saksbehandler = nySaksbehandler, clock = fixedClock)
+            val nyBeslutter = ObjectMother.beslutter("nyNavIdent")
+            val overtaBehandling = behandling.overta(saksbehandler = nyBeslutter, clock = fixedClock)
 
-            behandling.beslutter.shouldNotBe(nySaksbehandler.navIdent)
-            overtaBehandling.getOrFail().beslutter shouldBe nySaksbehandler.navIdent
+            behandling.beslutter.shouldNotBe(nyBeslutter.navIdent)
+            overtaBehandling.getOrFail().beslutter shouldBe nyBeslutter.navIdent
         }
     }
 }
