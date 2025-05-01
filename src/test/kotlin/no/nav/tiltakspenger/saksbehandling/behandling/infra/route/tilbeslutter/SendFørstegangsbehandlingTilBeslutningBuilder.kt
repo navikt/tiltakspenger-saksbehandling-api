@@ -81,12 +81,13 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
                 saksbehandler = saksbehandler,
             ),
         ) {
+            //language=JSON
             setBody(
                 """
             {
                 "fritekstTilVedtaksbrev": "$fritekstTilVedtaksbrev",
                 "begrunnelseVilkårsvurdering": "$begrunnelseVilkårsvurdering",
-                "innvilgelsesperiode": {
+                "behandlingsperiode": {
                     "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
                     "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
                 },
@@ -98,6 +99,9 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
                             "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
                         }
                     }
+                ],
+                "utfall": "INNVILGELSE",
+                "avslagsgrunner": []
                 ],
                 "antallDagerPerMeldeperiode": 10
             }
@@ -134,12 +138,13 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
                 saksbehandler = saksbehandler,
             ),
         ) {
+            //language=JSON
             setBody(
                 """
             {
                 "fritekstTilVedtaksbrev": "$fritekstTilVedtaksbrev",
                 "begrunnelseVilkårsvurdering": "$begrunnelseVilkårsvurdering",
-                "innvilgelsesperiode": {
+                "behandlingsperiode": {
                     "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
                     "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
                 },
@@ -152,7 +157,10 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
                         }
                     }
                 ],
-                "antallDagerPerMeldeperiode": 10
+                "antallDagerPerMeldeperiode": 10,
+                ],
+                "utfall": "INNVILGELSE",
+                "avslagsgrunner": []
             }
                 """.trimIndent(),
             )

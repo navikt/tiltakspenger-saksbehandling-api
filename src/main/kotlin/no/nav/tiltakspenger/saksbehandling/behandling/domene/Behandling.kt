@@ -69,12 +69,22 @@ data class Behandling(
     val barnetillegg: Barnetillegg?,
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
     val avbrutt: Avbrutt?,
+    val avslagsgrunner: Set<ValgtHjemmelForAvslag>,
     val antallDagerPerMeldeperiode: Int?,
 ) {
     val erAvsluttet: Boolean by lazy { status == AVBRUTT || status == VEDTATT }
     val erUnderBehandling: Boolean = status == UNDER_BEHANDLING
     val erAvbrutt: Boolean = status == AVBRUTT
 
+    /*
+     * TODO raq: Hvordan vil vi modellere utfallet?
+     *   - dette er et felt som saksbehandler sender inn (samme med avslagsgrunner).
+     *     Skal vi legge den til som en constructor param?
+     *   - Burde vi heller gi preferanse til utfallet, og så init sjekke avslagsgrunner?
+     *     En behandling kan bli ansett som innvilget, med mindre andre årsaker fører den til avslag.
+     *   - Hvordan vil vi se på denne sammen med revurdering/stans? Er ikke dem alltid 'innvilget'?
+     */
+    val utfall = if (avslagsgrunner.isEmpty()) Behandlingsutfall.INNVILGELSE else Behandlingsutfall.AVSLAG
     val erVedtatt: Boolean = status == VEDTATT
 
     val maksDagerMedTiltakspengerForPeriode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
@@ -164,6 +174,7 @@ data class Behandling(
                 valgteTiltaksdeltakelser = null,
                 avbrutt = null,
                 antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+                avslagsgrunner = emptySet(),
             ).right()
         }
 
@@ -206,6 +217,7 @@ data class Behandling(
                 valgteTiltaksdeltakelser = null,
                 avbrutt = null,
                 antallDagerPerMeldeperiode = null,
+                avslagsgrunner = emptySet(),
             )
         }
     }
@@ -344,9 +356,10 @@ data class Behandling(
             sendtTilBeslutning = nå(clock),
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
-            virkningsperiode = kommando.innvilgelsesperiode,
+            virkningsperiode = kommando.behandlingsperiode,
             barnetillegg = kommando.barnetillegg,
             valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
+            avslagsgrunner = kommando.avslagsgrunner,
             antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
         )
     }
@@ -367,7 +380,7 @@ data class Behandling(
             begrunnelseVilkårsvurdering = kommando.begrunnelse,
             virkningsperiode = Periode(kommando.stansDato, sisteDagSomGirRett),
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            valgtHjemmelHarIkkeRettighet = kommando.toValgtHjemmelHarIkkeRettighet(),
+            valgtHjemmelHarIkkeRettighet = kommando.valgteHjemler,
         )
     }
 
@@ -534,6 +547,22 @@ data class Behandling(
         antallDagerPerMeldeperiode?.let {
             require(it in 1..14) {
                 "Antall dager per meldeperiode må være mellom 1 og 14"
+            }
+        }
+
+        if (avslagsgrunner.isNotEmpty() || utfall == Behandlingsutfall.AVSLAG) {
+            require(avslagsgrunner.isNotEmpty()) {
+                "Avslagsgrunner må være satt dersom behandlingen har utfallet AVSLAG"
+            }
+
+            require(utfall == Behandlingsutfall.AVSLAG) {
+                "Behandlingsutfall må være AVSLAG dersom det er satt avslagsgrunner"
+            }
+        }
+
+        if (utfall == Behandlingsutfall.INNVILGELSE) {
+            require(avslagsgrunner.isEmpty()) {
+                "Avslagsgrunner kan ikke være satt dersom behandlingen har utfallet INNVILGELSE"
             }
         }
 

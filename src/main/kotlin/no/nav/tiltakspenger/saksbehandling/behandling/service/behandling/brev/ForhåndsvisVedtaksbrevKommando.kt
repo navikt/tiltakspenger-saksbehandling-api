@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelType
 import java.time.LocalDate
 
 data class ForhåndsvisVedtaksbrevKommando(
@@ -18,17 +17,8 @@ data class ForhåndsvisVedtaksbrevKommando(
     val correlationId: CorrelationId,
     val saksbehandler: Saksbehandler,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev,
-    val valgteHjemler: List<String>,
+    val valgteHjemler: List<ValgtHjemmelHarIkkeRettighet>,
     val virkingsperiode: Periode?,
     val barnetillegg: Periodisering<AntallBarn>?,
     val stansDato: LocalDate?,
-) {
-    fun toValgtHjemmelHarIkkeRettighet(): List<ValgtHjemmelHarIkkeRettighet> {
-        return valgteHjemler.map { valgtHjemmel ->
-            ValgtHjemmelHarIkkeRettighet.toValgtHjemmelHarIkkeRettighet(
-                ValgtHjemmelType.STANS,
-                valgtHjemmel,
-            )
-        }
-    }
-}
+)

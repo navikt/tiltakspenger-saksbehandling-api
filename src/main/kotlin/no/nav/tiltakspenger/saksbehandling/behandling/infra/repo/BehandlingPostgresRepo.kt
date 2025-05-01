@@ -307,6 +307,8 @@ class BehandlingPostgresRepo(
                             "valgte_tiltaksdeltakelser" to behandling.valgteTiltaksdeltakelser?.toDbJson(),
                             "avbrutt" to behandling.avbrutt?.toDbJson(),
                             "antall_dager_per_meldeperiode" to behandling.antallDagerPerMeldeperiode,
+                            "avslagsgrunner" to behandling.avslagsgrunner.toDb(),
+                            "utfall" to behandling.utfall.toDb(),
                         ),
                     ).asUpdate,
                 )
@@ -350,6 +352,8 @@ class BehandlingPostgresRepo(
                         "valgte_tiltaksdeltakelser" to behandling.valgteTiltaksdeltakelser?.toDbJson(),
                         "avbrutt" to behandling.avbrutt?.toDbJson(),
                         "antall_dager_per_meldeperiode" to behandling.antallDagerPerMeldeperiode,
+                        "avslagsgrunner" to behandling.avslagsgrunner.toDb(),
+                        "utfall" to behandling.utfall.toDb(),
                     ),
                 ).asUpdate,
             )
@@ -400,6 +404,7 @@ class BehandlingPostgresRepo(
             val valgteTiltaksdeltakelser =
                 stringOrNull("valgte_tiltaksdeltakelser")?.toValgteTiltaksdeltakelser(saksopplysninger)
             val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
+            val avslagsgrunner = string("avslagsgrunner").toAvslagsgrunner()
 
             return Behandling(
                 id = id,
@@ -438,6 +443,7 @@ class BehandlingPostgresRepo(
                 valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
                 avbrutt = avbrutt,
                 antallDagerPerMeldeperiode = intOrNull("antall_dager_per_meldeperiode"),
+                avslagsgrunner = avslagsgrunner,
             )
         }
 
@@ -469,7 +475,10 @@ class BehandlingPostgresRepo(
                 barnetillegg,
                 valgte_tiltaksdeltakelser,
                 avbrutt,
-                antall_dager_per_meldeperiode
+                antall_dager_per_meldeperiode,
+                avbrutt,
+                avslagsgrunner,
+                utfall
             ) values (
                 :id,
                 :sak_id,
@@ -495,7 +504,10 @@ class BehandlingPostgresRepo(
                 to_jsonb(:barnetillegg::jsonb),
                 to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
                 to_jsonb(:avbrutt::jsonb),
-                :antall_dager_per_meldeperiode
+                :antall_dager_per_meldeperiode,
+                to_jsonb(:avbrutt::jsonb),
+                to_jsonb(:avslagsgrunner::jsonb),
+                :utfall
             )
             """.trimIndent()
 
@@ -525,7 +537,10 @@ class BehandlingPostgresRepo(
                 barneTillegg = to_jsonb(:barnetillegg::jsonb),
                 valgte_tiltaksdeltakelser = to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
                 avbrutt = to_jsonb(:avbrutt::jsonb),
-                antall_dager_per_meldeperiode = :antall_dager_per_meldeperiode
+                antall_dager_per_meldeperiode = :antall_dager_per_meldeperiode,
+                avbrutt = to_jsonb(:avbrutt::jsonb),
+                avslagsgrunner = to_jsonb(:avslagsgrunner::jsonb),
+                utfall = :utfall
             where id = :id
               and sist_endret = :sist_endret_old
             """.trimIndent()
