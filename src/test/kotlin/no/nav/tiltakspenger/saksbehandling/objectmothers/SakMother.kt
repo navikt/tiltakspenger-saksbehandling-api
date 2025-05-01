@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForAvslag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySøknad
@@ -86,6 +87,7 @@ interface SakMother {
                 registrerteTiltak.first().eksternDeltagelseId,
             ),
         ),
+        avslagsgrunner: Set<ValgtHjemmelForAvslag> = emptySet(),
         clock: Clock = fixedClock,
         antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     ): Pair<Sak, Behandling> {
@@ -113,9 +115,10 @@ interface SakMother {
                             barnetillegg = barnetillegg,
                             fritekstTilVedtaksbrev = null,
                             begrunnelseVilkårsvurdering = null,
-                            innvilgelsesperiode = virkningsperiode,
+                            behandlingsperiode = virkningsperiode,
                             tiltaksdeltakelser = valgteTiltaksdeltakelser,
                             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                            avslagsgrunner = avslagsgrunner,
                         ),
                         clock = clock,
                     )
@@ -161,11 +164,12 @@ interface SakMother {
                 barnetillegg = null,
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
-                innvilgelsesperiode = virkningsperiode,
+                behandlingsperiode = virkningsperiode,
                 tiltaksdeltakelser = førstegangsbehandling.saksopplysninger.tiltaksdeltagelse.map {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
                 antallDagerPerMeldeperiode = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+                avslagsgrunner = emptySet(),
             ),
             clock = clock,
         ).taBehandling(beslutter)

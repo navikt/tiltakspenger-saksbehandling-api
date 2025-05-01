@@ -21,7 +21,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBeslutter.MåVæreSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForAvslag
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingsutfallDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil
@@ -31,13 +33,27 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 
+fun String.valgtHjemmelForAvslag(): ValgtHjemmelForAvslag = when (this) {
+    "DeltarIkkePåArbeidsmarkedstiltak" -> ValgtHjemmelForAvslag.DeltarIkkePåArbeidsmarkedstiltak
+    "Alder" -> ValgtHjemmelForAvslag.Alder
+    "Livsoppholdytelser" -> ValgtHjemmelForAvslag.Livsoppholdytelser
+    "Kvalifiseringsprogrammet" -> ValgtHjemmelForAvslag.Kvalifiseringsprogrammet
+    "Introduksjonsprogrammet" -> ValgtHjemmelForAvslag.Introduksjonsprogrammet
+    "LønnFraTiltaksarrangør" -> ValgtHjemmelForAvslag.LønnFraTiltaksarrangør
+    "LønnFraAndre" -> ValgtHjemmelForAvslag.LønnFraAndre
+    "Institusjonsopphold" -> ValgtHjemmelForAvslag.Institusjonsopphold
+    else -> throw IllegalArgumentException("Ukjent kode for ValgtHjemmelForAvslag: $this")
+}
+
 private data class SendTilBeslutningBody(
     val fritekstTilVedtaksbrev: String?,
     val begrunnelseVilkårsvurdering: String?,
-    val innvilgelsesperiode: PeriodeDTO,
+    val behandlingsperiode: PeriodeDTO,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
     val antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    val avslagsgrunner: List<String>,
+    val utfall: BehandlingsutfallDTO,
 ) {
     fun toDomain(
         sakId: SakId,
@@ -45,7 +61,7 @@ private data class SendTilBeslutningBody(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): SendSøknadsbehandlingTilBeslutningKommando {
-        val innvilgelsesperiode = innvilgelsesperiode.toDomain()
+        val behandlingsperiode = behandlingsperiode.toDomain()
 
         return SendSøknadsbehandlingTilBeslutningKommando(
             sakId = sakId,
@@ -54,12 +70,13 @@ private data class SendTilBeslutningBody(
             correlationId = correlationId,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(it) },
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { BegrunnelseVilkårsvurdering(it) },
-            innvilgelsesperiode = innvilgelsesperiode,
-            barnetillegg = barnetillegg?.tilBarnetillegg(innvilgelsesperiode),
+            behandlingsperiode = behandlingsperiode,
+            barnetillegg = barnetillegg?.tilBarnetillegg(behandlingsperiode),
             tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
                 Pair(it.periode.toDomain(), it.eksternDeltagelseId)
             },
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+            avslagsgrunner = avslagsgrunner.map { it.valgtHjemmelForAvslag() }.toSet(),
         )
     }
 }
@@ -111,5 +128,8 @@ internal fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJ
         "Innvilgelsesperioden overlapper/tilstøter med eksisterende perioder på saken",
         "innvilgelsesperiode_overlapper_eller_tilstøter_med_eksisternede_perioder",
     )
-    is KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler -> HttpStatusCode.BadRequest to Standardfeil.behandlingenEiesAvAnnenSaksbehandler(this.eiesAvSaksbehandler)
+
+    is KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler -> HttpStatusCode.BadRequest to Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
+        this.eiesAvSaksbehandler,
+    )
 }

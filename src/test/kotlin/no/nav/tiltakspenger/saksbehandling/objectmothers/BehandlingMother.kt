@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForAvslag
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -93,7 +94,9 @@ interface BehandlingMother : MotherOfAllMothers {
         }
     }
 
-    // TODO - ikke bruk denne. Bruk [nyOpprettetFørstegangsbehandling]
+    /**
+     * TODO - ikke bruk denne. Bruk [nyOpprettetFørstegangsbehandling]
+     */
     fun nyBehandling(
         id: BehandlingId = BehandlingId.random(),
         sakId: SakId = SakId.random(),
@@ -120,6 +123,7 @@ interface BehandlingMother : MotherOfAllMothers {
         valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = null,
         avbrutt: Avbrutt? = null,
         antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+        avslagsgrunner: Set<ValgtHjemmelForAvslag> = emptySet(),
     ): Behandling {
         return Behandling(
             id = id,
@@ -148,6 +152,7 @@ interface BehandlingMother : MotherOfAllMothers {
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
             avbrutt = avbrutt,
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+            avslagsgrunner = avslagsgrunner,
         )
     }
 
@@ -169,6 +174,7 @@ interface BehandlingMother : MotherOfAllMothers {
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+        avslagsgrunner: Set<ValgtHjemmelForAvslag> = emptySet(),
     ): Behandling {
         return this.nyOpprettetFørstegangsbehandling(
             id = id,
@@ -186,10 +192,11 @@ interface BehandlingMother : MotherOfAllMothers {
                 correlationId = CorrelationId.generate(),
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                innvilgelsesperiode = virkningsperiode,
+                behandlingsperiode = virkningsperiode,
                 barnetillegg = barnetillegg,
                 tiltaksdeltakelser = valgteTiltaksdeltakelser,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                avslagsgrunner = avslagsgrunner,
             ),
             clock = fixedClock,
         )
@@ -408,6 +415,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
     fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("Fritekst"),
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("Begrunnelse"),
     antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    avslagsgrunner: Set<ValgtHjemmelForAvslag> = emptySet(),
 ): Sak {
     val sakMedFørstegangsbehandling = startSøknadsbehandling(
         periode = periode,
@@ -423,7 +431,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
             correlationId = correlationId,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-            innvilgelsesperiode = periode,
+            behandlingsperiode = periode,
             barnetillegg = null,
             tiltaksdeltakelser = listOf(
                 Pair(
@@ -432,6 +440,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
                 ),
             ),
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+            avslagsgrunner = avslagsgrunner,
         ),
     ).getOrFail()
     return this.sakContext.sakService.hentForSakId(

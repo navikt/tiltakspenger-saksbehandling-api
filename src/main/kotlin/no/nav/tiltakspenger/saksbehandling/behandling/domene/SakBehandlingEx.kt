@@ -18,7 +18,7 @@ fun Sak.sendFørstegangsbehandlingTilBeslutning(
     }
     val behandling: Behandling = this.hentBehandling(kommando.behandlingId)!!
     require(behandling.erFørstegangsbehandling) { "Behandlingen må være en førstegangsbehandling, men var: ${behandling.behandlingstype}" }
-    if (overlapperEllerTilstøterNyInnvilgelsesperiodeMedEksisterende(behandling.id, kommando.innvilgelsesperiode)) {
+    if (overlapperEllerTilstøterNyInnvilgelsesperiodeMedEksisterende(behandling.id, kommando.behandlingsperiode)) {
         return KanIkkeSendeTilBeslutter.PeriodenOverlapperEllerTilstøterMedAnnenBehandling.left()
     }
     if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {
