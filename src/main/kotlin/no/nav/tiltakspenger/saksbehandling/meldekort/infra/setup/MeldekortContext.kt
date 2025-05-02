@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekor
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppgaveMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortBehandlingService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldeperiodeTilBrukerService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendTilMeldekortApiService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.OvertaMeldekortBehandlingService
@@ -117,9 +117,10 @@ open class MeldekortContext(
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.meldekortApiScope) },
         )
     }
-    val sendMeldeperiodeTilBrukerService by lazy {
-        SendMeldeperiodeTilBrukerService(
+    val sendTilMeldekortApiService by lazy {
+        SendTilMeldekortApiService(
             meldeperiodeRepo = meldeperiodeRepo,
+            sakRepo = sakRepo,
             meldekortApiHttpClient = meldekortApiHttpClient,
             clock = clock,
         )

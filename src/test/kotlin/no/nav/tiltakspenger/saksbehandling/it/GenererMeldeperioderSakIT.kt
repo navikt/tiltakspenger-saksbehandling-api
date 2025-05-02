@@ -80,7 +80,7 @@ class GenererMeldeperioderSakIT {
 }
 
 suspend fun TestApplicationContext.kjørSendTilMeldekortApiJobb() {
-    return this.meldekortContext.sendMeldeperiodeTilBrukerService.send().also {
+    return this.meldekortContext.sendTilMeldekortApiService.send().also {
         this.meldekortContext.meldeperiodeRepo.hentUsendteTilBruker().size shouldBe 0
     }
 }

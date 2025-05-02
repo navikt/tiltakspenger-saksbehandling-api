@@ -7,10 +7,13 @@ import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeDTO
+import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
+import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.FeilVedSendingTilMeldekortApi
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiHttpClientGateway
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
@@ -26,12 +29,15 @@ class MeldekortApiHttpClient(
 
     private val logger = KotlinLogging.logger {}
 
-    private val meldekortApiUri = URI.create("$baseUrl/meldekort")
+    private val meldeperiodeUrl = URI.create("$baseUrl/saksbehandling/meldeperiode")
+    private val sakUrl = URI.create("$baseUrl/saksbehandling/sak")
 
     override suspend fun sendMeldeperiode(meldeperiode: Meldeperiode): Either<FeilVedSendingTilMeldekortApi, Unit> {
         return Either.catch {
+            val payload = serialize(meldeperiode.tilMeldekortApiDTO())
+
             val response = client.sendAsync(
-                createRequest(meldeperiode),
+                createRequest(meldeperiodeUrl, payload),
                 HttpResponse.BodyHandlers.ofString(),
             ).await()
 
@@ -54,14 +60,41 @@ class MeldekortApiHttpClient(
         }
     }
 
-    private suspend fun createRequest(
-        meldeperiode: Meldeperiode,
-    ): HttpRequest {
-        val payload = serialize(meldeperiode.tilBrukerDTO())
+    override suspend fun sendSak(sak: Sak): Either<FeilVedSendingTilMeldekortApi, Unit> {
+        return Either.catch {
+            val payload = serialize(sak.tilMeldekortApiDTO())
 
+            val response = client.sendAsync(
+                createRequest(sakUrl, payload),
+                HttpResponse.BodyHandlers.ofString(),
+            ).await()
+
+            val status = response.statusCode()
+
+            if (status !in 200..299) {
+                val body: String = response.body()
+                with("Feilrespons ved sending av sak ${sak.id} til meldekort-api - status: $status") {
+                    logger.error { this }
+                    sikkerlogg.error { "$this - Response body: $body" }
+                }
+                return FeilVedSendingTilMeldekortApi.left()
+            }
+        }.mapLeft {
+            with("Feil ved sending av sak ${sak.id} til meldekort-api") {
+                logger.error { this }
+                sikkerlogg.error(it) { this }
+            }
+            FeilVedSendingTilMeldekortApi
+        }
+    }
+
+    private suspend fun createRequest(
+        url: URI,
+        payload: String,
+    ): HttpRequest {
         return HttpRequest
             .newBuilder()
-            .uri(meldekortApiUri)
+            .uri(url)
             .header("Authorization", "Bearer ${getToken().token}")
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(payload))
@@ -69,7 +102,7 @@ class MeldekortApiHttpClient(
     }
 }
 
-private fun Meldeperiode.tilBrukerDTO(): MeldeperiodeDTO {
+private fun Meldeperiode.tilMeldekortApiDTO(): MeldeperiodeDTO {
     return MeldeperiodeDTO(
         id = this.id.toString(),
         kjedeId = this.kjedeId.toString(),
@@ -82,5 +115,22 @@ private fun Meldeperiode.tilBrukerDTO(): MeldeperiodeDTO {
         tilOgMed = this.periode.tilOgMed,
         antallDagerForPeriode = this.antallDagerForPeriode,
         girRett = this.girRett,
+    )
+}
+
+// TODO: flytt til libs
+private data class SakDTO(
+    val fnr: String,
+    val sakId: String,
+    val saksnummer: String,
+    val innvilgelsesperioder: List<PeriodeDTO>,
+)
+
+private fun Sak.tilMeldekortApiDTO(): SakDTO {
+    return SakDTO(
+        fnr = this.fnr.verdi,
+        sakId = this.id.toString(),
+        saksnummer = this.saksnummer.toString(),
+        innvilgelsesperioder = this.vedtaksliste.innvilgelsesperioder.map { it.toDTO() },
     )
 }
