@@ -82,16 +82,10 @@ data class Vedtaksliste(
         return utfallsperioder.overlapperMed(periode).utvid(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, periode)
     }
 
-    fun vedtakForPeriode(periode: Periode): Periodisering<VedtakId?> {
-        val overlappendePerioder = tidslinje.perioderMedVerdi.filter { it.periode.overlapperMed(periode) }
-            .map {
-                PeriodeMedVerdi(
-                    verdi = it.verdi?.id,
-                    periode = it.periode,
-                )
-            }
-        return Periodisering(overlappendePerioder)
-    }
+    fun vedtakForPeriode(periode: Periode): Periodisering<VedtakId?> = tidslinje
+        .map { it?.id }
+        .utvid(null, periode)
+        .krymp(periode)
 
     // Denne fungerer bare for førstegangsvedtak der man har valgte tiltaksdeltakelser
     @Suppress("UNCHECKED_CAST")
