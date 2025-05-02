@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak
 
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -79,6 +80,17 @@ data class Vedtaksliste(
 
     fun utfallForPeriode(periode: Periode): Periodisering<Utfallsperiode?> {
         return utfallsperioder.overlapperMed(periode).utvid(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, periode)
+    }
+
+    fun vedtakForPeriode(periode: Periode): Periodisering<VedtakId?> {
+        val overlappendePerioder = tidslinje.perioderMedVerdi.filter { it.periode.overlapperMed(periode) }
+            .map {
+                PeriodeMedVerdi(
+                    verdi = it.verdi?.id,
+                    periode = it.periode,
+                )
+            }
+        return Periodisering(overlappendePerioder)
     }
 
     // Denne fungerer bare for førstegangsvedtak der man har valgte tiltaksdeltakelser
