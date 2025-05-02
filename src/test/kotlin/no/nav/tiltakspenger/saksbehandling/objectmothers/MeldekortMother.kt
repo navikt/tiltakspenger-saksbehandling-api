@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
@@ -550,6 +551,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 put(periode.fraOgMed.plusDays(day.toLong()), false)
             }
         },
+        rammevedtak: Periodisering<VedtakId?> = Periodisering(VedtakId.random(), periode),
     ): Meldeperiode = Meldeperiode(
         kjedeId = kjedeId,
         id = id,
@@ -562,6 +564,7 @@ interface MeldekortMother : MotherOfAllMothers {
         antallDagerForPeriode = antallDagerForPeriode,
         girRett = girRett,
         sendtTilMeldekortApi = null,
+        rammevedtak = rammevedtak,
     )
 
     /** @param meldeperiode Hvis denne sendes inn, bør [sakId] og [mottatt] også sendes inn. */

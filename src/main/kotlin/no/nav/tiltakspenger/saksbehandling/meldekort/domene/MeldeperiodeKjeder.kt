@@ -178,6 +178,7 @@ data class MeldeperiodeKjeder(
                 sakId = vedtaksliste.sakId!!,
                 antallDagerForPeriode = antallDagerSomGirRettForMeldePeriode,
                 versjon = versjon,
+                rammevedtak = vedtaksliste.vedtakForPeriode(nærmesteMeldeperiode),
                 clock = clock,
             )
             potensielleNyeMeldeperioder.add(potensiellNyMeldeperiode)
