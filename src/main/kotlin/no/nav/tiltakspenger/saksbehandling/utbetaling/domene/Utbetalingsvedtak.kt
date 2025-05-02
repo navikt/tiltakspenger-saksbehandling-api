@@ -85,7 +85,7 @@ fun Utbetalingsvedtak.tilStatistikk(): StatistikkUtbetalingDTO =
         gyldigFraDatoPostering = this.periode.fraOgMed,
         gyldigTilDatoPostering = this.periode.tilOgMed,
         utbetalingId = this.id.uuidPart(),
-        vedtakId = "",
+        vedtakId = meldeperiode.rammevedtak?.perioderMedVerdi?.mapNotNull { it.verdi?.toString() }?.distinct(),
         opprettet = LocalDateTime.now(),
         sistEndret = LocalDateTime.now(),
     )

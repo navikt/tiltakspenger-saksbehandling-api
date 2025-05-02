@@ -92,7 +92,7 @@ class StatistikkStønadPostgresRepo(
                     "gyldigFraDato" to dto.gyldigFraDatoPostering,
                     "gyldigTilDato" to dto.gyldigTilDatoPostering,
                     "utbetaling_id" to dto.utbetalingId,
-                    "vedtak_id" to dto.vedtakId,
+                    "vedtak_id" to toPGObject(dto.vedtakId),
                     "opprettet" to dto.opprettet,
                     "sist_endret" to dto.sistEndret,
                 ),

@@ -16,8 +16,8 @@ data class StatistikkUtbetalingDTO(
     val gyldigTilDatoPostering: LocalDate,
     // id-en som vi sender til helved
     val utbetalingId: String,
-    // vedtaket som er bakgrunnen for utbetalingen
-    val vedtakId: String?,
+    // vedtaket/vedtakene som er bakgrunnen for utbetalingen
+    val vedtakId: List<String>?,
     val opprettet: LocalDateTime?,
     val sistEndret: LocalDateTime?,
 )
