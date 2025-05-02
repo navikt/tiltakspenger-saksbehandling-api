@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldeperiodeId
 import no.nav.tiltakspenger.libs.common.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -27,6 +28,7 @@ data class Meldeperiode(
     val antallDagerForPeriode: Int,
     val girRett: Map<LocalDate, Boolean>,
     val sendtTilMeldekortApi: LocalDateTime?,
+    val rammevedtak: Periodisering<VedtakId?>?,
 ) : Comparable<Meldeperiode> {
     val antallDagerSomGirRett = girRett.values.count { it }
     val ingenDagerGirRett = antallDagerSomGirRett == 0
@@ -75,6 +77,7 @@ data class Meldeperiode(
             sakId: SakId,
             antallDagerForPeriode: Int,
             versjon: HendelseVersjon = HendelseVersjon.ny(),
+            rammevedtak: Periodisering<VedtakId?>,
             clock: Clock,
         ): Meldeperiode {
             val meldeperiode = Meldeperiode(
@@ -91,6 +94,7 @@ data class Meldeperiode(
                     (utfallsperioder.hentVerdiForDag(it) == Utfallsperiode.RETT_TIL_TILTAKSPENGER)
                 },
                 sendtTilMeldekortApi = null,
+                rammevedtak = rammevedtak,
             )
 
             return meldeperiode

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak
 
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -80,6 +81,11 @@ data class Vedtaksliste(
     fun utfallForPeriode(periode: Periode): Periodisering<Utfallsperiode?> {
         return utfallsperioder.overlapperMed(periode).utvid(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, periode)
     }
+
+    fun vedtakForPeriode(periode: Periode): Periodisering<VedtakId?> = tidslinje
+        .map { it?.id }
+        .utvid(null, periode)
+        .krymp(periode)
 
     // Denne fungerer bare for førstegangsvedtak der man har valgte tiltaksdeltakelser
     @Suppress("UNCHECKED_CAST")
