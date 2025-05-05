@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 /**
- * https://kodeverk-web.nais.adeo.no/kodeverksoversikt/kodeverk/Behandlingstyper
+ * https://kodeverk.ansatt.nav.no/kodeverk/Behandlingsstegtyper
  *
  * ae0245 Førstegangssøknad
  * ae0034 Søknad

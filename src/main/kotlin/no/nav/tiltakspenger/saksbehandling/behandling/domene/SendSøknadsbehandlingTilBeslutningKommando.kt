@@ -19,7 +19,8 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
     val barnetillegg: Barnetillegg?,
     val tiltaksdeltakelser: List<Pair<Periode, String>>,
     val antallDagerPerMeldeperiode: Int,
-    val avslagsgrunner: Set<ValgtHjemmelForAvslag>,
+    val avslagsgrunner: Set<Avslagsgrunnlag>,
+    val utfall: Behandlingsutfall,
 ) {
     fun valgteTiltaksdeltakelser(behandling: Behandling): ValgteTiltaksdeltakelser {
         return ValgteTiltaksdeltakelser.periodiser(

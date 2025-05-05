@@ -11,11 +11,12 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsutfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForAvslag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySøknad
@@ -87,7 +88,8 @@ interface SakMother {
                 registrerteTiltak.first().eksternDeltagelseId,
             ),
         ),
-        avslagsgrunner: Set<ValgtHjemmelForAvslag> = emptySet(),
+        avslagsgrunner: Set<Avslagsgrunnlag> = emptySet(),
+        utfall: Behandlingsutfall = Behandlingsutfall.INNVILGELSE,
         clock: Clock = fixedClock,
         antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     ): Pair<Sak, Behandling> {
@@ -119,6 +121,7 @@ interface SakMother {
                             tiltaksdeltakelser = valgteTiltaksdeltakelser,
                             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                             avslagsgrunner = avslagsgrunner,
+                            utfall = utfall,
                         ),
                         clock = clock,
                     )
@@ -170,6 +173,7 @@ interface SakMother {
                 }.toList(),
                 antallDagerPerMeldeperiode = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
                 avslagsgrunner = emptySet(),
+                utfall = Behandlingsutfall.INNVILGELSE,
             ),
             clock = clock,
         ).taBehandling(beslutter)

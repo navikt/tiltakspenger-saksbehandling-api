@@ -227,6 +227,7 @@ class TestApplicationContext(
             statistikkStønadRepo = statistikkStønadFakeRepo,
             journalførVedtaksbrevGateway = journalførFakeVedtaksbrevGateway,
             genererVedtaksbrevGateway = genererFakeVedtaksbrevGateway,
+            genererAvslagsvedtaksbrevGateway = genererFakeVedtaksbrevGateway,
             genererStansvedtaksbrevGateway = genererFakeVedtaksbrevGateway,
             personService = personContext.personService,
             tilgangsstyringService = tilgangsstyringFakeGateway,
