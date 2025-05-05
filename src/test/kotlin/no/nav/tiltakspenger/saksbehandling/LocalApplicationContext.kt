@@ -213,7 +213,6 @@ class LocalApplicationContext(
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
-            gitHash = "fake-git-hash",
             journalførVedtaksbrevGateway = journalførFakeVedtaksbrevGateway,
             genererVedtaksbrevGateway = genererInnvilgelsevedtaksbrevGateway,
             genererStansvedtaksbrevGateway = genererStansvedtaksbrevGateway,
@@ -225,6 +224,7 @@ class LocalApplicationContext(
             tiltaksdeltagelseGateway = tiltakGatewayFake,
             oppgaveGateway = oppgaveGateway,
             clock = clock,
+            statistikkSakService = statistikkContext.statistikkSakService,
         ) {}
     }
     override val utbetalingContext by lazy {

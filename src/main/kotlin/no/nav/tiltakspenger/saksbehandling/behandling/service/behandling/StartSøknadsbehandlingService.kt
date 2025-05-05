@@ -12,26 +12,23 @@ import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
-import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
-import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 
 class StartSøknadsbehandlingService(
     private val sakService: SakService,
     private val sessionFactory: SessionFactory,
-    private val tilgangsstyringService: TilgangsstyringService,
-    private val gitHash: String,
     private val behandlingRepo: BehandlingRepo,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
     private val clock: Clock,
+    private val statistikkSakService: StatistikkSakService,
 ) {
 
     val logger = KotlinLogging.logger {}
@@ -55,14 +52,6 @@ class StartSøknadsbehandlingService(
         val fnr = sak.fnr
 
         val soknad = sak.soknader.single { it.id == søknadId }
-        val adressebeskyttelseGradering: List<AdressebeskyttelseGradering>? =
-            tilgangsstyringService.adressebeskyttelseEnkel(fnr)
-                .getOrElse {
-                    throw IllegalArgumentException(
-                        "Kunne ikke hente adressebeskyttelsegradering for person. SøknadId: $søknadId",
-                    )
-                }
-        require(adressebeskyttelseGradering != null) { "Fant ikke adressebeskyttelse for person. SøknadId: $søknadId" }
         val hentSaksopplysninger: suspend (Periode) -> Saksopplysninger = { saksopplysningsperiode: Periode ->
             oppdaterSaksopplysningerService.hentSaksopplysningerFraRegistre(
                 fnr = fnr,
@@ -80,13 +69,10 @@ class StartSøknadsbehandlingService(
             clock = clock,
         ).getOrElse { return KanIkkeStarteSøknadsbehandling.OppretteBehandling(it).left() }
 
-        val statistikk =
-            no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.genererStatistikkForNyFørstegangsbehandling(
-                behandling = førstegangsbehandling,
-                gjelderKode6 = adressebeskyttelseGradering.harStrengtFortroligAdresse(),
-                versjon = gitHash,
-                clock = clock,
-            )
+        val statistikk = statistikkSakService.genererStatistikkForNyForstegangsbehandling(
+            behandling = førstegangsbehandling,
+            søknadId = søknadId,
+        )
 
         sessionFactory.withTransactionContext { tx ->
             behandlingRepo.lagre(førstegangsbehandling, tx)

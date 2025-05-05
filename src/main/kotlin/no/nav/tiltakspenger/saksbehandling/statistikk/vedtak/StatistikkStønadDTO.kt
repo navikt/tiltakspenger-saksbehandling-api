@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad
+package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 
 import java.time.LocalDate
 import java.util.UUID

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.statistikk.infra.repo.stønad
+package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
@@ -11,8 +11,6 @@ import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkUtbetalingDTO
 import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import org.intellij.lang.annotations.Language
 import java.time.Clock

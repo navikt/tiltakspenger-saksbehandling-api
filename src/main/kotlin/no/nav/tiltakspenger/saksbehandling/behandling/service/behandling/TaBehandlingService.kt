@@ -12,11 +12,15 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 
 class TaBehandlingService(
     private val tilgangsstyringService: TilgangsstyringService,
     private val behandlingRepo: BehandlingRepo,
+    private val statistikkSakService: StatistikkSakService,
+    private val statistikkSakRepo: StatistikkSakRepo,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -40,17 +44,31 @@ class TaBehandlingService(
 
         return behandling.taBehandling(saksbehandler).also {
             when (it.status) {
-                Behandlingsstatus.UNDER_BEHANDLING -> behandlingRepo.taBehandlingSaksbehandler(
-                    it.id,
-                    saksbehandler,
-                    it.status,
-                )
+                Behandlingsstatus.UNDER_BEHANDLING -> {
+                    behandlingRepo.taBehandlingSaksbehandler(
+                        it.id,
+                        saksbehandler,
+                        it.status,
+                    )
+                    statistikkSakRepo.lagre(
+                        statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(
+                            it,
+                        ),
+                    )
+                }
 
-                Behandlingsstatus.UNDER_BESLUTNING -> behandlingRepo.taBehandlingBeslutter(
-                    it.id,
-                    saksbehandler,
-                    it.status,
-                )
+                Behandlingsstatus.UNDER_BESLUTNING -> {
+                    behandlingRepo.taBehandlingBeslutter(
+                        it.id,
+                        saksbehandler,
+                        it.status,
+                    )
+                    statistikkSakRepo.lagre(
+                        statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(
+                            it,
+                        ),
+                    )
+                }
 
                 Behandlingsstatus.KLAR_TIL_BESLUTNING,
                 Behandlingsstatus.KLAR_TIL_BEHANDLING,

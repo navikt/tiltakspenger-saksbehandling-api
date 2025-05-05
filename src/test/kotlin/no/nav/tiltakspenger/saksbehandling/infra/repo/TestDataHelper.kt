@@ -13,8 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.Identhende
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseRepository
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.statistikk.infra.repo.sak.StatistikkSakRepoImpl
-import no.nav.tiltakspenger.saksbehandling.statistikk.infra.repo.stønad.StatistikkStønadPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakRepoImpl
+import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.PostgresSøknadRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingsvedtakPostgresRepo

@@ -18,12 +18,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeHenteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeUnderkjenne
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 
 class BehandlingServiceImpl(
@@ -32,6 +34,9 @@ class BehandlingServiceImpl(
     private val tilgangsstyringService: TilgangsstyringService,
     private val personService: PersonService,
     private val clock: Clock,
+    private val statistikkSakService: StatistikkSakService,
+    private val statistikkSakRepo: StatistikkSakRepo,
+
 ) : BehandlingService {
     val logger = KotlinLogging.logger { }
 
@@ -99,8 +104,10 @@ class BehandlingServiceImpl(
             )
 
         return behandling.sendTilbakeTilBehandling(beslutter, attestering).also {
+            val statistikk = statistikkSakService.genererStatistikkForUnderkjennBehandling(it)
             sessionFactory.withTransactionContext { tx ->
                 behandlingRepo.lagre(it, tx)
+                statistikkSakRepo.lagre(statistikk, tx)
             }
         }.right()
     }

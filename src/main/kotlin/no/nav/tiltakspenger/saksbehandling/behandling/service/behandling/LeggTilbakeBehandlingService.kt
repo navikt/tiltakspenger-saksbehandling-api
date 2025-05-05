@@ -11,11 +11,15 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeLeggeTilbakeBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 
 class LeggTilbakeBehandlingService(
     private val tilgangsstyringService: TilgangsstyringService,
     private val behandlingRepo: BehandlingRepo,
+    private val statistikkSakService: StatistikkSakService,
+    private val statistikkSakRepo: StatistikkSakRepo,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -39,17 +43,23 @@ class LeggTilbakeBehandlingService(
 
         return behandling.leggTilbakeBehandling(saksbehandler).onRight {
             when (it.status) {
-                Behandlingsstatus.KLAR_TIL_BEHANDLING -> behandlingRepo.leggTilbakeBehandlingSaksbehandler(
-                    it.id,
-                    saksbehandler,
-                    it.status,
-                )
+                Behandlingsstatus.KLAR_TIL_BEHANDLING -> {
+                    behandlingRepo.leggTilbakeBehandlingSaksbehandler(
+                        it.id,
+                        saksbehandler,
+                        it.status,
+                    )
+                    statistikkSakRepo.lagre(statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it))
+                }
 
-                Behandlingsstatus.KLAR_TIL_BESLUTNING -> behandlingRepo.leggTilbakeBehandlingBeslutter(
-                    it.id,
-                    saksbehandler,
-                    it.status,
-                )
+                Behandlingsstatus.KLAR_TIL_BESLUTNING -> {
+                    behandlingRepo.leggTilbakeBehandlingBeslutter(
+                        it.id,
+                        saksbehandler,
+                        it.status,
+                    )
+                    statistikkSakRepo.lagre(statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it))
+                }
 
                 Behandlingsstatus.UNDER_BEHANDLING,
                 Behandlingsstatus.UNDER_BESLUTNING,

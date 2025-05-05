@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.statistikk.infra.repo.sak
+package no.nav.tiltakspenger.saksbehandling.statistikk.behandling
 
 import kotliquery.Row
 import kotliquery.TransactionalSession
@@ -8,11 +8,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.BehandlingAarsak
-import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.BehandlingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.BehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.BehandlingType
-import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.StatistikkSakDTO
 import org.intellij.lang.annotations.Language
 
 /**

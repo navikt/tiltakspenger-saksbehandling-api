@@ -14,8 +14,6 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.kafka.Producer
 import no.nav.tiltakspenger.libs.periodisering.zoneIdOslo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.genererSaksstatistikkForRammevedtak
-import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.genererStønadsstatistikkForRammevedtak
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
@@ -25,6 +23,8 @@ import no.nav.tiltakspenger.saksbehandling.person.identhendelser.Personident
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseDto
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseKafkaProducer
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseDb
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.genererSaksstatistikkForRammevedtak
+import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.genererStønadsstatistikkForRammevedtak
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Clock
