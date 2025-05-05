@@ -3,21 +3,27 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.støna
 import java.time.LocalDate
 import java.util.UUID
 
-// Dette er bare et eksempel. Legg til flere felt når vi vet hva som skal være med
+// Team Spenn (DVH) bruker denne tabellen, samt statistikk_utbetaling. De har beskrevet
+// behovet sitt her: https://confluence.adeo.no/display/DVH/Datamodell+for+tiltakspenger
 data class StatistikkStønadDTO(
+    // tilfeldig id
     val id: UUID,
+    // fnr
     val brukerId: String,
 
     val sakId: String,
     val saksnummer: String,
     val resultat: String,
     val sakDato: LocalDate,
+    // sakFraDato og sakTilDato er de samme som datoene for vedtaket siden sak ikke har periode lenger
     val sakFraDato: LocalDate,
     val sakTilDato: LocalDate,
+    // IND
     val ytelse: String,
 
     val søknadId: String?,
     val søknadDato: LocalDate?,
+    // perioden for tiltaksdeltakelsen det er søkt for
     val søknadFraDato: LocalDate?,
     val søknadTilDato: LocalDate?,
 

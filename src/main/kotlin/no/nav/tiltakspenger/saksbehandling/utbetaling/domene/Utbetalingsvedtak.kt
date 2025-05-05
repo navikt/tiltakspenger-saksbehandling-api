@@ -80,10 +80,12 @@ fun Utbetalingsvedtak.tilStatistikk(): StatistikkUtbetalingDTO =
         ordinærBeløp = this.ordinærBeløp,
         barnetilleggBeløp = this.barnetilleggBeløp,
         totalBeløp = this.totalBeløp,
-        årsak = "",
         // TODO post-mvp jah: Vi oppretter vedtaket før og statistikken før vi sender til helved/utbetaling. Bør vi opprette statistikken etter vi har sendt til helved/utbetaling?
         posteringDato = this.opprettet.toLocalDate(),
         gyldigFraDatoPostering = this.periode.fraOgMed,
         gyldigTilDatoPostering = this.periode.tilOgMed,
         utbetalingId = this.id.uuidPart(),
+        vedtakId = meldeperiode.rammevedtak?.perioderMedVerdi?.mapNotNull { it.verdi?.toString() }?.distinct(),
+        opprettet = LocalDateTime.now(),
+        sistEndret = LocalDateTime.now(),
     )

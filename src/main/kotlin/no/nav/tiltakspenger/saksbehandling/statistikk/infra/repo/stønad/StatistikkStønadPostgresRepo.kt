@@ -88,11 +88,13 @@ class StatistikkStønadPostgresRepo(
                     "belop" to dto.totalBeløp,
                     "ordinaerBelop" to dto.ordinærBeløp,
                     "barnetilleggBelop" to dto.barnetilleggBeløp,
-                    "arsak" to dto.årsak,
                     "posteringsDato" to dto.posteringDato,
                     "gyldigFraDato" to dto.gyldigFraDatoPostering,
                     "gyldigTilDato" to dto.gyldigTilDatoPostering,
                     "utbetaling_id" to dto.utbetalingId,
+                    "vedtak_id" to toPGObject(dto.vedtakId),
+                    "opprettet" to dto.opprettet,
+                    "sist_endret" to dto.sistEndret,
                 ),
             ).asUpdate,
         )
@@ -193,11 +195,13 @@ class StatistikkStønadPostgresRepo(
         belop,
         ordinar_belop,
         barnetillegg_belop,
-        arsak,
         posteringsdato,
         gyldig_fra_dato,
         gyldig_til_dato,
-        utbetaling_id
+        utbetaling_id,
+        vedtak_id,
+        opprettet,
+        sist_endret
         ) values (
         :id,
         :sakId,
@@ -205,11 +209,13 @@ class StatistikkStønadPostgresRepo(
         :belop,
         :ordinaerBelop,
         :barnetilleggBelop,
-        :arsak,
         :posteringsDato,
         :gyldigFraDato,
         :gyldigTilDato,
-        :utbetaling_id
+        :utbetaling_id,
+        :vedtak_id,
+        :opprettet,
+        :sist_endret
         )
         """.trimIndent()
 
