@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak
+package no.nav.tiltakspenger.saksbehandling.statistikk.behandling
 
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -33,14 +33,14 @@ data class StatistikkSakDTO(
     /** Tidspunktet da fagsystemet legger hendelsen på grensesnittet/topicen. */
     val tekniskTidspunkt: LocalDateTime,
     // IND
-    val sakYtelse: String,
+    val sakYtelse: String = "IND",
     val behandlingType: BehandlingType,
     val behandlingStatus: BehandlingStatus,
     val behandlingResultat: BehandlingResultat?,
     // fylles ut ved klage, avvisning, avslag
     val resultatBegrunnelse: String?,
     // manuell, automatisk
-    val behandlingMetode: String,
+    val behandlingMetode: String = BehandlingMetode.MANUELL.name,
     // Settes til -5 hvis kode 6 kan være systembruker
     val opprettetAv: String,
     // Settes til -5 hvis kode 6
@@ -53,7 +53,7 @@ data class StatistikkSakDTO(
     val funksjonellPeriodeFom: LocalDate?,
     /** Kun for tilbakekreving: funksjonell periode for tilbakekreving */
     val funksjonellPeriodeTom: LocalDate?,
-    val avsender: String,
+    val avsender: String = "tiltakspenger-saksbehandling-api",
     // commit hash
     val versjon: String,
     val hendelse: String,
@@ -82,6 +82,7 @@ enum class BehandlingResultat {
 
 enum class BehandlingStatus {
     UNDER_BEHANDLING,
+    UNDER_BESLUTNING,
     FERDIG_BEHANDLET,
     AVSLUTTET,
 }

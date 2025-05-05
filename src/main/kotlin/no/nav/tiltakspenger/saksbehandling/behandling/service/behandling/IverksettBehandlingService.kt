@@ -11,9 +11,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
-import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
-import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeIverksetteBehandling
@@ -22,18 +19,17 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSakId
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.StatistikkSakDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.genererSaksstatistikkForRammevedtak
-import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.StatistikkStønadDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad.genererStønadsstatistikkForRammevedtak
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDTO
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadDTO
+import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.genererStønadsstatistikkForRammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
 import java.time.Clock
@@ -46,12 +42,10 @@ class IverksettBehandlingService(
     private val sessionFactory: SessionFactory,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
-    private val tilgangsstyringService: TilgangsstyringService,
-    private val personService: PersonService,
     private val sakService: SakService,
-    private val gitHash: String,
     private val oppgaveGateway: OppgaveGateway,
     private val clock: Clock,
+    private val statistikkSakService: StatistikkSakService,
 ) {
 
     private val logger = KotlinLogging.logger {}
@@ -88,27 +82,11 @@ class IverksettBehandlingService(
 
         val (oppdatertSak, vedtak) = sak.opprettVedtak(iverksattBehandling, clock)
 
-        val fnr = personService.hentFnrForBehandlingId(behandlingId)
-        val adressebeskyttelseGradering: List<AdressebeskyttelseGradering>? =
-            tilgangsstyringService.adressebeskyttelseEnkel(fnr).getOrElse {
-                throw IllegalArgumentException(
-                    "Kunne ikke hente adressebeskyttelsegradering for person. BehandlingId: $behandlingId",
-                )
-            }
-
-        require(adressebeskyttelseGradering != null) { "Fant ikke adressebeskyttelse for person. BehandlingId: $behandlingId" }
-
-        val sakStatistikk =
-            genererSaksstatistikkForRammevedtak(
-                vedtak = vedtak,
-                gjelderKode6 = adressebeskyttelseGradering.harStrengtFortroligAdresse(),
-                versjon = gitHash,
-                clock = clock,
-            )
-        val stønadStatistikk =
-            genererStønadsstatistikkForRammevedtak(
-                vedtak,
-            )
+        val sakStatistikk = statistikkSakService.genererStatistikkForRammevedtak(
+            rammevedtak = vedtak,
+            behandlingId = behandlingId,
+        )
+        val stønadStatistikk = genererStønadsstatistikkForRammevedtak(vedtak)
 
         when (behandling.behandlingstype) {
             Behandlingstype.FØRSTEGANGSBEHANDLING -> oppdatertSak.iverksettFørstegangsbehandling(

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.stønad
+package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.util.UUID

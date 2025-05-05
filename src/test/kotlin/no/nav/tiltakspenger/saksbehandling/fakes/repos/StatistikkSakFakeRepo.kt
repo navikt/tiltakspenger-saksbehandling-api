@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.StatistikkSakDTO
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDTO
 
 class StatistikkSakFakeRepo : StatistikkSakRepo {
     private val data = Atomic(mutableMapOf<SakId, StatistikkSakDTO>())

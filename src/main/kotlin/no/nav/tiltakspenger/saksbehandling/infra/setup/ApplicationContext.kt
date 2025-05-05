@@ -207,7 +207,7 @@ open class ApplicationContext(
 
     open val personContext by lazy { PersonContext(sessionFactory, entraIdSystemtokenClient) }
     open val dokumentContext by lazy { DokumentContext(entraIdSystemtokenClient) }
-    open val statistikkContext by lazy { StatistikkContext(sessionFactory, clock) }
+    open val statistikkContext by lazy { StatistikkContext(sessionFactory, personContext.tilgangsstyringService, gitHash, clock) }
     open val søknadContext by lazy { SøknadContext(sessionFactory, oppgaveGateway) }
     open val tiltakContext by lazy { TiltaksdeltagelseContext(entraIdSystemtokenClient) }
     open val profile by lazy { Configuration.applicationProfile() }
@@ -254,7 +254,6 @@ open class ApplicationContext(
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
-            gitHash = gitHash,
             journalførVedtaksbrevGateway = dokumentContext.journalførVedtaksbrevGateway,
             genererVedtaksbrevGateway = dokumentContext.genererInnvilgelsesvedtaksbrevGateway,
             genererStansvedtaksbrevGateway = dokumentContext.genererStansvedtaksbrevGateway,
@@ -266,6 +265,7 @@ open class ApplicationContext(
             tiltaksdeltagelseGateway = tiltakContext.tiltaksdeltagelseGateway,
             oppgaveGateway = oppgaveGateway,
             clock = clock,
+            statistikkSakService = statistikkContext.statistikkSakService,
         )
     }
 

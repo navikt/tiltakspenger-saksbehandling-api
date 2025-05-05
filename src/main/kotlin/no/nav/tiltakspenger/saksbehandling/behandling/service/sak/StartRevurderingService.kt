@@ -15,10 +15,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 
 class StartRevurderingService(
@@ -27,6 +29,8 @@ class StartRevurderingService(
     private val tilgangsstyringService: TilgangsstyringService,
     private val saksopplysningerService: OppdaterSaksopplysningerService,
     private val clock: Clock,
+    private val statistikkSakService: StatistikkSakService,
+    private val statistikkSakRepo: StatistikkSakRepo,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -54,6 +58,7 @@ class StartRevurderingService(
             .getOrElse { return it.left() }
 
         behandlingRepo.lagre(behandling)
+        statistikkSakRepo.lagre(statistikkSakService.genererStatistikkForRevurdering(behandling))
         return Pair(oppdatertSak, behandling).right()
     }
 

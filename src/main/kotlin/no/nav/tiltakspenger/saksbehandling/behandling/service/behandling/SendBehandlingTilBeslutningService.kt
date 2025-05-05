@@ -9,14 +9,18 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandl
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendFørstegangsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 
 class SendBehandlingTilBeslutningService(
     private val sakService: SakService,
     private val behandlingRepo: BehandlingRepo,
     private val clock: Clock,
+    private val statistikkSakService: StatistikkSakService,
+    private val statistikkSakRepo: StatistikkSakRepo,
 ) {
     suspend fun sendFørstegangsbehandlingTilBeslutning(
         kommando: SendSøknadsbehandlingTilBeslutningKommando,
@@ -26,7 +30,9 @@ class SendBehandlingTilBeslutningService(
                 throw IllegalStateException("Saksbehandler ${kommando.saksbehandler.navIdent} har ikke tilgang til sak ${kommando.sakId}")
             }
         return sak.sendFørstegangsbehandlingTilBeslutning(kommando, clock).map { (_, behandling) -> behandling }.onRight {
+            val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
             behandlingRepo.lagre(it)
+            statistikkSakRepo.lagre(statistikk)
         }
     }
 
@@ -37,7 +43,9 @@ class SendBehandlingTilBeslutningService(
             }
 
         return sak.sendRevurderingTilBeslutning(kommando, clock).onRight {
+            val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
             behandlingRepo.lagre(it)
+            statistikkSakRepo.lagre(statistikk)
         }
     }
 }

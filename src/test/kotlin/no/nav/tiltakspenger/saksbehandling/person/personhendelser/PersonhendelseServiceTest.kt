@@ -15,7 +15,6 @@ import no.nav.person.pdl.leesah.forelderbarnrelasjon.ForelderBarnRelasjon
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.zoneIdOslo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.statistikk.sak.genererStatistikkForNyFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
@@ -24,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.PersonGateway
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.genererSaksstatistikkForBehandling
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -195,11 +195,12 @@ class PersonhendelseServiceTest {
                     ),
                 )
                 statistikkSakRepo.lagre(
-                    genererStatistikkForNyFørstegangsbehandling(
+                    genererSaksstatistikkForBehandling(
                         behandling = behandling,
                         gjelderKode6 = false,
                         versjon = "1",
                         clock = Clock.system(zoneIdOslo),
+                        hendelse = "opprettet_behandling",
                     ),
                 )
                 val personhendelse = getPersonhendelse(
@@ -249,11 +250,12 @@ class PersonhendelseServiceTest {
                     ),
                 )
                 statistikkSakRepo.lagre(
-                    genererStatistikkForNyFørstegangsbehandling(
+                    genererSaksstatistikkForBehandling(
                         behandling = behandling,
                         gjelderKode6 = false,
                         versjon = "1",
                         clock = Clock.system(zoneIdOslo),
+                        hendelse = "opprettet_behandling",
                     ),
                 )
                 val personhendelse = getPersonhendelse(

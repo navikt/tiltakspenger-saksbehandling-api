@@ -165,7 +165,7 @@ class TestApplicationContext(
     }
 
     override val statistikkContext by lazy {
-        object : StatistikkContext(sessionFactory, clock) {
+        object : StatistikkContext(sessionFactory, tilgangsstyringFakeGateway, gitHash, clock) {
             override val statistikkStønadRepo = statistikkStønadFakeRepo
             override val statistikkSakRepo = statistikkSakFakeRepo
         }
@@ -225,7 +225,6 @@ class TestApplicationContext(
             meldeperiodeRepo = meldeperiodeFakeRepo,
             statistikkSakRepo = statistikkSakFakeRepo,
             statistikkStønadRepo = statistikkStønadFakeRepo,
-            gitHash = "fake-git-hash",
             journalførVedtaksbrevGateway = journalførFakeVedtaksbrevGateway,
             genererVedtaksbrevGateway = genererFakeVedtaksbrevGateway,
             genererStansvedtaksbrevGateway = genererFakeVedtaksbrevGateway,
@@ -237,6 +236,7 @@ class TestApplicationContext(
             tiltaksdeltagelseGateway = tiltakGatewayFake,
             oppgaveGateway = oppgaveGateway,
             clock = clock,
+            statistikkSakService = statistikkContext.statistikkSakService,
         ) {
             override val rammevedtakRepo = rammevedtakFakeRepo
             override val behandlingRepo = behandlingFakeRepo

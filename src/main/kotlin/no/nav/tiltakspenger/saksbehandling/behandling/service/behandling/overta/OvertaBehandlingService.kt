@@ -5,13 +5,17 @@ import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 
 class OvertaBehandlingService(
     private val tilgangsstyringService: TilgangsstyringService,
     private val behandlingRepo: BehandlingRepo,
     private val clock: Clock,
+    private val statistikkSakService: StatistikkSakService,
+    private val statistikkSakRepo: StatistikkSakRepo,
 ) {
     /**
      * @throws [TilgangException] & [NullPointerException] dersom ikke tilgang eller behandling ikke eksisterer / feil id
@@ -27,8 +31,14 @@ class OvertaBehandlingService(
 
         return behandling.overta(command.saksbehandler, clock).onRight {
             when (it.status) {
-                Behandlingsstatus.UNDER_BEHANDLING -> behandlingRepo.overtaSaksbehandler(it.id, command.saksbehandler, command.overtarFra)
-                Behandlingsstatus.UNDER_BESLUTNING -> behandlingRepo.overtaBeslutter(it.id, command.saksbehandler, command.overtarFra)
+                Behandlingsstatus.UNDER_BEHANDLING -> {
+                    behandlingRepo.overtaSaksbehandler(it.id, command.saksbehandler, command.overtarFra)
+                    statistikkSakRepo.lagre(statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it))
+                }
+                Behandlingsstatus.UNDER_BESLUTNING -> {
+                    behandlingRepo.overtaBeslutter(it.id, command.saksbehandler, command.overtarFra)
+                    statistikkSakRepo.lagre(statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it))
+                }
                 Behandlingsstatus.KLAR_TIL_BESLUTNING,
                 Behandlingsstatus.KLAR_TIL_BEHANDLING,
                 Behandlingsstatus.VEDTATT,

@@ -34,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonskli
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseGateway
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import java.time.Clock
@@ -47,7 +48,6 @@ open class BehandlingOgVedtakContext(
     meldeperiodeRepo: MeldeperiodeRepo,
     statistikkSakRepo: StatistikkSakRepo,
     statistikkStønadRepo: StatistikkStønadRepo,
-    gitHash: String,
     journalførVedtaksbrevGateway: JournalførVedtaksbrevGateway,
     genererVedtaksbrevGateway: GenererInnvilgelsesvedtaksbrevGateway,
     genererStansvedtaksbrevGateway: GenererStansvedtaksbrevGateway,
@@ -58,6 +58,7 @@ open class BehandlingOgVedtakContext(
     sakService: SakService,
     tiltaksdeltagelseGateway: TiltaksdeltagelseGateway,
     oppgaveGateway: OppgaveGateway,
+    statistikkSakService: StatistikkSakService,
     clock: Clock,
 ) {
     open val rammevedtakRepo: RammevedtakRepo by lazy { RammevedtakPostgresRepo(sessionFactory as PostgresSessionFactory) }
@@ -73,18 +74,19 @@ open class BehandlingOgVedtakContext(
             tilgangsstyringService = tilgangsstyringService,
             personService = personService,
             clock = clock,
+            statistikkSakService = statistikkSakService,
+            statistikkSakRepo = statistikkSakRepo,
         )
     }
     val startSøknadsbehandlingService: StartSøknadsbehandlingService by lazy {
         StartSøknadsbehandlingService(
             sakService = sakService,
             sessionFactory = sessionFactory,
-            tilgangsstyringService = tilgangsstyringService,
-            gitHash = gitHash,
             behandlingRepo = behandlingRepo,
             statistikkSakRepo = statistikkSakRepo,
             oppdaterSaksopplysningerService = oppdaterSaksopplysningerService,
             clock = clock,
+            statistikkSakService = statistikkSakService,
         )
     }
     val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService by lazy {
@@ -117,12 +119,10 @@ open class BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
             statistikkSakRepo = statistikkSakRepo,
             statistikkStønadRepo = statistikkStønadRepo,
-            tilgangsstyringService = tilgangsstyringService,
-            personService = personService,
-            gitHash = gitHash,
             sakService = sakService,
             oppgaveGateway = oppgaveGateway,
             clock = clock,
+            statistikkSakService = statistikkSakService,
         )
     }
 
@@ -131,6 +131,8 @@ open class BehandlingOgVedtakContext(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
             clock = clock,
+            statistikkSakService = statistikkSakService,
+            statistikkSakRepo = statistikkSakRepo,
         )
     }
     val startRevurderingService: StartRevurderingService by lazy {
@@ -140,6 +142,8 @@ open class BehandlingOgVedtakContext(
             tilgangsstyringService = tilgangsstyringService,
             saksopplysningerService = oppdaterSaksopplysningerService,
             clock = clock,
+            statistikkSakService = statistikkSakService,
+            statistikkSakRepo = statistikkSakRepo,
         )
     }
     val oppdaterBarnetilleggService: OppdaterBarnetilleggService by lazy {
@@ -183,6 +187,8 @@ open class BehandlingOgVedtakContext(
         TaBehandlingService(
             tilgangsstyringService = tilgangsstyringService,
             behandlingRepo = behandlingRepo,
+            statistikkSakService = statistikkSakService,
+            statistikkSakRepo = statistikkSakRepo,
         )
     }
 
@@ -191,6 +197,8 @@ open class BehandlingOgVedtakContext(
             tilgangsstyringService = tilgangsstyringService,
             behandlingRepo = behandlingRepo,
             clock = clock,
+            statistikkSakService = statistikkSakService,
+            statistikkSakRepo = statistikkSakRepo,
         )
     }
 
@@ -198,6 +206,8 @@ open class BehandlingOgVedtakContext(
         LeggTilbakeBehandlingService(
             tilgangsstyringService = tilgangsstyringService,
             behandlingRepo = behandlingRepo,
+            statistikkSakService = statistikkSakService,
+            statistikkSakRepo = statistikkSakRepo,
         )
     }
 }
