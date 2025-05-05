@@ -308,7 +308,7 @@ class BehandlingPostgresRepo(
                             "avbrutt" to behandling.avbrutt?.toDbJson(),
                             "antall_dager_per_meldeperiode" to behandling.antallDagerPerMeldeperiode,
                             "avslagsgrunner" to behandling.avslagsgrunner.toDb(),
-                            "utfall" to behandling.utfall.toDb(),
+                            "utfall" to behandling.utfall?.toDb(),
                         ),
                     ).asUpdate,
                 )
@@ -353,7 +353,7 @@ class BehandlingPostgresRepo(
                         "avbrutt" to behandling.avbrutt?.toDbJson(),
                         "antall_dager_per_meldeperiode" to behandling.antallDagerPerMeldeperiode,
                         "avslagsgrunner" to behandling.avslagsgrunner.toDb(),
-                        "utfall" to behandling.utfall.toDb(),
+                        "utfall" to behandling.utfall?.toDb(),
                     ),
                 ).asUpdate,
             )
@@ -405,6 +405,7 @@ class BehandlingPostgresRepo(
                 stringOrNull("valgte_tiltaksdeltakelser")?.toValgteTiltaksdeltakelser(saksopplysninger)
             val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
             val avslagsgrunner = string("avslagsgrunner").toAvslagsgrunner()
+            val utfall = stringOrNull("utfall")?.toBehandlingsutfallDb()?.toDomain()
 
             return Behandling(
                 id = id,
@@ -444,6 +445,7 @@ class BehandlingPostgresRepo(
                 avbrutt = avbrutt,
                 antallDagerPerMeldeperiode = intOrNull("antall_dager_per_meldeperiode"),
                 avslagsgrunner = avslagsgrunner,
+                utfall = utfall,
             )
         }
 

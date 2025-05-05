@@ -7,8 +7,10 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
@@ -21,7 +23,8 @@ import java.time.LocalDate
 
 class GenererFakeVedtaksbrevGateway :
     GenererInnvilgelsesvedtaksbrevGateway,
-    GenererStansvedtaksbrevGateway {
+    GenererStansvedtaksbrevGateway,
+    GenererAvslagsvedtaksbrevGateway {
     private val response by lazy { PdfOgJson(PdfA("pdf".toByteArray()), "json").right() }
     override suspend fun genererInnvilgelsesvedtaksbrev(
         vedtak: Rammevedtak,
@@ -82,6 +85,23 @@ class GenererFakeVedtaksbrevGateway :
         tilleggstekst: FritekstTilVedtaksbrev?,
         barnetillegg: Boolean,
         valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelHarIkkeRettighet>,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response
+    }
+
+    override suspend fun genererAvslagsVedtaksbrev(
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+        avslagsgrunner: Set<Avslagsgrunnlag>,
+        fnr: Fnr,
+        saksbehandlerNavIdent: String,
+        beslutterNavIdent: String?,
+        avslagsperiode: Periode,
+        saksnummer: Saksnummer,
+        sakId: SakId,
+        tilleggstekst: FritekstTilVedtaksbrev,
+        forhåndsvisning: Boolean,
+        harSøktBarnetillegg: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
     }

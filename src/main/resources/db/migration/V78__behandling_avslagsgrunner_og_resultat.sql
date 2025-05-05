@@ -4,9 +4,27 @@ ALTER TABLE behandling
 ALTER TABLE behandling
     ADD COLUMN IF NOT EXISTS utfall TEXT;
 
--- Alle behandlinger er implisitt innvilget dersom virkningsperioden er sendt inn (altså sendt til beslutning fordi man ikke har mulighet for et annet resultat)
--- TODO raq: Hvordan vil dette fungere for revurderinger/stans. I det minste burde vi bruke en where.
 UPDATE behandling
 SET utfall = CASE
-                 WHEN virkningsperiode_fra_og_med IS NOT NULL THEN 'INNVILGELSE'
+    -- Finnes vedtak for behandlingen...
+                 WHEN (select count(*) > 0
+                       from rammevedtak
+                       where behandling_id = behandling.id
+                         and vedtakstype = 'Innvilgelse') then 'INNVILGELSE'
+                 when (select count(*) > 0
+                       from rammevedtak
+                       where behandling_id = behandling.id
+                         and vedtakstype = 'Stans') then 'STANS'
+
+    -- Finnes ikke noen for behandlingen vedtak...
+                 WHEN (select count(*) = 0
+                       from rammevedtak
+                       where behandling_id = behandling.id) and behandling.behandlingstype = 'FØRSTEGANGSBEHANDLING'
+                     and behandling.status IN ('KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING', 'VEDTATT')
+                     then 'INNVILGELSE'
+                 WHEN (select count(*) = 0
+                       from rammevedtak
+                       where behandling_id = behandling.id) and behandling.behandlingstype = 'REVURDERING' then 'STANS'
     END;
+
+

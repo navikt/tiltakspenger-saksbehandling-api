@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForAvslag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelType
@@ -32,14 +32,14 @@ private fun ValgtHjemmelHarIkkeRettighet.toDTO(
         }
 
         ValgtHjemmelType.AVSLAG -> when (this) {
-            ValgtHjemmelForAvslag.DeltarIkkePåArbeidsmarkedstiltak -> "DeltarIkkePåArbeidsmarkedstiltak"
-            ValgtHjemmelForAvslag.Alder -> "Alder"
-            ValgtHjemmelForAvslag.Livsoppholdytelser -> "Livsoppholdytelser"
-            ValgtHjemmelForAvslag.Kvalifiseringsprogrammet -> "Kvalifiseringsprogrammet"
-            ValgtHjemmelForAvslag.Introduksjonsprogrammet -> "Introduksjonsprogrammet"
-            ValgtHjemmelForAvslag.LønnFraTiltaksarrangør -> "LønnFraTiltaksarrangør"
-            ValgtHjemmelForAvslag.LønnFraAndre -> "LønnFraAndre"
-            ValgtHjemmelForAvslag.Institusjonsopphold -> "Institusjonsopphold"
+            Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak -> "DeltarIkkePåArbeidsmarkedstiltak"
+            Avslagsgrunnlag.Alder -> "Alder"
+            Avslagsgrunnlag.Livsoppholdytelser -> "Livsoppholdytelser"
+            Avslagsgrunnlag.Kvalifiseringsprogrammet -> "Kvalifiseringsprogrammet"
+            Avslagsgrunnlag.Introduksjonsprogrammet -> "Introduksjonsprogrammet"
+            Avslagsgrunnlag.LønnFraTiltaksarrangør -> "LønnFraTiltaksarrangør"
+            Avslagsgrunnlag.LønnFraAndre -> "LønnFraAndre"
+            Avslagsgrunnlag.Institusjonsopphold -> "Institusjonsopphold"
             else -> throw IllegalArgumentException("Ukjent kode for ValgtHjemmelForAvslag: $this")
         }
     }

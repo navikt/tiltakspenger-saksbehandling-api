@@ -12,14 +12,15 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsutfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendRevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForAvslag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
@@ -132,7 +133,8 @@ internal fun TestDataHelper.persisterKlarTilBeslutningFørstegangsbehandling(
     fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterKlarTilBeslutningFørstegangsbehandling()"),
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterKlarTilBeslutningFørstegangsbehandling()"),
     correlationId: CorrelationId = CorrelationId.generate(),
-    avslagsgrunner: Set<ValgtHjemmelForAvslag> = emptySet(),
+    avslagsgrunner: Set<Avslagsgrunnlag> = emptySet(),
+    utfall: Behandlingsutfall = Behandlingsutfall.INNVILGELSE,
     /**
      * Brukt for å styre meldeperiode generering
      */
@@ -171,6 +173,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningFørstegangsbehandling(
                     ),
                     antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                     avslagsgrunner = avslagsgrunner,
+                    utfall = utfall,
                 ),
                 clock = clock,
             )
