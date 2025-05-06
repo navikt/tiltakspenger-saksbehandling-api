@@ -134,6 +134,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningFørstegangsbehandling(
      * Brukt for å styre meldeperiode generering
      */
     clock: Clock = this.clock,
+    antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
 ): Pair<Sak, Behandling> {
     val (sak, førstegangsbehandling) = persisterOpprettetFørstegangsbehandling(
         sakId = sak.id,
@@ -165,6 +166,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningFørstegangsbehandling(
                             førstegangsbehandling.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
                         ),
                     ),
+                    antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                 ),
                 clock = clock,
             )

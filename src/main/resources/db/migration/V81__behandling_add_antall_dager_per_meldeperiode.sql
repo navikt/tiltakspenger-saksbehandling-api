@@ -1,0 +1,1 @@
+ALTER TABLE behandling ADD COLUMN IF NOT EXISTS antall_dager_per_meldeperiode INTEGER;

@@ -306,6 +306,7 @@ class BehandlingPostgresRepo(
                             "barnetillegg" to behandling.barnetillegg?.toDbJson(),
                             "valgte_tiltaksdeltakelser" to behandling.valgteTiltaksdeltakelser?.toDbJson(),
                             "avbrutt" to behandling.avbrutt?.toDbJson(),
+                            "antall_dager_per_meldeperiode" to behandling.antallDagerPerMeldeperiode,
                         ),
                     ).asUpdate,
                 )
@@ -348,6 +349,7 @@ class BehandlingPostgresRepo(
                         "barnetillegg" to behandling.barnetillegg?.toDbJson(),
                         "valgte_tiltaksdeltakelser" to behandling.valgteTiltaksdeltakelser?.toDbJson(),
                         "avbrutt" to behandling.avbrutt?.toDbJson(),
+                        "antall_dager_per_meldeperiode" to behandling.antallDagerPerMeldeperiode,
                     ),
                 ).asUpdate,
             )
@@ -435,6 +437,7 @@ class BehandlingPostgresRepo(
                 barnetillegg = barnetillegg,
                 valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
                 avbrutt = avbrutt,
+                antallDagerPerMeldeperiode = intOrNull("antall_dager_per_meldeperiode"),
             )
         }
 
@@ -465,7 +468,8 @@ class BehandlingPostgresRepo(
                 saksopplysningsperiode_til_og_med,
                 barnetillegg,
                 valgte_tiltaksdeltakelser,
-                avbrutt
+                avbrutt,
+                antall_dager_per_meldeperiode
             ) values (
                 :id,
                 :sak_id,
@@ -490,7 +494,8 @@ class BehandlingPostgresRepo(
                 :saksopplysningsperiode_til_og_med,
                 to_jsonb(:barnetillegg::jsonb),
                 to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
-                to_jsonb(:avbrutt::jsonb)
+                to_jsonb(:avbrutt::jsonb),
+                :antall_dager_per_meldeperiode
             )
             """.trimIndent()
 
@@ -519,7 +524,8 @@ class BehandlingPostgresRepo(
                 saksopplysningsperiode_til_og_med = :saksopplysningsperiode_til_og_med,
                 barneTillegg = to_jsonb(:barnetillegg::jsonb),
                 valgte_tiltaksdeltakelser = to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
-                avbrutt = to_jsonb(:avbrutt::jsonb)
+                avbrutt = to_jsonb(:avbrutt::jsonb),
+                antall_dager_per_meldeperiode = :antall_dager_per_meldeperiode
             where id = :id
               and sist_endret = :sist_endret_old
             """.trimIndent()

@@ -69,6 +69,7 @@ data class Behandling(
     val barnetillegg: Barnetillegg?,
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
     val avbrutt: Avbrutt?,
+    val antallDagerPerMeldeperiode: Int?,
 ) {
     val erAvsluttet: Boolean by lazy { status == AVBRUTT || status == VEDTATT }
     val erUnderBehandling: Boolean = status == UNDER_BEHANDLING
@@ -161,6 +162,7 @@ data class Behandling(
                 barnetillegg = null,
                 valgteTiltaksdeltakelser = null,
                 avbrutt = null,
+                antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
             ).right()
         }
 
@@ -202,6 +204,7 @@ data class Behandling(
                 barnetillegg = null,
                 valgteTiltaksdeltakelser = null,
                 avbrutt = null,
+                antallDagerPerMeldeperiode = null,
             )
         }
     }
@@ -343,6 +346,7 @@ data class Behandling(
             virkningsperiode = kommando.innvilgelsesperiode,
             barnetillegg = kommando.barnetillegg,
             valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
+            antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
         )
     }
 

@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBeslutter.MåVæreSaksbehandler
@@ -36,6 +37,7 @@ private data class SendTilBeslutningBody(
     val innvilgelsesperiode: PeriodeDTO,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
+    val antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
 ) {
     fun toDomain(
         sakId: SakId,
@@ -57,6 +59,7 @@ private data class SendTilBeslutningBody(
             tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
                 Pair(it.periode.toDomain(), it.eksternDeltagelseId)
             },
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         )
     }
 }

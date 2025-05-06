@@ -87,6 +87,7 @@ interface SakMother {
             ),
         ),
         clock: Clock = fixedClock,
+        antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     ): Pair<Sak, Behandling> {
         val førstegangsbehandling =
             runBlocking {
@@ -114,6 +115,7 @@ interface SakMother {
                             begrunnelseVilkårsvurdering = null,
                             innvilgelsesperiode = virkningsperiode,
                             tiltaksdeltakelser = valgteTiltaksdeltakelser,
+                            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                         ),
                         clock = clock,
                     )
@@ -163,6 +165,7 @@ interface SakMother {
                 tiltaksdeltakelser = førstegangsbehandling.saksopplysninger.tiltaksdeltagelse.map {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
+                antallDagerPerMeldeperiode = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
             ),
             clock = clock,
         ).taBehandling(beslutter)

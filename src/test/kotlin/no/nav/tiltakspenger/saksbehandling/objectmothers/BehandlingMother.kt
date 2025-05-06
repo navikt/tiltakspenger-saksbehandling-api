@@ -119,6 +119,7 @@ interface BehandlingMother : MotherOfAllMothers {
         barnetillegg: Barnetillegg? = null,
         valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = null,
         avbrutt: Avbrutt? = null,
+        antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     ): Behandling {
         return Behandling(
             id = id,
@@ -146,6 +147,7 @@ interface BehandlingMother : MotherOfAllMothers {
             barnetillegg = barnetillegg,
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
             avbrutt = avbrutt,
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         )
     }
 
@@ -166,6 +168,7 @@ interface BehandlingMother : MotherOfAllMothers {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
+        antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     ): Behandling {
         return this.nyOpprettetFørstegangsbehandling(
             id = id,
@@ -186,6 +189,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 innvilgelsesperiode = virkningsperiode,
                 barnetillegg = barnetillegg,
                 tiltaksdeltakelser = valgteTiltaksdeltakelser,
+                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             ),
             clock = fixedClock,
         )
@@ -403,6 +407,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
     correlationId: CorrelationId = CorrelationId.generate(),
     fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("Fritekst"),
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("Begrunnelse"),
+    antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
 ): Sak {
     val sakMedFørstegangsbehandling = startSøknadsbehandling(
         periode = periode,
@@ -426,6 +431,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
                     sakMedFørstegangsbehandling.behandlinger.singleOrNullOrThrow()!!.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
                 ),
             ),
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         ),
     ).getOrFail()
     return this.sakContext.sakService.hentForSakId(
