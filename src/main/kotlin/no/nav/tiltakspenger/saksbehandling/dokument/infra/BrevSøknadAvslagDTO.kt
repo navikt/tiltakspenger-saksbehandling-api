@@ -7,6 +7,8 @@ import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Forskrift
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Paragraf
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
@@ -76,50 +78,65 @@ enum class AvslagsgrunnerBrevDto {
     FREMMET_FOR_SENT,
 }
 
-// TODO raq - test
 fun Set<Avslagsgrunnlag>.createBrevForskrifter(harSøktBarnetillegg: Boolean): String {
     val hjemler = this.flatMap { it.hjemler }
 
     val tiltakspengeHjemler = hjemler.filter { it.forskrift == Forskrift.Tiltakspengeforskriften }
-        .map { it.paragraf.nummer }
         .let {
             if (harSøktBarnetillegg) {
-                it + 3
+                it + Hjemmel(
+                    paragraf = Paragraf(3),
+                    forskrift = Forskrift.Tiltakspengeforskriften,
+                )
             } else {
                 it
             }
         }
-        .distinct()
-        .sorted()
+        .distinctBy { it.paragraf.nummer }
+        .sortedBy { it.paragraf.nummer }
 
     val arbeidsmarkedlovenHjemler = hjemler.filter { it.forskrift == Forskrift.Arbeidsmarkedsloven }
-        .map { it.paragraf.nummer }
-        .distinct()
-        .sorted()
+        .distinctBy { it.paragraf.nummer }
+        .sortedBy { it.paragraf.nummer }
 
     return when {
         arbeidsmarkedlovenHjemler.isNotEmpty() && tiltakspengeHjemler.isEmpty() -> {
             val paragraf = if (arbeidsmarkedlovenHjemler.size == 1) "§" else "§§"
-            "Dette kommer frem av arbeidsmarkedsloven $paragraf " + arbeidsmarkedlovenHjemler.joinToString { it.toString() } + "."
+            "Dette kommer frem av arbeidsmarkedsloven $paragraf " + arbeidsmarkedlovenHjemler.joinToString {
+                "${it.paragraf.nummer}" + if (it.toLeddTekst().isBlank()) "" else " ${it.toLeddTekst()}"
+            } + "."
         }
 
         arbeidsmarkedlovenHjemler.isEmpty() && tiltakspengeHjemler.isNotEmpty() -> {
             val paragraf = if (tiltakspengeHjemler.size == 1) "§" else "§§"
-            "Dette kommer frem av tiltakspengeforskriften $paragraf " + tiltakspengeHjemler.joinToString { it.toString() } + "."
+            "Dette kommer frem av tiltakspengeforskriften $paragraf " + tiltakspengeHjemler.joinToString {
+                "${it.paragraf.nummer}" + if (it.toLeddTekst().isBlank()) "" else " ${it.toLeddTekst()}"
+            } + "."
         }
 
         arbeidsmarkedlovenHjemler.isNotEmpty() && tiltakspengeHjemler.isNotEmpty() -> {
             val paragragArbeidsmarkedloven = if (arbeidsmarkedlovenHjemler.size == 1) "§" else "§§"
             val paragrafTiltakspenger = if (tiltakspengeHjemler.size == 1) "§" else "§§"
-            "Dette kommer frem av arbeidsmarkedsloven $paragragArbeidsmarkedloven " + arbeidsmarkedlovenHjemler.joinToString { it.toString() } +
-                ", tiltakspengeforskriften $paragrafTiltakspenger " + tiltakspengeHjemler.joinToString { it.toString() } + "."
+            "Dette kommer frem av arbeidsmarkedsloven $paragragArbeidsmarkedloven " + arbeidsmarkedlovenHjemler.joinToString {
+                "${it.paragraf.nummer}" + if (it.toLeddTekst().isBlank()) "" else " ${it.toLeddTekst()}"
+            } +
+                ", og tiltakspengeforskriften $paragrafTiltakspenger " + tiltakspengeHjemler.joinToString {
+                    "${it.paragraf.nummer}" + if (it.toLeddTekst().isBlank()) "" else " ${it.toLeddTekst()}"
+                } + "."
         }
 
         else -> throw IllegalStateException("Fant ingen hjemler for avslagsgrunnlag")
     }
 }
 
-// TODO raq - test
+private fun Hjemmel.toLeddTekst(): String = when (this.ledd?.nummer) {
+    1 -> "første ledd"
+    2 -> "andre ledd"
+    3 -> "tredje ledd"
+    null -> ""
+    else -> throw IllegalArgumentException("Fant ikke mapping mellom paragraf og ledd")
+}
+
 fun Avslagsgrunnlag.toAvslagsgrunnerBrevDto(): AvslagsgrunnerBrevDto = when (this) {
     Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak -> AvslagsgrunnerBrevDto.DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK
     Avslagsgrunnlag.Alder -> AvslagsgrunnerBrevDto.ALDER
@@ -132,6 +149,5 @@ fun Avslagsgrunnlag.toAvslagsgrunnerBrevDto(): AvslagsgrunnerBrevDto = when (thi
     Avslagsgrunnlag.FremmetForSent -> AvslagsgrunnerBrevDto.FREMMET_FOR_SENT
 }
 
-// TODO raq - test
 fun Set<Avslagsgrunnlag>.toAvslagsgrunnerBrevDto(): List<AvslagsgrunnerBrevDto> =
     this.map { it.toAvslagsgrunnerBrevDto() }
