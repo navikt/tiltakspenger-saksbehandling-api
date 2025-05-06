@@ -13,12 +13,17 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 
+/**
+ * [SimuleringMedMetadata] blir ikke lagret siden den kun brukes for debug (hentes ikke opp fra basen igjen).
+ */
 class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
     private val data = Atomic(mutableMapOf<MeldekortId, MeldekortBehandling>())
 
     override fun lagre(
         meldekortBehandling: MeldekortBehandling,
+        simuleringMedMetadata: SimuleringMedMetadata?,
         transactionContext: TransactionContext?,
     ) {
         data.get()[meldekortBehandling.id] = meldekortBehandling
@@ -28,7 +33,15 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
         meldekortBehandling: MeldekortBehandling,
         transactionContext: TransactionContext?,
     ) {
-        lagre(meldekortBehandling, transactionContext)
+        lagre(meldekortBehandling, null, transactionContext)
+    }
+
+    override fun oppdater(
+        meldekortBehandling: MeldekortBehandling,
+        simuleringMedMetadata: SimuleringMedMetadata?,
+        transactionContext: TransactionContext?,
+    ) {
+        lagre(meldekortBehandling, null, transactionContext)
     }
 
     override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): MeldekortBehandlinger? =

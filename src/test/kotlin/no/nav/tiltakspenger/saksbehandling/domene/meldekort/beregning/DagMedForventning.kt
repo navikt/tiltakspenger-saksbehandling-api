@@ -10,13 +10,13 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePå
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import java.time.LocalDate
 
-internal data class DagMedForventning(
+data class DagMedForventning(
     val dag: LocalDate,
     val status: Status,
     val forventning: ReduksjonAvYtelsePåGrunnAvFravær,
 )
 
-internal fun NonEmptyList<NonEmptyList<DagMedForventning>>.assertForventning(vurderingsperiode: Periode) {
+suspend fun NonEmptyList<NonEmptyList<DagMedForventning>>.assertForventning(vurderingsperiode: Periode) {
     val actual = ObjectMother.beregnMeldekortperioder(
         vurderingsperiode = vurderingsperiode,
         meldeperioder = this.map { outer -> outer.map { OppdaterMeldekortKommando.Dager.Dag(it.dag, it.status) } },

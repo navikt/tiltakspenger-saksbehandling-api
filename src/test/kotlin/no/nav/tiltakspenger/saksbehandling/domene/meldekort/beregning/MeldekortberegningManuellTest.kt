@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.domene.meldekort.beregning
 
 import arrow.core.nonEmptyListOf
+import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.libs.periodisering.februar
@@ -105,12 +106,14 @@ internal class MeldekortberegningManuellTest {
     @Test
     @Disabled
     fun `manuell test av meldekortberegning`() {
-        val meldekortBeregning = ObjectMother.beregnMeldekortperioder(
-            vurderingsperiode = Periode(29.januar(2024), 7.april(2024)),
-            meldeperioder = nonEmptyListOf(meldekort1, meldekort2, meldekort3, meldekort4, meldekort5),
-        )
-        for (dag in meldekortBeregning) {
-            println(dag)
+        runTest {
+            val meldekortBeregning = ObjectMother.beregnMeldekortperioder(
+                vurderingsperiode = Periode(29.januar(2024), 7.april(2024)),
+                meldeperioder = nonEmptyListOf(meldekort1, meldekort2, meldekort3, meldekort4, meldekort5),
+            )
+            for (dag in meldekortBeregning) {
+                println(dag)
+            }
         }
     }
 }

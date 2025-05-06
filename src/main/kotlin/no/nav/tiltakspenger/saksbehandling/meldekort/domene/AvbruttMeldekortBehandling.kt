@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.LocalDateTime
 
 data class AvbruttMeldekortBehandling(
@@ -21,6 +22,7 @@ data class AvbruttMeldekortBehandling(
     override val opprettet: LocalDateTime,
     override val dager: MeldekortDager,
     override val beregning: MeldekortBeregning?,
+    override val simulering: Simulering?,
     override val meldeperiode: Meldeperiode,
     override val type: MeldekortBehandlingType,
     override val brukersMeldekort: BrukersMeldekort?,

@@ -210,6 +210,7 @@ class TestApplicationContext(
                 oppgaveGateway = oppgaveGateway,
                 sakRepo = sakContext.sakRepo,
                 clock = clock,
+                simulerService = utbetalingContext.simulerService,
             ) {
             override val meldekortBehandlingRepo = meldekortBehandlingFakeRepo
             override val meldeperiodeRepo = meldeperiodeFakeRepo
@@ -252,6 +253,7 @@ class TestApplicationContext(
             navIdentClient = personContext.navIdentClient,
             sakRepo = sakContext.sakRepo,
             clock = clock,
+            navkontorService = navkontorService,
         ) {
             override val utbetalingGateway = utbetalingGatewayFake
             override val utbetalingsvedtakRepo = utbetalingsvedtakFakeRepo

@@ -48,7 +48,7 @@ class AvbrytMeldekortBehandlingRouteTest {
                     status = MeldekortBehandlingStatus.UNDER_BEHANDLING,
                 )
 
-                tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling)
+                tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling, null)
 
                 val begrunnelse = "begrunnelse"
 

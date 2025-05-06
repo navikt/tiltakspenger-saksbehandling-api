@@ -2,7 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.withContext
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
@@ -31,20 +33,22 @@ class VeilarboppfolgingHttpClient(
     private val uri = URI.create("$baseUrl/veilarboppfolging/api/v2/person/system/hent-oppfolgingsstatus")
 
     override suspend fun hentOppfolgingsenhet(fnr: Fnr): Navkontor {
-        val jsonPayload = objectMapper.writeValueAsString(Request(fnr.verdi))
-        val request = createRequest(jsonPayload, getToken().token)
-        val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-        val status = httpResponse.statusCode()
-        if (status != 200) {
-            logger.error { "Kunne ikke hente oppfølgingsenhet fra veilarboppfølging, statuskode $status" }
-            error("Kunne ikke hente oppfølgingsenhet fra veilarboppfølging, statuskode $status")
+        return withContext(Dispatchers.IO) {
+            val jsonPayload = objectMapper.writeValueAsString(Request(fnr.verdi))
+            val request = createRequest(jsonPayload, getToken().token)
+            val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
+            val status = httpResponse.statusCode()
+            if (status != 200) {
+                logger.error { "Kunne ikke hente oppfølgingsenhet fra veilarboppfølging, statuskode $status" }
+                error("Kunne ikke hente oppfølgingsenhet fra veilarboppfølging, statuskode $status")
+            }
+            val jsonResponse = httpResponse.body()
+            val oppfolgingsenhet = objectMapper.readValue<Response>(jsonResponse).oppfolgingsenhet
+            if (oppfolgingsenhet == null) {
+                logger.error { "Fant ikke oppfølgingsenhet" }
+            }
+            oppfolgingsenhet?.toNavkontor() ?: error("Fant ikke oppfølgingsenhet")
         }
-        val jsonResponse = httpResponse.body()
-        val oppfolgingsenhet = objectMapper.readValue<Response>(jsonResponse).oppfolgingsenhet
-        if (oppfolgingsenhet == null) {
-            logger.error { "Fant ikke oppfølgingsenhet" }
-        }
-        return oppfolgingsenhet?.toNavkontor() ?: error("Fant ikke oppfølgingsenhet")
     }
 
     private fun createRequest(

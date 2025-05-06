@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
+import arrow.core.left
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.periodisering.april
@@ -13,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinge
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettManuellMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilOppdaterMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import org.junit.jupiter.api.Test
 
 class MeldekortBehandlingRepoImplTest {
@@ -34,7 +37,7 @@ class MeldekortBehandlingRepoImplTest {
                 meldeperiode = sak.meldeperiodeKjeder.first().first(),
                 periode = sak.meldeperiodeKjeder.first().first().periode,
                 begrunnelse = MeldekortBehandlingBegrunnelse("begrunnelse"),
-            ).also { meldekortRepo.lagre(it) }
+            ).also { meldekortRepo.lagre(it, null) }
 
             testDataHelper.sessionFactory.withSession {
                 MeldekortBehandlingPostgresRepo.hentForMeldekortId(meldekort.id, it)!! shouldBe meldekort
@@ -50,7 +53,7 @@ class MeldekortBehandlingRepoImplTest {
                 ObjectMother.navkontor(),
                 ObjectMother.saksbehandler(),
                 fixedClock,
-            ).also { meldekortRepo.lagre(it) }
+            ).also { meldekortRepo.lagre(it, null) }
 
             val hentForMeldekortId2 =
                 testDataHelper.sessionFactory.withSession {
@@ -63,42 +66,45 @@ class MeldekortBehandlingRepoImplTest {
     @Test
     fun `kan oppdatere`() {
         withMigratedDb { testDataHelper ->
-            val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
-                deltakelseFom = 1.januar(2024),
-                deltakelseTom = 31.mars(2024),
-            )
-            val meldekortBehandling = sak.opprettManuellMeldekortBehandling(
-                sak.meldeperiodeKjeder.first().kjedeId,
-                ObjectMother.navkontor(),
-                ObjectMother.saksbehandler(),
-                fixedClock,
-            )
-
-            val meldekortRepo = testDataHelper.meldekortRepo
-
-            meldekortRepo.lagre(meldekortBehandling)
-
-            val oppdatertMeldekortBehandling = meldekortBehandling.oppdater(
-                beregn = {
-                    ObjectMother.meldekortBeregning(
-                        sakId = sak.id,
-                        startDato = meldekortBehandling.periode.fraOgMed,
-                        meldekortId = meldekortBehandling.id,
-                        maksDagerMedTiltakspengerForPeriode = meldekortBehandling.meldeperiode.maksAntallDagerForMeldeperiode,
-                    ).beregninger
-                },
-                kommando = meldekortBehandling.tilOppdaterMeldekortKommando(
+            runTest {
+                val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+                    deltakelseFom = 1.januar(2024),
+                    deltakelseTom = 31.mars(2024),
+                )
+                val meldekortBehandling = sak.opprettManuellMeldekortBehandling(
+                    sak.meldeperiodeKjeder.first().kjedeId,
+                    ObjectMother.navkontor(),
                     ObjectMother.saksbehandler(),
-                ),
-            ).getOrFail()
+                    fixedClock,
+                )
 
-            meldekortRepo.oppdater(oppdatertMeldekortBehandling)
+                val meldekortRepo = testDataHelper.meldekortRepo
 
-            testDataHelper.sessionFactory.withSession {
-                MeldekortBehandlingPostgresRepo.hentForMeldekortId(
-                    meldekortBehandling.id,
-                    it,
-                )!! shouldBe oppdatertMeldekortBehandling
+                meldekortRepo.lagre(meldekortBehandling, null)
+
+                val (oppdatertMeldekortBehandling, simulering) = meldekortBehandling.oppdater(
+                    beregn = {
+                        ObjectMother.meldekortBeregning(
+                            sakId = sak.id,
+                            startDato = meldekortBehandling.periode.fraOgMed,
+                            meldekortId = meldekortBehandling.id,
+                            maksDagerMedTiltakspengerForPeriode = meldekortBehandling.meldeperiode.maksAntallDagerForMeldeperiode,
+                        ).beregninger
+                    },
+                    simuler = { KunneIkkeSimulere.UkjentFeil.left() },
+                    kommando = meldekortBehandling.tilOppdaterMeldekortKommando(
+                        ObjectMother.saksbehandler(),
+                    ),
+                ).getOrFail()
+
+                meldekortRepo.oppdater(oppdatertMeldekortBehandling, simulering)
+
+                testDataHelper.sessionFactory.withSession {
+                    MeldekortBehandlingPostgresRepo.hentForMeldekortId(
+                        meldekortBehandling.id,
+                        it,
+                    )!! shouldBe oppdatertMeldekortBehandling
+                }
             }
         }
     }

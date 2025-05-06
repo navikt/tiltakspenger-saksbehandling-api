@@ -46,7 +46,7 @@ class OvertaMeldekortBehandlingRouteTest {
                     saksbehandler = saksbehandlerIdent,
                 )
 
-                tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling)
+                tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling, null)
 
                 overtaMeldekortBehandling(tac, meldekortBehandling.sakId, meldekortBehandling.id, saksbehandlerIdent, ObjectMother.saksbehandler123()).also {
                     JSONObject(it).getString("saksbehandler") shouldBe "123"
@@ -79,7 +79,7 @@ class OvertaMeldekortBehandlingRouteTest {
                     iverksattTidspunkt = null,
                 )
 
-                tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling)
+                tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling, null)
 
                 overtaMeldekortBehandling(tac, meldekortBehandling.sakId, meldekortBehandling.id, beslutterIdent, ObjectMother.beslutter123()).also {
                     JSONObject(it).getString("beslutter") shouldBe "123"

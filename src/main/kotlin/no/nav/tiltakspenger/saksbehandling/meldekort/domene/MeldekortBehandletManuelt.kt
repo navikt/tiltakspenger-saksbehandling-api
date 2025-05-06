@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -53,6 +54,7 @@ data class MeldekortBehandletManuelt(
     override val begrunnelse: MeldekortBehandlingBegrunnelse?,
     override val attesteringer: Attesteringer,
     override val beregning: MeldekortBeregning,
+    override val simulering: Simulering?,
     override val dager: MeldekortDager,
 ) : MeldekortBehandling.Behandlet {
     override val avbrutt: Avbrutt? = null
@@ -172,6 +174,7 @@ data class MeldekortBehandletManuelt(
             type = type,
             attesteringer = attesteringer,
             begrunnelse = begrunnelse,
+            simulering = simulering,
             sendtTilBeslutning = sendtTilBeslutning,
             dager = dager,
         ).right()
@@ -288,6 +291,7 @@ data class MeldekortBehandletManuelt(
             attesteringer = attesteringer,
             sendtTilBeslutning = iverksattTidspunkt,
             beregning = null,
+            simulering = null,
             dager = meldeperiode.tilMeldekortDager(),
         )
     }

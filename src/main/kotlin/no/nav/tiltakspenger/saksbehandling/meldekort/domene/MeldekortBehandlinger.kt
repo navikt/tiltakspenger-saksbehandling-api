@@ -8,6 +8,8 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import java.time.Clock
 import java.time.LocalDate
 
@@ -82,28 +84,32 @@ data class MeldekortBehandlinger(
     /** Meldekort som er under behandling eller venter på beslutning */
     val åpenMeldekortBehandling: MeldekortBehandling? by lazy { meldekortUnderBehandling ?: meldekortUnderBeslutning }
 
-    fun oppdaterMeldekort(
+    suspend fun oppdaterMeldekort(
         kommando: OppdaterMeldekortKommando,
         beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
-    ): Either<KanIkkeOppdatereMeldekort, Pair<MeldekortBehandlinger, MeldekortUnderBehandling>> {
+        simuler: (suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
+    ): Either<KanIkkeOppdatereMeldekort, Triple<MeldekortBehandlinger, MeldekortUnderBehandling, SimuleringMedMetadata?>> {
         val meldekort = hentMeldekortBehandling(kommando.meldekortId) as MeldekortUnderBehandling
         return meldekort.oppdater(
             kommando = kommando,
             beregn = beregn,
-        ).map { Pair(oppdaterMeldekortbehandling(it), it) }
+            simuler = simuler,
+        ).map { Triple(oppdaterMeldekortbehandling(it.first), it.first, it.second) }
     }
 
-    fun sendTilBeslutter(
+    suspend fun sendTilBeslutter(
         kommando: SendMeldekortTilBeslutterKommando,
         beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
+        simuler: (suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
         clock: Clock,
-    ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<MeldekortBehandlinger, MeldekortBehandletManuelt>> {
+    ): Either<KanIkkeSendeMeldekortTilBeslutter, Triple<MeldekortBehandlinger, MeldekortBehandletManuelt, SimuleringMedMetadata?>> {
         val meldekort = hentMeldekortBehandling(kommando.meldekortId) as MeldekortUnderBehandling
         return meldekort.sendTilBeslutter(
             kommando = kommando,
             beregn = beregn,
             clock = clock,
-        ).map { Pair(oppdaterMeldekortbehandling(it), it) }
+            simuler = simuler,
+        ).map { Triple(oppdaterMeldekortbehandling(it.first), it.first, it.second) }
     }
 
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {

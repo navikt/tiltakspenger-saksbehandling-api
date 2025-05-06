@@ -19,6 +19,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKom
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.oppdaterMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
+import java.lang.IllegalStateException
 
 /**
  * Har ansvar for å ta imot et utfylt meldekort og lagre det.
@@ -28,6 +30,7 @@ class OppdaterMeldekortService(
     private val personService: PersonService,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakService: SakService,
+    private val simulerService: SimulerService,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -35,9 +38,19 @@ class OppdaterMeldekortService(
         kommando: OppdaterMeldekortKommando,
     ): Either<KanIkkeOppdatereMeldekort, Pair<Sak, MeldekortUnderBehandling>> {
         val sak = hentSak(kommando).getOrElse { return it.left() }
-        return sak.oppdaterMeldekort(kommando).onRight { (_, meldekort) ->
-            meldekortBehandlingRepo.oppdater(meldekort)
+        return sak.oppdaterMeldekort(
+            kommando = kommando,
+            simuler = { behandling ->
+                simulerService.simulerMeldekort(
+                    behandling = behandling,
+                    forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
+                    brukersNavkontor = { behandling.navkontor },
+                )
+            },
+        ).map { (sak, meldekort, simulering) ->
+            meldekortBehandlingRepo.oppdater(meldekort, simulering)
             logger.info { "Meldekort under behandling med id ${meldekort.id} oppdatert. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
+            Pair(sak, meldekort)
         }
     }
 

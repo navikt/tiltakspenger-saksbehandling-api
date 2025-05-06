@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import arrow.core.NonEmptyList
+import arrow.core.left
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -52,6 +54,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBesl
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.beregn
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -104,6 +108,7 @@ interface MeldekortMother : MotherOfAllMothers {
             sendtTilBeslutning = null,
             dager = dager,
             beregning = null,
+            simulering = null,
         )
     }
 
@@ -145,6 +150,7 @@ interface MeldekortMother : MotherOfAllMothers {
         type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
         attesteringer: Attesteringer = Attesteringer.empty(),
         begrunnelse: MeldekortBehandlingBegrunnelse? = null,
+        simulering: Simulering? = null,
     ): MeldekortBehandletManuelt {
         return MeldekortBehandletManuelt(
             id = id,
@@ -153,6 +159,7 @@ interface MeldekortMother : MotherOfAllMothers {
             fnr = fnr,
             opprettet = opprettet,
             beregning = meldekortperiodeBeregning,
+            simulering = simulering,
             saksbehandler = saksbehandler,
             sendtTilBeslutning = sendtTilBeslutning,
             beslutter = beslutter,
@@ -205,6 +212,7 @@ interface MeldekortMother : MotherOfAllMothers {
             behandlesAutomatisk = true,
             mottatt = nå(clock),
         ),
+        simulering: Simulering? = null,
     ): MeldekortBehandletAutomatisk {
         return MeldekortBehandletAutomatisk(
             id = id,
@@ -219,6 +227,7 @@ interface MeldekortMother : MotherOfAllMothers {
             beregning = beregning,
             type = type,
             status = status,
+            simulering = simulering,
         )
     }
 
@@ -338,7 +347,7 @@ interface MeldekortMother : MotherOfAllMothers {
         }.toNonEmptyListOrNull()!!
     }
 
-    fun beregnMeldekortperioder(
+    suspend fun beregnMeldekortperioder(
         clock: Clock = TikkendeKlokke(),
         vurderingsperiode: Periode,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
@@ -392,7 +401,7 @@ interface MeldekortMother : MotherOfAllMothers {
         }
     }
 
-    fun førsteBeregnetMeldekort(
+    suspend fun førsteBeregnetMeldekort(
         kommando: OppdaterMeldekortKommando,
         vurderingsperiode: Periode,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?> = Periodisering(
@@ -413,6 +422,7 @@ interface MeldekortMother : MotherOfAllMothers {
         begrunnelse: MeldekortBehandlingBegrunnelse? = null,
         attesteringer: Attesteringer = Attesteringer.empty(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
+        simulering: Simulering? = null,
     ): Pair<MeldekortBehandlinger, MeldekortBehandletManuelt> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
@@ -445,6 +455,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     attesteringer = attesteringer,
                     sendtTilBeslutning = null,
                     dager = dager,
+                    simulering = simulering,
                 ),
             ),
         )
@@ -461,7 +472,12 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldekortBehandlinger = meldekortBehandlinger,
                 )
             },
-            clock,
+            simuler = {
+                simulering
+                    ?.let { ObjectMother.simuleringMedMetadata(simulering = simulering).right() }
+                    ?: KunneIkkeSimulere.UkjentFeil.left()
+            },
+            clock = clock,
         )
             .map { (meldekortBehandlinger, meldekort) ->
                 val tildeltMeldekort = meldekort.taMeldekortBehandling(beslutter) as MeldekortBehandletManuelt
@@ -472,7 +488,7 @@ interface MeldekortMother : MotherOfAllMothers {
             .getOrFail()
     }
 
-    fun MeldekortBehandlinger.beregnNesteMeldekort(
+    suspend fun MeldekortBehandlinger.beregnNesteMeldekort(
         kommando: OppdaterMeldekortKommando,
         vurderingsperiode: Periode,
         fnr: Fnr,
@@ -523,6 +539,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 sendtTilBeslutning = null,
                 dager = dager,
                 beregning = null,
+                simulering = null,
             ),
         ).sendTilBeslutter(
             kommando = kommando.tilSendMeldekortTilBeslutterKommando(),
@@ -536,6 +553,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldekortBehandlinger = this,
                 )
             },
+            simuler = { KunneIkkeSimulere.UkjentFeil.left() },
             clock,
         )
             .map { (meldekortBehandlinger, meldekort) ->
@@ -604,7 +622,10 @@ interface MeldekortMother : MotherOfAllMothers {
             require(dagerFraPeriode.size == 14)
             addAll(dagerFraPeriode.take(5).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET, it) })
             addAll(dagerFraPeriode.subList(5, 7).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
-            addAll(dagerFraPeriode.subList(7, 12).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET, it) })
+            addAll(
+                dagerFraPeriode.subList(7, 12)
+                    .map { BrukersMeldekortDag(InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET, it) },
+            )
             addAll(dagerFraPeriode.subList(12, 14).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
         },
         behandlesAutomatisk: Boolean = false,
@@ -634,7 +655,10 @@ interface MeldekortMother : MotherOfAllMothers {
             require(dagerFraPeriode.size == 14)
             addAll(dagerFraPeriode.take(5).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET, it) })
             addAll(dagerFraPeriode.subList(5, 7).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
-            addAll(dagerFraPeriode.subList(7, 12).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET, it) })
+            addAll(
+                dagerFraPeriode.subList(7, 12)
+                    .map { BrukersMeldekortDag(InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET, it) },
+            )
             addAll(dagerFraPeriode.subList(12, 14).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_REGISTRERT, it) })
         },
     ): LagreBrukersMeldekortKommando {

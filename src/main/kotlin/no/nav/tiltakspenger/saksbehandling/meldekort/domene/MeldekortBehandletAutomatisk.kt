@@ -16,6 +16,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOve
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -29,6 +32,7 @@ data class MeldekortBehandletAutomatisk(
     override val opprettet: LocalDateTime,
     override val dager: MeldekortDager,
     override val beregning: MeldekortBeregning,
+    override val simulering: Simulering?,
     override val meldeperiode: Meldeperiode,
     override val brukersMeldekort: BrukersMeldekort,
     override val navkontor: Navkontor,
@@ -70,11 +74,12 @@ data class MeldekortBehandletAutomatisk(
     }
 }
 
-fun Sak.opprettAutomatiskMeldekortBehandling(
+suspend fun Sak.opprettAutomatiskMeldekortBehandling(
     brukersMeldekort: BrukersMeldekort,
     navkontor: Navkontor,
     clock: Clock,
-): Either<BrukersMeldekortBehandletAutomatiskStatus, MeldekortBehandletAutomatisk> {
+    simuler: suspend (behandling: MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
+): Either<BrukersMeldekortBehandletAutomatiskStatus, Pair<MeldekortBehandletAutomatisk, SimuleringMedMetadata?>> {
     val meldekortId = brukersMeldekort.id
     val kjedeId = brukersMeldekort.kjedeId
 
@@ -103,8 +108,7 @@ fun Sak.opprettAutomatiskMeldekortBehandling(
         meldekortIdSomBeregnes = meldekortBehandlingId,
         meldeperiodeSomBeregnes = brukersMeldekort.tilMeldekortDager(),
     )
-
-    return MeldekortBehandletAutomatisk(
+    val meldekortBehandletAutomatisk = MeldekortBehandletAutomatisk(
         id = meldekortBehandlingId,
         sakId = this.id,
         saksnummer = this.saksnummer,
@@ -117,5 +121,10 @@ fun Sak.opprettAutomatiskMeldekortBehandling(
         beregning = MeldekortBeregning(beregninger),
         type = MeldekortBehandlingType.FØRSTE_BEHANDLING,
         status = MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
-    ).right()
+        simulering = null,
+    )
+    return simuler(meldekortBehandletAutomatisk).mapLeft {
+        // Simuleringsklienten logger feil selv. I førsteomgang ønsker vi ikke stoppe den automatiske ubtbetalingen selvom simuleringen feiler.
+        return Pair(meldekortBehandletAutomatisk, null).right()
+    }.map { Pair(meldekortBehandletAutomatisk.copy(simulering = it.simulering), it) }
 }

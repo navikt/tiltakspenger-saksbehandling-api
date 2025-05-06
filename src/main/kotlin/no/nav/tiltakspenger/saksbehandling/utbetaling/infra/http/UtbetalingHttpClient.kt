@@ -196,10 +196,13 @@ class UtbetalingHttpClient(
                 val httpResponseBody = httpResponse.body()
                 val status = httpResponse.statusCode()
                 val responseHeaders = httpResponse.headers().map()
+                if (status == 503) {
+                    return@catch KunneIkkeSimulere.Stengt.left()
+                }
                 if (status != 200) {
                     log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved simulering. Status var ulik 200. Se sikkerlogg for mer kontekst. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
                     sikkerlogg.error { "Feil ved simulering. Status var ulik 200. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, httpResponseBody: $httpResponseBody, path: $path, status: $status, requestHeaders: $requestHeaders, responseHeaders: $responseHeaders" }
-                    return@catch KunneIkkeSimulere.left()
+                    return@catch KunneIkkeSimulere.UkjentFeil.left()
                 }
                 Either.catch {
                     SimuleringMedMetadata(
@@ -212,12 +215,12 @@ class UtbetalingHttpClient(
                 }.getOrElse {
                     log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved deserialisering av simulering. Se sikkerlogg for mer kontekst. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
                     sikkerlogg.error(it) { "Feil ved deserialisering av simulering. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, jsonResponse: $httpResponseBody, path: $path, status: $status" }
-                    KunneIkkeSimulere.left()
+                    KunneIkkeSimulere.UkjentFeil.left()
                 }
             }.mapLeft {
                 log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ukjent feil ved simulering. Se sikkerlogg for mer kontekst. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
                 sikkerlogg.error(it) { "Ukjent feil ved simulering. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
-                KunneIkkeSimulere
+                KunneIkkeSimulere.UkjentFeil
             }.flatten()
         }
     }
