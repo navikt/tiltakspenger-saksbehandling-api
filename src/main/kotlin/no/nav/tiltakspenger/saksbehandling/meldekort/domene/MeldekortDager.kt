@@ -4,6 +4,12 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import java.time.DayOfWeek
 import java.time.LocalDate
 
+/**
+ * Gjelder 14 dager, fra mandag til søndag.
+ *
+ * @param verdi Liste med 14 dager, fra mandag til søndag. Må inneholde alle dagene eksakt én gang.
+ * @param maksAntallDagerForPeriode Maks antall dager som kan være utfylt i perioden. Bestemmes i behandlingen. Mellom 0 og 14.
+ */
 data class MeldekortDager(
     val verdi: List<MeldekortDag>,
     val maksAntallDagerForPeriode: Int,
@@ -16,16 +22,17 @@ data class MeldekortDager(
     private val antallDagerMedDeltattEllerFravær: Int get() = this.count { it.harDeltattEllerFravær }
 
     init {
-        require(size == 14) { "Et meldekort må ha 14 dager, men hadde $size" }
+        require(size == 14) { "Et meldekort må være 14 dager, men var $size" }
         require(fraOgMed.dayOfWeek == DayOfWeek.MONDAY) { "Meldekortet må starte på en mandag" }
         require(tilOgMed.dayOfWeek == DayOfWeek.SUNDAY) { "Meldekortet må slutte på en søndag" }
-
-        this.forEachIndexed { index, dag ->
-            require(fraOgMed.plusDays(index.toLong()) == dag.dato) {
-                "Datoene må være sammenhengende og sortert, men var ${this.map { it.dato }}"
+        verdi.zipWithNext { a, b ->
+            require(a.dato.plusDays(1) == b.dato) {
+                "Datoene må være i stigende rekkefølge (sammenhengende, sortert og uten duplikater)."
             }
         }
-
+        require(maksAntallDagerForPeriode >= 0 && maksAntallDagerForPeriode <= 14) {
+            "Maks antall dager for perioden må være mellom 0 og 14"
+        }
         require(maksAntallDagerForPeriode >= antallDagerMedDeltattEllerFravær) {
             "For mange dager utfylt - $antallDagerMedDeltattEllerFravær var utfylt, maks antall for perioden er $maksAntallDagerForPeriode"
         }

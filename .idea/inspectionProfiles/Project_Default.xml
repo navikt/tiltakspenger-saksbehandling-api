@@ -14,6 +14,7 @@
     <inspection_tool class="FunctionName" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="namePattern" value="[a-zæøå][a-zæøåA-ZÆØÅ0-9]*" />
     </inspection_tool>
+    <inspection_tool class="JavaDefaultMethodsNotOverriddenByDelegation" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="LocalVariableName" enabled="false" level="WEAK WARNING" enabled_by_default="false">
       <option name="namePattern" value="[a-zæøå][A-ZÆØÅa-zæøå\d]*" />
     </inspection_tool>
@@ -39,6 +40,5 @@
     <inspection_tool class="TestFunctionName" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="namePattern" value="[a-zæøå][A-ZÆØÅa-zæøå_\d]*" />
     </inspection_tool>
-    <inspection_tool class="UsePropertyAccessSyntax" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
   </profile>
 </component>

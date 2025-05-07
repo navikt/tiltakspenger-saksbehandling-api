@@ -446,11 +446,13 @@ fun BrukersMeldekort.beregn(
     meldekortBehandlinger: MeldekortBehandlinger,
     barnetilleggsPerioder: Periodisering<AntallBarn?>,
     tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
-): NonEmptyList<MeldeperiodeBeregning> = BeregnMeldekort(
-    innsendtMeldekortId = meldekortBehandlingId,
-    innsendtKjedeId = this.kjedeId,
-    innsendteDager = this.tilMeldekortDager(),
-    barnetilleggsPerioder = barnetilleggsPerioder,
-    tiltakstypePerioder = tiltakstypePerioder,
-    meldekortBehandlinger = meldekortBehandlinger,
-).beregn()
+): NonEmptyList<MeldeperiodeBeregning> {
+    return BeregnMeldekort(
+        innsendtMeldekortId = meldekortBehandlingId,
+        innsendtKjedeId = this.kjedeId,
+        innsendteDager = this.tilMeldekortDager(),
+        barnetilleggsPerioder = barnetilleggsPerioder,
+        tiltakstypePerioder = tiltakstypePerioder,
+        meldekortBehandlinger = meldekortBehandlinger,
+    ).beregn()
+}
