@@ -50,7 +50,7 @@ data class BrukersMeldekort(
 
     fun tilMeldekortDager(): MeldekortDager {
         return MeldekortDager(
-            maksAntallDagerForPeriode = meldeperiode.antallDagerSomGirRett,
+            meldeperiode = meldeperiode,
             verdi = dager.map {
                 MeldekortDag(
                     dato = it.dato,

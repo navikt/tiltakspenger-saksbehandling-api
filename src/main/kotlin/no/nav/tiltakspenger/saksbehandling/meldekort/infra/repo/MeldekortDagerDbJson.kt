@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import java.time.LocalDate
 
 data class MeldekortDagDbJson(
@@ -42,7 +43,7 @@ fun MeldekortDager.tilMeldekortDagerDbJson(): String =
         )
     }.let { serialize(it) }
 
-fun String.tilMeldekortDager(maksAntallDagerForPeriode: Int): MeldekortDager {
+fun String.tilMeldekortDager(meldeperiode: Meldeperiode): MeldekortDager {
     val dager = deserializeList<MeldekortDagDbJson>(this).map {
         MeldekortDag(
             dato = it.dato,
@@ -60,5 +61,5 @@ fun String.tilMeldekortDager(maksAntallDagerForPeriode: Int): MeldekortDager {
         )
     }
 
-    return MeldekortDager(dager, maksAntallDagerForPeriode)
+    return MeldekortDager(dager, meldeperiode)
 }

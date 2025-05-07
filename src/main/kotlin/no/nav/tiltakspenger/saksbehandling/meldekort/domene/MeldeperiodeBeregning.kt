@@ -7,11 +7,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import java.time.DayOfWeek
 import java.time.LocalDate
 
-/** @property beregningMeldekortId Id for meldekort-behandlingen som utløste denne beregningen.
- *  Denne kan være ulik [dagerMeldekortId] for beregninger som er et resultat av en korrigering
- *  som påvirket en påfølgende meldeperiode
- *  @property dagerMeldekortId Id for meldekort-behandlingen med utfylte dager for beregningen
- *  av denne perioden
+/** @param beregningMeldekortId Id for meldekort-behandlingen som utløste denne beregningen. Denne kan være ulik [dagerMeldekortId] for beregninger som er et resultat av en korrigering som påvirket en påfølgende meldeperiode.
+ *  @param dagerMeldekortId Id for meldekort-behandlingen med utfylte dager for beregningen av denne perioden
  *  */
 data class MeldeperiodeBeregning(
     val beregningMeldekortId: MeldekortId,

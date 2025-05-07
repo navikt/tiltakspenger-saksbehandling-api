@@ -342,7 +342,6 @@ class MeldekortBehandlingPostgresRepo(
             val navkontorEnhetsnummer = row.string("navkontor")
             val navkontorNavn = row.stringOrNull("navkontor_navn")
             val fnr = Fnr.fromString(row.string("fnr"))
-            val maksDagerMedTiltakspengerForPeriode = meldeperiode.maksAntallDagerForMeldeperiode
             val opprettet = row.localDateTime("opprettet")
             val ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt")
             val type = row.string("type").tilMeldekortBehandlingType()
@@ -353,7 +352,7 @@ class MeldekortBehandlingPostgresRepo(
 
             val saksbehandler = row.stringOrNull("saksbehandler")
 
-            val dager = row.string("meldekortdager").tilMeldekortDager(maksDagerMedTiltakspengerForPeriode)
+            val dager = row.string("meldekortdager").tilMeldekortDager(meldeperiode)
             val beregning = row.stringOrNull("beregninger")?.tilBeregninger(id)?.let {
                 MeldekortBeregning(it)
             }

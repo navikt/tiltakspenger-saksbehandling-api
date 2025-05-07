@@ -695,7 +695,7 @@ private fun genererMeldekortdagerFraMeldeperiode(
     }
 
     return if (dager.any { it.status == MeldekortDagStatus.IKKE_UTFYLT }) {
-        MeldekortDager(dager, meldeperiode.maksAntallDagerForMeldeperiode)
+        MeldekortDager(dager, meldeperiode)
     } else {
         throw IllegalStateException("Alle dagene i en meldekortperiode er SPERRET. Dette har vi ikke støtte for i MVP.")
     }

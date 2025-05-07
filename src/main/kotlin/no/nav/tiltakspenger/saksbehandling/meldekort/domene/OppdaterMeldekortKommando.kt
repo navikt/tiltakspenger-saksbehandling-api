@@ -28,17 +28,15 @@ class OppdaterMeldekortKommando(
     data class Dager(
         val dager: NonEmptyList<Dag>,
     ) : List<Dag> by dager {
-        val antallDager: Int = dager.size
-
         data class Dag(
             val dag: LocalDate,
             val status: Status,
         )
 
-        fun tilMeldekortDager(maksAntallDagerForPeriode: Int) =
+        fun tilMeldekortDager(meldeperiode: Meldeperiode) =
             MeldekortDager(
                 this.map { MeldekortDag(dato = it.dag, status = it.status.tilMeldekortDagStatus()) },
-                maksAntallDagerForPeriode,
+                meldeperiode,
             )
     }
 

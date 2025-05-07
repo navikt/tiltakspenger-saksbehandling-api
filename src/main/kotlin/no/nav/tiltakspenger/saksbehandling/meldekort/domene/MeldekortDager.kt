@@ -10,12 +10,14 @@ import java.time.LocalDate
  * Gjelder 14 dager, fra mandag til søndag.
  *
  * @param verdi Liste med 14 dager, fra mandag til søndag. Må inneholde alle dagene eksakt én gang.
- * @param maksAntallDagerForPeriode Maks antall dager som kan være utfylt i perioden. Bestemmes i behandlingen. Mellom 0 og 14.
+ * @param meldeperiode Meldeperioden dagene tilhører.
  */
 data class MeldekortDager(
     val verdi: List<MeldekortDag>,
-    val maksAntallDagerForPeriode: Int,
+    val meldeperiode: Meldeperiode,
 ) : List<MeldekortDag> by verdi {
+
+    val maksAntallDagerForPeriode = meldeperiode.maksAntallDagerForMeldeperiode
 
     val fraOgMed: LocalDate get() = this.first().dato
     val tilOgMed: LocalDate get() = this.last().dato
@@ -47,5 +49,5 @@ fun Meldeperiode.tilMeldekortDager() = MeldekortDager(
             status = if (harRett) MeldekortDagStatus.IKKE_UTFYLT else MeldekortDagStatus.SPERRET,
         )
     },
-    this.maksAntallDagerForMeldeperiode,
+    this,
 )
