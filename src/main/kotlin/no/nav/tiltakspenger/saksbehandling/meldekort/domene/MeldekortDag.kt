@@ -32,6 +32,8 @@ data class MeldekortDag(
 
 enum class MeldekortDagStatus {
     SPERRET,
+
+    // TODO John og Anders: Denne bør vel endres til IKKE_REGISTRERT
     IKKE_UTFYLT,
     DELTATT_UTEN_LØNN_I_TILTAKET,
     DELTATT_MED_LØNN_I_TILTAKET,

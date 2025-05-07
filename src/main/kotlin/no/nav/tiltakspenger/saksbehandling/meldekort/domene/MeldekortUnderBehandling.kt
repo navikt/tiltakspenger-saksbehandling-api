@@ -103,7 +103,7 @@ data class MeldekortUnderBehandling(
     }
 
     private fun validerOppdateringOgHentDager(kommando: OppdaterMeldekortKommando): Either<KanIkkeOppdatereMeldekort, MeldekortDager> {
-        val dager = kommando.dager.tilMeldekortDager(meldeperiode.antallDagerForPeriode)
+        val dager = kommando.dager.tilMeldekortDager(meldeperiode.maksAntallDagerForMeldeperiode)
         val saksbehandler = kommando.saksbehandler
 
         require(dager.periode == this.meldeperiode.periode) {

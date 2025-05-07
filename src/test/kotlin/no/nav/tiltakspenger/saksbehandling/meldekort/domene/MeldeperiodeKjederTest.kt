@@ -125,10 +125,10 @@ class MeldeperiodeKjederTest {
             it.first.last().periode shouldBe forventetSistePeriode
 
             it.first.meldeperioder.first().antallDagerSomGirRett shouldBe 14
-            it.first.meldeperioder.first().antallDagerForPeriode shouldBe 10
+            it.first.meldeperioder.first().maksAntallDagerForMeldeperiode shouldBe 10
 
             it.first.meldeperioder.last().antallDagerSomGirRett shouldBe 2
-            it.first.meldeperioder.last().antallDagerForPeriode shouldBe 2
+            it.first.meldeperioder.last().maksAntallDagerForMeldeperiode shouldBe 2
         }
     }
 
@@ -183,10 +183,10 @@ class MeldeperiodeKjederTest {
             it.first.meldeperioder.last().periode shouldBe forventetSistePeriode
 
             it.first.meldeperioder.first().antallDagerSomGirRett shouldBe 14
-            it.first.meldeperioder.first().antallDagerForPeriode shouldBe 10
+            it.first.meldeperioder.first().maksAntallDagerForMeldeperiode shouldBe 10
 
             it.first.meldeperioder.last().antallDagerSomGirRett shouldBe 2
-            it.first.meldeperioder.last().antallDagerForPeriode shouldBe 2
+            it.first.meldeperioder.last().maksAntallDagerForMeldeperiode shouldBe 2
         }
 
         val stansVedtak = ObjectMother.nyRammevedtakStans(
@@ -214,10 +214,10 @@ class MeldeperiodeKjederTest {
             it.first.last().periode shouldBe forventetSistePeriode
 
             it.first.meldeperioder.first().antallDagerSomGirRett shouldBe 0
-            it.first.meldeperioder.first().antallDagerForPeriode shouldBe 0
+            it.first.meldeperioder.first().maksAntallDagerForMeldeperiode shouldBe 0
 
             it.first.meldeperioder.last().antallDagerSomGirRett shouldBe 0
-            it.first.meldeperioder.last().antallDagerForPeriode shouldBe 0
+            it.first.meldeperioder.last().maksAntallDagerForMeldeperiode shouldBe 0
         }
     }
 }

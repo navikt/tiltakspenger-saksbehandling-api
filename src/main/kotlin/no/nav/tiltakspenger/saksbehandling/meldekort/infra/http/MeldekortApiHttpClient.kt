@@ -113,7 +113,7 @@ private fun Meldeperiode.tilMeldekortApiDTO(): MeldeperiodeDTO {
         opprettet = this.opprettet,
         fraOgMed = this.periode.fraOgMed,
         tilOgMed = this.periode.tilOgMed,
-        antallDagerForPeriode = this.antallDagerForPeriode,
+        antallDagerForPeriode = this.maksAntallDagerForMeldeperiode,
         girRett = this.girRett,
     )
 }

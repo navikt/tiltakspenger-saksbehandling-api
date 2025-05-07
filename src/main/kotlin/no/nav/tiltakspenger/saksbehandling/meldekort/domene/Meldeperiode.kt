@@ -24,8 +24,7 @@ data class Meldeperiode(
     val sakId: SakId,
     val saksnummer: Saksnummer,
     val fnr: Fnr,
-    /** Dette gjelder hele perioden. TODO rename: Noen med fungerende IDE, kan rename denne til maksAntallDagerForPeriode */
-    val antallDagerForPeriode: Int,
+    val maksAntallDagerForMeldeperiode: Int,
     val girRett: Map<LocalDate, Boolean>,
     val sendtTilMeldekortApi: LocalDateTime?,
     val rammevedtak: Periodisering<VedtakId?>?,
@@ -47,7 +46,7 @@ data class Meldeperiode(
          * Må oppdaters dersom det kommer nytt felt som vi har lyst å sammenligne på,
          * men er bedre at det ikke opprettes nye meldeperioder
          */
-        return this.kjedeId == meldeperiode.kjedeId && this.sakId == meldeperiode.sakId && this.saksnummer == meldeperiode.saksnummer && this.fnr == meldeperiode.fnr && this.periode == meldeperiode.periode && this.antallDagerForPeriode == meldeperiode.antallDagerForPeriode && this.girRett == meldeperiode.girRett
+        return this.kjedeId == meldeperiode.kjedeId && this.sakId == meldeperiode.sakId && this.saksnummer == meldeperiode.saksnummer && this.fnr == meldeperiode.fnr && this.periode == meldeperiode.periode && this.maksAntallDagerForMeldeperiode == meldeperiode.maksAntallDagerForMeldeperiode && this.girRett == meldeperiode.girRett
     }
 
     override fun compareTo(other: Meldeperiode): Int {
@@ -57,12 +56,12 @@ data class Meldeperiode(
 
     init {
         if (ingenDagerGirRett) {
-            require(antallDagerForPeriode == 0) { "Dersom ingen dager gir rett, må antallDagerForPeriode være 0" }
+            require(maksAntallDagerForMeldeperiode == 0) { "Dersom ingen dager gir rett, må antallDagerForPeriode være 0" }
         }
-        require(antallDagerForPeriode <= antallDagerSomGirRett) {
+        require(maksAntallDagerForMeldeperiode <= antallDagerSomGirRett) {
             """
             Antall dager som gir rett kan ikke være mindre enn antall dager for periode
-                antallDagerForPeriode: $antallDagerForPeriode
+                antallDagerForPeriode: $maksAntallDagerForMeldeperiode
                 antallDagerSomGirRett: $antallDagerSomGirRett
             """.trimIndent()
         }
@@ -86,7 +85,7 @@ data class Meldeperiode(
                 fnr = fnr,
                 saksnummer = saksnummer,
                 sakId = sakId,
-                antallDagerForPeriode = antallDagerForPeriode,
+                maksAntallDagerForMeldeperiode = antallDagerForPeriode,
                 periode = periode,
                 opprettet = nå(clock),
                 versjon = versjon,

@@ -342,7 +342,7 @@ class MeldekortBehandlingPostgresRepo(
             val navkontorEnhetsnummer = row.string("navkontor")
             val navkontorNavn = row.stringOrNull("navkontor_navn")
             val fnr = Fnr.fromString(row.string("fnr"))
-            val maksDagerMedTiltakspengerForPeriode = meldeperiode.antallDagerForPeriode
+            val maksDagerMedTiltakspengerForPeriode = meldeperiode.maksAntallDagerForMeldeperiode
             val opprettet = row.localDateTime("opprettet")
             val ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt")
             val type = row.string("type").tilMeldekortBehandlingType()

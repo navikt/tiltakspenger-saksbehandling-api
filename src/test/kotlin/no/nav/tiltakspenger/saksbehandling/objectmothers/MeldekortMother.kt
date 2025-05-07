@@ -39,6 +39,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
@@ -82,7 +83,7 @@ interface MeldekortMother : MotherOfAllMothers {
         ),
         type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
         attesteringer: Attesteringer = Attesteringer.empty(),
-        dager: MeldekortDager = MeldekortDager.fraMeldeperiode(meldeperiode),
+        dager: MeldekortDager = genererMeldekortdagerFraMeldeperiode(meldeperiode),
     ): MeldekortUnderBehandling {
         return MeldekortUnderBehandling(
             id = id,
@@ -130,7 +131,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 startDato = meldeperiode.periode.fraOgMed,
                 barnetilleggsPerioder = barnetilleggsPerioder,
             ),
-        dager: MeldekortDager = MeldekortDager.fraMeldeperiode(meldeperiode),
+        dager: MeldekortDager = genererMeldekortdagerFraMeldeperiode(meldeperiode),
         saksbehandler: String = "saksbehandler",
         beslutter: String? = "beslutter",
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
@@ -186,7 +187,7 @@ interface MeldekortMother : MotherOfAllMothers {
             opprettet = opprettet,
             antallDagerForPeriode = antallDagerForPeriode,
         ),
-        dager: MeldekortDager = MeldekortDager.fraMeldeperiode(meldeperiode),
+        dager: MeldekortDager = genererMeldekortdagerFraMeldeperiode(meldeperiode),
         beregning: MeldekortBeregning =
             meldekortBeregning(
                 meldekortId = id,
@@ -440,7 +441,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     begrunnelse = begrunnelse,
                     attesteringer = attesteringer,
                     sendtTilBeslutning = null,
-                    dager = MeldekortDager.fraMeldeperiode(meldeperiode),
+                    dager = genererMeldekortdagerFraMeldeperiode(meldeperiode),
                 ),
             ),
         )
@@ -508,7 +509,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 begrunnelse = null,
                 attesteringer = attesteringer,
                 sendtTilBeslutning = null,
-                dager = MeldekortDager.fraMeldeperiode(meldeperiode),
+                dager = genererMeldekortdagerFraMeldeperiode(meldeperiode),
                 beregning = null,
             ),
         ).sendTilBeslutter(
@@ -561,7 +562,7 @@ interface MeldekortMother : MotherOfAllMothers {
         fnr = fnr,
         opprettet = opprettet,
         periode = periode,
-        antallDagerForPeriode = antallDagerForPeriode,
+        maksAntallDagerForMeldeperiode = antallDagerForPeriode,
         girRett = girRett,
         sendtTilMeldekortApi = null,
         rammevedtak = rammevedtak,
@@ -676,4 +677,26 @@ fun MeldekortBehandling.tilOppdaterMeldekortKommando(
         saksbehandler = saksbehandler,
         dager = Dager(dager),
     )
+}
+
+/**
+ * @param meldeperiode Perioden meldekortet skal gjelde for. Må være 14 dager, starte på en mandag og slutte på en søndag.
+ * @return Meldekortdager for meldeperioden
+ * @throws IllegalStateException Dersom alle dagene i en meldekortperiode er SPERRET er den per definisjon utfylt. Dette har vi ikke støtte for i MVP.
+ */
+private fun genererMeldekortdagerFraMeldeperiode(
+    meldeperiode: Meldeperiode,
+): MeldekortDager {
+    val dager = meldeperiode.girRett.entries.map { (dato, girRett) ->
+        MeldekortDag(
+            dato = dato,
+            status = if (girRett) MeldekortDagStatus.IKKE_UTFYLT else MeldekortDagStatus.SPERRET,
+        )
+    }
+
+    return if (dager.any { it.status == MeldekortDagStatus.IKKE_UTFYLT }) {
+        MeldekortDager(dager, meldeperiode.maksAntallDagerForMeldeperiode)
+    } else {
+        throw IllegalStateException("Alle dagene i en meldekortperiode er SPERRET. Dette har vi ikke støtte for i MVP.")
+    }
 }

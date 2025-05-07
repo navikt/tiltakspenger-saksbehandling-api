@@ -83,7 +83,7 @@ class MeldekortBehandlingRepoImplTest {
                     sakId = sak.id,
                     startDato = meldekortBehandling.periode.fraOgMed,
                     meldekortId = meldekortBehandling.id,
-                    maksDagerMedTiltakspengerForPeriode = meldekortBehandling.meldeperiode.antallDagerForPeriode,
+                    maksDagerMedTiltakspengerForPeriode = meldekortBehandling.meldeperiode.maksAntallDagerForMeldeperiode,
                 ),
                 kommando = meldekortBehandling.tilOppdaterMeldekortKommando(
                     ObjectMother.saksbehandler(),

@@ -22,6 +22,6 @@ fun Meldeperiode.toMeldeperiodeDTO(): MeldeperiodeDTO = MeldeperiodeDTO(
     kjedeId = kjedeId.toString(),
     periode = periode.toDTO(),
     opprettet = opprettet,
-    antallDager = antallDagerForPeriode,
+    antallDager = maksAntallDagerForMeldeperiode,
     girRett = girRett,
 )
