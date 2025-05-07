@@ -3,11 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-// TODO raq - test
+
 internal fun Set<Avslagsgrunnlag>.toDb(): String = serialize(this.map { it.toDb() })
 
-// TODO raq - test
-internal fun String.toAvslagsgrunner(): Set<Avslagsgrunnlag> {
+internal fun String.toAvslagsgrunnlag(): Set<Avslagsgrunnlag> {
     return deserializeList<ValgtHjemmelHarIkkeRettighetDb>(this).map {
         when (it) {
             ValgtHjemmelHarIkkeRettighetDb.STANS_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK,

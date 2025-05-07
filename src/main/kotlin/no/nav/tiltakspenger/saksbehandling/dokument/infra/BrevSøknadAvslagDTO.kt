@@ -27,7 +27,6 @@ internal data class BrevSøknadAvslagDTO(
     val avslagTilOgMed: String,
 )
 
-// TODO raq - test
 internal suspend fun genererAvslagSøknadsbrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,

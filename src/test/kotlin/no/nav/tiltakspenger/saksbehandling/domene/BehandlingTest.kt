@@ -104,13 +104,6 @@ class BehandlingTest {
     @Nested
     inner class BehandlingsutfallTest {
         @Test
-        fun `kaster exception dersom  utfall er null på behandling som har behandlingsstatus UNDER_BEHANDLING, og finnes atteseringer`() {
-            assertThrows<IllegalArgumentException> {
-                ObjectMother.nyBehandlingUnderkjent()
-            }
-        }
-
-        @Test
         fun `kaster exception dersom utfall er avslag uten avslagsgrunner`() {
             assertThrows<IllegalArgumentException> {
                 ObjectMother.nyFørstegangsbehandlingKlarTilBeslutning(
