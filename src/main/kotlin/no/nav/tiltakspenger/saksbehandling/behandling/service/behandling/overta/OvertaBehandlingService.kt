@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta
 
 import arrow.core.Either
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
@@ -16,6 +17,7 @@ class OvertaBehandlingService(
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
+    private val sessionFactory: SessionFactory,
 ) {
     /**
      * @throws [TilgangException] & [NullPointerException] dersom ikke tilgang eller behandling ikke eksisterer / feil id
@@ -32,12 +34,18 @@ class OvertaBehandlingService(
         return behandling.overta(command.saksbehandler, clock).onRight {
             when (it.status) {
                 Behandlingsstatus.UNDER_BEHANDLING -> {
-                    behandlingRepo.overtaSaksbehandler(it.id, command.saksbehandler, command.overtarFra)
-                    statistikkSakRepo.lagre(statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it))
+                    val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
+                    sessionFactory.withTransactionContext { tx ->
+                        behandlingRepo.overtaSaksbehandler(it.id, command.saksbehandler, command.overtarFra, tx)
+                        statistikkSakRepo.lagre(statistikk, tx)
+                    }
                 }
                 Behandlingsstatus.UNDER_BESLUTNING -> {
-                    behandlingRepo.overtaBeslutter(it.id, command.saksbehandler, command.overtarFra)
-                    statistikkSakRepo.lagre(statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it))
+                    val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
+                    sessionFactory.withTransactionContext { tx ->
+                        behandlingRepo.overtaBeslutter(it.id, command.saksbehandler, command.overtarFra, tx)
+                        statistikkSakRepo.lagre(statistikk, tx)
+                    }
                 }
                 Behandlingsstatus.KLAR_TIL_BESLUTNING,
                 Behandlingsstatus.KLAR_TIL_BEHANDLING,
