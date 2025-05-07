@@ -530,6 +530,12 @@ data class Behandling(
             "Valgte hjemler for en behandling kan bare være av en type"
         }
 
+        antallDagerPerMeldeperiode?.let {
+            require(it in 1..14) {
+                "Antall dager per meldeperiode må være mellom 1 og 14"
+            }
+        }
+
         when (status) {
             KLAR_TIL_BEHANDLING -> {
                 require(saksbehandler == null) {
