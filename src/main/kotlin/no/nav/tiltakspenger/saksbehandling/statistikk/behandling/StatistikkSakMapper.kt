@@ -72,7 +72,7 @@ fun genererSaksstatistikkForBehandling(
         fnr = behandling.fnr.verdi,
         mottattTidspunkt = if (behandling.erFørstegangsbehandling) behandling.søknad!!.opprettet else behandling.opprettet,
         registrertTidspunkt = behandling.opprettet,
-        ferdigBehandletTidspunkt = null,
+        ferdigBehandletTidspunkt = behandling.avbrutt?.tidspunkt,
         vedtakTidspunkt = null,
         endretTidspunkt = nå(clock),
         utbetaltTidspunkt = null,
@@ -80,7 +80,9 @@ fun genererSaksstatistikkForBehandling(
         søknadsformat = Format.DIGITAL.name,
         forventetOppstartTidspunkt = if (behandling.erFørstegangsbehandling) behandling.saksopplysningsperiode?.fraOgMed else null,
         behandlingType = if (behandling.erFørstegangsbehandling) BehandlingType.FØRSTEGANGSBEHANDLING else BehandlingType.REVURDERING,
-        behandlingStatus = if (behandling.status == Behandlingsstatus.KLAR_TIL_BESLUTNING || behandling.status == Behandlingsstatus.UNDER_BESLUTNING) {
+        behandlingStatus = if (behandling.erAvbrutt) {
+            BehandlingStatus.AVSLUTTET
+        } else if (behandling.status == Behandlingsstatus.KLAR_TIL_BESLUTNING || behandling.status == Behandlingsstatus.UNDER_BESLUTNING) {
             BehandlingStatus.UNDER_BESLUTNING
         } else {
             BehandlingStatus.UNDER_BEHANDLING

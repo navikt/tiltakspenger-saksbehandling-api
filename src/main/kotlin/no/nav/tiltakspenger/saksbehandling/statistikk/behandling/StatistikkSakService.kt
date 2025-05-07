@@ -91,6 +91,19 @@ class StatistikkSakService(
         )
     }
 
+    suspend fun genererStatistikkForAvsluttetBehandling(
+        behandling: Behandling,
+    ): StatistikkSakDTO {
+        require(behandling.erFørstegangsbehandling)
+        return genererSaksstatistikkForBehandling(
+            behandling = behandling,
+            gjelderKode6 = gjelderKode6(behandling.fnr, "BehandlingId: ${behandling.id}"),
+            versjon = gitHash,
+            clock = clock,
+            hendelse = "avsluttet_behandling",
+        )
+    }
+
     private suspend fun gjelderKode6(fnr: Fnr, sporingsinformasjon: String): Boolean {
         val adressebeskyttelseGradering: List<AdressebeskyttelseGradering>? =
             tilgangsstyringService.adressebeskyttelseEnkel(fnr)
