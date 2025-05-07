@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendRevurderingTilBeslutningKommando
@@ -21,6 +22,7 @@ class SendBehandlingTilBeslutningService(
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
+    private val sessionFactory: SessionFactory,
 ) {
     suspend fun sendFørstegangsbehandlingTilBeslutning(
         kommando: SendSøknadsbehandlingTilBeslutningKommando,
@@ -31,8 +33,10 @@ class SendBehandlingTilBeslutningService(
             }
         return sak.sendFørstegangsbehandlingTilBeslutning(kommando, clock).map { (_, behandling) -> behandling }.onRight {
             val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
-            behandlingRepo.lagre(it)
-            statistikkSakRepo.lagre(statistikk)
+            sessionFactory.withTransactionContext { tx ->
+                behandlingRepo.lagre(it, tx)
+                statistikkSakRepo.lagre(statistikk, tx)
+            }
         }
     }
 
@@ -44,8 +48,10 @@ class SendBehandlingTilBeslutningService(
 
         return sak.sendRevurderingTilBeslutning(kommando, clock).onRight {
             val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
-            behandlingRepo.lagre(it)
-            statistikkSakRepo.lagre(statistikk)
+            sessionFactory.withTransactionContext { tx ->
+                behandlingRepo.lagre(it, tx)
+                statistikkSakRepo.lagre(statistikk, tx)
+            }
         }
     }
 }

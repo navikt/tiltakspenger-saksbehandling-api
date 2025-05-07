@@ -133,6 +133,7 @@ open class BehandlingOgVedtakContext(
             clock = clock,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
+            sessionFactory = sessionFactory,
         )
     }
     val startRevurderingService: StartRevurderingService by lazy {
@@ -144,6 +145,7 @@ open class BehandlingOgVedtakContext(
             clock = clock,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
+            sessionFactory = sessionFactory,
         )
     }
     val oppdaterBarnetilleggService: OppdaterBarnetilleggService by lazy {
@@ -189,6 +191,7 @@ open class BehandlingOgVedtakContext(
             behandlingRepo = behandlingRepo,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
+            sessionFactory = sessionFactory,
         )
     }
 
@@ -199,6 +202,7 @@ open class BehandlingOgVedtakContext(
             clock = clock,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
+            sessionFactory = sessionFactory,
         )
     }
 
@@ -208,6 +212,7 @@ open class BehandlingOgVedtakContext(
             behandlingRepo = behandlingRepo,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
+            sessionFactory = sessionFactory,
         )
     }
 }

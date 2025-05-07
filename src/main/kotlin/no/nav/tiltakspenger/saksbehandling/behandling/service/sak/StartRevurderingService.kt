@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
@@ -31,6 +32,7 @@ class StartRevurderingService(
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
+    private val sessionFactory: SessionFactory,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -57,8 +59,12 @@ class StartRevurderingService(
             .startRevurdering(kommando, clock, saksopplysningerService::hentSaksopplysningerFraRegistre)
             .getOrElse { return it.left() }
 
-        behandlingRepo.lagre(behandling)
-        statistikkSakRepo.lagre(statistikkSakService.genererStatistikkForRevurdering(behandling))
+        val statistikk = statistikkSakService.genererStatistikkForRevurdering(behandling)
+
+        sessionFactory.withTransactionContext { tx ->
+            behandlingRepo.lagre(behandling, tx)
+            statistikkSakRepo.lagre(statistikk, tx)
+        }
         return Pair(oppdatertSak, behandling).right()
     }
 
