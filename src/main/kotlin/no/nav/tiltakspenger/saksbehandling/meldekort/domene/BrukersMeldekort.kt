@@ -46,6 +46,11 @@ data class BrukersMeldekort(
         require(dager.first().dato == periode.fraOgMed) { "Første dag i meldekortet må være lik første dag i meldeperioden" }
         require(dager.last().dato == periode.tilOgMed) { "Siste dag i meldekortet må være lik siste dag i meldeperioden" }
         require(dager.size.toLong() == periode.antallDager) { "Antall dager i meldekortet må være lik antall dager i meldeperioden" }
+        dager.zip(meldeperiode.girRett.values).forEach { (dag, harRett) ->
+            require(harRett || dag.status === InnmeldtStatus.IKKE_REGISTRERT) {
+                "Meldekortet kan ikke ha registrering på dager uten rett"
+            }
+        }
     }
 
     fun tilMeldekortDager(): MeldekortDager {
