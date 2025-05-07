@@ -21,10 +21,11 @@ class MeldekortBehandlingManuellTest {
             iverksattTidspunkt = null,
             beslutter = ObjectMother.saksbehandler().navIdent,
             opprettet = LocalDateTime.now(fixedClock),
+            begrunnelse = MeldekortBehandlingBegrunnelse("asdf"),
         )
 
         val actual = meldekortBehandlet.underkjenn(
-            begrunnelse = NonBlankString.create("skal ikke kunne underkjenne"),
+            besluttersBegrunnelse = NonBlankString.create("skal ikke kunne underkjenne"),
             beslutter = ObjectMother.saksbehandler(),
             clock = fixedClock,
         )
@@ -42,6 +43,7 @@ class MeldekortBehandlingManuellTest {
             it.shouldBeInstanceOf<MeldekortUnderBehandling>()
             it.attesteringer.size shouldBe 1
             it.attesteringer.first().shouldBeEqualToIgnoringFields(expectedAttestering, Attestering::id)
+            it.begrunnelse shouldBe MeldekortBehandlingBegrunnelse("asdf")
         }
     }
 }

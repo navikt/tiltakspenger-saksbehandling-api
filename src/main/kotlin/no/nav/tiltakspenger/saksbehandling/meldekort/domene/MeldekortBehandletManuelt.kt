@@ -125,7 +125,7 @@ data class MeldekortBehandletManuelt(
     }
 
     fun underkjenn(
-        begrunnelse: NonBlankString,
+        besluttersBegrunnelse: NonBlankString,
         beslutter: Saksbehandler,
         clock: Clock,
     ): Either<KunneIkkeUnderkjenneMeldekortBehandling, MeldekortUnderBehandling> {
@@ -146,7 +146,7 @@ data class MeldekortBehandletManuelt(
             Attestering(
                 id = AttesteringId.random(),
                 status = Attesteringsstatus.SENDT_TILBAKE,
-                begrunnelse = begrunnelse,
+                begrunnelse = besluttersBegrunnelse,
                 beslutter = beslutter.navIdent,
                 tidspunkt = LocalDateTime.now(clock),
             ),
@@ -166,7 +166,7 @@ data class MeldekortBehandletManuelt(
             saksbehandler = saksbehandler,
             type = type,
             attesteringer = attesteringer,
-            begrunnelse = MeldekortBehandlingBegrunnelse(begrunnelse.toString()),
+            begrunnelse = begrunnelse,
             sendtTilBeslutning = sendtTilBeslutning,
             dager = dager,
         ).right()
