@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 val jvmVersion = JvmTarget.JVM_21
 val kotlinxCoroutinesVersion = "1.10.2"
 val kotestVersion = "5.9.1"
-val felleslibVersion = "0.0.457"
+val felleslibVersion = "0.0.459"
 val mockkVersion = "1.14.2"
 val ktorVersion = "3.1.2"
 val testContainersVersion = "1.21.0"
@@ -37,6 +37,7 @@ dependencies {
     implementation("com.github.navikt.tiltakspenger-libs:ktor-common:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:logging:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:meldekort-dtos:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:meldekort:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:kafka:$felleslibVersion")
 
     implementation("io.github.oshai:kotlin-logging-jvm:7.0.7")
