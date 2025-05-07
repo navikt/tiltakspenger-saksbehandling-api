@@ -69,6 +69,7 @@ data class Behandling(
     val barnetillegg: Barnetillegg?,
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
     val avbrutt: Avbrutt?,
+    val antallDagerPerMeldeperiode: Int?,
 ) {
     val erAvsluttet: Boolean by lazy { status == AVBRUTT || status == VEDTATT }
     val erUnderBehandling: Boolean = status == UNDER_BEHANDLING
@@ -161,6 +162,7 @@ data class Behandling(
                 barnetillegg = null,
                 valgteTiltaksdeltakelser = null,
                 avbrutt = null,
+                antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
             ).right()
         }
 
@@ -202,6 +204,7 @@ data class Behandling(
                 barnetillegg = null,
                 valgteTiltaksdeltakelser = null,
                 avbrutt = null,
+                antallDagerPerMeldeperiode = null,
             )
         }
     }
@@ -343,6 +346,7 @@ data class Behandling(
             virkningsperiode = kommando.innvilgelsesperiode,
             barnetillegg = kommando.barnetillegg,
             valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
+            antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
         )
     }
 
@@ -524,6 +528,12 @@ data class Behandling(
 
         require(valgtHjemmelHarIkkeRettighet.map { it.javaClass.simpleName }.distinct().size <= 1) {
             "Valgte hjemler for en behandling kan bare være av en type"
+        }
+
+        antallDagerPerMeldeperiode?.let {
+            require(it in 1..14) {
+                "Antall dager per meldeperiode må være mellom 1 og 14"
+            }
         }
 
         when (status) {

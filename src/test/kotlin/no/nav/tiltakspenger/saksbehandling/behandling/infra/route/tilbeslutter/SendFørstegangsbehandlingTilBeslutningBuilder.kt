@@ -98,7 +98,8 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
                             "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
                         }
                     }
-                ]
+                ],
+                "antallDagerPerMeldeperiode": 10
             }
                 """.trimIndent(),
             )
@@ -150,7 +151,8 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
                             "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
                         }
                     }
-                ]
+                ],
+                "antallDagerPerMeldeperiode": 10
             }
                 """.trimIndent(),
             )
