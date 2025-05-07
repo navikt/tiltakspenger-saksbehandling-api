@@ -404,7 +404,7 @@ class BehandlingPostgresRepo(
             val valgteTiltaksdeltakelser =
                 stringOrNull("valgte_tiltaksdeltakelser")?.toValgteTiltaksdeltakelser(saksopplysninger)
             val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
-            val avslagsgrunner = string("avslagsgrunner").toAvslagsgrunner()
+            val avslagsgrunner = string("avslagsgrunner").toAvslagsgrunnlag()
             val utfall = stringOrNull("utfall")?.toBehandlingsutfallDb()?.toDomain()
 
             return Behandling(
