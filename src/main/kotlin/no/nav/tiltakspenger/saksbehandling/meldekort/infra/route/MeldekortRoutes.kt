@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekor
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortBehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutterService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.OvertaMeldekortBehandlingService
@@ -27,11 +28,12 @@ fun Route.meldekortRoutes(
     overtaMeldekortBehandlingService: OvertaMeldekortBehandlingService,
     taMeldekortBehandlingService: TaMeldekortBehandlingService,
     leggTilbakeMeldekortBehandlingService: LeggTilbakeMeldekortBehandlingService,
+    sendMeldekortTilBeslutterService: SendMeldekortTilBeslutterService,
     clock: Clock,
 ) {
     hentMeldekortRoute(sakService, auditService, tokenService, clock)
     iverksettMeldekortRoute(iverksettMeldekortService, auditService, tokenService, clock)
-    sendMeldekortTilBeslutterRoute(oppdaterMeldekortService, auditService, tokenService, clock)
+    sendMeldekortTilBeslutterRoute(sendMeldekortTilBeslutterService, auditService, tokenService, clock)
     oppdaterMeldekortBehandlingRoute(oppdaterMeldekortService, auditService, tokenService, clock)
     opprettMeldekortBehandlingRoute(opprettMeldekortBehandlingService, auditService, tokenService, clock)
     overtaMeldekortBehandlingRoute(tokenService, overtaMeldekortBehandlingService, auditService)

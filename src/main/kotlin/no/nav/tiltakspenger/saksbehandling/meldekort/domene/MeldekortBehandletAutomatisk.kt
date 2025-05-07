@@ -69,12 +69,12 @@ data class MeldekortBehandletAutomatisk(
 }
 
 fun Sak.opprettAutomatiskMeldekortBehandling(
-    meldekort: BrukersMeldekort,
+    brukersMeldekort: BrukersMeldekort,
     navkontor: Navkontor,
     clock: Clock,
 ): Either<BrukersMeldekortBehandletAutomatiskStatus, MeldekortBehandletAutomatisk> {
-    val meldekortId = meldekort.id
-    val kjedeId = meldekort.kjedeId
+    val meldekortId = brukersMeldekort.id
+    val kjedeId = brukersMeldekort.kjedeId
 
     validerOpprettMeldekortBehandling(kjedeId)
 
@@ -82,7 +82,7 @@ fun Sak.opprettAutomatiskMeldekortBehandling(
 
     val behandlingerKnyttetTilKjede = this.meldekortBehandlinger.hentMeldekortBehandlingerForKjede(kjedeId)
 
-    if (!meldekort.behandlesAutomatisk) {
+    if (!brukersMeldekort.behandlesAutomatisk) {
         logger.error { "Brukers meldekort $meldekortId skal ikke behandles automatisk" }
         return BrukersMeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK.left()
     }
@@ -90,18 +90,16 @@ fun Sak.opprettAutomatiskMeldekortBehandling(
         logger.error { "Meldeperiodekjeden $kjedeId har allerede minst en behandling. Vi støtter ikke automatisk korrigering fra bruker (meldekort id $meldekortId)" }
         return BrukersMeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET.left()
     }
-    if (meldekort.meldeperiode != sisteMeldeperiode) {
+    if (brukersMeldekort.meldeperiode != sisteMeldeperiode) {
         logger.error { "Meldeperioden for brukers meldekort må være like siste meldeperiode på kjeden for å kunne behandles (meldekort id $meldekortId)" }
         return BrukersMeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE.left()
     }
 
     val meldekortBehandlingId = MeldekortId.random()
 
-    val beregninger = meldekort.beregn(
-        meldekortBehandlingId = meldekortBehandlingId,
-        meldekortBehandlinger = this.meldekortBehandlinger,
-        barnetilleggsPerioder = this.barnetilleggsperioder,
-        tiltakstypePerioder = this.tiltakstypeperioder,
+    val beregninger = this.beregn(
+        meldekortIdSomBeregnes = meldekortBehandlingId,
+        meldeperiodeSomBeregnes = brukersMeldekort.tilMeldekortDager(),
     )
 
     return MeldekortBehandletAutomatisk(
@@ -111,9 +109,9 @@ fun Sak.opprettAutomatiskMeldekortBehandling(
         fnr = this.fnr,
         opprettet = nå(clock),
         navkontor = navkontor,
-        brukersMeldekort = meldekort,
+        brukersMeldekort = brukersMeldekort,
         meldeperiode = sisteMeldeperiode,
-        dager = meldekort.tilMeldekortDager(),
+        dager = brukersMeldekort.tilMeldekortDager(),
         beregning = MeldekortBeregning(beregninger),
         type = MeldekortBehandlingType.FØRSTE_BEHANDLING,
         status = MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,

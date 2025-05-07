@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -17,6 +18,8 @@ data class MeldekortDager(
     val meldeperiode: Meldeperiode,
 ) : List<MeldekortDag> by verdi {
 
+    val log = KotlinLogging.logger {}
+
     val maksAntallDagerForPeriode = meldeperiode.maksAntallDagerForMeldeperiode
 
     val fraOgMed: LocalDate get() = this.first().dato
@@ -29,6 +32,9 @@ data class MeldekortDager(
         require(size == 14) { "Et meldekort må være 14 dager, men var $size" }
         require(fraOgMed.dayOfWeek == DayOfWeek.MONDAY) { "Meldekortet må starte på en mandag" }
         require(tilOgMed.dayOfWeek == DayOfWeek.SUNDAY) { "Meldekortet må slutte på en søndag" }
+        require(periode == meldeperiode.periode) {
+            "MeldekortDager (periode=$periode) må være lik meldeperioden ${meldeperiode.periode}"
+        }
         verdi.zipWithNext { a, b ->
             require(a.dato.plusDays(1) == b.dato) {
                 "Datoene må være i stigende rekkefølge (sammenhengende, sortert og uten duplikater)."
@@ -40,14 +46,28 @@ data class MeldekortDager(
         require(maksAntallDagerForPeriode >= antallDagerMedDeltattEllerFravær) {
             "For mange dager utfylt - $antallDagerMedDeltattEllerFravær var utfylt, maks antall for perioden er $maksAntallDagerForPeriode"
         }
+        meldeperiode.girRett.toList().zip(verdi) { meldeperiodeDag, dag ->
+            require(meldeperiodeDag.first == dag.dato) {
+                "Meldeperiodedatoene må stemme overns med dagene."
+            }
+            if (meldeperiodeDag.second && dag.status == MeldekortDagStatus.SPERRET) {
+                throw IllegalArgumentException("Kan ikke endre dag til sperret. Meldeperiode: ${meldeperiode.girRett}. Innsendte dager: $verdi")
+            }
+            if (!meldeperiodeDag.second && dag.status != MeldekortDagStatus.SPERRET) {
+                throw IllegalArgumentException("Kan ikke endre dag fra sperret. Meldeperiode: ${meldeperiode.girRett}. Innsendte dager: $verdi")
+            }
+        }
     }
 }
-fun Meldeperiode.tilMeldekortDager() = MeldekortDager(
-    this.girRett.entries.map { (dato, harRett) ->
-        MeldekortDag(
-            dato = dato,
-            status = if (harRett) MeldekortDagStatus.IKKE_UTFYLT else MeldekortDagStatus.SPERRET,
-        )
-    },
-    this,
-)
+
+fun Meldeperiode.tilMeldekortDager(): MeldekortDager {
+    return MeldekortDager(
+        this.girRett.entries.map { (dato, harRett) ->
+            MeldekortDag(
+                dato = dato,
+                status = if (harRett) MeldekortDagStatus.IKKE_UTFYLT else MeldekortDagStatus.SPERRET,
+            )
+        },
+        this,
+    )
+}

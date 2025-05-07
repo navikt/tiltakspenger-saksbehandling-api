@@ -78,17 +78,18 @@ class MeldekortBehandlingRepoImplTest {
 
             meldekortRepo.lagre(meldekortBehandling)
 
-            val oppdatertMeldekortBehandling = meldekortBehandling.sendTilBeslutter(
-                beregning = ObjectMother.meldekortBeregning(
-                    sakId = sak.id,
-                    startDato = meldekortBehandling.periode.fraOgMed,
-                    meldekortId = meldekortBehandling.id,
-                    maksDagerMedTiltakspengerForPeriode = meldekortBehandling.meldeperiode.maksAntallDagerForMeldeperiode,
-                ),
+            val oppdatertMeldekortBehandling = meldekortBehandling.oppdater(
+                beregn = {
+                    ObjectMother.meldekortBeregning(
+                        sakId = sak.id,
+                        startDato = meldekortBehandling.periode.fraOgMed,
+                        meldekortId = meldekortBehandling.id,
+                        maksDagerMedTiltakspengerForPeriode = meldekortBehandling.meldeperiode.maksAntallDagerForMeldeperiode,
+                    ).beregninger
+                },
                 kommando = meldekortBehandling.tilOppdaterMeldekortKommando(
                     ObjectMother.saksbehandler(),
                 ),
-                clock = fixedClock,
             ).getOrFail()
 
             meldekortRepo.oppdater(oppdatertMeldekortBehandling)
