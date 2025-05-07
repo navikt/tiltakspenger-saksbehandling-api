@@ -94,7 +94,6 @@ class StatistikkSakService(
     suspend fun genererStatistikkForAvsluttetBehandling(
         behandling: Behandling,
     ): StatistikkSakDTO {
-        require(behandling.erFørstegangsbehandling)
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
             gjelderKode6 = gjelderKode6(behandling.fnr, "BehandlingId: ${behandling.id}"),
