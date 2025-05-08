@@ -26,7 +26,8 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortService
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutterService
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
@@ -40,11 +41,11 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
             override suspend fun validerOgHentBruker(token: String) = ObjectMother.saksbehandler().right()
         }
         val auditService = mockk<AuditService>()
-        val oppdaterMeldekortService = mockk<OppdaterMeldekortService>()
+        val sendMeldekortTilBeslutterService = mockk<SendMeldekortTilBeslutterService>()
         coEvery { auditService.logMedMeldekortId(any(), any(), any(), any(), any()) } returns Unit
         coEvery {
-            oppdaterMeldekortService.sendMeldekortTilBeslutter(any())
-        } returns KanIkkeOppdatereMeldekort.ForMangeDagerUtfylt(14, 15).left()
+            sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(any())
+        } returns KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere(KanIkkeOppdatereMeldekort.MåVæreSaksbehandlerForMeldekortet).left()
         val request = """
             {
               "dager": [
@@ -60,7 +61,7 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
                         sendMeldekortTilBeslutterRoute(
                             tokenService = tokenService,
                             auditService = auditService,
-                            oppdaterMeldekortService = oppdaterMeldekortService,
+                            sendMeldekortTilBeslutterService = sendMeldekortTilBeslutterService,
                             clock = fixedClock,
                         )
                     }
@@ -82,7 +83,7 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
                     ) {
                         status shouldBe HttpStatusCode.BadRequest
                         contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-                        bodyAsText() shouldBe """{"melding":"Kan ikke sende meldekort til beslutter. For mange dager er utfylt. Maks antall for dette meldekortet er 14, mens antall utfylte dager er 15.","kode":"for_mange_dager_utfylt"}"""
+                        bodyAsText() shouldBe """{"melding":"Du kan ikke oppdatere meldekortet da du ikke er saksbehandler for denne meldekortbehandlingen","kode":"må_være_saksbehandler_for_meldekortet"}"""
                     }
                 }
             }

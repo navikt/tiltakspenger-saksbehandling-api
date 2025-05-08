@@ -87,7 +87,7 @@ class AutomatiskMeldekortBehandlingService(
         }
 
         val meldekortBehandling = sak.opprettAutomatiskMeldekortBehandling(
-            meldekort = meldekort,
+            brukersMeldekort = meldekort,
             navkontor = navkontor,
             clock = clock,
         ).getOrElse {

@@ -17,20 +17,14 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort.ForMangeDagerUtfylt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort.KanIkkeEndreDagFraSperret
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort.KanIkkeEndreDagTilSperret
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort.KunneIkkeHenteSak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort.MeldekortperiodenKanIkkeVæreFremITid
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort.MåVæreSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.SendMeldekortTilBeslutterDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutterService
 import java.time.Clock
 
 fun Route.sendMeldekortTilBeslutterRoute(
-    oppdaterMeldekortService: OppdaterMeldekortService,
+    sendMeldekortTilBeslutterService: SendMeldekortTilBeslutterService,
     auditService: AuditService,
     tokenService: TokenService,
     clock: Clock,
@@ -41,7 +35,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withMeldekortId { meldekortId ->
-                    call.withBody<OppdaterMeldekortDTO> { body ->
+                    call.withBody<SendMeldekortTilBeslutterDTO> { body ->
                         val correlationId = call.correlationId()
                         val kommando = body.toDomain(
                             saksbehandler = saksbehandler,
@@ -49,38 +43,31 @@ fun Route.sendMeldekortTilBeslutterRoute(
                             sakId = sakId,
                             correlationId = correlationId,
                         )
-                        oppdaterMeldekortService.sendMeldekortTilBeslutter(kommando).fold(
+                        sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(kommando).fold(
                             ifLeft = {
                                 when (it) {
-                                    is MeldekortperiodenKanIkkeVæreFremITid -> {
+                                    is KanIkkeSendeMeldekortTilBeslutter.MeldekortperiodenKanIkkeVæreFremITid -> {
                                         call.respond400BadRequest(
                                             melding = "Kan ikke sende inn et meldekort før meldekortperioden har begynt.",
                                             kode = "meldekortperioden_kan_ikke_være_frem_i_tid",
                                         )
                                     }
 
-                                    is MåVæreSaksbehandler -> {
+                                    is KanIkkeSendeMeldekortTilBeslutter.MåVæreSaksbehandler -> {
                                         call.respond400BadRequest(
                                             melding = "Kan ikke sende meldekort til beslutter. Krever saksbehandler-rolle.",
                                             kode = "må_være_saksbehandler",
                                         )
                                     }
 
-                                    is KanIkkeOppdatereMeldekort.MåVæreSaksbehandlerForMeldekortet -> {
+                                    is KanIkkeSendeMeldekortTilBeslutter.MåVæreSaksbehandlerForMeldekortet -> {
                                         call.respond400BadRequest(
                                             melding = "Du kan ikke sende meldekortet til beslutter da du ikke er saksbehandler for denne meldekortbehandlingen",
                                             kode = "må_være_saksbehandler_for_meldekortet",
                                         )
                                     }
 
-                                    is ForMangeDagerUtfylt -> {
-                                        call.respond400BadRequest(
-                                            melding = "Kan ikke sende meldekort til beslutter. For mange dager er utfylt. Maks antall for dette meldekortet er ${it.maksDagerMedTiltakspengerForPeriode}, mens antall utfylte dager er ${it.antallDagerUtfylt}.",
-                                            kode = "for_mange_dager_utfylt",
-                                        )
-                                    }
-
-                                    is KunneIkkeHenteSak -> when (
+                                    is KanIkkeSendeMeldekortTilBeslutter.KunneIkkeHenteSak -> when (
                                         val u =
                                             it.underliggende
                                     ) {
@@ -89,15 +76,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
                                         )
                                     }
 
-                                    KanIkkeEndreDagTilSperret, KanIkkeEndreDagFraSperret -> call.respond400BadRequest(
-                                        melding = "Kan ikke endre dager som er sperret.",
-                                        kode = "kan_ikke_endre_dager_som_er_sperret",
-                                    )
-
-                                    KanIkkeOppdatereMeldekort.InnsendteDagerMåMatcheMeldeperiode -> call.respond400BadRequest(
-                                        melding = "Innsendte dager må matche meldeperiode.",
-                                        kode = "innsendte_dager_må_matche_meldeperiode",
-                                    )
+                                    is KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere -> respondWithError(it.underliggende)
                                 }
                             },
                             ifRight = {
@@ -108,7 +87,10 @@ fun Route.sendMeldekortTilBeslutterRoute(
                                     contextMessage = "Saksbehandler har fylt ut meldekortet og sendt til beslutter",
                                     correlationId = correlationId,
                                 )
-                                call.respond(message = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock), status = HttpStatusCode.OK)
+                                call.respond(
+                                    message = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock),
+                                    status = HttpStatusCode.OK,
+                                )
                             },
                         )
                     }

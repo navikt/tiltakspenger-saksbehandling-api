@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
@@ -8,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -57,74 +59,102 @@ data class MeldekortUnderBehandling(
 
     fun oppdater(
         kommando: OppdaterMeldekortKommando,
-        beregning: MeldekortBeregning,
+        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
     ): Either<KanIkkeOppdatereMeldekort, MeldekortUnderBehandling> {
-        val dager = validerOppdateringOgHentDager(kommando).getOrElse {
-            return it.left()
-        }
-
+        validerSaksbehandlerOgTilstand(kommando.saksbehandler).onLeft { return it.tilKanIkkeOppdatereMeldekort().left() }
+        val beregning = MeldekortBeregning(beregn(meldeperiode))
         return this.copy(
             dager = dager,
-            begrunnelse = kommando.begrunnelse,
+            // Dersom saksbehandler vil tømme begrunnelsen kan hen sende en tom streng.
+            begrunnelse = kommando.begrunnelse ?: this.begrunnelse,
             beregning = beregning,
         ).right()
     }
 
     fun sendTilBeslutter(
-        kommando: OppdaterMeldekortKommando,
-        beregning: MeldekortBeregning,
+        kommando: SendMeldekortTilBeslutterKommando,
+        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
         clock: Clock,
-    ): Either<KanIkkeOppdatereMeldekort, MeldekortBehandletManuelt> {
-        val dager = validerOppdateringOgHentDager(kommando).getOrElse {
-            return it.left()
+    ): Either<KanIkkeSendeMeldekortTilBeslutter, MeldekortBehandletManuelt> {
+        validerSaksbehandlerOgTilstand(kommando.saksbehandler).onLeft { return it.tilKanIkkeSendeMeldekortTilBeslutter().left() }
+        val oppdatertMeldekort: MeldekortUnderBehandling = if (kommando.harOppdateringer) {
+            oppdater(
+                kommando = OppdaterMeldekortKommando(
+                    sakId = kommando.sakId,
+                    meldekortId = kommando.meldekortId,
+                    saksbehandler = kommando.saksbehandler,
+                    dager = kommando.dager!!,
+                    begrunnelse = kommando.begrunnelse,
+                    correlationId = kommando.correlationId,
+                ),
+                beregn = beregn,
+            ).getOrElse { return KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere(it).left() }
+        } else {
+            this
         }
 
         return MeldekortBehandletManuelt(
-            id = this.id,
-            sakId = this.sakId,
-            saksnummer = this.saksnummer,
-            fnr = this.fnr,
-            opprettet = this.opprettet,
-            beregning = beregning,
-            saksbehandler = kommando.saksbehandler.navIdent,
+            id = oppdatertMeldekort.id,
+            sakId = oppdatertMeldekort.sakId,
+            saksnummer = oppdatertMeldekort.saksnummer,
+            fnr = oppdatertMeldekort.fnr,
+            opprettet = oppdatertMeldekort.opprettet,
+            beregning = oppdatertMeldekort.beregning!!,
+            saksbehandler = oppdatertMeldekort.saksbehandler!!,
             sendtTilBeslutning = nå(clock),
-            beslutter = this.beslutter,
+            beslutter = oppdatertMeldekort.beslutter,
             status = KLAR_TIL_BESLUTNING,
             iverksattTidspunkt = null,
-            navkontor = this.navkontor,
+            navkontor = oppdatertMeldekort.navkontor,
             ikkeRettTilTiltakspengerTidspunkt = null,
-            brukersMeldekort = brukersMeldekort,
-            meldeperiode = meldeperiode,
-            type = type,
-            begrunnelse = kommando.begrunnelse,
-            attesteringer = attesteringer,
-            dager = dager,
+            brukersMeldekort = oppdatertMeldekort.brukersMeldekort,
+            meldeperiode = oppdatertMeldekort.meldeperiode,
+            type = oppdatertMeldekort.type,
+            begrunnelse = oppdatertMeldekort.begrunnelse,
+            attesteringer = oppdatertMeldekort.attesteringer,
+            dager = oppdatertMeldekort.dager,
         ).right()
     }
 
-    private fun validerOppdateringOgHentDager(kommando: OppdaterMeldekortKommando): Either<KanIkkeOppdatereMeldekort, MeldekortDager> {
-        val dager = kommando.dager.tilMeldekortDager(meldeperiode)
-        val saksbehandler = kommando.saksbehandler
+    sealed interface TilgangEllerTilstandsfeil {
+        data class MåVæreSaksbehandler(val roller: Saksbehandlerroller) : TilgangEllerTilstandsfeil
+        data object MåVæreSaksbehandlerForMeldekortet : TilgangEllerTilstandsfeil
+        data object MeldekortperiodenKanIkkeVæreFremITid : TilgangEllerTilstandsfeil
 
-        require(dager.periode == this.meldeperiode.periode) {
-            "Perioden for meldekortet må være lik meldeperioden"
+        fun tilKanIkkeOppdatereMeldekort(): KanIkkeOppdatereMeldekort {
+            return when (this) {
+                is MåVæreSaksbehandler -> KanIkkeOppdatereMeldekort.MåVæreSaksbehandler(roller)
+                is MåVæreSaksbehandlerForMeldekortet -> KanIkkeOppdatereMeldekort.MåVæreSaksbehandlerForMeldekortet
+                is MeldekortperiodenKanIkkeVæreFremITid -> KanIkkeOppdatereMeldekort.MeldekortperiodenKanIkkeVæreFremITid
+            }
         }
 
+        fun tilKanIkkeSendeMeldekortTilBeslutter(): KanIkkeSendeMeldekortTilBeslutter {
+            return when (this) {
+                is MåVæreSaksbehandler -> KanIkkeSendeMeldekortTilBeslutter.MåVæreSaksbehandler(roller)
+                is MåVæreSaksbehandlerForMeldekortet -> KanIkkeSendeMeldekortTilBeslutter.MåVæreSaksbehandlerForMeldekortet
+                is MeldekortperiodenKanIkkeVæreFremITid -> KanIkkeSendeMeldekortTilBeslutter.MeldekortperiodenKanIkkeVæreFremITid
+            }
+        }
+    }
+
+    private fun validerSaksbehandlerOgTilstand(saksbehandler: Saksbehandler): Either<TilgangEllerTilstandsfeil, Unit> {
         if (!saksbehandler.erSaksbehandler()) {
-            return KanIkkeOppdatereMeldekort.MåVæreSaksbehandler(saksbehandler.roller).left()
+            return TilgangEllerTilstandsfeil.MåVæreSaksbehandler(saksbehandler.roller).left()
         }
-
         if (saksbehandler.navIdent != this.saksbehandler) {
-            return KanIkkeOppdatereMeldekort.MåVæreSaksbehandlerForMeldekortet.left()
+            return TilgangEllerTilstandsfeil.MåVæreSaksbehandlerForMeldekortet.left()
         }
-
+        if (this.status != UNDER_BEHANDLING) {
+            throw IllegalStateException("Status må være UNDER_BEHANDLING. Kan ikke oppdatere meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler.")
+        }
         if (!erKlarTilUtfylling()) {
             // John har avklart med Sølvi og Taulant at vi bør ha en begrensning på at vi kan fylle ut et meldekort hvis dagens dato er innenfor meldekortperioden eller senere.
             // Dette kan endres på ved behov.
-            return KanIkkeOppdatereMeldekort.MeldekortperiodenKanIkkeVæreFremITid.left()
+            return TilgangEllerTilstandsfeil.MeldekortperiodenKanIkkeVæreFremITid.left()
         }
 
-        return dager.right()
+        return Unit.right()
     }
 
     fun erKlarTilUtfylling(): Boolean {

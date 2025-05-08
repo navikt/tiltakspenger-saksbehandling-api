@@ -13,47 +13,51 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonServi
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.oppdaterMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.sendMeldekortTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import java.time.Clock
 
 /**
- * Har ansvar for å ta imot et utfylt meldekort og lagre det.
+ * Har ansvar for å sende et meldekort til beslutter og evt. lagre dager/begrunnelse dersom det sendes med.
  */
-class OppdaterMeldekortService(
+class SendMeldekortTilBeslutterService(
     private val tilgangsstyringService: TilgangsstyringService,
     private val personService: PersonService,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakService: SakService,
+    private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger {}
 
-    suspend fun oppdaterMeldekort(
-        kommando: OppdaterMeldekortKommando,
-    ): Either<KanIkkeOppdatereMeldekort, Pair<Sak, MeldekortUnderBehandling>> {
+    suspend fun sendMeldekortTilBeslutter(
+        kommando: SendMeldekortTilBeslutterKommando,
+    ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<Sak, MeldekortBehandletManuelt>> {
         val sak = hentSak(kommando).getOrElse { return it.left() }
-        return sak.oppdaterMeldekort(kommando).onRight { (_, meldekort) ->
-            meldekortBehandlingRepo.oppdater(meldekort)
-            logger.info { "Meldekort under behandling med id ${meldekort.id} oppdatert. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
-        }
+
+        return sak.sendMeldekortTilBeslutter(kommando, clock)
+            .onRight { (_, meldekort) ->
+                meldekortBehandlingRepo.oppdater(meldekort)
+                logger.info { "Meldekort med id ${meldekort.id} sendt til beslutter. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
+            }
     }
 
-    // TODO jah: Kopiert til [SendMeldekortTilBeslutterService] - lage noe felles?
+    // TODO jah: Kopiert fra [OppdaterMeldekortService] - lage noe felles?
     private suspend fun hentSak(
-        kommando: OppdaterMeldekortKommando,
-    ): Either<KanIkkeOppdatereMeldekort, Sak> {
+        kommando: SendMeldekortTilBeslutterKommando,
+    ): Either<KanIkkeSendeMeldekortTilBeslutter, Sak> {
         if (!kommando.saksbehandler.erSaksbehandler()) {
-            return KanIkkeOppdatereMeldekort.MåVæreSaksbehandler(
+            return KanIkkeSendeMeldekortTilBeslutter.MåVæreSaksbehandler(
                 kommando.saksbehandler.roller,
             ).left()
         }
 
         kastHvisIkkeTilgangTilPerson(kommando.saksbehandler, kommando.meldekortId, kommando.correlationId)
         val sak = sakService.hentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
-            .getOrElse { return KanIkkeOppdatereMeldekort.KunneIkkeHenteSak(it).left() }
+            .getOrElse { return KanIkkeSendeMeldekortTilBeslutter.KunneIkkeHenteSak(it).left() }
 
         val meldekortbehandling = sak.hentMeldekortBehandling(kommando.meldekortId)!!
         val meldeperiode = meldekortbehandling.meldeperiode
@@ -64,7 +68,7 @@ class OppdaterMeldekortService(
         return sak.right()
     }
 
-    // TODO jah: Kopiert til [SendMeldekortTilBeslutterService] - lage noe felles?
+    // TODO jah: Kopiert fra [OppdaterMeldekortService] - lage noe felles?
     private suspend fun kastHvisIkkeTilgangTilPerson(
         saksbehandler: Saksbehandler,
         meldekortId: MeldekortId,

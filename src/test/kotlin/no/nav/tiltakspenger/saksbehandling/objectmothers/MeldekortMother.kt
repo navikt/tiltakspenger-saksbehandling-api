@@ -48,6 +48,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregnin
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.beregn
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
@@ -423,6 +425,7 @@ interface MeldekortMother : MotherOfAllMothers {
             antallDagerForPeriode = antallDagerForPeriode,
         )
 
+        val dager = kommando.dager.tilMeldekortDager(meldeperiode)
         val meldekortBehandlinger = MeldekortBehandlinger(
             verdi = nonEmptyListOf(
                 MeldekortUnderBehandling(
@@ -441,17 +444,25 @@ interface MeldekortMother : MotherOfAllMothers {
                     begrunnelse = begrunnelse,
                     attesteringer = attesteringer,
                     sendtTilBeslutning = null,
-                    dager = genererMeldekortdagerFraMeldeperiode(meldeperiode),
+                    dager = dager,
                 ),
             ),
         )
-        return meldekortBehandlinger
-            .sendTilBeslutter(
-                kommando,
-                barnetilleggsPerioder,
-                tiltakstypePerioder,
-                clock,
-            )
+
+        return meldekortBehandlinger.sendTilBeslutter(
+            kommando = kommando.tilSendMeldekortTilBeslutterKommando(),
+            beregn = {
+                // TODO jah: Det føles unaturlig og ikke gå via sak her.
+                beregn(
+                    meldekortIdSomBeregnes = meldekortId,
+                    meldeperiodeSomBeregnes = dager,
+                    barnetilleggsPerioder = barnetilleggsPerioder,
+                    tiltakstypePerioder = tiltakstypePerioder,
+                    meldekortBehandlinger = meldekortBehandlinger,
+                )
+            },
+            clock,
+        )
             .map { (meldekortBehandlinger, meldekort) ->
                 val tildeltMeldekort = meldekort.taMeldekortBehandling(beslutter) as MeldekortBehandletManuelt
                 val iverksattMeldekort = tildeltMeldekort.iverksettMeldekort(beslutter, clock).getOrFail()
@@ -493,6 +504,7 @@ interface MeldekortMother : MotherOfAllMothers {
             antallDagerForPeriode = antallDagerForPeriode,
         )
 
+        val dager = kommando.dager.tilMeldekortDager(meldeperiode)
         return this.leggTil(
             MeldekortUnderBehandling(
                 id = meldekortId,
@@ -509,13 +521,21 @@ interface MeldekortMother : MotherOfAllMothers {
                 begrunnelse = null,
                 attesteringer = attesteringer,
                 sendtTilBeslutning = null,
-                dager = genererMeldekortdagerFraMeldeperiode(meldeperiode),
+                dager = dager,
                 beregning = null,
             ),
         ).sendTilBeslutter(
-            kommando,
-            barnetilleggsPerioder,
-            tiltakstypePerioder,
+            kommando = kommando.tilSendMeldekortTilBeslutterKommando(),
+            beregn = {
+                // TODO jah: Det føles unaturlig og ikke gå via sak her.
+                beregn(
+                    meldekortIdSomBeregnes = meldekortId,
+                    meldeperiodeSomBeregnes = dager,
+                    barnetilleggsPerioder = barnetilleggsPerioder,
+                    tiltakstypePerioder = tiltakstypePerioder,
+                    meldekortBehandlinger = this,
+                )
+            },
             clock,
         )
             .map { (meldekortBehandlinger, meldekort) ->
@@ -645,6 +665,24 @@ interface MeldekortMother : MotherOfAllMothers {
             correlationId = correlationId,
         )
     }
+
+    fun sendMeldekortTilBeslutterKommando(
+        sakId: SakId = SakId.random(),
+        meldekortId: MeldekortId = MeldekortId.random(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        begrunnelse: MeldekortBehandlingBegrunnelse? = null,
+        correlationId: CorrelationId = CorrelationId.generate(),
+        dager: Dager,
+    ): SendMeldekortTilBeslutterKommando {
+        return SendMeldekortTilBeslutterKommando(
+            sakId = sakId,
+            meldekortId = meldekortId,
+            saksbehandler = saksbehandler,
+            dager = dager,
+            begrunnelse = begrunnelse,
+            correlationId = correlationId,
+        )
+    }
 }
 
 fun MeldekortBehandling.tilOppdaterMeldekortKommando(
@@ -679,6 +717,38 @@ fun MeldekortBehandling.tilOppdaterMeldekortKommando(
     )
 }
 
+fun MeldekortBehandling.tilSendMeldekortTilBeslutterKommando(
+    saksbehandler: Saksbehandler,
+): SendMeldekortTilBeslutterKommando {
+    val dager = dager.map { dag ->
+        Dager.Dag(
+            dag = dag.dato,
+            status = when (dag.status) {
+                MeldekortDagStatus.SPERRET -> OppdaterMeldekortKommando.Status.SPERRET
+                MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
+                MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> OppdaterMeldekortKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
+                MeldekortDagStatus.IKKE_DELTATT -> OppdaterMeldekortKommando.Status.IKKE_DELTATT
+                MeldekortDagStatus.FRAVÆR_SYK -> OppdaterMeldekortKommando.Status.FRAVÆR_SYK
+                MeldekortDagStatus.FRAVÆR_SYKT_BARN -> OppdaterMeldekortKommando.Status.FRAVÆR_SYKT_BARN
+                MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV -> OppdaterMeldekortKommando.Status.FRAVÆR_VELFERD_GODKJENT_AV_NAV
+                MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> OppdaterMeldekortKommando.Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
+                MeldekortDagStatus.IKKE_UTFYLT -> if (dag.dato.erHelg()) {
+                    OppdaterMeldekortKommando.Status.IKKE_DELTATT
+                } else {
+                    OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
+                }
+            },
+        )
+    }.toNonEmptyListOrNull()!!
+
+    return ObjectMother.sendMeldekortTilBeslutterKommando(
+        sakId = sakId,
+        meldekortId = id,
+        saksbehandler = saksbehandler,
+        dager = Dager(dager),
+    )
+}
+
 /**
  * @param meldeperiode Perioden meldekortet skal gjelde for. Må være 14 dager, starte på en mandag og slutte på en søndag.
  * @return Meldekortdager for meldeperioden
@@ -699,4 +769,15 @@ private fun genererMeldekortdagerFraMeldeperiode(
     } else {
         throw IllegalStateException("Alle dagene i en meldekortperiode er SPERRET. Dette har vi ikke støtte for i MVP.")
     }
+}
+
+fun OppdaterMeldekortKommando.tilSendMeldekortTilBeslutterKommando(): SendMeldekortTilBeslutterKommando {
+    return SendMeldekortTilBeslutterKommando(
+        sakId = sakId,
+        meldekortId = meldekortId,
+        saksbehandler = saksbehandler,
+        dager = dager,
+        begrunnelse = begrunnelse,
+        correlationId = correlationId,
+    )
 }
