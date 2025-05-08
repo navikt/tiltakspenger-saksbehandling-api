@@ -478,7 +478,6 @@ class BehandlingPostgresRepo(
                 valgte_tiltaksdeltakelser,
                 avbrutt,
                 antall_dager_per_meldeperiode,
-                avbrutt,
                 avslagsgrunner,
                 utfall
             ) values (
@@ -507,7 +506,6 @@ class BehandlingPostgresRepo(
                 to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
                 to_jsonb(:avbrutt::jsonb),
                 :antall_dager_per_meldeperiode,
-                to_jsonb(:avbrutt::jsonb),
                 to_jsonb(:avslagsgrunner::jsonb),
                 :utfall
             )
@@ -540,7 +538,6 @@ class BehandlingPostgresRepo(
                 valgte_tiltaksdeltakelser = to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
                 avbrutt = to_jsonb(:avbrutt::jsonb),
                 antall_dager_per_meldeperiode = :antall_dager_per_meldeperiode,
-                avbrutt = to_jsonb(:avbrutt::jsonb),
                 avslagsgrunner = to_jsonb(:avslagsgrunner::jsonb),
                 utfall = :utfall
             where id = :id

@@ -101,8 +101,7 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
                     }
                 ],
                 "utfall": "INNVILGELSE",
-                "avslagsgrunner": []
-                ],
+                "avslagsgrunner": [],
                 "antallDagerPerMeldeperiode": 10
             }
                 """.trimIndent(),
@@ -158,7 +157,6 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
                     }
                 ],
                 "antallDagerPerMeldeperiode": 10,
-                ],
                 "utfall": "INNVILGELSE",
                 "avslagsgrunner": []
             }
