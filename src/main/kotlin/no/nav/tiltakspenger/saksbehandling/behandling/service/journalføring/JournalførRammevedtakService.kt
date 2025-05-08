@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførVedtaksbrevGateway
@@ -21,6 +22,7 @@ class JournalførRammevedtakService(
     private val rammevedtakRepo: RammevedtakRepo,
     private val genererInnvilgelsesvedtaksbrevGateway: GenererInnvilgelsesvedtaksbrevGateway,
     private val genererStansvedtaksbrevGateway: GenererStansvedtaksbrevGateway,
+    private val genererAvslagsvedtaksbrevGateway: GenererAvslagsvedtaksbrevGateway,
     private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
     private val clock: Clock,
@@ -47,6 +49,13 @@ class JournalførRammevedtakService(
                         Vedtakstype.STANS -> genererStansvedtaksbrevGateway.genererStansvedtak(
                             vedtaksdato = vedtaksdato,
                             vedtak = vedtak,
+                            hentBrukersNavn = personService::hentNavn,
+                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                        ).getOrElse { return@forEach }
+
+                        Vedtakstype.AVSLAG -> genererAvslagsvedtaksbrevGateway.genererAvslagsvVedtaksbrev(
+                            vedtak = vedtak,
+                            datoForUtsending = vedtaksdato,
                             hentBrukersNavn = personService::hentNavn,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         ).getOrElse { return@forEach }

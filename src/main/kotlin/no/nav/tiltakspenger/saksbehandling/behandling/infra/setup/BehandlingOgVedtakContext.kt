@@ -162,6 +162,7 @@ open class BehandlingOgVedtakContext(
             journalførVedtaksbrevGateway = journalførVedtaksbrevGateway,
             rammevedtakRepo = rammevedtakRepo,
             genererInnvilgelsesvedtaksbrevGateway = genererVedtaksbrevGateway,
+            genererAvslagsvedtaksbrevGateway = genererAvslagsvedtaksbrevGateway,
             personService = personService,
             navIdentClient = navIdentClient,
             genererStansvedtaksbrevGateway = genererStansvedtaksbrevGateway,

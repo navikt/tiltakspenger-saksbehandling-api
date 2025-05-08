@@ -50,6 +50,8 @@ fun Rammevedtak.toDatadelingJson(): String {
                 }
             }
             Vedtakstype.STANS -> "INGENTING"
+            // Denne skal helst ikke bli truffet da servicen ikke skal prøve å sende for avlsag
+            Vedtakstype.AVSLAG -> throw IllegalArgumentException("Vi dropper sende noe til datadeling nå for avslag")
         },
         fnr = fnr.verdi,
         opprettet = opprettet.toString(),

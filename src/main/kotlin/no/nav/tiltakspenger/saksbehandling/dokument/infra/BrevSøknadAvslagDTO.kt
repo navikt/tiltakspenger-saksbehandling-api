@@ -11,6 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Paragraf
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import java.time.LocalDate
 
 internal data class BrevSøknadAvslagDTO(
     val personalia: BrevPersonaliaDTO,
@@ -25,6 +27,7 @@ internal data class BrevSøknadAvslagDTO(
     val forhåndsvisning: Boolean,
     val avslagFraOgMed: String,
     val avslagTilOgMed: String,
+    val datoForUtsending: String,
 )
 
 internal suspend fun genererAvslagSøknadsbrev(
@@ -39,6 +42,7 @@ internal suspend fun genererAvslagSøknadsbrev(
     forhåndsvisning: Boolean,
     harSøktBarnetillegg: Boolean,
     avslagsperiode: Periode,
+    datoForUtsending: LocalDate,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
@@ -61,7 +65,44 @@ internal suspend fun genererAvslagSøknadsbrev(
         avslagsgrunnerSize = avslagsgrunner.size,
         avslagFraOgMed = avslagsperiode.fraOgMed.format(norskDatoFormatter),
         avslagTilOgMed = avslagsperiode.tilOgMed.format(norskDatoFormatter),
+        datoForUtsending = datoForUtsending.format(norskDatoFormatter),
+    ).let { serialize(it) }
+}
 
+internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
+    hentBrukersNavn: suspend (Fnr) -> Navn,
+    hentSaksbehandlersNavn: suspend (String) -> String,
+    datoForUtsending: LocalDate,
+): String {
+    val brukersNavn = hentBrukersNavn(this.fnr)
+    val saksbehandlersNavn = hentSaksbehandlersNavn(this.saksbehandlerNavIdent)
+    val besluttersNavn = hentSaksbehandlersNavn(this.beslutterNavIdent)
+
+    val harSøktBarnetillegg = behandling.søknad?.barnetillegg?.isNotEmpty() ?: false
+    return BrevSøknadAvslagDTO(
+        personalia = BrevPersonaliaDTO(
+            ident = fnr.verdi,
+            fornavn = brukersNavn.fornavn,
+            etternavn = brukersNavn.mellomnavnOgEtternavn,
+        ),
+        saksnummer = saksnummer.verdi,
+        tilleggstekst = this.behandling.fritekstTilVedtaksbrev!!.verdi,
+        forhåndsvisning = false,
+        avslagsgrunner = this.behandling.avslagsgrunner.toAvslagsgrunnerBrevDto(),
+        hjemlerTekst = if (this.behandling.avslagsgrunner.size > 1) {
+            this.behandling.avslagsgrunner.createBrevForskrifter(
+                harSøktBarnetillegg,
+            )
+        } else {
+            null
+        },
+        harSøktMedBarn = harSøktBarnetillegg,
+        saksbehandlerNavn = saksbehandlersNavn,
+        beslutterNavn = besluttersNavn,
+        avslagsgrunnerSize = this.behandling.avslagsgrunner.size,
+        avslagFraOgMed = this.periode.fraOgMed.format(norskDatoFormatter),
+        avslagTilOgMed = this.periode.tilOgMed.format(norskDatoFormatter),
+        datoForUtsending = datoForUtsending.format(norskDatoFormatter),
     ).let { serialize(it) }
 }
 

@@ -10,6 +10,8 @@ import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import java.time.LocalDate
 
 interface GenererAvslagsvedtaksbrevGateway {
     suspend fun genererAvslagsVedtaksbrev(
@@ -25,5 +27,13 @@ interface GenererAvslagsvedtaksbrevGateway {
         tilleggstekst: FritekstTilVedtaksbrev,
         forhåndsvisning: Boolean,
         harSøktBarnetillegg: Boolean,
+        datoForUtsending: LocalDate,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson>
+
+    suspend fun genererAvslagsvVedtaksbrev(
+        vedtak: Rammevedtak,
+        datoForUtsending: LocalDate,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

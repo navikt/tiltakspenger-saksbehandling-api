@@ -225,6 +225,7 @@ internal class PdfgenHttpClient(
         tilleggstekst: FritekstTilVedtaksbrev,
         forhåndsvisning: Boolean,
         harSøktBarnetillegg: Boolean,
+        datoForUtsending: LocalDate,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -240,9 +241,29 @@ internal class PdfgenHttpClient(
                     avslagsgrunner = avslagsgrunner,
                     harSøktBarnetillegg = harSøktBarnetillegg,
                     avslagsperiode = avslagsperiode,
+                    datoForUtsending = datoForUtsending,
                 )
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",
+            uri = vedtakAvslagUri,
+        )
+    }
+
+    override suspend fun genererAvslagsvVedtaksbrev(
+        vedtak: Rammevedtak,
+        datoForUtsending: LocalDate,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return pdfgenRequest(
+            jsonPayload = {
+                vedtak.genererAvslagSøknadsbrev(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    datoForUtsending = datoForUtsending,
+                )
+            },
+            errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}",
             uri = vedtakAvslagUri,
         )
     }
