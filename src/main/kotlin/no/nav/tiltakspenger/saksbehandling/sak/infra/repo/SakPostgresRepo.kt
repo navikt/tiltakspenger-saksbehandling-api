@@ -123,29 +123,30 @@ class SakPostgresRepo(
                 if (sakFinnes(sak.id, session)) return@withSession
 
                 session.run(
-                    queryOf(
+                    sqlQuery(
                         """
-                    insert into sak (
-                        id,
-                        fnr,
-                        saksnummer,
-                        sist_endret,
-                        opprettet
-                    ) values (
-                        :id,
-                        :fnr,
-                        :saksnummer,
-                        :sist_endret,
-                        :opprettet
-                    )
-                        """.trimIndent(),
-                        mapOf(
-                            "id" to sak.id.toString(),
-                            "fnr" to sak.fnr.verdi,
-                            "saksnummer" to sak.saksnummer.verdi,
-                            "sist_endret" to nå,
-                            "opprettet" to nå,
-                        ),
+                        insert into sak (
+                            id,
+                            fnr,
+                            saksnummer,
+                            sist_endret,
+                            opprettet,
+                            skal_sendes_til_meldekort_api
+                        ) values (
+                            :id,
+                            :fnr,
+                            :saksnummer,
+                            :sist_endret,
+                            :opprettet,
+                            :skal_sendes_til_meldekort_api
+                        )
+                        """,
+                        "id" to sak.id.toString(),
+                        "fnr" to sak.fnr.verdi,
+                        "saksnummer" to sak.saksnummer.verdi,
+                        "sist_endret" to nå,
+                        "opprettet" to nå,
+                        "skal_sendes_til_meldekort_api" to false,
                     ).asUpdate,
                 )
             }

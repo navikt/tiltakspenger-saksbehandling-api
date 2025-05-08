@@ -44,7 +44,7 @@ data class MeldekortDager(
             "Maks antall dager for perioden må være mellom 0 og 14"
         }
         require(maksAntallDagerForPeriode >= antallDagerMedDeltattEllerFravær) {
-            "For mange dager utfylt - $antallDagerMedDeltattEllerFravær var utfylt, maks antall for perioden er $maksAntallDagerForPeriode (periode id ${meldeperiode.id})"
+            "For mange dager utfylt - $antallDagerMedDeltattEllerFravær var utfylt, maks antall for perioden er $maksAntallDagerForPeriode (meldeperiode id ${meldeperiode.id})"
         }
         meldeperiode.girRett.toList().zip(verdi) { meldeperiodeDag, dag ->
             require(meldeperiodeDag.first == dag.dato) {
