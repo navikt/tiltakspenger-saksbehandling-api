@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekor
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppgaveMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortBehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutterService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendTilMeldekortApiService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingService
@@ -87,7 +88,6 @@ open class MeldekortContext(
             personService = personService,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakService = sakService,
-            clock = clock,
         )
     }
     val opprettMeldekortBehandlingService by lazy {
@@ -161,6 +161,16 @@ open class MeldekortContext(
         LeggTilbakeMeldekortBehandlingService(
             tilgangsstyringService = tilgangsstyringService,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
+        )
+    }
+
+    val sendMeldekortTilBeslutterService by lazy {
+        SendMeldekortTilBeslutterService(
+            tilgangsstyringService = tilgangsstyringService,
+            personService = personService,
+            meldekortBehandlingRepo = meldekortBehandlingRepo,
+            sakService = sakService,
+            clock = clock,
         )
     }
 

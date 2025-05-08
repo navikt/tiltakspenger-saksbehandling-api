@@ -60,26 +60,20 @@ class MeldekortberegningFraBrukersMeldekort {
 
         val meldekortBehandlingId = MeldekortId.random()
 
-        val sakMedÅpenMeldekortbehandling = sak.leggTilMeldekortbehandling(
-            ObjectMother.meldekortUnderBehandling(
-                id = meldekortBehandlingId,
-                sakId = sak.id,
-                periode = meldeperiode.periode,
-                meldeperiode = meldeperiode,
+        val saksbehandlerBehandling = ObjectMother.meldekortUnderBehandling(
+            id = meldekortBehandlingId,
+            sakId = sak.id,
+            periode = meldeperiode.periode,
+            meldeperiode = meldeperiode,
+        )
+        val sakMedÅpenMeldekortbehandling = sak.leggTilMeldekortbehandling(saksbehandlerBehandling)
+
+        val dager = Dager(
+            dager = kommandoDager(
+                meldeperiode.periode.fraOgMed,
+                kommandoStatuser,
             ),
         )
-
-        val kommando = ObjectMother.oppdaterMeldekortKommando(
-            meldekortId = meldekortBehandlingId,
-            sakId = sakMedÅpenMeldekortbehandling.id,
-            dager = Dager(
-                dager = kommandoDager(
-                    meldeperiode.periode.fraOgMed,
-                    kommandoStatuser,
-                ),
-            ),
-        )
-
         val brukersMeldekort = ObjectMother.brukersMeldekort(
             sakId = sak.id,
             meldeperiode = meldeperiode,
@@ -89,15 +83,19 @@ class MeldekortberegningFraBrukersMeldekort {
             ),
         )
 
-        brukersMeldekort.beregn(
-            meldekortBehandlingId = meldekortBehandlingId,
-            meldekortBehandlinger = sak.meldekortBehandlinger,
-            barnetilleggsPerioder = sak.barnetilleggsperioder,
-            tiltakstypePerioder = sak.tiltakstypeperioder,
-        ) shouldBe kommando.beregn(
-            meldekortBehandlinger = sakMedÅpenMeldekortbehandling.meldekortBehandlinger,
+        beregn(
+            meldekortIdSomBeregnes = brukersMeldekort.id,
+            meldeperiodeSomBeregnes = brukersMeldekort.tilMeldekortDager(),
             barnetilleggsPerioder = sakMedÅpenMeldekortbehandling.barnetilleggsperioder,
             tiltakstypePerioder = sakMedÅpenMeldekortbehandling.tiltakstypeperioder,
+            meldekortBehandlinger = sakMedÅpenMeldekortbehandling.meldekortBehandlinger,
+
+        ) shouldBe beregn(
+            meldekortIdSomBeregnes = saksbehandlerBehandling.id,
+            meldeperiodeSomBeregnes = dager.tilMeldekortDager(meldeperiode),
+            barnetilleggsPerioder = sakMedÅpenMeldekortbehandling.barnetilleggsperioder,
+            tiltakstypePerioder = sakMedÅpenMeldekortbehandling.tiltakstypeperioder,
+            meldekortBehandlinger = sakMedÅpenMeldekortbehandling.meldekortBehandlinger,
         )
     }
 

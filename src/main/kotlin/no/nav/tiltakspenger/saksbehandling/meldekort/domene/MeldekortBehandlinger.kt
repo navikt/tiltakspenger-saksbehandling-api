@@ -1,9 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import arrow.core.Either
-import arrow.core.getOrElse
-import arrow.core.left
-import arrow.core.right
+import arrow.core.NonEmptyList
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -12,9 +10,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort.InnsendteDagerMåMatcheMeldeperiode
 import java.time.Clock
 import java.time.LocalDate
 
@@ -85,96 +81,26 @@ data class MeldekortBehandlinger(
 
     fun oppdaterMeldekort(
         kommando: OppdaterMeldekortKommando,
-        barnetilleggsPerioder: Periodisering<AntallBarn?>,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
+        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
     ): Either<KanIkkeOppdatereMeldekort, Pair<MeldekortBehandlinger, MeldekortUnderBehandling>> {
-        val (meldekort, beregning) = beregnOppdatering(
-            kommando,
-            barnetilleggsPerioder,
-            tiltakstypePerioder,
-        ).getOrElse { return it.left() }
-
+        val meldekort = hentMeldekortBehandling(kommando.meldekortId) as MeldekortUnderBehandling
         return meldekort.oppdater(
             kommando = kommando,
-            beregning = beregning,
-        )
-            .map {
-                Pair(
-                    oppdaterMeldekortbehandling(it),
-                    it,
-                )
-            }
+            beregn = beregn,
+        ).map { Pair(oppdaterMeldekortbehandling(it), it) }
     }
 
     fun sendTilBeslutter(
-        kommando: OppdaterMeldekortKommando,
-        barnetilleggsPerioder: Periodisering<AntallBarn?>,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
+        kommando: SendMeldekortTilBeslutterKommando,
+        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
         clock: Clock,
-    ): Either<KanIkkeOppdatereMeldekort, Pair<MeldekortBehandlinger, MeldekortBehandletManuelt>> {
-        val (meldekort, beregning) = beregnOppdatering(
-            kommando,
-            barnetilleggsPerioder,
-            tiltakstypePerioder,
-        ).getOrElse { return it.left() }
-
+    ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<MeldekortBehandlinger, MeldekortBehandletManuelt>> {
+        val meldekort = hentMeldekortBehandling(kommando.meldekortId) as MeldekortUnderBehandling
         return meldekort.sendTilBeslutter(
             kommando = kommando,
-            beregning = beregning,
+            beregn = beregn,
             clock = clock,
-        )
-            .map {
-                Pair(
-                    oppdaterMeldekortbehandling(it),
-                    it,
-                )
-            }
-    }
-
-    /**
-     * @throws NullPointerException Dersom det ikke er noen meldekort-behandling som kan oppdateres. Eller siste meldekort ikke er i tilstanden 'under behandling'.
-     * @throws IllegalArgumentException Dersom innsendt meldekortid ikke samsvarer med siste meldekortperiode.
-     */
-    private fun beregnOppdatering(
-        kommando: OppdaterMeldekortKommando,
-        barnetilleggsPerioder: Periodisering<AntallBarn?>,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
-    ): Either<KanIkkeOppdatereMeldekort, Pair<MeldekortUnderBehandling, MeldekortBeregning>> {
-        val meldekortId = kommando.meldekortId
-        val meldekort = meldekortUnderBehandling
-
-        require(kommando.sakId == sakId)
-
-        requireNotNull(meldekort) {
-            "Fant ingen meldekort under behandling på saken"
-        }
-
-        require(meldekort.id == meldekortId) {
-            "MeldekortId i kommando ($meldekortId) samsvarer ikke med meldekortet som er under behandling (${meldekort.id})"
-        }
-
-        if (kommando.periode != meldekort.periode) {
-            return InnsendteDagerMåMatcheMeldeperiode.left()
-        }
-
-        kommando.dager.dager.zip(meldekort.dager).forEach { (dagA, dagB) ->
-            if (dagA.status == OppdaterMeldekortKommando.Status.SPERRET && dagB.status != MeldekortDagStatus.SPERRET) {
-                log.error { "Kan ikke endre dag til sperret. Nåværende tilstand: ${meldekort.dager}. Innsendte dager: ${kommando.dager}" }
-                return KanIkkeOppdatereMeldekort.KanIkkeEndreDagTilSperret.left()
-            }
-            if (dagA.status != OppdaterMeldekortKommando.Status.SPERRET && dagB.status == MeldekortDagStatus.SPERRET) {
-                log.error { "Kan ikke endre dag fra sperret. Nåværende tilstand: ${meldekort.dager}. Innsendte dager: ${kommando.dager}" }
-                return KanIkkeOppdatereMeldekort.KanIkkeEndreDagFraSperret.left()
-            }
-        }
-
-        val beregninger = kommando.beregn(
-            meldekortBehandlinger = this,
-            barnetilleggsPerioder = barnetilleggsPerioder,
-            tiltakstypePerioder = tiltakstypePerioder,
-        )
-
-        return Pair(meldekort, MeldekortBeregning(beregninger)).right()
+        ).map { Pair(oppdaterMeldekortbehandling(it), it) }
     }
 
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {

@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregnin
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.LocalDate
 
 private const val ANTALL_EGENMELDINGSDAGER = 3
@@ -155,7 +156,7 @@ private data class BeregnMeldekort(
                 tiltakstype,
                 antallBarn,
             )
-
+            // TODO: Se trellokort: Bør kunne beregnes denne tilstanden (skal endres til IKKE_BESVART)
             MeldekortDagStatus.IKKE_UTFYLT -> throw IllegalStateException("Alle dager på meldekortet må være utfylt - $dato var ikke utfylt på $meldekortId")
         }
     }
@@ -417,41 +418,29 @@ private enum class SykTilstand {
     Karantene,
 }
 
-fun OppdaterMeldekortKommando.beregn(
-    meldekortBehandlinger: MeldekortBehandlinger,
-    barnetilleggsPerioder: Periodisering<AntallBarn?>,
-    tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
+fun Sak.beregn(
+    meldekortIdSomBeregnes: MeldekortId,
+    meldeperiodeSomBeregnes: MeldekortDager,
 ): NonEmptyList<MeldeperiodeBeregning> {
-    val meldekortId = this.meldekortId
-
-    require(meldekortBehandlinger.sakId == this.sakId) {
-        "SakId på eksisterende meldekortperiode ${meldekortBehandlinger.sakId} er ikke likt sakId på kommando $sakId"
-    }
-
-    val meldekortSomBehandles = meldekortBehandlinger.hentMeldekortBehandling(meldekortId)
-
-    require(meldekortSomBehandles is MeldekortUnderBehandling) {
-        "Meldekortbehandling med id $meldekortId er ikke under behandling"
-    }
-
-    return BeregnMeldekort(
-        meldekortIdSomBeregnes = this.meldekortId,
-        meldeperiodeSomBeregnes = this.dager.tilMeldekortDager(meldekortSomBehandles.meldeperiode),
-        barnetilleggsPerioder = barnetilleggsPerioder,
-        tiltakstypePerioder = tiltakstypePerioder,
+    return beregn(
+        meldekortIdSomBeregnes = meldekortIdSomBeregnes,
+        meldeperiodeSomBeregnes = meldeperiodeSomBeregnes,
+        barnetilleggsPerioder = this.barnetilleggsperioder,
+        tiltakstypePerioder = this.tiltakstypeperioder,
         meldekortBehandlinger = meldekortBehandlinger,
-    ).beregn()
+    )
 }
 
-fun BrukersMeldekort.beregn(
-    meldekortBehandlingId: MeldekortId,
-    meldekortBehandlinger: MeldekortBehandlinger,
+fun beregn(
+    meldekortIdSomBeregnes: MeldekortId,
+    meldeperiodeSomBeregnes: MeldekortDager,
     barnetilleggsPerioder: Periodisering<AntallBarn?>,
     tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
+    meldekortBehandlinger: MeldekortBehandlinger,
 ): NonEmptyList<MeldeperiodeBeregning> {
     return BeregnMeldekort(
-        meldekortIdSomBeregnes = meldekortBehandlingId,
-        meldeperiodeSomBeregnes = this.tilMeldekortDager(),
+        meldekortIdSomBeregnes = meldekortIdSomBeregnes,
+        meldeperiodeSomBeregnes = meldeperiodeSomBeregnes,
         barnetilleggsPerioder = barnetilleggsPerioder,
         tiltakstypePerioder = tiltakstypePerioder,
         meldekortBehandlinger = meldekortBehandlinger,

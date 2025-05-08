@@ -60,6 +60,7 @@ fun Route.routes(
         overtaMeldekortBehandlingService = applicationContext.meldekortContext.overtaMeldekortBehandlingService,
         taMeldekortBehandlingService = applicationContext.meldekortContext.taMeldekortBehandlingService,
         leggTilbakeMeldekortBehandlingService = applicationContext.meldekortContext.leggTilbakeMeldekortBehandlingService,
+        sendMeldekortTilBeslutterService = applicationContext.meldekortContext.sendMeldekortTilBeslutterService,
         avbrytMeldekortBehandlingService = applicationContext.meldekortContext.avbrytMeldekortBehandlingService,
         clock = applicationContext.clock,
     )

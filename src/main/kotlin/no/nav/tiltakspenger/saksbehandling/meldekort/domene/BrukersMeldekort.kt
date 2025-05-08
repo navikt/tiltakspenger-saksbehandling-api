@@ -48,7 +48,7 @@ data class BrukersMeldekort(
         require(dager.size.toLong() == periode.antallDager) { "Antall dager i meldekortet må være lik antall dager i meldeperioden" }
         dager.zip(meldeperiode.girRett.values).forEach { (dag, harRett) ->
             require(harRett || dag.status === InnmeldtStatus.IKKE_REGISTRERT) {
-                "Meldekortet kan ikke ha registrering på dager uten rett"
+                "Brukers meldekort kan ikke ha registrering på dager uten rett - $id har registrering $dag"
             }
         }
     }
