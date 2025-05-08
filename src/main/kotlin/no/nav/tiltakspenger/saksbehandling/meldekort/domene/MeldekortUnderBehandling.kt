@@ -214,6 +214,49 @@ data class MeldekortUnderBehandling(
         }
     }
 
+    fun avbryt(
+        avbruttAv: Saksbehandler,
+        begrunnelse: String,
+        tidspunkt: LocalDateTime,
+    ): Either<KanIkkeAvbryteMeldekortBehandling, MeldekortBehandling> {
+        require(avbruttAv.erSaksbehandlerEllerBeslutter()) {
+            return KanIkkeAvbryteMeldekortBehandling.MåVæreSaksbehandlerEllerBeslutter.left()
+        }
+        require(this.status == UNDER_BEHANDLING) {
+            return KanIkkeAvbryteMeldekortBehandling.MåVæreUnderBehandling.left()
+        }
+        require(this.saksbehandler == null || this.saksbehandler == avbruttAv.navIdent) {
+            return KanIkkeAvbryteMeldekortBehandling.MåVæreSaksbehandlerForMeldekortet.left()
+        }
+
+        require(this.brukersMeldekort == null) {
+            return KanIkkeAvbryteMeldekortBehandling.MåVæreOpprettetAvSaksbehandler.left()
+        }
+
+        return AvbruttMeldekortBehandling(
+            id = id,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+            beregning = beregning,
+            saksbehandler = avbruttAv.navIdent,
+            navkontor = navkontor,
+            ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
+            brukersMeldekort = brukersMeldekort,
+            meldeperiode = meldeperiode,
+            type = type,
+            begrunnelse = this.begrunnelse,
+            attesteringer = attesteringer,
+            dager = dager,
+            avbrutt = Avbrutt(
+                tidspunkt = tidspunkt,
+                saksbehandler = avbruttAv.navIdent,
+                begrunnelse = begrunnelse,
+            ),
+        ).right()
+    }
+
     init {
         if (status == IKKE_RETT_TIL_TILTAKSPENGER) {
             require(dager.all { it.status == MeldekortDagStatus.SPERRET })

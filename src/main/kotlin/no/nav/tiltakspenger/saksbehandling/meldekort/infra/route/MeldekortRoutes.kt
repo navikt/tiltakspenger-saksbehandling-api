@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.frameldekortapi.mottaMeldekortRoutes
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.AvbrytMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMeldekortService
@@ -27,6 +28,7 @@ fun Route.meldekortRoutes(
     overtaMeldekortBehandlingService: OvertaMeldekortBehandlingService,
     taMeldekortBehandlingService: TaMeldekortBehandlingService,
     leggTilbakeMeldekortBehandlingService: LeggTilbakeMeldekortBehandlingService,
+    avbrytMeldekortBehandlingService: AvbrytMeldekortBehandlingService,
     clock: Clock,
 ) {
     hentMeldekortRoute(sakService, auditService, tokenService, clock)
@@ -39,4 +41,5 @@ fun Route.meldekortRoutes(
     taMeldekortBehandlingRoute(tokenService, auditService, taMeldekortBehandlingService)
     underkjennMeldekortBehandlingRoute(underkjennMeldekortBehandlingService, auditService, tokenService)
     leggTilbakeMeldekortBehandlingRoute(tokenService, auditService, leggTilbakeMeldekortBehandlingService)
+    avbrytMeldekortBehandlingRoute(tokenService, auditService, avbrytMeldekortBehandlingService)
 }

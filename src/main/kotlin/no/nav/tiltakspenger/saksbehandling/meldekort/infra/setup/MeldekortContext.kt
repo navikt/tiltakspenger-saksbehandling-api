@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiHttpClien
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortBehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.AvbrytMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortService
@@ -158,6 +159,13 @@ open class MeldekortContext(
 
     val leggTilbakeMeldekortBehandlingService by lazy {
         LeggTilbakeMeldekortBehandlingService(
+            tilgangsstyringService = tilgangsstyringService,
+            meldekortBehandlingRepo = meldekortBehandlingRepo,
+        )
+    }
+
+    val avbrytMeldekortBehandlingService by lazy {
+        AvbrytMeldekortBehandlingService(
             tilgangsstyringService = tilgangsstyringService,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
         )
