@@ -10,6 +10,7 @@ enum class MeldekortBehandlingStatusDTO {
     GODKJENT,
     AUTOMATISK_BEHANDLET,
     IKKE_RETT_TIL_TILTAKSPENGER,
+    AVBRUTT,
 }
 
 fun MeldekortBehandling.toStatusDTO(): MeldekortBehandlingStatusDTO {
@@ -20,5 +21,6 @@ fun MeldekortBehandling.toStatusDTO(): MeldekortBehandlingStatusDTO {
         MeldekortBehandlingStatus.GODKJENT -> MeldekortBehandlingStatusDTO.GODKJENT
         MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortBehandlingStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
         MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> MeldekortBehandlingStatusDTO.AUTOMATISK_BEHANDLET
+        MeldekortBehandlingStatus.AVBRUTT -> MeldekortBehandlingStatusDTO.AVBRUTT
     }
 }

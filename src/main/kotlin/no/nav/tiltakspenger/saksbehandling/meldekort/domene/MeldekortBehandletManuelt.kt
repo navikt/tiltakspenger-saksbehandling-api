@@ -13,7 +13,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
+import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
@@ -53,6 +55,7 @@ data class MeldekortBehandletManuelt(
     override val beregning: MeldekortBeregning,
     override val dager: MeldekortDager,
 ) : MeldekortBehandling.Behandlet {
+    override val avbrutt: Avbrutt? = null
 
     init {
         require(meldeperiode.periode.fraOgMed == beregningPeriode.fraOgMed) {
@@ -86,6 +89,8 @@ data class MeldekortBehandletManuelt(
             }
 
             AUTOMATISK_BEHANDLET -> throw IllegalStateException("Et manuelt behandlet meldekort kan ikke ha status AUTOMATISK_BEHANDLET")
+
+            AVBRUTT -> throw IllegalStateException("Et manuelt behandlet meldekort kan ikke ha status AVBRUTT")
         }
     }
 
@@ -176,6 +181,7 @@ data class MeldekortBehandletManuelt(
         saksbehandler: Saksbehandler,
     ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
         return when (this.status) {
+            AVBRUTT -> throw IllegalStateException("Et manuelt behandlet meldekort kan ikke ha status AVBRUTT")
             UNDER_BEHANDLING -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status UNDER_BEHANDLING")
             KLAR_TIL_BESLUTNING -> KunneIkkeOvertaMeldekortBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
             UNDER_BESLUTNING -> {
@@ -220,6 +226,7 @@ data class MeldekortBehandletManuelt(
             GODKJENT,
             AUTOMATISK_BEHANDLET,
             IKKE_RETT_TIL_TILTAKSPENGER,
+            AVBRUTT,
             -> {
                 throw IllegalArgumentException(
                     "Kan ikke ta meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
@@ -248,6 +255,7 @@ data class MeldekortBehandletManuelt(
             GODKJENT,
             AUTOMATISK_BEHANDLET,
             IKKE_RETT_TIL_TILTAKSPENGER,
+            AVBRUTT,
             -> {
                 throw IllegalArgumentException(
                     "Kan ikke legge tilbake meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",

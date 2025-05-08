@@ -14,6 +14,7 @@ private enum class MeldekortBehandlingStatusDb {
     GODKJENT,
     IKKE_RETT_TIL_TILTAKSPENGER,
     AUTOMATISK_BEHANDLET,
+    AVBRUTT,
 }
 
 fun String.toMeldekortBehandlingStatus(): MeldekortBehandlingStatus =
@@ -24,6 +25,7 @@ fun String.toMeldekortBehandlingStatus(): MeldekortBehandlingStatus =
         MeldekortBehandlingStatusDb.GODKJENT -> MeldekortBehandlingStatus.GODKJENT
         MeldekortBehandlingStatusDb.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
         MeldekortBehandlingStatusDb.AUTOMATISK_BEHANDLET -> MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
+        MeldekortBehandlingStatusDb.AVBRUTT -> MeldekortBehandlingStatus.AVBRUTT
     }
 
 fun MeldekortBehandlingStatus.toDb(): String =
@@ -34,4 +36,5 @@ fun MeldekortBehandlingStatus.toDb(): String =
         MeldekortBehandlingStatus.GODKJENT -> MeldekortBehandlingStatusDb.GODKJENT
         MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortBehandlingStatusDb.IKKE_RETT_TIL_TILTAKSPENGER
         MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> MeldekortBehandlingStatusDb.AUTOMATISK_BEHANDLET
+        MeldekortBehandlingStatus.AVBRUTT -> MeldekortBehandlingStatusDb.AVBRUTT
     }.toString()

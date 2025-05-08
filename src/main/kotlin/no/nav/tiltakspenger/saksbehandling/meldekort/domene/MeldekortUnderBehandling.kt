@@ -13,7 +13,9 @@ import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
+import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
@@ -45,6 +47,7 @@ data class MeldekortUnderBehandling(
     override val dager: MeldekortDager,
     override val beregning: MeldekortBeregning?,
 ) : MeldekortBehandling {
+    override val avbrutt: Avbrutt? = null
     override val iverksattTidspunkt = null
 
     override val status =
@@ -182,6 +185,7 @@ data class MeldekortUnderBehandling(
             GODKJENT,
             IKKE_RETT_TIL_TILTAKSPENGER,
             AUTOMATISK_BEHANDLET,
+            AVBRUTT,
             -> throw IllegalStateException("Kan ikke overta meldekortbehandling med status ${this.status}")
         }
     }
@@ -203,6 +207,7 @@ data class MeldekortUnderBehandling(
             GODKJENT,
             AUTOMATISK_BEHANDLET,
             IKKE_RETT_TIL_TILTAKSPENGER,
+            AVBRUTT,
             -> {
                 throw IllegalArgumentException(
                     "Kan ikke ta meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
@@ -230,12 +235,52 @@ data class MeldekortUnderBehandling(
             GODKJENT,
             AUTOMATISK_BEHANDLET,
             IKKE_RETT_TIL_TILTAKSPENGER,
+            AVBRUTT,
             -> {
                 throw IllegalArgumentException(
                     "Kan ikke ta meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
                 )
             }
         }
+    }
+
+    fun avbryt(
+        avbruttAv: Saksbehandler,
+        begrunnelse: String,
+        tidspunkt: LocalDateTime,
+    ): Either<KanIkkeAvbryteMeldekortBehandling, MeldekortBehandling> {
+        require(avbruttAv.erSaksbehandlerEllerBeslutter()) {
+            return KanIkkeAvbryteMeldekortBehandling.MåVæreSaksbehandlerEllerBeslutter.left()
+        }
+        require(this.status == UNDER_BEHANDLING) {
+            return KanIkkeAvbryteMeldekortBehandling.MåVæreUnderBehandling.left()
+        }
+        require(this.saksbehandler == null || this.saksbehandler == avbruttAv.navIdent) {
+            return KanIkkeAvbryteMeldekortBehandling.MåVæreSaksbehandlerForMeldekortet.left()
+        }
+
+        return AvbruttMeldekortBehandling(
+            id = id,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+            beregning = beregning,
+            saksbehandler = avbruttAv.navIdent,
+            navkontor = navkontor,
+            ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
+            brukersMeldekort = brukersMeldekort,
+            meldeperiode = meldeperiode,
+            type = type,
+            begrunnelse = this.begrunnelse,
+            attesteringer = attesteringer,
+            dager = dager,
+            avbrutt = Avbrutt(
+                tidspunkt = tidspunkt,
+                saksbehandler = avbruttAv.navIdent,
+                begrunnelse = begrunnelse,
+            ),
+        ).right()
     }
 
     init {

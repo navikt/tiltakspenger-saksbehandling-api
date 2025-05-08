@@ -3,7 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAttesteringDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
@@ -28,6 +30,7 @@ data class MeldekortBehandlingDTO(
     val periode: PeriodeDTO,
     val dager: List<MeldekortDagDTO>,
     val beregning: MeldekortBeregningDTO?,
+    val avbrutt: AvbruttDTO?,
 )
 
 fun Utbetalingsvedtak.toMeldekortBehandlingDTO(): MeldekortBehandlingDTO {
@@ -52,6 +55,7 @@ fun Utbetalingsvedtak.toMeldekortBehandlingDTO(): MeldekortBehandlingDTO {
         periode = behandling.beregningPeriode.toDTO(),
         dager = behandling.dager.tilMeldekortDagerDTO(),
         beregning = behandling.beregning.tilMeldekortBeregningDTO(),
+        avbrutt = behandling.avbrutt?.toAvbruttDTO(),
     )
 }
 
@@ -80,5 +84,6 @@ fun MeldekortBehandling.toMeldekortBehandlingDTO(
         periode = this.periode.toDTO(),
         dager = dager.tilMeldekortDagerDTO(),
         beregning = beregning?.tilMeldekortBeregningDTO(),
+        avbrutt = avbrutt?.toAvbruttDTO(),
     )
 }
