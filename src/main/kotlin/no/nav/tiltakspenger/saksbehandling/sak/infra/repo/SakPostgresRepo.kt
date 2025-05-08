@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
@@ -29,7 +30,7 @@ import org.intellij.lang.annotations.Language
 import java.time.Clock
 import java.time.LocalDate
 
-internal class SakPostgresRepo(
+class SakPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val saksnummerGenerator: SaksnummerGenerator,
     private val clock: Clock,
@@ -122,29 +123,30 @@ internal class SakPostgresRepo(
                 if (sakFinnes(sak.id, session)) return@withSession
 
                 session.run(
-                    queryOf(
+                    sqlQuery(
                         """
-                    insert into sak (
-                        id,
-                        fnr,
-                        saksnummer,
-                        sist_endret,
-                        opprettet
-                    ) values (
-                        :id,
-                        :fnr,
-                        :saksnummer,
-                        :sist_endret,
-                        :opprettet
-                    )
-                        """.trimIndent(),
-                        mapOf(
-                            "id" to sak.id.toString(),
-                            "fnr" to sak.fnr.verdi,
-                            "saksnummer" to sak.saksnummer.verdi,
-                            "sist_endret" to nå,
-                            "opprettet" to nå,
-                        ),
+                        insert into sak (
+                            id,
+                            fnr,
+                            saksnummer,
+                            sist_endret,
+                            opprettet,
+                            skal_sendes_til_meldekort_api
+                        ) values (
+                            :id,
+                            :fnr,
+                            :saksnummer,
+                            :sist_endret,
+                            :opprettet,
+                            :skal_sendes_til_meldekort_api
+                        )
+                        """,
+                        "id" to sak.id.toString(),
+                        "fnr" to sak.fnr.verdi,
+                        "saksnummer" to sak.saksnummer.verdi,
+                        "sist_endret" to nå,
+                        "opprettet" to nå,
+                        "skal_sendes_til_meldekort_api" to false,
                     ).asUpdate,
                 )
             }
@@ -258,6 +260,44 @@ internal class SakPostgresRepo(
                             "nytt_fnr" to nyttFnr.verdi,
                             "gammelt_fnr" to gammeltFnr.verdi,
                         ),
+                    ).asUpdate,
+                )
+            }
+        }
+    }
+
+    override fun hentForSendingTilMeldekortApi(): List<Sak> {
+        return sessionFactory.withSessionContext { sessionContext ->
+            sessionContext.withSession { session ->
+                session.run(
+                    sqlQuery(
+                        """
+                            select * from sak where skal_sendes_til_meldekort_api = true
+                        """,
+                    ).map { row ->
+                        row.toSak(sessionContext)
+                    }.asList,
+                )
+            }
+        }
+    }
+
+    override fun oppdaterSkalSendesTilMeldekortApi(
+        sakId: SakId,
+        skalSendesTilMeldekortApi: Boolean,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSessionContext(sessionContext) { sessionContext ->
+            sessionContext.withSession { session ->
+                session.run(
+                    sqlQuery(
+                        """
+                            update sak
+                                set skal_sendes_til_meldekort_api = :skal_sendes_til_meldekort_api 
+                            where id = :id
+                        """,
+                        "skal_sendes_til_meldekort_api" to skalSendesTilMeldekortApi,
+                        "id" to sakId.toString(),
                     ).asUpdate,
                 )
             }

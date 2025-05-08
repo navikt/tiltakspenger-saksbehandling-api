@@ -51,4 +51,12 @@ interface SakRepo {
     fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate, limit: Int = 1000): List<SakId>
 
     fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr)
+
+    fun hentForSendingTilMeldekortApi(): List<Sak>
+
+    fun oppdaterSkalSendesTilMeldekortApi(
+        sakId: SakId,
+        skalSendesTilMeldekortApi: Boolean,
+        sessionContext: SessionContext? = null,
+    )
 }
