@@ -7,4 +7,5 @@ enum class MeldekortBehandlingStatus {
     GODKJENT,
     AUTOMATISK_BEHANDLET,
     IKKE_RETT_TIL_TILTAKSPENGER,
+    AVBRUTT,
 }

@@ -16,6 +16,9 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.felles.toAttesteringer
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.AvbruttMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
@@ -59,7 +62,8 @@ class MeldekortBehandlingPostgresRepo(
                         type,
                         begrunnelse,
                         attesteringer,
-                        brukers_meldekort_id
+                        brukers_meldekort_id,
+                        avbrutt
                     ) values (
                         :id,
                         :meldeperiode_kjede_id,
@@ -80,7 +84,8 @@ class MeldekortBehandlingPostgresRepo(
                         :type,
                         :begrunnelse,
                         to_jsonb(:attesteringer::jsonb),
-                        :brukers_meldekort_id
+                        :brukers_meldekort_id,
+                        to_jsonb(:avbrutt::jsonb)
                     )
                     """,
                     "id" to meldekortBehandling.id.toString(),
@@ -103,6 +108,7 @@ class MeldekortBehandlingPostgresRepo(
                     "begrunnelse" to meldekortBehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortBehandling.attesteringer.toDbJson(),
                     "brukers_meldekort_id" to meldekortBehandling.brukersMeldekort?.id?.toString(),
+                    "avbrutt" to meldekortBehandling.avbrutt?.toDbJson(),
                 ).asUpdate,
             )
         }
@@ -127,7 +133,8 @@ class MeldekortBehandlingPostgresRepo(
                         sendt_til_beslutning = :sendt_til_beslutning,
                         meldeperiode_id = :meldeperiode_id,
                         begrunnelse = :begrunnelse,
-                        attesteringer = to_json(:attesteringer::jsonb)
+                        attesteringer = to_json(:attesteringer::jsonb),
+                        avbrutt = to_jsonb(:avbrutt::jsonb)
                     where id = :id
                     """,
                     "id" to meldekortBehandling.id.toString(),
@@ -142,6 +149,7 @@ class MeldekortBehandlingPostgresRepo(
                     "meldeperiode_id" to meldekortBehandling.meldeperiode.id.toString(),
                     "begrunnelse" to meldekortBehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortBehandling.attesteringer.toDbJson(),
+                    "avbrutt" to meldekortBehandling.avbrutt?.toDbJson(),
                 ).asUpdate,
             )
         }
@@ -429,6 +437,27 @@ class MeldekortBehandlingPostgresRepo(
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
                         beregning = beregning,
                         dager = dager,
+                    )
+                }
+
+                MeldekortBehandlingStatus.AVBRUTT -> {
+                    AvbruttMeldekortBehandling(
+                        id = id,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        opprettet = opprettet,
+                        navkontor = navkontor,
+                        ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
+                        brukersMeldekort = brukersMeldekort,
+                        meldeperiode = meldeperiode,
+                        saksbehandler = saksbehandler,
+                        type = type,
+                        begrunnelse = begrunnelse,
+                        attesteringer = attesteringer,
+                        beregning = beregning,
+                        dager = dager,
+                        avbrutt = row.stringOrNull("avbrutt")?.toAvbrutt(),
                     )
                 }
             }

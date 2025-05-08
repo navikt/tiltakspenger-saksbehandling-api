@@ -56,6 +56,7 @@ class LeggTilbakeMeldekortBehandlingService(
                 MeldekortBehandlingStatus.GODKJENT,
                 MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
                 MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
+                MeldekortBehandlingStatus.AVBRUTT,
                 -> throw IllegalStateException("Meldekortbehandlingen er i en ugyldig status for å kunne legge tilbake")
             }
         }

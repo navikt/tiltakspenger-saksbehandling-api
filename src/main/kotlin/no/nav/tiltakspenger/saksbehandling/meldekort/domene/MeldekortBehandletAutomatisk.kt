@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
+import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -45,6 +46,7 @@ data class MeldekortBehandletAutomatisk(
     override val ikkeRettTilTiltakspengerTidspunkt = null
 
     override val attesteringer = Attesteringer.empty()
+    override val avbrutt: Avbrutt? = null
 
     init {
         require(type == MeldekortBehandlingType.FØRSTE_BEHANDLING) {
