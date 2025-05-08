@@ -229,10 +229,6 @@ data class MeldekortUnderBehandling(
             return KanIkkeAvbryteMeldekortBehandling.MåVæreSaksbehandlerForMeldekortet.left()
         }
 
-        require(this.brukersMeldekort == null) {
-            return KanIkkeAvbryteMeldekortBehandling.MåVæreOpprettetAvSaksbehandler.left()
-        }
-
         return AvbruttMeldekortBehandling(
             id = id,
             sakId = sakId,

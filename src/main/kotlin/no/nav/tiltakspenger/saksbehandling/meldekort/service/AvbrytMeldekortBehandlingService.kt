@@ -18,7 +18,7 @@ class AvbrytMeldekortBehandlingService(
 ) {
     suspend fun avbryt(command: AvbrytMeldekortBehandlingCommand): Either<KanIkkeAvbryteMeldekortBehandling, MeldekortBehandling> {
         val meldekortBehandling = meldekortBehandlingRepo.hent(command.meldekortId)
-            ?: throw IllegalStateException("Fant ikke meldekortBehandling for id ${command.meldekortId}")
+            ?: return KanIkkeAvbryteMeldekortBehandling.MåVæreOpprettetAvSaksbehandler.left()
         tilgangsstyringService.harTilgangTilPerson(
             meldekortBehandling.fnr,
             command.saksbehandler.roller,
@@ -39,7 +39,7 @@ class AvbrytMeldekortBehandlingService(
                     MeldekortBehandlingStatus.GODKJENT,
                     MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
                     MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
-                    -> throw IllegalStateException("Meldekortbehandlingen er i en ugyldig status for å kunne overta")
+                    -> throw IllegalStateException("Meldekortbehandlingen er i en ugyldig status for å kunne avbryte")
                 }
             }
         } else {
