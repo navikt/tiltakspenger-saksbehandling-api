@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.fakes.repos
 
 import arrow.atomic.Atomic
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -35,11 +34,6 @@ class SakFakeRepo(
     }
 
     override fun hentForSakId(sakId: SakId): Sak? {
-        return hentSak(sakId)
-    }
-
-    fun hentForBehandlingId(behandlingId: BehandlingId): Sak? {
-        val sakId = data.get().values.find { it.behandlinger.any { it.id == behandlingId } }?.id ?: return null
         return hentSak(sakId)
     }
 
@@ -116,5 +110,15 @@ class SakFakeRepo(
                 fnr = nyttFnr,
             )
         }
+    }
+
+    override fun hentForSendingTilMeldekortApi(): List<Sak> {
+        return emptyList()
+    }
+
+    override fun oppdaterSkalSendesTilMeldekortApi(
+        id: SakId,
+        skalSendesTilMeldekortApi: Boolean,
+    ) {
     }
 }

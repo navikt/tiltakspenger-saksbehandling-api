@@ -22,6 +22,7 @@ class SendTilMeldekortApiService(
 
     suspend fun send() {
         sendMeldeperioder()
+        sendSaker()
     }
 
     private suspend fun sendMeldeperioder() {
@@ -47,6 +48,25 @@ class SendTilMeldekortApiService(
     }
 
     private suspend fun sendSaker() {
-        TODO()
+        Either.catch {
+            val saker = sakRepo.hentForSendingTilMeldekortApi()
+
+            logger.debug { "Fant ${saker.count()} saker for sending til meldekort-api" }
+
+            saker.forEach { sak ->
+                val id = sak.id
+                meldekortApiHttpClient.sendSak(sak).onRight {
+                    logger.info { "Sendte sak til meldekort-api med id $id" }
+                    sakRepo.oppdaterSkalSendesTilMeldekortApi(id, false)
+                }.onLeft {
+                    logger.error { "Kunne ikke sende sak til meldekort-api med id $id" }
+                }
+            }
+        }.onLeft {
+            with("Uventet feil ved sending av saker til meldekort-api!") {
+                logger.error(RuntimeException("Uventet feil!")) { this }
+                sikkerlogg.error(it) { this }
+            }
+        }
     }
 }
