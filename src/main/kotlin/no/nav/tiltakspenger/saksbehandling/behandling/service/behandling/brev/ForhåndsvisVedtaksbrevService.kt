@@ -85,6 +85,7 @@ class ForhåndsvisVedtaksbrevService(
                         tilleggstekst = kommando.fritekstTilVedtaksbrev,
                         forhåndsvisning = true,
                         harSøktBarnetillegg = behandling.søknad?.barnetillegg?.isNotEmpty() ?: false,
+                        datoForUtsending = LocalDate.now(),
                     ).fold(
                         ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
                         ifRight = { it.pdf },

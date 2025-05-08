@@ -102,6 +102,16 @@ class GenererFakeVedtaksbrevGateway :
         tilleggstekst: FritekstTilVedtaksbrev,
         forhåndsvisning: Boolean,
         harSøktBarnetillegg: Boolean,
+        datoForUtsending: LocalDate,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response
+    }
+
+    override suspend fun genererAvslagsvVedtaksbrev(
+        vedtak: Rammevedtak,
+        datoForUtsending: LocalDate,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
     }

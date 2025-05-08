@@ -39,6 +39,7 @@ fun genererSaksstatistikkForRammevedtak(
         behandlingResultat = when (vedtak.vedtaksType) {
             Vedtakstype.INNVILGELSE -> BehandlingResultat.INNVILGET
             Vedtakstype.STANS -> BehandlingResultat.STANS
+            Vedtakstype.AVSLAG -> BehandlingResultat.AVSLAG
         },
         // TODO jah: Denne bør ikke være null.
         resultatBegrunnelse = null,

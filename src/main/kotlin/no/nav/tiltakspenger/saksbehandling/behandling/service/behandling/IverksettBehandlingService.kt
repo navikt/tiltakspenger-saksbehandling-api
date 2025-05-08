@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakSe
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.genererStønadsstatistikkForRammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
 import java.time.Clock
 
@@ -69,7 +70,8 @@ class IverksettBehandlingService(
         val behandling = sak.hentBehandling(behandlingId)!!
 
         if (behandling.beslutter != beslutter.navIdent) {
-            return KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter(eiesAvBeslutter = behandling.beslutter).left()
+            return KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter(eiesAvBeslutter = behandling.beslutter)
+                .left()
         }
 
         val attestering = Attestering(
@@ -119,34 +121,51 @@ class IverksettBehandlingService(
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
-        val (oppdatertSak, meldeperioder) = this.genererMeldeperioder(clock)
-        // Denne har vi behov for å gjøre ved påfølgende førstegangsbehandligner (altså ikke den første)
-        val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) =
-            this.meldekortBehandlinger.oppdaterMedNyeKjeder(oppdatertSak.meldeperiodeKjeder, tiltakstypeperioder, clock)
+        when (vedtak.vedtaksType) {
+            Vedtakstype.INNVILGELSE,
+            Vedtakstype.STANS,
+            -> {
+                val (oppdatertSak, meldeperioder) = this.genererMeldeperioder(clock)
+                // Denne har vi behov for å gjøre ved påfølgende førstegangsbehandligner (altså ikke den første)
+                val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) =
+                    this.meldekortBehandlinger.oppdaterMedNyeKjeder(oppdatertSak.meldeperiodeKjeder, tiltakstypeperioder, clock)
 
-        // journalføring og dokumentdistribusjon skjer i egen jobb
-        // Dersom denne endres til søknadsbehandling og vi kan ha mer enn 1 for en sak og den kan overlappe den eksistrende saksperioden, må den legge til nye versjoner av meldeperiodene her.
-        sessionFactory.withTransactionContext { tx ->
-            behandlingRepo.lagre(vedtak.behandling, tx)
-            sakService.oppdaterSisteDagSomGirRett(
-                sakId = oppdatertSak.id,
-                førsteDagSomGirRett = oppdatertSak.førsteDagSomGirRett,
-                sisteDagSomGirRett = oppdatertSak.sisteDagSomGirRett,
-                sessionContext = tx,
-            )
-            sakService.oppdaterSkalSendesTilMeldekortApi(
-                sakId = oppdatertSak.id,
-                skalSendesTilMeldekortApi = true,
-                sessionContext = tx,
-            )
-            rammevedtakRepo.lagre(vedtak, tx)
-            statistikkSakRepo.lagre(sakStatistikk, tx)
-            statistikkStønadRepo.lagre(stønadStatistikk, tx)
-            // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.
-            oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, null, tx) }
-            meldeperiodeRepo.lagre(meldeperioder, tx)
+                // journalføring og dokumentdistribusjon skjer i egen jobb
+                // Dersom denne endres til søknadsbehandling og vi kan ha mer enn 1 for en sak og den kan overlappe den eksistrende saksperioden, må den legge til nye versjoner av meldeperiodene her.
+                sessionFactory.withTransactionContext { tx ->
+                    behandlingRepo.lagre(vedtak.behandling, tx)
+                    sakService.oppdaterSisteDagSomGirRett(
+                        sakId = oppdatertSak.id,
+                        førsteDagSomGirRett = oppdatertSak.førsteDagSomGirRett,
+                        sisteDagSomGirRett = oppdatertSak.sisteDagSomGirRett,
+                        sessionContext = tx,
+                    )
+                    sakService.oppdaterSkalSendesTilMeldekortApi(
+                        sakId = oppdatertSak.id,
+                        skalSendesTilMeldekortApi = true,
+                        sessionContext = tx,
+                    )
+                    rammevedtakRepo.lagre(vedtak, tx)
+                    statistikkSakRepo.lagre(sakStatistikk, tx)
+                    statistikkStønadRepo.lagre(stønadStatistikk, tx)
+                    // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.
+                    oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, null, tx) }
+                    meldeperiodeRepo.lagre(meldeperioder, tx)
+                }
+                return oppdatertSak.copy(meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
+            }
+
+            Vedtakstype.AVSLAG -> {
+                // journalføring og dokumentdistribusjon skjer i egen jobb
+                sessionFactory.withTransactionContext { tx ->
+                    behandlingRepo.lagre(vedtak.behandling, tx)
+                    rammevedtakRepo.lagre(vedtak, tx)
+                    statistikkSakRepo.lagre(sakStatistikk, tx)
+                    statistikkStønadRepo.lagre(stønadStatistikk, tx)
+                }
+                return this
+            }
         }
-        return oppdatertSak.copy(meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
     }
 
     private fun Sak.iverksettRevurdering(

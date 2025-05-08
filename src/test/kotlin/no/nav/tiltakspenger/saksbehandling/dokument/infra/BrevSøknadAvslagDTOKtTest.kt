@@ -33,6 +33,7 @@ class BrevSøknadAvslagDTOKtTest {
                 forhåndsvisning = true,
                 harSøktBarnetillegg = true,
                 avslagsperiode = ObjectMother.virkningsperiode(),
+                datoForUtsending = LocalDate.now(fixedClock),
             )
 
             //language=json
@@ -53,11 +54,47 @@ class BrevSøknadAvslagDTOKtTest {
                   "hjemlerTekst":null,
                   "forhåndsvisning":true,
                   "avslagFraOgMed":"1. januar 2023",
-                  "avslagTilOgMed":"31. mars 2023"
+                  "avslagTilOgMed":"31. mars 2023",
+                  "datoForUtsending": "1. januar 2025"
                 }
             """.trimIndent()
 
             actual.shouldEqualJson(expected)
+        }
+    }
+
+    @Test
+    fun `genererer og serialiserer brevdata for pdf fra et vedtak`() {
+        val (_, avslagsvedtak) = ObjectMother.nySakMedAvslagsvedtak()
+        runTest {
+            avslagsvedtak.genererAvslagSøknadsbrev(
+                hentBrukersNavn = { _: Fnr -> Navn("Fornavn", null, "Etternavn") },
+                hentSaksbehandlersNavn = { _: String -> "Saksbehandlernavn" },
+                datoForUtsending = LocalDate.now(fixedClock),
+            ).shouldEqualJson(
+                //language=json
+                """
+                {
+                  "personalia":{
+                    "ident":"${avslagsvedtak.fnr.verdi}",
+                    "fornavn":"Fornavn",
+                    "etternavn":"Etternavn"
+                  },
+                  "saksnummer":"${avslagsvedtak.saksnummer}",
+                  "saksbehandlerNavn":"Saksbehandlernavn",
+                  "beslutterNavn":"Saksbehandlernavn",
+                  "tilleggstekst":"nySakMedAvslagsvedtak",
+                  "avslagsgrunnerSize":1,
+                  "avslagsgrunner":["ALDER"],
+                  "harSøktMedBarn":false,
+                  "hjemlerTekst":null,
+                  "forhåndsvisning":false,
+                  "avslagFraOgMed":"1. januar 2023",
+                  "avslagTilOgMed":"31. mars 2023",
+                  "datoForUtsending": "1. januar 2025"
+                }
+                """.trimIndent(),
+            )
         }
     }
 
