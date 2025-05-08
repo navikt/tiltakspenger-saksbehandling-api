@@ -54,5 +54,9 @@ interface SakRepo {
 
     fun hentForSendingTilMeldekortApi(): List<Sak>
 
-    fun oppdaterSkalSendesTilMeldekortApi(id: SakId, skalSendesTilMeldekortApi: Boolean)
+    fun oppdaterSkalSendesTilMeldekortApi(
+        sakId: SakId,
+        skalSendesTilMeldekortApi: Boolean,
+        sessionContext: SessionContext? = null,
+    )
 }

@@ -117,8 +117,9 @@ class SakFakeRepo(
     }
 
     override fun oppdaterSkalSendesTilMeldekortApi(
-        id: SakId,
+        sakId: SakId,
         skalSendesTilMeldekortApi: Boolean,
+        sessionContext: SessionContext?,
     ) {
     }
 }

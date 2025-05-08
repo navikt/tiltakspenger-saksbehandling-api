@@ -70,6 +70,12 @@ interface SakService {
         sisteDagSomGirRett: LocalDate?,
         sessionContext: SessionContext,
     )
+
+    fun oppdaterSkalSendesTilMeldekortApi(
+        sakId: SakId,
+        skalSendesTilMeldekortApi: Boolean,
+        sessionContext: SessionContext?,
+    )
 }
 
 sealed interface KanIkkeStarteSøknadsbehandling {

@@ -29,18 +29,18 @@ class SendTilMeldekortApiService(
         Either.catch {
             val usendteMeldeperioder = meldeperiodeRepo.hentUsendteTilBruker()
 
-            logger.debug { "Fant ${usendteMeldeperioder.count()} meldekort for sending til meldekort-api" }
+            logger.debug { "Fant ${usendteMeldeperioder.count()} meldeperioder for sending til meldekort-api" }
 
             usendteMeldeperioder.forEach { meldeperiode ->
                 meldekortApiHttpClient.sendMeldeperiode(meldeperiode).onRight {
-                    logger.info { "Sendte meldekort til meldekort-api med id ${meldeperiode.id}" }
+                    logger.info { "Sendte meldeperiode til meldekort-api med id ${meldeperiode.id}" }
                     meldeperiodeRepo.markerSomSendtTilBruker(meldeperiode.id, nå(clock))
                 }.onLeft {
-                    logger.error { "Kunne ikke sende meldekort til meldekort-api med id ${meldeperiode.id}" }
+                    logger.error { "Kunne ikke sende meldeperiode til meldekort-api med id ${meldeperiode.id}" }
                 }
             }
         }.onLeft {
-            with("Uventet feil ved sending av meldekort til meldekort-api!") {
+            with("Uventet feil ved sending av meldeperiode til meldekort-api!") {
                 logger.error(RuntimeException("Uventet feil!")) { this }
                 sikkerlogg.error(it) { this }
             }

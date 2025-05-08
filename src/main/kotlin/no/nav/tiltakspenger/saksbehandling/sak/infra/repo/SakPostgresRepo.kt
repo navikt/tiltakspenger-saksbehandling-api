@@ -282,10 +282,11 @@ class SakPostgresRepo(
     }
 
     override fun oppdaterSkalSendesTilMeldekortApi(
-        id: SakId,
+        sakId: SakId,
         skalSendesTilMeldekortApi: Boolean,
+        sessionContext: SessionContext?,
     ) {
-        sessionFactory.withSessionContext { sessionContext ->
+        sessionFactory.withSessionContext(sessionContext) { sessionContext ->
             sessionContext.withSession { session ->
                 session.run(
                     sqlQuery(
@@ -295,7 +296,7 @@ class SakPostgresRepo(
                             where id = :id
                         """,
                         "skal_sendes_til_meldekort_api" to skalSendesTilMeldekortApi,
-                        "id" to id.toString(),
+                        "id" to sakId.toString(),
                     ).asUpdate,
                 )
             }
