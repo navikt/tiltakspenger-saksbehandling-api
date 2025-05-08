@@ -223,6 +223,7 @@ interface SakMother {
                 }.toList(),
                 avslagsgrunner = setOf(Avslagsgrunnlag.Alder),
                 utfall = Behandlingsutfall.AVSLAG,
+                antallDagerPerMeldeperiode = 10,
             ),
             clock = clock,
         ).taBehandling(beslutter)
