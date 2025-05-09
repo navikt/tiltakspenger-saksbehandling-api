@@ -46,15 +46,15 @@ data class MeldekortDager(
         require(maksAntallDagerForPeriode >= antallDagerMedDeltattEllerFravær) {
             "For mange dager utfylt - $antallDagerMedDeltattEllerFravær var utfylt, maks antall for perioden er $maksAntallDagerForPeriode (meldeperiode id ${meldeperiode.id})"
         }
-        meldeperiode.girRett.toList().zip(verdi) { meldeperiodeDag, dag ->
-            require(meldeperiodeDag.first == dag.dato) {
-                "Meldeperiodedatoene må stemme overns med dagene."
+        meldeperiode.girRett.toList().zip(verdi) { (dato, harRett), dag ->
+            require(dato == dag.dato) {
+                "Meldeperiodedatoene må stemme overens med dagene."
             }
-            if (meldeperiodeDag.second && dag.status == MeldekortDagStatus.SPERRET) {
-                throw IllegalArgumentException("Kan ikke endre dag til sperret. Meldeperiode: ${meldeperiode.girRett}. Innsendte dager: $verdi")
+            if (harRett && dag.status == MeldekortDagStatus.SPERRET) {
+                throw IllegalArgumentException("Kan ikke endre dag til sperret. Meldeperiode (id ${meldeperiode.id}): ${meldeperiode.girRett}. Innsendte dager: $verdi")
             }
-            if (!meldeperiodeDag.second && dag.status != MeldekortDagStatus.SPERRET) {
-                throw IllegalArgumentException("Kan ikke endre dag fra sperret. Meldeperiode: ${meldeperiode.girRett}. Innsendte dager: $verdi")
+            if (!harRett && dag.status != MeldekortDagStatus.SPERRET) {
+                throw IllegalArgumentException("Kan ikke endre dag fra sperret. Meldeperiode (id ${meldeperiode.id}): ${meldeperiode.girRett}. Innsendte dager: $verdi")
             }
         }
     }

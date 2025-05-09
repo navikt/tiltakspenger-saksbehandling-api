@@ -21,8 +21,8 @@ class SendTilMeldekortApiService(
     private val logger = KotlinLogging.logger { }
 
     suspend fun send() {
-        sendMeldeperioder()
         sendSaker()
+        sendMeldeperioder()
     }
 
     private suspend fun sendMeldeperioder() {
