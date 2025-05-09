@@ -68,7 +68,7 @@ fun Route.avbrytMeldekortBehandlingRoute(
 
                                 call.respond(
                                     status = HttpStatusCode.OK,
-                                    it.toMeldekortBehandlingDTO(UtbetalingsstatusDTO.IKKE_GODKJENT),
+                                    it.toMeldekortBehandlingDTO(UtbetalingsstatusDTO.AVBRUTT),
                                 )
                             },
                         )

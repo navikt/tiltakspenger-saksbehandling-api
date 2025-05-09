@@ -4,7 +4,6 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -65,12 +64,6 @@ data class Sak(
 
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
         return meldekortBehandlinger.hentMeldekortBehandling(meldekortId)
-    }
-
-    /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
-    @Suppress("unused")
-    fun hentMeldekortBehandlingerForMeldeperiode(meldeperiodeId: MeldeperiodeId): List<MeldekortBehandling> {
-        return meldekortBehandlinger.hentMeldekortBehandlingerForMeldeperiode(meldeperiodeId)
     }
 
     fun hentSisteMeldekortBehandlingForKjede(id: MeldeperiodeKjedeId): MeldekortBehandling? {

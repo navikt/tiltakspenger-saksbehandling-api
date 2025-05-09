@@ -66,6 +66,10 @@ class AvbrytMeldekortBehandlingRouteTest {
                     oppdatertMeldekortbehandling?.avbrutt?.saksbehandler shouldBe saksbehandlerIdent
                     oppdatertMeldekortbehandling?.avbrutt?.tidspunkt?.toLocalDate() shouldBe LocalDate.now()
                     oppdatertMeldekortbehandling?.avbrutt?.begrunnelse shouldBe begrunnelse
+
+                    val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+                    oppdatertSak.meldekortBehandlinger.ikkeAvbrutteMeldekortBehandlinger shouldBe emptyList()
+                    oppdatertSak.meldekortBehandlinger.avbrutteMeldekortBehandlinger.size shouldBe 1
                 }
             }
         }
