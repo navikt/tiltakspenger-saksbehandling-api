@@ -42,6 +42,7 @@ class AutomatiskMeldekortBehandlingService(
             meldekortListe.forEach { meldekort ->
                 Either.catch {
                     opprettMeldekortBehandling(meldekort).onLeft {
+                        logger.error { "Kunne ikke opprette automatisk behandling for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId} - Feil: $it" }
                         brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                             meldekort.id,
                             it,

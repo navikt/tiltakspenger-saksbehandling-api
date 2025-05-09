@@ -220,6 +220,18 @@ class SakServiceImpl(
         )
     }
 
+    override fun oppdaterSkalSendesTilMeldekortApi(
+        sakId: SakId,
+        skalSendesTilMeldekortApi: Boolean,
+        sessionContext: SessionContext?,
+    ) {
+        sakRepo.oppdaterSkalSendesTilMeldekortApi(
+            sakId = sakId,
+            skalSendesTilMeldekortApi = skalSendesTilMeldekortApi,
+            sessionContext = sessionContext,
+        )
+    }
+
     private suspend fun sjekkTilgangTilPerson(
         sakId: SakId,
         saksbehandler: Saksbehandler,

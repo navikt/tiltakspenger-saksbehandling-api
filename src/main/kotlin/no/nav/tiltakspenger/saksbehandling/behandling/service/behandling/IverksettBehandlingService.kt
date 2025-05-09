@@ -134,6 +134,11 @@ class IverksettBehandlingService(
                 sisteDagSomGirRett = oppdatertSak.sisteDagSomGirRett,
                 sessionContext = tx,
             )
+            sakService.oppdaterSkalSendesTilMeldekortApi(
+                sakId = oppdatertSak.id,
+                skalSendesTilMeldekortApi = true,
+                sessionContext = tx,
+            )
             rammevedtakRepo.lagre(vedtak, tx)
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
@@ -158,6 +163,11 @@ class IverksettBehandlingService(
                 sakId = oppdatertSak.id,
                 førsteDagSomGirRett = oppdatertSak.førsteDagSomGirRett,
                 sisteDagSomGirRett = oppdatertSak.sisteDagSomGirRett,
+                sessionContext = tx,
+            )
+            sakService.oppdaterSkalSendesTilMeldekortApi(
+                sakId = oppdatertSak.id,
+                skalSendesTilMeldekortApi = true,
                 sessionContext = tx,
             )
             rammevedtakRepo.lagre(vedtak, tx)
