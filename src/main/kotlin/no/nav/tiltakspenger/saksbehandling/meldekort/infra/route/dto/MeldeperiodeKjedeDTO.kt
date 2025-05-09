@@ -21,6 +21,7 @@ data class MeldeperiodeKjedeDTO(
     val meldekortBehandlinger: List<MeldekortBehandlingDTO>,
     val brukersMeldekort: BrukersMeldekortDTO?,
     val korrigeringFraTidligerePeriode: MeldeperiodeKorrigeringDTO?,
+    val avbrutteMeldekortBehandlinger: List<MeldekortBehandlingDTO>,
 )
 
 fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeDTO {
@@ -61,6 +62,13 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
             },
         brukersMeldekort = brukersMeldekort ?.toBrukersMeldekortDTO(),
         korrigeringFraTidligerePeriode = korrigering,
+        avbrutteMeldekortBehandlinger = this.meldekortBehandlinger
+            .hentAvbrutteMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)
+            .map {
+                it.toMeldekortBehandlingDTO(
+                    UtbetalingsstatusDTO.IKKE_GODKJENT,
+                )
+            },
     )
 }
 

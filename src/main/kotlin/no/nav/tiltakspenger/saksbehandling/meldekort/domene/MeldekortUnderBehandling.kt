@@ -255,7 +255,7 @@ data class MeldekortUnderBehandling(
         require(this.status == UNDER_BEHANDLING) {
             return KanIkkeAvbryteMeldekortBehandling.MåVæreUnderBehandling.left()
         }
-        require(this.saksbehandler == null || this.saksbehandler == avbruttAv.navIdent) {
+        require(this.saksbehandler == avbruttAv.navIdent) {
             return KanIkkeAvbryteMeldekortBehandling.MåVæreSaksbehandlerForMeldekortet.left()
         }
 

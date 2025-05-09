@@ -5,7 +5,6 @@ import arrow.core.NonEmptyList
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -18,6 +17,7 @@ import java.time.LocalDate
  * Består av ingen, én eller flere [MeldekortBehandling].
  * Vil være tom fram til første innvilgede førstegangsbehandling.
  * Kun en behandling kan være under behandling (åpen) til enhver tid.
+ * Merk at [verdi] inneholder alle meldekortbehandlinger, inkludert de som er avbrutt, og bør ikke brukes direkte!
  */
 data class MeldekortBehandlinger(
     val verdi: List<MeldekortBehandling>,
@@ -25,8 +25,18 @@ data class MeldekortBehandlinger(
 
     val log = KotlinLogging.logger { }
 
-    val periode: Periode by lazy { Periode(verdi.first().fraOgMed, verdi.last().tilOgMed) }
-    val sakId: SakId by lazy { verdi.first().sakId }
+    val ikkeAvbrutteMeldekortBehandlinger: List<MeldekortBehandling> by lazy {
+        verdi.filter { it !is AvbruttMeldekortBehandling }
+    }
+
+    val avbrutteMeldekortBehandlinger: List<AvbruttMeldekortBehandling> by lazy {
+        verdi.filterIsInstance<AvbruttMeldekortBehandling>()
+    }
+
+    val periode: Periode by lazy {
+        Periode(ikkeAvbrutteMeldekortBehandlinger.first().fraOgMed, ikkeAvbrutteMeldekortBehandlinger.last().tilOgMed)
+    }
+    val sakId: SakId by lazy { ikkeAvbrutteMeldekortBehandlinger.first().sakId }
 
     val meldeperiodeBeregninger by lazy { MeldeperiodeBeregninger(this) }
 
@@ -108,13 +118,12 @@ data class MeldekortBehandlinger(
     }
 
     /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
-    fun hentMeldekortBehandlingerForMeldeperiode(id: MeldeperiodeId): List<MeldekortBehandling> {
-        return this.filter { it.meldeperiode.id == id }
+    fun hentMeldekortBehandlingerForKjede(kjedeId: MeldeperiodeKjedeId): List<MeldekortBehandling> {
+        return ikkeAvbrutteMeldekortBehandlinger.filter { it.kjedeId == kjedeId }
     }
 
-    /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
-    fun hentMeldekortBehandlingerForKjede(kjedeId: MeldeperiodeKjedeId): List<MeldekortBehandling> {
-        return verdi.filter { it.kjedeId == kjedeId }
+    fun hentAvbrutteMeldekortBehandlingerForKjede(kjedeId: MeldeperiodeKjedeId): List<MeldekortBehandling> {
+        return avbrutteMeldekortBehandlinger.filter { it.kjedeId == kjedeId }
     }
 
     fun hentSisteMeldekortBehandlingForKjede(kjedeId: MeldeperiodeKjedeId): MeldekortBehandling? {
