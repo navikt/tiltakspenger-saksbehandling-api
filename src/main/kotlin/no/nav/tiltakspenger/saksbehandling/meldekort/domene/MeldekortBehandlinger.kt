@@ -4,9 +4,7 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
@@ -32,11 +30,6 @@ data class MeldekortBehandlinger(
     val avbrutteMeldekortBehandlinger: List<AvbruttMeldekortBehandling> by lazy {
         verdi.filterIsInstance<AvbruttMeldekortBehandling>()
     }
-
-    val periode: Periode by lazy {
-        Periode(ikkeAvbrutteMeldekortBehandlinger.first().fraOgMed, ikkeAvbrutteMeldekortBehandlinger.last().tilOgMed)
-    }
-    val sakId: SakId by lazy { ikkeAvbrutteMeldekortBehandlinger.first().sakId }
 
     val meldeperiodeBeregninger by lazy { MeldeperiodeBeregninger(this) }
 
