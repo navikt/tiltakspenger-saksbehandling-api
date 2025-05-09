@@ -58,7 +58,7 @@ class SendFørstegangsbehandlingTilBeslutterTest {
     }
 
     @Test
-    fun `send til beslutter - feiler hvis innvilgelsesperioden er utenfor deltakelsesperioden`() = runTest {
+    fun `send til beslutter - feiler hvis behandlingsperioden er utenfor deltakelsesperioden`() = runTest {
         with(TestApplicationContext()) {
             val saksbehandler = saksbehandler()
             val tac = this

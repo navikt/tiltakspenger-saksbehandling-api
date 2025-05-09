@@ -13,16 +13,6 @@ data class SendRevurderingTilBeslutningKommando(
     val correlationId: CorrelationId,
     val begrunnelse: BegrunnelseVilkårsvurdering,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-    val valgteHjemler: List<String>,
+    val valgteHjemler: List<ValgtHjemmelHarIkkeRettighet>,
     val stansDato: LocalDate,
-) {
-
-    fun toValgtHjemmelHarIkkeRettighet(): List<ValgtHjemmelHarIkkeRettighet> {
-        return valgteHjemler.map { valgtHjemmel ->
-            ValgtHjemmelHarIkkeRettighet.toValgtHjemmelHarIkkeRettighet(
-                ValgtHjemmelType.STANS,
-                valgtHjemmel,
-            )
-        }
-    }
-}
+)

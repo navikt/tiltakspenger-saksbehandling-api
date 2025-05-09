@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.fixedClock
@@ -17,11 +18,13 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsutfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
@@ -93,7 +96,9 @@ interface BehandlingMother : MotherOfAllMothers {
         }
     }
 
-    // TODO - ikke bruk denne. Bruk [nyOpprettetFørstegangsbehandling]
+    /**
+     * TODO - ikke bruk denne. Bruk [nyOpprettetFørstegangsbehandling]
+     */
     fun nyBehandling(
         id: BehandlingId = BehandlingId.random(),
         sakId: SakId = SakId.random(),
@@ -120,6 +125,8 @@ interface BehandlingMother : MotherOfAllMothers {
         valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = null,
         avbrutt: Avbrutt? = null,
         antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+        avslagsgrunner: Set<Avslagsgrunnlag> = emptySet(),
+        utfall: Behandlingsutfall? = null,
     ): Behandling {
         return Behandling(
             id = id,
@@ -148,6 +155,8 @@ interface BehandlingMother : MotherOfAllMothers {
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
             avbrutt = avbrutt,
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+            avslagsgrunner = avslagsgrunner,
+            utfall = utfall,
         )
     }
 
@@ -169,6 +178,8 @@ interface BehandlingMother : MotherOfAllMothers {
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+        avslagsgrunner: Set<Avslagsgrunnlag> = emptySet(),
+        utfall: Behandlingsutfall = Behandlingsutfall.INNVILGELSE,
     ): Behandling {
         return this.nyOpprettetFørstegangsbehandling(
             id = id,
@@ -186,10 +197,12 @@ interface BehandlingMother : MotherOfAllMothers {
                 correlationId = CorrelationId.generate(),
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                innvilgelsesperiode = virkningsperiode,
+                behandlingsperiode = virkningsperiode,
                 barnetillegg = barnetillegg,
                 tiltaksdeltakelser = valgteTiltaksdeltakelser,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                avslagsgrunner = avslagsgrunner,
+                utfall = utfall,
             ),
             clock = fixedClock,
         )
@@ -213,6 +226,7 @@ interface BehandlingMother : MotherOfAllMothers {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
+        utfall: Behandlingsutfall = Behandlingsutfall.INNVILGELSE,
         clock: Clock = fixedClock,
     ): Behandling {
         return nyFørstegangsbehandlingKlarTilBeslutning(
@@ -230,7 +244,60 @@ interface BehandlingMother : MotherOfAllMothers {
             saksopplysninger = saksopplysninger,
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
             oppgaveId = oppgaveId,
+            utfall = utfall,
         ).taBehandling(beslutter)
+    }
+
+    fun nyBehandlingUnderkjent(
+        id: BehandlingId = BehandlingId.random(),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        fnr: Fnr = Fnr.random(),
+        saksbehandler: Saksbehandler = saksbehandler(),
+        sendtTilBeslutning: LocalDateTime? = null,
+        søknad: Søknad = nySøknad(),
+        beslutter: Saksbehandler = beslutter(),
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nyBehandlingUnderBeslutning()"),
+        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyBehandlingUnderBeslutning()"),
+        barnetillegg: Barnetillegg? = null,
+        virkningsperiode: Periode = virkningsperiode(),
+        saksopplysninger: Saksopplysninger = saksopplysninger(),
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelse.map {
+            Pair(virkningsperiode, it.eksternDeltagelseId)
+        },
+        oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
+        utdøvendeBeslutter: Saksbehandler = beslutter(),
+        utfall: Behandlingsutfall = Behandlingsutfall.INNVILGELSE,
+        clock: Clock = fixedClock,
+    ): Behandling {
+        return nyBehandlingUnderBeslutning(
+            id = id,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            saksbehandler = saksbehandler,
+            sendtTilBeslutning = sendtTilBeslutning,
+            søknad = søknad,
+            beslutter = beslutter,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+            barnetillegg = barnetillegg,
+            virkningsperiode = virkningsperiode,
+            saksopplysninger = saksopplysninger,
+            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
+            oppgaveId = oppgaveId,
+            utfall = utfall,
+            clock = clock,
+        ).sendTilbakeTilBehandling(
+            utøvendeBeslutter = utdøvendeBeslutter,
+            attestering = Attestering(
+                id = AttesteringId.random(),
+                status = Attesteringsstatus.SENDT_TILBAKE,
+                begrunnelse = "nyBehandlingUnderkjent".toNonBlankString(),
+                beslutter = "necessitatibus",
+                tidspunkt = nå(clock),
+            ),
+        )
     }
 
     fun nyVedtattBehandling(
@@ -266,6 +333,8 @@ interface BehandlingMother : MotherOfAllMothers {
                 ),
             ),
         ),
+        avslagsgrunner: Set<Avslagsgrunnlag> = emptySet(),
+        utfall: Behandlingsutfall? = Behandlingsutfall.INNVILGELSE,
     ): Behandling {
         return nyBehandling(
             id = id,
@@ -292,6 +361,8 @@ interface BehandlingMother : MotherOfAllMothers {
             barnetillegg = barnetillegg,
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
             avbrutt = null,
+            avslagsgrunner = avslagsgrunner,
+            utfall = utfall,
         )
     }
 }
@@ -408,6 +479,8 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
     fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("Fritekst"),
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("Begrunnelse"),
     antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    avslagsgrunner: Set<Avslagsgrunnlag> = emptySet(),
+    utfall: Behandlingsutfall,
 ): Sak {
     val sakMedFørstegangsbehandling = startSøknadsbehandling(
         periode = periode,
@@ -423,7 +496,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
             correlationId = correlationId,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-            innvilgelsesperiode = periode,
+            behandlingsperiode = periode,
             barnetillegg = null,
             tiltaksdeltakelser = listOf(
                 Pair(
@@ -432,6 +505,8 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
                 ),
             ),
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+            avslagsgrunner = avslagsgrunner,
+            utfall = utfall,
         ),
     ).getOrFail()
     return this.sakContext.sakService.hentForSakId(
@@ -447,11 +522,13 @@ suspend fun TestApplicationContext.førstegangsbehandlingUnderBeslutning(
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
     correlationId: CorrelationId = CorrelationId.generate(),
+    utfall: Behandlingsutfall,
 ): Sak {
     val vilkårsvurdert = førstegangsbehandlingTilBeslutter(
         periode = periode,
         fnr = fnr,
         saksbehandler = saksbehandler,
+        utfall = utfall,
     )
     this.behandlingContext.taBehandlingService.taBehandling(
         vilkårsvurdert.behandlinger.singleOrNullOrThrow()!!.id,
@@ -471,6 +548,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingIverksatt(
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
     correlationId: CorrelationId = CorrelationId.generate(),
+    utfall: Behandlingsutfall,
 ): Sak {
     val tac = this
     val underBeslutning = førstegangsbehandlingUnderBeslutning(
@@ -478,6 +556,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingIverksatt(
         fnr = fnr,
         saksbehandler = saksbehandler,
         beslutter = beslutter,
+        utfall = utfall,
     )
     runBlocking {
         tac.behandlingContext.iverksettBehandlingService.iverksett(
@@ -502,6 +581,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingIverksattMedMeldeperiod
     beslutter: Saksbehandler = beslutter(),
     clock: Clock = fixedClock,
     correlationId: CorrelationId = CorrelationId.generate(),
+    utfall: Behandlingsutfall = Behandlingsutfall.INNVILGELSE,
 ): Sak {
     val (sak, meldeperioder) = førstegangsbehandlingIverksatt(
         periode = periode,
@@ -509,6 +589,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingIverksattMedMeldeperiod
         saksbehandler = saksbehandler,
         beslutter = beslutter,
         correlationId = correlationId,
+        utfall = utfall,
     ).genererMeldeperioder(clock)
 
     this.meldekortContext.meldeperiodeRepo.lagre(meldeperioder)
@@ -529,6 +610,7 @@ suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
         fnr = fnr,
         saksbehandler = saksbehandler,
         beslutter = beslutter,
+        utfall = Behandlingsutfall.INNVILGELSE,
     )
     tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
         sakId = sak.id,

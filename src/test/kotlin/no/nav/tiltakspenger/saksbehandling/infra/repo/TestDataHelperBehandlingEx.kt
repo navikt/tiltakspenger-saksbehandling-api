@@ -12,14 +12,17 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsutfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendRevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepoTest.Companion.random
@@ -130,6 +133,8 @@ internal fun TestDataHelper.persisterKlarTilBeslutningFørstegangsbehandling(
     fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterKlarTilBeslutningFørstegangsbehandling()"),
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterKlarTilBeslutningFørstegangsbehandling()"),
     correlationId: CorrelationId = CorrelationId.generate(),
+    avslagsgrunner: Set<Avslagsgrunnlag> = emptySet(),
+    utfall: Behandlingsutfall = Behandlingsutfall.INNVILGELSE,
     /**
      * Brukt for å styre meldeperiode generering
      */
@@ -158,7 +163,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningFørstegangsbehandling(
                     correlationId = correlationId,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                    innvilgelsesperiode = tiltaksOgVurderingsperiode,
+                    behandlingsperiode = tiltaksOgVurderingsperiode,
                     barnetillegg = null,
                     tiltaksdeltakelser = listOf(
                         Pair(
@@ -167,6 +172,8 @@ internal fun TestDataHelper.persisterKlarTilBeslutningFørstegangsbehandling(
                         ),
                     ),
                     antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                    avslagsgrunner = avslagsgrunner,
+                    utfall = utfall,
                 ),
                 clock = clock,
             )
@@ -536,7 +543,7 @@ internal fun TestDataHelper.persisterBehandletRevurdering(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
-    valgteHjemler: List<String> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak.javaClass.simpleName),
+    valgteHjemler: List<ValgtHjemmelHarIkkeRettighet> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,

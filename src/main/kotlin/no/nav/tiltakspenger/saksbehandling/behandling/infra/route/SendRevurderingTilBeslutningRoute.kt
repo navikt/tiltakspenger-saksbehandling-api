@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendRevurderingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -23,6 +24,18 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import java.time.LocalDate
+
+fun String.valgtHjemmelForStans(): ValgtHjemmelForStans = when (this) {
+    "DeltarIkkePåArbeidsmarkedstiltak" -> ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak
+    "Alder" -> ValgtHjemmelForStans.Alder
+    "Livsoppholdytelser" -> ValgtHjemmelForStans.Livsoppholdytelser
+    "Kvalifiseringsprogrammet" -> ValgtHjemmelForStans.Kvalifiseringsprogrammet
+    "Introduksjonsprogrammet" -> ValgtHjemmelForStans.Introduksjonsprogrammet
+    "LønnFraTiltaksarrangør" -> ValgtHjemmelForStans.LønnFraTiltaksarrangør
+    "LønnFraAndre" -> ValgtHjemmelForStans.LønnFraAndre
+    "Institusjonsopphold" -> ValgtHjemmelForStans.Institusjonsopphold
+    else -> throw IllegalArgumentException("Ukjent kode for ValgtHjemmelForStans: $this")
+}
 
 private data class SendRevurderingTilBeslutningBody(
     val begrunnelse: String,
@@ -44,7 +57,7 @@ private data class SendRevurderingTilBeslutningBody(
             stansDato = stansDato,
             begrunnelse = BegrunnelseVilkårsvurdering(begrunnelse),
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(it) },
-            valgteHjemler = valgteHjemler ?: emptyList(),
+            valgteHjemler = valgteHjemler?.map { it.valgtHjemmelForStans() } ?: emptyList(),
         )
     }
 }

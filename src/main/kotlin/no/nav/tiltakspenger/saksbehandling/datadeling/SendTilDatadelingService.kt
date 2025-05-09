@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.Clock
 
 class SendTilDatadelingService(
@@ -25,6 +26,10 @@ class SendTilDatadelingService(
     private suspend fun sendVedtak() {
         Either.catch {
             rammevedtakRepo.hentRammevedtakTilDatadeling().forEach { rammevedtak ->
+                // TODO jah/raq dropper sende noe til datadeling nå for avslag
+                if (rammevedtak.vedtaksType == Vedtakstype.AVSLAG) {
+                    return@forEach
+                }
                 val correlationId = CorrelationId.generate()
                 Either.catch {
                     datadelingClient.send(rammevedtak, correlationId).onRight {

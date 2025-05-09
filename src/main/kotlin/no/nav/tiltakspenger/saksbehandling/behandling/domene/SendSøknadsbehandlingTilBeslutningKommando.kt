@@ -15,10 +15,12 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
     val correlationId: CorrelationId,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
-    val innvilgelsesperiode: Periode,
+    val behandlingsperiode: Periode,
     val barnetillegg: Barnetillegg?,
     val tiltaksdeltakelser: List<Pair<Periode, String>>,
     val antallDagerPerMeldeperiode: Int,
+    val avslagsgrunner: Set<Avslagsgrunnlag>,
+    val utfall: Behandlingsutfall,
 ) {
     fun valgteTiltaksdeltakelser(behandling: Behandling): ValgteTiltaksdeltakelser {
         return ValgteTiltaksdeltakelser.periodiser(
