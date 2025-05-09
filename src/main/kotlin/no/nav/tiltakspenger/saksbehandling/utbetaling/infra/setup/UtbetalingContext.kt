@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortGateway
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpClient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingsvedtakPostgresRepo
@@ -15,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRep
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.JournalførUtbetalingsvedtakService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsstatusService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SendUtbetalingerService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 
 open class UtbetalingContext(
@@ -25,6 +27,7 @@ open class UtbetalingContext(
     entraIdSystemtokenClient: EntraIdSystemtokenClient,
     sakRepo: SakRepo,
     clock: Clock,
+    navkontorService: NavkontorService,
 ) {
     open val utbetalingGateway: UtbetalingGateway by lazy {
         UtbetalingHttpClient(
@@ -35,6 +38,13 @@ open class UtbetalingContext(
     open val utbetalingsvedtakRepo: UtbetalingsvedtakRepo by lazy {
         UtbetalingsvedtakPostgresRepo(
             sessionFactory as PostgresSessionFactory,
+        )
+    }
+    open val simulerService: SimulerService by lazy {
+        SimulerService(
+            utbetalingsvedtakRepo = utbetalingsvedtakRepo,
+            navkontorService = navkontorService,
+            utbetalingsklient = utbetalingGateway,
         )
     }
     val sendUtbetalingerService: SendUtbetalingerService by lazy {

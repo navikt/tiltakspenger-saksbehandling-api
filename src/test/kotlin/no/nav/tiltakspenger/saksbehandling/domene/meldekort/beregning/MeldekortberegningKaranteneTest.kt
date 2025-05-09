@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.domene.meldekort.beregning
 
 import arrow.core.nonEmptyListOf
+import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.libs.periodisering.februar
@@ -121,12 +122,14 @@ internal class MeldekortberegningKaranteneTest {
 
     @Test
     fun `sjekk at karantene fungerer med nøyaktig 16 dager fravær`() {
-        nonEmptyListOf(
-            meldekort1,
-            meldekort2,
-            meldekort3,
-            meldekort4,
-            meldekort5,
-        ).assertForventning(vurderingsperiode = Periode(29.januar(2024), 7.april(2024)))
+        runTest {
+            nonEmptyListOf(
+                meldekort1,
+                meldekort2,
+                meldekort3,
+                meldekort4,
+                meldekort5,
+            ).assertForventning(vurderingsperiode = Periode(29.januar(2024), 7.april(2024)))
+        }
     }
 }

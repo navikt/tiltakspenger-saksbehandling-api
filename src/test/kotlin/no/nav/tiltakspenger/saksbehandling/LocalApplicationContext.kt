@@ -204,6 +204,7 @@ class LocalApplicationContext(
             oppgaveGateway = oppgaveGateway,
             sakRepo = sakContext.sakRepo,
             clock = clock,
+            simulerService = utbetalingContext.simulerService,
         ) {}
     }
     override val behandlingContext by lazy {
@@ -236,6 +237,7 @@ class LocalApplicationContext(
             sakRepo = sakContext.sakRepo,
             navIdentClient = personContext.navIdentClient,
             clock = clock,
+            navkontorService = navkontorService,
         ) {
             override val utbetalingGateway = utbetalingGatewayFake
         }

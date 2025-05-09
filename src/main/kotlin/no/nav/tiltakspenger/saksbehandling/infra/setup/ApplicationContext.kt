@@ -230,6 +230,7 @@ open class ApplicationContext(
             navIdentClient = personContext.navIdentClient,
             sakRepo = sakContext.sakRepo,
             clock = clock,
+            navkontorService = navkontorService,
         )
     }
     open val meldekortContext by lazy {
@@ -245,6 +246,7 @@ open class ApplicationContext(
             oppgaveGateway = oppgaveGateway,
             sakRepo = sakContext.sakRepo,
             clock = clock,
+            simulerService = utbetalingContext.simulerService,
         )
     }
     open val behandlingContext by lazy {

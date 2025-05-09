@@ -25,6 +25,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOve
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -46,6 +49,7 @@ data class MeldekortUnderBehandling(
     override val sendtTilBeslutning: LocalDateTime?,
     override val dager: MeldekortDager,
     override val beregning: MeldekortBeregning?,
+    override val simulering: Simulering?,
 ) : MeldekortBehandling {
     override val avbrutt: Avbrutt? = null
     override val iverksattTidspunkt = null
@@ -60,27 +64,32 @@ data class MeldekortUnderBehandling(
     override val ordinærBeløp = beregning?.beregnTotalOrdinærBeløp()
     override val barnetilleggBeløp = beregning?.beregnTotalBarnetillegg()
 
-    fun oppdater(
+    suspend fun oppdater(
         kommando: OppdaterMeldekortKommando,
         beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
-    ): Either<KanIkkeOppdatereMeldekort, MeldekortUnderBehandling> {
+        simuler: suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
+    ): Either<KanIkkeOppdatereMeldekort, Pair<MeldekortUnderBehandling, SimuleringMedMetadata?>> {
         validerSaksbehandlerOgTilstand(kommando.saksbehandler).onLeft { return it.tilKanIkkeOppdatereMeldekort().left() }
         val beregning = MeldekortBeregning(beregn(meldeperiode))
-        return this.copy(
+        val oppdatertBehandling = this.copy(
             dager = dager,
             // Dersom saksbehandler vil tømme begrunnelsen kan hen sende en tom streng.
             begrunnelse = kommando.begrunnelse ?: this.begrunnelse,
             beregning = beregning,
-        ).right()
+        )
+        // TODO jah: I første omgang kjører vi simulering som best effort. Også kan vi senere tvinge den på, evt. kunne ha et flagg som dropper kjøre simulering.
+        val simuleringMedMetadata = simuler(oppdatertBehandling).getOrElse { null }
+        return Pair(oppdatertBehandling, simuleringMedMetadata).right()
     }
 
-    fun sendTilBeslutter(
+    suspend fun sendTilBeslutter(
         kommando: SendMeldekortTilBeslutterKommando,
         beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
+        simuler: suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
         clock: Clock,
-    ): Either<KanIkkeSendeMeldekortTilBeslutter, MeldekortBehandletManuelt> {
+    ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<MeldekortBehandletManuelt, SimuleringMedMetadata?>> {
         validerSaksbehandlerOgTilstand(kommando.saksbehandler).onLeft { return it.tilKanIkkeSendeMeldekortTilBeslutter().left() }
-        val oppdatertMeldekort: MeldekortUnderBehandling = if (kommando.harOppdateringer) {
+        val (oppdatertMeldekort, simulering) = if (kommando.harOppdateringer) {
             oppdater(
                 kommando = OppdaterMeldekortKommando(
                     sakId = kommando.sakId,
@@ -91,32 +100,36 @@ data class MeldekortUnderBehandling(
                     correlationId = kommando.correlationId,
                 ),
                 beregn = beregn,
+                simuler = simuler,
             ).getOrElse { return KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere(it).left() }
         } else {
-            this
+            Pair(this, null)
         }
 
-        return MeldekortBehandletManuelt(
-            id = oppdatertMeldekort.id,
-            sakId = oppdatertMeldekort.sakId,
-            saksnummer = oppdatertMeldekort.saksnummer,
-            fnr = oppdatertMeldekort.fnr,
-            opprettet = oppdatertMeldekort.opprettet,
-            beregning = oppdatertMeldekort.beregning!!,
-            saksbehandler = oppdatertMeldekort.saksbehandler!!,
-            sendtTilBeslutning = nå(clock),
-            beslutter = oppdatertMeldekort.beslutter,
-            status = KLAR_TIL_BESLUTNING,
-            iverksattTidspunkt = null,
-            navkontor = oppdatertMeldekort.navkontor,
-            ikkeRettTilTiltakspengerTidspunkt = null,
-            brukersMeldekort = oppdatertMeldekort.brukersMeldekort,
-            meldeperiode = oppdatertMeldekort.meldeperiode,
-            type = oppdatertMeldekort.type,
-            begrunnelse = oppdatertMeldekort.begrunnelse,
-            attesteringer = oppdatertMeldekort.attesteringer,
-            dager = oppdatertMeldekort.dager,
-        ).right()
+        return (
+            MeldekortBehandletManuelt(
+                id = oppdatertMeldekort.id,
+                sakId = oppdatertMeldekort.sakId,
+                saksnummer = oppdatertMeldekort.saksnummer,
+                fnr = oppdatertMeldekort.fnr,
+                opprettet = oppdatertMeldekort.opprettet,
+                beregning = oppdatertMeldekort.beregning!!,
+                simulering = oppdatertMeldekort.simulering,
+                saksbehandler = oppdatertMeldekort.saksbehandler!!,
+                sendtTilBeslutning = nå(clock),
+                beslutter = oppdatertMeldekort.beslutter,
+                status = KLAR_TIL_BESLUTNING,
+                iverksattTidspunkt = null,
+                navkontor = oppdatertMeldekort.navkontor,
+                ikkeRettTilTiltakspengerTidspunkt = null,
+                brukersMeldekort = oppdatertMeldekort.brukersMeldekort,
+                meldeperiode = oppdatertMeldekort.meldeperiode,
+                type = oppdatertMeldekort.type,
+                begrunnelse = oppdatertMeldekort.begrunnelse,
+                attesteringer = oppdatertMeldekort.attesteringer,
+                dager = oppdatertMeldekort.dager,
+            ) to simulering
+            ).right()
     }
 
     sealed interface TilgangEllerTilstandsfeil {
@@ -156,7 +169,6 @@ data class MeldekortUnderBehandling(
             // Dette kan endres på ved behov.
             return TilgangEllerTilstandsfeil.MeldekortperiodenKanIkkeVæreFremITid.left()
         }
-
         return Unit.right()
     }
 
@@ -266,6 +278,7 @@ data class MeldekortUnderBehandling(
             fnr = fnr,
             opprettet = opprettet,
             beregning = beregning,
+            simulering = simulering,
             saksbehandler = avbruttAv.navIdent,
             navkontor = navkontor,
             ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
@@ -287,13 +300,15 @@ data class MeldekortUnderBehandling(
         if (status == IKKE_RETT_TIL_TILTAKSPENGER) {
             require(dager.all { it.status == MeldekortDagStatus.SPERRET })
         }
+        require(dager.periode == this.meldeperiode.periode) {
+            "Perioden for meldekortet må være lik meldeperioden"
+        }
+        require(dager.meldeperiode == meldeperiode) {
+            "Meldekortdager.meldeperiode må være lik meldeperioden"
+        }
     }
 }
 
-/**
- * TODO post-mvp jah: Ved revurderinger av rammevedtaket, så må vi basere oss på både forrige meldekort og revurderingsvedtaket. Dette løser vi å flytte mer logikk til Sak.kt.
- * TODO post-mvp jah: Når vi implementerer delvis innvilgelse vil hele meldekortperioder kunne bli SPERRET.
- */
 fun Sak.opprettManuellMeldekortBehandling(
     kjedeId: MeldeperiodeKjedeId,
     navkontor: Navkontor,
@@ -326,6 +341,7 @@ fun Sak.opprettManuellMeldekortBehandling(
         attesteringer = Attesteringer.empty(),
         sendtTilBeslutning = null,
         beregning = null,
+        simulering = null,
         dager = meldeperiode.tilMeldekortDager(),
     )
 }

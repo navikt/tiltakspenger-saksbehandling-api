@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.opprettUtbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.tilStatistikk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 
 class AutomatiskMeldekortBehandlingService(
@@ -30,6 +31,7 @@ class AutomatiskMeldekortBehandlingService(
     private val navkontorService: NavkontorService,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
+    private val simulerService: SimulerService,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -44,9 +46,9 @@ class AutomatiskMeldekortBehandlingService(
                     opprettMeldekortBehandling(meldekort).onLeft {
                         logger.error { "Kunne ikke opprette automatisk behandling for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId} - Feil: $it" }
                         brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
-                            meldekort.id,
-                            it,
-                            false,
+                            meldekortId = meldekort.id,
+                            status = it,
+                            behandlesAutomatisk = false,
                         )
                     }.onRight {
                         logger.info { "Opprettet automatisk behandling ${it.id} for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId}" }
@@ -87,10 +89,11 @@ class AutomatiskMeldekortBehandlingService(
             return BrukersMeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET.left()
         }
 
-        val meldekortBehandling = sak.opprettAutomatiskMeldekortBehandling(
+        val (meldekortBehandling, simulering) = sak.opprettAutomatiskMeldekortBehandling(
             brukersMeldekort = meldekort,
             navkontor = navkontor,
             clock = clock,
+            simuler = { behandling -> simulerService.simulerMeldekort(behandling, sak.utbetalinger.lastOrNull()) { navkontor } },
         ).getOrElse {
             return it.left()
         }
@@ -119,7 +122,7 @@ class AutomatiskMeldekortBehandlingService(
         val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()
 
         sessionFactory.withTransactionContext { tx ->
-            meldekortBehandlingRepo.lagre(meldekortBehandling, tx)
+            meldekortBehandlingRepo.lagre(meldekortBehandling, simulering, tx)
             utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
             statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(

@@ -2,14 +2,18 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import arrow.core.Either
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import java.time.Clock
 
-fun Sak.sendMeldekortTilBeslutter(
+suspend fun Sak.sendMeldekortTilBeslutter(
     kommando: SendMeldekortTilBeslutterKommando,
+    simuler: (suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
     clock: Clock,
-): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<Sak, MeldekortBehandletManuelt>> {
+): Either<KanIkkeSendeMeldekortTilBeslutter, Triple<Sak, MeldekortBehandletManuelt, SimuleringMedMetadata?>> {
     return this.meldekortBehandlinger.sendTilBeslutter(
         kommando = kommando,
+        simuler = simuler,
         beregn = { meldeperiode ->
             this.beregn(
                 meldekortIdSomBeregnes = kommando.meldekortId,
@@ -18,5 +22,5 @@ fun Sak.sendMeldekortTilBeslutter(
             )
         },
         clock = clock,
-    ).map { Pair(this.oppdaterMeldekortbehandling(it.second), it.second) }
+    ).map { Triple(this.oppdaterMeldekortbehandlinger(it.first), it.second, it.third) }
 }

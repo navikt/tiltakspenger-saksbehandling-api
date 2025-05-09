@@ -30,12 +30,16 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehand
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toDbJson
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringMedMetadata
 
 class MeldekortBehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : MeldekortBehandlingRepo {
     override fun lagre(
         meldekortBehandling: MeldekortBehandling,
+        simuleringMedMetadata: SimuleringMedMetadata?,
         transactionContext: TransactionContext?,
     ) {
         sessionFactory.withTransaction(transactionContext) { tx ->
@@ -52,6 +56,7 @@ class MeldekortBehandlingPostgresRepo(
                         til_og_med,
                         meldekortdager,
                         beregninger,
+                        simulering,
                         saksbehandler,
                         beslutter,
                         status,
@@ -74,6 +79,7 @@ class MeldekortBehandlingPostgresRepo(
                         :til_og_med,
                         to_jsonb(:meldekortdager::jsonb),
                         to_jsonb(:beregninger::jsonb),
+                        to_jsonb(:simulering::jsonb),
                         :saksbehandler,
                         :beslutter,
                         :status,
@@ -97,6 +103,7 @@ class MeldekortBehandlingPostgresRepo(
                     "til_og_med" to meldekortBehandling.tilOgMed,
                     "meldekortdager" to meldekortBehandling.dager.tilMeldekortDagerDbJson(),
                     "beregninger" to meldekortBehandling.beregning?.tilBeregningerDbJson(),
+                    "simulering" to simuleringMedMetadata?.toDbJson(),
                     "saksbehandler" to meldekortBehandling.saksbehandler,
                     "beslutter" to meldekortBehandling.beslutter,
                     "status" to meldekortBehandling.status.toDb(),
@@ -150,6 +157,48 @@ class MeldekortBehandlingPostgresRepo(
                     "begrunnelse" to meldekortBehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortBehandling.attesteringer.toDbJson(),
                     "avbrutt" to meldekortBehandling.avbrutt?.toDbJson(),
+                ).asUpdate,
+            )
+        }
+    }
+
+    override fun oppdater(
+        meldekortBehandling: MeldekortBehandling,
+        simuleringMedMetadata: SimuleringMedMetadata?,
+        transactionContext: TransactionContext?,
+    ) {
+        sessionFactory.withTransaction(transactionContext) { tx ->
+            tx.run(
+                sqlQuery(
+                    """
+                    update meldekortbehandling set
+                        meldekortdager = to_jsonb(:meldekortdager::jsonb),
+                        beregninger = to_jsonb(:beregninger::jsonb),
+                        simulering = to_jsonb(:simulering::jsonb),
+                        saksbehandler = :saksbehandler,
+                        beslutter = :beslutter,
+                        status = :status,
+                        navkontor = :navkontor,
+                        iverksatt_tidspunkt = :iverksatt_tidspunkt,
+                        sendt_til_beslutning = :sendt_til_beslutning,
+                        meldeperiode_id = :meldeperiode_id,
+                        begrunnelse = :begrunnelse,
+                        attesteringer = to_json(:attesteringer::jsonb)
+                    where id = :id
+                    """,
+                    "id" to meldekortBehandling.id.toString(),
+                    "meldekortdager" to meldekortBehandling.dager.tilMeldekortDagerDbJson(),
+                    "beregninger" to meldekortBehandling.beregning?.tilBeregningerDbJson(),
+                    "simulering" to simuleringMedMetadata?.toDbJson(),
+                    "saksbehandler" to meldekortBehandling.saksbehandler,
+                    "beslutter" to meldekortBehandling.beslutter,
+                    "status" to meldekortBehandling.status.toDb(),
+                    "navkontor" to meldekortBehandling.navkontor.kontornummer,
+                    "iverksatt_tidspunkt" to meldekortBehandling.iverksattTidspunkt,
+                    "sendt_til_beslutning" to meldekortBehandling.sendtTilBeslutning,
+                    "meldeperiode_id" to meldekortBehandling.meldeperiode.id.toString(),
+                    "begrunnelse" to meldekortBehandling.begrunnelse?.verdi,
+                    "attesteringer" to meldekortBehandling.attesteringer.toDbJson(),
                 ).asUpdate,
             )
         }
@@ -364,6 +413,7 @@ class MeldekortBehandlingPostgresRepo(
             val beregning = row.stringOrNull("beregninger")?.tilBeregninger(id)?.let {
                 MeldekortBeregning(it)
             }
+            val simulering = row.stringOrNull("simulering")?.toSimuleringMedMetadata()?.simulering
 
             val brukersMeldekort = row.stringOrNull("brukers_meldekort_id")?.let {
                 BrukersMeldekortPostgresRepo.hentForMeldekortId(
@@ -388,6 +438,7 @@ class MeldekortBehandlingPostgresRepo(
                         brukersMeldekort = brukersMeldekort,
                         meldeperiode = meldeperiode,
                         beregning = beregning!!,
+                        simulering = simulering,
                         dager = dager,
                         type = type,
                         status = status,
@@ -414,6 +465,7 @@ class MeldekortBehandlingPostgresRepo(
                         status = status,
                         iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
                         beregning = beregning!!,
+                        simulering = simulering,
                         dager = dager,
                     )
                 }
@@ -436,6 +488,7 @@ class MeldekortBehandlingPostgresRepo(
                         attesteringer = attesteringer,
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
                         beregning = beregning,
+                        simulering = simulering,
                         dager = dager,
                     )
                 }
@@ -456,6 +509,7 @@ class MeldekortBehandlingPostgresRepo(
                         begrunnelse = begrunnelse,
                         attesteringer = attesteringer,
                         beregning = beregning,
+                        simulering = simulering,
                         dager = dager,
                         avbrutt = row.stringOrNull("avbrutt")?.toAvbrutt(),
                     )

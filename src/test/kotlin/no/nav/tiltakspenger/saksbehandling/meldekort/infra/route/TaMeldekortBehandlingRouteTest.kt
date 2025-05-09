@@ -35,7 +35,7 @@ class TaMeldekortBehandlingRouteTest {
                     iverksattTidspunkt = null,
                 )
 
-                tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling)
+                tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling, null)
 
                 taMeldekortBehanding(tac, meldekortBehandling.sakId, meldekortBehandling.id, beslutter).also {
                     val oppdatertMeldekortbehandling = tac.meldekortContext.meldekortBehandlingRepo.hent(meldekortBehandling.id)
@@ -67,7 +67,7 @@ class TaMeldekortBehandlingRouteTest {
                     status = MeldekortBehandlingStatus.UNDER_BEHANDLING,
                 )
 
-                tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling)
+                tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling, null)
 
                 taMeldekortBehanding(tac, meldekortBehandling.sakId, meldekortBehandling.id, saksbehandler).also {
                     val oppdatertMeldekortbehandling = tac.meldekortContext.meldekortBehandlingRepo.hent(meldekortBehandling.id)

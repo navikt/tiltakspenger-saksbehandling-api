@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOve
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -39,6 +40,9 @@ sealed interface MeldekortBehandling {
     val opprettet: LocalDateTime
     val dager: MeldekortDager
     val beregning: MeldekortBeregning?
+
+    /** Vi ønsker å kunne utbetale selvom vi ikke får simulert; så denne vil i noen tilfeller være null. */
+    val simulering: Simulering?
     val meldeperiode: Meldeperiode
     val type: MeldekortBehandlingType
 
@@ -101,6 +105,7 @@ sealed interface MeldekortBehandling {
                 meldeperiode = meldeperiode,
                 ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                 beregning = null,
+                simulering = null,
             )
 
             is MeldekortBehandletAutomatisk,

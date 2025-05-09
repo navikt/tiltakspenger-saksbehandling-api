@@ -153,6 +153,10 @@ data class Sak(
         return this.copy(meldekortBehandlinger = this.meldekortBehandlinger.leggTil(behandling))
     }
 
+    fun oppdaterMeldekortbehandlinger(behandlinger: MeldekortBehandlinger): Sak {
+        return this.copy(meldekortBehandlinger = behandlinger)
+    }
+
     fun oppdaterMeldekortbehandling(behandling: MeldekortBehandling): Sak {
         return this.copy(meldekortBehandlinger = this.meldekortBehandlinger.oppdaterMeldekortbehandling(behandling))
     }

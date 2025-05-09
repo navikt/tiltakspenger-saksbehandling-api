@@ -32,6 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.OvertaMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 
 /**
@@ -50,6 +51,7 @@ open class MeldekortContext(
     oppgaveGateway: OppgaveGateway,
     sakRepo: SakRepo,
     clock: Clock,
+    simulerService: SimulerService,
 ) {
     open val meldekortBehandlingRepo: MeldekortBehandlingRepo by lazy {
         MeldekortBehandlingPostgresRepo(
@@ -88,6 +90,7 @@ open class MeldekortContext(
             personService = personService,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakService = sakService,
+            simulerService = simulerService,
         )
     }
     val opprettMeldekortBehandlingService by lazy {
@@ -109,6 +112,7 @@ open class MeldekortContext(
             navkontorService = navkontorService,
             sessionFactory = sessionFactory,
             clock = clock,
+            simulerService = simulerService,
         )
     }
 
@@ -170,6 +174,7 @@ open class MeldekortContext(
             personService = personService,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakService = sakService,
+            simulerService = simulerService,
             clock = clock,
         )
     }

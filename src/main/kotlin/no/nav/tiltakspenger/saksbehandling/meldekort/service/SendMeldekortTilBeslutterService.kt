@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBesl
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.sendMeldekortTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 
 /**
@@ -29,6 +30,7 @@ class SendMeldekortTilBeslutterService(
     private val personService: PersonService,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakService: SakService,
+    private val simulerService: SimulerService,
     private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger {}
@@ -38,11 +40,21 @@ class SendMeldekortTilBeslutterService(
     ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<Sak, MeldekortBehandletManuelt>> {
         val sak = hentSak(kommando).getOrElse { return it.left() }
 
-        return sak.sendMeldekortTilBeslutter(kommando, clock)
-            .onRight { (_, meldekort) ->
-                meldekortBehandlingRepo.oppdater(meldekort)
-                logger.info { "Meldekort med id ${meldekort.id} sendt til beslutter. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
-            }
+        return sak.sendMeldekortTilBeslutter(
+            kommando = kommando,
+            simuler = { behandling ->
+                simulerService.simulerMeldekort(
+                    behandling = behandling,
+                    forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
+                    brukersNavkontor = { behandling.navkontor },
+                )
+            },
+            clock = clock,
+        ).map { (sak, meldekort, simulering) ->
+            meldekortBehandlingRepo.oppdater(meldekort, simulering)
+            logger.info { "Meldekort med id ${meldekort.id} sendt til beslutter. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
+            Pair(sak, meldekort)
+        }
     }
 
     // TODO jah: Kopiert fra [OppdaterMeldekortService] - lage noe felles?

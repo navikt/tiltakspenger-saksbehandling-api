@@ -63,7 +63,7 @@ class OpprettMeldekortBehandlingService(
         val oppdatertSak = sak.leggTilMeldekortbehandling(meldekortBehandling)
 
         sessionFactory.withTransactionContext { tx ->
-            meldekortBehandlingRepo.lagre(meldekortBehandling, tx)
+            meldekortBehandlingRepo.lagre(meldekortBehandling, null, tx)
         }
 
         logger.info { "Opprettet behandling ${meldekortBehandling.id} på meldeperiode kjede $kjedeId for sak $sakId" }

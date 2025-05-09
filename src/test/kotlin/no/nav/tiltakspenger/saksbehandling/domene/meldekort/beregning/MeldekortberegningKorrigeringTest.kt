@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.domene.meldekort.beregning
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
@@ -39,391 +40,413 @@ internal class MeldekortberegningKorrigeringTest {
 
     @Test
     fun `Skal korrigere en behandling`() {
-        val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-            vurderingsperiode = vurderingsperiode,
-            meldeperioder = nonEmptyListOf(
-                periodeMedFullDeltagelse(førsteDag),
-                periodeMedStatuser(
-                    førsteDag,
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(5) { Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV },
-                    List(2) { Status.SPERRET },
+        runTest {
+            val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                vurderingsperiode = vurderingsperiode,
+                meldeperioder = nonEmptyListOf(
+                    periodeMedFullDeltagelse(førsteDag),
+                    periodeMedStatuser(
+                        førsteDag,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(5) { Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV },
+                        List(2) { Status.SPERRET },
+                    ),
                 ),
-            ),
-        )
+            )
 
-        meldekortbehandlinger.sisteGodkjenteMeldekort!!.beløpTotal shouldBe sumAv(
-            full = 5,
-        )
+            meldekortbehandlinger.sisteGodkjenteMeldekort!!.beløpTotal shouldBe sumAv(
+                full = 5,
+            )
+        }
     }
 
     @Test
     fun `Skal korrigere en tidligere behandling`() {
-        val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-            vurderingsperiode = vurderingsperiode,
-            meldeperioder = nonEmptyListOf(
-                periodeMedFullDeltagelse(førsteDag),
-                periodeMedFullDeltagelse(førsteDag.plusWeeks(2)),
+        runTest {
+            val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                vurderingsperiode = vurderingsperiode,
+                meldeperioder = nonEmptyListOf(
+                    periodeMedFullDeltagelse(førsteDag),
+                    periodeMedFullDeltagelse(førsteDag.plusWeeks(2)),
 
-                periodeMedStatuser(
-                    førsteDag,
-                    List(5) { Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV },
-                    List(2) { Status.SPERRET },
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
+                    periodeMedStatuser(
+                        førsteDag,
+                        List(5) { Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV },
+                        List(2) { Status.SPERRET },
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                    ),
                 ),
-            ),
-        )
+            )
 
-        meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
-            full = 5,
-        )
+            meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
+                full = 5,
+            )
+        }
     }
 
     @Test
     fun `Skal beregne sykedager frem i tid ved korrigering`() {
-        val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-            vurderingsperiode = vurderingsperiode,
-            meldeperioder = nonEmptyListOf(
-                periodeMedFullDeltagelse(førsteDag),
+        runTest {
+            val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                vurderingsperiode = vurderingsperiode,
+                meldeperioder = nonEmptyListOf(
+                    periodeMedFullDeltagelse(førsteDag),
 
-                periodeMedStatuser(
-                    førsteDag.plusWeeks(2),
-                    List(3) { Status.FRAVÆR_SYK },
-                    List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
+                    periodeMedStatuser(
+                        førsteDag.plusWeeks(2),
+                        List(3) { Status.FRAVÆR_SYK },
+                        List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                    ),
+
+                    periodeMedStatuser(
+                        førsteDag,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(5) { Status.FRAVÆR_SYK },
+                        List(2) { Status.SPERRET },
+                    ),
                 ),
+            )
 
-                periodeMedStatuser(
-                    førsteDag,
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(5) { Status.FRAVÆR_SYK },
-                    List(2) { Status.SPERRET },
-                ),
-            ),
-        )
-
-        meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
-            full = 8 + 7,
-            redusert = 2 + 3,
-        )
+            meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
+                full = 8 + 7,
+                redusert = 2 + 3,
+            )
+        }
     }
 
     @Test
     fun `Skal beregne sykedager to perioder frem i tid ved korrigering til 0-beløp`() {
-        val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-            vurderingsperiode = vurderingsperiode,
-            meldeperioder = nonEmptyListOf(
-                periodeMedStatuser(
-                    førsteDag,
-                    List(2) { Status.SPERRET },
-                    List(3) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(5) { Status.FRAVÆR_SYK },
-                    List(2) { Status.SPERRET },
+        runTest {
+            val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                vurderingsperiode = vurderingsperiode,
+                meldeperioder = nonEmptyListOf(
+                    periodeMedStatuser(
+                        førsteDag,
+                        List(2) { Status.SPERRET },
+                        List(3) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(5) { Status.FRAVÆR_SYK },
+                        List(2) { Status.SPERRET },
+                    ),
+
+                    periodeMedStatuser(
+                        førsteDag.plusWeeks(2),
+                        List(5) { Status.FRAVÆR_SYK },
+                        List(2) { Status.SPERRET },
+                        List(5) { Status.FRAVÆR_SYK },
+                        List(2) { Status.SPERRET },
+                    ),
+
+                    periodeMedStatuser(
+                        førsteDag.plusWeeks(4),
+                        List(1) { Status.FRAVÆR_SYK },
+                        List(13) { Status.SPERRET },
+                    ),
+
+                    periodeMedStatuser(
+                        førsteDag,
+                        List(2) { Status.SPERRET },
+                        List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(1) { Status.FRAVÆR_SYK },
+                        List(2) { Status.SPERRET },
+                        List(5) { Status.FRAVÆR_SYK },
+                        List(2) { Status.SPERRET },
+                    ),
                 ),
+            )
 
-                periodeMedStatuser(
-                    førsteDag.plusWeeks(2),
-                    List(5) { Status.FRAVÆR_SYK },
-                    List(2) { Status.SPERRET },
-                    List(5) { Status.FRAVÆR_SYK },
-                    List(2) { Status.SPERRET },
-                ),
+            val sisteKjedeId = meldekortbehandlinger.last().kjedeId
 
-                periodeMedStatuser(
-                    førsteDag.plusWeeks(4),
-                    List(1) { Status.FRAVÆR_SYK },
-                    List(13) { Status.SPERRET },
-                ),
-
-                periodeMedStatuser(
-                    førsteDag,
-                    List(2) { Status.SPERRET },
-                    List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(1) { Status.FRAVÆR_SYK },
-                    List(2) { Status.SPERRET },
-                    List(5) { Status.FRAVÆR_SYK },
-                    List(2) { Status.SPERRET },
-                ),
-            ),
-        )
-
-        val sisteKjedeId = meldekortbehandlinger.last().kjedeId
-
-        meldekortbehandlinger.meldeperiodeBeregninger.sisteBeregningForKjede[sisteKjedeId]!!.beregnTotaltBeløp() shouldBe 0
+            meldekortbehandlinger.meldeperiodeBeregninger.sisteBeregningForKjede[sisteKjedeId]!!.beregnTotaltBeløp() shouldBe 0
+        }
     }
 
     @Test
     fun `Skal beregne sykedager frem i tid ved korrigering med barnetillegg`() {
-        val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-            vurderingsperiode = vurderingsperiode,
-            barnetilleggsPerioder = Periodisering(
-                AntallBarn(2),
-                vurderingsperiode,
-            ),
-            meldeperioder = nonEmptyListOf(
-                periodeMedFullDeltagelse(førsteDag),
-
-                periodeMedStatuser(
-                    førsteDag.plusWeeks(2),
-                    List(3) { Status.FRAVÆR_SYK },
-                    List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
+        runTest {
+            val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                vurderingsperiode = vurderingsperiode,
+                barnetilleggsPerioder = Periodisering(
+                    AntallBarn(2),
+                    vurderingsperiode,
                 ),
+                meldeperioder = nonEmptyListOf(
+                    periodeMedFullDeltagelse(førsteDag),
 
-                periodeMedStatuser(
-                    førsteDag,
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(5) { Status.FRAVÆR_SYK },
-                    List(2) { Status.SPERRET },
+                    periodeMedStatuser(
+                        førsteDag.plusWeeks(2),
+                        List(3) { Status.FRAVÆR_SYK },
+                        List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                    ),
+
+                    periodeMedStatuser(
+                        førsteDag,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(5) { Status.FRAVÆR_SYK },
+                        List(2) { Status.SPERRET },
+                    ),
                 ),
-            ),
-        )
+            )
 
-        meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
-            full = 8 + 7,
-            redusert = 2 + 3,
-            barn = 2,
-        )
+            meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
+                full = 8 + 7,
+                redusert = 2 + 3,
+                barn = 2,
+            )
+        }
     }
 
     @Test
     fun `Arbeidsgiverperiode skal ikke resettes ved sykedager med 15 dager mellom`() {
-        val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-            vurderingsperiode = vurderingsperiode,
-            meldeperioder = nonEmptyListOf(
-                periodeMedStatuser(
-                    førsteDag,
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(2) { Status.FRAVÆR_SYK },
-                    List(3) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                ),
+        runTest {
+            val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                vurderingsperiode = vurderingsperiode,
+                meldeperioder = nonEmptyListOf(
+                    periodeMedStatuser(
+                        førsteDag,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(2) { Status.FRAVÆR_SYK },
+                        List(3) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                    ),
 
-                periodeMedStatuser(
-                    førsteDag.plusWeeks(2),
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(1) { Status.FRAVÆR_SYK },
-                    List(2) { Status.SPERRET },
-                ),
+                    periodeMedStatuser(
+                        førsteDag.plusWeeks(2),
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(1) { Status.FRAVÆR_SYK },
+                        List(2) { Status.SPERRET },
+                    ),
 
-                periodeMedStatuser(
-                    førsteDag,
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(3) { Status.FRAVÆR_SYK },
-                    List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
+                    periodeMedStatuser(
+                        førsteDag,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(3) { Status.FRAVÆR_SYK },
+                        List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                    ),
                 ),
-            ),
-        )
+            )
 
-        meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
-            full = 10 + 9,
-            redusert = 1,
-        )
+            meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
+                full = 10 + 9,
+                redusert = 1,
+            )
+        }
     }
 
     @Test
     fun `Arbeidsgiverperiode skal resettes med 16 dager mellom sykedager`() {
-        val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-            vurderingsperiode = vurderingsperiode,
-            meldeperioder = nonEmptyListOf(
-                periodeMedStatuser(
-                    førsteDag,
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(2) { Status.FRAVÆR_SYK },
-                    List(3) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                ),
+        runTest {
+            val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                vurderingsperiode = vurderingsperiode,
+                meldeperioder = nonEmptyListOf(
+                    periodeMedStatuser(
+                        førsteDag,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(2) { Status.FRAVÆR_SYK },
+                        List(3) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                    ),
 
-                periodeMedStatuser(
-                    førsteDag.plusWeeks(2),
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                ),
+                    periodeMedStatuser(
+                        førsteDag.plusWeeks(2),
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                    ),
 
-                periodeMedStatuser(
-                    førsteDag,
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(1) { Status.FRAVÆR_SYK },
-                    List(2) { Status.SPERRET },
+                    periodeMedStatuser(
+                        førsteDag,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(1) { Status.FRAVÆR_SYK },
+                        List(2) { Status.SPERRET },
+                    ),
                 ),
-            ),
-        )
+            )
 
-        meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
-            full = 10,
-        )
+            meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
+                full = 10,
+            )
+        }
     }
 
     @Test
     fun `Skal beregne sykedager med riktige satser rundt årsskifte`() {
-        val førsteDag = LocalDate.of(2024, 12, 23)
+        runTest {
+            val førsteDag = LocalDate.of(2024, 12, 23)
 
-        val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-            vurderingsperiode = Periode(førsteDag, førsteDag.plusDays(100)),
-            meldeperioder = nonEmptyListOf(
-                periodeMedFullDeltagelse(førsteDag),
+            val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                vurderingsperiode = Periode(førsteDag, førsteDag.plusDays(100)),
+                meldeperioder = nonEmptyListOf(
+                    periodeMedFullDeltagelse(førsteDag),
 
-                periodeMedStatuser(
-                    førsteDag.plusWeeks(2),
-                    List(3) { Status.FRAVÆR_SYK },
-                    List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
+                    periodeMedStatuser(
+                        førsteDag.plusWeeks(2),
+                        List(3) { Status.FRAVÆR_SYK },
+                        List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                    ),
+
+                    periodeMedStatuser(
+                        førsteDag,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(5) { Status.FRAVÆR_SYK },
+                        List(2) { Status.SPERRET },
+                    ),
                 ),
+            )
 
-                periodeMedStatuser(
-                    førsteDag,
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(5) { Status.FRAVÆR_SYK },
-                    List(2) { Status.SPERRET },
-                ),
-            ),
-        )
-
-        meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
-            full = 7,
-            satser = Satser.sats(førsteDag),
-        ) + sumAv(
-            full = 1 + 7,
-            redusert = 2 + 3,
-            satser = Satser.sats(LocalDate.of(2025, 1, 1)),
-        )
+            meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
+                full = 7,
+                satser = Satser.sats(førsteDag),
+            ) + sumAv(
+                full = 1 + 7,
+                redusert = 2 + 3,
+                satser = Satser.sats(LocalDate.of(2025, 1, 1)),
+            )
+        }
     }
 
     @Test
     fun `Skal korrigere en korrigering`() {
-        val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-            vurderingsperiode = vurderingsperiode,
-            meldeperioder = nonEmptyListOf(
-                periodeMedFullDeltagelse(førsteDag),
+        runTest {
+            val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                vurderingsperiode = vurderingsperiode,
+                meldeperioder = nonEmptyListOf(
+                    periodeMedFullDeltagelse(førsteDag),
 
-                periodeMedStatuser(
-                    førsteDag.plusWeeks(2),
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(3) { Status.FRAVÆR_SYK },
-                    List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
+                    periodeMedStatuser(
+                        førsteDag.plusWeeks(2),
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(3) { Status.FRAVÆR_SYK },
+                        List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                    ),
+
+                    periodeMedStatuser(
+                        førsteDag,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(1) { Status.FRAVÆR_SYK },
+                        List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                    ),
+
+                    periodeMedStatuser(
+                        førsteDag,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(5) { Status.FRAVÆR_SYK },
+                        List(2) { Status.SPERRET },
+                    ),
                 ),
+            )
 
-                periodeMedStatuser(
-                    førsteDag,
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(1) { Status.FRAVÆR_SYK },
-                    List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                ),
-
-                periodeMedStatuser(
-                    førsteDag,
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(5) { Status.FRAVÆR_SYK },
-                    List(2) { Status.SPERRET },
-                ),
-            ),
-        )
-
-        meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
-            full = 8 + 7,
-            redusert = 2 + 3,
-        )
+            meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
+                full = 8 + 7,
+                redusert = 2 + 3,
+            )
+        }
     }
 
     @Test
     fun `Skal korrigere en korrigering, med tidligere korrigering i en påfølgende periode`() {
-        val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-            vurderingsperiode = vurderingsperiode,
-            meldeperioder = nonEmptyListOf(
-                periodeMedFullDeltagelse(førsteDag),
-                periodeMedFullDeltagelse(førsteDag.plusWeeks(2)),
+        runTest {
+            val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                vurderingsperiode = vurderingsperiode,
+                meldeperioder = nonEmptyListOf(
+                    periodeMedFullDeltagelse(førsteDag),
+                    periodeMedFullDeltagelse(førsteDag.plusWeeks(2)),
 
-                periodeMedStatuser(
-                    førsteDag,
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(1) { Status.FRAVÆR_SYKT_BARN },
-                    List(2) { Status.SPERRET },
+                    periodeMedStatuser(
+                        førsteDag,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(1) { Status.FRAVÆR_SYKT_BARN },
+                        List(2) { Status.SPERRET },
+                    ),
+
+                    periodeMedStatuser(
+                        førsteDag.plusWeeks(2),
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(5) { Status.FRAVÆR_SYKT_BARN },
+                        List(2) { Status.SPERRET },
+                    ),
+
+                    periodeMedStatuser(
+                        førsteDag,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(5) { Status.FRAVÆR_SYKT_BARN },
+                        List(2) { Status.SPERRET },
+                    ),
                 ),
+            )
 
-                periodeMedStatuser(
-                    førsteDag.plusWeeks(2),
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(5) { Status.FRAVÆR_SYKT_BARN },
-                    List(2) { Status.SPERRET },
-                ),
-
-                periodeMedStatuser(
-                    førsteDag,
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(5) { Status.FRAVÆR_SYKT_BARN },
-                    List(2) { Status.SPERRET },
-                ),
-            ),
-        )
-
-        meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
-            full = 8 + 5,
-            redusert = 2 + 5,
-        )
+            meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
+                full = 8 + 5,
+                redusert = 2 + 5,
+            )
+        }
     }
 
     @Test
     fun `Skal korrigere en korrigering, som fører til opprinnelig beregning av neste periode`() {
-        val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
-            vurderingsperiode = vurderingsperiode,
-            meldeperioder = nonEmptyListOf(
-                periodeMedFullDeltagelse(førsteDag),
+        runTest {
+            val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                vurderingsperiode = vurderingsperiode,
+                meldeperioder = nonEmptyListOf(
+                    periodeMedFullDeltagelse(førsteDag),
 
-                periodeMedStatuser(
-                    førsteDag.plusWeeks(2),
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(3) { Status.FRAVÆR_SYKT_BARN },
-                    List(2) { Status.SPERRET },
+                    periodeMedStatuser(
+                        førsteDag.plusWeeks(2),
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(3) { Status.FRAVÆR_SYKT_BARN },
+                        List(2) { Status.SPERRET },
+                    ),
+
+                    periodeMedStatuser(
+                        førsteDag,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.SPERRET },
+                        List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(1) { Status.FRAVÆR_SYKT_BARN },
+                        List(2) { Status.SPERRET },
+                    ),
+
+                    periodeMedFullDeltagelse(førsteDag),
                 ),
+            )
 
-                periodeMedStatuser(
-                    førsteDag,
-                    List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(2) { Status.SPERRET },
-                    List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                    List(1) { Status.FRAVÆR_SYKT_BARN },
-                    List(2) { Status.SPERRET },
-                ),
-
-                periodeMedFullDeltagelse(førsteDag),
-            ),
-        )
-
-        meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
-            full = 20,
-        )
+            meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
+                full = 20,
+            )
+        }
     }
 }
