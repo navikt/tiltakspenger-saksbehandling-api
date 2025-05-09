@@ -184,7 +184,7 @@ class UtbetalingHttpClient(
                 val request = HttpRequest
                     .newBuilder()
                     .uri(URI.create(path))
-                    .timeout(timeout.toJavaDuration())
+                    .timeout(30.seconds.toJavaDuration())
                     .header("Authorization", "Bearer $token")
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
