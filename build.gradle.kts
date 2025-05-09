@@ -10,7 +10,7 @@ val ktorVersion = "3.1.3"
 val testContainersVersion = "1.21.0"
 val poaoTilgangVersjon = "2025.03.17_10.46-e6359712fa6d"
 val iverksettVersjon = "1.0_20241213145703_7ff5f9c"
-val confluentVersion = "7.9.0"
+val confluentVersion = "7.9.1"
 val avroVersion = "1.12.0"
 val prometeusVersion = "1.14.6"
 
