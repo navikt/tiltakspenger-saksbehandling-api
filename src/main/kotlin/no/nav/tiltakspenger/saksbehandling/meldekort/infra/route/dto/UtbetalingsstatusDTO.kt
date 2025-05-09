@@ -23,6 +23,8 @@ enum class UtbetalingsstatusDTO {
 
     /** Kvitteringen fra oppdrag hadde en feil-status. I disse tilfellene må sannsynligvis helved eller en utvikler i fagsystemet følge opp. */
     FEILET_MOT_OPPDRAG,
+
+    AVBRUTT,
 }
 
 fun Utbetalingsstatus?.toUtbetalingsstatusDTO(): UtbetalingsstatusDTO {
@@ -32,6 +34,7 @@ fun Utbetalingsstatus?.toUtbetalingsstatusDTO(): UtbetalingsstatusDTO {
         Utbetalingsstatus.FeiletMotOppdrag -> UtbetalingsstatusDTO.FEILET_MOT_OPPDRAG
         Utbetalingsstatus.Ok -> UtbetalingsstatusDTO.OK
         Utbetalingsstatus.OkUtenUtbetaling -> UtbetalingsstatusDTO.OK_UTEN_UTBETALING
+        Utbetalingsstatus.Avbrutt -> UtbetalingsstatusDTO.AVBRUTT
         null -> UtbetalingsstatusDTO.IKKE_SENDT_TIL_HELVED
     }
 }

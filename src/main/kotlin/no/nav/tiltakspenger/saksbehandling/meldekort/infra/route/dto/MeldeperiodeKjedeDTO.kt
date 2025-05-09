@@ -66,7 +66,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
             .hentAvbrutteMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)
             .map {
                 it.toMeldekortBehandlingDTO(
-                    UtbetalingsstatusDTO.IKKE_GODKJENT,
+                    UtbetalingsstatusDTO.AVBRUTT,
                 )
             },
     )

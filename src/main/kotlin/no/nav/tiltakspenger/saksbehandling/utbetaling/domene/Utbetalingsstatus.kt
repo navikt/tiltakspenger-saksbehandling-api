@@ -21,6 +21,8 @@ enum class Utbetalingsstatus {
     /** Ferdigstilt uten å ha blitt sendt til økonomisystemet pga. at det ikke er noe å utbetale */
     OkUtenUtbetaling,
 
+    Avbrutt,
+
     ;
 
     fun erOK(): Boolean {
