@@ -131,7 +131,7 @@ private data class SakDTO(
 )
 
 private fun Sak.tilMeldekortApiDTO(clock: Clock): SakDTO {
-    // TODO: hvis/når vi forhåndsgenererer alle meldeperioder for hvert vedtak, så kan vi hente meldeperiodene fra saken
+    // TODO: hvis/når vi forhåndsgenererer alle meldeperioder for hvert vedtak, så trenger vi ikke denne
     val alleMeldeperioder = if (this.vedtaksliste.isNotEmpty()) {
         MeldeperiodeKjeder(emptyList())
             .genererMeldeperioder(
