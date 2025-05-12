@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periodisering.norskTidspunktFormatter
@@ -24,12 +23,6 @@ private data class UtbetalingsvedtakDTO(
     val sammenligningAvBeregninger: SammenligningAvBeregningerDTO,
     val korrigering: Boolean,
 ) {
-    @Suppress("unused")
-    @JsonInclude
-    val barnetillegg: Boolean = sammenligningAvBeregninger.meldeperioder
-        .flatMap { it.dager }
-        .any { it.barnetillegg.gjeldende > 0 }
-
     data class SaksbehandlerDTO(
         val navn: String,
     )
@@ -55,6 +48,7 @@ private data class UtbetalingsvedtakDTO(
     data class MeldeperiodeSammenligningerDTO(
         val tittel: String,
         val differanseFraForrige: Int,
+        val barnetillegg: Boolean,
         val dager: List<DagSammenligningDTO>,
     )
 
@@ -106,6 +100,11 @@ private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
                 val fraOgMed = periode.fraOgMed.format(norskDatoFormatter)
                 val tilOgMed = periode.tilOgMed.format(norskDatoFormatter)
                 val tittel = "Meldekort $fraOgMed - $tilOgMed"
+                val barnetillegg =
+                    sammenligningPerMeldeperiode.dager.any {
+                        it.barnetillegg.gjeldende > 0 ||
+                            (it.barnetillegg.forrige ?: 0) > 0
+                    }
 
                 UtbetalingsvedtakDTO.MeldeperiodeSammenligningerDTO(
                     tittel = tittel,
@@ -131,6 +130,7 @@ private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
                             ),
                         )
                     },
+                    barnetillegg = barnetillegg,
                 )
             }
         }.let { meldeperiodeSammenligninger ->
