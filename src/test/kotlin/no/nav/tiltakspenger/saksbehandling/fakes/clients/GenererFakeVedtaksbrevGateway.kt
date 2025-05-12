@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.fakes.clients
 
 import arrow.core.Either
+import arrow.core.NonEmptySet
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
@@ -92,7 +93,7 @@ class GenererFakeVedtaksbrevGateway :
     override suspend fun genererAvslagsVedtaksbrev(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-        avslagsgrunner: Set<Avslagsgrunnlag>,
+        avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,

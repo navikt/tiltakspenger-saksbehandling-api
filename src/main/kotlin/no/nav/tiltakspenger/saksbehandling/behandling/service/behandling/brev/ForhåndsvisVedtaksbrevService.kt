@@ -75,7 +75,7 @@ class ForhåndsvisVedtaksbrevService(
                     Behandlingsutfall.AVSLAG -> genererAvslagsvedtaksbrevGateway.genererAvslagsVedtaksbrev(
                         hentBrukersNavn = personService::hentNavn,
                         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-                        avslagsgrunner = kommando.avslagsgrunner,
+                        avslagsgrunner = kommando.avslagsgrunner!!,
                         fnr = sak.fnr,
                         saksbehandlerNavIdent = behandling.saksbehandler,
                         beslutterNavIdent = behandling.beslutter,

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev
 
+import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -24,12 +25,12 @@ data class ForhåndsvisVedtaksbrevKommando(
     val barnetillegg: Periodisering<AntallBarn>?,
     val stansDato: LocalDate?,
     val utfall: Behandlingsutfall,
-    val avslagsgrunner: Set<Avslagsgrunnlag>,
+    val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
 ) {
     init {
-        if (utfall == Behandlingsutfall.AVSLAG || avslagsgrunner.isNotEmpty()) {
+        if (utfall == Behandlingsutfall.AVSLAG || avslagsgrunner != null) {
             require(utfall == Behandlingsutfall.AVSLAG) { "Behandlingsutfall må være AVSLAG når det er valgt avslagsgrunner" }
-            require(avslagsgrunner.isNotEmpty()) { "Det må være valgt avslagsgrunner når behandlingsutfall er AVSLAG" }
+            require(avslagsgrunner != null) { "Det må være valgt avslagsgrunner når behandlingsutfall er AVSLAG" }
         }
     }
 }

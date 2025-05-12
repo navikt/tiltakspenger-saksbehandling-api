@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
+import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -34,7 +35,7 @@ internal suspend fun genererAvslagSøknadsbrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
     tilleggstekst: FritekstTilVedtaksbrev,
-    avslagsgrunner: Set<Avslagsgrunnlag>,
+    avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
     fnr: Fnr,
     saksbehandlerNavIdent: String,
     beslutterNavIdent: String?,

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import arrow.core.Either
+import arrow.core.NonEmptySet
 import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
@@ -215,7 +216,7 @@ internal class PdfgenHttpClient(
     override suspend fun genererAvslagsVedtaksbrev(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-        avslagsgrunner: Set<Avslagsgrunnlag>,
+        avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,

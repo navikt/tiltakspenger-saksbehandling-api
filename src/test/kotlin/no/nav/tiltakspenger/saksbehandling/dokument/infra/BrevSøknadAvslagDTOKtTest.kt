@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
+import arrow.core.nonEmptySetOf
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
@@ -25,7 +26,7 @@ class BrevSøknadAvslagDTOKtTest {
                 hentBrukersNavn = { _ -> Navn("Fornavn", null, "Etternavn") },
                 hentSaksbehandlersNavn = { _ -> "Saksbehandlernavn" },
                 tilleggstekst = FritekstTilVedtaksbrev("genererer og serialiserer brevdata for pdf test"),
-                avslagsgrunner = setOf(Avslagsgrunnlag.Alder),
+                avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
                 fnr = fnr,
                 saksbehandlerNavIdent = "SaksbehandlerNavIdent",
                 beslutterNavIdent = null,

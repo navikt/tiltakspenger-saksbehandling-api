@@ -37,7 +37,7 @@ internal data class ForhåndsvisBehandlingBody(
     val valgteHjemler: List<ValgtHjemmelHarIkkeRettighet>?,
     val barnetillegg: List<BarnetilleggPeriodeDTO>?,
     val utfall: String,
-    val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>,
+    val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
 ) {
     fun toDomain(
         sakId: SakId,
@@ -58,7 +58,7 @@ internal data class ForhåndsvisBehandlingBody(
             stansDato = stansDato,
             barnetillegg = barnetillegg?.tilPeriodisering(virkningsperiode),
             utfall = this.utfall.toBehandlingsutfallDto().toDomain(),
-            avslagsgrunner = this.avslagsgrunner.toAvslagsgrunnlag(),
+            avslagsgrunner = this.avslagsgrunner?.toAvslagsgrunnlag(),
         )
     }
 }
