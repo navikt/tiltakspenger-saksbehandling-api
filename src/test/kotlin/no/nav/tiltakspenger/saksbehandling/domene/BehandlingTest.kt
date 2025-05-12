@@ -1,11 +1,14 @@
-package no.nav.tiltakspenger.saksbehandling.domene.personopplysninger
+package no.nav.tiltakspenger.saksbehandling.domene
 
+import arrow.core.nonEmptySetOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsutfall
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
@@ -96,6 +99,29 @@ class BehandlingTest {
 
             behandling.beslutter.shouldNotBe(nyBeslutter.navIdent)
             overtaBehandling.getOrFail().beslutter shouldBe nyBeslutter.navIdent
+        }
+    }
+
+    @Nested
+    inner class BehandlingsutfallTest {
+        @Test
+        fun `kaster exception dersom utfall er avslag uten avslagsgrunner`() {
+            assertThrows<IllegalArgumentException> {
+                ObjectMother.nyFørstegangsbehandlingKlarTilBeslutning(
+                    utfall = Behandlingsutfall.AVSLAG,
+                    avslagsgrunner = null,
+                )
+            }
+        }
+
+        @Test
+        fun `kaster exception dersom utfall er innvilgelse med avslagsgrunner`() {
+            assertThrows<IllegalArgumentException> {
+                ObjectMother.nyFørstegangsbehandlingKlarTilBeslutning(
+                    utfall = Behandlingsutfall.INNVILGELSE,
+                    avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
+                )
+            }
         }
     }
 }

@@ -4,7 +4,9 @@ import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsutfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.validerStansDato
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -16,6 +18,7 @@ import java.time.LocalDate
 class ForhåndsvisVedtaksbrevService(
     private val sakService: SakService,
     private val genererInnvilgelsesbrevClient: GenererInnvilgelsesvedtaksbrevGateway,
+    private val genererAvslagsvedtaksbrevGateway: GenererAvslagsvedtaksbrevGateway,
     private val genererStansbrevClient: GenererStansvedtaksbrevGateway,
     private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
@@ -35,7 +38,6 @@ class ForhåndsvisVedtaksbrevService(
             throw IllegalStateException("Kunne ikke forhåndsvise vedtaksbrev. Saksbehandler har ikke tatt behandling, eller er ikke behandlingens beslutter. sakId=${kommando.sakId}, behandlingId=${kommando.behandlingId}")
         }
 
-        // TODO - må ignorere perioden hvis vedtaket er avslag.
         val virkingsperiode = when (behandling.status) {
             Behandlingsstatus.KLAR_TIL_BEHANDLING,
             Behandlingsstatus.UNDER_BEHANDLING,
@@ -51,23 +53,46 @@ class ForhåndsvisVedtaksbrevService(
 
         return when (behandling.behandlingstype) {
             Behandlingstype.FØRSTEGANGSBEHANDLING -> {
-                genererInnvilgelsesbrevClient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
-                    hentBrukersNavn = personService::hentNavn,
-                    hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-                    vedtaksdato = LocalDate.now(),
-                    tilleggstekst = kommando.fritekstTilVedtaksbrev,
-                    fnr = sak.fnr,
-                    saksbehandlerNavIdent = behandling.saksbehandler,
-                    beslutterNavIdent = behandling.beslutter,
-                    innvilgelsesperiode = virkingsperiode!!,
-                    saksnummer = sak.saksnummer,
-                    sakId = sak.id,
-                    forhåndsvisning = true,
-                    barnetilleggsPerioder = kommando.barnetillegg?.let { if (it.isEmpty()) null else it },
-                ).fold(
-                    ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
-                    ifRight = { it.pdf },
-                )
+                when (kommando.utfall) {
+                    Behandlingsutfall.INNVILGELSE -> genererInnvilgelsesbrevClient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+                        hentBrukersNavn = personService::hentNavn,
+                        hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                        vedtaksdato = LocalDate.now(),
+                        tilleggstekst = kommando.fritekstTilVedtaksbrev,
+                        fnr = sak.fnr,
+                        saksbehandlerNavIdent = behandling.saksbehandler,
+                        beslutterNavIdent = behandling.beslutter,
+                        innvilgelsesperiode = virkingsperiode!!,
+                        saksnummer = sak.saksnummer,
+                        sakId = sak.id,
+                        forhåndsvisning = true,
+                        barnetilleggsPerioder = kommando.barnetillegg?.let { if (it.isEmpty()) null else it },
+                    ).fold(
+                        ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
+                        ifRight = { it.pdf },
+                    )
+
+                    Behandlingsutfall.AVSLAG -> genererAvslagsvedtaksbrevGateway.genererAvslagsVedtaksbrev(
+                        hentBrukersNavn = personService::hentNavn,
+                        hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                        avslagsgrunner = kommando.avslagsgrunner,
+                        fnr = sak.fnr,
+                        saksbehandlerNavIdent = behandling.saksbehandler,
+                        beslutterNavIdent = behandling.beslutter,
+                        avslagsperiode = virkingsperiode!!,
+                        saksnummer = sak.saksnummer,
+                        sakId = sak.id,
+                        tilleggstekst = kommando.fritekstTilVedtaksbrev,
+                        forhåndsvisning = true,
+                        harSøktBarnetillegg = behandling.søknad?.barnetillegg?.isNotEmpty() ?: false,
+                        datoForUtsending = LocalDate.now(),
+                    ).fold(
+                        ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
+                        ifRight = { it.pdf },
+                    )
+
+                    Behandlingsutfall.STANS -> throw IllegalArgumentException("Stans er ikke gyldig utfall for førstegangsbehandling")
+                }
             }
 
             Behandlingstype.REVURDERING -> {
@@ -90,7 +115,7 @@ class ForhåndsvisVedtaksbrevService(
                     sakId = sak.id,
                     forhåndsvisning = true,
                     barnetillegg = behandling.barnetillegg != null,
-                    valgtHjemmelHarIkkeRettighet = kommando.toValgtHjemmelHarIkkeRettighet(),
+                    valgtHjemmelHarIkkeRettighet = kommando.valgteHjemler,
                     tilleggstekst = kommando.fritekstTilVedtaksbrev,
                 ).fold(
                     ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },

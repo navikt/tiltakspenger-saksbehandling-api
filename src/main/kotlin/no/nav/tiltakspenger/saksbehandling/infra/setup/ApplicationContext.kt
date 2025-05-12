@@ -258,6 +258,7 @@ open class ApplicationContext(
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             journalførVedtaksbrevGateway = dokumentContext.journalførVedtaksbrevGateway,
             genererVedtaksbrevGateway = dokumentContext.genererInnvilgelsesvedtaksbrevGateway,
+            genererAvslagsvedtaksbrevGateway = dokumentContext.genererAvslagsvedtaksbrevGateway,
             genererStansvedtaksbrevGateway = dokumentContext.genererStansvedtaksbrevGateway,
             tilgangsstyringService = personContext.tilgangsstyringService,
             dokumentdistribusjonsklient = dokumentContext.dokumentdistribusjonsklient,

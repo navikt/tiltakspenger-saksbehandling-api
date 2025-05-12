@@ -15,8 +15,12 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilPeriodisering
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toAvslagsgrunnlag
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toBehandlingsutfallDto
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -29,8 +33,11 @@ internal data class ForhåndsvisBehandlingBody(
     val fritekst: String,
     val virkningsperiode: PeriodeDTO?,
     val stansDato: LocalDate?,
-    val valgteHjemler: List<String>?,
+    // TODO - bør ikke bruke domenetype direkte
+    val valgteHjemler: List<ValgtHjemmelHarIkkeRettighet>?,
     val barnetillegg: List<BarnetilleggPeriodeDTO>?,
+    val utfall: String,
+    val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>,
 ) {
     fun toDomain(
         sakId: SakId,
@@ -50,6 +57,8 @@ internal data class ForhåndsvisBehandlingBody(
             valgteHjemler = valgteHjemler ?: emptyList(),
             stansDato = stansDato,
             barnetillegg = barnetillegg?.tilPeriodisering(virkningsperiode),
+            utfall = this.utfall.toBehandlingsutfallDto().toDomain(),
+            avslagsgrunner = this.avslagsgrunner.toAvslagsgrunnlag(),
         )
     }
 }

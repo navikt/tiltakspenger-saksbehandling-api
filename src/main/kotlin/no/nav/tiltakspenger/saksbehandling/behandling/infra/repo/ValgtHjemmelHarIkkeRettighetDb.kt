@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForAvslag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 
@@ -23,6 +23,7 @@ enum class ValgtHjemmelHarIkkeRettighetDb {
     AVSLAG_LØNN_FRA_TILTAKSARRANGØR,
     AVSLAG_LØNN_FRA_ANDRE,
     AVSLAG_INSTITUSJONSOPPHOLD,
+    AVSLAG_FREMMET_FOR_SENT,
 }
 
 fun List<ValgtHjemmelHarIkkeRettighet>.toDbJson(): String {
@@ -43,14 +44,15 @@ internal fun ValgtHjemmelHarIkkeRettighet.toDb(): ValgtHjemmelHarIkkeRettighetDb
         is ValgtHjemmelForStans.LønnFraTiltaksarrangør -> ValgtHjemmelHarIkkeRettighetDb.STANS_LØNN_FRA_TILTAKSARRANGØR
         is ValgtHjemmelForStans.LønnFraAndre -> ValgtHjemmelHarIkkeRettighetDb.STANS_LØNN_FRA_ANDRE
         is ValgtHjemmelForStans.Institusjonsopphold -> ValgtHjemmelHarIkkeRettighetDb.STANS_INSTITUSJONSOPPHOLD
-        is ValgtHjemmelForAvslag.DeltarIkkePåArbeidsmarkedstiltak -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK
-        is ValgtHjemmelForAvslag.Alder -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_ALDER
-        is ValgtHjemmelForAvslag.Livsoppholdytelser -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LIVSOPPHOLDSYTELSER
-        is ValgtHjemmelForAvslag.Kvalifiseringsprogrammet -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_KVALIFISERINGSPROGRAMMET
-        is ValgtHjemmelForAvslag.Introduksjonsprogrammet -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_INTRODUKSJONSPROGRAMMET
-        is ValgtHjemmelForAvslag.LønnFraTiltaksarrangør -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LØNN_FRA_TILTAKSARRANGØR
-        is ValgtHjemmelForAvslag.LønnFraAndre -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LØNN_FRA_ANDRE
-        is ValgtHjemmelForAvslag.Institusjonsopphold -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_INSTITUSJONSOPPHOLD
+        is Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK
+        is Avslagsgrunnlag.Alder -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_ALDER
+        is Avslagsgrunnlag.Livsoppholdytelser -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LIVSOPPHOLDSYTELSER
+        is Avslagsgrunnlag.Kvalifiseringsprogrammet -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_KVALIFISERINGSPROGRAMMET
+        is Avslagsgrunnlag.Introduksjonsprogrammet -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_INTRODUKSJONSPROGRAMMET
+        is Avslagsgrunnlag.LønnFraTiltaksarrangør -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LØNN_FRA_TILTAKSARRANGØR
+        is Avslagsgrunnlag.LønnFraAndre -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LØNN_FRA_ANDRE
+        is Avslagsgrunnlag.Institusjonsopphold -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_INSTITUSJONSOPPHOLD
+        is Avslagsgrunnlag.FremmetForSent -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_FREMMET_FOR_SENT
     }
 }
 
@@ -64,13 +66,14 @@ internal fun ValgtHjemmelHarIkkeRettighetDb.toDomain(): ValgtHjemmelHarIkkeRetti
         ValgtHjemmelHarIkkeRettighetDb.STANS_LØNN_FRA_TILTAKSARRANGØR -> ValgtHjemmelForStans.LønnFraTiltaksarrangør
         ValgtHjemmelHarIkkeRettighetDb.STANS_LØNN_FRA_ANDRE -> ValgtHjemmelForStans.LønnFraAndre
         ValgtHjemmelHarIkkeRettighetDb.STANS_INSTITUSJONSOPPHOLD -> ValgtHjemmelForStans.Institusjonsopphold
-        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK -> ValgtHjemmelForAvslag.DeltarIkkePåArbeidsmarkedstiltak
-        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_ALDER -> ValgtHjemmelForAvslag.Alder
-        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LIVSOPPHOLDSYTELSER -> ValgtHjemmelForAvslag.Livsoppholdytelser
-        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_KVALIFISERINGSPROGRAMMET -> ValgtHjemmelForAvslag.Kvalifiseringsprogrammet
-        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_INTRODUKSJONSPROGRAMMET -> ValgtHjemmelForAvslag.Introduksjonsprogrammet
-        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LØNN_FRA_TILTAKSARRANGØR -> ValgtHjemmelForAvslag.LønnFraTiltaksarrangør
-        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LØNN_FRA_ANDRE -> ValgtHjemmelForAvslag.LønnFraAndre
-        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_INSTITUSJONSOPPHOLD -> ValgtHjemmelForAvslag.Institusjonsopphold
+        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK -> Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak
+        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_ALDER -> Avslagsgrunnlag.Alder
+        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LIVSOPPHOLDSYTELSER -> Avslagsgrunnlag.Livsoppholdytelser
+        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_KVALIFISERINGSPROGRAMMET -> Avslagsgrunnlag.Kvalifiseringsprogrammet
+        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_INTRODUKSJONSPROGRAMMET -> Avslagsgrunnlag.Introduksjonsprogrammet
+        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LØNN_FRA_TILTAKSARRANGØR -> Avslagsgrunnlag.LønnFraTiltaksarrangør
+        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LØNN_FRA_ANDRE -> Avslagsgrunnlag.LønnFraAndre
+        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_INSTITUSJONSOPPHOLD -> Avslagsgrunnlag.Institusjonsopphold
+        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_FREMMET_FOR_SENT -> Avslagsgrunnlag.FremmetForSent
     }
 }

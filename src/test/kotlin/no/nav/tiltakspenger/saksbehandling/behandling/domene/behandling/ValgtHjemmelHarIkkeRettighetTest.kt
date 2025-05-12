@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.behandling
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForAvslag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.toDbJson
@@ -42,7 +42,7 @@ class ValgtHjemmelHarIkkeRettighetTest {
         val result = json.toValgtHjemmelHarIkkeRettighet()
 
         assertEquals(1, result.size)
-        assertEquals(ValgtHjemmelForAvslag.Alder, result[0])
+        assertEquals(Avslagsgrunnlag.Alder, result[0])
     }
 
     @Test
@@ -92,7 +92,7 @@ class ValgtHjemmelHarIkkeRettighetTest {
 
     @Test
     fun `serialiserer liste med ValgtHjemmelForAvslag`() {
-        val list = listOf(ValgtHjemmelForAvslag.Alder)
+        val list = listOf(Avslagsgrunnlag.Alder)
         val json = list.toDbJson()
         val expectedJson = """
             [
@@ -106,8 +106,8 @@ class ValgtHjemmelHarIkkeRettighetTest {
     @Test
     fun `serialiserer liste med flere elementer`() {
         val list = listOf(
-            ValgtHjemmelForAvslag.DeltarIkkePåArbeidsmarkedstiltak,
-            ValgtHjemmelForAvslag.Alder,
+            Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak,
+            Avslagsgrunnlag.Alder,
         )
         val json = list.toDbJson()
         val expectedJson = """

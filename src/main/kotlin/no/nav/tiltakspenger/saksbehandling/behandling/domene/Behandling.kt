@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
+import arrow.core.NonEmptySet
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -54,6 +55,10 @@ data class Behandling(
     val sendtTilBeslutning: LocalDateTime?,
     val beslutter: String?,
     val saksopplysninger: Saksopplysninger,
+    /**
+     * Saksbehandler tar et aktivt valg om behandlingen skal føre til et avslag eller en innvilgelse.
+     */
+    val utfall: Behandlingsutfall?,
     val status: Behandlingsstatus,
     val attesteringer: List<Attestering>,
     val opprettet: LocalDateTime,
@@ -70,6 +75,10 @@ data class Behandling(
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
     val avbrutt: Avbrutt?,
     val antallDagerPerMeldeperiode: Int?,
+    /**
+     * Null hvis det ikke er et avslag, eller har ikke blitt behandlet til det punktet.
+     */
+    val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
 ) {
     val erAvsluttet: Boolean by lazy { status == AVBRUTT || status == VEDTATT }
     val erUnderBehandling: Boolean = status == UNDER_BEHANDLING
@@ -164,6 +173,8 @@ data class Behandling(
                 valgteTiltaksdeltakelser = null,
                 avbrutt = null,
                 antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+                avslagsgrunner = null,
+                utfall = null,
             ).right()
         }
 
@@ -206,6 +217,9 @@ data class Behandling(
                 valgteTiltaksdeltakelser = null,
                 avbrutt = null,
                 antallDagerPerMeldeperiode = null,
+                avslagsgrunner = null,
+                // TODO - Denne må på et tidspunkt endres dersom vi kan revurdere flere ting
+                utfall = Behandlingsutfall.STANS,
             )
         }
     }
@@ -341,12 +355,14 @@ data class Behandling(
 
         return this.copy(
             status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
+            utfall = kommando.utfall,
             sendtTilBeslutning = nå(clock),
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
-            virkningsperiode = kommando.innvilgelsesperiode,
+            virkningsperiode = kommando.behandlingsperiode,
             barnetillegg = kommando.barnetillegg,
             valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
+            avslagsgrunner = kommando.avslagsgrunner,
             antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
         )
     }
@@ -367,7 +383,7 @@ data class Behandling(
             begrunnelseVilkårsvurdering = kommando.begrunnelse,
             virkningsperiode = Periode(kommando.stansDato, sisteDagSomGirRett),
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            valgtHjemmelHarIkkeRettighet = kommando.toValgtHjemmelHarIkkeRettighet(),
+            valgtHjemmelHarIkkeRettighet = kommando.valgteHjemler,
         )
     }
 
@@ -523,7 +539,7 @@ data class Behandling(
 
             REVURDERING -> {
                 require(søknad == null) { "Søknad kan ikke være satt for revurdering" }
-                require(valgtHjemmelHarIkkeRettighet.none { it is ValgtHjemmelForAvslag }) { "Revurdering kan bare føre til stans" }
+                require(valgtHjemmelHarIkkeRettighet.none { it is Avslagsgrunnlag }) { "Revurdering kan bare føre til stans" }
             }
         }
 
@@ -534,6 +550,22 @@ data class Behandling(
         antallDagerPerMeldeperiode?.let {
             require(it in 1..14) {
                 "Antall dager per meldeperiode må være mellom 1 og 14"
+            }
+        }
+
+        if (avslagsgrunner != null || utfall == Behandlingsutfall.AVSLAG) {
+            require(avslagsgrunner != null) {
+                "Avslagsgrunner må være satt dersom behandlingen har utfallet AVSLAG"
+            }
+
+            require(utfall == Behandlingsutfall.AVSLAG) {
+                "Behandlingsutfall må være AVSLAG dersom det er satt avslagsgrunner"
+            }
+        }
+
+        if (utfall == Behandlingsutfall.INNVILGELSE) {
+            require(avslagsgrunner == null) {
+                "Avslagsgrunner kan ikke være satt dersom behandlingen har utfallet INNVILGELSE"
             }
         }
 
@@ -556,6 +588,10 @@ data class Behandling(
                 if (attesteringer.isEmpty()) {
                     require(beslutter == null) { "Bestlutter kan ikke være tilknyttet behandlingen dersom det ikke er gjort noen attesteringer" }
                 }
+
+                if (attesteringer.isNotEmpty()) {
+                    require(utfall != null) { "Behandlingsutfall må være satt dersom det er gjort attesteringer på behandlingen" }
+                }
             }
 
             KLAR_TIL_BESLUTNING -> {
@@ -574,6 +610,7 @@ data class Behandling(
                     require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
                     require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
                 }
+                require(this.utfall != null) { "Behandlingsutfall må være satt for statusen KLAR_TIL_BESLUTNING" }
             }
 
             UNDER_BESLUTNING -> {
@@ -590,6 +627,7 @@ data class Behandling(
                     require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
                     require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
                 }
+                require(this.utfall != null) { "Behandlingsutfall må være satt for statusen UNDER_BESLUTNING" }
             }
 
             VEDTATT -> {
@@ -607,6 +645,7 @@ data class Behandling(
                     require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
                     require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
                 }
+                require(this.utfall != null) { "Behandlingsutfall må være satt for statusen VEDTATT" }
             }
 
             AVBRUTT -> {

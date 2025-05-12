@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsutfall
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -81,6 +82,7 @@ enum class Vedtakstype(
     val navn: String,
 ) {
     INNVILGELSE("Innvilgelse"),
+    AVSLAG("Avslag"),
     STANS("Stans"),
 }
 
@@ -113,7 +115,14 @@ fun Sak.opprettVedtak(
 
 fun Sak.utledVedtakstype(behandling: Behandling): Vedtakstype {
     return when (behandling.behandlingstype) {
-        Behandlingstype.FØRSTEGANGSBEHANDLING -> Vedtakstype.INNVILGELSE
+        Behandlingstype.FØRSTEGANGSBEHANDLING -> {
+            when (behandling.utfall) {
+                Behandlingsutfall.INNVILGELSE -> Vedtakstype.INNVILGELSE
+                Behandlingsutfall.AVSLAG -> Vedtakstype.AVSLAG
+                Behandlingsutfall.STANS -> throw IllegalStateException("Førstegangsbehandling skal ikke kunne ha utfall stans. id $id, for behandling ${behandling.id}")
+                null -> throw IllegalArgumentException("Kan ikke lage et vedtak uten utfall. Behandlingen uten utfall er ${behandling.id}")
+            }
+        }
         Behandlingstype.REVURDERING -> {
             // Kommentar jah: Dette er en førsteimplementasjon for å avgjøre om dette er et stansvedtak. Ved andre typer revurderinger må vi utvide denne.
             if (behandling.virkningsperiode!!.tilOgMed != this.utfallsperioder().totalePeriode.tilOgMed) {

@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
+import arrow.core.NonEmptySet
+import arrow.core.nonEmptySetOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -11,8 +13,11 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsutfall
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
@@ -26,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
@@ -86,6 +92,8 @@ interface SakMother {
                 registrerteTiltak.first().eksternDeltagelseId,
             ),
         ),
+        avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
+        utfall: Behandlingsutfall = Behandlingsutfall.INNVILGELSE,
         clock: Clock = fixedClock,
         antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     ): Pair<Sak, Behandling> {
@@ -113,9 +121,11 @@ interface SakMother {
                             barnetillegg = barnetillegg,
                             fritekstTilVedtaksbrev = null,
                             begrunnelseVilkårsvurdering = null,
-                            innvilgelsesperiode = virkningsperiode,
+                            behandlingsperiode = virkningsperiode,
                             tiltaksdeltakelser = valgteTiltaksdeltakelser,
                             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                            avslagsgrunner = avslagsgrunner,
+                            utfall = utfall,
                         ),
                         clock = clock,
                     )
@@ -161,11 +171,61 @@ interface SakMother {
                 barnetillegg = null,
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
-                innvilgelsesperiode = virkningsperiode,
+                behandlingsperiode = virkningsperiode,
                 tiltaksdeltakelser = førstegangsbehandling.saksopplysninger.tiltaksdeltagelse.map {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
                 antallDagerPerMeldeperiode = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+                avslagsgrunner = null,
+                utfall = Behandlingsutfall.INNVILGELSE,
+            ),
+            clock = clock,
+        ).taBehandling(beslutter)
+            .iverksett(
+                utøvendeBeslutter = beslutter,
+                attestering = ObjectMother.godkjentAttestering(beslutter),
+                clock = clock,
+            )
+
+        val sakMedIverksattBehandling = sak.copy(behandlinger = Behandlinger(iverksattBehandling))
+        val sakMedVedtak = sakMedIverksattBehandling.opprettVedtak(iverksattBehandling, clock)
+
+        return Triple(sakMedVedtak.first, sakMedVedtak.second, iverksattBehandling)
+    }
+
+    fun nySakMedAvslagsvedtak(
+        sakId: SakId = SakId.random(),
+        fnr: Fnr = Fnr.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+        saksbehandler: Saksbehandler = saksbehandler(),
+        virkningsperiode: Periode = virkningsperiode(),
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
+        clock: Clock = fixedClock,
+    ): Triple<Sak, Rammevedtak, Behandling> {
+        val (sak, førstegangsbehandling) = this.sakMedOpprettetBehandling(
+            sakId = sakId,
+            fnr = fnr,
+            saksnummer = saksnummer,
+            virkningsperiode = virkningsperiode,
+            saksbehandler = saksbehandler,
+        )
+
+        val iverksattBehandling = førstegangsbehandling.tilBeslutning(
+            SendSøknadsbehandlingTilBeslutningKommando(
+                sakId = sakId,
+                behandlingId = førstegangsbehandling.id,
+                correlationId = CorrelationId.generate(),
+                saksbehandler = saksbehandler,
+                barnetillegg = null,
+                fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nySakMedAvslagsvedtak"),
+                begrunnelseVilkårsvurdering = null,
+                behandlingsperiode = virkningsperiode,
+                tiltaksdeltakelser = førstegangsbehandling.saksopplysninger.tiltaksdeltagelse.map {
+                    Pair(virkningsperiode, it.eksternDeltagelseId)
+                }.toList(),
+                avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
+                utfall = Behandlingsutfall.AVSLAG,
+                antallDagerPerMeldeperiode = 10,
             ),
             clock = clock,
         ).taBehandling(beslutter)

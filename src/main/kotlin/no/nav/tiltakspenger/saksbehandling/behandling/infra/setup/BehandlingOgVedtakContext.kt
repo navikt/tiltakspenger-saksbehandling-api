@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførVedtaksbrevGateway
@@ -50,6 +51,7 @@ open class BehandlingOgVedtakContext(
     statistikkStønadRepo: StatistikkStønadRepo,
     journalførVedtaksbrevGateway: JournalførVedtaksbrevGateway,
     genererVedtaksbrevGateway: GenererInnvilgelsesvedtaksbrevGateway,
+    genererAvslagsvedtaksbrevGateway: GenererAvslagsvedtaksbrevGateway,
     genererStansvedtaksbrevGateway: GenererStansvedtaksbrevGateway,
     tilgangsstyringService: TilgangsstyringService,
     personService: PersonService,
@@ -160,6 +162,7 @@ open class BehandlingOgVedtakContext(
             journalførVedtaksbrevGateway = journalførVedtaksbrevGateway,
             rammevedtakRepo = rammevedtakRepo,
             genererInnvilgelsesvedtaksbrevGateway = genererVedtaksbrevGateway,
+            genererAvslagsvedtaksbrevGateway = genererAvslagsvedtaksbrevGateway,
             personService = personService,
             navIdentClient = navIdentClient,
             genererStansvedtaksbrevGateway = genererStansvedtaksbrevGateway,
@@ -179,6 +182,7 @@ open class BehandlingOgVedtakContext(
         ForhåndsvisVedtaksbrevService(
             sakService = sakService,
             genererInnvilgelsesbrevClient = genererVedtaksbrevGateway,
+            genererAvslagsvedtaksbrevGateway = genererAvslagsvedtaksbrevGateway,
             genererStansbrevClient = genererStansvedtaksbrevGateway,
             personService = personService,
             navIdentClient = navIdentClient,

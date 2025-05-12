@@ -11,8 +11,10 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
@@ -47,7 +49,8 @@ internal class PdfgenHttpClient(
     private val timeout: Duration = 6.seconds,
 ) : GenererInnvilgelsesvedtaksbrevGateway,
     GenererUtbetalingsvedtakGateway,
-    GenererStansvedtaksbrevGateway {
+    GenererStansvedtaksbrevGateway,
+    GenererAvslagsvedtaksbrevGateway {
 
     private val log = KotlinLogging.logger {}
 
@@ -59,6 +62,7 @@ internal class PdfgenHttpClient(
             .build()
 
     private val vedtakInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakInnvilgelse")
+    private val vedtakAvslagUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakAvslag")
     private val utbetalingsvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/utbetalingsvedtak")
     private val stansvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingsvedtak")
 
@@ -205,6 +209,62 @@ internal class PdfgenHttpClient(
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",
             uri = stansvedtakUri,
+        )
+    }
+
+    override suspend fun genererAvslagsVedtaksbrev(
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+        avslagsgrunner: Set<Avslagsgrunnlag>,
+        fnr: Fnr,
+        saksbehandlerNavIdent: String,
+        beslutterNavIdent: String?,
+        avslagsperiode: Periode,
+        saksnummer: Saksnummer,
+        sakId: SakId,
+        tilleggstekst: FritekstTilVedtaksbrev,
+        forhåndsvisning: Boolean,
+        harSøktBarnetillegg: Boolean,
+        datoForUtsending: LocalDate,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return pdfgenRequest(
+            jsonPayload = {
+                genererAvslagSøknadsbrev(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    tilleggstekst = tilleggstekst,
+                    fnr = fnr,
+                    saksbehandlerNavIdent = saksbehandlerNavIdent,
+                    beslutterNavIdent = beslutterNavIdent,
+                    saksnummer = saksnummer,
+                    forhåndsvisning = forhåndsvisning,
+                    avslagsgrunner = avslagsgrunner,
+                    harSøktBarnetillegg = harSøktBarnetillegg,
+                    avslagsperiode = avslagsperiode,
+                    datoForUtsending = datoForUtsending,
+                )
+            },
+            errorContext = "SakId: $sakId, saksnummer: $saksnummer",
+            uri = vedtakAvslagUri,
+        )
+    }
+
+    override suspend fun genererAvslagsvVedtaksbrev(
+        vedtak: Rammevedtak,
+        datoForUtsending: LocalDate,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return pdfgenRequest(
+            jsonPayload = {
+                vedtak.genererAvslagSøknadsbrev(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    datoForUtsending = datoForUtsending,
+                )
+            },
+            errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}",
+            uri = vedtakAvslagUri,
         )
     }
 

@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakSe
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.genererStønadsstatistikkForRammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
 import java.time.Clock
 
@@ -69,7 +70,8 @@ class IverksettBehandlingService(
         val behandling = sak.hentBehandling(behandlingId)!!
 
         if (behandling.beslutter != beslutter.navIdent) {
-            return KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter(eiesAvBeslutter = behandling.beslutter).left()
+            return KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter(eiesAvBeslutter = behandling.beslutter)
+                .left()
         }
 
         val attestering = Attestering(
@@ -119,6 +121,32 @@ class IverksettBehandlingService(
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
+        return when (vedtak.vedtaksType) {
+            Vedtakstype.INNVILGELSE,
+            Vedtakstype.STANS,
+            -> iverksettInnvilgetEllerStansFørstegangsbehandling(vedtak, sakStatistikk, stønadStatistikk)
+
+            Vedtakstype.AVSLAG -> {
+                // journalføring og dokumentdistribusjon skjer i egen jobb
+                sessionFactory.withTransactionContext { tx ->
+                    behandlingRepo.lagre(vedtak.behandling, tx)
+                    rammevedtakRepo.lagre(vedtak, tx)
+                    statistikkSakRepo.lagre(sakStatistikk, tx)
+                    statistikkStønadRepo.lagre(stønadStatistikk, tx)
+                }
+                this
+            }
+        }
+    }
+
+    private fun Sak.iverksettInnvilgetEllerStansFørstegangsbehandling(
+        vedtak: Rammevedtak,
+        sakStatistikk: StatistikkSakDTO,
+        stønadStatistikk: StatistikkStønadDTO,
+    ): Sak {
+        require(vedtak.vedtaksType == Vedtakstype.INNVILGELSE || vedtak.vedtaksType == Vedtakstype.STANS) {
+            "Kan kun iverksette innvilgelse eller stans"
+        }
         val (oppdatertSak, meldeperioder) = this.genererMeldeperioder(clock)
         // Denne har vi behov for å gjøre ved påfølgende førstegangsbehandligner (altså ikke den første)
         val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) =

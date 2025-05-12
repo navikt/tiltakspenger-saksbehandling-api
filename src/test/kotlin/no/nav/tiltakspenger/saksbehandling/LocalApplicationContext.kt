@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringServiceImpl
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
@@ -76,6 +77,8 @@ class LocalApplicationContext(
         if (usePdfGen) realPdfGen!! else GenererFakeUtbetalingsvedtakGateway()
 
     private val genererInnvilgelsevedtaksbrevGateway: GenererInnvilgelsesvedtaksbrevGateway =
+        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevGateway()
+    private val genererAvslagssevedtaksbrevGateway: GenererAvslagsvedtaksbrevGateway =
         if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevGateway()
     private val genererStansvedtaksbrevGateway: GenererStansvedtaksbrevGateway =
         if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevGateway()
@@ -216,6 +219,7 @@ class LocalApplicationContext(
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             journalførVedtaksbrevGateway = journalførFakeVedtaksbrevGateway,
             genererVedtaksbrevGateway = genererInnvilgelsevedtaksbrevGateway,
+            genererAvslagsvedtaksbrevGateway = genererAvslagssevedtaksbrevGateway,
             genererStansvedtaksbrevGateway = genererStansvedtaksbrevGateway,
             personService = personContext.personService,
             tilgangsstyringService = personContext.tilgangsstyringService,

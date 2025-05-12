@@ -81,12 +81,13 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
                 saksbehandler = saksbehandler,
             ),
         ) {
+            //language=JSON
             setBody(
                 """
             {
                 "fritekstTilVedtaksbrev": "$fritekstTilVedtaksbrev",
                 "begrunnelseVilkårsvurdering": "$begrunnelseVilkårsvurdering",
-                "innvilgelsesperiode": {
+                "behandlingsperiode": {
                     "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
                     "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
                 },
@@ -99,6 +100,8 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
                         }
                     }
                 ],
+                "utfall": "INNVILGELSE",
+                "avslagsgrunner": null,
                 "antallDagerPerMeldeperiode": 10
             }
                 """.trimIndent(),
@@ -134,12 +137,13 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
                 saksbehandler = saksbehandler,
             ),
         ) {
+            //language=JSON
             setBody(
                 """
             {
                 "fritekstTilVedtaksbrev": "$fritekstTilVedtaksbrev",
                 "begrunnelseVilkårsvurdering": "$begrunnelseVilkårsvurdering",
-                "innvilgelsesperiode": {
+                "behandlingsperiode": {
                     "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
                     "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
                 },
@@ -152,7 +156,9 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
                         }
                     }
                 ],
-                "antallDagerPerMeldeperiode": 10
+                "antallDagerPerMeldeperiode": 10,
+                "utfall": "INNVILGELSE",
+                "avslagsgrunner": null
             }
                 """.trimIndent(),
             )

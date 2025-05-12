@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -15,10 +16,12 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
     val correlationId: CorrelationId,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
-    val innvilgelsesperiode: Periode,
+    val behandlingsperiode: Periode,
     val barnetillegg: Barnetillegg?,
     val tiltaksdeltakelser: List<Pair<Periode, String>>,
     val antallDagerPerMeldeperiode: Int,
+    val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
+    val utfall: Behandlingsutfall,
 ) {
     fun valgteTiltaksdeltakelser(behandling: Behandling): ValgteTiltaksdeltakelser {
         return ValgteTiltaksdeltakelser.periodiser(
