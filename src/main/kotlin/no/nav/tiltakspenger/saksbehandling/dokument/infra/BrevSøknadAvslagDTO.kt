@@ -88,7 +88,7 @@ internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
         saksnummer = saksnummer.verdi,
         tilleggstekst = this.behandling.fritekstTilVedtaksbrev!!.verdi,
         forhåndsvisning = false,
-        avslagsgrunner = this.behandling.avslagsgrunner.toAvslagsgrunnerBrevDto(),
+        avslagsgrunner = this.behandling.avslagsgrunner!!.toAvslagsgrunnerBrevDto(),
         hjemlerTekst = if (this.behandling.avslagsgrunner.size > 1) {
             this.behandling.avslagsgrunner.createBrevForskrifter(
                 harSøktBarnetillegg,

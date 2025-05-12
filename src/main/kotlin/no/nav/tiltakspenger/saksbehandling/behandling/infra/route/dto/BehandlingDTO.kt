@@ -38,7 +38,7 @@ internal data class BehandlingDTO(
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
     val valgtHjemmelHarIkkeRettighet: List<String>?,
     val antallDagerPerMeldeperiode: Int?,
-    val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>,
+    val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
 )
 
 internal fun Behandling.toDTO(): BehandlingDTO {
@@ -64,7 +64,7 @@ internal fun Behandling.toDTO(): BehandlingDTO {
         valgteTiltaksdeltakelser = this.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.map { it.toTiltaksdeltakelsePeriodeDTO() },
         valgtHjemmelHarIkkeRettighet = this.valgtHjemmelHarIkkeRettighet.toDTO(this.behandlingstype),
         antallDagerPerMeldeperiode = this.antallDagerPerMeldeperiode,
-        avslagsgrunner = this.avslagsgrunner.toValgtHjemmelForAvslagDTO(),
+        avslagsgrunner = this.avslagsgrunner?.toValgtHjemmelForAvslagDTO(),
     )
 }
 

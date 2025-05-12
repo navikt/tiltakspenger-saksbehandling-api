@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
+import arrow.core.NonEmptySet
+import arrow.core.nonEmptySetOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -90,7 +92,7 @@ interface SakMother {
                 registrerteTiltak.first().eksternDeltagelseId,
             ),
         ),
-        avslagsgrunner: Set<Avslagsgrunnlag> = emptySet(),
+        avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         utfall: Behandlingsutfall = Behandlingsutfall.INNVILGELSE,
         clock: Clock = fixedClock,
         antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
@@ -174,7 +176,7 @@ interface SakMother {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
                 antallDagerPerMeldeperiode = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-                avslagsgrunner = emptySet(),
+                avslagsgrunner = null,
                 utfall = Behandlingsutfall.INNVILGELSE,
             ),
             clock = clock,
@@ -221,7 +223,7 @@ interface SakMother {
                 tiltaksdeltakelser = førstegangsbehandling.saksopplysninger.tiltaksdeltagelse.map {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
-                avslagsgrunner = setOf(Avslagsgrunnlag.Alder),
+                avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
                 utfall = Behandlingsutfall.AVSLAG,
                 antallDagerPerMeldeperiode = 10,
             ),

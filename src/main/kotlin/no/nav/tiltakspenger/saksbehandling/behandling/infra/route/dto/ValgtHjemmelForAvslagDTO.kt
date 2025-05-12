@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
+import arrow.core.NonEmptySet
+import arrow.core.toNonEmptySetOrNull
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 
 enum class ValgtHjemmelForAvslagDTO {
@@ -27,8 +29,8 @@ enum class ValgtHjemmelForAvslagDTO {
     }
 }
 
-fun List<ValgtHjemmelForAvslagDTO>.toAvslagsgrunnlag(): Set<Avslagsgrunnlag> =
-    this.map { it.toDomain() }.toSet()
+fun List<ValgtHjemmelForAvslagDTO>.toAvslagsgrunnlag(): NonEmptySet<Avslagsgrunnlag> =
+    this.map { it.toDomain() }.toNonEmptySetOrNull()!!
 
 fun Set<Avslagsgrunnlag>.toValgtHjemmelForAvslagDTO(): List<ValgtHjemmelForAvslagDTO> =
     this.map { avslagsgrunnlag ->

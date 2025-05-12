@@ -33,6 +33,7 @@ internal data class ForhåndsvisBehandlingBody(
     val fritekst: String,
     val virkningsperiode: PeriodeDTO?,
     val stansDato: LocalDate?,
+    // TODO - bør ikke bruke domenetype direkte
     val valgteHjemler: List<ValgtHjemmelHarIkkeRettighet>?,
     val barnetillegg: List<BarnetilleggPeriodeDTO>?,
     val utfall: String,

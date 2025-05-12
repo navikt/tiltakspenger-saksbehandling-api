@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
+import arrow.core.NonEmptySet
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -125,7 +126,7 @@ interface BehandlingMother : MotherOfAllMothers {
         valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = null,
         avbrutt: Avbrutt? = null,
         antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-        avslagsgrunner: Set<Avslagsgrunnlag> = emptySet(),
+        avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         utfall: Behandlingsutfall? = null,
     ): Behandling {
         return Behandling(
@@ -178,7 +179,7 @@ interface BehandlingMother : MotherOfAllMothers {
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-        avslagsgrunner: Set<Avslagsgrunnlag> = emptySet(),
+        avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         utfall: Behandlingsutfall = Behandlingsutfall.INNVILGELSE,
     ): Behandling {
         return this.nyOpprettetFørstegangsbehandling(
@@ -333,7 +334,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 ),
             ),
         ),
-        avslagsgrunner: Set<Avslagsgrunnlag> = emptySet(),
+        avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         utfall: Behandlingsutfall? = Behandlingsutfall.INNVILGELSE,
     ): Behandling {
         return nyBehandling(
@@ -479,7 +480,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
     fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("Fritekst"),
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("Begrunnelse"),
     antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-    avslagsgrunner: Set<Avslagsgrunnlag> = emptySet(),
+    avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
     utfall: Behandlingsutfall,
 ): Sak {
     val sakMedFørstegangsbehandling = startSøknadsbehandling(

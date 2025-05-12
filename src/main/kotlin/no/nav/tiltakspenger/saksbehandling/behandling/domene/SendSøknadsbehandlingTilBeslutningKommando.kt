@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -19,7 +20,7 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
     val barnetillegg: Barnetillegg?,
     val tiltaksdeltakelser: List<Pair<Periode, String>>,
     val antallDagerPerMeldeperiode: Int,
-    val avslagsgrunner: Set<Avslagsgrunnlag>,
+    val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
     val utfall: Behandlingsutfall,
 ) {
     fun valgteTiltaksdeltakelser(behandling: Behandling): ValgteTiltaksdeltakelser {

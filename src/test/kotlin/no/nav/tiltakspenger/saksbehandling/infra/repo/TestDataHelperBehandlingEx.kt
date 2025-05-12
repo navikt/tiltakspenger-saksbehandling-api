@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo
 
+import arrow.core.NonEmptySet
+import arrow.core.nonEmptySetOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -51,7 +53,7 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,
-        saksnummer = this.saksnummerGenerator.neste(),
+        saksnummer = saksnummer,
     ),
     søknad: Søknad =
         ObjectMother.nySøknad(
@@ -84,7 +86,7 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
             søknad = søknad,
             fnr = sak.fnr,
             virkningsperiode = tiltaksOgVurderingsperiode,
-            saksnummer = saksnummer,
+            saksnummer = sak.saksnummer,
             saksbehandler = saksbehandler,
             sakId = sak.id,
             barnetillegg = barnetillegg,
@@ -133,7 +135,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningFørstegangsbehandling(
     fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterKlarTilBeslutningFørstegangsbehandling()"),
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterKlarTilBeslutningFørstegangsbehandling()"),
     correlationId: CorrelationId = CorrelationId.generate(),
-    avslagsgrunner: Set<Avslagsgrunnlag> = emptySet(),
+    avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
     utfall: Behandlingsutfall = Behandlingsutfall.INNVILGELSE,
     /**
      * Brukt for å styre meldeperiode generering
@@ -157,7 +159,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningFørstegangsbehandling(
         førstegangsbehandling
             .tilBeslutning(
                 SendSøknadsbehandlingTilBeslutningKommando(
-                    sakId = sakId,
+                    sakId = sak.id,
                     saksbehandler = saksbehandler,
                     behandlingId = førstegangsbehandling.id,
                     correlationId = correlationId,
@@ -382,7 +384,8 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
     )
 
     val oppdatertFørstegangsbehandling =
-        førstegangsbehandling.taBehandling(beslutter).iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), clock)
+        førstegangsbehandling.taBehandling(beslutter)
+            .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), clock)
     behandlingRepo.lagre(oppdatertFørstegangsbehandling)
     val (sakMedVedtak, vedtak) = sak.opprettVedtak(oppdatertFørstegangsbehandling, clock)
     vedtakRepo.lagre(vedtak)
@@ -395,6 +398,67 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
     val (_, meldeperioder) = oppdatertSak.genererMeldeperioder(clock)
     meldeperiodeRepo.lagre(meldeperioder)
     return Triple(sakRepo.hentForSakId(sakId)!!, vedtak, oppdatertFørstegangsbehandling)
+}
+
+internal fun TestDataHelper.persisterIverksattFørstegangsbehandlingAvslag(
+    sakId: SakId = SakId.random(),
+    fnr: Fnr = Fnr.random(),
+    deltakelseFom: LocalDate = 1.januar(2023),
+    deltakelseTom: LocalDate = 31.mars(2023),
+    journalpostId: String = random.nextInt().toString(),
+    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    beslutter: Saksbehandler = ObjectMother.beslutter(),
+    tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
+    sak: Sak = ObjectMother.nySak(
+        sakId = sakId,
+        fnr = fnr,
+        saksnummer = this.saksnummerGenerator.neste(),
+    ),
+    id: SøknadId = Søknad.randomId(),
+    søknad: Søknad = ObjectMother.nySøknad(
+        periode = tiltaksOgVurderingsperiode,
+        journalpostId = journalpostId,
+        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+        id = id,
+        søknadstiltak = ObjectMother.søknadstiltak(deltakelseFom = deltakelseFom, deltakelseTom = deltakelseTom),
+        barnetillegg = listOf(),
+        sakId = sak.id,
+        saksnummer = sak.saksnummer,
+    ),
+    correlationId: CorrelationId = CorrelationId.generate(),
+    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterIverksattFørstegangsbehandlingAvslag()"),
+    begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterIverksattFørstegangsbehandlingAvslag()"),
+    /**
+     * Brukt for å styre meldeperiode generering
+     */
+    clock: Clock = this.clock,
+): Triple<Sak, Rammevedtak, Behandling> {
+    val (sak, førstegangsbehandling) = persisterKlarTilBeslutningFørstegangsbehandling(
+        sakId = sakId,
+        fnr = fnr,
+        deltakelseFom = deltakelseFom,
+        deltakelseTom = deltakelseTom,
+        journalpostId = journalpostId,
+        saksbehandler = saksbehandler,
+        tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
+        sak = sak,
+        id = id,
+        søknad = søknad,
+        fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+        begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+        utfall = Behandlingsutfall.AVSLAG,
+        avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
+        correlationId = correlationId,
+        clock = clock,
+    )
+
+    val oppdatertFørstegangsbehandling =
+        førstegangsbehandling.taBehandling(beslutter)
+            .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), clock)
+    behandlingRepo.lagre(oppdatertFørstegangsbehandling)
+    val (sakMedVedtak, vedtak) = sak.opprettVedtak(oppdatertFørstegangsbehandling, clock)
+    vedtakRepo.lagre(vedtak)
+    return Triple(sakMedVedtak, vedtak, oppdatertFørstegangsbehandling)
 }
 
 /**
@@ -635,8 +699,8 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
             saksnummer = sak.saksnummer,
         ),
     clock: Clock = this.clock,
-): Pair<Sak, MeldekortBehandletManuelt> {
-    val (sak) = persisterIverksattFørstegangsbehandling(
+): Triple<Sak, MeldekortBehandletManuelt, Rammevedtak> {
+    val (sak, rammevedtak) = persisterIverksattFørstegangsbehandling(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,
@@ -659,5 +723,50 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         periode = meldeperioder.first().periode,
     )
     meldekortRepo.lagre(behandletMeldekort, null)
-    return Pair(sakRepo.hentForSakId(sakId)!!, behandletMeldekort)
+    return Triple(sakRepo.hentForSakId(sakId)!!, behandletMeldekort, rammevedtak)
+}
+
+internal fun TestDataHelper.persisterRammevedtakAvslag(
+    sakId: SakId = SakId.random(),
+    fnr: Fnr = Fnr.random(),
+    deltakelseFom: LocalDate = 2.januar(2023),
+    deltakelseTom: LocalDate = 31.mars(2023),
+    journalpostId: String = random.nextInt().toString(),
+    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    beslutter: Saksbehandler = ObjectMother.beslutter(),
+    tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
+    id: SøknadId = Søknad.randomId(),
+    sak: Sak = ObjectMother.nySak(
+        sakId = sakId,
+        fnr = fnr,
+        saksnummer = this.saksnummerGenerator.neste(),
+    ),
+    søknad: Søknad = ObjectMother.nySøknad(
+        periode = tiltaksOgVurderingsperiode,
+        journalpostId = journalpostId,
+        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+        id = id,
+        søknadstiltak = ObjectMother.søknadstiltak(deltakelseFom = deltakelseFom, deltakelseTom = deltakelseTom),
+        barnetillegg = listOf(),
+        sakId = sak.id,
+        saksnummer = sak.saksnummer,
+    ),
+    clock: Clock = this.clock,
+): Pair<Sak, Rammevedtak> {
+    val (sak, rammevedtak) = persisterIverksattFørstegangsbehandlingAvslag(
+        sakId = sakId,
+        fnr = fnr,
+        deltakelseFom = deltakelseFom,
+        deltakelseTom = deltakelseTom,
+        journalpostId = journalpostId,
+        saksbehandler = saksbehandler,
+        tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
+        id = id,
+        søknad = søknad,
+        beslutter = beslutter,
+        sak = sak,
+        clock = clock,
+    )
+
+    return Pair(sak, rammevedtak)
 }

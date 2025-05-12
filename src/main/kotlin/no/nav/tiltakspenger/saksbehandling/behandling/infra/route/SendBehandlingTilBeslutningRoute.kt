@@ -41,7 +41,7 @@ private data class SendTilBeslutningBody(
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
     val antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-    val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>,
+    val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
     val utfall: BehandlingsutfallDTO,
 ) {
     fun toDomain(
@@ -65,7 +65,7 @@ private data class SendTilBeslutningBody(
                 Pair(it.periode.toDomain(), it.eksternDeltagelseId)
             },
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
-            avslagsgrunner = avslagsgrunner.toAvslagsgrunnlag(),
+            avslagsgrunner = avslagsgrunner?.toAvslagsgrunnlag(),
             utfall = utfall.toDomain(),
         )
     }

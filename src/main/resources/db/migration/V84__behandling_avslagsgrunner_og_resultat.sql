@@ -1,8 +1,8 @@
 ALTER TABLE behandling
-    ADD COLUMN IF NOT EXISTS avslagsgrunner jsonb DEFAULT '[]' NOT NULL;
+    ADD COLUMN IF NOT EXISTS avslagsgrunner jsonb DEFAULT null;
 
 ALTER TABLE behandling
-    ADD COLUMN IF NOT EXISTS utfall TEXT;
+    ADD COLUMN IF NOT EXISTS utfall varchar;
 
 UPDATE behandling
 SET utfall = CASE

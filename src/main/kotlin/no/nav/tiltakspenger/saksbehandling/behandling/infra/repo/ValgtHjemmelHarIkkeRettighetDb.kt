@@ -23,7 +23,7 @@ enum class ValgtHjemmelHarIkkeRettighetDb {
     AVSLAG_LØNN_FRA_TILTAKSARRANGØR,
     AVSLAG_LØNN_FRA_ANDRE,
     AVSLAG_INSTITUSJONSOPPHOLD,
-    FREMMET_FOR_SENT,
+    AVSLAG_FREMMET_FOR_SENT,
 }
 
 fun List<ValgtHjemmelHarIkkeRettighet>.toDbJson(): String {
@@ -52,7 +52,7 @@ internal fun ValgtHjemmelHarIkkeRettighet.toDb(): ValgtHjemmelHarIkkeRettighetDb
         is Avslagsgrunnlag.LønnFraTiltaksarrangør -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LØNN_FRA_TILTAKSARRANGØR
         is Avslagsgrunnlag.LønnFraAndre -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LØNN_FRA_ANDRE
         is Avslagsgrunnlag.Institusjonsopphold -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_INSTITUSJONSOPPHOLD
-        is Avslagsgrunnlag.FremmetForSent -> ValgtHjemmelHarIkkeRettighetDb.FREMMET_FOR_SENT
+        is Avslagsgrunnlag.FremmetForSent -> ValgtHjemmelHarIkkeRettighetDb.AVSLAG_FREMMET_FOR_SENT
     }
 }
 
@@ -74,6 +74,6 @@ internal fun ValgtHjemmelHarIkkeRettighetDb.toDomain(): ValgtHjemmelHarIkkeRetti
         ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LØNN_FRA_TILTAKSARRANGØR -> Avslagsgrunnlag.LønnFraTiltaksarrangør
         ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LØNN_FRA_ANDRE -> Avslagsgrunnlag.LønnFraAndre
         ValgtHjemmelHarIkkeRettighetDb.AVSLAG_INSTITUSJONSOPPHOLD -> Avslagsgrunnlag.Institusjonsopphold
-        ValgtHjemmelHarIkkeRettighetDb.FREMMET_FOR_SENT -> Avslagsgrunnlag.FremmetForSent
+        ValgtHjemmelHarIkkeRettighetDb.AVSLAG_FREMMET_FOR_SENT -> Avslagsgrunnlag.FremmetForSent
     }
 }

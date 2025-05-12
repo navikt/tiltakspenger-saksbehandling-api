@@ -1,12 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
+import arrow.core.NonEmptySet
+import arrow.core.toNonEmptySetOrNull
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 
 internal fun Set<Avslagsgrunnlag>.toDb(): String = serialize(this.map { it.toDb() })
 
-internal fun String.toAvslagsgrunnlag(): Set<Avslagsgrunnlag> {
+internal fun String.toAvslagsgrunnlag(): NonEmptySet<Avslagsgrunnlag> {
     return deserializeList<ValgtHjemmelHarIkkeRettighetDb>(this).map {
         when (it) {
             ValgtHjemmelHarIkkeRettighetDb.STANS_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK,
@@ -27,7 +29,7 @@ internal fun String.toAvslagsgrunnlag(): Set<Avslagsgrunnlag> {
             ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LØNN_FRA_TILTAKSARRANGØR -> Avslagsgrunnlag.LønnFraTiltaksarrangør
             ValgtHjemmelHarIkkeRettighetDb.AVSLAG_LØNN_FRA_ANDRE -> Avslagsgrunnlag.LønnFraAndre
             ValgtHjemmelHarIkkeRettighetDb.AVSLAG_INSTITUSJONSOPPHOLD -> Avslagsgrunnlag.Institusjonsopphold
-            ValgtHjemmelHarIkkeRettighetDb.FREMMET_FOR_SENT -> Avslagsgrunnlag.FremmetForSent
+            ValgtHjemmelHarIkkeRettighetDb.AVSLAG_FREMMET_FOR_SENT -> Avslagsgrunnlag.FremmetForSent
         }
-    }.toSet()
+    }.toNonEmptySetOrNull()!!
 }

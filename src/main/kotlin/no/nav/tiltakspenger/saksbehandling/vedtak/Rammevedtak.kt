@@ -119,7 +119,7 @@ fun Sak.utledVedtakstype(behandling: Behandling): Vedtakstype {
             when (behandling.utfall) {
                 Behandlingsutfall.INNVILGELSE -> Vedtakstype.INNVILGELSE
                 Behandlingsutfall.AVSLAG -> Vedtakstype.AVSLAG
-                Behandlingsutfall.STANS -> Vedtakstype.STANS
+                Behandlingsutfall.STANS -> throw IllegalStateException("Førstegangsbehandling skal ikke kunne ha utfall stans. id $id, for behandling ${behandling.id}")
                 null -> throw IllegalArgumentException("Kan ikke lage et vedtak uten utfall. Behandlingen uten utfall er ${behandling.id}")
             }
         }

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
+import arrow.core.NonEmptySet
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -55,7 +56,7 @@ data class Behandling(
     val beslutter: String?,
     val saksopplysninger: Saksopplysninger,
     /**
-     * Saksbehandler tar et aktivt om behandlingen skal være avslag eller innvilgelse
+     * Saksbehandler tar et aktivt valg om behandlingen skal føre til et avslag eller en innvilgelse.
      */
     val utfall: Behandlingsutfall?,
     val status: Behandlingsstatus,
@@ -74,7 +75,10 @@ data class Behandling(
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
     val avbrutt: Avbrutt?,
     val antallDagerPerMeldeperiode: Int?,
-    val avslagsgrunner: Set<Avslagsgrunnlag>,
+    /**
+     * Null hvis det ikke er et avslag, eller har ikke blitt behandlet til det punktet.
+     */
+    val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
 ) {
     val erAvsluttet: Boolean by lazy { status == AVBRUTT || status == VEDTATT }
     val erUnderBehandling: Boolean = status == UNDER_BEHANDLING
@@ -169,7 +173,7 @@ data class Behandling(
                 valgteTiltaksdeltakelser = null,
                 avbrutt = null,
                 antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-                avslagsgrunner = emptySet(),
+                avslagsgrunner = null,
                 utfall = null,
             ).right()
         }
@@ -213,7 +217,7 @@ data class Behandling(
                 valgteTiltaksdeltakelser = null,
                 avbrutt = null,
                 antallDagerPerMeldeperiode = null,
-                avslagsgrunner = emptySet(),
+                avslagsgrunner = null,
                 // TODO - Denne må på et tidspunkt endres dersom vi kan revurdere flere ting
                 utfall = Behandlingsutfall.STANS,
             )
@@ -549,8 +553,8 @@ data class Behandling(
             }
         }
 
-        if (avslagsgrunner.isNotEmpty() || utfall == Behandlingsutfall.AVSLAG) {
-            require(avslagsgrunner.isNotEmpty()) {
+        if (avslagsgrunner != null || utfall == Behandlingsutfall.AVSLAG) {
+            require(avslagsgrunner != null) {
                 "Avslagsgrunner må være satt dersom behandlingen har utfallet AVSLAG"
             }
 
@@ -560,7 +564,7 @@ data class Behandling(
         }
 
         if (utfall == Behandlingsutfall.INNVILGELSE) {
-            require(avslagsgrunner.isEmpty()) {
+            require(avslagsgrunner == null) {
                 "Avslagsgrunner kan ikke være satt dersom behandlingen har utfallet INNVILGELSE"
             }
         }

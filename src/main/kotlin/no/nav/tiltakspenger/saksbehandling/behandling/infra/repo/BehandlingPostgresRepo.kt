@@ -307,7 +307,7 @@ class BehandlingPostgresRepo(
                             "valgte_tiltaksdeltakelser" to behandling.valgteTiltaksdeltakelser?.toDbJson(),
                             "avbrutt" to behandling.avbrutt?.toDbJson(),
                             "antall_dager_per_meldeperiode" to behandling.antallDagerPerMeldeperiode,
-                            "avslagsgrunner" to behandling.avslagsgrunner.toDb(),
+                            "avslagsgrunner" to behandling.avslagsgrunner?.toDb(),
                             "utfall" to behandling.utfall?.toDb(),
                         ),
                     ).asUpdate,
@@ -352,7 +352,7 @@ class BehandlingPostgresRepo(
                         "valgte_tiltaksdeltakelser" to behandling.valgteTiltaksdeltakelser?.toDbJson(),
                         "avbrutt" to behandling.avbrutt?.toDbJson(),
                         "antall_dager_per_meldeperiode" to behandling.antallDagerPerMeldeperiode,
-                        "avslagsgrunner" to behandling.avslagsgrunner.toDb(),
+                        "avslagsgrunner" to behandling.avslagsgrunner?.toDb(),
                         "utfall" to behandling.utfall?.toDb(),
                     ),
                 ).asUpdate,
@@ -404,8 +404,8 @@ class BehandlingPostgresRepo(
             val valgteTiltaksdeltakelser =
                 stringOrNull("valgte_tiltaksdeltakelser")?.toValgteTiltaksdeltakelser(saksopplysninger)
             val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
-            val avslagsgrunner = string("avslagsgrunner").toAvslagsgrunnlag()
-            val utfall = stringOrNull("utfall")?.toBehandlingsutfallDb()?.toDomain()
+            val avslagsgrunner = stringOrNull("avslagsgrunner")?.toAvslagsgrunnlag()
+            val utfall = stringOrNull("utfall")?.let { BehandlingsutfallDb.valueOf(it).toDomain() }
 
             return Behandling(
                 id = id,

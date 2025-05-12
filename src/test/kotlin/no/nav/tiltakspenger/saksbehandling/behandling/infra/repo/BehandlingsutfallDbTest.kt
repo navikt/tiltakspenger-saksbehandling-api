@@ -18,11 +18,4 @@ class BehandlingsutfallDbTest {
         BehandlingsutfallDb.AVSLAG.toDomain() shouldBe Behandlingsutfall.AVSLAG
         BehandlingsutfallDb.STANS.toDomain() shouldBe Behandlingsutfall.STANS
     }
-
-    @Test
-    fun `string til db type`() {
-        "INNVILGELSE".toBehandlingsutfallDb() shouldBe BehandlingsutfallDb.INNVILGELSE
-        "AVSLAG".toBehandlingsutfallDb() shouldBe BehandlingsutfallDb.AVSLAG
-        "STANS".toBehandlingsutfallDb() shouldBe BehandlingsutfallDb.STANS
-    }
 }

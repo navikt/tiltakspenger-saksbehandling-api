@@ -29,7 +29,7 @@ class AvslagsgrunnlagDbJsonKtTest {
                 "AVSLAG_LØNN_FRA_TILTAKSARRANGØR",
                 "AVSLAG_LØNN_FRA_ANDRE",
                 "AVSLAG_INSTITUSJONSOPPHOLD",
-                "FREMMET_FOR_SENT"
+                "AVSLAG_FREMMET_FOR_SENT"
             ]
             """.trimIndent(),
         )
@@ -47,7 +47,7 @@ class AvslagsgrunnlagDbJsonKtTest {
                 "AVSLAG_LØNN_FRA_TILTAKSARRANGØR",
                 "AVSLAG_LØNN_FRA_ANDRE",
                 "AVSLAG_INSTITUSJONSOPPHOLD",
-                "FREMMET_FOR_SENT"
+                "AVSLAG_FREMMET_FOR_SENT"
             ]
         """.trimIndent().toAvslagsgrunnlag() shouldBe setOf(
             Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak,

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.domene
 
+import arrow.core.nonEmptySetOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.fixedClock
@@ -108,7 +109,7 @@ class BehandlingTest {
             assertThrows<IllegalArgumentException> {
                 ObjectMother.nyFørstegangsbehandlingKlarTilBeslutning(
                     utfall = Behandlingsutfall.AVSLAG,
-                    avslagsgrunner = emptySet(),
+                    avslagsgrunner = null,
                 )
             }
         }
@@ -118,7 +119,7 @@ class BehandlingTest {
             assertThrows<IllegalArgumentException> {
                 ObjectMother.nyFørstegangsbehandlingKlarTilBeslutning(
                     utfall = Behandlingsutfall.INNVILGELSE,
-                    avslagsgrunner = setOf(Avslagsgrunnlag.Alder),
+                    avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
                 )
             }
         }
