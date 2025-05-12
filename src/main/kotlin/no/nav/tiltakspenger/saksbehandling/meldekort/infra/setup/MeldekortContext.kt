@@ -120,6 +120,7 @@ open class MeldekortContext(
         MeldekortApiHttpClient(
             baseUrl = Configuration.meldekortApiUrl,
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.meldekortApiScope) },
+            clock = clock,
         )
     }
     val sendTilMeldekortApiService by lazy {

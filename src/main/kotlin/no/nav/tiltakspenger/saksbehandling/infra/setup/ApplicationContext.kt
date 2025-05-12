@@ -291,7 +291,7 @@ open class ApplicationContext(
         MottaBrukerutfyltMeldekortService(
             brukersMeldekortRepo = meldekortContext.brukersMeldekortRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
-            kanBehandleAutomatisk = !Configuration.isProd(),
+            kanBehandleAutomatisk = true,
         )
     }
 

@@ -11,16 +11,20 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.FeilVedSendingTilMeldekortApi
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiHttpClientGateway
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Clock
+import java.time.LocalDate
 
 class MeldekortApiHttpClient(
     baseUrl: String,
     private val getToken: suspend () -> AccessToken,
+    private val clock: Clock,
 ) : MeldekortApiHttpClientGateway {
     private val client = java.net.http.HttpClient
         .newBuilder()
@@ -62,7 +66,7 @@ class MeldekortApiHttpClient(
 
     override suspend fun sendSak(sak: Sak): Either<FeilVedSendingTilMeldekortApi, Unit> {
         return Either.catch {
-            val payload = serialize(sak.tilMeldekortApiDTO())
+            val payload = serialize(sak.tilMeldekortApiDTO(clock))
 
             val response = client.sendAsync(
                 createRequest(sakUrl, payload),
@@ -123,14 +127,26 @@ private data class SakDTO(
     val fnr: String,
     val sakId: String,
     val saksnummer: String,
-    val innvilgelsesperioder: List<PeriodeDTO>,
+    val meldeperioder: List<PeriodeDTO>,
 )
 
-private fun Sak.tilMeldekortApiDTO(): SakDTO {
+private fun Sak.tilMeldekortApiDTO(clock: Clock): SakDTO {
+    // TODO: hvis/når vi forhåndsgenererer alle meldeperioder for hvert vedtak, så kan vi hente meldeperiodene fra saken
+    val alleMeldeperioder = if (this.vedtaksliste.isNotEmpty()) {
+        MeldeperiodeKjeder(emptyList())
+            .genererMeldeperioder(
+                vedtaksliste = this.vedtaksliste,
+                ikkeGenererEtter = LocalDate.MAX,
+                clock = clock,
+            ).second.map { it.periode.toDTO() }
+    } else {
+        emptyList()
+    }
+
     return SakDTO(
         fnr = this.fnr.verdi,
         sakId = this.id.toString(),
         saksnummer = this.saksnummer.toString(),
-        innvilgelsesperioder = this.vedtaksliste.innvilgelsesperioder.map { it.toDTO() },
+        meldeperioder = alleMeldeperioder,
     )
 }

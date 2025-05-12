@@ -47,7 +47,6 @@ data class Sak(
     val førsteDagSomGirRett = vedtaksliste.førsteDagSomGirRett
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
-    @Suppress("unused")
     val sisteDagSomGirRett = vedtaksliste.sisteDagSomGirRett
 
     val revurderinger = behandlinger.revurderinger
