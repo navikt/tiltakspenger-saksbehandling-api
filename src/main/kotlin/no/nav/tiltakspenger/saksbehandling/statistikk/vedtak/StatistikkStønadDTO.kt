@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.LocalDate
 import java.util.UUID
 
@@ -13,7 +14,7 @@ data class StatistikkStønadDTO(
 
     val sakId: String,
     val saksnummer: String,
-    val resultat: String,
+    val resultat: VedtakStatistikkResultat,
     val sakDato: LocalDate,
     // sakFraDato og sakTilDato er de samme som datoene for vedtaket siden sak ikke har periode lenger
     val sakFraDato: LocalDate,
@@ -37,3 +38,18 @@ data class StatistikkStønadDTO(
     // tiltaksdeltakelser (eksternId) som det er innvilget tiltakspenger for
     val tiltaksdeltakelser: List<String>,
 )
+
+enum class VedtakStatistikkResultat {
+    Innvilgelse,
+    Avslag,
+    Stans,
+    ;
+
+    companion object {
+        fun Vedtakstype.toVedtakStatistikkResultat(): VedtakStatistikkResultat = when (this) {
+            Vedtakstype.INNVILGELSE -> Innvilgelse
+            Vedtakstype.AVSLAG -> Avslag
+            Vedtakstype.STANS -> Stans
+        }
+    }
+}
