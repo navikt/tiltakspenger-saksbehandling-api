@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
@@ -33,8 +32,7 @@ internal data class ForhåndsvisBehandlingBody(
     val fritekst: String,
     val virkningsperiode: PeriodeDTO?,
     val stansDato: LocalDate?,
-    // TODO - bør ikke bruke domenetype direkte
-    val valgteHjemler: List<ValgtHjemmelHarIkkeRettighet>?,
+    val valgteHjemler: List<ValgtHjemmelForStansDTO>?,
     val barnetillegg: List<BarnetilleggPeriodeDTO>?,
     val utfall: String,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
@@ -54,7 +52,7 @@ internal data class ForhåndsvisBehandlingBody(
             correlationId = correlationId,
             saksbehandler = saksbehandler,
             virkingsperiode = virkningsperiode,
-            valgteHjemler = valgteHjemler ?: emptyList(),
+            valgteHjemler = (valgteHjemler ?: emptyList()).toDomain(),
             stansDato = stansDato,
             barnetillegg = barnetillegg?.tilPeriodisering(virkningsperiode),
             utfall = this.utfall.toBehandlingsutfallDto().toDomain(),
