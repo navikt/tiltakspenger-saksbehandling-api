@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 
+import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.VedtakStatistikkResultat.Companion.toVedtakStatistikkResultat
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.util.UUID
 
@@ -17,7 +18,7 @@ fun genererStønadsstatistikkForRammevedtak(
         sakId = vedtak.sakId.toString(),
         saksnummer = vedtak.saksnummer.toString(),
         // vår sak har ikke resultat, så bruker vedtak sin resultat
-        resultat = vedtak.vedtaksType.navn,
+        resultat = vedtak.vedtaksType.toVedtakStatistikkResultat(),
         sakDato = vedtak.saksnummer.dato,
         // sak har ikke periode lengre, så bruker vedtak sin periode
         sakFraDato = vedtak.periode.fraOgMed,

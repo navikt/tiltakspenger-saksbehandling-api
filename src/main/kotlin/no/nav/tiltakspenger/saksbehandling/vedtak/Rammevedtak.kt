@@ -78,12 +78,10 @@ data class Rammevedtak(
     }
 }
 
-enum class Vedtakstype(
-    val navn: String,
-) {
-    INNVILGELSE("Innvilgelse"),
-    AVSLAG("Avslag"),
-    STANS("Stans"),
+enum class Vedtakstype {
+    INNVILGELSE,
+    AVSLAG,
+    STANS,
 }
 
 fun Sak.opprettVedtak(
