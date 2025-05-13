@@ -48,7 +48,7 @@ private data class UtbetalingsvedtakDTO(
     data class MeldeperiodeSammenligningerDTO(
         val tittel: String,
         val differanseFraForrige: Int,
-        val barnetillegg: Boolean,
+        val harBarnetillegg: Boolean,
         val dager: List<DagSammenligningDTO>,
     )
 
@@ -100,7 +100,7 @@ private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
                 val fraOgMed = periode.fraOgMed.format(norskDatoFormatter)
                 val tilOgMed = periode.tilOgMed.format(norskDatoFormatter)
                 val tittel = "Meldekort $fraOgMed - $tilOgMed"
-                val barnetillegg =
+                val harBarnetillegg =
                     sammenligningPerMeldeperiode.dager.any {
                         it.barnetillegg.gjeldende > 0 ||
                             (it.barnetillegg.forrige ?: 0) > 0
@@ -130,7 +130,7 @@ private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
                             ),
                         )
                     },
-                    barnetillegg = barnetillegg,
+                    harBarnetillegg = harBarnetillegg,
                 )
             }
         }.let { meldeperiodeSammenligninger ->
