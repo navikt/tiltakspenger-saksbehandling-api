@@ -69,17 +69,20 @@ data class MeldekortUnderBehandling(
         beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
         simuler: suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
     ): Either<KanIkkeOppdatereMeldekort, Pair<MeldekortUnderBehandling, SimuleringMedMetadata?>> {
-        validerSaksbehandlerOgTilstand(kommando.saksbehandler).onLeft { return it.tilKanIkkeOppdatereMeldekort().left() }
+        validerSaksbehandlerOgTilstand(kommando.saksbehandler).onLeft {
+            return it.tilKanIkkeOppdatereMeldekort().left()
+        }
         val beregning = MeldekortBeregning(beregn(meldeperiode))
+
         val oppdatertBehandling = this.copy(
             dager = dager,
             // Dersom saksbehandler vil tømme begrunnelsen kan hen sende en tom streng.
             begrunnelse = kommando.begrunnelse ?: this.begrunnelse,
             beregning = beregning,
         )
-        // TODO jah: I første omgang kjører vi simulering som best effort. Også kan vi senere tvinge den på, evt. kunne ha et flagg som dropper kjøre simulering.
+        // TODO jah: I første omgang kjører vi simulering som best effort. Men dersom den feiler, er det viktig at vi nuller den ut. Også kan vi senere tvinge den på, evt. kunne ha et flagg som dropper kjøre simulering.
         val simuleringMedMetadata = simuler(oppdatertBehandling).getOrElse { null }
-        return Pair(oppdatertBehandling, simuleringMedMetadata).right()
+        return Pair(oppdatertBehandling.copy(simulering = simulering), simuleringMedMetadata).right()
     }
 
     suspend fun sendTilBeslutter(
@@ -88,7 +91,9 @@ data class MeldekortUnderBehandling(
         simuler: suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
         clock: Clock,
     ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<MeldekortBehandletManuelt, SimuleringMedMetadata?>> {
-        validerSaksbehandlerOgTilstand(kommando.saksbehandler).onLeft { return it.tilKanIkkeSendeMeldekortTilBeslutter().left() }
+        validerSaksbehandlerOgTilstand(kommando.saksbehandler).onLeft {
+            return it.tilKanIkkeSendeMeldekortTilBeslutter().left()
+        }
         val (oppdatertMeldekort, simulering) = if (kommando.harOppdateringer) {
             oppdater(
                 kommando = OppdaterMeldekortKommando(
