@@ -82,7 +82,7 @@ data class MeldekortUnderBehandling(
         )
         // TODO jah: I første omgang kjører vi simulering som best effort. Men dersom den feiler, er det viktig at vi nuller den ut. Også kan vi senere tvinge den på, evt. kunne ha et flagg som dropper kjøre simulering.
         val simuleringMedMetadata = simuler(oppdatertBehandling).getOrElse { null }
-        return Pair(oppdatertBehandling.copy(simulering = simulering), simuleringMedMetadata).right()
+        return Pair(oppdatertBehandling.copy(simulering = simuleringMedMetadata?.simulering), simuleringMedMetadata).right()
     }
 
     suspend fun sendTilBeslutter(
