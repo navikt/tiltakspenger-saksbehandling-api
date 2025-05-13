@@ -215,7 +215,7 @@ class SakPostgresRepo(
         }
     }
 
-    override fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate, limit: Int): List<SakId> {
+    override fun hentSakerSomMåGenerereMeldeperioderFra(limit: Int): List<SakId> {
         return sessionFactory.withSessionContext { sessionContext ->
             sessionContext.withSession { session ->
                 @Suppress("SqlAggregates")
@@ -232,18 +232,16 @@ class SakPostgresRepo(
                                 (
                                     max(m.til_og_med) is not null 
                                     and max(m.til_og_med) < s.siste_dag_som_gir_rett
-                                    and max(m.til_og_med) < :ikkeGenererEtter
                                 )
                                 or
                                 -- Case 2: Has no meldeperioder (max will be null)
                                 (
                                     max(m.til_og_med) is null
-                                    and s.første_dag_som_gir_rett <= :ikkeGenererEtter
+                                    and s.første_dag_som_gir_rett is not null
                                 )
                             )
                             limit $limit;
                         """.trimIndent(),
-                        mapOf("ikkeGenererEtter" to ikkeGenererEtter),
                     ).map {
                         SakId.fromString(it.string("id"))
                     }.asList,

@@ -7,9 +7,9 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
-import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 
+// TODO: skal kjøre en gang til og så slettes
 class GenererMeldeperioderService(
     val sakRepo: SakRepo,
     val meldeperiodeRepo: MeldeperiodeRepo,
@@ -20,7 +20,10 @@ class GenererMeldeperioderService(
 
     fun genererMeldeperioderForSaker(): List<SakId> {
         return Either.catch {
-            val sakIDer: List<SakId> = sakRepo.hentSakerSomMåGenerereMeldeperioderFra(Sak.ikkeGenererEtter(clock))
+            val sakIDer: List<SakId> =
+                sakRepo.hentSakerSomMåGenerereMeldeperioderFra()
+
+            logger.debug { "Fant ${sakIDer.size} saker som det skal genereres meldeperioder fra" }
 
             sakIDer.mapNotNull { sakId ->
                 Either.catch {
@@ -35,6 +38,8 @@ class GenererMeldeperioderService(
                         )
                         meldeperiodeRepo.lagre(meldeperioder, tx)
                     }
+
+                    logger.info { "Genererte meldeperioder for sak $sakId - før: ${sak.meldeperiodeKjeder.meldeperioder.size} - etter: ${meldeperioder.size}" }
 
                     sakId
                 }.getOrElse {

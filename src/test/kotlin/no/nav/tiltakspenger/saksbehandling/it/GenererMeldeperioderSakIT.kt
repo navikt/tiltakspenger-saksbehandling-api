@@ -3,12 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.it
 import io.kotest.matchers.shouldBe
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
-import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
-import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.april
@@ -47,44 +44,10 @@ class GenererMeldeperioderSakIT {
                     beslutter = ObjectMother.beslutter(),
                 )
                 sak.meldeperiodeKjeder.let {
-                    it.size shouldBe 1
-                    it.single()
-                    it.single().single().versjon shouldBe HendelseVersjon(1)
+                    it.size shouldBe 2
+                    it.last().last().versjon shouldBe HendelseVersjon(1)
                 }
-                tac.kjørSendTilMeldekortApiJobb()
-                tac.kjørGenererMeldeperiodeJobb().size shouldBe 0
-
-                tac.clock.spolTil(23.april(2025))
-                tac.kjørGenererMeldeperiodeJobb().size shouldBe 0
-
-                tac.clock.spolTil(2.mai(2025))
-                tac.kjørGenererMeldeperiodeJobb().size shouldBe 1
-                tac.sakContext.sakService.hentForSakId(sak.id, ObjectMother.saksbehandler(), CorrelationId.generate())
-                    .getOrFail().also {
-                        it.meldeperiodeKjeder.size shouldBe 2
-                        it.meldeperiodeKjeder.first().single().versjon.value shouldBe 1
-                        it.meldeperiodeKjeder.last().single().versjon.value shouldBe 1
-                    }
-
-                // sanity jobb check
-                tac.kjørGenererMeldeperiodeJobb().size shouldBe 0
-                tac.sakContext.sakService.hentForSakId(sak.id, ObjectMother.saksbehandler(), CorrelationId.generate())
-                    .getOrFail().also {
-                        it.meldeperiodeKjeder.size shouldBe 2
-                        it.meldeperiodeKjeder.first().single().versjon.value shouldBe 1
-                        it.meldeperiodeKjeder.last().single().versjon.value shouldBe 1
-                    }
             }
         }
     }
-}
-
-suspend fun TestApplicationContext.kjørSendTilMeldekortApiJobb() {
-    return this.meldekortContext.sendTilMeldekortApiService.send().also {
-        this.meldekortContext.meldeperiodeRepo.hentUsendteTilBruker().size shouldBe 0
-    }
-}
-
-fun TestApplicationContext.kjørGenererMeldeperiodeJobb(): List<SakId> {
-    return this.genererMeldeperioderService.genererMeldeperioderForSaker()
 }

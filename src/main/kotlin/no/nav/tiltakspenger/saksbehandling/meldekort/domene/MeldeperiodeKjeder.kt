@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
-import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.overlapperIkke
@@ -68,17 +67,6 @@ data class MeldeperiodeKjeder(
         }
     }
 
-    /**
-     * @throws NoSuchElementException hvis det ikke finnes noen meldeperioder
-     */
-    fun hentSisteMeldeperiode(): Meldeperiode {
-        return meldeperiodeKjeder.last().hentSisteMeldeperiode()
-    }
-
-    fun hentMeldeperiode(id: MeldeperiodeId): Meldeperiode? {
-        return meldeperiodeKjeder.asSequence().flatten().find { it.id == id }
-    }
-
     fun hentMeldeperiode(periode: Periode): Meldeperiode? {
         return meldeperiodeKjeder.singleOrNullOrThrow {
             it.periode == periode
@@ -138,7 +126,6 @@ data class MeldeperiodeKjeder(
 
     fun genererMeldeperioder(
         vedtaksliste: Vedtaksliste,
-        ikkeGenererEtter: LocalDate,
         clock: Clock,
     ): Pair<MeldeperiodeKjeder, List<Meldeperiode>> {
         if (vedtaksliste.isEmpty()) {
@@ -147,14 +134,13 @@ data class MeldeperiodeKjeder(
         }
         val vedtaksperioder = vedtaksliste.vedtaksperioder
         val førsteFraOgMed = vedtaksperioder.first().fraOgMed
+        val sisteTilOgMed = vedtaksperioder.last().tilOgMed
         var nærmesteMeldeperiode = finnNærmesteMeldeperiode(førsteFraOgMed)
 
-        val potensielleNyeMeldeperioder = mutableListOf<Meldeperiode>()
+        val nyeMeldeperioder = mutableListOf<Meldeperiode>()
 
         // før eller samme dag
-        while (!nærmesteMeldeperiode.starterEtter(vedtaksperioder.last().tilOgMed) &&
-            !ikkeGenererEtter.isBefore(nærmesteMeldeperiode.tilOgMed)
-        ) {
+        while (!nærmesteMeldeperiode.etter(sisteTilOgMed)) {
             if (vedtaksperioder.overlapperIkke(nærmesteMeldeperiode) && !this.harMeldeperiode(nærmesteMeldeperiode)) {
                 // hvis perioden ikke overlapper, og den ikke finnes fra før, så skal ikke vi oppdatere noe
                 continue
@@ -181,10 +167,12 @@ data class MeldeperiodeKjeder(
                 rammevedtak = vedtaksliste.vedtakForPeriode(nærmesteMeldeperiode),
                 clock = clock,
             )
-            potensielleNyeMeldeperioder.add(potensiellNyMeldeperiode)
+
+            nyeMeldeperioder.add(potensiellNyMeldeperiode)
             nærmesteMeldeperiode = nærmesteMeldeperiode.nesteMeldeperiode()
         }
-        return this.oppdaterEllerLeggTilNy(potensielleNyeMeldeperioder)
+
+        return this.oppdaterEllerLeggTilNy(nyeMeldeperioder)
     }
 
     fun finnNærmesteMeldeperiode(dato: LocalDate): Periode {

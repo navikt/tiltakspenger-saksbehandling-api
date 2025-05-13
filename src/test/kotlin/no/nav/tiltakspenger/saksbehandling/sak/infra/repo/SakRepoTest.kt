@@ -3,22 +3,11 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.repo
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.april
-import no.nav.tiltakspenger.libs.periodisering.desember
-import no.nav.tiltakspenger.libs.periodisering.februar
-import no.nav.tiltakspenger.libs.periodisering.januar
-import no.nav.tiltakspenger.libs.periodisering.zoneIdOslo
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterNySak
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSak
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saker
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import java.time.Clock
 
 internal class SakRepoTest {
     @Test
@@ -73,84 +62,6 @@ internal class SakRepoTest {
             testDataHelper.persisterOpprettetFørstegangsbehandling()
 
             sakRepo.hentForFnr(fnr) shouldBe Saker(fnr, listOf(sak1, sak2))
-        }
-    }
-
-    @Nested
-    inner class HentSakerSomMåGenerereMeldeperioderFra {
-        @Test
-        fun `sak har meldeperioder og skal ikke generere flere`() {
-            withMigratedDb { testDataHelper ->
-                val sakRepo = testDataHelper.sakRepo
-                val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
-                    deltakelseFom = 1.februar(2025),
-                    deltakelseTom = 28.februar(2025),
-                    clock = Clock.fixed(1.april(2025).atStartOfDay(zoneIdOslo).toInstant(), zoneIdOslo),
-                )
-                sakRepo.oppdaterFørsteOgSisteDagSomGirRett(sak.id, sak.førsteDagSomGirRett, sak.sisteDagSomGirRett)
-                sak.meldeperiodeKjeder.meldeperioder.size shouldBe 3
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(1.februar(2025)) shouldBe emptyList()
-            }
-        }
-
-        @Test
-        fun `hentSakerSomMåGenerereMeldeperioderFra - `() {
-            withMigratedDb { testDataHelper ->
-                val meldeperiodeRepo = testDataHelper.meldeperiodeRepo
-                val sakRepo = testDataHelper.sakRepo
-
-                // Lager en test som kun tester databasespørringen hentSakerSomMåGenerereMeldeperioderFra - uavhengig av domeneimplementasjonen
-                val sak = testDataHelper.persisterNySak()
-
-                // Tester at det ikke er generert noen meldeperioder enda. Skal ikke spille noen rolle hvilken dag vi sender inn her.
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(1.januar(2000)) shouldBe emptyList()
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(1.januar(2025)) shouldBe emptyList()
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(1.januar(2050)) shouldBe emptyList()
-                // Later som det finnes et vedtak med innvilgelsesperiode hele januar 2025
-                sakRepo.oppdaterFørsteOgSisteDagSomGirRett(sak.id, 1.januar(2025), 31.januar(2025))
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter = 31.desember(2024)) shouldBe emptyList()
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter = 1.januar(2025)) shouldBe listOf(sak.id)
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter = 1.januar(2050)) shouldBe listOf(sak.id)
-
-                testDataHelper.sessionFactory.withSessionContext {
-                    meldeperiodeRepo.lagre(
-                        ObjectMother.meldeperiode(
-                            sakId = sak.id,
-                            saksnummer = sak.saksnummer,
-                            periode = Periode(6.januar(2025), 19.januar(2025)),
-                        ),
-                        it,
-                    )
-                }
-
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(19.januar(2025)) shouldBe emptyList()
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(20.januar(2025)) shouldBe listOf(sak.id)
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(20.januar(2050)) shouldBe listOf(sak.id)
-                testDataHelper.sessionFactory.withSessionContext {
-                    meldeperiodeRepo.lagre(
-                        ObjectMother.meldeperiode(
-                            sakId = sak.id,
-                            saksnummer = sak.saksnummer,
-                            periode = Periode(20.januar(2025), 2.februar(2025)),
-                        ),
-                        it,
-                    )
-                }
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(19.januar(2000)) shouldBe emptyList()
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(19.januar(2025)) shouldBe emptyList()
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(19.januar(2050)) shouldBe emptyList()
-
-                sakRepo.oppdaterFørsteOgSisteDagSomGirRett(sak.id, 1.januar(2025), 2.februar(2025))
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(2.februar(2000)) shouldBe emptyList()
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(2.februar(2025)) shouldBe emptyList()
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(2.februar(2050)) shouldBe emptyList()
-
-                sakRepo.oppdaterFørsteOgSisteDagSomGirRett(sak.id, 1.januar(2025), 3.februar(2025))
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(2.februar(2000)) shouldBe emptyList()
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(2.februar(2025)) shouldBe emptyList()
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(3.februar(2025)) shouldBe listOf(sak.id)
-                sakRepo.hentSakerSomMåGenerereMeldeperioderFra(3.februar(2050)) shouldBe listOf(sak.id)
-            }
         }
     }
 }

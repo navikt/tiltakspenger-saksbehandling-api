@@ -19,7 +19,6 @@ import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Clock
-import java.time.LocalDate
 
 class MeldekortApiHttpClient(
     baseUrl: String,
@@ -134,7 +133,6 @@ private fun Sak.tilMeldekortApiDTO(clock: Clock): SakDTO {
         MeldeperiodeKjeder(emptyList())
             .genererMeldeperioder(
                 vedtaksliste = this.vedtaksliste,
-                ikkeGenererEtter = LocalDate.MAX,
                 clock = clock,
             ).second.map { it.periode.toDTO() }
     } else {

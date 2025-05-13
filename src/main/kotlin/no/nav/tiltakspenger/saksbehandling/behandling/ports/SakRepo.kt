@@ -48,7 +48,7 @@ interface SakRepo {
         sessionContext: SessionContext? = null,
     )
 
-    fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate, limit: Int = 1000): List<SakId>
+    fun hentSakerSomMåGenerereMeldeperioderFra(limit: Int = 1000): List<SakId>
 
     fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr)
 

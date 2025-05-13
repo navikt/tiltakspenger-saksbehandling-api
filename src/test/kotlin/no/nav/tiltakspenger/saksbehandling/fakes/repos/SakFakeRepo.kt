@@ -90,12 +90,12 @@ class SakFakeRepo(
     ) {
     }
 
-    override fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate, limit: Int): List<SakId> {
+    override fun hentSakerSomMåGenerereMeldeperioderFra(limit: Int): List<SakId> {
         data.get().mapNotNull {
             hentSak(it.key)
         }.filter {
             val sisteMeldeperiode = it.meldeperiodeKjeder.meldeperioder.last()
-            sisteMeldeperiode.periode.tilOgMed < it.sisteDagSomGirRett && sisteMeldeperiode.periode.tilOgMed < ikkeGenererEtter
+            sisteMeldeperiode.periode.tilOgMed < it.sisteDagSomGirRett
         }.map {
             it.id
         }.let {
