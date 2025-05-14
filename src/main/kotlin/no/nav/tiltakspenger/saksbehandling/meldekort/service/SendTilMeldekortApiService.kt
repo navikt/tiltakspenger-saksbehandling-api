@@ -2,50 +2,19 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiHttpClientGateway
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
-import java.time.Clock
 
 /**
  * Sender meldeperioder som er klare for utfylling til meldekort-api, som serverer videre til bruker
  */
 class SendTilMeldekortApiService(
-    private val meldeperiodeRepo: MeldeperiodeRepo,
     private val sakRepo: SakRepo,
     private val meldekortApiHttpClient: MeldekortApiHttpClientGateway,
-    private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger { }
 
-    suspend fun send() {
-        sendSaker()
-        sendMeldeperioder()
-    }
-
-    private suspend fun sendMeldeperioder() {
-        Either.catch {
-            val usendteMeldeperioder = meldeperiodeRepo.hentUsendteTilBruker()
-
-            logger.debug { "Fant ${usendteMeldeperioder.count()} meldeperioder for sending til meldekort-api" }
-
-            usendteMeldeperioder.forEach { meldeperiode ->
-                meldekortApiHttpClient.sendMeldeperiode(meldeperiode).onRight {
-                    logger.info { "Sendte meldeperiode til meldekort-api med id ${meldeperiode.id}" }
-                    meldeperiodeRepo.markerSomSendtTilBruker(meldeperiode.id, nå(clock))
-                }.onLeft {
-                    logger.error { "Kunne ikke sende meldeperiode til meldekort-api med id ${meldeperiode.id}" }
-                }
-            }
-        }.onLeft {
-            with("Uventet feil ved sending av meldeperiode til meldekort-api!") {
-                logger.error(it) { this }
-            }
-        }
-    }
-
-    private suspend fun sendSaker() {
+    suspend fun sendSaker() {
         Either.catch {
             val saker = sakRepo.hentForSendingTilMeldekortApi()
 
@@ -61,9 +30,7 @@ class SendTilMeldekortApiService(
                 }
             }
         }.onLeft {
-            with("Uventet feil ved sending av saker til meldekort-api!") {
-                logger.error(it) { this }
-            }
+            logger.error(it) { "Uventet feil ved sending av saker til meldekort-api!" }
         }
     }
 }

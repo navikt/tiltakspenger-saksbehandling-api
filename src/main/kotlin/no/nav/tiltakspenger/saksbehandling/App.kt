@@ -84,7 +84,7 @@ internal fun start(
             { applicationContext.behandlingContext.distribuerVedtaksbrevService.distribuer() },
             { applicationContext.meldekortContext.oppgaveMeldekortService.opprettOppgaveForMeldekortSomIkkeBehandlesAutomatisk() },
             { applicationContext.genererMeldeperioderService.genererMeldeperioderForSaker() },
-            { applicationContext.meldekortContext.sendTilMeldekortApiService.send() },
+            { applicationContext.meldekortContext.sendTilMeldekortApiService.sendSaker() },
             { applicationContext.meldekortContext.automatiskMeldekortBehandlingService.behandleBrukersMeldekort() },
         ).let {
             if (Configuration.isNais()) {

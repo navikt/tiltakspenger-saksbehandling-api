@@ -137,7 +137,7 @@ data class MeldeperiodeKjeder(
         val sisteTilOgMed = vedtaksperioder.last().tilOgMed
         var nærmesteMeldeperiode = finnNærmesteMeldeperiode(førsteFraOgMed)
 
-        val nyeMeldeperioder = mutableListOf<Meldeperiode>()
+        val potensielleNyeMeldeperioder = mutableListOf<Meldeperiode>()
 
         // før eller samme dag
         while (!nærmesteMeldeperiode.etter(sisteTilOgMed)) {
@@ -168,11 +168,11 @@ data class MeldeperiodeKjeder(
                 clock = clock,
             )
 
-            nyeMeldeperioder.add(potensiellNyMeldeperiode)
+            potensielleNyeMeldeperioder.add(potensiellNyMeldeperiode)
             nærmesteMeldeperiode = nærmesteMeldeperiode.nesteMeldeperiode()
         }
 
-        return this.oppdaterEllerLeggTilNy(nyeMeldeperioder)
+        return this.oppdaterEllerLeggTilNy(potensielleNyeMeldeperioder)
     }
 
     fun finnNærmesteMeldeperiode(dato: LocalDate): Periode {

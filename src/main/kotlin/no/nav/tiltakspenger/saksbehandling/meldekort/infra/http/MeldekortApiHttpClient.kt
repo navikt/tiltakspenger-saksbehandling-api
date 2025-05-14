@@ -7,23 +7,19 @@ import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
-import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeDTO
-import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
-import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.FeilVedSendingTilMeldekortApi
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiHttpClientGateway
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.time.Clock
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 class MeldekortApiHttpClient(
     baseUrl: String,
     private val getToken: suspend () -> AccessToken,
-    private val clock: Clock,
 ) : MeldekortApiHttpClientGateway {
     private val client = java.net.http.HttpClient
         .newBuilder()
@@ -32,39 +28,11 @@ class MeldekortApiHttpClient(
 
     private val logger = KotlinLogging.logger {}
 
-    private val meldeperiodeUrl = URI.create("$baseUrl/saksbehandling/meldeperiode")
     private val sakUrl = URI.create("$baseUrl/saksbehandling/sak")
-
-    override suspend fun sendMeldeperiode(meldeperiode: Meldeperiode): Either<FeilVedSendingTilMeldekortApi, Unit> {
-        return Either.catch {
-            val payload = serialize(meldeperiode.tilMeldekortApiDTO())
-
-            val response = client.sendAsync(
-                createRequest(meldeperiodeUrl, payload),
-                HttpResponse.BodyHandlers.ofString(),
-            ).await()
-
-            val status = response.statusCode()
-
-            if (status !in 200..299) {
-                val body: String = response.body()
-                with("Feilrespons ved sending av ${meldeperiode.kjedeId}/${meldeperiode.id} til meldekort-api - status: $status") {
-                    logger.error { this }
-                    Sikkerlogg.error { "$this - Response body: $body" }
-                }
-                return FeilVedSendingTilMeldekortApi.left()
-            }
-        }.mapLeft {
-            with("Feil ved sending av ${meldeperiode.kjedeId} til meldekort-api") {
-                logger.error(it) { this }
-            }
-            FeilVedSendingTilMeldekortApi
-        }
-    }
 
     override suspend fun sendSak(sak: Sak): Either<FeilVedSendingTilMeldekortApi, Unit> {
         return Either.catch {
-            val payload = serialize(sak.tilMeldekortApiDTO(clock))
+            val payload = serialize(sak.tilMeldekortApiDTO())
 
             val response = client.sendAsync(
                 createRequest(sakUrl, payload),
@@ -83,7 +51,8 @@ class MeldekortApiHttpClient(
             }
         }.mapLeft {
             with("Feil ved sending av sak ${sak.id} til meldekort-api") {
-                logger.error(it) { this }
+                logger.error { this }
+                Sikkerlogg.error(it) { this }
             }
             FeilVedSendingTilMeldekortApi
         }
@@ -103,14 +72,23 @@ class MeldekortApiHttpClient(
     }
 }
 
-private fun Meldeperiode.tilMeldekortApiDTO(): MeldeperiodeDTO {
-    return MeldeperiodeDTO(
+// TODO: oppdater libs
+data class MeldeperiodeDTONy(
+    val id: String,
+    val kjedeId: String,
+    val versjon: Int,
+    val opprettet: LocalDateTime,
+    val fraOgMed: LocalDate,
+    val tilOgMed: LocalDate,
+    val antallDagerForPeriode: Int,
+    val girRett: Map<LocalDate, Boolean>,
+)
+
+private fun Meldeperiode.tilMeldekortApiDTO(): MeldeperiodeDTONy {
+    return MeldeperiodeDTONy(
         id = this.id.toString(),
         kjedeId = this.kjedeId.toString(),
         versjon = this.versjon.value,
-        fnr = this.fnr.verdi,
-        saksnummer = this.saksnummer.toString(),
-        sakId = this.sakId.toString(),
         opprettet = this.opprettet,
         fraOgMed = this.periode.fraOgMed,
         tilOgMed = this.periode.tilOgMed,
@@ -124,25 +102,14 @@ private data class SakDTO(
     val fnr: String,
     val sakId: String,
     val saksnummer: String,
-    val meldeperioder: List<PeriodeDTO>,
+    val meldeperioder: List<MeldeperiodeDTONy>,
 )
 
-private fun Sak.tilMeldekortApiDTO(clock: Clock): SakDTO {
-    // TODO: hvis/når vi forhåndsgenererer alle meldeperioder for hvert vedtak, så trenger vi ikke denne
-    val alleMeldeperioder = if (this.vedtaksliste.isNotEmpty()) {
-        MeldeperiodeKjeder(emptyList())
-            .genererMeldeperioder(
-                vedtaksliste = this.vedtaksliste,
-                clock = clock,
-            ).second.map { it.periode.toDTO() }
-    } else {
-        emptyList()
-    }
-
+private fun Sak.tilMeldekortApiDTO(): SakDTO {
     return SakDTO(
         fnr = this.fnr.verdi,
         sakId = this.id.toString(),
         saksnummer = this.saksnummer.toString(),
-        meldeperioder = alleMeldeperioder,
+        meldeperioder = this.meldeperiodeKjeder.meldeperioder.map { it.tilMeldekortApiDTO() },
     )
 }
