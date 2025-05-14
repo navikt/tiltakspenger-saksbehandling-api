@@ -22,7 +22,6 @@ import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHtt
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.infra.repo.DataSourceSetup
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.GenererMeldeperioderService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMeldekortService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingGateway
@@ -304,15 +303,6 @@ open class ApplicationContext(
             statistikkSakService = statistikkContext.statistikkSakService,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             sessionFactory = sessionFactory,
-        )
-    }
-
-    val genererMeldeperioderService by lazy {
-        GenererMeldeperioderService(
-            sakRepo = sakContext.sakRepo,
-            meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
-            sessionFactory = sessionFactory,
-            clock = clock,
         )
     }
 }

@@ -83,7 +83,6 @@ internal fun start(
             { applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør() },
             { applicationContext.behandlingContext.distribuerVedtaksbrevService.distribuer() },
             { applicationContext.meldekortContext.oppgaveMeldekortService.opprettOppgaveForMeldekortSomIkkeBehandlesAutomatisk() },
-            { applicationContext.genererMeldeperioderService.genererMeldeperioderForSaker() },
             { applicationContext.meldekortContext.sendTilMeldekortApiService.sendSaker() },
             { applicationContext.meldekortContext.automatiskMeldekortBehandlingService.behandleBrukersMeldekort() },
         ).let {

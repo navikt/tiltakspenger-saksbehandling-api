@@ -191,41 +191,6 @@ class SakPostgresRepo(
             }
         }
 
-    override fun hentSakerSomMåGenerereMeldeperioderFra(limit: Int): List<SakId> {
-        return sessionFactory.withSessionContext { sessionContext ->
-            sessionContext.withSession { session ->
-                @Suppress("SqlAggregates")
-                session.run(
-                    queryOf(
-                        // language=SQL
-                        """
-                            select s.id, s.siste_dag_som_gir_rett, max(m.til_og_med) as til_og_med
-                            from sak s
-                            left join meldeperiode m on s.id = m.sak_id
-                            group by s.id
-                            having (
-                                -- Case 1: Has meldeperioder but needs more
-                                (
-                                    max(m.til_og_med) is not null 
-                                    and max(m.til_og_med) < s.siste_dag_som_gir_rett
-                                )
-                                or
-                                -- Case 2: Has no meldeperioder (max will be null)
-                                (
-                                    max(m.til_og_med) is null
-                                    and s.første_dag_som_gir_rett is not null
-                                )
-                            )
-                            limit $limit;
-                        """.trimIndent(),
-                    ).map {
-                        SakId.fromString(it.string("id"))
-                    }.asList,
-                )
-            }
-        }
-    }
-
     override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
         sessionFactory.withSessionContext { sessionContext ->
             sessionContext.withSession { session ->
