@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 
 class MeldeperiodeKjederTest {
 
@@ -102,7 +101,7 @@ class MeldeperiodeKjederTest {
     }
 
     @Test
-    fun `genererer første meldeperioder for et innvilgelse vedtak`() {
+    fun `genererer meldeperioder for et innvilgelse vedtak`() {
         val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
         val kjeder = MeldeperiodeKjeder(emptyList())
@@ -111,7 +110,6 @@ class MeldeperiodeKjederTest {
             Vedtaksliste(
                 innvilgelseVedtak,
             ),
-            LocalDate.MAX,
             fixedClock,
         )
 
@@ -155,7 +153,7 @@ class MeldeperiodeKjederTest {
 
         val kjeder = MeldeperiodeKjeder(emptyList())
 
-        val actual = kjeder.genererMeldeperioder(vedtaksliste, LocalDate.MAX, fixedClock)
+        val actual = kjeder.genererMeldeperioder(vedtaksliste, fixedClock)
 
         actual.let {
             it.first.size shouldBe 0
@@ -175,7 +173,7 @@ class MeldeperiodeKjederTest {
         val forventetFørstePeriode = Periode(2.januar(2023), 15.januar(2023))
         val forventetSistePeriode = Periode(16.januar(2023), 29.januar(2023))
 
-        val (nyeKjederV1) = kjederV1.genererMeldeperioder(v1, LocalDate.MAX, fixedClock).also {
+        val (nyeKjederV1) = kjederV1.genererMeldeperioder(v1, fixedClock).also {
             it.first.meldeperioder.size shouldBe 2
             it.first.meldeperioder shouldBe it.second
 
@@ -204,7 +202,7 @@ class MeldeperiodeKjederTest {
             ),
         )
 
-        val actual = nyeKjederV1.genererMeldeperioder(v2, LocalDate.MAX, enUkeEtterFixedClock)
+        val actual = nyeKjederV1.genererMeldeperioder(v2, enUkeEtterFixedClock)
 
         actual.let {
             it.first.meldeperioder.size shouldBe 2

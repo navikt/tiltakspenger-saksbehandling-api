@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
+import java.time.LocalDate
 
 /** @property korrigeringFraTidligerePeriode Korrigering på en tidligere meldeperiodekjede, som har påvirket denne kjeden,
  *  og er nyere enn siste meldekortbehandling på denne kjeden. Dvs en korrigering som har overstyrt
@@ -73,5 +74,11 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
 }
 
 fun Sak.toMeldeperiodeKjederDTO(clock: Clock): List<MeldeperiodeKjedeDTO> {
-    return this.meldeperiodeKjeder.map { this.toMeldeperiodeKjedeDTO(it.kjedeId, clock) }
+    return this.meldeperiodeKjeder.mapNotNull {
+        if (it.periode.fraOgMed > LocalDate.now(clock)) {
+            return@mapNotNull null
+        }
+
+        this.toMeldeperiodeKjedeDTO(it.kjedeId, clock)
+    }
 }

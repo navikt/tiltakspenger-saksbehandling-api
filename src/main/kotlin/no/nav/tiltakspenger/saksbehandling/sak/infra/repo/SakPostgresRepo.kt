@@ -191,31 +191,7 @@ class SakPostgresRepo(
             }
         }
 
-    override fun oppdaterFørsteOgSisteDagSomGirRett(
-        sakId: SakId,
-        førsteDagSomGirRett: LocalDate?,
-        sisteDagSomGirRett: LocalDate?,
-        sessionContext: SessionContext?,
-    ) {
-        sessionFactory.withSessionContext(sessionContext) { sc ->
-            sc.withSession { session ->
-                session.run(
-                    queryOf(
-                        """
-                        update sak set første_dag_som_gir_rett = :forste_dag_som_gir_rett, siste_dag_som_gir_rett = :siste_dag_som_gir_rett where id = :sak_id
-                        """.trimIndent(),
-                        mapOf(
-                            "forste_dag_som_gir_rett" to førsteDagSomGirRett,
-                            "siste_dag_som_gir_rett" to sisteDagSomGirRett,
-                            "sak_id" to sakId.toString(),
-                        ),
-                    ).asUpdate,
-                )
-            }
-        }
-    }
-
-    override fun hentSakerSomMåGenerereMeldeperioderFra(ikkeGenererEtter: LocalDate, limit: Int): List<SakId> {
+    override fun hentSakerSomMåGenerereMeldeperioderFra(limit: Int): List<SakId> {
         return sessionFactory.withSessionContext { sessionContext ->
             sessionContext.withSession { session ->
                 @Suppress("SqlAggregates")
@@ -232,18 +208,16 @@ class SakPostgresRepo(
                                 (
                                     max(m.til_og_med) is not null 
                                     and max(m.til_og_med) < s.siste_dag_som_gir_rett
-                                    and max(m.til_og_med) < :ikkeGenererEtter
                                 )
                                 or
                                 -- Case 2: Has no meldeperioder (max will be null)
                                 (
                                     max(m.til_og_med) is null
-                                    and s.første_dag_som_gir_rett <= :ikkeGenererEtter
+                                    and s.første_dag_som_gir_rett is not null
                                 )
                             )
                             limit $limit;
                         """.trimIndent(),
-                        mapOf("ikkeGenererEtter" to ikkeGenererEtter),
                     ).map {
                         SakId.fromString(it.string("id"))
                     }.asList,
@@ -337,18 +311,7 @@ class SakPostgresRepo(
                     meldeperiodeKjeder = meldeperiodekjeder,
                     brukersMeldekort = BrukersMeldekortPostgresRepo.hentForSakId(id, session),
                     soknader = soknader,
-                ).also { sak ->
-                    localDateOrNull("første_dag_som_gir_rett").also {
-                        require(sak.førsteDagSomGirRett == it) {
-                            "Vedtakslisten vår er master på første dag som gir rett (${sak.førsteDagSomGirRett}). Kolonnen sak.første_dag_som_gir_rett er ikke oppdatert ($it). For sak-id: $id, saksnummer: ${sak.saksnummer}"
-                        }
-                    }
-                    localDateOrNull("siste_dag_som_gir_rett").also {
-                        require(sak.sisteDagSomGirRett == it) {
-                            "Vedtakslisten vår er master på siste dag som gir rett (${sak.sisteDagSomGirRett}). Kolonnen sak.siste_dag_som_gir_rett er ikke oppdatert ($it). For sak-id: $id, saksnummer: ${sak.saksnummer}"
-                        }
-                    }
-                }
+                )
             }
         }
 

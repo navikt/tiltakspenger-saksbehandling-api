@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
@@ -24,10 +23,8 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import java.time.Clock
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.temporal.TemporalAdjusters
 
 data class Sak(
     val id: SakId,
@@ -72,6 +69,7 @@ data class Sak(
     fun hentSisteMeldeperiodeForKjede(kjedeId: MeldeperiodeKjedeId): Meldeperiode {
         return meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(kjedeId)
     }
+
     fun hentBehandling(behandlingId: BehandlingId): Behandling? = behandlinger.hentBehandling(behandlingId)
 
     fun sisteUtbetalteMeldekortDag(): LocalDate? = meldekortBehandlinger.sisteUtbetalteMeldekortDag
@@ -92,8 +90,6 @@ data class Sak(
     fun erSisteVersjonAvMeldeperiode(meldeperiode: Meldeperiode): Boolean {
         return meldeperiodeKjeder.erSisteVersjonAvMeldeperiode(meldeperiode)
     }
-
-    fun finnNærmesteMeldeperiode(dato: LocalDate): Periode = meldeperiodeKjeder.finnNærmesteMeldeperiode(dato)
 
     fun avbrytSøknadOgBehandling(
         command: no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand,
@@ -138,9 +134,8 @@ data class Sak(
     }
 
     fun genererMeldeperioder(clock: Clock): Pair<Sak, List<Meldeperiode>> {
-        val ikkeGenererEtterDato = ikkeGenererEtter(clock)
         return this.meldeperiodeKjeder
-            .genererMeldeperioder(this.vedtaksliste, ikkeGenererEtterDato, clock)
+            .genererMeldeperioder(this.vedtaksliste, clock)
             .let { this.copy(meldeperiodeKjeder = it.first) to it.second }
     }
 
@@ -162,19 +157,5 @@ data class Sak(
 
     fun leggTilUtbetalingsvedtak(utbetalingsvedtak: Utbetalingsvedtak): Sak {
         return this.copy(utbetalinger = this.utbetalinger.leggTil(utbetalingsvedtak))
-    }
-
-    companion object {
-        fun ikkeGenererEtter(clock: Clock): LocalDate {
-            val dag = LocalDate.now(clock)
-            val ukedag = dag.dayOfWeek.value
-            return if (ukedag > 4) {
-                dag.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
-            } else {
-                dag.with(
-                    TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY),
-                )
-            }
-        }
     }
 }
