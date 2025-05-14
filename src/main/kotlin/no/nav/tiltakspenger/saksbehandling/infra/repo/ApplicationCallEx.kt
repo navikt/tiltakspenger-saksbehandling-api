@@ -11,9 +11,9 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 private val logger = KotlinLogging.logger {}
@@ -114,7 +114,7 @@ internal suspend inline fun <reified T> ApplicationCall.withBody(
         no.nav.tiltakspenger.libs.json.deserialize<T>(this.receiveText())
     }.onLeft {
         logger.debug(RuntimeException("Trigger stacktrace for enklere debug")) { "Feil ved deserialisering av request. Se sikkerlogg for mer kontekst." }
-        sikkerlogg.error(it) { "Feil ved deserialisering av request" }
+        Sikkerlogg.error(it) { "Feil ved deserialisering av request" }
         this.respond400BadRequest(
             melding = "Kunne ikke deserialisere request",
             kode = "ugyldig_request",

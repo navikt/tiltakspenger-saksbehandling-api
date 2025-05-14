@@ -8,10 +8,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettManuellMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
@@ -42,8 +42,8 @@ class OpprettMeldekortBehandlingService(
             navkontorService.hentOppfolgingsenhet(sak.fnr)
         }.getOrElse {
             with("Kunne ikke hente navkontor for sak $sakId") {
-                logger.error { this }
-                sikkerlogg.error(it) { "$this - fnr ${sak.fnr.verdi}" }
+                logger.error(it) { this }
+                Sikkerlogg.error(it) { "$this - fnr ${sak.fnr.verdi}" }
             }
             return KanIkkeOppretteMeldekortBehandling.HenteNavkontorFeilet.left()
         }

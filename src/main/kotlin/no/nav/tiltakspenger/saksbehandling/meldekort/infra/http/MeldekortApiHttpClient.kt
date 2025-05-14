@@ -6,10 +6,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.serialize
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeDTO
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.FeilVedSendingTilMeldekortApi
@@ -51,14 +51,13 @@ class MeldekortApiHttpClient(
                 val body: String = response.body()
                 with("Feilrespons ved sending av ${meldeperiode.kjedeId}/${meldeperiode.id} til meldekort-api - status: $status") {
                     logger.error { this }
-                    sikkerlogg.error { "$this - Response body: $body" }
+                    Sikkerlogg.error { "$this - Response body: $body" }
                 }
                 return FeilVedSendingTilMeldekortApi.left()
             }
         }.mapLeft {
             with("Feil ved sending av ${meldeperiode.kjedeId} til meldekort-api") {
-                logger.error { this }
-                sikkerlogg.error(it) { this }
+                logger.error(it) { this }
             }
             FeilVedSendingTilMeldekortApi
         }
@@ -79,14 +78,13 @@ class MeldekortApiHttpClient(
                 val body: String = response.body()
                 with("Feilrespons ved sending av sak ${sak.id} til meldekort-api - status: $status") {
                     logger.error { this }
-                    sikkerlogg.error { "$this - Response body: $body" }
+                    Sikkerlogg.error { "$this - Response body: $body" }
                 }
                 return FeilVedSendingTilMeldekortApi.left()
             }
         }.mapLeft {
             with("Feil ved sending av sak ${sak.id} til meldekort-api") {
-                logger.error { this }
-                sikkerlogg.error(it) { this }
+                logger.error(it) { this }
             }
             FeilVedSendingTilMeldekortApi
         }

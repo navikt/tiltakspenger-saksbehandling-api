@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.json.deserialize
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
@@ -77,8 +77,7 @@ class UtbetalingHttpClient(
                 )
             }.mapLeft {
                 // Either.catch slipper igjennom CancellationException som er ønskelig.
-                log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ukjent feil ved utsjekk for utbetalingsvedtak ${vedtak.id}. Saksnummer ${vedtak.saksnummer}, sakId: ${vedtak.sakId}" }
-                sikkerlogg.error(it) { "Ukjent feil ved utsjekk for utbetalingsvedtak ${vedtak.id}. Saksnummer ${vedtak.saksnummer}, sakId: ${vedtak.sakId}" }
+                log.error(it) { "Ukjent feil ved utsjekk for utbetalingsvedtak ${vedtak.id}. Saksnummer ${vedtak.saksnummer}, sakId: ${vedtak.sakId}" }
                 KunneIkkeUtbetale()
             }.flatten()
         }
@@ -131,7 +130,7 @@ class UtbetalingHttpClient(
                 val responseHeaders = httpResponse.headers().map()
                 if (status != 200) {
                     log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved henting av utbetalingsstatus. Status var ulik 200. Se sikkerlogg for mer kontekst. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
-                    sikkerlogg.error { "Feil ved henting av utbetalingsstatus. Status var ulik 200. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, httpResponseBody: $httpResponseBody, path: $path, status: $status, requestHeaders: $requestHeaders, responseHeaders: $responseHeaders" }
+                    Sikkerlogg.error { "Feil ved henting av utbetalingsstatus. Status var ulik 200. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, httpResponseBody: $httpResponseBody, path: $path, status: $status, requestHeaders: $requestHeaders, responseHeaders: $responseHeaders" }
                     return@catch KunneIkkeHenteUtbetalingsstatus.left()
                 }
                 Either.catch {
@@ -148,12 +147,11 @@ class UtbetalingHttpClient(
                     }
                 }.getOrElse {
                     log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved deserialisering av utbetalingsstatus. Se sikkerlogg for mer kontekst. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
-                    sikkerlogg.error(it) { "Feil ved deserialisering av utbetalingsstatus. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, jsonResponse: $httpResponseBody, path: $path, status: $status" }
+                    Sikkerlogg.error(it) { "Feil ved deserialisering av utbetalingsstatus. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, jsonResponse: $httpResponseBody, path: $path, status: $status" }
                     KunneIkkeHenteUtbetalingsstatus.left()
                 }
             }.mapLeft {
-                log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ukjent feil ved henting av utbetalingsstatus. Se sikkerlogg for mer kontekst. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
-                sikkerlogg.error(it) { "Ukjent feil ved henting av utbetalingsstatus. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
+                log.error(it) { "Ukjent feil ved henting av utbetalingsstatus. vedtakId: $vedtakId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
                 KunneIkkeHenteUtbetalingsstatus
             }.flatten()
         }
@@ -201,7 +199,7 @@ class UtbetalingHttpClient(
                 }
                 if (status != 200) {
                     log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved simulering. Status var ulik 200. Se sikkerlogg for mer kontekst. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
-                    sikkerlogg.error { "Feil ved simulering. Status var ulik 200. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, httpResponseBody: $httpResponseBody, path: $path, status: $status, requestHeaders: $requestHeaders, responseHeaders: $responseHeaders" }
+                    Sikkerlogg.error { "Feil ved simulering. Status var ulik 200. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, httpResponseBody: $httpResponseBody, path: $path, status: $status, requestHeaders: $requestHeaders, responseHeaders: $responseHeaders" }
                     return@catch KunneIkkeSimulere.UkjentFeil.left()
                 }
                 Either.catch {
@@ -214,12 +212,11 @@ class UtbetalingHttpClient(
                     ).right()
                 }.getOrElse {
                     log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved deserialisering av simulering. Se sikkerlogg for mer kontekst. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
-                    sikkerlogg.error(it) { "Feil ved deserialisering av simulering. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, jsonResponse: $httpResponseBody, path: $path, status: $status" }
+                    Sikkerlogg.error(it) { "Feil ved deserialisering av simulering. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, jsonResponse: $httpResponseBody, path: $path, status: $status" }
                     KunneIkkeSimulere.UkjentFeil.left()
                 }
             }.mapLeft {
-                log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ukjent feil ved simulering. Se sikkerlogg for mer kontekst. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
-                sikkerlogg.error(it) { "Ukjent feil ved simulering. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
+                log.error(it) { "Ukjent feil ved simulering. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
                 KunneIkkeSimulere.UkjentFeil
             }.flatten()
         }
@@ -238,7 +235,7 @@ private fun mapIverksettStatus(
             log.info(RuntimeException("Trigger stacktrace for enklere debug.")) {
                 "202 Accepted fra helved utsjekk for, utbetalingsvedtak ${vedtak.id}. Response: $response. Se sikkerlogg for mer kontekst."
             }
-            sikkerlogg.info(RuntimeException("Trigger stacktrace for enklere debug.")) {
+            Sikkerlogg.info(RuntimeException("Trigger stacktrace for enklere debug.")) {
                 "202 Accepted fra helved utsjekk for, utbetalingsvedtak ${vedtak.id}. Response: $response. Request = $request"
             }
             return SendtUtbetaling(
@@ -252,7 +249,7 @@ private fun mapIverksettStatus(
             log.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
                 "400 Bad Request fra helved utsjekk, for utbetalingsvedtak ${vedtak.id}. Denne vil bli prøvd på nytt. Response: $response. Se sikkerlogg for mer kontekst."
             }
-            sikkerlogg.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
+            Sikkerlogg.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
                 "400 Bad Request fra helved utsjekk, for utbetalingsvedtak ${vedtak.id}. Denne vil bli prøvd på nytt. Response: $response. Request = $request"
             }
             return KunneIkkeUtbetale(
@@ -267,7 +264,7 @@ private fun mapIverksettStatus(
             log.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
                 "$status fra helved utsjekk, for utbetalingsvedtak ${vedtak.id}. Denne vil bli prøvd på nytt. Response: $response. Se sikkerlogg for mer kontekst."
             }
-            sikkerlogg.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
+            Sikkerlogg.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
                 "$status fra helved utsjekk, for utbetalingsvedtak ${vedtak.id}. Denne vil bli prøvd på nytt. Response: $response. Request = $request"
             }
             return KunneIkkeUtbetale(
@@ -283,7 +280,7 @@ private fun mapIverksettStatus(
                 log.info(RuntimeException("Trigger stacktrace for enklere debug.")) {
                     "409 Conflict fra helved utsjekk, for utbetalingsvedtak ${vedtak.id}. Vi antar vi har sendt samme melding tidligere og behandler denne på samme måte som 202 Response: $response. Se sikkerlogg for mer kontekst."
                 }
-                sikkerlogg.info(RuntimeException("Trigger stacktrace for enklere debug.")) {
+                Sikkerlogg.info(RuntimeException("Trigger stacktrace for enklere debug.")) {
                     "409 Conflict fra helved utsjekk, for utbetalingsvedtak ${vedtak.id}. Vi antar vi har sendt samme melding tidligere og behandler denne på samme måte som 202 Response: $response. Request = $request"
                 }
                 return SendtUtbetaling(
@@ -295,7 +292,7 @@ private fun mapIverksettStatus(
                 log.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
                     "409 Conflict fra helved utsjekk, for utbetalingsvedtak ${vedtak.id}. Vi forventet responsen 'Iverksettingen er allerede mottatt', men fikk $response. Se sikkerlogg for mer kontekst."
                 }
-                sikkerlogg.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
+                Sikkerlogg.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
                     "409 Conflict fra helved utsjekk, for utbetalingsvedtak ${vedtak.id}. Vi forventet responsen 'Iverksettingen er allerede mottatt', men fikk $response. Request = $request"
                 }
                 return KunneIkkeUtbetale(
@@ -310,7 +307,7 @@ private fun mapIverksettStatus(
             log.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
                 "Ukjent feil fra helved utsjekk, for utbetalingsvedtak ${vedtak.id}. Denne vil bli prøvd på nytt. Statuskode: $status, response: $response. Se sikkerlogg for mer kontekst."
             }
-            sikkerlogg.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
+            Sikkerlogg.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
                 "Ukjent feil fra helved utsjekk, for utbetalingsvedtak ${vedtak.id}. Denne vil bli prøvd på nytt. Statuskode: $status, response: $response. Request = $request"
             }
             return KunneIkkeUtbetale(

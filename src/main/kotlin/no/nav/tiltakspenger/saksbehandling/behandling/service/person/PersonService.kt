@@ -7,9 +7,9 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.PersonRepo
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.person.PersonGateway
@@ -48,7 +48,7 @@ class PersonService(
             personClient.hentEnkelPerson(fnr)
         }.mapLeft {
             logger.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved kall mot PDL. Se sikkerlogg for mer kontekst." }
-            sikkerlogg.error(it) { "Feil ved kall mot PDL for fnr: $fnr." }
+            Sikkerlogg.error(it) { "Feil ved kall mot PDL for fnr: $fnr." }
             KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl
         }
     }

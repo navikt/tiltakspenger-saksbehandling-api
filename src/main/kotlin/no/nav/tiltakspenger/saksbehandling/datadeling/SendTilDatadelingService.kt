@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import java.time.Clock
 
 class SendTilDatadelingService(
@@ -39,8 +38,7 @@ class SendTilDatadelingService(
                 }
             }
         }.onLeft {
-            logger.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ukjent feil skjedde under henting av vedtak som skal sendes til datadeling." }
-            sikkerlogg.error(it) { "Ukjent feil skjedde under henting av vedtak som skal sendes til datadeling." }
+            logger.error(it) { "Ukjent feil skjedde under henting av vedtak som skal sendes til datadeling." }
         }
     }
 
@@ -62,8 +60,7 @@ class SendTilDatadelingService(
                 }
             }
         }.onLeft {
-            logger.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ukjent feil skjedde under henting av behandling som skal sendes til datadeling." }
-            sikkerlogg.error(it) { "Ukjent feil skjedde under henting av behandling som skal sendes til datadeling." }
+            logger.error(it) { "Ukjent feil skjedde under henting av behandling som skal sendes til datadeling." }
         }
     }
 }

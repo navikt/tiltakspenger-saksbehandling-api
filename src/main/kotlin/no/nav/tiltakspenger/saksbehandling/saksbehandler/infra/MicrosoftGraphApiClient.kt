@@ -12,7 +12,7 @@ import io.ktor.http.toURI
 import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.deserialize
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import java.net.URI
@@ -81,7 +81,7 @@ class MicrosoftGraphApiClient(
             val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
             val status = httpResponse.statusCode()
             val body = httpResponse.body()
-            sikkerlogg.debug { "Logger response fra microsoftGraphApi for å debugge -> $status - $body" }
+            Sikkerlogg.debug { "Logger response fra microsoftGraphApi for å debugge -> $status - $body" }
             if (status == 401 || status == 403) {
                 log.error(RuntimeException("Trigger stacktrace for debug.")) { "Invaliderer cache for systemtoken mot Microsoft Graph API. status: $status." }
                 token.invaliderCache()
@@ -91,7 +91,7 @@ class MicrosoftGraphApiClient(
                 if (response.value.size != 1) {
                     log.error { "Fant ingen eller flere brukere for navIdent $navIdent: ${response.value.size}. Se sikker logg dersom vi fant flere." }
                     if (response.value.isNotEmpty()) {
-                        sikkerlogg.error { "Fant ingen eller flere brukere for navIdent $navIdent: ${response.value}" }
+                        Sikkerlogg.error { "Fant ingen eller flere brukere for navIdent $navIdent: ${response.value}" }
                     }
                     throw RuntimeException("Fant ikke bruker for navident: $navIdent")
                 } else {
@@ -99,7 +99,7 @@ class MicrosoftGraphApiClient(
                 }
             }
         }.flatten().getOrElse {
-            sikkerlogg.error(it) { "Ukjent feil mot Microsoft Graph Api for bruker: $navIdent message: ${it.message}" }
+            Sikkerlogg.error(it) { "Ukjent feil mot Microsoft Graph Api for bruker: $navIdent message: ${it.message}" }
             throw RuntimeException("Ukjent feil mot Microsoft Graph Api for bruker $navIdent. Se sikker logg for mer context")
         }
     }

@@ -20,9 +20,9 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.contentType
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførVedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.infra.http.httpClientWithRetry
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
@@ -69,7 +69,7 @@ internal class JoarkHttpClient(
         correlationId: CorrelationId,
     ): JournalpostId {
         val token = Either.catch { getToken() }.getOrElse {
-            sikkerlogg.error(it) { "Kunne ikke hente token for journalføring. jsonBody: $jsonBody, correlationId: $correlationId" }
+            Sikkerlogg.error(it) { "Kunne ikke hente token for journalføring. jsonBody: $jsonBody, correlationId: $correlationId" }
             throw RuntimeException("Kunne ikke hente token for journalføring. Se sikkerlogg for mer kontekst.")
         }
         try {
@@ -126,8 +126,8 @@ internal class JoarkHttpClient(
             if (throwable is IllegalStateException) {
                 throw throwable
             } else {
-                sikkerlogg.error(throwable) { "Ukjent feil fra joark." }
-                throw RuntimeException("Ukjent feil fra joark, se sikkerlogg for mer kontekst.")
+                log.error(throwable) { "Ukjent feil fra joark." }
+                throw RuntimeException("Ukjent feil fra joark.")
             }
         }
     }

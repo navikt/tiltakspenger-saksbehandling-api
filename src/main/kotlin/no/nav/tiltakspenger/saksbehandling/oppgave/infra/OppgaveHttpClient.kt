@@ -6,9 +6,9 @@ import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import java.net.URI
@@ -114,7 +114,7 @@ class OppgaveHttpClient(
         val status = httpResponse.statusCode()
         if (status != 201) {
             logger.error { "Kunne ikke opprette oppgave, statuskode $status. CallId: $callId ${opprettOppgaveRequest.journalpostId?.let { ", journalpostId: $it" }}" }
-            sikkerlogg.error { httpResponse.body() }
+            Sikkerlogg.error { httpResponse.body() }
             error("Kunne ikke opprette oppgave, statuskode $status")
         }
         val jsonResponse = httpResponse.body()
@@ -133,7 +133,7 @@ class OppgaveHttpClient(
         val status = httpResponse.statusCode()
         if (status != 200) {
             logger.error { "Noe gikk galt ved søk etter oppgave, statuskode $status. JournalpostId: $journalpostId, callId: $callId" }
-            sikkerlogg.error { httpResponse.body() }
+            Sikkerlogg.error { httpResponse.body() }
             error("Noe gikk galt ved søk etter oppgave, statuskode $status")
         }
         val jsonResponse = httpResponse.body()
@@ -149,7 +149,7 @@ class OppgaveHttpClient(
         val status = httpResponse.statusCode()
         if (status != 200) {
             logger.error { "Noe gikk galt ved henting av oppgave med id $oppgaveId, statuskode $status, callId: $callId" }
-            sikkerlogg.error { httpResponse.body() }
+            Sikkerlogg.error { httpResponse.body() }
             error("Noe gikk galt ved henting av oppgave, statuskode $status")
         }
         val jsonResponse = httpResponse.body()
@@ -170,7 +170,7 @@ class OppgaveHttpClient(
         val status = httpResponse.statusCode()
         if (status != 200) {
             logger.error { "Noe gikk galt ved ferdigstilling av oppgave med id ${oppgave.id}, statuskode $status, callId: $callId" }
-            sikkerlogg.error { httpResponse.body() }
+            Sikkerlogg.error { httpResponse.body() }
             error("Noe gikk galt ved ferdigstilling av oppgave, statuskode $status")
         }
     }

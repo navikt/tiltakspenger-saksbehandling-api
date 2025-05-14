@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.logging.sikkerlogg
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
@@ -35,8 +35,8 @@ class MottaBrukerutfyltMeldekortService(
 
             if (eksisterendeMeldekort == null) {
                 with("Kunne ikke lagre brukers meldekort $meldekortId - Ukjent feil") {
-                    logger.error { this }
-                    sikkerlogg.error(it) { "$this - ${it.message}" }
+                    logger.error(it) { this }
+                    Sikkerlogg.error(it) { "$this - ${it.message}" }
                 }
                 return KanIkkeLagreBrukersMeldekort.UkjentFeil.left()
             }
@@ -47,8 +47,8 @@ class MottaBrukerutfyltMeldekortService(
             }
 
             with("Kunne ikke lagre brukers meldekort $meldekortId - Meldekortet er allerede lagret med andre data") {
-                logger.error { this }
-                sikkerlogg.error(it) { "$this - ${it.message}" }
+                logger.error(it) { this }
+                Sikkerlogg.error(it) { "$this - ${it.message}" }
             }
 
             return KanIkkeLagreBrukersMeldekort.AlleredeLagretMedDiff.left()

@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklient
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.PersonGateway
 import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
@@ -19,7 +18,6 @@ class PersonHttpklient(
     private val personklient =
         FellesPersonklient.create(
             endepunkt = endepunkt,
-            sikkerlogg = sikkerlogg,
         )
 
     /**

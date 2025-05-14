@@ -6,10 +6,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.FeilVedSendingTilDatadeling
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.net.URI
 import java.net.http.HttpClient
@@ -48,14 +48,14 @@ class DatadelingHttpClient(
             val status = httpResponse.statusCode()
             if (status != 200) {
                 log.error { "Feil ved kall til tiltakspenger-datadeling. Vedtak ${rammevedtak.id}, saksnummer ${rammevedtak.saksnummer}, sakId: ${rammevedtak.sakId}. Status: $status. uri: $vedtaksUri. Se sikkerlogg for detaljer." }
-                sikkerlogg.error { "Feil ved kall til tiltakspenger-datadeling. Vedtak ${rammevedtak.id}, saksnummer ${rammevedtak.saksnummer}, sakId: ${rammevedtak.sakId}. uri: $vedtaksUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
+                Sikkerlogg.error { "Feil ved kall til tiltakspenger-datadeling. Vedtak ${rammevedtak.id}, saksnummer ${rammevedtak.saksnummer}, sakId: ${rammevedtak.sakId}. uri: $vedtaksUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
                 return FeilVedSendingTilDatadeling.left()
             }
             Unit
         }.mapLeft {
             // Either.catch slipper igjennom CancellationException som er ønskelig.
             log.error(it) { "Feil ved kall til tiltakspenger-datadeling. Vedtak ${rammevedtak.id}, saksnummer ${rammevedtak.saksnummer}, sakId: ${rammevedtak.sakId}. uri: $vedtaksUri. Se sikkerlogg for detaljer." }
-            sikkerlogg.error(it) { "Feil ved kall til tiltakspenger-datadeling. Vedtak ${rammevedtak.id}, saksnummer ${rammevedtak.saksnummer}, sakId: ${rammevedtak.sakId}, uri: $vedtaksUri, jsonPayload: $jsonPayload" }
+            Sikkerlogg.error(it) { "Feil ved kall til tiltakspenger-datadeling. Vedtak ${rammevedtak.id}, saksnummer ${rammevedtak.saksnummer}, sakId: ${rammevedtak.sakId}, uri: $vedtaksUri, jsonPayload: $jsonPayload" }
             FeilVedSendingTilDatadeling
         }
     }
@@ -72,14 +72,14 @@ class DatadelingHttpClient(
             val status = httpResponse.statusCode()
             if (status != 200) {
                 log.error { "Feil ved kall til tiltakspenger-datadeling. Behandling ${behandling.id}, saksnummer ${behandling.saksnummer}, sakId: ${behandling.sakId}. Status: $status. uri: $behandlingsUri. Se sikkerlogg for detaljer." }
-                sikkerlogg.error { "Feil ved kall til tiltakspenger-datadeling. Behandling ${behandling.id}, saksnummer ${behandling.saksnummer}, sakId: ${behandling.sakId}. uri: $behandlingsUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
+                Sikkerlogg.error { "Feil ved kall til tiltakspenger-datadeling. Behandling ${behandling.id}, saksnummer ${behandling.saksnummer}, sakId: ${behandling.sakId}. uri: $behandlingsUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
                 return FeilVedSendingTilDatadeling.left()
             }
             Unit
         }.mapLeft {
             // Either.catch slipper igjennom CancellationException som er ønskelig.
             log.error(it) { "Feil ved kall til pdfgen. Vedtak ${behandling.id}, saksnummer ${behandling.saksnummer}, sakId: ${behandling.sakId}. Se sikkerlogg for detaljer." }
-            sikkerlogg.error(it) { "Feil ved kall til pdfgen. Vedtak ${behandling.id}, saksnummer ${behandling.saksnummer}, sakId: ${behandling.sakId}. jsonPayload: $jsonPayload, uri: $behandlingsUri" }
+            Sikkerlogg.error(it) { "Feil ved kall til pdfgen. Vedtak ${behandling.id}, saksnummer ${behandling.saksnummer}, sakId: ${behandling.sakId}. jsonPayload: $jsonPayload, uri: $behandlingsUri" }
             FeilVedSendingTilDatadeling
         }
     }

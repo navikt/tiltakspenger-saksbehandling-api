@@ -15,7 +15,7 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.jackson.jackson
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import java.time.Duration
 
 private const val SIXTY_SECONDS = 60L
@@ -64,7 +64,7 @@ private fun HttpClient.config(timeout: Long) =
             logger =
                 object : Logger {
                     override fun log(message: String) {
-                        sikkerlogg.debug { message }
+                        Sikkerlogg.debug { message }
                     }
                 }
             level = LogLevel.INFO

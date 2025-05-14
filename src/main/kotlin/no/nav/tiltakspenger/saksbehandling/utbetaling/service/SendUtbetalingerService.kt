@@ -4,7 +4,6 @@ import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingGateway
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import java.time.Clock
@@ -40,8 +39,7 @@ class SendUtbetalingerService(
                 }
             }
         }.onLeft {
-            logger.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ukjent feil skjedde under utbetaling mot helved" }
-            sikkerlogg.error(it) { "Ukjent feil skjedde under utbetaling mot helved" }
+            logger.error(it) { "Ukjent feil skjedde under utbetaling mot helved" }
         }
     }
 }
