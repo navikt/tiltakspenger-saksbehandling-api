@@ -200,15 +200,16 @@ class SakPostgresRepo(
         sessionFactory.withSessionContext(sessionContext) { sc ->
             sc.withSession { session ->
                 session.run(
-                    queryOf(
+                    sqlQuery(
                         """
-                        update sak set første_dag_som_gir_rett = :forste_dag_som_gir_rett, siste_dag_som_gir_rett = :siste_dag_som_gir_rett where id = :sak_id
+                        update sak set
+                            første_dag_som_gir_rett = :forste_dag_som_gir_rett,
+                            siste_dag_som_gir_rett = :siste_dag_som_gir_rett
+                        where id = :sak_id
                         """.trimIndent(),
-                        mapOf(
-                            "forste_dag_som_gir_rett" to førsteDagSomGirRett,
-                            "siste_dag_som_gir_rett" to sisteDagSomGirRett,
-                            "sak_id" to sakId.toString(),
-                        ),
+                        "forste_dag_som_gir_rett" to førsteDagSomGirRett,
+                        "siste_dag_som_gir_rett" to sisteDagSomGirRett,
+                        "sak_id" to sakId.toString(),
                     ).asUpdate,
                 )
             }

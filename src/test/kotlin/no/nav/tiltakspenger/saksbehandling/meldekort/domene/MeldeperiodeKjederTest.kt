@@ -101,7 +101,7 @@ class MeldeperiodeKjederTest {
     }
 
     @Test
-    fun `genererer første meldeperioder for et innvilgelse vedtak`() {
+    fun `genererer meldeperioder for et innvilgelse vedtak`() {
         val sakId = SakId.random()
         val periode = Periode(2.januar(2023), 17.januar(2023))
         val kjeder = MeldeperiodeKjeder(emptyList())

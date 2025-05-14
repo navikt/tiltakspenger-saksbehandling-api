@@ -28,16 +28,8 @@ class GenererMeldeperioderService(
             sakIDer.mapNotNull { sakId ->
                 Either.catch {
                     val sak = sakRepo.hentForSakId(sakId)!!
-                    val (sakMedNyeMeldeperioder, meldeperioder) = sak.genererMeldeperioder(clock)
-                    sessionFactory.withTransactionContext { tx ->
-                        sakRepo.oppdaterFørsteOgSisteDagSomGirRett(
-                            sakId = sakId,
-                            førsteDagSomGirRett = sakMedNyeMeldeperioder.førsteDagSomGirRett,
-                            sisteDagSomGirRett = sakMedNyeMeldeperioder.sisteDagSomGirRett,
-                            sessionContext = tx,
-                        )
-                        meldeperiodeRepo.lagre(meldeperioder, tx)
-                    }
+                    val meldeperioder = sak.genererMeldeperioder(clock).second
+                    meldeperiodeRepo.lagre(meldeperioder)
 
                     logger.info { "Genererte meldeperioder for sak $sakId - før: ${sak.meldeperiodeKjeder.meldeperioder.size} - etter: ${meldeperioder.size}" }
 

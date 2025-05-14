@@ -394,6 +394,10 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
         førsteDagSomGirRett = sakMedVedtak.førsteDagSomGirRett,
         sisteDagSomGirRett = sakMedVedtak.sisteDagSomGirRett,
     )
+    sakRepo.oppdaterSkalSendesTilMeldekortApi(
+        sakId = vedtak.sakId,
+        skalSendesTilMeldekortApi = true,
+    )
     val oppdatertSak = sakRepo.hentForSakId(sakId)!!
     val (_, meldeperioder) = oppdatertSak.genererMeldeperioder(clock)
     meldeperiodeRepo.lagre(meldeperioder)

@@ -3,8 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.repo
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSak
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.sak.Saker
 import org.junit.jupiter.api.Test
@@ -62,6 +64,20 @@ internal class SakRepoTest {
             testDataHelper.persisterOpprettetFørstegangsbehandling()
 
             sakRepo.hentForFnr(fnr) shouldBe Saker(fnr, listOf(sak1, sak2))
+        }
+    }
+
+    @Test
+    fun `Skal flagge saker med iverksatt behandling for sending til meldekort-api`() {
+        withMigratedDb { testDataHelper ->
+            val sakRepo = testDataHelper.sakRepo
+
+            val sak1 = testDataHelper.persisterIverksattFørstegangsbehandling().first
+            val sak2 = testDataHelper.persisterIverksattFørstegangsbehandling().first
+            testDataHelper.persisterOpprettetFørstegangsbehandling().first
+            testDataHelper.persisterUnderBeslutningFørstegangsbehandling().first
+
+            sakRepo.hentForSendingTilMeldekortApi() shouldBe listOf(sak1, sak2)
         }
     }
 }
