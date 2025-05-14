@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
-import java.time.LocalDateTime
 
 interface MeldeperiodeRepo {
 
@@ -18,10 +17,6 @@ interface MeldeperiodeRepo {
         meldeperioder: List<Meldeperiode>,
         sessionContext: SessionContext? = null,
     )
-
-    fun hentUsendteTilBruker(): List<Meldeperiode>
-
-    fun markerSomSendtTilBruker(meldeperiodeId: MeldeperiodeId, tidspunkt: LocalDateTime)
 
     fun hentForSakId(
         sakId: SakId,

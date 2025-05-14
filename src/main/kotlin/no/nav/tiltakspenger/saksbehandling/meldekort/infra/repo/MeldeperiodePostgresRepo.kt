@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 internal class MeldeperiodePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -88,41 +87,6 @@ internal class MeldeperiodePostgresRepo(
     override fun hentForMeldeperiodeId(meldeperiodeId: MeldeperiodeId, sessionContext: SessionContext?): Meldeperiode? {
         return sessionFactory.withSession(sessionContext) { session ->
             hentForMeldeperiodeId(meldeperiodeId, session)
-        }
-    }
-
-    override fun hentUsendteTilBruker(): List<Meldeperiode> {
-        return sessionFactory.withSession { session ->
-            session.run(
-                sqlQuery(
-                    """
-                    select
-                        m.*,
-                        s.saksnummer,
-                        s.fnr 
-                    from meldeperiode m 
-                    join sak s on s.id = m.sak_id 
-                    where m.sendt_til_meldekort_api is null
-                    limit 100
-                    """,
-                ).map { fromRow(it) }.asList,
-            )
-        }
-    }
-
-    override fun markerSomSendtTilBruker(meldeperiodeId: MeldeperiodeId, tidspunkt: LocalDateTime) {
-        return sessionFactory.withSession { session ->
-            session.run(
-                sqlQuery(
-                    """
-                    update meldeperiode set
-                        sendt_til_meldekort_api = :tidspunkt
-                    where id = :id                                    
-                    """,
-                    "id" to meldeperiodeId.toString(),
-                    "tidspunkt" to tidspunkt,
-                ).asUpdate,
-            )
         }
     }
 
