@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import java.time.Clock
 
-// TODO: skal kjøre en gang til og så slettes
+// TODO: må kjøre en gang til i hvert miljø for å oppdatere for eksisterende vedtak, kan så slettes
 class GenererMeldeperioderService(
     val sakRepo: SakRepo,
     val meldeperiodeRepo: MeldeperiodeRepo,
