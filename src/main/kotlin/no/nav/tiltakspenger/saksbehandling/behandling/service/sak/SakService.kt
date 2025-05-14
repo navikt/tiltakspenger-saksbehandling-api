@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPersonMedSkjerming
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import java.time.LocalDate
 
 interface SakService {
     suspend fun hentEllerOpprettSak(
@@ -58,18 +57,6 @@ interface SakService {
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): Either<no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson, EnkelPersonMedSkjerming>
-
-    /**
-     * @param sisteDagSomGirRett er ikke masterdata - bruk vedtak & tidslinje på sak for å finne sisteDagSomGirRett.
-     *
-     * Ment for å optimalisere db-spørringer (generering av meldeperioder)
-     */
-    fun oppdaterSisteDagSomGirRett(
-        sakId: SakId,
-        førsteDagSomGirRett: LocalDate?,
-        sisteDagSomGirRett: LocalDate?,
-        sessionContext: SessionContext,
-    )
 
     fun oppdaterSkalSendesTilMeldekortApi(
         sakId: SakId,

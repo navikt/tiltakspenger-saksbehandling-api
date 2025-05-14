@@ -32,7 +32,6 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
-import java.time.LocalDate
 
 class SakServiceImpl(
     private val sakRepo: SakRepo,
@@ -199,25 +198,6 @@ class SakServiceImpl(
                 erSkjermet,
             )
         return personMedSkjerming.right()
-    }
-
-    /**
-     * @param sisteDagSomGirRett er ikke masterdata - bruk vedtak & tidslinje på sak for å finne sisteDagSomGirRett.
-     *
-     * Ment for å optimalisere db-spørringer (generering av meldeperioder)
-     */
-    override fun oppdaterSisteDagSomGirRett(
-        sakId: SakId,
-        førsteDagSomGirRett: LocalDate?,
-        sisteDagSomGirRett: LocalDate?,
-        sessionContext: SessionContext,
-    ) {
-        sakRepo.oppdaterFørsteOgSisteDagSomGirRett(
-            sakId = sakId,
-            førsteDagSomGirRett = førsteDagSomGirRett,
-            sisteDagSomGirRett = sisteDagSomGirRett,
-            sessionContext = sessionContext,
-        )
     }
 
     override fun oppdaterSkalSendesTilMeldekortApi(

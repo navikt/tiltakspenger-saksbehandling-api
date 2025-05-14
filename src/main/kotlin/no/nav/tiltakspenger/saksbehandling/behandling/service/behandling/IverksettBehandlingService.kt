@@ -154,12 +154,6 @@ class IverksettBehandlingService(
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
             behandlingRepo.lagre(vedtak.behandling, tx)
-            sakService.oppdaterSisteDagSomGirRett(
-                sakId = oppdatertSak.id,
-                førsteDagSomGirRett = oppdatertSak.førsteDagSomGirRett,
-                sisteDagSomGirRett = oppdatertSak.sisteDagSomGirRett,
-                sessionContext = tx,
-            )
             sakService.oppdaterSkalSendesTilMeldekortApi(
                 sakId = oppdatertSak.id,
                 skalSendesTilMeldekortApi = true,

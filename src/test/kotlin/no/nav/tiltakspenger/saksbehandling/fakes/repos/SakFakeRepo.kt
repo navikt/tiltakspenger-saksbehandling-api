@@ -82,14 +82,6 @@ class SakFakeRepo(
         return hentSak(sakId)
     }
 
-    override fun oppdaterFørsteOgSisteDagSomGirRett(
-        sakId: SakId,
-        førsteDagSomGirRett: LocalDate?,
-        sisteDagSomGirRett: LocalDate?,
-        sessionContext: SessionContext?,
-    ) {
-    }
-
     override fun hentSakerSomMåGenerereMeldeperioderFra(limit: Int): List<SakId> {
         data.get().mapNotNull {
             hentSak(it.key)

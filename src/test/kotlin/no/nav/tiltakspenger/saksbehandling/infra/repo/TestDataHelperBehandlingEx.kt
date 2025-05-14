@@ -225,7 +225,7 @@ internal fun TestDataHelper.persisterUnderBeslutningFørstegangsbehandling(
     clock: Clock = this.clock,
     beslutter: Saksbehandler = ObjectMother.beslutter(),
 ): Pair<Sak, Behandling> {
-    val (sak, behandling) = persisterKlarTilBeslutningFørstegangsbehandling(
+    val behandling = persisterKlarTilBeslutningFørstegangsbehandling(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,
@@ -240,7 +240,7 @@ internal fun TestDataHelper.persisterUnderBeslutningFørstegangsbehandling(
         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
         correlationId = correlationId,
         clock = clock,
-    )
+    ).second
 
     val tilBeslutning = behandling.taBehandling(beslutter)
 
@@ -387,13 +387,8 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
         førstegangsbehandling.taBehandling(beslutter)
             .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), clock)
     behandlingRepo.lagre(oppdatertFørstegangsbehandling)
-    val (sakMedVedtak, vedtak) = sak.opprettVedtak(oppdatertFørstegangsbehandling, clock)
+    val vedtak = sak.opprettVedtak(oppdatertFørstegangsbehandling, clock).second
     vedtakRepo.lagre(vedtak)
-    sakRepo.oppdaterFørsteOgSisteDagSomGirRett(
-        sakId = vedtak.sakId,
-        førsteDagSomGirRett = sakMedVedtak.førsteDagSomGirRett,
-        sisteDagSomGirRett = sakMedVedtak.sisteDagSomGirRett,
-    )
     sakRepo.oppdaterSkalSendesTilMeldekortApi(
         sakId = vedtak.sakId,
         skalSendesTilMeldekortApi = true,
