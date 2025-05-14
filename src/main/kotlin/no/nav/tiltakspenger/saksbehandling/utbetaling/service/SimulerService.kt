@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
@@ -25,6 +26,7 @@ class SimulerService(
     suspend fun simulerMeldekort(
         behandling: MeldekortBehandling,
         forrigeUtbetaling: Utbetalingsvedtak?,
+        meldeperiodeKjeder: MeldeperiodeKjeder,
         brukersNavkontor: (suspend () -> Navkontor)?,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         return utbetalingsklient.simuler(
@@ -34,6 +36,7 @@ class SimulerService(
                 utbetalingsvedtakRepo.hentUtbetalingJsonForVedtakId(it.id)
             },
             forrigeVedtakId = forrigeUtbetaling?.id,
+            meldeperiodeKjeder = meldeperiodeKjeder,
         )
     }
 }

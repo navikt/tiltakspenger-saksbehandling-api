@@ -1,8 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
+import arrow.core.nonEmptyListOf
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering.OppsummeringForPeriode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 
 interface SimuleringMother {
@@ -19,36 +20,45 @@ interface SimuleringMother {
 
     fun simulering(
         periode: Periode = ObjectMother.virkningsperiode(),
-        oppsummeringForPerioder: List<OppsummeringForPeriode> = listOf(
-            OppsummeringForPeriode(
-                periode = periode,
-                tidligereUtbetalt = 0,
-                nyUtbetaling = 0,
-                totalEtterbetaling = 0,
-                totalFeilutbetaling = 0,
+        meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
+        oppsummering: Simulering.Endring.Oppsummering = Simulering.Endring.Oppsummering(
+            periode = periode,
+            tidligereUtbetalt = 0,
+            nyUtbetaling = 0,
+            totalEtterbetaling = 0,
+            totalFeilutbetaling = 0,
+            perMeldeperiode = nonEmptyListOf(
+                Simulering.Endring.OppsummeringForMeldeperiode(
+                    meldeperiode = periode,
+                    meldeperiodeKjedeId = meldeperiodeKjedeId,
+                    tidligereUtbetalt = 0,
+                    nyUtbetaling = 0,
+                    totalEtterbetaling = 0,
+                    totalFeilutbetaling = 0,
+                ),
             ),
         ),
-        detaljer: Simulering.Detaljer = Simulering.Detaljer(
+        detaljer: Simulering.Endring.Detaljer = Simulering.Endring.Detaljer(
             datoBeregnet = periode.tilOgMed,
             totalBeløp = 100,
-            perioder = listOf(
-                Simulering.Detaljer.Simuleringsperiode(
+            perioder = nonEmptyListOf(
+                Simulering.Endring.Detaljer.Simuleringsperiode(
                     periode = periode,
-                    posteringer = listOf(
-                        Simulering.Detaljer.Simuleringsperiode.Postering(
+                    delperioder = listOf(
+                        Simulering.Endring.Detaljer.Simuleringsperiode.Delperiode(
                             fagområde = "fagområde-todo",
                             periode = periode,
                             beløp = 100,
-                            type = "fagområde-todo",
+                            type = Simulering.Endring.PosteringType.YTELSE,
                             klassekode = "fagområde-todo",
                         ),
                     ),
                 ),
             ),
         ),
-    ): Simulering {
-        return Simulering(
-            oppsummeringForPerioder = oppsummeringForPerioder,
+    ): Simulering.Endring {
+        return Simulering.Endring(
+            oppsummering = oppsummering,
             detaljer = detaljer,
         )
     }

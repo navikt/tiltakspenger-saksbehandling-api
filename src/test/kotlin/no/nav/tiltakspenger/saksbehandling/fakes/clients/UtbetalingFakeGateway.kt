@@ -8,6 +8,7 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
@@ -45,6 +46,7 @@ class UtbetalingFakeGateway : UtbetalingGateway {
         brukersNavkontor: Navkontor,
         forrigeUtbetalingJson: String?,
         forrigeVedtakId: VedtakId?,
+        meldeperiodeKjeder: MeldeperiodeKjeder,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         // TODO jah: Her bør vi nok lage en simulering basert på beregningen.
         return ObjectMother.simuleringMedMetadata().right()

@@ -32,7 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toDbJson
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringMedMetadata
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimulering
 
 class MeldekortBehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -413,7 +413,7 @@ class MeldekortBehandlingPostgresRepo(
             val beregning = row.stringOrNull("beregninger")?.tilBeregninger(id)?.let {
                 MeldekortBeregning(it)
             }
-            val simulering = row.stringOrNull("simulering")?.toSimuleringMedMetadata()?.simulering
+            val simulering = row.stringOrNull("simulering")?.toSimulering(MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(sakId, session))
 
             val brukersMeldekort = row.stringOrNull("brukers_meldekort_id")?.let {
                 BrukersMeldekortPostgresRepo.hentForMeldekortId(

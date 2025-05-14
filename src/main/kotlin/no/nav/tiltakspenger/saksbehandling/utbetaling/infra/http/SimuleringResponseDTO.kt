@@ -1,9 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 
+import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.OppsummeringGenerator
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.LocalDate
 
@@ -47,7 +50,29 @@ private data class SimuleringResponseDTO(
                 val beløp: Int,
                 val type: String,
                 val klassekode: String,
-            )
+            ) {
+                fun toDomain(): Simulering.Endring.Detaljer.Simuleringsperiode.Delperiode {
+                    return Simulering.Endring.Detaljer.Simuleringsperiode.Delperiode(
+                        fagområde = this.fagområde,
+                        periode = Periode(this.fom, this.tom),
+                        beløp = this.beløp,
+                        type = typeToDomain(),
+                        klassekode = this.klassekode,
+                    )
+                }
+
+                private fun typeToDomain(): Simulering.Endring.PosteringType {
+                    return when (type) {
+                        "YTELSE" -> Simulering.Endring.PosteringType.YTELSE
+                        "FEILUTBETALING" -> Simulering.Endring.PosteringType.FEILUTBETALING
+                        "FORSKUDSSKATT" -> Simulering.Endring.PosteringType.FORSKUDSSKATT
+                        "JUSTERING" -> Simulering.Endring.PosteringType.JUSTERING
+                        "TREKK" -> Simulering.Endring.PosteringType.TREKK
+                        "MOTPOSTERING" -> Simulering.Endring.PosteringType.MOTPOSTERING
+                        else -> error("Ukjent posteringstype: $type")
+                    }
+                }
+            }
         }
     }
 }
@@ -55,7 +80,8 @@ private data class SimuleringResponseDTO(
 fun String.toSimulering(
     validerSaksnummer: Saksnummer,
     validerFnr: Fnr,
-): Simulering {
+    meldeperiodeKjeder: MeldeperiodeKjeder,
+): Simulering.Endring {
     return deserialize<SimuleringResponseDTO>(this).let { res ->
         check(Fnr.fromString(res.detaljer.gjelderId) == validerFnr) {
             "Simulering sin gjelderId: ${res.detaljer.gjelderId} er ulik behandlingens fnr $validerFnr"
@@ -66,34 +92,21 @@ fun String.toSimulering(
 //                "Simulering sin sakId: ${it.joinToString()} er ulik behandlingens saksnummer $validerSaksnummer"
 //            }
 //        }
-        Simulering(
-            oppsummeringForPerioder = res.oppsummeringer.map { oppsummeringForPeriode ->
-                Simulering.OppsummeringForPeriode(
-                    periode = Periode(oppsummeringForPeriode.fom, oppsummeringForPeriode.tom),
-                    tidligereUtbetalt = oppsummeringForPeriode.tidligereUtbetalt,
-                    nyUtbetaling = oppsummeringForPeriode.nyUtbetaling,
-                    totalEtterbetaling = oppsummeringForPeriode.totalEtterbetaling,
-                    totalFeilutbetaling = oppsummeringForPeriode.totalFeilutbetaling,
+        val detaljer = Simulering.Endring.Detaljer(
+            datoBeregnet = res.detaljer.datoBeregnet,
+            totalBeløp = res.detaljer.totalBeløp,
+            perioder = res.detaljer.perioder.map { periode ->
+                Simulering.Endring.Detaljer.Simuleringsperiode(
+                    periode = Periode(periode.fom, periode.tom),
+                    delperioder = periode.posteringer.map { postering ->
+                        postering.toDomain()
+                    },
                 )
-            },
-            detaljer = Simulering.Detaljer(
-                datoBeregnet = res.detaljer.datoBeregnet,
-                totalBeløp = res.detaljer.totalBeløp,
-                perioder = res.detaljer.perioder.map { periode ->
-                    Simulering.Detaljer.Simuleringsperiode(
-                        periode = Periode(periode.fom, periode.tom),
-                        posteringer = periode.posteringer.map { postering ->
-                            Simulering.Detaljer.Simuleringsperiode.Postering(
-                                fagområde = postering.fagområde,
-                                periode = Periode(postering.fom, postering.tom),
-                                beløp = postering.beløp,
-                                type = postering.type,
-                                klassekode = postering.klassekode,
-                            )
-                        },
-                    )
-                },
-            ),
+            }.toNonEmptyListOrNull()!!,
+        )
+        Simulering.Endring(
+            detaljer = detaljer,
+            oppsummering = OppsummeringGenerator.lagOppsummering(detaljer, meldeperiodeKjeder),
         )
     }
 }

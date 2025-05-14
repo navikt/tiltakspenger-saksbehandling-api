@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
@@ -28,6 +29,7 @@ interface UtbetalingGateway {
         brukersNavkontor: Navkontor,
         forrigeUtbetalingJson: String?,
         forrigeVedtakId: VedtakId?,
+        meldeperiodeKjeder: MeldeperiodeKjeder,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata>
 }
 

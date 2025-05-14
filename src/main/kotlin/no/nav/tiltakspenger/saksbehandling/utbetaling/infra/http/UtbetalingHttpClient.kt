@@ -15,9 +15,11 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
@@ -166,6 +168,7 @@ class UtbetalingHttpClient(
         brukersNavkontor: Navkontor,
         forrigeUtbetalingJson: String?,
         forrigeVedtakId: VedtakId?,
+        meldeperiodeKjeder: MeldeperiodeKjeder,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         return withContext(Dispatchers.IO) {
             val sakId = behandling.sakId
@@ -197,6 +200,9 @@ class UtbetalingHttpClient(
                 if (status == 503) {
                     return@catch KunneIkkeSimulere.Stengt.left()
                 }
+                if (status == 204) {
+                    return@catch SimuleringMedMetadata(simulering = Simulering.IngenEndring, httpResponseBody).right()
+                }
                 if (status != 200) {
                     log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved simulering. Status var ulik 200. Se sikkerlogg for mer kontekst. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
                     Sikkerlogg.error { "Feil ved simulering. Status var ulik 200. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, httpResponseBody: $httpResponseBody, path: $path, status: $status, requestHeaders: $requestHeaders, responseHeaders: $responseHeaders" }
@@ -207,6 +213,7 @@ class UtbetalingHttpClient(
                         httpResponseBody.toSimulering(
                             validerSaksnummer = saksnummer,
                             validerFnr = behandling.fnr,
+                            meldeperiodeKjeder = meldeperiodeKjeder,
                         ),
                         httpResponseBody,
                     ).right()

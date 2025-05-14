@@ -73,6 +73,19 @@ data class MeldeperiodeKjeder(
         }?.hentSisteMeldeperiode()
     }
 
+    /**
+     * Henter alle meldeperioder som overlapper med perioden.
+     */
+    fun hentMeldeperioderForPeriode(periode: Periode): List<Meldeperiode> {
+        return meldeperiodeKjeder.mapNotNull { kjede ->
+            if (kjede.periode.overlapperMed(periode)) {
+                kjede.hentSisteMeldeperiode()
+            } else {
+                null
+            }
+        }
+    }
+
     fun hentMeldeperiodeKjedeForPeriode(periode: Periode): MeldeperiodeKjede? {
         return meldeperiodeKjeder.singleOrNullOrThrow { it.periode == periode }
     }
