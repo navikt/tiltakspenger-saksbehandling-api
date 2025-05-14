@@ -5,7 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.logging.sikkerlogg
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
@@ -83,8 +83,8 @@ class AutomatiskMeldekortBehandlingService(
             navkontorService.hentOppfolgingsenhet(sak.fnr)
         }.getOrElse {
             with("Kunne ikke hente navkontor for sak $sakId") {
-                logger.error { this }
-                sikkerlogg.error(it) { "$this - fnr ${sak.fnr.verdi}" }
+                logger.error(it) { this }
+                Sikkerlogg.error(it) { "$this - fnr ${sak.fnr.verdi}" }
             }
             return BrukersMeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET.left()
         }

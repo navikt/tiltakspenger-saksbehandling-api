@@ -9,6 +9,7 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
@@ -21,7 +22,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksb
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway
@@ -283,14 +283,14 @@ internal class PdfgenHttpClient(
                 val status = httpResponse.statusCode()
                 if (status != 200) {
                     log.error { "Feil ved kall til pdfgen. $errorContext. Status: $status. uri: $uri. Se sikkerlogg for detaljer." }
-                    sikkerlogg.error { "Feil ved kall til pdfgen. $errorContext. uri: $uri. jsonResponse: $jsonResponse. jsonPayload: $payload." }
+                    Sikkerlogg.error { "Feil ved kall til pdfgen. $errorContext. uri: $uri. jsonResponse: $jsonResponse. jsonPayload: $payload." }
                     return@withContext KunneIkkeGenererePdf.left()
                 }
                 PdfOgJson(PdfA(jsonResponse), payload)
             }.mapLeft {
                 // Either.catch slipper igjennom CancellationException som er ønskelig.
                 log.error(it) { "Feil ved kall til pdfgen. $errorContext. Se sikkerlogg for detaljer." }
-                sikkerlogg.error(it) { "Feil ved kall til pdfgen. $errorContext. jsonPayload: $payload, uri: $uri" }
+                Sikkerlogg.error(it) { "Feil ved kall til pdfgen. $errorContext. jsonPayload: $payload, uri: $uri" }
                 KunneIkkeGenererePdf
             }
         }

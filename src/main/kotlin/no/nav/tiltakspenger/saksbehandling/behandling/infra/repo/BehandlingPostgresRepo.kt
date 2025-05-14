@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
@@ -21,7 +22,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.t
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
@@ -30,6 +30,8 @@ import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
+
+private val log = KotlinLogging.logger {}
 
 class BehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -275,7 +277,7 @@ class BehandlingPostgresRepo(
             behandling: Behandling,
             session: Session,
         ) {
-            sikkerlogg.info { "Oppdaterer behandling ${behandling.id}" }
+            log.info { "Oppdaterer behandling ${behandling.id}" }
 
             val antRaderOppdatert =
                 session.run(
@@ -321,7 +323,7 @@ class BehandlingPostgresRepo(
             behandling: Behandling,
             session: Session,
         ) {
-            sikkerlogg.info { "Oppretter behandling ${behandling.id}" }
+            log.info { "Oppretter behandling ${behandling.id}" }
 
             session.run(
                 queryOf(

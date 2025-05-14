@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
@@ -31,8 +30,7 @@ class OppdaterUtbetalingsstatusService(
             }
         }.onLeft {
             with("Uventet feil ved oppdatering av utbetalingsstatus.") {
-                logger.error(RuntimeException("Trigger stacktrace for enklere debug")) { "$this Se sikkerlogg for mer kontekst." }
-                sikkerlogg.error(it) { this }
+                logger.error(it) { this }
             }
         }
     }
@@ -64,8 +62,7 @@ class OppdaterUtbetalingsstatusService(
             }
         }.onLeft {
             with("Uventet feil ved oppdatering av utbetalingsstatus for $utbetaling.") {
-                logger.error(RuntimeException("Trigger stacktrace for enklere debug")) { "$this Se sikkerlogg for mer kontekst." }
-                sikkerlogg.error(it) { this }
+                logger.error(it) { this }
             }
         }
     }

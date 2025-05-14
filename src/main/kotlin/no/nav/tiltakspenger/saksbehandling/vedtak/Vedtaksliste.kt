@@ -112,7 +112,7 @@ data class Vedtaksliste(
     }
 
     fun harInnvilgetTiltakspengerEtterDato(dato: LocalDate): Boolean {
-        return innvilgelsesperioder.any { it.etter(dato) }
+        return innvilgelsesperioder.any { it.starterEtter(dato) }
     }
 
     /** Tidslinje for antall barn. Første og siste periode vil være 1 eller flere. Kan inneholde hull med 0 barn. */

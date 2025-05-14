@@ -9,10 +9,10 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.KunneIkkeDistribuereDokument
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import java.net.URI
 import java.net.http.HttpClient
@@ -58,7 +58,7 @@ class DokdistHttpClient(
                 }
                 if (status != 409 && status != 200) {
                     log.error { "Feil ved kall til dokdist. journalpostId: $journalpostId. Status: $status. uri: $uri. Se sikkerlogg for detaljer." }
-                    sikkerlogg.error { "Feil ved kall til dokdist. journalpostId: $journalpostId. Status: $status. uri: $uri. jsonPayload: $jsonPayload. jsonResponse: $jsonResponse" }
+                    Sikkerlogg.error { "Feil ved kall til dokdist. journalpostId: $journalpostId. Status: $status. uri: $uri. jsonPayload: $jsonPayload. jsonResponse: $jsonResponse" }
                     return@withContext KunneIkkeDistribuereDokument.left()
                 }
                 // 409 er en forventet statuskode ved forsøk på å distribuere samme dokument flere ganger.
@@ -66,13 +66,13 @@ class DokdistHttpClient(
             }.mapLeft {
                 // Either.catch slipper igjennom CancellationException som er ønskelig.
                 log.error(it) { "Feil ved kall til dokdist. journalpostId: $journalpostId. Se sikkerlogg for detaljer." }
-                sikkerlogg.error(it) { "Feil ved kall til dokdist. journalpostId: $journalpostId. . jsonPayload: $jsonPayload, uri: $uri" }
+                Sikkerlogg.error(it) { "Feil ved kall til dokdist. journalpostId: $journalpostId. . jsonPayload: $jsonPayload, uri: $uri" }
                 KunneIkkeDistribuereDokument
             }.flatten()
         }
     }
 
-    private suspend fun createRequest(
+    private fun createRequest(
         jsonPayload: String,
         correlationId: CorrelationId,
         token: String,

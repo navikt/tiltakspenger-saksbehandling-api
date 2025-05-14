@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.saksbehandling.auth.infra.PoaoTilgangClient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.PersonRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.person.PersonGateway
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonHttpklient
@@ -35,7 +34,6 @@ open class PersonContext(
             pdlPipBaseUrl = Configuration.pdlPipUrl,
             skjermingBaseUrl = Configuration.skjermingUrl,
             getSkjermingToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.skjermingScope) },
-            sikkerlogg = sikkerlogg,
         )
     }
     open val navIdentClient: NavIdentClient by lazy {

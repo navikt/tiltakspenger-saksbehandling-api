@@ -12,8 +12,8 @@ import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangGateway
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 
 class PoaoTilgangClient(
     baseUrl: String,
@@ -28,7 +28,7 @@ class PoaoTilgangClient(
 
     override suspend fun erSkjermet(fnr: Fnr, correlationId: CorrelationId): Boolean {
         val token = Either.catch { getToken() }.getOrElse {
-            sikkerlogg.error(it) { "Kunne ikke hente token for å hente skjerming. CorrelationId: $correlationId" }
+            Sikkerlogg.error(it) { "Kunne ikke hente token for å hente skjerming. CorrelationId: $correlationId" }
             throw RuntimeException("Kunne ikke hente token for å hente skjerming. Se sikkerlogg for mer kontekst.")
         }
         try {
@@ -45,7 +45,7 @@ class PoaoTilgangClient(
             if (throwable is IllegalStateException) {
                 throw throwable
             } else {
-                sikkerlogg.error(throwable) { "Ukjent feil fra Poao Tilgang. CorrelationId: $correlationId" }
+                Sikkerlogg.error(throwable) { "Ukjent feil fra Poao Tilgang. CorrelationId: $correlationId" }
                 throw RuntimeException("Ukjent feil fra Poao Tilgang, se sikkerlogg for mer kontekst.")
             }
         }

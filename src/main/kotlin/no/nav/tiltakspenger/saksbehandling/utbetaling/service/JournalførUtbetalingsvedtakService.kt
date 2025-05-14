@@ -6,7 +6,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.sammenlign
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway
@@ -75,8 +74,7 @@ class JournalførUtbetalingsvedtakService(
                 }
             }
         }.onLeft {
-            log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ukjent feil skjedde under journalføring av utbetalingsvedtak." }
-            sikkerlogg.error(it) { "Ukjent feil skjedde under journalføring av utbetalingsvedtak." }
+            log.error(it) { "Ukjent feil skjedde under journalføring av utbetalingsvedtak." }
         }
     }
 }

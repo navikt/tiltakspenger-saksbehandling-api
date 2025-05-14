@@ -4,7 +4,6 @@ import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiHttpClientGateway
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import java.time.Clock
@@ -41,8 +40,7 @@ class SendTilMeldekortApiService(
             }
         }.onLeft {
             with("Uventet feil ved sending av meldeperiode til meldekort-api!") {
-                logger.error(RuntimeException("Uventet feil!")) { this }
-                sikkerlogg.error(it) { this }
+                logger.error(it) { this }
             }
         }
     }
@@ -64,8 +62,7 @@ class SendTilMeldekortApiService(
             }
         }.onLeft {
             with("Uventet feil ved sending av saker til meldekort-api!") {
-                logger.error(RuntimeException("Uventet feil!")) { this }
-                sikkerlogg.error(it) { this }
+                logger.error(it) { this }
             }
         }
     }

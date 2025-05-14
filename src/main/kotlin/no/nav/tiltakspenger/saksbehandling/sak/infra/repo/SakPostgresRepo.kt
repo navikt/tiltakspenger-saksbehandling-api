@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.repo
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
@@ -13,7 +14,6 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
@@ -35,6 +35,8 @@ class SakPostgresRepo(
     private val saksnummerGenerator: SaksnummerGenerator,
     private val clock: Clock,
 ) : SakRepo {
+    val logger = KotlinLogging.logger { }
+
     override fun hentForFnr(fnr: Fnr): Saker {
         val saker =
             sessionFactory.withSessionContext { sessionContext ->
@@ -116,7 +118,7 @@ class SakPostgresRepo(
         }
 
     override fun opprettSak(sak: Sak) {
-        sikkerlogg.info { "Oppretter sak ${sak.id}" }
+        logger.info { "Oppretter sak ${sak.id}" }
         val nå = nå(clock)
         sessionFactory.withSessionContext { sessionContext ->
             sessionContext.withSession { session ->

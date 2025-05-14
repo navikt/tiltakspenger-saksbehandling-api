@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførVedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.Clock
@@ -71,8 +70,7 @@ class JournalførRammevedtakService(
                 }
             }
         }.onLeft {
-            log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ukjent feil skjedde under journalføring av førstegangsvedtak." }
-            sikkerlogg.error(it) { "Ukjent feil skjedde under journalføring av førstegangsvedtak." }
+            log.error(it) { "Ukjent feil skjedde under journalføring av førstegangsvedtak." }
         }
     }
 }

@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
-import no.nav.tiltakspenger.saksbehandling.felles.sikkerlogg
 import java.time.Clock
 
 class DistribuerVedtaksbrevService(
@@ -38,8 +37,7 @@ class DistribuerVedtaksbrevService(
                 }
             }
         }.onLeft {
-            log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Ukjent feil skjedde under distribuering av førstegangsvedtak." }
-            sikkerlogg.error(it) { "Ukjent feil skjedde under distribuering av førstegangsvedtak." }
+            log.error(it) { "Ukjent feil skjedde under distribuering av førstegangsvedtak." }
         }
     }
 }
