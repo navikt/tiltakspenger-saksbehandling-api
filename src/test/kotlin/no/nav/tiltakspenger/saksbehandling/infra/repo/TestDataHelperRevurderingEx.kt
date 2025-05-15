@@ -23,10 +23,12 @@ import java.time.Clock
 import java.time.LocalDate
 
 /**
+ * Gir deg mulighet til å lage en revurdering på en eksisterende sak uten å lage ny søknad + vedtak (Disse må da eksistere på saken som sendes inn)
+ *
  * @param sak optional sak som kan bygges på videre. Dersom den ikke sendes, får du en default sak
  * @param genererSak funksjon som genererer sak og revurdering. Den kan brukes til å lage en ny sak eller bruke en eksisterende.
  */
-internal fun TestDataHelper.persisterOpprettetRevurderingEksisterendeSak(
+internal fun TestDataHelper.persisterOpprettetRevurdering(
     sak: Sak? = null,
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
@@ -53,6 +55,8 @@ internal fun TestDataHelper.persisterOpprettetRevurderingEksisterendeSak(
 }
 
 /**
+ * Gir deg mulighet til å lage en revurdering på en eksisterende sak uten å lage ny søknad + vedtak (Disse må da eksistere på saken som sendes inn)
+ *
  * @param sak optional sak som kan bygges på videre. Dersom den ikke sendes, får du en default sak
  * @param genererSak funksjon som genererer sak og revurdering. Den kan brukes til å lage en ny sak eller bruke en eksisterende.
  */
@@ -63,7 +67,7 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
     stansDato: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
     valgteHjemler: List<ValgtHjemmelHarIkkeRettighet> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
-    genererSak: (Sak?) -> Pair<Sak, Behandling> = { s -> this.persisterOpprettetRevurderingEksisterendeSak(s) },
+    genererSak: (Sak?) -> Pair<Sak, Behandling> = { s -> this.persisterOpprettetRevurdering(s) },
 ): Pair<Sak, Behandling> {
     val (sakMedRevurdering, revurdering) = genererSak(sak)
 
@@ -88,6 +92,8 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
 }
 
 /**
+ * Gir deg mulighet til å lage en revurdering på en eksisterende sak uten å lage ny søknad + vedtak (Disse må da eksistere på saken som sendes inn)
+ *
  * @param sak optional sak som kan bygges på videre. Dersom den ikke sendes, får du en default sak
  * @param genererSak funksjon som genererer sak og revurdering. Den kan brukes til å lage en ny sak eller bruke en eksisterende.
  */
