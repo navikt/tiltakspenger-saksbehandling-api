@@ -159,7 +159,6 @@ internal class MeldeperiodePostgresRepo(
                 ),
                 maksAntallDagerForMeldeperiode = row.int("antall_dager_for_periode"),
                 girRett = row.string("gir_rett").fromDbJsonToGirRett(),
-                sendtTilMeldekortApi = row.localDateTimeOrNull("sendt_til_meldekort_api"),
                 rammevedtak = row.stringOrNull("rammevedtak")?.toPeriodiserteVedtakId(),
             )
         }

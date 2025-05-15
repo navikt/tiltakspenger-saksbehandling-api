@@ -602,7 +602,6 @@ interface MeldekortMother : MotherOfAllMothers {
         periode = periode,
         maksAntallDagerForMeldeperiode = antallDagerForPeriode,
         girRett = girRett,
-        sendtTilMeldekortApi = null,
         rammevedtak = rammevedtak,
     )
 

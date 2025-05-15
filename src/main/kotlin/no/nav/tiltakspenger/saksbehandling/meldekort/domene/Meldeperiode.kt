@@ -26,7 +26,6 @@ data class Meldeperiode(
     val fnr: Fnr,
     val maksAntallDagerForMeldeperiode: Int,
     val girRett: Map<LocalDate, Boolean>,
-    val sendtTilMeldekortApi: LocalDateTime?,
     val rammevedtak: Periodisering<VedtakId?>?,
 ) : Comparable<Meldeperiode> {
     val antallDagerSomGirRett = girRett.values.count { it }
@@ -92,7 +91,6 @@ data class Meldeperiode(
                 girRett = periode.tilDager().associateWith {
                     (utfallsperioder.hentVerdiForDag(it) == Utfallsperiode.RETT_TIL_TILTAKSPENGER)
                 },
-                sendtTilMeldekortApi = null,
                 rammevedtak = rammevedtak,
             )
 

@@ -7,6 +7,7 @@ import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.libs.meldekort.SakTilMeldekortApiDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.FeilVedSendingTilMeldekortApi
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiHttpClientGateway
@@ -14,8 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 class MeldekortApiHttpClient(
     baseUrl: String,
@@ -72,20 +71,8 @@ class MeldekortApiHttpClient(
     }
 }
 
-// TODO: oppdater libs
-data class MeldeperiodeDTONy(
-    val id: String,
-    val kjedeId: String,
-    val versjon: Int,
-    val opprettet: LocalDateTime,
-    val fraOgMed: LocalDate,
-    val tilOgMed: LocalDate,
-    val antallDagerForPeriode: Int,
-    val girRett: Map<LocalDate, Boolean>,
-)
-
-private fun Meldeperiode.tilMeldekortApiDTO(): MeldeperiodeDTONy {
-    return MeldeperiodeDTONy(
+private fun Meldeperiode.tilMeldekortApiDTO(): SakTilMeldekortApiDTO.Meldeperiode {
+    return SakTilMeldekortApiDTO.Meldeperiode(
         id = this.id.toString(),
         kjedeId = this.kjedeId.toString(),
         versjon = this.versjon.value,
@@ -97,16 +84,8 @@ private fun Meldeperiode.tilMeldekortApiDTO(): MeldeperiodeDTONy {
     )
 }
 
-// TODO: flytt til libs
-private data class SakDTO(
-    val fnr: String,
-    val sakId: String,
-    val saksnummer: String,
-    val meldeperioder: List<MeldeperiodeDTONy>,
-)
-
-private fun Sak.tilMeldekortApiDTO(): SakDTO {
-    return SakDTO(
+private fun Sak.tilMeldekortApiDTO(): SakTilMeldekortApiDTO {
+    return SakTilMeldekortApiDTO(
         fnr = this.fnr.verdi,
         sakId = this.id.toString(),
         saksnummer = this.saksnummer.toString(),

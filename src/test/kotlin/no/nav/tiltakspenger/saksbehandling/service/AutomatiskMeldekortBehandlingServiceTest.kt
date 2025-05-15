@@ -22,7 +22,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
     val virkningsperiode = Periode(6.januar(2025), 31.mars(2025))
 
     @Test
-    fun `skal behandle brukers meldekort automatisk`() {
+    fun `skal behandle brukers meldekort automatisk ved behandlesAutomatisk=true`() {
         val tac = TestApplicationContext()
         val meldekortBehandlingRepo = tac.meldekortContext.meldekortBehandlingRepo
         val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
@@ -55,7 +55,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
     }
 
     @Test
-    fun `skal ikke behandle automatisk`() {
+    fun `skal ikke behandle automatisk ved behandlesAutomatisk=false`() {
         val tac = TestApplicationContext()
         val meldekortBehandlingRepo = tac.meldekortContext.meldekortBehandlingRepo
         val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
@@ -110,7 +110,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
             dager = List(14) {
                 BrukersMeldekort.BrukersMeldekortDag(
                     dato = førsteDag.plusDays(it.toLong()),
-                    status = if (it < 10) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET,
+                    status = if (it < 11) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_REGISTRERT,
                 )
             },
         )
