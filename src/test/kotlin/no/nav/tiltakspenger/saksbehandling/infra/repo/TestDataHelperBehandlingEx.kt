@@ -339,7 +339,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
         fnr = fnr,
         saksnummer = this.saksnummerGenerator.neste(),
     ),
-    id: SøknadId = Søknad.randomId(),
+    søknadId: SøknadId = Søknad.randomId(),
     søknad: Søknad =
         ObjectMother.nySøknad(
             periode = tiltaksOgVurderingsperiode,
@@ -348,7 +348,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
             ObjectMother.personSøknad(
                 fnr = fnr,
             ),
-            id = id,
+            id = søknadId,
             søknadstiltak =
             ObjectMother.søknadstiltak(
                 deltakelseFom = deltakelseFom,
@@ -375,7 +375,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
         saksbehandler = saksbehandler,
         tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
         sak = sak,
-        id = id,
+        id = søknadId,
         søknad = søknad,
         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
@@ -509,7 +509,7 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
             saksbehandler = saksbehandler,
             beslutter = beslutter,
             tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
-            id = id,
+            søknadId = id,
             søknad = søknad,
             sak = sak,
             clock = clock,
@@ -549,16 +549,9 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
         ObjectMother.nySøknad(
             periode = tiltaksOgVurderingsperiode,
             journalpostId = journalpostId,
-            personopplysninger =
-            ObjectMother.personSøknad(
-                fnr = fnr,
-            ),
+            personopplysninger = ObjectMother.personSøknad(fnr = fnr),
             id = id,
-            søknadstiltak =
-            ObjectMother.søknadstiltak(
-                deltakelseFom = deltakelseFom,
-                deltakelseTom = deltakelseTom,
-            ),
+            søknadstiltak = ObjectMother.søknadstiltak(deltakelseFom = deltakelseFom, deltakelseTom = deltakelseTom),
             barnetillegg = listOf(),
             sakId = sak.id,
             saksnummer = sak.saksnummer,
@@ -576,7 +569,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
             saksbehandler = saksbehandler,
             beslutter = beslutter,
             tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
-            id = id,
+            søknadId = id,
             søknad = søknad,
             sak = sak,
             clock = clock,
@@ -597,7 +590,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
     }
 }
 
-internal fun TestDataHelper.persisterBehandletRevurdering(
+internal fun TestDataHelper.persisterRevurderingTilBeslutning(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = ObjectMother.virkningsperiode().fraOgMed,
@@ -612,13 +605,13 @@ internal fun TestDataHelper.persisterBehandletRevurdering(
         fnr = fnr,
         saksnummer = this.saksnummerGenerator.neste(),
     ),
-    id: SøknadId = Søknad.randomId(),
+    søknadId: SøknadId = Søknad.randomId(),
     søknad: Søknad =
         ObjectMother.nySøknad(
             periode = tiltaksOgVurderingsperiode,
             journalpostId = journalpostId,
             personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-            id = id,
+            id = søknadId,
             søknadstiltak = ObjectMother.søknadstiltak(deltakelseFom = deltakelseFom, deltakelseTom = deltakelseTom),
             barnetillegg = listOf(),
             sakId = sak.id,
@@ -638,7 +631,7 @@ internal fun TestDataHelper.persisterBehandletRevurdering(
             saksbehandler = saksbehandler,
             beslutter = beslutter,
             tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
-            id = id,
+            id = søknadId,
             søknad = søknad,
             sak = sak,
             clock = clock,
@@ -707,7 +700,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         journalpostId = journalpostId,
         saksbehandler = saksbehandler,
         tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
-        id = id,
+        søknadId = id,
         søknad = søknad,
         beslutter = beslutter,
         sak = sak,
@@ -734,7 +727,7 @@ internal fun TestDataHelper.persisterRammevedtakAvslag(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
-    id: SøknadId = Søknad.randomId(),
+    søknadId: SøknadId = Søknad.randomId(),
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,
@@ -744,7 +737,7 @@ internal fun TestDataHelper.persisterRammevedtakAvslag(
         periode = tiltaksOgVurderingsperiode,
         journalpostId = journalpostId,
         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-        id = id,
+        id = søknadId,
         søknadstiltak = ObjectMother.søknadstiltak(deltakelseFom = deltakelseFom, deltakelseTom = deltakelseTom),
         barnetillegg = listOf(),
         sakId = sak.id,
@@ -760,7 +753,7 @@ internal fun TestDataHelper.persisterRammevedtakAvslag(
         journalpostId = journalpostId,
         saksbehandler = saksbehandler,
         tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
-        id = id,
+        id = søknadId,
         søknad = søknad,
         beslutter = beslutter,
         sak = sak,
