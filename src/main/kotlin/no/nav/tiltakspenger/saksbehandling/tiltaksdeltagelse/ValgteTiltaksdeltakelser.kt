@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 
 /**
  * Saksbehandler skal kunne velge hvilke tiltaksdeltakelser man velger å innvilge tiltakspenger for i gitte perioder,
@@ -16,6 +17,22 @@ data class ValgteTiltaksdeltakelser(
         fun periodiser(
             tiltaksdeltakelser: List<Pair<Periode, String>>,
             behandling: Behandling,
+        ): ValgteTiltaksdeltakelser {
+            val tiltaksdeltagelseMap = tiltaksdeltakelser.associate {
+                it.second to (
+                    behandling.getTiltaksdeltagelse(it.second)
+                        ?: throw IllegalArgumentException("Kan ikke velge tiltaksdeltakelse med id ${it.second}")
+                    )
+            }
+            val perioderMedVerdi = tiltaksdeltakelser.map { PeriodeMedVerdi(verdi = tiltaksdeltagelseMap[it.second]!!, periode = it.first) }
+            return ValgteTiltaksdeltakelser(
+                periodisering = Periodisering(perioderMedVerdi),
+            )
+        }
+
+        fun periodiser(
+            tiltaksdeltakelser: List<Pair<Periode, String>>,
+            behandling: Søknadsbehandling,
         ): ValgteTiltaksdeltakelser {
             val tiltaksdeltagelseMap = tiltaksdeltakelser.associate {
                 it.second to (

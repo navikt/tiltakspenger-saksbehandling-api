@@ -29,4 +29,11 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
             behandling = behandling,
         )
     }
+
+    fun valgteTiltaksdeltakelser(behandling: Søknadsbehandling): ValgteTiltaksdeltakelser {
+        return ValgteTiltaksdeltakelser.periodiser(
+            tiltaksdeltakelser = tiltaksdeltakelser,
+            behandling = behandling,
+        )
+    }
 }

@@ -9,7 +9,9 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
@@ -43,6 +45,77 @@ data class Søknadsbehandling(
     val oppgaveId: OppgaveId? = søknad.oppgaveId
     val kravtidspunkt: LocalDateTime = søknad.tidsstempelHosOss
     val maksDagerMedTiltakspengerForPeriode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+
+    fun tilBeslutning(
+        kommando: SendSøknadsbehandlingTilBeslutningKommando,
+        clock: Clock,
+    ): Søknadsbehandling {
+        check(status == UNDER_BEHANDLING) {
+            "Behandlingen må være under behandling, det innebærer også at en saksbehandler må ta saken før den kan sendes til beslutter. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}"
+        }
+        check(kommando.saksbehandler.navIdent == this.saksbehandler) { "Det er ikke lov å sende en annen sin behandling til beslutter" }
+
+        val status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING
+        val virkningsperiode = kommando.behandlingsperiode
+
+        val utfall: SøknadsbehandlingUtfall = when (kommando.utfall) {
+            Behandlingsutfall.INNVILGELSE -> SøknadsbehandlingUtfall.Innvilgelse(
+                status = status,
+                virkningsperiode = virkningsperiode,
+                antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+                begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
+                valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
+                barnetillegg = kommando.barnetillegg,
+            )
+
+            Behandlingsutfall.AVSLAG -> SøknadsbehandlingUtfall.Avslag(
+                avslagsgrunner = kommando.avslagsgrunner!!,
+            )
+
+            Behandlingsutfall.STANS -> throw IllegalArgumentException("Støtter ikke stans her (bør fjerne denne statusen fra kommandoen)")
+        }
+
+        return this.copy(
+            status = status,
+            sendtTilBeslutning = nå(clock),
+            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
+            virkningsperiode = virkningsperiode,
+            utfall = utfall,
+        )
+    }
+
+    fun oppdaterBegrunnelseVilkårsvurdering(
+        saksbehandler: Saksbehandler,
+        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering,
+    ): Søknadsbehandling {
+        if (!saksbehandler.erSaksbehandler()) {
+            throw IllegalArgumentException("Kunne ikke oppdatere begrunnelse/vilkårsvurdering. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
+        }
+        if (this.saksbehandler != saksbehandler.navIdent) {
+            throw IllegalArgumentException("Kunne ikke oppdatere begrunnelse/vilkårsvurdering. Saksbehandler er ikke satt på behandlingen. sakId=$sakId, behandlingId=$id")
+        }
+        if (!this.erUnderBehandling) {
+            throw IllegalArgumentException("Kunne ikke oppdatere begrunnelse/vilkårsvurdering. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
+        }
+        require(this.utfall is SøknadsbehandlingUtfall.Innvilgelse)
+
+        return this.copy(utfall = utfall.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering))
+    }
+
+    fun oppdaterBarnetillegg(kommando: OppdaterBarnetilleggKommando): Søknadsbehandling {
+        if (!kommando.saksbehandler.erSaksbehandler()) {
+            throw IllegalArgumentException("Kunne ikke oppdatere barnetillegg. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
+        }
+        if (this.saksbehandler != kommando.saksbehandler.navIdent) {
+            throw IllegalArgumentException("Kunne ikke oppdatere barnetillegg. Saksbehandler er ikke satt på behandlingen. sakId=$sakId, behandlingId=$id")
+        }
+        if (!this.erUnderBehandling) {
+            throw IllegalArgumentException("Kunne ikke oppdatere barnetillegg. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
+        }
+        require(this.utfall is SøknadsbehandlingUtfall.Innvilgelse)
+
+        return this.copy(utfall = utfall.copy(barnetillegg = kommando.barnetillegg(this.virkningsperiode)))
+    }
 
     companion object {
         /** Hardkoder denne til 10 for nå. På sikt vil vi la saksbehandler periodisere dette selv, litt på samme måte som barnetillegg. */
