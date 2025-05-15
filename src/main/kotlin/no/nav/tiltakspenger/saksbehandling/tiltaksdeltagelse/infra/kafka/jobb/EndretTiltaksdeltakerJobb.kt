@@ -93,7 +93,7 @@ class EndretTiltaksdeltakerJobb(
     private fun finnNyesteIverksatteBehandlingForDeltakelse(sak: Sak, tiltaksdeltakerId: String): Behandling? {
         val iverksatteBehandlingerForDeltakelse =
             sak.vedtaksliste.innvilgetTidslinje
-                .filter { it.verdi !== null }
+                .filter { it.verdi != null }
                 .filter { it.verdi!!.behandling.inneholderEksternDeltagelseId(tiltaksdeltakerId) }
                 .map { it.verdi!!.behandling }
 
