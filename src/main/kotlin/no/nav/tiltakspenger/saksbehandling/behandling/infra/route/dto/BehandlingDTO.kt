@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfall
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
@@ -16,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toSøknadDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toTiltaksdeltakelsePeriodeDTO
 
-internal data class BehandlingDTO(
+data class BehandlingDTO(
     val id: String,
     val type: Behandlingstype,
     val status: BehandlingsstatusDTO,
@@ -41,7 +43,7 @@ internal data class BehandlingDTO(
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
 )
 
-internal fun Behandling.toDTO(): BehandlingDTO {
+fun Behandling.toDTO(): BehandlingDTO {
     return BehandlingDTO(
         id = this.id.toString(),
         type = behandlingstype,
@@ -68,4 +70,47 @@ internal fun Behandling.toDTO(): BehandlingDTO {
     )
 }
 
-internal fun Behandlinger.toDTO() = this.map { it.toDTO() }
+fun Behandlinger.toDTO() = this.map { it.toDTO() }
+
+fun Søknadsbehandling.toDTO(): BehandlingDTO {
+    val utenUtfallDTO = BehandlingDTO(
+        id = this.id.toString(),
+        type = Behandlingstype.FØRSTEGANGSBEHANDLING,
+        status = this.status.toBehandlingsstatusDTO(),
+        utfall = this.utfall?.toBehandlingsutfallDto(),
+        sakId = this.sakId.toString(),
+        saksnummer = this.saksnummer.toString(),
+        saksbehandler = this.saksbehandler,
+        beslutter = this.beslutter,
+        attesteringer = this.attesteringer.toAttesteringDTO(),
+        saksopplysninger = this.saksopplysninger.toSaksopplysningerDTO(),
+        søknad = this.søknad.toSøknadDTO(),
+        avbrutt = this.avbrutt?.toAvbruttDTO(),
+        saksopplysningsperiode = this.saksopplysningsperiode.toDTO(),
+        iverksattTidspunkt = this.iverksattTidspunkt?.toString(),
+        fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
+        virkningsperiode = null,
+        begrunnelseVilkårsvurdering = null,
+        barnetillegg = null,
+        valgteTiltaksdeltakelser = null,
+        valgtHjemmelHarIkkeRettighet = null,
+        antallDagerPerMeldeperiode = null,
+        avslagsgrunner = null,
+    )
+
+    val utfall = this.utfall
+
+    return when (utfall) {
+        is SøknadsbehandlingUtfall.Innvilgelse -> utenUtfallDTO.copy(
+            virkningsperiode = utfall.virkningsperiode.toDTO(),
+            begrunnelseVilkårsvurdering = utfall.begrunnelseVilkårsvurdering?.verdi,
+            barnetillegg = utfall.barnetillegg?.toBarnetilleggDTO(),
+            valgteTiltaksdeltakelser = utfall.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.map { it.toTiltaksdeltakelsePeriodeDTO() },
+            antallDagerPerMeldeperiode = utfall.antallDagerPerMeldeperiode,
+        )
+        is SøknadsbehandlingUtfall.Avslag -> utenUtfallDTO.copy(
+            avslagsgrunner = utfall.avslagsgrunner.toValgtHjemmelForAvslagDTO(),
+        )
+        null -> utenUtfallDTO
+    }
+}

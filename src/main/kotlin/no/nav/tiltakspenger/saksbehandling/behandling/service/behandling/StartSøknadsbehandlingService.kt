@@ -12,8 +12,8 @@ import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteSøknadsbehandling
@@ -38,7 +38,7 @@ class StartSøknadsbehandlingService(
         sakId: SakId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<KanIkkeStarteSøknadsbehandling, Behandling> {
+    ): Either<KanIkkeStarteSøknadsbehandling, Søknadsbehandling> {
         if (!saksbehandler.erSaksbehandler()) {
             logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å opprette behandling for fnr" }
             return KanIkkeStarteSøknadsbehandling.HarIkkeTilgang(
@@ -59,7 +59,8 @@ class StartSøknadsbehandlingService(
                 saksopplysningsperiode = saksopplysningsperiode,
             )
         }
-        val førstegangsbehandling = Behandling.opprettSøknadsbehandling(
+
+        val behandling = Søknadsbehandling.opprett(
             sakId = sakId,
             saksnummer = sak.saksnummer,
             fnr = fnr,
@@ -69,16 +70,16 @@ class StartSøknadsbehandlingService(
             clock = clock,
         ).getOrElse { return KanIkkeStarteSøknadsbehandling.OppretteBehandling(it).left() }
 
-        val statistikk = statistikkSakService.genererStatistikkForNyForstegangsbehandling(
-            behandling = førstegangsbehandling,
+        val statistikk = statistikkSakService.genererStatistikkForSøknadsbehandling(
+            behandling = behandling,
             søknadId = søknadId,
         )
 
         sessionFactory.withTransactionContext { tx ->
-            behandlingRepo.lagre(førstegangsbehandling, tx)
+            behandlingRepo.lagre(behandling, tx)
             statistikkSakRepo.lagre(statistikk, tx)
         }
 
-        return førstegangsbehandling.right()
+        return behandling.right()
     }
 }

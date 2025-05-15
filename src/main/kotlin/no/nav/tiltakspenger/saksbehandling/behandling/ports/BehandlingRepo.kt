@@ -8,11 +8,17 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import java.time.LocalDateTime
 
 interface BehandlingRepo {
     fun lagre(
         behandling: Behandling,
+        transactionContext: TransactionContext? = null,
+    )
+
+    fun lagre(
+        behandling: Søknadsbehandling,
         transactionContext: TransactionContext? = null,
     )
 

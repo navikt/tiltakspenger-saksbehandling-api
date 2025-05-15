@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-internal data class SøknadDTO(
+data class SøknadDTO(
     val id: String,
     val journalpostId: String,
     val tiltak: TiltaksdeltagelseFraSøknadDTO,
@@ -58,7 +58,7 @@ internal data class SøknadDTO(
     }
 }
 
-internal fun Søknad.toSøknadDTO(): SøknadDTO {
+fun Søknad.toSøknadDTO(): SøknadDTO {
     return SøknadDTO(
         id = this.id.toString(),
         journalpostId = this.journalpostId,
@@ -84,7 +84,7 @@ internal fun Søknad.toSøknadDTO(): SøknadDTO {
 }
 
 @JvmName("søknadToDTO")
-internal fun List<Søknad>.toSøknadDTO(): List<SøknadDTO> {
+fun List<Søknad>.toSøknadDTO(): List<SøknadDTO> {
     return this.map { it.toSøknadDTO() }
 }
 
@@ -109,7 +109,7 @@ fun PeriodeSpm.toPeriodeDTO(): PeriodeDTO? {
     }
 }
 
-internal fun Søknadstiltak.toDTO(): SøknadDTO.TiltaksdeltagelseFraSøknadDTO {
+fun Søknadstiltak.toDTO(): SøknadDTO.TiltaksdeltagelseFraSøknadDTO {
     return SøknadDTO.TiltaksdeltagelseFraSøknadDTO(
         id = id,
         fraOgMed = this.deltakelseFom.toString(),
@@ -119,7 +119,7 @@ internal fun Søknadstiltak.toDTO(): SøknadDTO.TiltaksdeltagelseFraSøknadDTO {
     )
 }
 
-internal fun List<BarnetilleggFraSøknad>.toDTO(): List<SøknadDTO.BarnetilleggFraSøknadDTO> = this.map {
+fun List<BarnetilleggFraSøknad>.toDTO(): List<SøknadDTO.BarnetilleggFraSøknadDTO> = this.map {
     SøknadDTO.BarnetilleggFraSøknadDTO(
         oppholderSegIEØS = it.oppholderSegIEØS,
         fornavn = it.fornavn,

@@ -45,40 +45,40 @@ import java.time.LocalDateTime
  * @param virkningsperiode Vil tilsvare innvilgelsesperiode for vedtak som gir rett til tiltakspenger og stansperiode/opphørsperiode for vedtak som fjerner rett til tiltakspenger.
  */
 data class Behandling(
-    val id: BehandlingId,
-    val sakId: SakId,
-    val saksnummer: Saksnummer,
-    val fnr: Fnr,
-    val virkningsperiode: Periode?,
-    val søknad: Søknad?,
-    val saksbehandler: String?,
-    val sendtTilBeslutning: LocalDateTime?,
-    val beslutter: String?,
-    val saksopplysninger: Saksopplysninger,
+    val id: BehandlingId, // alle behandlinger
+    val sakId: SakId, // alle behandlinger
+    val saksnummer: Saksnummer, // alle behandlinger
+    val fnr: Fnr, // alle behandlinger
+    val virkningsperiode: Periode?, // søknadsbehandling
+    val søknad: Søknad?, // søknadsbehandling
+    val saksbehandler: String?, // alle behandlinger
+    val sendtTilBeslutning: LocalDateTime?, // alle behandlinger
+    val beslutter: String?, // alle behandlinger
+    val saksopplysninger: Saksopplysninger, // alle behandlinger
     /**
      * Saksbehandler tar et aktivt valg om behandlingen skal føre til et avslag eller en innvilgelse.
      */
     val utfall: Behandlingsutfall?,
-    val status: Behandlingsstatus,
-    val attesteringer: List<Attestering>,
-    val opprettet: LocalDateTime,
-    val iverksattTidspunkt: LocalDateTime?,
-    val sendtTilDatadeling: LocalDateTime?,
-    val sistEndret: LocalDateTime,
-    val behandlingstype: Behandlingstype,
-    val oppgaveId: OppgaveId?,
+    val status: Behandlingsstatus, // alle behandlinger
+    val attesteringer: List<Attestering>, // alle behandlinger
+    val opprettet: LocalDateTime, // alle behandlinger
+    val iverksattTidspunkt: LocalDateTime?, // alle behandlinger
+    val sendtTilDatadeling: LocalDateTime?, // alle behandlinger
+    val sistEndret: LocalDateTime, // alle behandlinger
+    val behandlingstype: Behandlingstype, // ikke viderefør
+    val oppgaveId: OppgaveId?, // søknadsbehandling
     val valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelHarIkkeRettighet>,
-    val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-    val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
-    val saksopplysningsperiode: Periode?,
-    val barnetillegg: Barnetillegg?,
-    val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
-    val avbrutt: Avbrutt?,
-    val antallDagerPerMeldeperiode: Int?,
+    val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?, // alle behandlinger
+    val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?, // søknadsbehandling
+    val saksopplysningsperiode: Periode?, // alle behandlinger
+    val barnetillegg: Barnetillegg?, // søknadsbehandling, innvilgelse
+    val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?, // søknadsbehandling, innvilgelse
+    val avbrutt: Avbrutt?, // alle behandlinger
+    val antallDagerPerMeldeperiode: Int?, // søknadsbehandling, innvilgelse
     /**
      * Null hvis det ikke er et avslag, eller har ikke blitt behandlet til det punktet.
      */
-    val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
+    val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?, // søknadsbehandling, avslag
 ) {
     val erAvsluttet: Boolean by lazy { status == AVBRUTT || status == VEDTATT }
     val erUnderBehandling: Boolean = status == UNDER_BEHANDLING

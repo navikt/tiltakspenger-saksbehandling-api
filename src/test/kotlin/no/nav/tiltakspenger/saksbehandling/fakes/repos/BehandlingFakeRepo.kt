@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import java.time.LocalDateTime
 
@@ -26,16 +27,23 @@ class BehandlingFakeRepo : BehandlingRepo {
         data.get()[behandling.id] = behandling
     }
 
+    override fun lagre(
+        behandling: Søknadsbehandling,
+        transactionContext: TransactionContext?,
+    ) {
+        TODO("Not yet implemented")
+    }
+
     override fun hentOrNull(
         behandlingId: BehandlingId,
-        sessionContext: no.nav.tiltakspenger.libs.persistering.domene.SessionContext?,
+        sessionContext: SessionContext?,
     ): Behandling? {
         return data.get()[behandlingId]
     }
 
     override fun hent(
         behandlingId: BehandlingId,
-        sessionContext: no.nav.tiltakspenger.libs.persistering.domene.SessionContext?,
+        sessionContext: SessionContext?,
     ): Behandling {
         return hentOrNull(behandlingId, sessionContext)!!
     }
