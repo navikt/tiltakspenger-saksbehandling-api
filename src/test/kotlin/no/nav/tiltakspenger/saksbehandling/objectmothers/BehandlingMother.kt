@@ -524,12 +524,14 @@ suspend fun TestApplicationContext.førstegangsbehandlingUnderBeslutning(
     beslutter: Saksbehandler = beslutter(),
     correlationId: CorrelationId = CorrelationId.generate(),
     utfall: Behandlingsutfall,
+    antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
 ): Sak {
     val vilkårsvurdert = førstegangsbehandlingTilBeslutter(
         periode = periode,
         fnr = fnr,
         saksbehandler = saksbehandler,
         utfall = utfall,
+        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
     )
     this.behandlingContext.taBehandlingService.taBehandling(
         vilkårsvurdert.behandlinger.singleOrNullOrThrow()!!.id,
@@ -550,6 +552,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingIverksatt(
     beslutter: Saksbehandler = beslutter(),
     correlationId: CorrelationId = CorrelationId.generate(),
     utfall: Behandlingsutfall,
+    antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
 ): Sak {
     val tac = this
     val underBeslutning = førstegangsbehandlingUnderBeslutning(
@@ -558,6 +561,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingIverksatt(
         saksbehandler = saksbehandler,
         beslutter = beslutter,
         utfall = utfall,
+        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
     )
     runBlocking {
         tac.behandlingContext.iverksettBehandlingService.iverksett(
@@ -583,6 +587,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingIverksattMedMeldeperiod
     clock: Clock = fixedClock,
     correlationId: CorrelationId = CorrelationId.generate(),
     utfall: Behandlingsutfall = Behandlingsutfall.INNVILGELSE,
+    antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
 ): Sak {
     val (sak, meldeperioder) = førstegangsbehandlingIverksatt(
         periode = periode,
@@ -591,6 +596,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingIverksattMedMeldeperiod
         beslutter = beslutter,
         correlationId = correlationId,
         utfall = utfall,
+        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
     ).genererMeldeperioder(clock)
 
     this.meldekortContext.meldeperiodeRepo.lagre(meldeperioder)

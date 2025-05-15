@@ -24,6 +24,7 @@ data class LagreBrukersMeldekortKommando(
     val dager: List<BrukersMeldekortDag>,
     val journalpostId: JournalpostId,
 ) {
+    val antallDagerRegistrert: Int = dager.antallDagerRegistrert()
 
     fun tilBrukersMeldekort(meldeperiode: Meldeperiode, behandlesAutomatisk: Boolean): BrukersMeldekort {
         require(meldeperiode.id == meldeperiodeId) {

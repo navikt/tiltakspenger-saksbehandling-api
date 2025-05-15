@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -33,6 +34,8 @@ data class BrukersMeldekort(
     val kjedeId: MeldeperiodeKjedeId = meldeperiode.kjedeId
     val meldeperiodeId: MeldeperiodeId = meldeperiode.id
     val periode: Periode = meldeperiode.periode
+
+    val antallDagerRegistrert: Int = dager.antallDagerRegistrert()
 
     data class BrukersMeldekortDag(
         val status: InnmeldtStatus,
@@ -90,4 +93,8 @@ enum class InnmeldtStatus {
         FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
         IKKE_REGISTRERT -> MeldekortDagStatus.IKKE_DELTATT
     }
+}
+
+fun List<BrukersMeldekortDag>.antallDagerRegistrert(): Int {
+    return this.count { it.status != InnmeldtStatus.IKKE_REGISTRERT }
 }

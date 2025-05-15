@@ -10,4 +10,5 @@ enum class BrukersMeldekortBehandletAutomatiskStatus {
     ALLEREDE_BEHANDLET,
     UTDATERT_MELDEPERIODE,
     ER_UNDER_REVURDERING,
+    FOR_MANGE_DAGER_REGISTRERT,
 }

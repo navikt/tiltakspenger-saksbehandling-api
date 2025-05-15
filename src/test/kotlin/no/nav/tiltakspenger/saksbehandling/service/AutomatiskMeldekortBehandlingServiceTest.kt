@@ -9,7 +9,9 @@ import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.førstegangsbehandlingIverksattMedMeldeperioder
@@ -70,6 +72,47 @@ class AutomatiskMeldekortBehandlingServiceTest {
             behandlesAutomatisk = false,
             sakId = sak.id,
             meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+        )
+
+        brukersMeldekortRepo.lagre(brukersMeldekort)
+
+        runBlocking {
+            automatiskMeldekortBehandlingService.behandleBrukersMeldekort()
+        }
+
+        val meldekortBehandlinger = meldekortBehandlingRepo.hentForSakId(sak.id)
+
+        meldekortBehandlinger shouldBe null
+    }
+
+    @Test
+    fun `skal ikke behandle automatisk med for mange dager registrert`() {
+        val tac = TestApplicationContext()
+        val meldekortBehandlingRepo = tac.meldekortContext.meldekortBehandlingRepo
+        val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+        val automatiskMeldekortBehandlingService = tac.meldekortContext.automatiskMeldekortBehandlingService
+
+        val sak = runBlocking {
+            tac.førstegangsbehandlingIverksattMedMeldeperioder(
+                periode = virkningsperiode,
+                clock = clock,
+                antallDagerPerMeldeperiode = 10,
+            )
+        }
+
+        val meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
+        val førsteDag = meldeperiode.periode.fraOgMed
+
+        val brukersMeldekort = ObjectMother.brukersMeldekort(
+            behandlesAutomatisk = true,
+            sakId = sak.id,
+            meldeperiode = meldeperiode,
+            dager = List(14) {
+                BrukersMeldekort.BrukersMeldekortDag(
+                    dato = førsteDag.plusDays(it.toLong()),
+                    status = if (it < 10) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET,
+                )
+            },
         )
 
         brukersMeldekortRepo.lagre(brukersMeldekort)

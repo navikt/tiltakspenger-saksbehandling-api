@@ -101,6 +101,10 @@ suspend fun Sak.opprettAutomatiskMeldekortBehandling(
         logger.error { "Meldeperioden for brukers meldekort må være like siste meldeperiode på kjeden for å kunne behandles (meldekort id $meldekortId)" }
         return BrukersMeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE.left()
     }
+    if (brukersMeldekort.antallDagerRegistrert > sisteMeldeperiode.maksAntallDagerForMeldeperiode) {
+        logger.error { "Brukers meldekort $meldekortId har for mange dager registret" }
+        return BrukersMeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT.left()
+    }
 
     val meldekortBehandlingId = MeldekortId.random()
 

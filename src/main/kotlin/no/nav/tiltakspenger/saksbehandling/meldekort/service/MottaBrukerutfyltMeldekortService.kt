@@ -6,13 +6,13 @@ import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 
 class MottaBrukerutfyltMeldekortService(
     private val brukersMeldekortRepo: BrukersMeldekortRepo,
     private val meldeperiodeRepo: MeldeperiodeRepo,
-    private val kanBehandleAutomatisk: Boolean,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -26,7 +26,10 @@ class MottaBrukerutfyltMeldekortService(
             "Fant ikke meldeperioden $meldeperiodeId for meldekortet $meldekortId"
         }
 
-        val nyttMeldekort = kommando.tilBrukersMeldekort(meldeperiode, kanBehandleAutomatisk)
+        val nyttMeldekort = kommando.tilBrukersMeldekort(
+            meldeperiode,
+            kanBehandlesAutomatisk(kommando, meldeperiode),
+        )
 
         Either.catch {
             brukersMeldekortRepo.lagre(nyttMeldekort)
@@ -55,6 +58,18 @@ class MottaBrukerutfyltMeldekortService(
         }
 
         return Unit.right()
+    }
+
+    private fun kanBehandlesAutomatisk(kommando: LagreBrukersMeldekortKommando, meldeperiode: Meldeperiode): Boolean {
+        val antallDagerMedRegistrering = kommando.antallDagerRegistrert
+        val maksDagerMedRegistrering = meldeperiode.maksAntallDagerForMeldeperiode
+
+        if (antallDagerMedRegistrering > maksDagerMedRegistrering) {
+            logger.error { "Brukers meldekort ${kommando.id} har for mange dager registrert ($antallDagerMedRegistrering) - maks $maksDagerMedRegistrering" }
+            return false
+        }
+
+        return true
     }
 }
 
