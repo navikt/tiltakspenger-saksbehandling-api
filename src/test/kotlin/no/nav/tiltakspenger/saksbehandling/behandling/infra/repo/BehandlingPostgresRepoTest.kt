@@ -13,9 +13,9 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterBehandletRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBeslutningFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -71,7 +71,7 @@ internal class BehandlingPostgresRepoTest {
             val behandlingRepo = testDataHelper.behandlingRepo
             val sakRepo = testDataHelper.sakRepo
 
-            val (sak, behandling) = testDataHelper.persisterBehandletRevurdering()
+            val (sak, behandling) = testDataHelper.persisterRevurderingTilBeslutning()
             sakRepo.hentForSakId(sak.id) shouldBe sak
             behandlingRepo.hent(sak.revurderinger.last().id) shouldBe behandling
         }

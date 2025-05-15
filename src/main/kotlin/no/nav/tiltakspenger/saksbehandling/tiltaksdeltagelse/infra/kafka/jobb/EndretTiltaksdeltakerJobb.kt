@@ -90,10 +90,13 @@ class EndretTiltaksdeltakerJobb(
         }
     }
 
-    // TODO: Når behandlinger kan iverksettes med annet resultat enn at det innvilges tiltakspenger så må vi passe på å filtrere bort disse
     private fun finnNyesteIverksatteBehandlingForDeltakelse(sak: Sak, tiltaksdeltakerId: String): Behandling? {
         val iverksatteBehandlingerForDeltakelse =
-            sak.behandlinger.behandlinger.filter { it.inneholderEksternDeltagelseId(tiltaksdeltakerId) && it.iverksattTidspunkt != null }
+            sak.vedtaksliste.innvilgetTidslinje
+                .filter { it.verdi !== null }
+                .filter { it.verdi!!.behandling.inneholderEksternDeltagelseId(tiltaksdeltakerId) }
+                .map { it.verdi!!.behandling }
+
         return iverksatteBehandlingerForDeltakelse.maxByOrNull { it.iverksattTidspunkt!! }
     }
 }

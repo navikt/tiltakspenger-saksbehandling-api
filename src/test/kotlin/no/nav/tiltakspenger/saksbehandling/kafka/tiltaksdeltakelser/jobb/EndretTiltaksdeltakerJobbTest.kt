@@ -8,13 +8,17 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.libs.periodisering.juni
 import no.nav.tiltakspenger.libs.periodisering.mai
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakAvslag
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.repository.getTiltaksdeltakerKafkaDb
@@ -23,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.jobb.EndretTiltaksdeltakerJobb
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -142,7 +147,14 @@ class EndretTiltaksdeltakerJobbTest {
                     ),
                 )
                 val tiltaksdeltakerKafkaDb =
-                    getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id, fom = deltakelseFom, tom = deltakelsesTom, dagerPerUke = 5F, deltakelsesprosent = 100F)
+                    getTiltaksdeltakerKafkaDb(
+                        id = id,
+                        sakId = sak.id,
+                        fom = deltakelseFom,
+                        tom = deltakelsesTom,
+                        dagerPerUke = 5F,
+                        deltakelsesprosent = 100F,
+                    )
                 tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
@@ -246,6 +258,186 @@ class EndretTiltaksdeltakerJobbTest {
                 oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                 oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
                 coVerify(exactly = 1) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+            }
+        }
+    }
+
+    @Nested
+    inner class `OpprettOppgaveForEndredeDeltakere - flere vedtak` {
+        val fnr = Fnr.random()
+        val sak = ObjectMother.nySak(fnr = fnr)
+        private val førsteDeltakelseFom = 5.januar(2025)
+        private val førsteDeltakelsesTom = 5.mai(2025)
+        private val førsteSøknadstiltakId = UUID.randomUUID().toString()
+        private val førsteSøknadId = SøknadId.random()
+        private val førsteSøknad = ObjectMother.nySøknad(
+            id = førsteSøknadId,
+            personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+            søknadstiltak = ObjectMother.søknadstiltak(
+                id = førsteSøknadstiltakId,
+                deltakelseFom = førsteDeltakelseFom,
+                deltakelseTom = førsteDeltakelsesTom,
+            ),
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+        )
+        private val andreDeltakelseFom = 10.mai(2025)
+        private val andreDeltakelsesTom = 11.juni(2025)
+        private val andreSøknadstiltakId = UUID.randomUUID().toString()
+        private val andreSøknadId = SøknadId.random()
+        private val andreSøknad = ObjectMother.nySøknad(
+            id = andreSøknadId,
+            personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+            søknadstiltak = ObjectMother.søknadstiltak(
+                id = andreSøknadstiltakId,
+                deltakelseFom = andreDeltakelseFom,
+                deltakelseTom = andreDeltakelsesTom,
+            ),
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+        )
+        private val førsteTiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+            id = førsteSøknadstiltakId,
+            sakId = sak.id,
+            fom = førsteDeltakelseFom,
+            tom = LocalDate.now(),
+            deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+        )
+        private val andreTiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+            id = andreSøknadstiltakId,
+            sakId = sak.id,
+            fom = andreDeltakelseFom,
+            tom = LocalDate.now(),
+            deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+        )
+
+        @Test
+        fun `innvilgelse + stans (over hele perioden) lager ikke oppgave`() {
+            withMigratedDb(runIsolated = true) { testDataHelper ->
+                runBlocking {
+                    val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+                    val sakRepo = testDataHelper.sakRepo
+                    val endretTiltaksdeltakerJobb =
+                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
+                    val (sakMedFørstegangsvedtak, vedtak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+                        sakId = sak.id,
+                        fnr = fnr,
+                        deltakelseFom = førsteDeltakelseFom,
+                        deltakelseTom = førsteDeltakelsesTom,
+                        søknadId = førsteSøknadId,
+                        sak = sak,
+                        søknad = førsteSøknad,
+                    )
+                    testDataHelper.persisterIverksattRevurdering(
+                        sak = sakMedFørstegangsvedtak,
+                        stansDato = vedtak.fraOgMed,
+                    )
+                    val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                        id = førsteSøknadstiltakId,
+                        sakId = sak.id,
+                        fom = førsteDeltakelseFom,
+                        tom = LocalDate.now(),
+                        deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    )
+
+                    tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                    endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
+
+                    val oppdatertTiltaksdeltakerKafkaDb =
+                        tiltaksdeltakerKafkaRepository.hent(førsteSøknad.id.toString())
+                    oppdatertTiltaksdeltakerKafkaDb shouldBe null
+                    coVerify(exactly = 0) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                }
+            }
+        }
+
+        @Test
+        fun `innvilgelse - avslag lager oppgave for innvilget`() {
+            withMigratedDb(runIsolated = true) { testDataHelper ->
+                runBlocking {
+                    val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+                    val sakRepo = testDataHelper.sakRepo
+                    val endretTiltaksdeltakerJobb =
+                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
+                    val (sakMedFørstegangsvedtak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+                        sakId = sak.id,
+                        fnr = fnr,
+                        deltakelseFom = førsteDeltakelseFom,
+                        deltakelseTom = førsteDeltakelsesTom,
+                        søknadId = førsteSøknadId,
+                        sak = sak,
+                        søknad = førsteSøknad,
+                    )
+                    testDataHelper.persisterRammevedtakAvslag(
+                        sakId = sakMedFørstegangsvedtak.id,
+                        fnr = fnr,
+                        deltakelseFom = andreDeltakelseFom,
+                        deltakelseTom = andreDeltakelsesTom,
+                        søknadId = andreSøknadId,
+                        sak = sakMedFørstegangsvedtak,
+                        søknad = andreSøknad,
+                    )
+
+                    tiltaksdeltakerKafkaRepository.lagre(førsteTiltaksdeltakerKafkaDb, "melding")
+                    tiltaksdeltakerKafkaRepository.lagre(andreTiltaksdeltakerKafkaDb, "melding")
+
+                    endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
+
+                    val førsteOppdatertTiltaksdeltakerKafkaDb =
+                        tiltaksdeltakerKafkaRepository.hent(førsteSøknadstiltakId)
+                    førsteOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
+                    førsteOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
+
+                    val andreOppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(andreSøknadstiltakId)
+                    andreOppdatertTiltaksdeltakerKafkaDb shouldBe null
+
+                    coVerify(exactly = 1) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                }
+            }
+        }
+
+        @Test
+        fun `avslag - innvilgelse lager oppgave for innvilget`() {
+            withMigratedDb(runIsolated = true) { testDataHelper ->
+                runBlocking {
+                    val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+                    val sakRepo = testDataHelper.sakRepo
+                    val endretTiltaksdeltakerJobb =
+                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
+                    val (sakMedFørstegangsvedtak) = testDataHelper.persisterRammevedtakAvslag(
+                        sakId = sak.id,
+                        fnr = fnr,
+                        deltakelseFom = førsteDeltakelseFom,
+                        deltakelseTom = førsteDeltakelsesTom,
+                        søknadId = førsteSøknadId,
+                        sak = sak,
+                        søknad = førsteSøknad,
+                    )
+                    testDataHelper.persisterIverksattFørstegangsbehandling(
+                        sakId = sakMedFørstegangsvedtak.id,
+                        fnr = fnr,
+                        deltakelseFom = andreDeltakelseFom,
+                        deltakelseTom = andreDeltakelsesTom,
+                        søknadId = andreSøknadId,
+                        sak = sakMedFørstegangsvedtak,
+                        søknad = andreSøknad,
+                    )
+
+                    tiltaksdeltakerKafkaRepository.lagre(førsteTiltaksdeltakerKafkaDb, "melding")
+                    tiltaksdeltakerKafkaRepository.lagre(andreTiltaksdeltakerKafkaDb, "melding")
+
+                    endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
+
+                    val førsteOppdatertTiltaksdeltakerKafkaDb =
+                        tiltaksdeltakerKafkaRepository.hent(førsteSøknadstiltakId)
+                    førsteOppdatertTiltaksdeltakerKafkaDb shouldBe null
+
+                    val andreOppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(andreSøknadstiltakId)
+                    andreOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
+                    andreOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
+
+                    coVerify(exactly = 1) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                }
             }
         }
     }
