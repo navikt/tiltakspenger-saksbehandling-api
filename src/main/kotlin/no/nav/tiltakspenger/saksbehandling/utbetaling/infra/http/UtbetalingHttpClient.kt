@@ -210,9 +210,7 @@ class UtbetalingHttpClient(
                 }
                 Either.catch {
                     SimuleringMedMetadata(
-                        httpResponseBody.toSimulering(
-                            validerSaksnummer = saksnummer,
-                            validerFnr = behandling.fnr,
+                        httpResponseBody.toSimuleringFraHelvedResponse(
                             meldeperiodeKjeder = meldeperiodeKjeder,
                         ),
                         httpResponseBody,
