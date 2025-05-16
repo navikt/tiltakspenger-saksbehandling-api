@@ -21,7 +21,7 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
     val tiltaksdeltakelser: List<Pair<Periode, String>>,
     val antallDagerPerMeldeperiode: Int,
     val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
-    val utfall: Behandlingsutfall,
+    val utfall: Utfall,
 ) {
     fun valgteTiltaksdeltakelser(behandling: Behandling): ValgteTiltaksdeltakelser {
         return ValgteTiltaksdeltakelser.periodiser(
@@ -30,10 +30,8 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
         )
     }
 
-    fun valgteTiltaksdeltakelser(behandling: Søknadsbehandling): ValgteTiltaksdeltakelser {
-        return ValgteTiltaksdeltakelser.periodiser(
-            tiltaksdeltakelser = tiltaksdeltakelser,
-            behandling = behandling,
-        )
+    enum class Utfall {
+        INNVILGELSE,
+        AVSLAG,
     }
 }

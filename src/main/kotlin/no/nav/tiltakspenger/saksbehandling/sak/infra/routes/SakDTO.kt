@@ -13,7 +13,7 @@ import java.time.LocalDate
 /**
  * @property førsteLovligeStansdato Dersom vi ikke har vedtak vil denne være null. Hvis vi ikke har utbetalt, vil den være første dag i saksperioden. Dersom vi har utbetalt, vil den være dagen etter siste utbetalte dag.
  */
-internal data class SakDTO(
+data class SakDTO(
     val saksnummer: String,
     val sakId: String,
     val fnr: String,
@@ -25,7 +25,7 @@ internal data class SakDTO(
     val behandlinger: List<BehandlingDTO>,
 )
 
-internal fun Sak.toSakDTO(clock: Clock) = SakDTO(
+fun Sak.toSakDTO(clock: Clock) = SakDTO(
     saksnummer = saksnummer.verdi,
     sakId = id.toString(),
     fnr = fnr.verdi,
@@ -33,7 +33,7 @@ internal fun Sak.toSakDTO(clock: Clock) = SakDTO(
         behandlinger.hentÅpneBehandlinger().toSaksoversiktDTO() +
             this.soknader
                 .filter { soknad ->
-                    !soknad.erAvbrutt && behandlinger.none { it.søknad?.id == soknad.id }
+                    !soknad.erAvbrutt && behandlinger.søknadsbehandlinger.none { it.søknad.id == soknad.id }
                 }
                 .toSaksoversiktDTO()
         ).sortedBy { it.opprettet },

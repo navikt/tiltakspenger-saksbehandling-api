@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfall
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
@@ -22,7 +24,7 @@ data class BehandlingDTO(
     val id: String,
     val type: Behandlingstype,
     val status: BehandlingsstatusDTO,
-    val utfall: BehandlingsutfallDTO?,
+    val utfall: BehandlingsutfallGammelDTO?,
     val sakId: String,
     val saksnummer: String,
     val saksbehandler: String?,
@@ -44,30 +46,10 @@ data class BehandlingDTO(
 )
 
 fun Behandling.toDTO(): BehandlingDTO {
-    return BehandlingDTO(
-        id = this.id.toString(),
-        type = behandlingstype,
-        status = this.status.toBehandlingsstatusDTO(),
-        utfall = this.utfall?.toBehandlingsutfallDto(),
-        sakId = this.sakId.toString(),
-        saksnummer = this.saksnummer.toString(),
-        saksbehandler = this.saksbehandler,
-        beslutter = this.beslutter,
-        attesteringer = this.attesteringer.toAttesteringDTO(),
-        saksopplysninger = this.saksopplysninger.toSaksopplysningerDTO(),
-        søknad = this.søknad?.toSøknadDTO(),
-        virkningsperiode = this.virkningsperiode?.toDTO(),
-        saksopplysningsperiode = this.saksopplysningsperiode?.toDTO(),
-        fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
-        begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
-        barnetillegg = this.barnetillegg?.toBarnetilleggDTO(),
-        avbrutt = this.avbrutt?.toAvbruttDTO(),
-        iverksattTidspunkt = this.iverksattTidspunkt?.toString(),
-        valgteTiltaksdeltakelser = this.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.map { it.toTiltaksdeltakelsePeriodeDTO() },
-        valgtHjemmelHarIkkeRettighet = this.valgtHjemmelHarIkkeRettighet.toDTO(this.behandlingstype),
-        antallDagerPerMeldeperiode = this.antallDagerPerMeldeperiode,
-        avslagsgrunner = this.avslagsgrunner?.toValgtHjemmelForAvslagDTO(),
-    )
+    return when (this) {
+        is Revurdering -> this.toDTO()
+        is Søknadsbehandling -> this.toDTO()
+    }
 }
 
 fun Behandlinger.toDTO() = this.map { it.toDTO() }
@@ -75,7 +57,7 @@ fun Behandlinger.toDTO() = this.map { it.toDTO() }
 fun Søknadsbehandling.toDTO(): BehandlingDTO {
     val utenUtfallDTO = BehandlingDTO(
         id = this.id.toString(),
-        type = Behandlingstype.FØRSTEGANGSBEHANDLING,
+        type = Behandlingstype.SØKNADSBEHANDLING,
         status = this.status.toBehandlingsstatusDTO(),
         utfall = this.utfall?.toBehandlingsutfallDto(),
         sakId = this.sakId.toString(),
@@ -108,6 +90,42 @@ fun Søknadsbehandling.toDTO(): BehandlingDTO {
         )
         is SøknadsbehandlingUtfall.Avslag -> utenUtfallDTO.copy(
             avslagsgrunner = utfall.avslagsgrunner.toValgtHjemmelForAvslagDTO(),
+        )
+        null -> utenUtfallDTO
+    }
+}
+
+fun Revurdering.toDTO(): BehandlingDTO {
+    val utenUtfallDTO = BehandlingDTO(
+        id = this.id.toString(),
+        type = behandlingstype,
+        status = this.status.toBehandlingsstatusDTO(),
+        sakId = this.sakId.toString(),
+        saksnummer = this.saksnummer.toString(),
+        saksbehandler = this.saksbehandler,
+        beslutter = this.beslutter,
+        attesteringer = this.attesteringer.toAttesteringDTO(),
+        saksopplysninger = this.saksopplysninger.toSaksopplysningerDTO(),
+        virkningsperiode = this.virkningsperiode?.toDTO(),
+        saksopplysningsperiode = this.saksopplysningsperiode.toDTO(),
+        fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
+        begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
+        avbrutt = this.avbrutt?.toAvbruttDTO(),
+        iverksattTidspunkt = this.iverksattTidspunkt?.toString(),
+        utfall = this.utfall?.toBehandlingsutfallDto(),
+        valgtHjemmelHarIkkeRettighet = null,
+        valgteTiltaksdeltakelser = null,
+        antallDagerPerMeldeperiode = null,
+        barnetillegg = null,
+        avslagsgrunner = null,
+        søknad = null,
+    )
+
+    val utfall = this.utfall
+
+    return when (utfall) {
+        is RevurderingUtfall.Stans -> utenUtfallDTO.copy(
+            valgtHjemmelHarIkkeRettighet = utfall.valgtHjemmelHarIkkeRettighet.toDTO(this.behandlingstype),
         )
         null -> utenUtfallDTO
     }

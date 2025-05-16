@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 
-sealed interface SøknadsbehandlingUtfall {
+sealed interface SøknadsbehandlingUtfall : BehandlingUtfall {
     data class Innvilgelse(
         val status: Behandlingsstatus,
         val virkningsperiode: Periode,
@@ -29,7 +29,7 @@ sealed interface SøknadsbehandlingUtfall {
                 Behandlingsstatus.UNDER_BESLUTNING,
                 Behandlingsstatus.VEDTATT,
                 -> {
-                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
+                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for søknadsbehandling" }
                     require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) {
                         "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)"
                     }

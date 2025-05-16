@@ -10,6 +10,6 @@ enum class BenkBehandlingstype {
 
 fun Behandlingstype.toBenkBehandlingstype(): BenkBehandlingstype =
     when (this) {
-        Behandlingstype.FØRSTEGANGSBEHANDLING -> BenkBehandlingstype.FØRSTEGANGSBEHANDLING
+        Behandlingstype.SØKNADSBEHANDLING -> BenkBehandlingstype.FØRSTEGANGSBEHANDLING
         Behandlingstype.REVURDERING -> BenkBehandlingstype.REVURDERING
     }

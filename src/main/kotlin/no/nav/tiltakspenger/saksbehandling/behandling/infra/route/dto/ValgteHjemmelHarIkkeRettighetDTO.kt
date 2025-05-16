@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelType
 
 fun List<ValgtHjemmelHarIkkeRettighet>.toDTO(type: Behandlingstype): List<String> {
     val valgtHjemmelType = when (type) {
-        Behandlingstype.FØRSTEGANGSBEHANDLING -> ValgtHjemmelType.AVSLAG
+        Behandlingstype.SØKNADSBEHANDLING -> ValgtHjemmelType.AVSLAG
         Behandlingstype.REVURDERING -> ValgtHjemmelType.STANS
     }
 

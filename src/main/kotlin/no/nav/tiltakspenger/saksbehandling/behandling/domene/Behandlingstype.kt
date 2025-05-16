@@ -11,6 +11,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
  * ae0058 Klage
  */
 enum class Behandlingstype {
-    FØRSTEGANGSBEHANDLING, // TODO: rename til SØKNADSBEHANDLING?
+    SØKNADSBEHANDLING,
     REVURDERING,
 }

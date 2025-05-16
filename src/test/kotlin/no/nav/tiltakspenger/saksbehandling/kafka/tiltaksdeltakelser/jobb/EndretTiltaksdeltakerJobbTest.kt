@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurdering
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakAvslag
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
@@ -93,7 +93,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
-                testDataHelper.persisterOpprettetFørstegangsbehandling(
+                testDataHelper.persisterOpprettetSøknadsbehandling(
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     fnr = fnr,

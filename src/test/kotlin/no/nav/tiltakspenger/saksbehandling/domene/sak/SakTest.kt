@@ -39,8 +39,8 @@ class SakTest {
 
     @Test
     fun `avbryter behandling`() {
-        val behandling = ObjectMother.nyBehandling()
-        val sak = ObjectMother.nySak(behandlinger = Behandlinger(behandling), søknader = listOf(behandling.søknad!!))
+        val behandling = ObjectMother.nyOpprettetSøknadsbehandling()
+        val sak = ObjectMother.nySak(behandlinger = Behandlinger(behandling), søknader = listOf(behandling.søknad))
 
         val (sakMedAvbruttsøknad, avbruttSøknad, avbruttBehandling) = sak.avbrytSøknadOgBehandling(
             AvbrytSøknadOgBehandlingCommand(

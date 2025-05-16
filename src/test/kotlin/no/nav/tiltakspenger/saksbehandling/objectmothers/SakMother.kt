@@ -16,10 +16,10 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsutfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySøknad
@@ -93,13 +93,13 @@ interface SakMother {
             ),
         ),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
-        utfall: Behandlingsutfall = Behandlingsutfall.INNVILGELSE,
+        utfall: SendSøknadsbehandlingTilBeslutningKommando.Utfall = SendSøknadsbehandlingTilBeslutningKommando.Utfall.INNVILGELSE,
         clock: Clock = fixedClock,
         antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-    ): Pair<Sak, Behandling> {
+    ): Pair<Sak, Søknadsbehandling> {
         val førstegangsbehandling =
             runBlocking {
-                val behandling = Behandling.opprettSøknadsbehandling(
+                val behandling = Søknadsbehandling.opprett(
                     sakId = sakId,
                     saksnummer = saksnummer,
                     fnr = fnr,
@@ -177,7 +177,7 @@ interface SakMother {
                 }.toList(),
                 antallDagerPerMeldeperiode = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
                 avslagsgrunner = null,
-                utfall = Behandlingsutfall.INNVILGELSE,
+                utfall = SendSøknadsbehandlingTilBeslutningKommando.Utfall.INNVILGELSE,
             ),
             clock = clock,
         ).taBehandling(beslutter)
@@ -224,7 +224,7 @@ interface SakMother {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
                 avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
-                utfall = Behandlingsutfall.AVSLAG,
+                utfall = SendSøknadsbehandlingTilBeslutningKommando.Utfall.AVSLAG,
                 antallDagerPerMeldeperiode = 10,
             ),
             clock = clock,

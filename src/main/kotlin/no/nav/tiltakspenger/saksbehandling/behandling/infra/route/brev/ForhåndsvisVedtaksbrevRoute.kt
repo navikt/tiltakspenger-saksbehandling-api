@@ -18,9 +18,9 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilPeriodisering
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingsutfallGammelDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toAvslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toBehandlingsutfallDto
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -29,13 +29,13 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import java.time.LocalDate
 
-internal data class ForhåndsvisBehandlingBody(
+private data class Body(
     val fritekst: String,
     val virkningsperiode: PeriodeDTO?,
     val stansDato: LocalDate?,
     val valgteHjemler: List<ValgtHjemmelForStansDTO>?,
     val barnetillegg: List<BarnetilleggPeriodeDTO>?,
-    val utfall: String,
+    val utfall: BehandlingsutfallGammelDTO,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
 ) {
     fun toDomain(
@@ -56,7 +56,7 @@ internal data class ForhåndsvisBehandlingBody(
             valgteHjemler = (valgteHjemler ?: emptyList()).toDomain(),
             stansDato = stansDato,
             barnetillegg = barnetillegg?.tilPeriodisering(virkningsperiode),
-            utfall = this.utfall.toBehandlingsutfallDto().toDomain(),
+            utfall = utfall.toDomain(),
             avslagsgrunner = this.avslagsgrunner?.toAvslagsgrunnlag(),
         )
     }
@@ -73,7 +73,7 @@ fun Route.forhåndsvisVedtaksbrevRoute(
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<ForhåndsvisBehandlingBody> { body ->
+                    call.withBody<Body> { body ->
                         val correlationId = call.correlationId()
                         forhåndsvisVedtaksbrevService.forhåndsvisVedtaksbrev(
                             body.toDomain(

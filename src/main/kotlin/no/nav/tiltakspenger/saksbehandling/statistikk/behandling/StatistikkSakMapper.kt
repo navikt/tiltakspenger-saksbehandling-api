@@ -3,6 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.statistikk.behandling
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
@@ -17,6 +19,8 @@ fun genererSaksstatistikkForRammevedtak(
     clock: Clock,
 ): StatistikkSakDTO {
     val behandling = vedtak.behandling
+    val erSøknadsbehandling = behandling is Søknadsbehandling
+
     return StatistikkSakDTO(
         sakId = behandling.sakId.toString(),
         saksnummer = behandling.saksnummer.toString(),
@@ -24,7 +28,7 @@ fun genererSaksstatistikkForRammevedtak(
         // TODO jah: Denne vil vel kunne være en liste? Vi kan legge den på senere.
         relatertBehandlingId = null,
         fnr = behandling.fnr.verdi,
-        mottattTidspunkt = if (behandling.erFørstegangsbehandling) behandling.søknad!!.opprettet else behandling.opprettet,
+        mottattTidspunkt = if (erSøknadsbehandling) behandling.søknad.opprettet else behandling.opprettet,
         registrertTidspunkt = behandling.opprettet,
         ferdigBehandletTidspunkt = vedtak.opprettet,
         vedtakTidspunkt = vedtak.opprettet,
@@ -33,8 +37,8 @@ fun genererSaksstatistikkForRammevedtak(
         tekniskTidspunkt = nå(clock),
         søknadsformat = Format.DIGITAL.name,
         // TODO jah: Hva gjør vi ved revurdering/stans i dette tilfellet. Skal vi sende førstegangsbehandling sin første innvilget fraOgMed eller null?
-        forventetOppstartTidspunkt = if (behandling.erFørstegangsbehandling) behandling.saksopplysningsperiode?.fraOgMed else null,
-        behandlingType = if (behandling.erFørstegangsbehandling) BehandlingType.FØRSTEGANGSBEHANDLING else BehandlingType.REVURDERING,
+        forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.saksopplysningsperiode.fraOgMed else null,
+        behandlingType = if (erSøknadsbehandling) BehandlingType.FØRSTEGANGSBEHANDLING else BehandlingType.REVURDERING,
         // TODO jah: I følge confluence-dokken så finner jeg ikke dette feltet. Burde det heller vært AVSLUTTET?
         behandlingStatus = BehandlingStatus.FERDIG_BEHANDLET,
         behandlingResultat = when (vedtak.vedtaksType) {
@@ -66,13 +70,15 @@ fun genererSaksstatistikkForBehandling(
     clock: Clock,
     hendelse: String,
 ): StatistikkSakDTO {
+    val erSøknadsbehandling = behandling is Søknadsbehandling
+
     return StatistikkSakDTO(
         sakId = behandling.sakId.toString(),
         saksnummer = behandling.saksnummer.toString(),
         behandlingId = behandling.id.toString(),
         relatertBehandlingId = null,
         fnr = behandling.fnr.verdi,
-        mottattTidspunkt = if (behandling.erFørstegangsbehandling) behandling.søknad!!.opprettet else behandling.opprettet,
+        mottattTidspunkt = if (erSøknadsbehandling) behandling.søknad.opprettet else behandling.opprettet,
         registrertTidspunkt = behandling.opprettet,
         ferdigBehandletTidspunkt = behandling.avbrutt?.tidspunkt,
         vedtakTidspunkt = null,
@@ -80,8 +86,8 @@ fun genererSaksstatistikkForBehandling(
         utbetaltTidspunkt = null,
         tekniskTidspunkt = nå(clock),
         søknadsformat = Format.DIGITAL.name,
-        forventetOppstartTidspunkt = if (behandling.erFørstegangsbehandling) behandling.saksopplysningsperiode?.fraOgMed else null,
-        behandlingType = if (behandling.erFørstegangsbehandling) BehandlingType.FØRSTEGANGSBEHANDLING else BehandlingType.REVURDERING,
+        forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.saksopplysningsperiode.fraOgMed else null,
+        behandlingType = if (erSøknadsbehandling) BehandlingType.FØRSTEGANGSBEHANDLING else BehandlingType.REVURDERING,
         behandlingStatus = if (behandling.erAvbrutt) {
             BehandlingStatus.AVSLUTTET
         } else if (behandling.status == Behandlingsstatus.KLAR_TIL_BESLUTNING || behandling.status == Behandlingsstatus.UNDER_BESLUTNING) {
@@ -105,59 +111,12 @@ fun genererSaksstatistikkForBehandling(
     )
 }
 
-fun genererSaksstatistikkForBehandling(
-    behandling: Søknadsbehandling,
-    gjelderKode6: Boolean,
-    versjon: String,
-    clock: Clock,
-    hendelse: String,
-): StatistikkSakDTO {
-    return StatistikkSakDTO(
-        sakId = behandling.sakId.toString(),
-        saksnummer = behandling.saksnummer.toString(),
-        behandlingId = behandling.id.toString(),
-        relatertBehandlingId = null,
-        fnr = behandling.fnr.verdi,
-        mottattTidspunkt = behandling.søknad.opprettet,
-        registrertTidspunkt = behandling.opprettet,
-        ferdigBehandletTidspunkt = behandling.avbrutt?.tidspunkt,
-        vedtakTidspunkt = null,
-        endretTidspunkt = nå(clock),
-        utbetaltTidspunkt = null,
-        tekniskTidspunkt = nå(clock),
-        søknadsformat = Format.DIGITAL.name,
-        forventetOppstartTidspunkt = behandling.saksopplysningsperiode.fraOgMed,
-        behandlingType = BehandlingType.FØRSTEGANGSBEHANDLING,
-        behandlingStatus = if (behandling.erAvbrutt) {
-            BehandlingStatus.AVSLUTTET
-        } else if (behandling.status == Behandlingsstatus.KLAR_TIL_BESLUTNING || behandling.status == Behandlingsstatus.UNDER_BESLUTNING) {
-            BehandlingStatus.UNDER_BESLUTNING
-        } else {
-            BehandlingStatus.UNDER_BEHANDLING
-        },
-        behandlingResultat = null,
-        resultatBegrunnelse = null,
-        // skal være -5 for kode 6
-        opprettetAv = if (gjelderKode6) "-5" else "system",
-        saksbehandler = if (gjelderKode6) "-5" else behandling.saksbehandler,
-        ansvarligBeslutter = if (gjelderKode6) "-5" else behandling.beslutter,
-
-        tilbakekrevingsbeløp = null,
-        funksjonellPeriodeFom = null,
-        funksjonellPeriodeTom = null,
-        versjon = versjon,
-        hendelse = hendelse,
-        behandlingAarsak = BehandlingAarsak.SOKNAD,
-    )
-}
-
 private fun Behandling.getBehandlingAarsak(): BehandlingAarsak? {
-    if (this.erFørstegangsbehandling) {
+    if (this is Søknadsbehandling) {
         return BehandlingAarsak.SOKNAD
     }
-    if (this.erRevurdering && this.valgtHjemmelHarIkkeRettighet.isNotEmpty()) {
-        val valgtHjemmel = valgtHjemmelHarIkkeRettighet.first()
-        return valgtHjemmel.toBehandlingAarsak()
+    if (this is Revurdering && this.utfall is RevurderingUtfall.Stans && utfall.valgtHjemmelHarIkkeRettighet.isNotEmpty()) {
+        return utfall.valgtHjemmelHarIkkeRettighet.first().toBehandlingAarsak()
     }
     return null
 }

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.routing
@@ -9,6 +10,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
@@ -19,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendFørstegangsb
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
 import org.junit.jupiter.api.Test
 
-class SendFørstegangsbehandlingTilBeslutterTest {
+class SendSøknadsbehandlingTilBeslutterTest {
     @Test
     fun `send til beslutter endrer status på behandlingen`() = runTest {
         with(TestApplicationContext()) {
@@ -46,6 +48,7 @@ class SendFørstegangsbehandlingTilBeslutterTest {
                     eksternDeltagelseId = søknad.tiltak.id,
                 )
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+                    it.shouldBeInstanceOf<Søknadsbehandling>()
                     it.status shouldBe Behandlingsstatus.KLAR_TIL_BESLUTNING
                     it.saksbehandler shouldBe saksbehandler.navIdent
                     it.beslutter shouldBe null

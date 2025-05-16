@@ -6,6 +6,8 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
@@ -13,6 +15,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall.Stans
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
+import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
 import java.time.LocalDate
@@ -26,6 +30,7 @@ data class Revurdering(
     override val iverksattTidspunkt: LocalDateTime?,
     override val sendtTilDatadeling: LocalDateTime?,
     override val sakId: SakId,
+    override val oppgaveId: OppgaveId?,
     override val saksnummer: Saksnummer,
     override val fnr: Fnr,
     override val saksopplysninger: Saksopplysninger,
@@ -39,7 +44,12 @@ data class Revurdering(
     override val utfall: RevurderingUtfall?,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
-) : BehandlingNy() {
+) : Behandling() {
+    override val barnetillegg: Barnetillegg? = null
+    override val utfallsperioder: Periodisering<Utfallsperiode>? = when (utfall) {
+        is Stans -> utfall.utfallsperioder
+        null -> null
+    }
 
     fun tilBeslutning(
         kommando: SendRevurderingTilBeslutningKommando,
@@ -66,7 +76,7 @@ data class Revurdering(
         )
     }
 
-    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Revurdering {
+    override fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Revurdering {
         if (this.status == AVBRUTT || avbrutt != null) {
             throw IllegalArgumentException("Behandlingen er allerede avbrutt")
         }
@@ -88,7 +98,7 @@ data class Revurdering(
             fnr: Fnr,
             saksbehandler: Saksbehandler,
             saksopplysningsperiode: Periode,
-            hentSaksopplysninger: suspend () -> Saksopplysninger,
+            hentSaksopplysninger: suspend (periode: Periode) -> Saksopplysninger,
             clock: Clock,
         ): Revurdering {
             val opprettet = nå(clock)
@@ -101,7 +111,7 @@ data class Revurdering(
                 saksbehandler = saksbehandler.navIdent,
                 sendtTilBeslutning = null,
                 beslutter = null,
-                saksopplysninger = hentSaksopplysninger(),
+                saksopplysninger = hentSaksopplysninger(saksopplysningsperiode),
                 fritekstTilVedtaksbrev = null,
                 status = UNDER_BEHANDLING,
                 attesteringer = emptyList(),
@@ -109,8 +119,7 @@ data class Revurdering(
                 iverksattTidspunkt = null,
                 sendtTilDatadeling = null,
                 sistEndret = opprettet,
-                // her kan man på sikt lagre oppgaveId hvis man oppretter oppgave for revurdering
-//            oppgaveId = null,
+                oppgaveId = null,
                 // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for førstegangsbehandling.
                 saksopplysningsperiode = saksopplysningsperiode,
                 avbrutt = null,

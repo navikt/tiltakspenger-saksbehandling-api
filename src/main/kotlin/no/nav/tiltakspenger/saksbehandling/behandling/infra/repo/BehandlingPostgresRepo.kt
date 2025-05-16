@@ -13,12 +13,16 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingsutfallGammel
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfall
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
@@ -29,7 +33,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
@@ -39,6 +42,7 @@ private val log = KotlinLogging.logger {}
 class BehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : BehandlingRepo {
+
     override fun hent(
         behandlingId: BehandlingId,
         sessionContext: SessionContext?,
@@ -75,17 +79,15 @@ class BehandlingPostgresRepo(
     override fun hentForSøknadId(søknadId: SøknadId): Behandling? =
         sessionFactory.withSession { session ->
             session.run(
-                queryOf(
+                sqlQuery(
                     """
-                    select b.*,sak.saksnummer,sak.fnr
-                      from behandling b
-                      join søknad s on b.id = s.behandling_id
-                      join sak on sak.id = b.sak_id
-                      where s.id = :id
+                    select b.*, sak.saksnummer, sak.fnr
+                    from behandling b
+                    join søknad s on b.id = s.behandling_id
+                    join sak on sak.id = b.sak_id
+                    where s.id = :id
                     """.trimIndent(),
-                    mapOf(
-                        "id" to søknadId.toString(),
-                    ),
+                    "id" to søknadId.toString(),
                 ).map { row ->
                     row.toBehandling(session)
                 }.asSingle,
@@ -98,25 +100,14 @@ class BehandlingPostgresRepo(
     ) {
         sessionFactory.withTransaction(transactionContext) { tx ->
             val sistEndret = hentSistEndret(behandling.id, tx)
+
             if (sistEndret == null) {
+                if (behandling is Søknadsbehandling) {
+                    SøknadDAO.knyttSøknadTilBehandling(behandling.id, behandling.søknad.id, tx)
+                }
                 opprettBehandling(behandling, tx)
             } else {
                 oppdaterBehandling(sistEndret, behandling, tx)
-            }
-        }
-    }
-
-    override fun lagre(
-        behandling: Søknadsbehandling,
-        transactionContext: TransactionContext?,
-    ) {
-        sessionFactory.withTransaction(transactionContext) { tx ->
-            val sistEndret = hentSistEndret(behandling.id, tx)
-            if (sistEndret == null) {
-                SøknadDAO.knyttSøknadTilBehandling(behandling.id, behandling.søknad.id, tx)
-                opprettSøknadsbehandling(behandling, tx)
-            } else {
-                oppdaterSøknadsbehandling(sistEndret, behandling, tx)
             }
         }
     }
@@ -294,93 +285,64 @@ class BehandlingPostgresRepo(
         ) {
             log.info { "Oppdaterer behandling ${behandling.id}" }
 
-            val antRaderOppdatert =
-                session.run(
-                    queryOf(
-                        sqlOppdaterBehandling,
-                        mapOf(
-                            "id" to behandling.id.toString(),
-                            "sak_id" to behandling.sakId.toString(),
-                            "virkningsperiode_fra_og_med" to behandling.virkningsperiode?.fraOgMed,
-                            "virkningsperiode_til_og_med" to behandling.virkningsperiode?.tilOgMed,
-                            "status" to behandling.status.toDb(),
-                            "sist_endret_old" to sistEndret,
-                            "sist_endret" to behandling.sistEndret,
-                            "saksbehandler" to behandling.saksbehandler,
-                            "beslutter" to behandling.beslutter,
-                            "attesteringer" to behandling.attesteringer.toDbJson(),
-                            "iverksatt_tidspunkt" to behandling.iverksattTidspunkt,
-                            "sendt_til_beslutning" to behandling.sendtTilBeslutning,
-                            "sendt_til_datadeling" to behandling.sendtTilDatadeling,
-                            "behandlingstype" to behandling.behandlingstype.toDbValue(),
-                            "oppgave_id" to behandling.oppgaveId?.toString(),
-                            "valgt_hjemmel_har_ikke_rettighet" to behandling.valgtHjemmelHarIkkeRettighet.toDbJson(),
-                            "fritekst_vedtaksbrev" to behandling.fritekstTilVedtaksbrev?.verdi,
-                            "begrunnelse_vilkarsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
-                            "saksopplysninger" to behandling.saksopplysninger.toDbJson(),
-                            "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode?.fraOgMed,
-                            "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode?.tilOgMed,
-                            "barnetillegg" to behandling.barnetillegg?.toDbJson(),
-                            "valgte_tiltaksdeltakelser" to behandling.valgteTiltaksdeltakelser?.toDbJson(),
-                            "avbrutt" to behandling.avbrutt?.toDbJson(),
-                            "antall_dager_per_meldeperiode" to behandling.antallDagerPerMeldeperiode,
-                            "avslagsgrunner" to behandling.avslagsgrunner?.toDb(),
-                            "utfall" to behandling.utfall?.toDb(),
-                        ),
-                    ).asUpdate,
-                )
+            val antRaderOppdatert = when (behandling) {
+                is Søknadsbehandling -> oppdaterSøknadsbehandling(sistEndret, behandling, session)
+                is Revurdering -> oppdaterRevurdering(sistEndret, behandling, session)
+            }
+
             if (antRaderOppdatert == 0) {
                 throw IllegalStateException("Noen andre har endret denne behandlingen ${behandling.id}")
             }
         }
+
+        /**        private fun opprettBehandlingOld(
+         behandling: Behandling,
+         session: Session,
+         ) {
+         log.info { "Oppretter behandling ${behandling.id}" }
+
+         session.run(
+         queryOf(
+         sqlOpprettBehandling,
+         mapOf(
+         "id" to behandling.id.toString(),
+         "sak_id" to behandling.sakId.toString(),
+         "virkningsperiode_fra_og_med" to behandling.virkningsperiode?.fraOgMed,
+         "virkningsperiode_til_og_med" to behandling.virkningsperiode?.tilOgMed,
+         "status" to behandling.status.toDb(),
+         "opprettet" to behandling.opprettet,
+         "saksopplysninger" to behandling.saksopplysninger.toDbJson(),
+         "saksbehandler" to behandling.saksbehandler,
+         "beslutter" to behandling.beslutter,
+         "attesteringer" to behandling.attesteringer.toDbJson(),
+         "iverksatt_tidspunkt" to behandling.iverksattTidspunkt,
+         "sendt_til_beslutning" to behandling.sendtTilBeslutning,
+         "sendt_til_datadeling" to behandling.sendtTilDatadeling,
+         "sist_endret" to behandling.sistEndret,
+         "behandlingstype" to behandling.behandlingstype.toDbValue(),
+         "oppgave_id" to behandling.oppgaveId?.toString(),
+         "valgt_hjemmel_har_ikke_rettighet" to behandling.valgtHjemmelHarIkkeRettighet.toDbJson(),
+         "fritekst_vedtaksbrev" to behandling.fritekstTilVedtaksbrev?.verdi,
+         "begrunnelse_vilkarsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
+         "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode?.fraOgMed,
+         "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode?.tilOgMed,
+         "barnetillegg" to behandling.barnetillegg?.toDbJson(),
+         "valgte_tiltaksdeltakelser" to behandling.valgteTiltaksdeltakelser?.toDbJson(),
+         "avbrutt" to behandling.avbrutt?.toDbJson(),
+         "antall_dager_per_meldeperiode" to behandling.antallDagerPerMeldeperiode,
+         "avslagsgrunner" to behandling.avslagsgrunner?.toDb(),
+         "utfall" to behandling.utfall?.toDb(),
+         ),
+         ).asUpdate,
+         )
+         }
+         */
 
         private fun opprettBehandling(
             behandling: Behandling,
             session: Session,
         ) {
             log.info { "Oppretter behandling ${behandling.id}" }
-
-            session.run(
-                queryOf(
-                    sqlOpprettBehandling,
-                    mapOf(
-                        "id" to behandling.id.toString(),
-                        "sak_id" to behandling.sakId.toString(),
-                        "virkningsperiode_fra_og_med" to behandling.virkningsperiode?.fraOgMed,
-                        "virkningsperiode_til_og_med" to behandling.virkningsperiode?.tilOgMed,
-                        "status" to behandling.status.toDb(),
-                        "opprettet" to behandling.opprettet,
-                        "saksopplysninger" to behandling.saksopplysninger.toDbJson(),
-                        "saksbehandler" to behandling.saksbehandler,
-                        "beslutter" to behandling.beslutter,
-                        "attesteringer" to behandling.attesteringer.toDbJson(),
-                        "iverksatt_tidspunkt" to behandling.iverksattTidspunkt,
-                        "sendt_til_beslutning" to behandling.sendtTilBeslutning,
-                        "sendt_til_datadeling" to behandling.sendtTilDatadeling,
-                        "sist_endret" to behandling.sistEndret,
-                        "behandlingstype" to behandling.behandlingstype.toDbValue(),
-                        "oppgave_id" to behandling.oppgaveId?.toString(),
-                        "valgt_hjemmel_har_ikke_rettighet" to behandling.valgtHjemmelHarIkkeRettighet.toDbJson(),
-                        "fritekst_vedtaksbrev" to behandling.fritekstTilVedtaksbrev?.verdi,
-                        "begrunnelse_vilkarsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
-                        "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode?.fraOgMed,
-                        "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode?.tilOgMed,
-                        "barnetillegg" to behandling.barnetillegg?.toDbJson(),
-                        "valgte_tiltaksdeltakelser" to behandling.valgteTiltaksdeltakelser?.toDbJson(),
-                        "avbrutt" to behandling.avbrutt?.toDbJson(),
-                        "antall_dager_per_meldeperiode" to behandling.antallDagerPerMeldeperiode,
-                        "avslagsgrunner" to behandling.avslagsgrunner?.toDb(),
-                        "utfall" to behandling.utfall?.toDb(),
-                    ),
-                ).asUpdate,
-            )
-        }
-
-        private fun opprettSøknadsbehandling(
-            behandling: Søknadsbehandling,
-            session: Session,
-        ) {
-            log.info { "Oppretter søknadsbehandling ${behandling.id}" }
 
             session.run(
                 queryOf(
@@ -395,9 +357,54 @@ class BehandlingPostgresRepo(
                         "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode.fraOgMed,
                         "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode.tilOgMed,
                         "saksbehandler" to behandling.saksbehandler,
-                        "behandlingstype" to Behandlingstype.FØRSTEGANGSBEHANDLING,
+                        "behandlingstype" to Behandlingstype.SØKNADSBEHANDLING,
                         "oppgave_id" to behandling.oppgaveId?.toString(),
                     ),
+                ).asUpdate,
+            )
+        }
+
+        private fun oppdaterRevurdering(
+            sistEndret: LocalDateTime,
+            behandling: Revurdering,
+            session: Session,
+        ): Int {
+            log.info { "Oppdaterer revurdering ${behandling.id}" }
+
+            val utfall = behandling.utfall
+
+            val utfallParams: Map<String, Any?> = when (utfall) {
+                is RevurderingUtfall.Stans -> mapOf(
+                    "valgt_hjemmel_har_ikke_rettighet" to utfall.valgtHjemmelHarIkkeRettighet.toDbJson(),
+                )
+                null -> emptyMap()
+            }
+
+            return session.run(
+                queryOf(
+                    sqlOppdaterBehandling,
+                    mapOf(
+                        "id" to behandling.id.toString(),
+                        "status" to behandling.status.toDb(),
+                        "sist_endret" to behandling.sistEndret,
+                        "iverksatt_tidspunkt" to behandling.iverksattTidspunkt,
+                        "sendt_til_datadeling" to behandling.sendtTilDatadeling,
+                        "oppgave_id" to behandling.oppgaveId?.toString(),
+                        "virkningsperiode_fra_og_med" to behandling.virkningsperiode?.fraOgMed,
+                        "virkningsperiode_til_og_med" to behandling.virkningsperiode?.tilOgMed,
+                        "sist_endret_old" to sistEndret,
+                        "saksbehandler" to behandling.saksbehandler,
+                        "beslutter" to behandling.beslutter,
+                        "attesteringer" to behandling.attesteringer.toDbJson(),
+                        "sendt_til_beslutning" to behandling.sendtTilBeslutning,
+                        "fritekst_vedtaksbrev" to behandling.fritekstTilVedtaksbrev?.verdi,
+                        "begrunnelse_vilkarsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
+                        "saksopplysninger" to behandling.saksopplysninger.toDbJson(),
+                        "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode.fraOgMed,
+                        "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode.tilOgMed,
+                        "avbrutt" to behandling.avbrutt?.toDbJson(),
+                        "utfall" to behandling.utfall?.toDb(),
+                    ).plus(utfallParams),
                 ).asUpdate,
             )
         }
@@ -406,7 +413,7 @@ class BehandlingPostgresRepo(
             sistEndret: LocalDateTime,
             behandling: Søknadsbehandling,
             session: Session,
-        ) {
+        ): Int {
             log.info { "Oppdaterer søknadsbehandling ${behandling.id}" }
 
             val utfall = behandling.utfall
@@ -427,36 +434,32 @@ class BehandlingPostgresRepo(
                 null -> emptyMap()
             }
 
-            val antRaderOppdatert =
-                session.run(
-                    queryOf(
-                        sqlOppdaterBehandling,
-                        mapOf(
-                            "id" to behandling.id.toString(),
-                            "sak_id" to behandling.sakId.toString(),
-                            "status" to behandling.status.toDb(),
-                            "sist_endret_old" to sistEndret,
-                            "sist_endret" to behandling.sistEndret,
-                            "saksbehandler" to behandling.saksbehandler,
-                            "beslutter" to behandling.beslutter,
-                            "attesteringer" to behandling.attesteringer.toDbJson(),
-                            "iverksatt_tidspunkt" to behandling.iverksattTidspunkt,
-                            "sendt_til_beslutning" to behandling.sendtTilBeslutning,
-                            "sendt_til_datadeling" to behandling.sendtTilDatadeling,
-                            "oppgave_id" to behandling.oppgaveId?.toString(),
-                            "fritekst_vedtaksbrev" to behandling.fritekstTilVedtaksbrev?.verdi,
-                            "saksopplysninger" to behandling.saksopplysninger.toDbJson(),
-                            "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode.fraOgMed,
-                            "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode.tilOgMed,
-                            "avbrutt" to behandling.avbrutt?.toDbJson(),
-                            "utfall" to behandling.utfall?.toDb(),
-                            "begrunnelse_vilkarsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
-                        ).plus(utfallParams),
-                    ).asUpdate,
-                )
-            if (antRaderOppdatert == 0) {
-                throw IllegalStateException("Noen andre har endret denne behandlingen ${behandling.id}")
-            }
+            return session.run(
+                queryOf(
+                    sqlOppdaterBehandling,
+                    mapOf(
+                        "id" to behandling.id.toString(),
+                        "sak_id" to behandling.sakId.toString(),
+                        "status" to behandling.status.toDb(),
+                        "sist_endret_old" to sistEndret,
+                        "sist_endret" to behandling.sistEndret,
+                        "saksbehandler" to behandling.saksbehandler,
+                        "beslutter" to behandling.beslutter,
+                        "attesteringer" to behandling.attesteringer.toDbJson(),
+                        "iverksatt_tidspunkt" to behandling.iverksattTidspunkt,
+                        "sendt_til_beslutning" to behandling.sendtTilBeslutning,
+                        "sendt_til_datadeling" to behandling.sendtTilDatadeling,
+                        "oppgave_id" to behandling.oppgaveId?.toString(),
+                        "fritekst_vedtaksbrev" to behandling.fritekstTilVedtaksbrev?.verdi,
+                        "saksopplysninger" to behandling.saksopplysninger.toDbJson(),
+                        "saksopplysningsperiode_fra_og_med" to behandling.saksopplysningsperiode.fraOgMed,
+                        "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode.tilOgMed,
+                        "avbrutt" to behandling.avbrutt?.toDbJson(),
+                        "utfall" to behandling.utfall?.toDb(),
+                        "begrunnelse_vilkarsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
+                    ).plus(utfallParams),
+                ).asUpdate,
+            )
         }
 
         private fun hentSistEndret(
@@ -473,81 +476,97 @@ class BehandlingPostgresRepo(
             )
 
         private fun Row.toBehandling(session: Session): Behandling {
-            val id = BehandlingId.fromString(string("id"))
-            val sakId = SakId.fromString(string("sak_id"))
-
-            val status = string("status").toBehandlingsstatus()
             val behandlingstype = string("behandlingstype").toBehandlingstype()
 
-            val virkningsperiodeFraOgMed = localDateOrNull("virkningsperiode_fra_og_med")
-            val virkningsperiodeTilOgMed = localDateOrNull("virkningsperiode_til_og_med")
-            if ((virkningsperiodeFraOgMed == null).xor(virkningsperiodeTilOgMed == null)) {
-                throw IllegalStateException("Både fra og med og til og med må være satt, eller ingen av dem")
+            return when (behandlingstype) {
+                Behandlingstype.SØKNADSBEHANDLING -> tilSøknadsbehandling(session)
+                Behandlingstype.REVURDERING -> TODO()
             }
-            val virkningsperiode =
-                virkningsperiodeFraOgMed?.let { Periode(virkningsperiodeFraOgMed, virkningsperiodeTilOgMed!!) }
+        }
+
+        private fun Row.tilSøknadsbehandling(session: Session): Søknadsbehandling {
+            val id = BehandlingId.fromString(string("id"))
+            val sakId = SakId.fromString(string("sak_id"))
+            val status = string("status").toBehandlingsstatus()
             val saksbehandler = stringOrNull("saksbehandler")
             val beslutter = stringOrNull("beslutter")
-            // Kan være null for revurderinger. Domeneobjektet passer på dette selv.
-            val søknad: Søknad? = SøknadDAO.hentForBehandlingId(id, session)
-
             val attesteringer = string("attesteringer").toAttesteringer()
             val fnr = Fnr.fromString(string("fnr"))
             val saksnummer = Saksnummer(string("saksnummer"))
-
             val sendtTilBeslutning = localDateTimeOrNull("sendt_til_beslutning")
             val opprettet = localDateTime("opprettet")
             val iverksattTidspunkt = localDateTimeOrNull("iverksatt_tidspunkt")
             val sistEndret = localDateTime("sist_endret")
             val oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) }
-            val saksopplysningsperiodeFraOgMed = localDateOrNull("saksopplysningsperiode_fra_og_med")
-            val saksopplysningsperiodeTilOgMed = localDateOrNull("saksopplysningsperiode_til_og_med")
-            val barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg()
-            val saksopplysninger = string("saksopplysninger").toSaksopplysninger()
-            val valgteTiltaksdeltakelser =
-                stringOrNull("valgte_tiltaksdeltakelser")?.toValgteTiltaksdeltakelser(saksopplysninger)
             val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
-            val avslagsgrunner = stringOrNull("avslagsgrunner")?.toAvslagsgrunnlag()
-            val utfall = stringOrNull("utfall")?.let { BehandlingsutfallDb.valueOf(it).toDomain() }
+            val sendtTilDatadeling = localDateTimeOrNull("sendt_til_datadeling")
+            val fritekstTilVedtaksbrev = stringOrNull("fritekst_vedtaksbrev")?.let { FritekstTilVedtaksbrev(it) }
+            val begrunnelseVilkårsvurdering = stringOrNull("begrunnelse_vilkårsvurdering")?.let {
+                BegrunnelseVilkårsvurdering(
+                    it,
+                )
+            }
 
-            return Behandling(
+            val saksopplysningsperiode = Periode(
+                localDate("saksopplysningsperiode_fra_og_med"),
+                localDate("saksopplysningsperiode_til_og_med"),
+            )
+
+            val saksopplysninger = string("saksopplysninger").toSaksopplysninger()
+
+            val virkningsperiodeFraOgMed = localDateOrNull("virkningsperiode_fra_og_med")
+            val virkningsperiodeTilOgMed = localDateOrNull("virkningsperiode_til_og_med")
+
+            if ((virkningsperiodeFraOgMed == null).xor(virkningsperiodeTilOgMed == null)) {
+                throw IllegalStateException("Både fra og med og til og med for virkningsperiode må være satt, eller ingen av dem")
+            }
+
+            val virkningsperiode =
+                virkningsperiodeFraOgMed?.let { Periode(virkningsperiodeFraOgMed, virkningsperiodeTilOgMed!!) }
+
+            val utfallType = stringOrNull("utfall")?.let { BehandlingsutfallDb.valueOf(it).toDomain() }
+
+            val utfall = when (utfallType) {
+                BehandlingsutfallGammel.INNVILGELSE -> SøknadsbehandlingUtfall.Innvilgelse(
+                    status = status,
+                    virkningsperiode = virkningsperiode!!,
+                    antallDagerPerMeldeperiode = int("antall_dager_per_meldeperiode"),
+                    valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")?.toValgteTiltaksdeltakelser(
+                        saksopplysninger,
+                    ),
+                    barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
+                )
+
+                BehandlingsutfallGammel.AVSLAG -> SøknadsbehandlingUtfall.Avslag(
+                    avslagsgrunner = string("avslagsgrunner").toAvslagsgrunnlag(),
+                )
+
+                BehandlingsutfallGammel.STANS -> throw IllegalStateException("Søknadsbehandling kan ikke være stans")
+                null -> null
+            }
+
+            return Søknadsbehandling(
                 id = id,
+                status = status,
+                opprettet = opprettet,
+                sistEndret = sistEndret,
+                iverksattTidspunkt = iverksattTidspunkt,
+                sendtTilDatadeling = sendtTilDatadeling,
                 sakId = sakId,
+                oppgaveId = oppgaveId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                søknad = søknad,
-                virkningsperiode = virkningsperiode,
                 saksopplysninger = saksopplysninger,
+                saksopplysningsperiode = saksopplysningsperiode,
+                søknad = SøknadDAO.hentForBehandlingId(id, session)!!,
+                virkningsperiode = virkningsperiode,
                 saksbehandler = saksbehandler,
                 sendtTilBeslutning = sendtTilBeslutning,
                 beslutter = beslutter,
                 attesteringer = attesteringer,
-                status = status,
-                opprettet = opprettet,
-                iverksattTidspunkt = iverksattTidspunkt,
-                sendtTilDatadeling = localDateTimeOrNull("sendt_til_datadeling"),
-                sistEndret = sistEndret,
-                behandlingstype = behandlingstype,
-                oppgaveId = oppgaveId,
-                valgtHjemmelHarIkkeRettighet = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.toValgtHjemmelHarIkkeRettighet()
-                    ?: emptyList(),
-                fritekstTilVedtaksbrev = stringOrNull("fritekst_vedtaksbrev")?.let { FritekstTilVedtaksbrev(it) },
-                begrunnelseVilkårsvurdering = stringOrNull("begrunnelse_vilkårsvurdering")?.let {
-                    BegrunnelseVilkårsvurdering(
-                        it,
-                    )
-                },
-                saksopplysningsperiode = saksopplysningsperiodeFraOgMed?.let {
-                    Periode(
-                        saksopplysningsperiodeFraOgMed,
-                        saksopplysningsperiodeTilOgMed!!,
-                    )
-                },
-                barnetillegg = barnetillegg,
-                valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                 avbrutt = avbrutt,
-                antallDagerPerMeldeperiode = intOrNull("antall_dager_per_meldeperiode"),
-                avslagsgrunner = avslagsgrunner,
                 utfall = utfall,
             )
         }
@@ -664,7 +683,7 @@ class BehandlingPostgresRepo(
     }
 
     /** Siden dette er på tvers av saker, gir det ikke mening og bruke [Behandlinger] */
-    override fun hentFørstegangsbehandlingerTilDatadeling(limit: Int): List<Behandling> {
+    override fun hentSøknadsbehandlingerTilDatadeling(limit: Int): List<Behandling> {
         return sessionFactory.withSession { session ->
             session.run(
                 queryOf(

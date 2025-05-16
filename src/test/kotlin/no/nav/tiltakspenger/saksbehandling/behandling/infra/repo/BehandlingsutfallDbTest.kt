@@ -1,21 +1,21 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsutfall
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingsutfallGammel
 import org.junit.jupiter.api.Test
 
 class BehandlingsutfallDbTest {
     @Test
     fun `mapper til db type`() {
-        Behandlingsutfall.INNVILGELSE.toDb() shouldBe "INNVILGELSE"
-        Behandlingsutfall.AVSLAG.toDb() shouldBe "AVSLAG"
-        Behandlingsutfall.STANS.toDb() shouldBe "STANS"
+        BehandlingsutfallGammel.INNVILGELSE.toDb() shouldBe "INNVILGELSE"
+        BehandlingsutfallGammel.AVSLAG.toDb() shouldBe "AVSLAG"
+        BehandlingsutfallGammel.STANS.toDb() shouldBe "STANS"
     }
 
     @Test
     fun `mapper til domene type`() {
-        BehandlingsutfallDb.INNVILGELSE.toDomain() shouldBe Behandlingsutfall.INNVILGELSE
-        BehandlingsutfallDb.AVSLAG.toDomain() shouldBe Behandlingsutfall.AVSLAG
-        BehandlingsutfallDb.STANS.toDomain() shouldBe Behandlingsutfall.STANS
+        BehandlingsutfallDb.INNVILGELSE.toDomain() shouldBe BehandlingsutfallGammel.INNVILGELSE
+        BehandlingsutfallDb.AVSLAG.toDomain() shouldBe BehandlingsutfallGammel.AVSLAG
+        BehandlingsutfallDb.STANS.toDomain() shouldBe BehandlingsutfallGammel.STANS
     }
 }

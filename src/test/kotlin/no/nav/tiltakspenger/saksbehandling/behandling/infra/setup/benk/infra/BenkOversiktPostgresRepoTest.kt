@@ -9,8 +9,8 @@ import no.nav.tiltakspenger.saksbehandling.benk.Saksoversikt
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetRevurderingDeprecated
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -24,7 +24,7 @@ class BenkOversiktPostgresRepoTest {
             val repo = testDataHelper.saksoversiktRepo
             val søknad1 = testDataHelper.persisterSakOgSøknad()
             val sakId = testDataHelper.søknadRepo.hentSakIdForSoknad(søknad1.id)!!
-            val (førstegangsBehandlingSak, førstegangsBehandling) = testDataHelper.persisterOpprettetFørstegangsbehandling()
+            val (førstegangsBehandlingSak, førstegangsBehandling) = testDataHelper.persisterOpprettetSøknadsbehandling()
             val (revurderingSak, revurdering) = testDataHelper.persisterOpprettetRevurderingDeprecated()
             val behandlinger = repo.hentÅpneBehandlinger()
             val søknader = repo.hentÅpneSøknader()

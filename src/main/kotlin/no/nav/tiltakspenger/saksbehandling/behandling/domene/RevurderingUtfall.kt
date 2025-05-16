@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 
-sealed interface RevurderingUtfall {
+sealed interface RevurderingUtfall : BehandlingUtfall {
     data class Stans(
         val virkningsperiode: Periode,
         val valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelHarIkkeRettighet>,

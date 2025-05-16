@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBesl
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBeslutter.MåVæreSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingsutfallDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.SøknadsbehandlingUtfallDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toAvslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
@@ -35,7 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 
-private data class SendTilBeslutningBody(
+private data class Body(
     val fritekstTilVedtaksbrev: String?,
     val begrunnelseVilkårsvurdering: String?,
     val behandlingsperiode: PeriodeDTO,
@@ -43,7 +43,7 @@ private data class SendTilBeslutningBody(
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
     val antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
-    val utfall: BehandlingsutfallDTO,
+    val utfall: SøknadsbehandlingUtfallDTO,
 ) {
     fun toDomain(
         sakId: SakId,
@@ -67,7 +67,10 @@ private data class SendTilBeslutningBody(
             },
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             avslagsgrunner = avslagsgrunner?.toAvslagsgrunnlag(),
-            utfall = utfall.toDomain(),
+            utfall = when (utfall) {
+                SøknadsbehandlingUtfallDTO.INNVILGELSE -> SendSøknadsbehandlingTilBeslutningKommando.Utfall.INNVILGELSE
+                SøknadsbehandlingUtfallDTO.AVSLAG -> SendSøknadsbehandlingTilBeslutningKommando.Utfall.AVSLAG
+            },
         )
     }
 }
@@ -83,7 +86,7 @@ fun Route.sendSøknadsbehandlingTilBeslutningRoute(
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<SendTilBeslutningBody> { body ->
+                    call.withBody<Body> { body ->
                         val correlationId = call.correlationId()
 
                         sendBehandlingTilBeslutningService.sendFørstegangsbehandlingTilBeslutning(

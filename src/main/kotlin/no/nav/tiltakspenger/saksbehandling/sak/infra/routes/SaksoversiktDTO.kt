@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingstypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toBehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toBehandlingstypeDTO
@@ -66,7 +67,7 @@ fun List<Søknad>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
 fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
     periode = virkningsperiode?.toDTO(),
     status = status.toBehandlingsstatusDTO().toString(),
-    kravtidspunkt = kravtidspunkt,
+    kravtidspunkt = if (this is Søknadsbehandling) kravtidspunkt else null,
     underkjent = attesteringer.any { attestering -> attestering.isUnderkjent() },
     typeBehandling = behandlingstype.toBenkBehandlingstype().toBehandlingstypeDTO(),
     fnr = fnr.verdi,

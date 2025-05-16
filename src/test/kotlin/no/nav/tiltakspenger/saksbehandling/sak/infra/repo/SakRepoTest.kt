@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSak
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
@@ -35,8 +35,8 @@ internal class SakRepoTest {
         withMigratedDb { testDataHelper ->
             val sakRepo = testDataHelper.sakRepo
 
-            val sak1 = testDataHelper.persisterOpprettetFørstegangsbehandling().first
-            testDataHelper.persisterOpprettetFørstegangsbehandling().first
+            val sak1 = testDataHelper.persisterOpprettetSøknadsbehandling().first
+            testDataHelper.persisterOpprettetSøknadsbehandling().first
 
             sakRepo.hentForFnr(sak1.fnr) shouldBe Saker(sak1.fnr, listOf(sak1))
             sakRepo.hentForSaksnummer(saksnummer = sak1.saksnummer)!! shouldBe sak1
@@ -53,15 +53,15 @@ internal class SakRepoTest {
 
             val sak1 =
                 testDataHelper
-                    .persisterOpprettetFørstegangsbehandling(
+                    .persisterOpprettetSøknadsbehandling(
                         fnr = fnr,
                     ).first
             val sak2 =
                 testDataHelper
-                    .persisterOpprettetFørstegangsbehandling(
+                    .persisterOpprettetSøknadsbehandling(
                         fnr = fnr,
                     ).first
-            testDataHelper.persisterOpprettetFørstegangsbehandling()
+            testDataHelper.persisterOpprettetSøknadsbehandling()
 
             sakRepo.hentForFnr(fnr) shouldBe Saker(fnr, listOf(sak1, sak2))
         }
@@ -74,7 +74,7 @@ internal class SakRepoTest {
 
             val sak1 = testDataHelper.persisterIverksattFørstegangsbehandling().first
             val sak2 = testDataHelper.persisterIverksattFørstegangsbehandling().first
-            testDataHelper.persisterOpprettetFørstegangsbehandling().first
+            testDataHelper.persisterOpprettetSøknadsbehandling().first
             testDataHelper.persisterUnderBeslutningFørstegangsbehandling().first
 
             sakRepo.hentForSendingTilMeldekortApi() shouldBe listOf(sak1, sak2)

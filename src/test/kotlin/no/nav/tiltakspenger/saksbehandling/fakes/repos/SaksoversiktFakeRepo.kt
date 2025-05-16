@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.fakes.repos
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksoversiktRepo
 import no.nav.tiltakspenger.saksbehandling.benk.BehandlingEllerSøknadForSaksoversikt
 import no.nav.tiltakspenger.saksbehandling.benk.BenkBehandlingstype
@@ -20,7 +21,7 @@ class SaksoversiktFakeRepo(
                 status = status,
                 underkjent = behandling.attesteringer.any { it.isUnderkjent() },
                 // Kommentar jah: Dette vil ikke fungere hvis vi utvider denne til revurdering.
-                kravtidspunkt = behandling.kravtidspunkt!!,
+                kravtidspunkt = if (behandling is Søknadsbehandling) behandling.kravtidspunkt else null,
                 behandlingstype = behandling.behandlingstype.toBenkBehandlingstype(),
                 fnr = behandling.fnr,
                 saksnummer = behandling.saksnummer,

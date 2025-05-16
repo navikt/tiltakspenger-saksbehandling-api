@@ -17,12 +17,12 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsutfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendRevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
@@ -40,7 +40,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
+internal fun TestDataHelper.persisterOpprettetSøknadsbehandling(
     sakId: SakId = SakId.random(),
     saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
     fnr: Fnr = Fnr.random(),
@@ -75,7 +75,7 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
         ),
     barnetillegg: Barnetillegg? = null,
     clock: Clock = this.clock,
-): Triple<Sak, Behandling, Søknad> {
+): Triple<Sak, Søknadsbehandling, Søknad> {
     this.persisterSakOgSøknad(
         fnr = sak.fnr,
         søknad = søknad,
@@ -96,7 +96,7 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
 
     return Triple(
         sakRepo.hentForSakId(sakId)!!,
-        sakMedBehandling.behandlinger.singleOrNullOrThrow()!!,
+        sakMedBehandling.behandlinger.singleOrNullOrThrow()!! as Søknadsbehandling,
         søknadRepo.hentForSøknadId(søknad.id)!!,
     )
 }
@@ -136,14 +136,14 @@ internal fun TestDataHelper.persisterKlarTilBeslutningFørstegangsbehandling(
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterKlarTilBeslutningFørstegangsbehandling()"),
     correlationId: CorrelationId = CorrelationId.generate(),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
-    utfall: Behandlingsutfall = Behandlingsutfall.INNVILGELSE,
+    utfall: SendSøknadsbehandlingTilBeslutningKommando.Utfall = SendSøknadsbehandlingTilBeslutningKommando.Utfall.INNVILGELSE,
     /**
      * Brukt for å styre meldeperiode generering
      */
     clock: Clock = this.clock,
     antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
 ): Pair<Sak, Behandling> {
-    val (sak, førstegangsbehandling) = persisterOpprettetFørstegangsbehandling(
+    val (sak, førstegangsbehandling) = persisterOpprettetSøknadsbehandling(
         sakId = sak.id,
         fnr = sak.fnr,
         deltakelseFom = deltakelseFom,
@@ -284,7 +284,7 @@ internal fun TestDataHelper.persisterAvbruttFørstegangsbehandling(
         ),
     clock: Clock = this.clock,
 ): Pair<Sak, Behandling> {
-    val (sakMedFørstegangsbehandling, _) = persisterOpprettetFørstegangsbehandling(
+    val (sakMedFørstegangsbehandling, _) = persisterOpprettetSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,
@@ -445,7 +445,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandlingAvslag(
         søknad = søknad,
         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-        utfall = Behandlingsutfall.AVSLAG,
+        utfall = SendSøknadsbehandlingTilBeslutningKommando.Utfall.AVSLAG,
         avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
         correlationId = correlationId,
         clock = clock,

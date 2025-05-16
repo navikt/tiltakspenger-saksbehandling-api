@@ -9,15 +9,19 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -29,6 +33,7 @@ data class Søknadsbehandling(
     override val iverksattTidspunkt: LocalDateTime?,
     override val sendtTilDatadeling: LocalDateTime?,
     override val sakId: SakId,
+    override val oppgaveId: OppgaveId?,
     override val saksnummer: Saksnummer,
     override val fnr: Fnr,
     override val saksopplysninger: Saksopplysninger,
@@ -43,9 +48,26 @@ data class Søknadsbehandling(
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     val søknad: Søknad,
-) : BehandlingNy() {
-    val oppgaveId: OppgaveId? = søknad.oppgaveId
+) : Behandling() {
+    override val barnetillegg: Barnetillegg?
+        get() = when (utfall) {
+            is SøknadsbehandlingUtfall.Avslag -> null
+            is SøknadsbehandlingUtfall.Innvilgelse -> utfall.barnetillegg
+            null -> null
+        }
+    override val utfallsperioder: Periodisering<Utfallsperiode>?
+        get() = when (utfall) {
+            is SøknadsbehandlingUtfall.Avslag -> null
+            is SøknadsbehandlingUtfall.Innvilgelse -> utfall.utfallsperioder
+            null -> null
+        }
+
     val kravtidspunkt: LocalDateTime = søknad.tidsstempelHosOss
+    val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (utfall) {
+        is SøknadsbehandlingUtfall.Avslag -> null
+        is SøknadsbehandlingUtfall.Innvilgelse -> utfall.valgteTiltaksdeltakelser
+        null -> null
+    }
 
     fun tilBeslutning(
         kommando: SendSøknadsbehandlingTilBeslutningKommando,
@@ -60,7 +82,7 @@ data class Søknadsbehandling(
         val virkningsperiode = kommando.behandlingsperiode
 
         val utfall: SøknadsbehandlingUtfall = when (kommando.utfall) {
-            Behandlingsutfall.INNVILGELSE -> SøknadsbehandlingUtfall.Innvilgelse(
+            SendSøknadsbehandlingTilBeslutningKommando.Utfall.INNVILGELSE -> SøknadsbehandlingUtfall.Innvilgelse(
                 status = status,
                 virkningsperiode = virkningsperiode,
                 antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
@@ -68,11 +90,9 @@ data class Søknadsbehandling(
                 barnetillegg = kommando.barnetillegg,
             )
 
-            Behandlingsutfall.AVSLAG -> SøknadsbehandlingUtfall.Avslag(
+            SendSøknadsbehandlingTilBeslutningKommando.Utfall.AVSLAG -> SøknadsbehandlingUtfall.Avslag(
                 avslagsgrunner = kommando.avslagsgrunner!!,
             )
-
-            Behandlingsutfall.STANS -> throw IllegalArgumentException("Støtter ikke stans her (bør fjerne denne statusen fra kommandoen)")
         }
 
         return this.copy(
@@ -85,6 +105,12 @@ data class Søknadsbehandling(
         )
     }
 
+    override fun taBehandling(saksbehandler: Saksbehandler): Søknadsbehandling {
+        return super.taBehandling(saksbehandler).let {
+            this.copy(saksbehandler = saksbehandler.navIdent, status = UNDER_BEHANDLING)
+        }
+    }
+
     fun oppdaterBarnetillegg(kommando: OppdaterBarnetilleggKommando): Søknadsbehandling {
         require(this.utfall is SøknadsbehandlingUtfall.Innvilgelse)
         validerKanOppdatere(kommando.saksbehandler, "Kunne ikke oppdatere barnetillegg")
@@ -92,7 +118,7 @@ data class Søknadsbehandling(
         return this.copy(utfall = utfall.copy(barnetillegg = kommando.barnetillegg(this.virkningsperiode)))
     }
 
-    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Søknadsbehandling {
+    override fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Søknadsbehandling {
         if (this.status == AVBRUTT || avbrutt != null) {
             throw IllegalArgumentException("Behandlingen er allerede avbrutt")
         }
@@ -109,8 +135,6 @@ data class Søknadsbehandling(
     }
 
     companion object {
-        /** Hardkoder denne til 10 for nå. På sikt vil vi la saksbehandler periodisere dette selv, litt på samme måte som barnetillegg. */
-        const val MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
 
         suspend fun opprett(
             sakId: SakId,
@@ -144,6 +168,7 @@ data class Søknadsbehandling(
                 sakId = sakId,
                 fnr = fnr,
                 søknad = søknad,
+                oppgaveId = søknad.oppgaveId,
                 saksopplysninger = saksopplysninger,
                 fritekstTilVedtaksbrev = null,
                 saksbehandler = saksbehandler.navIdent,

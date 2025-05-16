@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårs
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBeslutningFørstegangsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
@@ -33,7 +33,7 @@ internal class BehandlingPostgresRepoTest {
             val behandlingRepo = testDataHelper.behandlingRepo
             val sakRepo = testDataHelper.sakRepo
 
-            val (sak, _) = testDataHelper.persisterOpprettetFørstegangsbehandling()
+            val (sak, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
             sakRepo.hentForSakId(sak.id) shouldBe sak
             behandlingRepo.hent(sak.behandlinger.singleOrNullOrThrow()!!.id) shouldBe sak.behandlinger.singleOrNullOrThrow()
         }
@@ -47,7 +47,7 @@ internal class BehandlingPostgresRepoTest {
             val deltakelseFom = 1.januar(2023)
             val deltakelseTom = 31.mars(2023)
 
-            val (sak, _) = testDataHelper.persisterOpprettetFørstegangsbehandling(
+            val (sak, _) = testDataHelper.persisterOpprettetSøknadsbehandling(
                 deltakelseFom = deltakelseFom,
                 deltakelseTom = deltakelseTom,
                 barnetillegg = Barnetillegg(
@@ -82,8 +82,8 @@ internal class BehandlingPostgresRepoTest {
         withMigratedDb { testDataHelper ->
             val behandlingRepo = testDataHelper.behandlingRepo
 
-            val (sak1, _) = testDataHelper.persisterOpprettetFørstegangsbehandling()
-            val (sak2, _) = testDataHelper.persisterOpprettetFørstegangsbehandling()
+            val (sak1, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
+            val (sak2, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
 
             behandlingRepo.hentAlleForFnr(sak1.fnr) shouldBe sak1.behandlinger
             behandlingRepo.hentAlleForFnr(sak2.fnr) shouldBe sak2.behandlinger
@@ -95,7 +95,7 @@ internal class BehandlingPostgresRepoTest {
         withMigratedDb { testDataHelper ->
             val behandlingRepo = testDataHelper.behandlingRepo
             val saksbehandler = ObjectMother.saksbehandler()
-            val (_, behandling) = testDataHelper.persisterOpprettetFørstegangsbehandling()
+            val (_, behandling) = testDataHelper.persisterOpprettetSøknadsbehandling()
             testDataHelper.sessionFactory.withSession { sx ->
                 sx.run(
                     queryOf(
@@ -128,7 +128,7 @@ internal class BehandlingPostgresRepoTest {
         withMigratedDb { testDataHelper ->
             val behandlingRepo = testDataHelper.behandlingRepo
             val nySaksbehandler = ObjectMother.saksbehandler("nySaksbehandler")
-            val (_, behandling) = testDataHelper.persisterOpprettetFørstegangsbehandling()
+            val (_, behandling) = testDataHelper.persisterOpprettetSøknadsbehandling()
 
             behandling.saksbehandler shouldNotBe null
             behandling.saksbehandler shouldNotBe nySaksbehandler.navIdent

@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -94,13 +93,13 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
-        behandling: Behandling = ObjectMother.nyVedtattBehandling(
+        behandling: Behandling = ObjectMother.nyVedtattRevurdering(
             sakId = sakId,
             virkningsperiode = periode,
             saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
             fnr = fnr,
-            behandlingstype = Behandlingstype.REVURDERING,
-            søknad = null,
+            sisteDagSomGirRett = periode.tilOgMed,
+            stansDato = periode.fraOgMed,
         ),
         vedtaksdato: LocalDate = 2.januar(2023),
         journalpostId: JournalpostId? = null,

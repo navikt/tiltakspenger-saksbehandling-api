@@ -21,7 +21,7 @@ class PersonPostgresRepoTest {
                 testDataHelper.personRepo.hentFnrForBehandlingId(behandling.id) shouldBe sak.fnr
                 testDataHelper.personRepo.hentFnrForBehandlingId(behandling.id) shouldBe sak.fnr
                 testDataHelper.personRepo.hentFnrForSaksnummer(sak.saksnummer) shouldBe sak.fnr
-                testDataHelper.personRepo.hentFnrForSøknadId(sak.behandlinger.førstegangsBehandlinger.singleOrNullOrThrow()!!.søknad!!.id) shouldBe sak.fnr
+                testDataHelper.personRepo.hentFnrForSøknadId(sak.behandlinger.søknadsbehandlinger.singleOrNullOrThrow()!!.søknad.id) shouldBe sak.fnr
             }
             val innvilgelsesperiode = Periode(2.januar(2023), 31.mars(2023))
             testDataHelper.persisterRammevedtakMedBehandletMeldekort(

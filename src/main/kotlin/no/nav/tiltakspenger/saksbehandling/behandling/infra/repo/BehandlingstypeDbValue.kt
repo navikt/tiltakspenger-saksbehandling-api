@@ -4,14 +4,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 
 fun Behandlingstype.toDbValue(): String {
     return when (this) {
-        Behandlingstype.FØRSTEGANGSBEHANDLING -> "FØRSTEGANGSBEHANDLING"
+        Behandlingstype.SØKNADSBEHANDLING -> "FØRSTEGANGSBEHANDLING"
         Behandlingstype.REVURDERING -> "REVURDERING"
     }
 }
 
 fun String.toBehandlingstype(): Behandlingstype {
     return when (this) {
-        "FØRSTEGANGSBEHANDLING" -> Behandlingstype.FØRSTEGANGSBEHANDLING
+        "FØRSTEGANGSBEHANDLING" -> Behandlingstype.SØKNADSBEHANDLING
         "REVURDERING" -> Behandlingstype.REVURDERING
         else -> throw IllegalArgumentException("Ukjent behandlingstype: $this")
     }
