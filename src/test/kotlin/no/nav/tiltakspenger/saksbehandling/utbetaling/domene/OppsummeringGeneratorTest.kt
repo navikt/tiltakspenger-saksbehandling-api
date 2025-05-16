@@ -2,11 +2,14 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjede
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toSimuleringFraHelvedResponse
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -15,81 +18,256 @@ class OppsummeringGeneratorTest {
     @Test
     fun `enkel YTELSE for en meldeperiode`() {
         // Meldeperiode mandag 14. oktober til søndag 27. oktober 2024
-        val detaljer = Simulering.Endring.Detaljer(
-            datoBeregnet = LocalDate.parse("2025-05-12"),
-            totalBeløp = 2280,
-            perioder = nonEmptyListOf(
-                Simulering.Endring.Detaljer.Simuleringsperiode(
-                    periode = Periode(LocalDate.parse("2024-10-14"), LocalDate.parse("2024-10-17")),
-                    delperioder = listOf(
-                        Simulering.Endring.Detaljer.Simuleringsperiode.Delperiode(
-                            fagområde = "TILTAKSPENGER",
-                            periode = Periode(LocalDate.parse("2024-10-14"), LocalDate.parse("2024-10-17")),
-                            beløp = 1140,
-                            type = Simulering.Endring.PosteringType.YTELSE,
-                            klassekode = "TPTPATT",
-                        ),
-                    ),
-                ),
-                Simulering.Endring.Detaljer.Simuleringsperiode(
-                    periode = Periode(LocalDate.parse("2024-10-21"), LocalDate.parse("2024-10-22")),
-                    delperioder = listOf(
-                        Simulering.Endring.Detaljer.Simuleringsperiode.Delperiode(
-                            fagområde = "TILTAKSPENGER",
-                            periode = Periode(LocalDate.parse("2024-10-21"), LocalDate.parse("2024-10-22")),
-                            beløp = 570,
-                            type = Simulering.Endring.PosteringType.YTELSE,
-                            klassekode = "TPTPATT",
-                        ),
-                    ),
-                ),
-                Simulering.Endring.Detaljer.Simuleringsperiode(
-                    periode = Periode(LocalDate.parse("2024-10-24"), LocalDate.parse("2024-10-25")),
-                    delperioder = listOf(
-                        Simulering.Endring.Detaljer.Simuleringsperiode.Delperiode(
-                            fagområde = "TILTAKSPENGER",
-                            periode = Periode(LocalDate.parse("2024-10-24"), LocalDate.parse("2024-10-25")),
-                            beløp = 570,
-                            type = Simulering.Endring.PosteringType.YTELSE,
-                            klassekode = "TPTPATT",
-                        ),
-                    ),
-                ),
-            ),
-        )
-        val meldeperiode = Periode(LocalDate.parse("2024-10-14"), LocalDate.parse("2024-10-27"))
+        // language=json
+        val helvedResponse = """
+            {
+              "oppsummeringer": [
+                {
+                  "fom": "2024-10-14",
+                  "tom": "2024-10-25",
+                  "tidligereUtbetalt": 0,
+                  "nyUtbetaling": 2280,
+                  "totalEtterbetaling": 2280,
+                  "totalFeilutbetaling": 0
+                }
+              ],
+              "detaljer": {
+                "gjelderId": "01487905247",
+                "datoBeregnet": "2025-05-12",
+                "totalBeløp": 2280,
+                "perioder": [
+                  {
+                    "fom": "2024-10-14",
+                    "tom": "2024-10-17",
+                    "posteringer": [
+                      {
+                        "fagområde": "TILTAKSPENGER",
+                        "sakId": "202501291001",
+                        "fom": "2024-10-14",
+                        "tom": "2024-10-17",
+                        "beløp": 1140,
+                        "type": "YTELSE",
+                        "klassekode": "TPTPATT"
+                      }
+                    ]
+                  },
+                  {
+                    "fom": "2024-10-21",
+                    "tom": "2024-10-22",
+                    "posteringer": [
+                      {
+                        "fagområde": "TILTAKSPENGER",
+                        "sakId": "202501291001",
+                        "fom": "2024-10-21",
+                        "tom": "2024-10-22",
+                        "beløp": 570,
+                        "type": "YTELSE",
+                        "klassekode": "TPTPATT"
+                      }
+                    ]
+                  },
+                  {
+                    "fom": "2024-10-24",
+                    "tom": "2024-10-25",
+                    "posteringer": [
+                      {
+                        "fagområde": "TILTAKSPENGER",
+                        "sakId": "202501291001",
+                        "fom": "2024-10-24",
+                        "tom": "2024-10-25",
+                        "beløp": 570,
+                        "type": "YTELSE",
+                        "klassekode": "TPTPATT"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+        """.trimIndent()
+
+        val periode = Periode(LocalDate.parse("2024-10-14"), LocalDate.parse("2024-10-27"))
         val meldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(
-            meldeperiode,
+            periode,
+        )
+        val meldeperiode = ObjectMother.meldeperiode(
+            periode = periode,
+            kjedeId = meldeperiodeKjedeId,
+            saksnummer = Saksnummer("202501291001"),
+            fnr = Fnr.fromString("01487905247"),
         )
         val meldeperiodeKjeder = MeldeperiodeKjeder(
             MeldeperiodeKjede(
-                ObjectMother.meldeperiode(
-                    periode = meldeperiode,
-                    kjedeId = meldeperiodeKjedeId,
-                ),
+                meldeperiode,
             ),
         )
-        OppsummeringGenerator.lagOppsummering(detaljer, meldeperiodeKjeder) shouldBe Simulering.Endring.Oppsummering(
-            periode = Periode(LocalDate.parse("2024-10-14"), LocalDate.parse("2024-10-25")),
-            tidligereUtbetalt = 0,
-            nyUtbetaling = 2280,
-            totalEtterbetaling = 2280,
-            totalFeilutbetaling = 0,
-            perMeldeperiode = nonEmptyListOf(
-                Simulering.Endring.OppsummeringForMeldeperiode(
-                    meldeperiode = meldeperiode,
-                    meldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(meldeperiode),
-                    tidligereUtbetalt = 0,
-                    nyUtbetaling = 2280,
-                    totalEtterbetaling = 2280,
-                    totalFeilutbetaling = 0,
+        helvedResponse.toSimuleringFraHelvedResponse(meldeperiodeKjeder) shouldBe Simulering.Endring(
+            simuleringPerMeldeperiode = nonEmptyListOf(
+                SimuleringForMeldeperiode(
+                    meldeperiode = meldeperiodeKjeder.hentForMeldeperiodeId(meldeperiode.id)!!,
+                    simuleringsdager = nonEmptyListOf(
+                        Simuleringsdag(
+                            dato = LocalDate.parse("2024-10-14"),
+                            tidligereUtbetalt = 0,
+                            nyUtbetaling = 285,
+                            totalEtterbetaling = 285,
+                            totalFeilutbetaling = 0,
+                            posteringsdag = PosteringerForDag(
+                                dato = LocalDate.parse("2024-10-14"),
+                                posteringer = nonEmptyListOf(
+                                    PosteringForDag(
+                                        dato = LocalDate.parse("2024-10-14"),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = 285,
+                                        type = Posteringstype.YTELSE,
+                                        klassekode = "TPTPATT",
+                                    ),
+                                ),
+                            ),
+                        ),
+                        Simuleringsdag(
+                            dato = LocalDate.parse("2024-10-15"),
+                            tidligereUtbetalt = 0,
+                            nyUtbetaling = 285,
+                            totalEtterbetaling = 285,
+                            totalFeilutbetaling = 0,
+                            posteringsdag = PosteringerForDag(
+                                dato = LocalDate.parse("2024-10-15"),
+                                posteringer = nonEmptyListOf(
+                                    PosteringForDag(
+                                        dato = LocalDate.parse("2024-10-15"),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = 285,
+                                        type = Posteringstype.YTELSE,
+                                        klassekode = "TPTPATT",
+                                    ),
+                                ),
+                            ),
+                        ),
+                        Simuleringsdag(
+                            dato = LocalDate.parse("2024-10-16"),
+                            tidligereUtbetalt = 0,
+                            nyUtbetaling = 285,
+                            totalEtterbetaling = 285,
+                            totalFeilutbetaling = 0,
+                            posteringsdag = PosteringerForDag(
+                                dato = LocalDate.parse("2024-10-16"),
+                                posteringer = nonEmptyListOf(
+                                    PosteringForDag(
+                                        dato = LocalDate.parse("2024-10-16"),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = 285,
+                                        type = Posteringstype.YTELSE,
+                                        klassekode = "TPTPATT",
+                                    ),
+                                ),
+                            ),
+                        ),
+                        Simuleringsdag(
+                            dato = LocalDate.parse("2024-10-17"),
+                            tidligereUtbetalt = 0,
+                            nyUtbetaling = 285,
+                            totalEtterbetaling = 285,
+                            totalFeilutbetaling = 0,
+                            posteringsdag = PosteringerForDag(
+                                dato = LocalDate.parse("2024-10-17"),
+                                posteringer = nonEmptyListOf(
+                                    PosteringForDag(
+                                        dato = LocalDate.parse("2024-10-17"),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = 285,
+                                        type = Posteringstype.YTELSE,
+                                        klassekode = "TPTPATT",
+                                    ),
+                                ),
+                            ),
+                        ),
+                        Simuleringsdag(
+                            dato = LocalDate.parse("2024-10-21"),
+                            tidligereUtbetalt = 0,
+                            nyUtbetaling = 285,
+                            totalEtterbetaling = 285,
+                            totalFeilutbetaling = 0,
+                            posteringsdag = PosteringerForDag(
+                                dato = LocalDate.parse("2024-10-21"),
+                                posteringer = nonEmptyListOf(
+                                    PosteringForDag(
+                                        dato = LocalDate.parse("2024-10-21"),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = 285,
+                                        type = Posteringstype.YTELSE,
+                                        klassekode = "TPTPATT",
+                                    ),
+                                ),
+                            ),
+                        ),
+                        Simuleringsdag(
+                            dato = LocalDate.parse("2024-10-22"),
+                            tidligereUtbetalt = 0,
+                            nyUtbetaling = 285,
+                            totalEtterbetaling = 285,
+                            totalFeilutbetaling = 0,
+                            posteringsdag = PosteringerForDag(
+                                dato = LocalDate.parse("2024-10-22"),
+                                posteringer = nonEmptyListOf(
+                                    PosteringForDag(
+                                        dato = LocalDate.parse("2024-10-22"),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = 285,
+                                        type = Posteringstype.YTELSE,
+                                        klassekode = "TPTPATT",
+                                    ),
+                                ),
+                            ),
+                        ),
+                        Simuleringsdag(
+                            dato = LocalDate.parse("2024-10-24"),
+                            tidligereUtbetalt = 0,
+                            nyUtbetaling = 285,
+                            totalEtterbetaling = 285,
+                            totalFeilutbetaling = 0,
+                            posteringsdag = PosteringerForDag(
+                                dato = LocalDate.parse("2024-10-24"),
+                                posteringer = nonEmptyListOf(
+                                    PosteringForDag(
+                                        dato = LocalDate.parse("2024-10-24"),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = 285,
+                                        type = Posteringstype.YTELSE,
+                                        klassekode = "TPTPATT",
+                                    ),
+                                ),
+                            ),
+                        ),
+                        Simuleringsdag(
+                            dato = LocalDate.parse("2024-10-25"),
+                            tidligereUtbetalt = 0,
+                            nyUtbetaling = 285,
+                            totalEtterbetaling = 285,
+                            totalFeilutbetaling = 0,
+                            posteringsdag = PosteringerForDag(
+                                dato = LocalDate.parse("2024-10-25"),
+                                posteringer = nonEmptyListOf(
+                                    PosteringForDag(
+                                        dato = LocalDate.parse("2024-10-25"),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = 285,
+                                        type = Posteringstype.YTELSE,
+                                        klassekode = "TPTPATT",
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
                 ),
             ),
+            datoBeregnet = LocalDate.parse("2025-05-12"),
+            totalBeløp = 2280,
         )
     }
 
     @Test
-    fun test() {
+    fun `feilutbetaling `() {
         /**
          * Dette er en buggy simulering/utbetaling pga. bug ved bruk av kode 7.
          * Fra dev. Deltatt 10 ukedager i første vedtak. Korrigerer 2. og 3. desember til deltatt med lønn (fra 100% ->0%)
@@ -98,90 +276,242 @@ class OppsummeringGeneratorTest {
          * Vi hadde forventet at det var tidligere utbetalt 1425 kroner i perioden 2. desember til 6. desember. (285*5).
          * Vi hadde forventet 2 dager feilutbetaling (2*285) i perioden 2. desember til 3. desember og tilhørende motpostering.
          */
-        val detaljer = Simulering.Endring.Detaljer(
-            datoBeregnet = LocalDate.parse("2025-05-12"),
+        //language=json
+        val helvedResponse = """
+           {
+  "oppsummeringer": [
+    {
+      "fom": "2024-11-11",
+      "tom": "2024-11-22",
+      "tidligereUtbetalt": 2211,
+      "nyUtbetaling": 2140,
+      "totalEtterbetaling": 0,
+      "totalFeilutbetaling": 71
+    },
+    {
+      "fom": "2024-12-05",
+      "tom": "2024-12-05",
+      "tidligereUtbetalt": 214,
+      "nyUtbetaling": 0,
+      "totalEtterbetaling": 0,
+      "totalFeilutbetaling": 214
+    }
+  ],
+  "detaljer": {
+    "gjelderId": "22469635663",
+    "datoBeregnet": "2025-05-16",
+    "totalBeløp": 0,
+    "perioder": [
+      {
+        "fom": "2024-11-11",
+        "tom": "2024-11-11",
+        "posteringer": [
+          {
+            "fagområde": "TILTAKSPENGER",
+            "sakId": "202504101001",
+            "fom": "2024-11-11",
+            "tom": "2024-11-11",
+            "beløp": 71,
+            "type": "YTELSE",
+            "klassekode": "TPTPGRAMO"
+          },
+          {
+            "fagområde": "TILTAKSPENGER",
+            "sakId": "202504101001",
+            "fom": "2024-11-11",
+            "tom": "2024-11-11",
+            "beløp": 214,
+            "type": "YTELSE",
+            "klassekode": "TPTPGRAMO"
+          },
+          {
+            "fagområde": "TILTAKSPENGER",
+            "sakId": "202504101001",
+            "fom": "2024-11-11",
+            "tom": "2024-11-11",
+            "beløp": 71,
+            "type": "FEILUTBETALING",
+            "klassekode": "KL_KODE_FEIL_ARBYT"
+          },
+          {
+            "fagområde": "TILTAKSPENGER",
+            "sakId": "202504101001",
+            "fom": "2024-11-11",
+            "tom": "2024-11-11",
+            "beløp": -71,
+            "type": "MOTPOSTERING",
+            "klassekode": "TBMOTOBS"
+          },
+          {
+            "fagområde": "TILTAKSPENGER",
+            "sakId": "202504101001",
+            "fom": "2024-11-11",
+            "tom": "2024-11-11",
+            "beløp": -285,
+            "type": "YTELSE",
+            "klassekode": "TPTPGRAMO"
+          }
+        ]
+      },
+      {
+        "fom": "2024-11-12",
+        "tom": "2024-11-15",
+        "posteringer": [
+          {
+            "fagområde": "TILTAKSPENGER",
+            "sakId": "202504101001",
+            "fom": "2024-11-12",
+            "tom": "2024-11-15",
+            "beløp": 856,
+            "type": "YTELSE",
+            "klassekode": "TPTPGRAMO"
+          },
+          {
+            "fagområde": "TILTAKSPENGER",
+            "sakId": "202504101001",
+            "fom": "2024-11-12",
+            "tom": "2024-11-15",
+            "beløp": -856,
+            "type": "YTELSE",
+            "klassekode": "TPTPGRAMO"
+          }
+        ]
+      },
+      {
+        "fom": "2024-11-18",
+        "tom": "2024-11-22",
+        "posteringer": [
+          {
+            "fagområde": "TILTAKSPENGER",
+            "sakId": "202504101001",
+            "fom": "2024-11-18",
+            "tom": "2024-11-22",
+            "beløp": 1070,
+            "type": "YTELSE",
+            "klassekode": "TPTPGRAMO"
+          },
+          {
+            "fagområde": "TILTAKSPENGER",
+            "sakId": "202504101001",
+            "fom": "2024-11-18",
+            "tom": "2024-11-22",
+            "beløp": -1070,
+            "type": "YTELSE",
+            "klassekode": "TPTPGRAMO"
+          }
+        ]
+      },
+      {
+        "fom": "2024-12-05",
+        "tom": "2024-12-05",
+        "posteringer": [
+          {
+            "fagområde": "TILTAKSPENGER",
+            "sakId": "202504101001",
+            "fom": "2024-12-05",
+            "tom": "2024-12-05",
+            "beløp": 214,
+            "type": "YTELSE",
+            "klassekode": "TPTPGRAMO"
+          },
+          {
+            "fagområde": "TILTAKSPENGER",
+            "sakId": "202504101001",
+            "fom": "2024-12-05",
+            "tom": "2024-12-05",
+            "beløp": 214,
+            "type": "FEILUTBETALING",
+            "klassekode": "KL_KODE_FEIL_ARBYT"
+          },
+          {
+            "fagområde": "TILTAKSPENGER",
+            "sakId": "202504101001",
+            "fom": "2024-12-05",
+            "tom": "2024-12-05",
+            "beløp": -214,
+            "type": "MOTPOSTERING",
+            "klassekode": "TBMOTOBS"
+          },
+          {
+            "fagområde": "TILTAKSPENGER",
+            "sakId": "202504101001",
+            "fom": "2024-12-05",
+            "tom": "2024-12-05",
+            "beløp": -214,
+            "type": "YTELSE",
+            "klassekode": "TPTPGRAMO"
+          }
+        ]
+      }
+    ]
+  }
+}
+        """.trimIndent()
+
+        val periode1 = Periode(LocalDate.parse("2024-11-25"), LocalDate.parse("2024-12-08"))
+        val meldeperiodeKjedeId1 = MeldeperiodeKjedeId.fraPeriode(periode1)
+        val meldeperiode1 = ObjectMother.meldeperiode(
+            periode = periode1,
+            kjedeId = meldeperiodeKjedeId1,
+            fnr = Fnr.fromString("22469635663"),
+            saksnummer = Saksnummer("202504101001"),
+        )
+        val meldeperiodeKjeder = MeldeperiodeKjeder(listOf(MeldeperiodeKjede(meldeperiode1)))
+        helvedResponse.toSimuleringFraHelvedResponse(meldeperiodeKjeder) shouldBe Simulering.Endring(
             totalBeløp = 0,
-            perioder = nonEmptyListOf(
-                Simulering.Endring.Detaljer.Simuleringsperiode(
-                    periode = Periode(LocalDate.parse("2024-12-02"), LocalDate.parse("2024-12-03")),
-                    delperioder = listOf(
-                        Simulering.Endring.Detaljer.Simuleringsperiode.Delperiode(
-                            fagområde = "TILTAKSPENGER",
-                            periode = Periode(LocalDate.parse("2024-12-02"), LocalDate.parse("2024-12-03")),
-                            beløp = 570,
-                            type = Simulering.Endring.PosteringType.YTELSE,
-                            klassekode = "TPTPGRAMO",
-                        ),
-                        Simulering.Endring.Detaljer.Simuleringsperiode.Delperiode(
-                            fagområde = "TILTAKSPENGER",
-                            periode = Periode(LocalDate.parse("2024-12-02"), LocalDate.parse("2024-12-03")),
-                            beløp = 570,
-                            type = Simulering.Endring.PosteringType.FEILUTBETALING,
-                            klassekode = "KL_KODE_FEIL_ARBYT",
-                        ),
-                        Simulering.Endring.Detaljer.Simuleringsperiode.Delperiode(
-                            fagområde = "TILTAKSPENGER",
-                            periode = Periode(LocalDate.parse("2024-12-02"), LocalDate.parse("2024-12-03")),
-                            beløp = -570,
-                            type = Simulering.Endring.PosteringType.MOTPOSTERING,
-                            klassekode = "TBMOTOBS",
-                        ),
-                        Simulering.Endring.Detaljer.Simuleringsperiode.Delperiode(
-                            fagområde = "TILTAKSPENGER",
-                            periode = Periode(LocalDate.parse("2024-12-02"), LocalDate.parse("2024-12-03")),
-                            beløp = -570,
-                            type = Simulering.Endring.PosteringType.YTELSE,
-                            klassekode = "TPTPGRAMO",
+            datoBeregnet = LocalDate.parse("2025-05-16"),
+            simuleringPerMeldeperiode = nonEmptyListOf(
+                SimuleringForMeldeperiode(
+                    meldeperiode = meldeperiodeKjeder.hentForMeldeperiodeId(meldeperiode1.id)!!,
+                    simuleringsdager = nonEmptyListOf(
+                        Simuleringsdag(
+                            dato = LocalDate.parse("2024-11-11"),
+                            tidligereUtbetalt = 2211,
+                            nyUtbetaling = 2140,
+                            totalEtterbetaling = 0,
+                            totalFeilutbetaling = 71,
+                            posteringsdag = PosteringerForDag(
+                                dato = LocalDate.parse("2024-11-11"),
+                                posteringer = nonEmptyListOf(
+                                    PosteringForDag(
+                                        dato = LocalDate.parse("2024-11-11"),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = 71,
+                                        type = Posteringstype.YTELSE,
+                                        klassekode = "TPTPGRAMO",
+                                    ),
+                                    PosteringForDag(
+                                        dato = LocalDate.parse("2024-11-11"),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = 214,
+                                        type = Posteringstype.YTELSE,
+                                        klassekode = "TPTPGRAMO",
+                                    ),
+                                    PosteringForDag(
+                                        dato = LocalDate.parse("2024-11-11"),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = 71,
+                                        type = Posteringstype.FEILUTBETALING,
+                                        klassekode = "KL_KODE_FEIL_ARBYT",
+                                    ),
+                                    PosteringForDag(
+                                        dato = LocalDate.parse("2024-11-11"),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = -71,
+                                        type = Posteringstype.MOTPOSTERING,
+                                        klassekode = "TBMOTOBS",
+                                    ),
+                                    PosteringForDag(
+                                        dato = LocalDate.parse("2024-11-11"),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = -285,
+                                        type = Posteringstype.YTELSE,
+                                        klassekode = "TPTPGRAMO",
+                                    ),
+                                ),
+                            ),
                         ),
                     ),
-                ),
-                Simulering.Endring.Detaljer.Simuleringsperiode(
-                    periode = Periode(LocalDate.parse("2024-12-04"), LocalDate.parse("2024-12-06")),
-                    delperioder = listOf(
-                        Simulering.Endring.Detaljer.Simuleringsperiode.Delperiode(
-                            fagområde = "TILTAKSPENGER",
-                            periode = Periode(LocalDate.parse("2024-12-04"), LocalDate.parse("2024-12-06")),
-                            beløp = 855,
-                            type = Simulering.Endring.PosteringType.YTELSE,
-                            klassekode = "TPTPGRAMO",
-                        ),
-                        Simulering.Endring.Detaljer.Simuleringsperiode.Delperiode(
-                            fagområde = "TILTAKSPENGER",
-                            periode = Periode(LocalDate.parse("2024-12-04"), LocalDate.parse("2024-12-06")),
-                            beløp = -855,
-                            type = Simulering.Endring.PosteringType.YTELSE,
-                            klassekode = "TPTPGRAMO",
-                        ),
-                    ),
-                ),
-            ),
-        )
-        val meldeperiode1 = Periode(LocalDate.parse("2024-11-25"), LocalDate.parse("2024-12-08"))
-        val meldeperiodeKjedeId1 = MeldeperiodeKjedeId.fraPeriode(meldeperiode1)
-        val meldeperiodeKjeder = MeldeperiodeKjeder(
-            listOf(
-                MeldeperiodeKjede(
-                    ObjectMother.meldeperiode(
-                        periode = meldeperiode1,
-                        kjedeId = meldeperiodeKjedeId1,
-                    ),
-                ),
-            ),
-        )
-        OppsummeringGenerator.lagOppsummering(detaljer, meldeperiodeKjeder) shouldBe Simulering.Endring.Oppsummering(
-            periode = Periode(LocalDate.parse("2024-12-02"), LocalDate.parse("2024-12-06")),
-            tidligereUtbetalt = 1425,
-            nyUtbetaling = 855,
-            totalEtterbetaling = 0,
-            totalFeilutbetaling = 570,
-            perMeldeperiode = nonEmptyListOf(
-                Simulering.Endring.OppsummeringForMeldeperiode(
-                    meldeperiode = meldeperiode1,
-                    meldeperiodeKjedeId = meldeperiodeKjedeId1,
-                    tidligereUtbetalt = 1425,
-                    nyUtbetaling = 855,
-                    totalEtterbetaling = 0,
-                    totalFeilutbetaling = 570,
                 ),
             ),
         )

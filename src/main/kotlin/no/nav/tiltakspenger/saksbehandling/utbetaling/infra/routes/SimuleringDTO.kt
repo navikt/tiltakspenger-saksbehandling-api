@@ -15,86 +15,93 @@ data class SimuleringIngenEndringDTO(
  * Kun ment brukt i routes mot frontend. Se SimuleringDBJson for hvordan vi lagrer simulering i databasen.
  */
 data class SimuleringEndringDTO(
-    val oppsummering: Oppsummering,
-    val detaljer: Detaljer,
+    /** Merk at det kan mangle hele meldeperioder. Og hver enkelt meldeperiode kan ha hull. */
+    val totalPeriode: PeriodeDTO,
+    val perMeldeperiode: List<SimuleringForMeldeperiode>,
+    /** Utregnet */
+    val tidligereUtbetalt: Int,
+    /** Utregnet */
+    val nyUtbetaling: Int,
+    /** Utregnet */
+    val totalEtterbetaling: Int,
+    /** Utregnet */
+    val totalFeilutbetaling: Int,
+    /** Som det kommer fra OS */
+    val totalBeløp: Int,
+    /** Som det kommer fra OS */
+    val datoBeregnet: LocalDate,
     val type: String = "Endring",
 ) : SimuleringDTO {
-    data class Oppsummering(
+    data class SimuleringForMeldeperiode(
+        val meldeperiodeId: String,
+        val meldeperiodeKjedeId: String,
         val periode: PeriodeDTO,
+        val simuleringsdager: List<Simuleringsdag>,
+    )
+
+    data class Simuleringsdag(
+        val dato: LocalDate,
         val tidligereUtbetalt: Int,
         val nyUtbetaling: Int,
         val totalEtterbetaling: Int,
         val totalFeilutbetaling: Int,
-        val perMeldeperiode: List<OppsummeringForMeldeperiode>,
+        // Tidligere kalt detaljer. Kan vises i frontend for ekspertbrukere, bør kanskje "skjules" litt mer enn oppsummeringen.
+        val posteringsdag: PosteringerForDag,
     )
 
-    data class OppsummeringForMeldeperiode(
-        val periode: PeriodeDTO,
-        val tidligereUtbetalt: Int,
-        val nyUtbetaling: Int,
-        val totalEtterbetaling: Int,
-        val totalFeilutbetaling: Int,
+    data class PosteringerForDag(
+        val dato: LocalDate,
+        val posteringer: List<PosteringForDag>,
     )
 
-    data class Detaljer(
-        val datoBeregnet: LocalDate,
-        val totalBeløp: Int,
-        val perioder: List<Simuleringsperiode>,
-    ) {
-        data class Simuleringsperiode(
-            val periode: PeriodeDTO,
-            val delperiode: List<Delperiode>,
-        ) {
-            data class Delperiode(
-                val fagområde: String,
-                val periode: PeriodeDTO,
-                val beløp: Int,
-                val type: String,
-                val klassekode: String,
-            )
-        }
-    }
+    data class PosteringForDag(
+        val dato: LocalDate,
+        val fagområde: String,
+        val beløp: Int,
+        val type: String,
+        val klassekode: String,
+    )
 }
 
 fun Simulering.tilSimuleringDTO(): SimuleringDTO {
     return when (this) {
         is Simulering.IngenEndring -> SimuleringIngenEndringDTO()
         is Simulering.Endring -> SimuleringEndringDTO(
-            oppsummering = SimuleringEndringDTO.Oppsummering(
-                periode = this.oppsummering.periode.toDTO(),
-                tidligereUtbetalt = this.oppsummering.tidligereUtbetalt,
-                nyUtbetaling = this.oppsummering.nyUtbetaling,
-                totalEtterbetaling = this.oppsummering.totalEtterbetaling,
-                totalFeilutbetaling = this.oppsummering.totalFeilutbetaling,
-                perMeldeperiode = this.oppsummering.perMeldeperiode.map {
-                    SimuleringEndringDTO.OppsummeringForMeldeperiode(
-                        periode = it.meldeperiode.toDTO(),
-                        tidligereUtbetalt = it.tidligereUtbetalt,
-                        nyUtbetaling = it.nyUtbetaling,
-                        totalEtterbetaling = it.totalEtterbetaling,
-                        totalFeilutbetaling = it.totalFeilutbetaling,
-                    )
-                },
-            ),
-            detaljer = SimuleringEndringDTO.Detaljer(
-                datoBeregnet = this.detaljer.datoBeregnet,
-                totalBeløp = this.detaljer.totalBeløp,
-                perioder = this.detaljer.perioder.map {
-                    SimuleringEndringDTO.Detaljer.Simuleringsperiode(
-                        periode = it.periode.toDTO(),
-                        delperiode = it.delperioder.map { delperiode ->
-                            SimuleringEndringDTO.Detaljer.Simuleringsperiode.Delperiode(
-                                fagområde = delperiode.fagområde,
-                                periode = delperiode.periode.toDTO(),
-                                beløp = delperiode.beløp,
-                                // TODO jah: Lag egen type for dette
-                                type = delperiode.type.toString(),
-                                klassekode = delperiode.klassekode,
-                            )
-                        },
-                    )
-                },
-            ),
+            tidligereUtbetalt = this.tidligereUtbetalt,
+            nyUtbetaling = this.nyUtbetaling,
+            totalEtterbetaling = this.totalEtterbetaling,
+            totalFeilutbetaling = this.totalFeilutbetaling,
+            totalBeløp = this.totalBeløp,
+            datoBeregnet = this.datoBeregnet,
+            totalPeriode = this.totalPeriode.toDTO(),
+            perMeldeperiode = this.simuleringPerMeldeperiode.map {
+                SimuleringEndringDTO.SimuleringForMeldeperiode(
+                    meldeperiodeId = it.meldeperiode.id.toString(),
+                    meldeperiodeKjedeId = it.meldeperiode.kjedeId.toString(),
+                    periode = it.meldeperiode.periode.toDTO(),
+                    simuleringsdager = it.simuleringsdager.map { simuleringsdag ->
+                        SimuleringEndringDTO.Simuleringsdag(
+                            dato = simuleringsdag.dato,
+                            tidligereUtbetalt = simuleringsdag.tidligereUtbetalt,
+                            nyUtbetaling = simuleringsdag.nyUtbetaling,
+                            totalEtterbetaling = simuleringsdag.totalEtterbetaling,
+                            totalFeilutbetaling = simuleringsdag.totalFeilutbetaling,
+                            posteringsdag = SimuleringEndringDTO.PosteringerForDag(
+                                dato = simuleringsdag.dato,
+                                posteringer = simuleringsdag.posteringsdag.posteringer.map { posteringForDag ->
+                                    SimuleringEndringDTO.PosteringForDag(
+                                        dato = posteringForDag.dato,
+                                        fagområde = posteringForDag.fagområde,
+                                        beløp = posteringForDag.beløp,
+                                        type = posteringForDag.type.toString(),
+                                        klassekode = posteringForDag.klassekode,
+                                    )
+                                },
+                            ),
+                        )
+                    },
+                )
+            },
         )
     }
 }

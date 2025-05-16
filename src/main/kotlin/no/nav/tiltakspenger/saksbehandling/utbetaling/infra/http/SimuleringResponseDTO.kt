@@ -5,10 +5,13 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
-import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.OppsummeringGenerator
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringForDag
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringerForDag
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Posteringstype
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.LocalDate
+import kotlin.math.roundToInt
 
 /**
  * Kommentar jah: Ser ikke simuleringstypene i kontrakter: https://github.com/navikt/utsjekk-kontrakter/
@@ -35,13 +38,19 @@ private data class SimuleringResponseDTO(
         val gjelderId: String,
         val datoBeregnet: LocalDate,
         val totalBeløp: Int,
-        val perioder: List<Periode>,
+        val perioder: List<PosteringerForPeriode>,
     ) {
-        data class Periode(
+        data class PosteringerForPeriode(
             val fom: LocalDate,
             val tom: LocalDate,
             val posteringer: List<Postering>,
         ) {
+            val fagområde: String by lazy { posteringer.map { it.fagområde }.distinct().single() }
+            val sakId: String by lazy { posteringer.map { it.sakId }.distinct().single() }
+            val fraOgMed: LocalDate by lazy { posteringer.map { it.fom }.distinct().single() }
+            val tilOgMed: LocalDate by lazy { posteringer.map { it.tom }.distinct().single() }
+            val periode: Periode by lazy { Periode(fraOgMed, tilOgMed) }
+
             data class Postering(
                 val fagområde: String,
                 val sakId: String,
@@ -51,24 +60,15 @@ private data class SimuleringResponseDTO(
                 val type: String,
                 val klassekode: String,
             ) {
-                fun toDomain(): Simulering.Endring.Detaljer.Simuleringsperiode.Delperiode {
-                    return Simulering.Endring.Detaljer.Simuleringsperiode.Delperiode(
-                        fagområde = this.fagområde,
-                        periode = Periode(this.fom, this.tom),
-                        beløp = this.beløp,
-                        type = typeToDomain(),
-                        klassekode = this.klassekode,
-                    )
-                }
-
-                private fun typeToDomain(): Simulering.Endring.PosteringType {
+                val periode: Periode by lazy { Periode(fom, tom) }
+                fun typeToDomain(): Posteringstype {
                     return when (type) {
-                        "YTELSE" -> Simulering.Endring.PosteringType.YTELSE
-                        "FEILUTBETALING" -> Simulering.Endring.PosteringType.FEILUTBETALING
-                        "FORSKUDSSKATT" -> Simulering.Endring.PosteringType.FORSKUDSSKATT
-                        "JUSTERING" -> Simulering.Endring.PosteringType.JUSTERING
-                        "TREKK" -> Simulering.Endring.PosteringType.TREKK
-                        "MOTPOSTERING" -> Simulering.Endring.PosteringType.MOTPOSTERING
+                        "YTELSE" -> Posteringstype.YTELSE
+                        "FEILUTBETALING" -> Posteringstype.FEILUTBETALING
+                        "FORSKUDSSKATT" -> Posteringstype.FORSKUDSSKATT
+                        "JUSTERING" -> Posteringstype.JUSTERING
+                        "TREKK" -> Posteringstype.TREKK
+                        "MOTPOSTERING" -> Posteringstype.MOTPOSTERING
                         else -> error("Ukjent posteringstype: $type")
                     }
                 }
@@ -77,36 +77,52 @@ private data class SimuleringResponseDTO(
     }
 }
 
-fun String.toSimulering(
-    validerSaksnummer: Saksnummer,
-    validerFnr: Fnr,
+fun String.toSimuleringFraHelvedResponse(
     meldeperiodeKjeder: MeldeperiodeKjeder,
 ): Simulering.Endring {
     return deserialize<SimuleringResponseDTO>(this).let { res ->
-        check(Fnr.fromString(res.detaljer.gjelderId) == validerFnr) {
-            "Simulering sin gjelderId: ${res.detaljer.gjelderId} er ulik behandlingens fnr $validerFnr"
+        check(Fnr.fromString(res.detaljer.gjelderId) == meldeperiodeKjeder.fnr) {
+            "Simulering sin gjelderId: ${res.detaljer.gjelderId} er ulik behandlingens fnr $meldeperiodeKjeder.fnr"
         }
         // TODO jah: Her må vi nok filtrere på vårt fagområde. Antar vi kan få utbetalinger fra flere enn vårt fagområde.
 //        res.detaljer.perioder.flatMap { it.posteringer }.map { Saksnummer(it.sakId) }.distinct().let {
-//            check(it.size == 1 && it.first() == validerSaksnummer) {
-//                "Simulering sin sakId: ${it.joinToString()} er ulik behandlingens saksnummer $validerSaksnummer"
+//            check(it.size == 1 && it.first() == meldeperiodeKjeder.saksnummer) {
+//                "Simulering sin sakId: ${it.joinToString()} er ulik behandlingens saksnummer ${meldeperiodeKjeder.saksnummer}"
 //            }
 //        }
-        val detaljer = Simulering.Endring.Detaljer(
-            datoBeregnet = res.detaljer.datoBeregnet,
-            totalBeløp = res.detaljer.totalBeløp,
-            perioder = res.detaljer.perioder.map { periode ->
-                Simulering.Endring.Detaljer.Simuleringsperiode(
-                    periode = Periode(periode.fom, periode.tom),
-                    delperioder = periode.posteringer.map { postering ->
-                        postering.toDomain()
-                    },
-                )
-            }.toNonEmptyListOrNull()!!,
-        )
-        Simulering.Endring(
-            detaljer = detaljer,
-            oppsummering = OppsummeringGenerator.lagOppsummering(detaljer, meldeperiodeKjeder),
+        OppsummeringGenerator.lagOppsummering(
+            res.tilPosteringerPerDag(),
+            meldeperiodeKjeder,
+            res.detaljer.datoBeregnet,
+            res.detaljer.totalBeløp,
         )
     }
+}
+
+private fun SimuleringResponseDTO.tilPosteringerPerDag(): Map<LocalDate, PosteringerForDag> {
+    return this.detaljer.perioder.flatMap { posteringerForPeriode ->
+        val periode = posteringerForPeriode.periode
+        val antallDager = periode.antallDager
+        periode.tilDager().map { dato ->
+            PosteringerForDag(
+                dato = dato,
+                posteringer = posteringerForPeriode.posteringer.map { postering ->
+                    PosteringForDag(
+                        dato = dato,
+                        fagområde = postering.fagområde,
+                        // Vi forventer egentlig et heltall her. Siden vi kun sender heltall per dag og ikke dealer med skatt.
+                        beløp = (postering.beløp.toDouble() / antallDager).roundToInt(),
+                        type = postering.typeToDomain(),
+                        klassekode = postering.klassekode,
+                    )
+                }.toNonEmptyListOrNull()!!,
+            )
+        }
+    }.sortedBy { it.dato }.also {
+        it.zipWithNext { a, b ->
+            require(a.dato < b.dato) {
+                "Forventer at posteringsdagene er i stigende rekkefølge og ikke har duplikater: ${a.dato} > ${b.dato}"
+            }
+        }
+    }.associateBy { it.dato }
 }

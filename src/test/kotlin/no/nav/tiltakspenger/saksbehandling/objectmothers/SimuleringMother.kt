@@ -1,10 +1,18 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
+import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringForDag
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringerForDag
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Posteringstype
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simuleringsdag
 
 interface SimuleringMother {
 
@@ -19,38 +27,28 @@ interface SimuleringMother {
     }
 
     fun simulering(
-        periode: Periode = ObjectMother.virkningsperiode(),
+        periode: Periode = Periode(6.januar(2025), 19.januar(2025)),
         meldeperiodeKjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
-        oppsummering: Simulering.Endring.Oppsummering = Simulering.Endring.Oppsummering(
+        meldeperiode: Meldeperiode = ObjectMother.meldeperiode(
             periode = periode,
-            tidligereUtbetalt = 0,
-            nyUtbetaling = 0,
-            totalEtterbetaling = 0,
-            totalFeilutbetaling = 0,
-            perMeldeperiode = nonEmptyListOf(
-                Simulering.Endring.OppsummeringForMeldeperiode(
-                    meldeperiode = periode,
-                    meldeperiodeKjedeId = meldeperiodeKjedeId,
-                    tidligereUtbetalt = 0,
-                    nyUtbetaling = 0,
-                    totalEtterbetaling = 0,
-                    totalFeilutbetaling = 0,
-                ),
-            ),
+            kjedeId = meldeperiodeKjedeId,
         ),
-        detaljer: Simulering.Endring.Detaljer = Simulering.Endring.Detaljer(
-            datoBeregnet = periode.tilOgMed,
-            totalBeløp = 100,
-            perioder = nonEmptyListOf(
-                Simulering.Endring.Detaljer.Simuleringsperiode(
-                    periode = periode,
-                    delperioder = listOf(
-                        Simulering.Endring.Detaljer.Simuleringsperiode.Delperiode(
-                            fagområde = "fagområde-todo",
-                            periode = periode,
-                            beløp = 100,
-                            type = Simulering.Endring.PosteringType.YTELSE,
-                            klassekode = "fagområde-todo",
+        simuleringsdager: NonEmptyList<Simuleringsdag> = nonEmptyListOf(
+            Simuleringsdag(
+                dato = periode.fraOgMed,
+                tidligereUtbetalt = 0,
+                nyUtbetaling = 0,
+                totalEtterbetaling = 0,
+                totalFeilutbetaling = 0,
+                posteringsdag = PosteringerForDag(
+                    dato = periode.fraOgMed,
+                    posteringer = nonEmptyListOf(
+                        PosteringForDag(
+                            dato = periode.fraOgMed,
+                            fagområde = "TILTAKSPENGER",
+                            beløp = 0,
+                            type = Posteringstype.YTELSE,
+                            klassekode = "test_klassekode",
                         ),
                     ),
                 ),
@@ -58,8 +56,14 @@ interface SimuleringMother {
         ),
     ): Simulering.Endring {
         return Simulering.Endring(
-            oppsummering = oppsummering,
-            detaljer = detaljer,
+            datoBeregnet = periode.tilOgMed,
+            totalBeløp = 0,
+            simuleringPerMeldeperiode = nonEmptyListOf(
+                SimuleringForMeldeperiode(
+                    meldeperiode = meldeperiode,
+                    simuleringsdager = simuleringsdager,
+                ),
+            ),
         )
     }
 }
