@@ -93,7 +93,7 @@ class AutomatiskMeldekortBehandlingService(
             brukersMeldekort = meldekort,
             navkontor = navkontor,
             clock = clock,
-            simuler = { behandling -> simulerService.simulerMeldekort(behandling, sak.utbetalinger.lastOrNull()) { navkontor } },
+            simuler = { behandling -> simulerService.simulerMeldekort(behandling, sak.utbetalinger.lastOrNull(), sak.meldeperiodeKjeder) { navkontor } },
         ).getOrElse {
             return it.left()
         }

@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDate
 
-internal class MeldeperiodePostgresRepo(
+class MeldeperiodePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : MeldeperiodeRepo {
     override fun lagre(

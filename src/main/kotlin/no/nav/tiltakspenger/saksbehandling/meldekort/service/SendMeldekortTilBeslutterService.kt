@@ -46,6 +46,7 @@ class SendMeldekortTilBeslutterService(
                 simulerService.simulerMeldekort(
                     behandling = behandling,
                     forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
+                    meldeperiodeKjeder = sak.meldeperiodeKjeder,
                     brukersNavkontor = { behandling.navkontor },
                 )
             },
