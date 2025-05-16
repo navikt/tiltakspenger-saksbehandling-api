@@ -88,31 +88,15 @@ data class Søknadsbehandling(
         saksbehandler: Saksbehandler,
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering,
     ): Søknadsbehandling {
-        if (!saksbehandler.erSaksbehandler()) {
-            throw IllegalArgumentException("Kunne ikke oppdatere begrunnelse/vilkårsvurdering. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
-        }
-        if (this.saksbehandler != saksbehandler.navIdent) {
-            throw IllegalArgumentException("Kunne ikke oppdatere begrunnelse/vilkårsvurdering. Saksbehandler er ikke satt på behandlingen. sakId=$sakId, behandlingId=$id")
-        }
-        if (!this.erUnderBehandling) {
-            throw IllegalArgumentException("Kunne ikke oppdatere begrunnelse/vilkårsvurdering. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
-        }
         require(this.utfall is SøknadsbehandlingUtfall.Innvilgelse)
+        validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere begrunnelse/vilkårsvurdering")
 
         return this.copy(utfall = utfall.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering))
     }
 
     fun oppdaterBarnetillegg(kommando: OppdaterBarnetilleggKommando): Søknadsbehandling {
-        if (!kommando.saksbehandler.erSaksbehandler()) {
-            throw IllegalArgumentException("Kunne ikke oppdatere barnetillegg. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
-        }
-        if (this.saksbehandler != kommando.saksbehandler.navIdent) {
-            throw IllegalArgumentException("Kunne ikke oppdatere barnetillegg. Saksbehandler er ikke satt på behandlingen. sakId=$sakId, behandlingId=$id")
-        }
-        if (!this.erUnderBehandling) {
-            throw IllegalArgumentException("Kunne ikke oppdatere barnetillegg. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
-        }
         require(this.utfall is SøknadsbehandlingUtfall.Innvilgelse)
+        validerKanOppdatere(kommando.saksbehandler, "Kunne ikke oppdatere barnetillegg")
 
         return this.copy(utfall = utfall.copy(barnetillegg = kommando.barnetillegg(this.virkningsperiode)))
     }

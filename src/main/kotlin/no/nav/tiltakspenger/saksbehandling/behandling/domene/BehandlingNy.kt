@@ -344,15 +344,7 @@ sealed class BehandlingNy : IBehandling {
         saksbehandler: Saksbehandler,
         oppdaterteSaksopplysninger: Saksopplysninger,
     ): BehandlingNy {
-        if (!saksbehandler.erSaksbehandler()) {
-            throw IllegalArgumentException("Kunne ikke oppdatere saksopplysinger. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
-        }
-        if (this.saksbehandler != saksbehandler.navIdent) {
-            throw IllegalArgumentException("Kunne ikke oppdatere saksopplysinger. Saksbehandler (${saksbehandler.navIdent}) er ikke den som sitter på behandlingen (${this.saksbehandler}). sakId=$sakId, behandlingId=$id")
-        }
-        if (!this.erUnderBehandling) {
-            throw IllegalArgumentException("Kunne ikke oppdatere saksopplysinger. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
-        }
+        validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere saksopplysinger")
 
         return when (this) {
             is Søknadsbehandling -> this.copy(saksopplysninger = oppdaterteSaksopplysninger)
@@ -363,15 +355,7 @@ sealed class BehandlingNy : IBehandling {
         saksbehandler: Saksbehandler,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev,
     ): BehandlingNy {
-        if (!saksbehandler.erSaksbehandler()) {
-            throw IllegalArgumentException("Kunne ikke oppdatere fritekst til vedtaksbrev. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
-        }
-        if (this.saksbehandler != saksbehandler.navIdent) {
-            throw IllegalArgumentException("Kunne ikke oppdatere fritekst til vedtaksbrev. Saksbehandler er ikke satt på behandlingen. sakId=$sakId, behandlingId=$id")
-        }
-        if (!this.erUnderBehandling) {
-            throw IllegalArgumentException("Kunne ikke oppdatere fritekst til vedtaksbrev. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
-        }
+        validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere fritekst til vedtaksbrev")
 
         return when (this) {
             is Søknadsbehandling -> this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev)
@@ -393,6 +377,18 @@ sealed class BehandlingNy : IBehandling {
                     begrunnelse = begrunnelse,
                 ),
             )
+        }
+    }
+
+    protected fun validerKanOppdatere(saksbehandler: Saksbehandler, errorMsg: String) {
+        if (!saksbehandler.erSaksbehandler()) {
+            throw IllegalArgumentException("$errorMsg - Saksbehandler ${saksbehandler.navIdent} mangler rollen SAKSBEHANDLER - sakId=$sakId, behandlingId=$id")
+        }
+        if (this.saksbehandler != saksbehandler.navIdent) {
+            throw IllegalArgumentException("$errorMsg - Saksbehandler ${saksbehandler.navIdent} er ikke satt på behandlingen - sakId=$sakId, behandlingId=$id")
+        }
+        if (!this.erUnderBehandling) {
+            throw IllegalStateException("$errorMsg - Behandlingen er ikke under behandling - sakId=$sakId, behandlingId=$id, status=$status")
         }
     }
 }
