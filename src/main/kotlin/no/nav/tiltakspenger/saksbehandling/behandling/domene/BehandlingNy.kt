@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.K
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling.Companion.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -46,8 +47,9 @@ sealed interface IBehandling {
     val attesteringer: List<Attestering>
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val avbrutt: Avbrutt?
-    val utfall: Any?
+    val utfall: Any? // ikke any
     val virkningsperiode: Periode?
+    val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
 }
 
 sealed class BehandlingNy : IBehandling {
@@ -55,6 +57,7 @@ sealed class BehandlingNy : IBehandling {
     val erAvbrutt: Boolean = status == AVBRUTT
     val erVedtatt: Boolean = status == VEDTATT
     val erAvsluttet: Boolean = erAvbrutt || erVedtatt
+    val maksDagerMedTiltakspengerForPeriode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 
     fun inneholderEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
         saksopplysninger.tiltaksdeltagelse.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
@@ -136,8 +139,10 @@ sealed class BehandlingNy : IBehandling {
                 require(this.saksbehandler == null) { "Saksbehandler skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
                 require(this.beslutter == null) { "Beslutter skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
 
+                // Meeeeeeh
                 when (this) {
                     is Søknadsbehandling -> this.copy(saksbehandler = saksbehandler.navIdent, status = UNDER_BEHANDLING)
+                    is Revurdering -> this.copy(saksbehandler = saksbehandler.navIdent, status = UNDER_BEHANDLING)
                 }
             }
 
@@ -153,6 +158,7 @@ sealed class BehandlingNy : IBehandling {
 
                 when (this) {
                     is Søknadsbehandling -> this.copy(beslutter = saksbehandler.navIdent, status = UNDER_BESLUTNING)
+                    is Revurdering -> this.copy(beslutter = saksbehandler.navIdent, status = UNDER_BESLUTNING)
                 }
             }
 
@@ -188,8 +194,16 @@ sealed class BehandlingNy : IBehandling {
                     ).let {
                         // dersom det er beslutteren som overtar behandlingen, skal dem nulles ut som beslutter
                         if (it.beslutter == saksbehandler.navIdent) it.copy(beslutter = null) else it
-                    }.right()
-                }
+                    }
+
+                    is Revurdering -> this.copy(
+                        saksbehandler = saksbehandler.navIdent,
+                        sistEndret = LocalDateTime.now(clock),
+                    ).let {
+                        // dersom det er beslutteren som overtar behandlingen, skal dem nulles ut som beslutter
+                        if (it.beslutter == saksbehandler.navIdent) it.copy(beslutter = null) else it
+                    }
+                }.right()
             }
 
             KLAR_TIL_BESLUTNING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
@@ -209,8 +223,13 @@ sealed class BehandlingNy : IBehandling {
                     is Søknadsbehandling -> this.copy(
                         beslutter = saksbehandler.navIdent,
                         sistEndret = LocalDateTime.now(clock),
-                    ).right()
-                }
+                    )
+
+                    is Revurdering -> this.copy(
+                        beslutter = saksbehandler.navIdent,
+                        sistEndret = LocalDateTime.now(clock),
+                    )
+                }.right()
             }
 
             VEDTATT,
@@ -233,6 +252,7 @@ sealed class BehandlingNy : IBehandling {
 
                 when (this) {
                     is Søknadsbehandling -> this.copy(saksbehandler = null, status = KLAR_TIL_BEHANDLING).right()
+                    is Revurdering -> this.copy(saksbehandler = null, status = KLAR_TIL_BEHANDLING).right()
                 }
             }
 
@@ -247,6 +267,7 @@ sealed class BehandlingNy : IBehandling {
 
                 when (this) {
                     is Søknadsbehandling -> this.copy(beslutter = null, status = KLAR_TIL_BESLUTNING).right()
+                    is Revurdering -> this.copy(beslutter = null, status = KLAR_TIL_BESLUTNING).right()
                 }
             }
 
@@ -275,6 +296,12 @@ sealed class BehandlingNy : IBehandling {
 
                 when (this) {
                     is Søknadsbehandling -> this.copy(
+                        status = VEDTATT,
+                        attesteringer = attesteringer + attestering,
+                        iverksattTidspunkt = nå(clock),
+                    )
+
+                    is Revurdering -> this.copy(
                         status = VEDTATT,
                         attesteringer = attesteringer + attestering,
                         iverksattTidspunkt = nå(clock),
@@ -309,6 +336,11 @@ sealed class BehandlingNy : IBehandling {
                         status = UNDER_BEHANDLING,
                         attesteringer = attesteringer + attestering,
                     )
+
+                    is Revurdering -> this.copy(
+                        status = UNDER_BEHANDLING,
+                        attesteringer = attesteringer + attestering,
+                    )
                 }
             }
 
@@ -337,6 +369,22 @@ sealed class BehandlingNy : IBehandling {
             is Søknadsbehandling -> this.copy(
                 virkningsperiode = if (virkningsperiode != null) nyPeriode else null,
             )
+
+            is Revurdering -> this.copy(
+                virkningsperiode = if (virkningsperiode != null) nyPeriode else null,
+            )
+        }
+    }
+
+    fun oppdaterBegrunnelseVilkårsvurdering(
+        saksbehandler: Saksbehandler,
+        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering,
+    ): BehandlingNy {
+        validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere begrunnelse/vilkårsvurdering")
+
+        return when (this) {
+            is Søknadsbehandling -> this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering)
+            is Revurdering -> this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering)
         }
     }
 
@@ -348,6 +396,7 @@ sealed class BehandlingNy : IBehandling {
 
         return when (this) {
             is Søknadsbehandling -> this.copy(saksopplysninger = oppdaterteSaksopplysninger)
+            is Revurdering -> this.copy(saksopplysninger = oppdaterteSaksopplysninger)
         }
     }
 
@@ -359,24 +408,7 @@ sealed class BehandlingNy : IBehandling {
 
         return when (this) {
             is Søknadsbehandling -> this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev)
-        }
-    }
-
-    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): BehandlingNy {
-        if (this.status == AVBRUTT || avbrutt != null) {
-            throw IllegalArgumentException("Behandlingen er allerede avbrutt")
-        }
-
-        return when (this) {
-            is Søknadsbehandling -> this.copy(
-                status = AVBRUTT,
-                søknad = this.søknad.avbryt(avbruttAv, begrunnelse, tidspunkt),
-                avbrutt = Avbrutt(
-                    tidspunkt = tidspunkt,
-                    saksbehandler = avbruttAv.navIdent,
-                    begrunnelse = begrunnelse,
-                ),
-            )
+            is Revurdering -> this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev)
         }
     }
 

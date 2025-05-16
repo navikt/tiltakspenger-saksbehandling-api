@@ -419,7 +419,6 @@ class BehandlingPostgresRepo(
                 is SøknadsbehandlingUtfall.Innvilgelse -> mapOf(
                     "virkningsperiode_fra_og_med" to utfall.virkningsperiode.fraOgMed,
                     "virkningsperiode_til_og_med" to utfall.virkningsperiode.tilOgMed,
-                    "begrunnelse_vilkarsvurdering" to utfall.begrunnelseVilkårsvurdering?.verdi,
                     "barnetillegg" to utfall.barnetillegg?.toDbJson(),
                     "valgte_tiltaksdeltakelser" to utfall.valgteTiltaksdeltakelser?.toDbJson(),
                     "antall_dager_per_meldeperiode" to utfall.antallDagerPerMeldeperiode,
@@ -451,6 +450,7 @@ class BehandlingPostgresRepo(
                             "saksopplysningsperiode_til_og_med" to behandling.saksopplysningsperiode.tilOgMed,
                             "avbrutt" to behandling.avbrutt?.toDbJson(),
                             "utfall" to behandling.utfall?.toDb(),
+                            "begrunnelse_vilkarsvurdering" to behandling.begrunnelseVilkårsvurdering?.verdi,
                         ).plus(utfallParams),
                     ).asUpdate,
                 )

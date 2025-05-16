@@ -58,7 +58,7 @@ data class Behandling(
     /**
      * Saksbehandler tar et aktivt valg om behandlingen skal føre til et avslag eller en innvilgelse.
      */
-    val utfall: Behandlingsutfall?,
+    val utfall: Behandlingsutfall?, // alle behandlinger (på litt annen måte)
     val status: Behandlingsstatus, // alle behandlinger
     val attesteringer: List<Attestering>, // alle behandlinger
     val opprettet: LocalDateTime, // alle behandlinger
@@ -67,7 +67,7 @@ data class Behandling(
     val sistEndret: LocalDateTime, // alle behandlinger
     val behandlingstype: Behandlingstype, // ikke viderefør
     val oppgaveId: OppgaveId?, // søknadsbehandling
-    val valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelHarIkkeRettighet>,
+    val valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelHarIkkeRettighet>, // revurdering, stans
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?, // alle behandlinger
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?, // søknadsbehandling
     val saksopplysningsperiode: Periode?, // alle behandlinger

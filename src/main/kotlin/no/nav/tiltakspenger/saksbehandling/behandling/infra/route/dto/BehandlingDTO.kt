@@ -89,8 +89,8 @@ fun Søknadsbehandling.toDTO(): BehandlingDTO {
         saksopplysningsperiode = this.saksopplysningsperiode.toDTO(),
         iverksattTidspunkt = this.iverksattTidspunkt?.toString(),
         fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
-        virkningsperiode = null,
-        begrunnelseVilkårsvurdering = null,
+        begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
+        virkningsperiode = this.virkningsperiode?.toDTO(),
         barnetillegg = null,
         valgteTiltaksdeltakelser = null,
         valgtHjemmelHarIkkeRettighet = null,
@@ -102,8 +102,6 @@ fun Søknadsbehandling.toDTO(): BehandlingDTO {
 
     return when (utfall) {
         is SøknadsbehandlingUtfall.Innvilgelse -> utenUtfallDTO.copy(
-            virkningsperiode = utfall.virkningsperiode.toDTO(),
-            begrunnelseVilkårsvurdering = utfall.begrunnelseVilkårsvurdering?.verdi,
             barnetillegg = utfall.barnetillegg?.toBarnetilleggDTO(),
             valgteTiltaksdeltakelser = utfall.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.map { it.toTiltaksdeltakelsePeriodeDTO() },
             antallDagerPerMeldeperiode = utfall.antallDagerPerMeldeperiode,

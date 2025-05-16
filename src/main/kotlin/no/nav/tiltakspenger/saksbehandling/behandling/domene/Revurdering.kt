@@ -1,8 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
@@ -13,15 +10,15 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.A
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall.Stans
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import java.time.Clock
+import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class Søknadsbehandling(
+data class Revurdering(
     override val id: BehandlingId,
     override val status: Behandlingsstatus,
     override val opprettet: LocalDateTime,
@@ -39,67 +36,43 @@ data class Søknadsbehandling(
     override val attesteringer: List<Attestering>,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val avbrutt: Avbrutt?,
-    override val utfall: SøknadsbehandlingUtfall?,
+    override val utfall: RevurderingUtfall?,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
-    val søknad: Søknad,
 ) : BehandlingNy() {
-    val oppgaveId: OppgaveId? = søknad.oppgaveId
-    val kravtidspunkt: LocalDateTime = søknad.tidsstempelHosOss
 
     fun tilBeslutning(
-        kommando: SendSøknadsbehandlingTilBeslutningKommando,
+        kommando: SendRevurderingTilBeslutningKommando,
+        sisteDagSomGirRett: LocalDate,
         clock: Clock,
-    ): Søknadsbehandling {
+    ): Revurdering {
         check(status == UNDER_BEHANDLING) {
             "Behandlingen må være under behandling, det innebærer også at en saksbehandler må ta saken før den kan sendes til beslutter. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}"
         }
         check(kommando.saksbehandler.navIdent == this.saksbehandler) { "Det er ikke lov å sende en annen sin behandling til beslutter" }
 
-        val status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING
-        val virkningsperiode = kommando.behandlingsperiode
-
-        val utfall: SøknadsbehandlingUtfall = when (kommando.utfall) {
-            Behandlingsutfall.INNVILGELSE -> SøknadsbehandlingUtfall.Innvilgelse(
-                status = status,
-                virkningsperiode = virkningsperiode,
-                antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
-                valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
-                barnetillegg = kommando.barnetillegg,
-            )
-
-            Behandlingsutfall.AVSLAG -> SøknadsbehandlingUtfall.Avslag(
-                avslagsgrunner = kommando.avslagsgrunner!!,
-            )
-
-            Behandlingsutfall.STANS -> throw IllegalArgumentException("Støtter ikke stans her (bør fjerne denne statusen fra kommandoen)")
-        }
+        val virkningsperiode = Periode(kommando.stansDato, sisteDagSomGirRett)
 
         return this.copy(
-            status = status,
+            status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
             sendtTilBeslutning = nå(clock),
-            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
+            begrunnelseVilkårsvurdering = kommando.begrunnelse,
             virkningsperiode = virkningsperiode,
-            begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
-            utfall = utfall,
+            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
+            utfall = Stans(
+                virkningsperiode = virkningsperiode,
+                valgtHjemmelHarIkkeRettighet = kommando.valgteHjemler,
+            ),
         )
     }
 
-    fun oppdaterBarnetillegg(kommando: OppdaterBarnetilleggKommando): Søknadsbehandling {
-        require(this.utfall is SøknadsbehandlingUtfall.Innvilgelse)
-        validerKanOppdatere(kommando.saksbehandler, "Kunne ikke oppdatere barnetillegg")
-
-        return this.copy(utfall = utfall.copy(barnetillegg = kommando.barnetillegg(this.virkningsperiode)))
-    }
-
-    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Søknadsbehandling {
+    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Revurdering {
         if (this.status == AVBRUTT || avbrutt != null) {
             throw IllegalArgumentException("Behandlingen er allerede avbrutt")
         }
 
         return this.copy(
             status = AVBRUTT,
-            søknad = this.søknad.avbryt(avbruttAv, begrunnelse, tidspunkt),
             avbrutt = Avbrutt(
                 tidspunkt = tidspunkt,
                 saksbehandler = avbruttAv.navIdent,
@@ -109,58 +82,41 @@ data class Søknadsbehandling(
     }
 
     companion object {
-        /** Hardkoder denne til 10 for nå. På sikt vil vi la saksbehandler periodisere dette selv, litt på samme måte som barnetillegg. */
-        const val MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
-
         suspend fun opprett(
             sakId: SakId,
             saksnummer: Saksnummer,
             fnr: Fnr,
-            søknad: Søknad,
             saksbehandler: Saksbehandler,
-            hentSaksopplysninger: suspend (saksopplysningsperiode: Periode) -> Saksopplysninger,
+            saksopplysningsperiode: Periode,
+            hentSaksopplysninger: suspend () -> Saksopplysninger,
             clock: Clock,
-        ): Either<KanIkkeOppretteBehandling, Søknadsbehandling> {
+        ): Revurdering {
             val opprettet = nå(clock)
-
-            /** Kommentar jah: Det kan bli aktuelt at saksbehandler får endre på fraOgMed her. */
-            val saksopplysningsperiode: Periode = run {
-                // § 11: Tiltakspenger og barnetillegg gis for opptil tre måneder før den måneden da kravet om ytelsen ble satt fram, dersom vilkårene var oppfylt i denne perioden.
-                val fraOgMed = søknad.kravdato.withDayOfMonth(1).minusMonths(3)
-                // Forskriften gir ingen begrensninger fram i tid. 100 år bør være nok.
-                val tilOgMed = fraOgMed.plusYears(100)
-                Periode(fraOgMed, tilOgMed)
-            }
-
-            val saksopplysninger = hentSaksopplysninger(saksopplysningsperiode)
-
-            if (saksopplysninger.tiltaksdeltagelse.isEmpty()) {
-                return KanIkkeOppretteBehandling.IngenRelevanteTiltak.left()
-            }
-
-            return Søknadsbehandling(
+            return Revurdering(
                 id = BehandlingId.random(),
-                saksnummer = saksnummer,
                 sakId = sakId,
+                saksnummer = saksnummer,
                 fnr = fnr,
-                søknad = søknad,
-                saksopplysninger = saksopplysninger,
-                fritekstTilVedtaksbrev = null,
+                virkningsperiode = null,
                 saksbehandler = saksbehandler.navIdent,
                 sendtTilBeslutning = null,
                 beslutter = null,
+                saksopplysninger = hentSaksopplysninger(),
+                fritekstTilVedtaksbrev = null,
                 status = UNDER_BEHANDLING,
                 attesteringer = emptyList(),
                 opprettet = opprettet,
                 iverksattTidspunkt = null,
                 sendtTilDatadeling = null,
                 sistEndret = opprettet,
+                // her kan man på sikt lagre oppgaveId hvis man oppretter oppgave for revurdering
+//            oppgaveId = null,
+                // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for førstegangsbehandling.
                 saksopplysningsperiode = saksopplysningsperiode,
                 avbrutt = null,
                 utfall = null,
-                virkningsperiode = null,
                 begrunnelseVilkårsvurdering = null,
-            ).right()
+            )
         }
     }
 }

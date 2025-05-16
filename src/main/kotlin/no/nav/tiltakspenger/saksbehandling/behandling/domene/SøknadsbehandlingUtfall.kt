@@ -12,7 +12,6 @@ sealed interface SøknadsbehandlingUtfall {
         val status: Behandlingsstatus,
         val virkningsperiode: Periode,
         val antallDagerPerMeldeperiode: Int,
-        val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
         val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
         val barnetillegg: Barnetillegg?,
     ) : SøknadsbehandlingUtfall {
