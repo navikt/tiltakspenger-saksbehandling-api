@@ -154,10 +154,10 @@ private fun Simulering.Endring.toDbJson(): SimuleringDbJson {
     return SimuleringDbJson(
         datoBeregnet = this.datoBeregnet,
         totalBeløp = this.totalBeløp,
-        perMeldeperiode = this.simuleringPerMeldeperiode.map {
+        perMeldeperiode = this.simuleringPerMeldeperiode.toList().map {
             SimuleringDbJson.SimuleringForMeldeperiode(
                 meldeperiodeId = it.meldeperiode.id.toString(),
-                simuleringsdager = it.simuleringsdager.map { dag ->
+                simuleringsdager = it.simuleringsdager.toList().map { dag ->
                     SimuleringDbJson.Simuleringsdag(
                         dato = dag.dato,
                         tidligereUtbetalt = dag.tidligereUtbetalt,
@@ -166,7 +166,7 @@ private fun Simulering.Endring.toDbJson(): SimuleringDbJson {
                         totalFeilutbetaling = dag.totalFeilutbetaling,
                         posteringsdag = SimuleringDbJson.PosteringerForDag(
                             dato = dag.posteringsdag.dato,
-                            posteringer = dag.posteringsdag.posteringer.map { postering ->
+                            posteringer = dag.posteringsdag.posteringer.toList().map { postering ->
                                 SimuleringDbJson.PosteringForDag(
                                     dato = postering.dato,
                                     fagområde = postering.fagområde,
