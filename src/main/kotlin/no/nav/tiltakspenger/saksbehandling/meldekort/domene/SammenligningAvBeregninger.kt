@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.norskUkedagOgDatoUtenÅrFormatter
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SammenligningAvBeregninger.DagSammenligning
+import java.time.LocalDate
 
 data class SammenligningAvBeregninger(
     val meldeperiode: List<MeldeperiodeSammenligninger>,
@@ -14,7 +14,7 @@ data class SammenligningAvBeregninger(
     )
 
     data class DagSammenligning(
-        val dato: String,
+        val dato: LocalDate,
         val status: ForrigeOgGjeldende<MeldeperiodeBeregningDag>,
         val beløp: ForrigeOgGjeldende<Int>,
         val barnetillegg: ForrigeOgGjeldende<Int>,
@@ -57,7 +57,7 @@ fun sammenlign(
             differanseFraForrige = 0,
             dager = gjeldendeBeregning.dager.map {
                 DagSammenligning(
-                    dato = it.dato.format(norskUkedagOgDatoUtenÅrFormatter),
+                    dato = it.dato,
                     status = SammenligningAvBeregninger.ForrigeOgGjeldende(
                         forrige = null,
                         gjeldende = it,
@@ -97,7 +97,7 @@ private fun sammenlign(
     require(forrigeBeregning.dato == gjeldendeBeregning.dato) { "Datoene må være like" }
 
     return DagSammenligning(
-        dato = forrigeBeregning.dato.format(norskUkedagOgDatoUtenÅrFormatter),
+        dato = forrigeBeregning.dato,
         status = SammenligningAvBeregninger.ForrigeOgGjeldende(
             forrige = forrigeBeregning,
             gjeldende = gjeldendeBeregning,

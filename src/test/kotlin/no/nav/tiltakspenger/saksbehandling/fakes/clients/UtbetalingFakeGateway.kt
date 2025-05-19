@@ -79,16 +79,16 @@ class UtbetalingFakeGateway(
                     if (it.erEndret) {
                         val erFeilutbetaling = it.totalbeløpEndring < 0
                         Simuleringsdag(
-                            dato = LocalDate.parse(it.dato),
+                            dato = it.dato,
                             tidligereUtbetalt = it.forrigeTotalbeløp,
                             nyUtbetaling = max(it.totalbeløpEndring, 0),
                             totalEtterbetaling = max(it.totalbeløpEndring, 0),
                             totalFeilutbetaling = if (erFeilutbetaling) abs(it.totalbeløpEndring) else 0,
                             posteringsdag = PosteringerForDag(
-                                dato = LocalDate.parse(it.dato),
+                                dato = it.dato,
                                 posteringer = nonEmptyListOf(
                                     PosteringForDag(
-                                        dato = LocalDate.parse(it.dato),
+                                        dato = it.dato,
                                         fagområde = "TILTAKSPENGER",
                                         beløp = it.nyttTotalbeløp,
                                         // TODO jah: Legger inn denne enkel/feil. Utvid med https://github.com/navikt/helved-utbetaling/blob/main/dokumentasjon/simulering.md hvis du trenger.

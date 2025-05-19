@@ -3,8 +3,14 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.desember
+import no.nav.tiltakspenger.libs.periodisering.mai
+import no.nav.tiltakspenger.libs.periodisering.november
+import no.nav.tiltakspenger.libs.periodisering.oktober
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjede
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -269,6 +275,14 @@ class OppsummeringGeneratorTest {
     @Test
     fun `feilutbetaling `() {
         /**
+         * Endret en dag i første meldeperiode fra deltatt uten lønn til syk bruker. Så vi får påfølgende endringer på de på følgende periodene
+         *
+         * Meldeperiode:
+         *   28.10.2024 - 10-11-2024 (endret fra 100% til 100% -> ingen endring)
+         * Påvirker også meldeperiodene:
+         *   11.11.2024 - 24.11.2024 2211 -> 2140 (71 kroner/100->75% av 285)
+         *   25.11.2024 - 08.12.2024 2281 -> 2067 (214 kroner/75%->0% av 285)
+         *
          * Dette er en buggy simulering/utbetaling pga. bug ved bruk av kode 7.
          * Fra dev. Deltatt 10 ukedager i første vedtak. Korrigerer 2. og 3. desember til deltatt med lønn (fra 100% ->0%)
          * Forventer minus 570 (2*285) kroner til feilkonto.
@@ -448,63 +462,195 @@ class OppsummeringGeneratorTest {
 }
         """.trimIndent()
 
-        val periode1 = Periode(LocalDate.parse("2024-11-25"), LocalDate.parse("2024-12-08"))
+        val periode1 = 28.oktober(2024) til 10.november(2024)
+        val periode2 = 11 til 24.november(2024)
+        val periode3 = 25.november(2024) til 8.desember(2024)
         val meldeperiodeKjedeId1 = MeldeperiodeKjedeId.fraPeriode(periode1)
+        val meldeperiodeKjedeId2 = MeldeperiodeKjedeId.fraPeriode(periode2)
+        val meldeperiodeKjedeId3 = MeldeperiodeKjedeId.fraPeriode(periode3)
+        val saksnummer = Saksnummer("202504101001")
+        val fnr = Fnr.fromString("22469635663")
+        val sakId = SakId.random()
         val meldeperiode1 = ObjectMother.meldeperiode(
             periode = periode1,
             kjedeId = meldeperiodeKjedeId1,
-            fnr = Fnr.fromString("22469635663"),
-            saksnummer = Saksnummer("202504101001"),
+            fnr = fnr,
+            saksnummer = saksnummer,
+            sakId = sakId,
         )
-        val meldeperiodeKjeder = MeldeperiodeKjeder(listOf(MeldeperiodeKjede(meldeperiode1)))
+        val meldeperiode2 = ObjectMother.meldeperiode(
+            periode = periode2,
+            kjedeId = meldeperiodeKjedeId2,
+            fnr = fnr,
+            sakId = sakId,
+            saksnummer = saksnummer,
+        )
+        val meldeperiode3 = ObjectMother.meldeperiode(
+            periode = periode3,
+            kjedeId = meldeperiodeKjedeId3,
+            fnr = fnr,
+            sakId = sakId,
+            saksnummer = saksnummer,
+        )
+        val meldeperiodeKjeder = MeldeperiodeKjeder(
+            listOf(
+                MeldeperiodeKjede(meldeperiode1),
+                MeldeperiodeKjede(meldeperiode2),
+                MeldeperiodeKjede(meldeperiode3),
+            ),
+        )
         helvedResponse.toSimuleringFraHelvedResponse(meldeperiodeKjeder) shouldBe Simulering.Endring(
             totalBeløp = 0,
-            datoBeregnet = LocalDate.parse("2025-05-16"),
+            datoBeregnet = 16.mai(2025),
             simuleringPerMeldeperiode = nonEmptyListOf(
                 SimuleringForMeldeperiode(
-                    meldeperiode = meldeperiodeKjeder.hentForMeldeperiodeId(meldeperiode1.id)!!,
+                    meldeperiode = meldeperiode2,
                     simuleringsdager = nonEmptyListOf(
                         Simuleringsdag(
-                            dato = LocalDate.parse("2024-11-11"),
-                            tidligereUtbetalt = 2211,
-                            nyUtbetaling = 2140,
+                            dato = 11.november(2024),
+                            tidligereUtbetalt = 285,
+                            nyUtbetaling = 214,
                             totalEtterbetaling = 0,
                             totalFeilutbetaling = 71,
                             posteringsdag = PosteringerForDag(
-                                dato = LocalDate.parse("2024-11-11"),
+                                dato = 11.november(2024),
                                 posteringer = nonEmptyListOf(
                                     PosteringForDag(
-                                        dato = LocalDate.parse("2024-11-11"),
+                                        dato = 11.november(2024),
                                         fagområde = "TILTAKSPENGER",
                                         beløp = 71,
                                         type = Posteringstype.YTELSE,
                                         klassekode = "TPTPGRAMO",
                                     ),
                                     PosteringForDag(
-                                        dato = LocalDate.parse("2024-11-11"),
+                                        dato = 11.november(2024),
                                         fagområde = "TILTAKSPENGER",
                                         beløp = 214,
                                         type = Posteringstype.YTELSE,
                                         klassekode = "TPTPGRAMO",
                                     ),
                                     PosteringForDag(
-                                        dato = LocalDate.parse("2024-11-11"),
+                                        dato = 11.november(2024),
                                         fagområde = "TILTAKSPENGER",
                                         beløp = 71,
                                         type = Posteringstype.FEILUTBETALING,
                                         klassekode = "KL_KODE_FEIL_ARBYT",
                                     ),
                                     PosteringForDag(
-                                        dato = LocalDate.parse("2024-11-11"),
+                                        dato = 11.november(2024),
                                         fagområde = "TILTAKSPENGER",
                                         beløp = -71,
                                         type = Posteringstype.MOTPOSTERING,
                                         klassekode = "TBMOTOBS",
                                     ),
                                     PosteringForDag(
-                                        dato = LocalDate.parse("2024-11-11"),
+                                        dato = 11.november(2024),
                                         fagområde = "TILTAKSPENGER",
                                         beløp = -285,
+                                        type = Posteringstype.YTELSE,
+                                        klassekode = "TPTPGRAMO",
+                                    ),
+                                ),
+                            ),
+                        ),
+
+                    ).plus(
+                        (12.november(2024) til 15.november(2024)).tilDager().map { dato ->
+                            Simuleringsdag(
+                                dato = dato,
+                                tidligereUtbetalt = 214,
+                                nyUtbetaling = 214,
+                                totalEtterbetaling = 0,
+                                totalFeilutbetaling = 0,
+                                posteringsdag = PosteringerForDag(
+                                    dato = dato,
+                                    posteringer = nonEmptyListOf(
+                                        PosteringForDag(
+                                            dato = dato,
+                                            fagområde = "TILTAKSPENGER",
+                                            beløp = 214,
+                                            type = Posteringstype.YTELSE,
+                                            klassekode = "TPTPGRAMO",
+                                        ),
+                                        PosteringForDag(
+                                            dato = dato,
+                                            fagområde = "TILTAKSPENGER",
+                                            beløp = -214,
+                                            type = Posteringstype.YTELSE,
+                                            klassekode = "TPTPGRAMO",
+                                        ),
+                                    ),
+                                ),
+                            )
+                        },
+                    ).plus(
+                        (18.november(2024) til 22.november(2024)).tilDager().map { dato ->
+                            Simuleringsdag(
+                                dato = dato,
+                                tidligereUtbetalt = 214,
+                                nyUtbetaling = 214,
+                                totalEtterbetaling = 0,
+                                totalFeilutbetaling = 0,
+                                posteringsdag = PosteringerForDag(
+                                    dato = dato,
+                                    posteringer = nonEmptyListOf(
+                                        PosteringForDag(
+                                            dato = dato,
+                                            fagområde = "TILTAKSPENGER",
+                                            beløp = 214,
+                                            type = Posteringstype.YTELSE,
+                                            klassekode = "TPTPGRAMO",
+                                        ),
+                                        PosteringForDag(
+                                            dato = dato,
+                                            fagområde = "TILTAKSPENGER",
+                                            beløp = -214,
+                                            type = Posteringstype.YTELSE,
+                                            klassekode = "TPTPGRAMO",
+                                        ),
+                                    ),
+                                ),
+                            )
+                        },
+                    ),
+                ),
+                SimuleringForMeldeperiode(
+                    meldeperiode = meldeperiode3,
+                    simuleringsdager = nonEmptyListOf(
+                        Simuleringsdag(
+                            dato = 5.desember(2024),
+                            tidligereUtbetalt = 214,
+                            nyUtbetaling = 0,
+                            totalEtterbetaling = 0,
+                            totalFeilutbetaling = 214,
+                            posteringsdag = PosteringerForDag(
+                                dato = 5.desember(2024),
+                                posteringer = nonEmptyListOf(
+                                    PosteringForDag(
+                                        dato = 5.desember(2024),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = 214,
+                                        type = Posteringstype.YTELSE,
+                                        klassekode = "TPTPGRAMO",
+                                    ),
+                                    PosteringForDag(
+                                        dato = 5.desember(2024),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = 214,
+                                        type = Posteringstype.FEILUTBETALING,
+                                        klassekode = "KL_KODE_FEIL_ARBYT",
+                                    ),
+                                    PosteringForDag(
+                                        dato = 5.desember(2024),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = -214,
+                                        type = Posteringstype.MOTPOSTERING,
+                                        klassekode = "TBMOTOBS",
+                                    ),
+                                    PosteringForDag(
+                                        dato = 5.desember(2024),
+                                        fagområde = "TILTAKSPENGER",
+                                        beløp = -214,
                                         type = Posteringstype.YTELSE,
                                         klassekode = "TPTPGRAMO",
                                     ),
