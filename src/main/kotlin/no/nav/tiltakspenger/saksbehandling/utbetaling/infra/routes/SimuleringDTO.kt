@@ -74,12 +74,12 @@ fun Simulering.tilSimuleringDTO(): SimuleringDTO {
             totalBeløp = this.totalBeløp,
             datoBeregnet = this.datoBeregnet,
             totalPeriode = this.totalPeriode.toDTO(),
-            perMeldeperiode = this.simuleringPerMeldeperiode.map {
+            perMeldeperiode = this.simuleringPerMeldeperiode.toList().map {
                 SimuleringEndringDTO.SimuleringForMeldeperiode(
                     meldeperiodeId = it.meldeperiode.id.toString(),
                     meldeperiodeKjedeId = it.meldeperiode.kjedeId.toString(),
                     periode = it.meldeperiode.periode.toDTO(),
-                    simuleringsdager = it.simuleringsdager.map { simuleringsdag ->
+                    simuleringsdager = it.simuleringsdager.toList().map { simuleringsdag ->
                         SimuleringEndringDTO.Simuleringsdag(
                             dato = simuleringsdag.dato,
                             tidligereUtbetalt = simuleringsdag.tidligereUtbetalt,
@@ -88,7 +88,7 @@ fun Simulering.tilSimuleringDTO(): SimuleringDTO {
                             totalFeilutbetaling = simuleringsdag.totalFeilutbetaling,
                             posteringsdag = SimuleringEndringDTO.PosteringerForDag(
                                 dato = simuleringsdag.dato,
-                                posteringer = simuleringsdag.posteringsdag.posteringer.map { posteringForDag ->
+                                posteringer = simuleringsdag.posteringsdag.posteringer.toList().map { posteringForDag ->
                                     SimuleringEndringDTO.PosteringForDag(
                                         dato = posteringForDag.dato,
                                         fagområde = posteringForDag.fagområde,
