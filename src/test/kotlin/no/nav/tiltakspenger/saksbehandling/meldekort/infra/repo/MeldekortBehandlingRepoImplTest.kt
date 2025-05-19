@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingB
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettManuellMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.genererSimuleringFraBeregning
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilOppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import org.junit.jupiter.api.Test
@@ -30,19 +31,27 @@ class MeldekortBehandlingRepoImplTest {
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
-            val meldekort = ObjectMother.meldekortBehandletManuelt(
+
+            val meldekortBehandling = ObjectMother.meldekortBehandletManuelt(
                 sakId = sak.id,
                 fnr = sak.fnr,
                 saksnummer = sak.saksnummer,
                 meldeperiode = sak.meldeperiodeKjeder.first().first(),
                 periode = sak.meldeperiodeKjeder.first().first().periode,
                 begrunnelse = MeldekortBehandlingBegrunnelse("begrunnelse"),
-            ).also { meldekortRepo.lagre(it, null) }
-
+            ).let {
+                val simuleringMedMetadata = sak.genererSimuleringFraBeregning(it)
+                val medSimulering = it.copy(simulering = simuleringMedMetadata.simulering)
+                meldekortRepo.lagre(medSimulering, simuleringMedMetadata)
+                medSimulering
+            }
             testDataHelper.sessionFactory.withSession {
-                MeldekortBehandlingPostgresRepo.hentForMeldekortId(meldekort.id, it)!! shouldBe meldekort
+                MeldekortBehandlingPostgresRepo.hentForMeldekortId(
+                    meldekortBehandling.id,
+                    it,
+                )!! shouldBe meldekortBehandling
                 MeldekortBehandlingPostgresRepo.hentForSakId(sak.id, it)!! shouldBe MeldekortBehandlinger(
-                    listOf(meldekort),
+                    listOf(meldekortBehandling),
                 )
             }
 
