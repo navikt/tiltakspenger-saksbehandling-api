@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling
 import no.nav.tiltakspenger.libs.auth.test.core.EntraIdSystemtokenFakeClient
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringServiceImpl
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -30,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.fakes.clients.PoaoTilgangskontrollFak
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.TiltaksdeltagelseFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.UtbetalingFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.VeilarboppfolgingFakeGateway
+import no.nav.tiltakspenger.saksbehandling.fakes.repos.SakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
@@ -40,10 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingGateway
 import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
-import no.nav.tiltakspenger.saksbehandling.sak.SaksnummerGenerator
-import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
@@ -71,7 +68,6 @@ class LocalApplicationContext(
         null
     }
 
-    private val utbetalingGatewayFake = UtbetalingFakeGateway()
     private val personGatewayFake = PersonFakeGateway(clock)
     private val genererFakeUtbetalingsvedtakGateway: GenererUtbetalingsvedtakGateway =
         if (usePdfGen) realPdfGen!! else GenererFakeUtbetalingsvedtakGateway()
@@ -106,45 +102,6 @@ class LocalApplicationContext(
     private val søknadstiltak = tiltaksdeltagelse.toSøknadstiltak()
 
     override val oppgaveGateway: OppgaveGateway by lazy { OppgaveFakeGateway() }
-
-    init {
-        val sakRepo = SakPostgresRepo(
-            sessionFactory = sessionFactory as PostgresSessionFactory,
-            saksnummerGenerator = SaksnummerGenerator.Local,
-            clock = clock,
-        )
-        val sak = sakRepo.hentForFnr(fnr).saker.firstOrNull() ?: ObjectMother.nySak(
-            fnr = fnr,
-            saksnummer = sakRepo.hentNesteSaksnummer(),
-        ).also { sakRepo.opprettSak(it) }
-        val søknadContext = SøknadContext(sessionFactory, oppgaveGateway)
-        val søknad = søknadContext.søknadRepo.hentForSøknadId(søknadId) ?: ObjectMother.nySøknad(
-            fnr = fnr,
-            id = søknadId,
-            søknadstiltak = søknadstiltak,
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-            oppgaveId = ObjectMother.oppgaveId(),
-        ).also { søknadContext.søknadRepo.lagre(it) }
-        require(søknadstiltak == søknad.tiltak) {
-            "Diff mellom søknadstiltak i lokal database og statiske tiltaksdata i LocalApplicationContext. Mulig løsning: Tøm lokal db."
-        }
-        leggTilPerson(
-            fnr = fnr,
-            personopplysningerForBruker = ObjectMother.personopplysningKjedeligFyr(fnr = fnr),
-        )
-    }
-
-    @Suppress("MemberVisibilityCanBePrivate")
-    fun leggTilPerson(
-        fnr: Fnr,
-        personopplysningerForBruker: PersonopplysningerSøker,
-    ) {
-        fellesFakeSkjermingsklient.leggTil(fnr = fnr, skjermet = false)
-        fellesFakeAdressebeskyttelseKlient.leggTil(fnr = fnr, gradering = listOf(AdressebeskyttelseGradering.UGRADERT))
-        personGatewayFake.leggTilPersonopplysning(fnr = fnr, personopplysninger = personopplysningerForBruker)
-        poaoTilgangskontrollFake.leggTil(fnr = fnr, skjermet = false)
-    }
 
     override val entraIdSystemtokenClient = EntraIdSystemtokenFakeClient()
 
@@ -194,6 +151,7 @@ class LocalApplicationContext(
             clock = clock,
         ) {}
     }
+    private val utbetalingGatewayFake = UtbetalingFakeGateway(sakContext.sakRepo as SakFakeRepo)
     override val meldekortContext by lazy {
         object : MeldekortContext(
             sessionFactory = sessionFactory,
@@ -245,5 +203,39 @@ class LocalApplicationContext(
         ) {
             override val utbetalingGateway = utbetalingGatewayFake
         }
+    }
+
+    init {
+        val sakRepo = sakContext.sakRepo
+        val sak = sakRepo.hentForFnr(fnr).saker.firstOrNull() ?: ObjectMother.nySak(
+            fnr = fnr,
+            saksnummer = sakRepo.hentNesteSaksnummer(),
+        ).also { sakRepo.opprettSak(it) }
+        val søknad = søknadContext.søknadRepo.hentForSøknadId(søknadId) ?: ObjectMother.nySøknad(
+            fnr = fnr,
+            id = søknadId,
+            søknadstiltak = søknadstiltak,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            oppgaveId = ObjectMother.oppgaveId(),
+        ).also { søknadContext.søknadRepo.lagre(it) }
+        require(søknadstiltak == søknad.tiltak) {
+            "Diff mellom søknadstiltak i lokal database og statiske tiltaksdata i LocalApplicationContext. Mulig løsning: Tøm lokal db."
+        }
+        leggTilPerson(
+            fnr = fnr,
+            personopplysningerForBruker = ObjectMother.personopplysningKjedeligFyr(fnr = fnr),
+        )
+    }
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun leggTilPerson(
+        fnr: Fnr,
+        personopplysningerForBruker: PersonopplysningerSøker,
+    ) {
+        fellesFakeSkjermingsklient.leggTil(fnr = fnr, skjermet = false)
+        fellesFakeAdressebeskyttelseKlient.leggTil(fnr = fnr, gradering = listOf(AdressebeskyttelseGradering.UGRADERT))
+        personGatewayFake.leggTilPersonopplysning(fnr = fnr, personopplysninger = personopplysningerForBruker)
+        poaoTilgangskontrollFake.leggTil(fnr = fnr, skjermet = false)
     }
 }

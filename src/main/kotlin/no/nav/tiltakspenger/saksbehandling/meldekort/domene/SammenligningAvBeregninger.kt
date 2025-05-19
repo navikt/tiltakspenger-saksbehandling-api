@@ -19,7 +19,20 @@ data class SammenligningAvBeregninger(
         val beløp: ForrigeOgGjeldende<Int>,
         val barnetillegg: ForrigeOgGjeldende<Int>,
         val prosent: ForrigeOgGjeldende<Int>,
-    )
+    ) {
+        val erEndret: Boolean by lazy { beløp.erEndret || barnetillegg.erEndret }
+
+        /** Ordinær + barnetillegg */
+        val nyttTotalbeløp: Int by lazy {
+            beløp.gjeldende + barnetillegg.gjeldende
+        }
+
+        /** Ordinær + barnetillegg */
+        val forrigeTotalbeløp by lazy {
+            (beløp.forrige ?: 0) + (barnetillegg.forrige ?: 0)
+        }
+        val totalbeløpEndring = nyttTotalbeløp - forrigeTotalbeløp
+    }
 
     /**
      * Holder på forrige og gjeldende verdi for en gitt type. Gjeldende verdi er enten nåværende tilstand
@@ -28,7 +41,9 @@ data class SammenligningAvBeregninger(
     data class ForrigeOgGjeldende<T>(
         val forrige: T?,
         val gjeldende: T,
-    )
+    ) {
+        val erEndret: Boolean by lazy { forrige != gjeldende }
+    }
 }
 
 fun sammenlign(
