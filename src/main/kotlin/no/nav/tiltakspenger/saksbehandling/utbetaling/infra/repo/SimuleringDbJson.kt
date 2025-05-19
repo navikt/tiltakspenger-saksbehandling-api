@@ -177,7 +177,7 @@ private fun Simulering.Endring.toDbJson(): SimuleringDbJson {
                             },
                         ),
                     )
-                }.toNonEmptyListOrNull()!!,
+                },
             )
         },
     )
