@@ -7,6 +7,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
+import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
@@ -20,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 private data class FritekstBody(
     val fritekst: String,
 ) {
-    fun toDomain() = FritekstTilVedtaksbrev(fritekst)
+    fun toDomain() = FritekstTilVedtaksbrev(saniter(fritekst))
 }
 
 fun Route.oppdaterFritekstTilVedtaksbrevRoute(

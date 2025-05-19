@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
@@ -82,7 +83,7 @@ data class AvsluttSøknadOgBehandlingBody(
             behandlingId = behandlingId?.let { BehandlingId.fromString(it) },
             avsluttetAv = avsluttetAv,
             correlationId = correlationId,
-            begrunnelse = begrunnelse,
+            begrunnelse = saniter(begrunnelse),
 
         )
     }

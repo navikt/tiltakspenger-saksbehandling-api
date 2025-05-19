@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import java.time.LocalDate
@@ -37,7 +38,7 @@ data class OppdaterMeldekortDTO(
                 }.toNonEmptyListOrNull()!!,
             ),
             meldekortId = meldekortId,
-            begrunnelse = begrunnelse?.let { MeldekortBehandlingBegrunnelse(verdi = it) },
+            begrunnelse = begrunnelse?.let { MeldekortBehandlingBegrunnelse(verdi = saniter(it)) },
         )
     }
 }
