@@ -7,8 +7,10 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.genererSimuleringFraBeregning
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
@@ -20,7 +22,9 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingGateway
 
-class UtbetalingFakeGateway : UtbetalingGateway {
+class UtbetalingFakeGateway(
+    private val sakFakeRepo: SakRepo,
+) : UtbetalingGateway {
     private val utbetalinger = Atomic(mutableMapOf<VedtakId, Utbetaling>())
 
     override suspend fun iverksett(
@@ -45,11 +49,11 @@ class UtbetalingFakeGateway : UtbetalingGateway {
         brukersNavkontor: Navkontor,
         forrigeUtbetalingJson: String?,
         forrigeVedtakId: VedtakId?,
+        meldeperiodeKjeder: MeldeperiodeKjeder,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
-        // TODO jah: Her bør vi nok lage en simulering basert på beregningen.
-        return ObjectMother.simuleringMedMetadata().right()
+        val sak = sakFakeRepo.hentForSakId(behandling.sakId)!!
+        return sak.genererSimuleringFraBeregning(behandling).right()
     }
-
     data class Utbetaling(
         val vedtak: Utbetalingsvedtak,
         val correlationId: CorrelationId,

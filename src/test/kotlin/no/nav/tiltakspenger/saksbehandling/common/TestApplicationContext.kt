@@ -79,7 +79,6 @@ class TestApplicationContext(
     private val rammevedtakFakeRepo = RammevedtakFakeRepo()
     private val statistikkStønadFakeRepo = StatistikkStønadFakeRepo()
     private val statistikkSakFakeRepo = StatistikkSakFakeRepo()
-    private val utbetalingGatewayFake = UtbetalingFakeGateway()
     private val meldekortBehandlingFakeRepo = MeldekortBehandlingFakeRepo()
     private val meldeperiodeFakeRepo = MeldeperiodeFakeRepo()
     private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
@@ -195,6 +194,7 @@ class TestApplicationContext(
             override val saksoversiktRepo = saksoversiktFakeRepo
         }
     }
+    private val utbetalingGatewayFake = UtbetalingFakeGateway(sakContext.sakRepo as SakFakeRepo)
 
     override val meldekortContext by lazy {
         object :

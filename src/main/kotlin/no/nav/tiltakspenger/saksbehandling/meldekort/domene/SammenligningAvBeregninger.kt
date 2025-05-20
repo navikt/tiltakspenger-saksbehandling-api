@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.norskUkedagOgDatoUtenÅrFormatter
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SammenligningAvBeregninger.DagSammenligning
+import java.time.LocalDate
 
 data class SammenligningAvBeregninger(
     val meldeperiode: List<MeldeperiodeSammenligninger>,
@@ -14,12 +14,25 @@ data class SammenligningAvBeregninger(
     )
 
     data class DagSammenligning(
-        val dato: String,
+        val dato: LocalDate,
         val status: ForrigeOgGjeldende<MeldeperiodeBeregningDag>,
         val beløp: ForrigeOgGjeldende<Int>,
         val barnetillegg: ForrigeOgGjeldende<Int>,
         val prosent: ForrigeOgGjeldende<Int>,
-    )
+    ) {
+        val erEndret: Boolean by lazy { beløp.erEndret || barnetillegg.erEndret }
+
+        /** Ordinær + barnetillegg */
+        val nyttTotalbeløp: Int by lazy {
+            beløp.gjeldende + barnetillegg.gjeldende
+        }
+
+        /** Ordinær + barnetillegg */
+        val forrigeTotalbeløp by lazy {
+            (beløp.forrige ?: 0) + (barnetillegg.forrige ?: 0)
+        }
+        val totalbeløpEndring = nyttTotalbeløp - forrigeTotalbeløp
+    }
 
     /**
      * Holder på forrige og gjeldende verdi for en gitt type. Gjeldende verdi er enten nåværende tilstand
@@ -28,7 +41,9 @@ data class SammenligningAvBeregninger(
     data class ForrigeOgGjeldende<T>(
         val forrige: T?,
         val gjeldende: T,
-    )
+    ) {
+        val erEndret: Boolean by lazy { forrige != gjeldende }
+    }
 }
 
 fun sammenlign(
@@ -42,7 +57,7 @@ fun sammenlign(
             differanseFraForrige = 0,
             dager = gjeldendeBeregning.dager.map {
                 DagSammenligning(
-                    dato = it.dato.format(norskUkedagOgDatoUtenÅrFormatter),
+                    dato = it.dato,
                     status = SammenligningAvBeregninger.ForrigeOgGjeldende(
                         forrige = null,
                         gjeldende = it,
@@ -82,7 +97,7 @@ private fun sammenlign(
     require(forrigeBeregning.dato == gjeldendeBeregning.dato) { "Datoene må være like" }
 
     return DagSammenligning(
-        dato = forrigeBeregning.dato.format(norskUkedagOgDatoUtenÅrFormatter),
+        dato = forrigeBeregning.dato,
         status = SammenligningAvBeregninger.ForrigeOgGjeldende(
             forrige = forrigeBeregning,
             gjeldende = gjeldendeBeregning,

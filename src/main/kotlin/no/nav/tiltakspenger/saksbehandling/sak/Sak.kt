@@ -10,12 +10,14 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
@@ -38,7 +40,7 @@ data class Sak(
     val utbetalinger: Utbetalinger,
     val soknader: List<Søknad>,
 ) {
-    val meldeperiodeBeregninger = meldekortBehandlinger.meldeperiodeBeregninger
+    val meldeperiodeBeregninger: MeldeperiodeBeregninger = meldekortBehandlinger.meldeperiodeBeregninger
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
     val førsteDagSomGirRett = vedtaksliste.førsteDagSomGirRett
@@ -92,7 +94,7 @@ data class Sak(
     }
 
     fun avbrytSøknadOgBehandling(
-        command: no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand,
+        command: AvbrytSøknadOgBehandlingCommand,
         avbruttTidspunkt: LocalDateTime,
     ): Triple<Sak, Søknad?, Behandling?> {
         if (command.søknadId != null && command.behandlingId != null) {
@@ -107,7 +109,7 @@ data class Sak(
     }
 
     private fun avbrytBehandling(
-        command: no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand,
+        command: AvbrytSøknadOgBehandlingCommand,
         avbruttTidspunkt: LocalDateTime,
     ): Triple<Sak, Søknad?, Behandling> {
         val behandling = this.hentBehandling(command.behandlingId!!)!!
@@ -122,7 +124,7 @@ data class Sak(
     }
 
     private fun avbrytSøknad(
-        command: no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand,
+        command: AvbrytSøknadOgBehandlingCommand,
         avbruttTidspunkt: LocalDateTime,
     ): Pair<Sak, Søknad> {
         val søknad = this.soknader.single { it.id == command.søknadId }

@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.overlapperIkke
@@ -71,6 +72,19 @@ data class MeldeperiodeKjeder(
         return meldeperiodeKjeder.singleOrNullOrThrow {
             it.periode == periode
         }?.hentSisteMeldeperiode()
+    }
+
+    /**
+     * Henter alle meldeperioder som overlapper med perioden.
+     */
+    fun hentMeldeperioderForPeriode(periode: Periode): List<Meldeperiode> {
+        return meldeperiodeKjeder.mapNotNull { kjede ->
+            if (kjede.periode.overlapperMed(periode)) {
+                kjede.hentSisteMeldeperiode()
+            } else {
+                null
+            }
+        }
     }
 
     fun hentMeldeperiodeKjedeForPeriode(periode: Periode): MeldeperiodeKjede? {
@@ -210,6 +224,10 @@ data class MeldeperiodeKjeder(
     fun hentForegåendeMeldeperiodekjede(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKjede? {
         meldeperiodeKjeder.zipWithNext { a, b -> if (b.kjedeId == kjedeId) return a }
         return null
+    }
+
+    fun hentForMeldeperiodeId(meldeperiodeId: MeldeperiodeId): Meldeperiode? {
+        return meldeperioder.singleOrNullOrThrow { it.id == meldeperiodeId }
     }
 
     companion object {

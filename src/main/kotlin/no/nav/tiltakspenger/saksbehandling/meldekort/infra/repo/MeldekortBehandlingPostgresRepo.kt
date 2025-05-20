@@ -32,7 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toDbJson
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringMedMetadata
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringFraDbJson
 
 class MeldekortBehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -57,6 +57,7 @@ class MeldekortBehandlingPostgresRepo(
                         meldekortdager,
                         beregninger,
                         simulering,
+                        simulering_metadata,
                         saksbehandler,
                         beslutter,
                         status,
@@ -80,6 +81,7 @@ class MeldekortBehandlingPostgresRepo(
                         to_jsonb(:meldekortdager::jsonb),
                         to_jsonb(:beregninger::jsonb),
                         to_jsonb(:simulering::jsonb),
+                        to_jsonb(:simulering_metadata::jsonb),
                         :saksbehandler,
                         :beslutter,
                         :status,
@@ -104,6 +106,8 @@ class MeldekortBehandlingPostgresRepo(
                     "meldekortdager" to meldekortBehandling.dager.tilMeldekortDagerDbJson(),
                     "beregninger" to meldekortBehandling.beregning?.tilBeregningerDbJson(),
                     "simulering" to simuleringMedMetadata?.toDbJson(),
+                    // den er ferdig serialisert
+                    "simulering_metadata" to simuleringMedMetadata?.originalJson,
                     "saksbehandler" to meldekortBehandling.saksbehandler,
                     "beslutter" to meldekortBehandling.beslutter,
                     "status" to meldekortBehandling.status.toDb(),
@@ -175,6 +179,7 @@ class MeldekortBehandlingPostgresRepo(
                         meldekortdager = to_jsonb(:meldekortdager::jsonb),
                         beregninger = to_jsonb(:beregninger::jsonb),
                         simulering = to_jsonb(:simulering::jsonb),
+                        simulering_metadata = to_jsonb(:simulering_metadata::jsonb),
                         saksbehandler = :saksbehandler,
                         beslutter = :beslutter,
                         status = :status,
@@ -190,6 +195,8 @@ class MeldekortBehandlingPostgresRepo(
                     "meldekortdager" to meldekortBehandling.dager.tilMeldekortDagerDbJson(),
                     "beregninger" to meldekortBehandling.beregning?.tilBeregningerDbJson(),
                     "simulering" to simuleringMedMetadata?.toDbJson(),
+                    // den er ferdig serialisert
+                    "simulering_metadata" to simuleringMedMetadata?.originalJson,
                     "saksbehandler" to meldekortBehandling.saksbehandler,
                     "beslutter" to meldekortBehandling.beslutter,
                     "status" to meldekortBehandling.status.toDb(),
@@ -413,7 +420,7 @@ class MeldekortBehandlingPostgresRepo(
             val beregning = row.stringOrNull("beregninger")?.tilBeregninger(id)?.let {
                 MeldekortBeregning(it)
             }
-            val simulering = row.stringOrNull("simulering")?.toSimuleringMedMetadata()?.simulering
+            val simulering = row.stringOrNull("simulering")?.toSimuleringFraDbJson(MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(sakId, session))
 
             val brukersMeldekort = row.stringOrNull("brukers_meldekort_id")?.let {
                 BrukersMeldekortPostgresRepo.hentForMeldekortId(

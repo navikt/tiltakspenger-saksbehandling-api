@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periodisering.norskTidspunktFormatter
+import no.nav.tiltakspenger.libs.periodisering.norskUkedagOgDatoUtenÅrFormatter
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
@@ -111,7 +112,7 @@ private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
                     differanseFraForrige = sammenligningPerMeldeperiode.differanseFraForrige,
                     dager = sammenligningPerMeldeperiode.dager.map { dag ->
                         UtbetalingsvedtakDTO.DagSammenligningDTO(
-                            dato = dag.dato,
+                            dato = dag.dato.format(norskUkedagOgDatoUtenÅrFormatter),
                             status = UtbetalingsvedtakDTO.ForrigeOgGjeldendeDTO(
                                 forrige = dag.status.forrige?.toStatus(),
                                 gjeldende = dag.status.gjeldende.toStatus(),
