@@ -7,7 +7,7 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.saksbehandling.fakes.repos.SakFakeRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.genererSimuleringFraBeregning
@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingGateway
 
 class UtbetalingFakeGateway(
-    private val sakFakeRepo: SakFakeRepo,
+    private val sakFakeRepo: SakRepo,
 ) : UtbetalingGateway {
     private val utbetalinger = Atomic(mutableMapOf<VedtakId, Utbetaling>())
 

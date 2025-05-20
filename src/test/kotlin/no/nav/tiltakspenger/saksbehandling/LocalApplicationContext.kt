@@ -29,7 +29,6 @@ import no.nav.tiltakspenger.saksbehandling.fakes.clients.PoaoTilgangskontrollFak
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.TiltaksdeltagelseFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.UtbetalingFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.VeilarboppfolgingFakeGateway
-import no.nav.tiltakspenger.saksbehandling.fakes.repos.SakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
@@ -151,7 +150,7 @@ class LocalApplicationContext(
             clock = clock,
         ) {}
     }
-    private val utbetalingGatewayFake = UtbetalingFakeGateway(sakContext.sakRepo as SakFakeRepo)
+    private val utbetalingGatewayFake = UtbetalingFakeGateway(sakContext.sakRepo)
     override val meldekortContext by lazy {
         object : MeldekortContext(
             sessionFactory = sessionFactory,
