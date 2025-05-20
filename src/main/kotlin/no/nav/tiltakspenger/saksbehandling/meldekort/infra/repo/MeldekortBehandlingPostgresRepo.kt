@@ -107,7 +107,7 @@ class MeldekortBehandlingPostgresRepo(
                     "beregninger" to meldekortBehandling.beregning?.tilBeregningerDbJson(),
                     "simulering" to simuleringMedMetadata?.toDbJson(),
                     // den er ferdig serialisert
-                    "simulering_metadata" to simuleringMedMetadata?.toDbJson(),
+                    "simulering_metadata" to simuleringMedMetadata?.originalJson,
                     "saksbehandler" to meldekortBehandling.saksbehandler,
                     "beslutter" to meldekortBehandling.beslutter,
                     "status" to meldekortBehandling.status.toDb(),

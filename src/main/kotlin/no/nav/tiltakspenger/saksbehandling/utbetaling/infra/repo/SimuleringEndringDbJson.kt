@@ -14,8 +14,8 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetada
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simuleringsdag
 import java.time.LocalDate
 
-private data class SimuleringMedMetadataDbJson(
-    val simulering: SimuleringDbJson?,
+private data class SimuleringDbJson(
+    val simulering: SimuleringEndringDbJson?,
     val type: Type,
 ) {
     init {
@@ -40,7 +40,7 @@ private enum class Type {
 }
 
 /** Kan brukes på tvers av behandlingstyper. */
-private data class SimuleringDbJson(
+private data class SimuleringEndringDbJson(
     val datoBeregnet: LocalDate,
     val totalBeløp: Int,
     val perMeldeperiode: List<SimuleringForMeldeperiode>,
@@ -128,7 +128,7 @@ private data class SimuleringDbJson(
 }
 
 internal fun SimuleringMedMetadata.toDbJson(): String {
-    return SimuleringMedMetadataDbJson(
+    return SimuleringDbJson(
         simulering = simulering.toDbJson(),
         type = when (simulering) {
             is Simulering.Endring -> Type.ENDRING
@@ -138,34 +138,34 @@ internal fun SimuleringMedMetadata.toDbJson(): String {
 }
 
 internal fun String.toSimuleringFraDbJson(hentMeldeperiodekjederForSakId: MeldeperiodeKjeder): Simulering {
-    return deserialize<SimuleringMedMetadataDbJson>(this).toDomain(hentMeldeperiodekjederForSakId)
+    return deserialize<SimuleringDbJson>(this).toDomain(hentMeldeperiodekjederForSakId)
 }
 
-private fun Simulering.toDbJson(): SimuleringDbJson? {
+private fun Simulering.toDbJson(): SimuleringEndringDbJson? {
     return when (this) {
         is Simulering.Endring -> toDbJson()
         Simulering.IngenEndring -> null
     }
 }
 
-private fun Simulering.Endring.toDbJson(): SimuleringDbJson {
-    return SimuleringDbJson(
+private fun Simulering.Endring.toDbJson(): SimuleringEndringDbJson {
+    return SimuleringEndringDbJson(
         datoBeregnet = this.datoBeregnet,
         totalBeløp = this.totalBeløp,
         perMeldeperiode = this.simuleringPerMeldeperiode.toList().map {
-            SimuleringDbJson.SimuleringForMeldeperiode(
+            SimuleringEndringDbJson.SimuleringForMeldeperiode(
                 meldeperiodeId = it.meldeperiode.id.toString(),
                 simuleringsdager = it.simuleringsdager.toList().map { dag ->
-                    SimuleringDbJson.Simuleringsdag(
+                    SimuleringEndringDbJson.Simuleringsdag(
                         dato = dag.dato,
                         tidligereUtbetalt = dag.tidligereUtbetalt,
                         nyUtbetaling = dag.nyUtbetaling,
                         totalEtterbetaling = dag.totalEtterbetaling,
                         totalFeilutbetaling = dag.totalFeilutbetaling,
-                        posteringsdag = SimuleringDbJson.PosteringerForDag(
+                        posteringsdag = SimuleringEndringDbJson.PosteringerForDag(
                             dato = dag.posteringsdag.dato,
                             posteringer = dag.posteringsdag.posteringer.toList().map { postering ->
-                                SimuleringDbJson.PosteringForDag(
+                                SimuleringEndringDbJson.PosteringForDag(
                                     dato = postering.dato,
                                     fagområde = postering.fagområde,
                                     beløp = postering.beløp,
@@ -181,13 +181,13 @@ private fun Simulering.Endring.toDbJson(): SimuleringDbJson {
     )
 }
 
-private fun Posteringstype.toDbType(): SimuleringDbJson.PosteringstypeDbType {
+private fun Posteringstype.toDbType(): SimuleringEndringDbJson.PosteringstypeDbType {
     return when (this) {
-        Posteringstype.YTELSE -> SimuleringDbJson.PosteringstypeDbType.YTELSE
-        Posteringstype.FEILUTBETALING -> SimuleringDbJson.PosteringstypeDbType.FEILUTBETALING
-        Posteringstype.FORSKUDSSKATT -> SimuleringDbJson.PosteringstypeDbType.FORSKUDSSKATT
-        Posteringstype.JUSTERING -> SimuleringDbJson.PosteringstypeDbType.JUSTERING
-        Posteringstype.TREKK -> SimuleringDbJson.PosteringstypeDbType.TREKK
-        Posteringstype.MOTPOSTERING -> SimuleringDbJson.PosteringstypeDbType.MOTPOSTERING
+        Posteringstype.YTELSE -> SimuleringEndringDbJson.PosteringstypeDbType.YTELSE
+        Posteringstype.FEILUTBETALING -> SimuleringEndringDbJson.PosteringstypeDbType.FEILUTBETALING
+        Posteringstype.FORSKUDSSKATT -> SimuleringEndringDbJson.PosteringstypeDbType.FORSKUDSSKATT
+        Posteringstype.JUSTERING -> SimuleringEndringDbJson.PosteringstypeDbType.JUSTERING
+        Posteringstype.TREKK -> SimuleringEndringDbJson.PosteringstypeDbType.TREKK
+        Posteringstype.MOTPOSTERING -> SimuleringEndringDbJson.PosteringstypeDbType.MOTPOSTERING
     }
 }
