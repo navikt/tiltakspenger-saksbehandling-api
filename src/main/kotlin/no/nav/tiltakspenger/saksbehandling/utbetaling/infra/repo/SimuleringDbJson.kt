@@ -16,7 +16,6 @@ import java.time.LocalDate
 
 private data class SimuleringMedMetadataDbJson(
     val simulering: SimuleringDbJson?,
-    val originalJson: String,
     val type: Type,
 ) {
     init {
@@ -131,7 +130,6 @@ private data class SimuleringDbJson(
 internal fun SimuleringMedMetadata.toDbJson(): String {
     return SimuleringMedMetadataDbJson(
         simulering = simulering.toDbJson(),
-        originalJson = originalJson,
         type = when (simulering) {
             is Simulering.Endring -> Type.ENDRING
             Simulering.IngenEndring -> Type.INGEN_ENDRING
