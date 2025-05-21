@@ -116,7 +116,7 @@ class ForhåndsvisVedtaksbrevService(
                     saksnummer = sak.saksnummer,
                     sakId = sak.id,
                     forhåndsvisning = true,
-                    barnetillegg = false,
+                    barnetillegg = behandling.barnetillegg != null,
                     valgtHjemmelHarIkkeRettighet = kommando.valgteHjemler,
                     tilleggstekst = kommando.fritekstTilVedtaksbrev,
                 ).fold(
