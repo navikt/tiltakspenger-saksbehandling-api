@@ -34,7 +34,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Sak = { s ->
-        s ?: this.persisterIverksattFørstegangsbehandling().first
+        s ?: this.persisterIverksattSøknadsbehandling().first
     },
 ): Pair<Sak, Behandling> {
     val sakMedVedtak = genererSak(sak)

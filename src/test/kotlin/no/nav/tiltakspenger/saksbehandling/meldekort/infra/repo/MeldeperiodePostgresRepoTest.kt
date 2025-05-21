@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import org.junit.jupiter.api.Test
 
@@ -12,7 +12,7 @@ class MeldeperiodePostgresRepoTest {
     @Test
     fun `kan lagre og hente`() {
         withMigratedDb { testDataHelper ->
-            val (sak, rammevedtak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sak, rammevedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
                 deltakelseFom = 2.januar(2024),
                 deltakelseTom = 31.mars(2024),
             )

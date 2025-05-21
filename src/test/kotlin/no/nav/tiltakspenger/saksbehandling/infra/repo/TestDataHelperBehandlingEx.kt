@@ -102,7 +102,7 @@ internal fun TestDataHelper.persisterOpprettetSøknadsbehandling(
     )
 }
 
-internal fun TestDataHelper.persisterKlarTilBeslutningFørstegangsbehandling(
+internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
@@ -226,7 +226,7 @@ internal fun TestDataHelper.persisterUnderBeslutningFørstegangsbehandling(
     clock: Clock = this.clock,
     beslutter: Saksbehandler = ObjectMother.beslutter(),
 ): Pair<Sak, Behandling> {
-    val behandling = persisterKlarTilBeslutningFørstegangsbehandling(
+    val behandling = persisterKlarTilBeslutningSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,
@@ -326,7 +326,7 @@ internal fun TestDataHelper.persisterNySak(
 /**
  * Persisterer og et rammevedtak.
  */
-internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
+internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
@@ -367,7 +367,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
      */
     clock: Clock = this.clock,
 ): Triple<Sak, Rammevedtak, Behandling> {
-    val (sak, førstegangsbehandling) = persisterKlarTilBeslutningFørstegangsbehandling(
+    val (sak, søknadsbehandling) = persisterKlarTilBeslutningSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,
@@ -384,11 +384,11 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
         clock = clock,
     )
 
-    val oppdatertFørstegangsbehandling =
-        førstegangsbehandling.taBehandling(beslutter)
-            .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), clock)
-    behandlingRepo.lagre(oppdatertFørstegangsbehandling)
-    val vedtak = sak.opprettVedtak(oppdatertFørstegangsbehandling, clock).second
+    val oppdatertBehandling = søknadsbehandling
+        .taBehandling(beslutter)
+        .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), clock)
+    behandlingRepo.lagre(oppdatertBehandling)
+    val vedtak = sak.opprettVedtak(oppdatertBehandling, clock).second
     vedtakRepo.lagre(vedtak)
     sakRepo.oppdaterSkalSendesTilMeldekortApi(
         sakId = vedtak.sakId,
@@ -397,7 +397,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
     val oppdatertSak = sakRepo.hentForSakId(sakId)!!
     val (_, meldeperioder) = oppdatertSak.genererMeldeperioder(clock)
     meldeperiodeRepo.lagre(meldeperioder)
-    return Triple(sakRepo.hentForSakId(sakId)!!, vedtak, oppdatertFørstegangsbehandling)
+    return Triple(sakRepo.hentForSakId(sakId)!!, vedtak, oppdatertBehandling)
 }
 
 internal fun TestDataHelper.persisterIverksattFørstegangsbehandlingAvslag(
@@ -433,7 +433,7 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandlingAvslag(
      */
     clock: Clock = this.clock,
 ): Triple<Sak, Rammevedtak, Behandling> {
-    val (sak, førstegangsbehandling) = persisterKlarTilBeslutningFørstegangsbehandling(
+    val (sak, førstegangsbehandling) = persisterKlarTilBeslutningSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,
@@ -501,7 +501,7 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
     clock: Clock = this.clock,
 ): Pair<Sak, Behandling> {
     val (sak, _) = runBlocking {
-        persisterIverksattFørstegangsbehandling(
+        persisterIverksattSøknadsbehandling(
             sakId = sakId,
             fnr = fnr,
             deltakelseFom = deltakelseFom,
@@ -561,7 +561,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
     clock: Clock = this.clock,
 ): Pair<Sak, Behandling> {
     val (sak, _) = runBlocking {
-        persisterIverksattFørstegangsbehandling(
+        persisterIverksattSøknadsbehandling(
             sakId = sak.id,
             fnr = sak.fnr,
             deltakelseFom = deltakelseFom,
@@ -693,7 +693,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         ),
     clock: Clock = this.clock,
 ): Triple<Sak, MeldekortBehandletManuelt, Rammevedtak> {
-    val (sak, rammevedtak) = persisterIverksattFørstegangsbehandling(
+    val (sak, rammevedtak) = persisterIverksattSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,

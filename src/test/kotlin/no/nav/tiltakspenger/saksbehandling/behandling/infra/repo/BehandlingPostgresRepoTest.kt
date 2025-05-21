@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBeslutningFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBeslutningSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningFørstegangsbehandling
@@ -115,7 +115,7 @@ internal class BehandlingPostgresRepoTest {
         withMigratedDb { testDataHelper ->
             val behandlingRepo = testDataHelper.behandlingRepo
             val beslutter = ObjectMother.beslutter()
-            val (_, behandling) = testDataHelper.persisterKlarTilBeslutningFørstegangsbehandling()
+            val (_, behandling) = testDataHelper.persisterKlarTilBeslutningSøknadsbehandling()
 
             behandling.beslutter shouldBe null
             behandlingRepo.taBehandlingBeslutter(behandling.id, beslutter, Behandlingsstatus.UNDER_BESLUTNING)

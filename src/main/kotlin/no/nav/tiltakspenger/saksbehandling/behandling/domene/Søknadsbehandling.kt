@@ -12,9 +12,11 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
@@ -47,14 +49,9 @@ data class Søknadsbehandling(
     override val utfall: SøknadsbehandlingUtfall?,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
+    override val antallDagerPerMeldeperiode: Int?,
     val søknad: Søknad,
 ) : Behandling {
-
-    override val antallDagerPerMeldeperiode: Int? get() = when (utfall) {
-        is SøknadsbehandlingUtfall.Avslag -> null
-        is SøknadsbehandlingUtfall.Innvilgelse -> utfall.antallDagerPerMeldeperiode
-        null -> null
-    }
 
     override val barnetillegg: Barnetillegg?
         get() = when (utfall) {
@@ -66,7 +63,11 @@ data class Søknadsbehandling(
     override val utfallsperioder: Periodisering<Utfallsperiode>?
         get() = when (utfall) {
             is SøknadsbehandlingUtfall.Avslag -> null
-            is SøknadsbehandlingUtfall.Innvilgelse -> utfall.utfallsperioder
+            is SøknadsbehandlingUtfall.Innvilgelse -> Periodisering(
+                Utfallsperiode.RETT_TIL_TILTAKSPENGER,
+                virkningsperiode!!,
+            )
+
             null -> null
         }
 
@@ -80,6 +81,41 @@ data class Søknadsbehandling(
 
     init {
         super.init()
+
+        when (utfall) {
+            is SøknadsbehandlingUtfall.Innvilgelse -> {
+                require(antallDagerPerMeldeperiode in 1..14) {
+                    "Antall dager per meldeperiode må være mellom 1 og 14"
+                }
+
+                when (status) {
+                    KLAR_TIL_BESLUTNING,
+                    UNDER_BESLUTNING,
+                    VEDTATT,
+                    -> {
+                        require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for søknadsbehandling" }
+                        require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) {
+                            "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)"
+                        }
+
+                        if (utfall.barnetillegg != null) {
+                            val barnetilleggsperiode = utfall.barnetillegg.periodisering.totalePeriode
+                            require(barnetilleggsperiode == virkningsperiode) {
+                                "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)"
+                            }
+                        }
+                    }
+
+                    KLAR_TIL_BEHANDLING,
+                    UNDER_BEHANDLING,
+                    AVBRUTT,
+                    -> Unit
+                }
+            }
+
+            is SøknadsbehandlingUtfall.Avslag -> Unit
+            null -> Unit
+        }
     }
 
     fun tilBeslutning(
@@ -96,9 +132,6 @@ data class Søknadsbehandling(
 
         val utfall: SøknadsbehandlingUtfall = when (kommando.utfall) {
             SendSøknadsbehandlingTilBeslutningKommando.Utfall.INNVILGELSE -> SøknadsbehandlingUtfall.Innvilgelse(
-                status = status,
-                virkningsperiode = virkningsperiode,
-                antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
                 valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
                 barnetillegg = kommando.barnetillegg,
             )
@@ -115,6 +148,7 @@ data class Søknadsbehandling(
             virkningsperiode = virkningsperiode,
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             utfall = utfall,
+            antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
         )
     }
 
@@ -191,6 +225,7 @@ data class Søknadsbehandling(
                 utfall = null,
                 virkningsperiode = null,
                 begrunnelseVilkårsvurdering = null,
+                antallDagerPerMeldeperiode = null,
             ).right()
         }
     }

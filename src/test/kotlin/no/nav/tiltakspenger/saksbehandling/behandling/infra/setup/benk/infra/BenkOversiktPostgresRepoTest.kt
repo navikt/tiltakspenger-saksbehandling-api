@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.BenkBehandlingstype
 import no.nav.tiltakspenger.saksbehandling.benk.Saksoversikt
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttFørstegangsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetRevurderingDeprecated
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
@@ -87,7 +87,7 @@ class BenkOversiktPostgresRepoTest {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val repo = testDataHelper.saksoversiktRepo
             val (sak, søknad) = testDataHelper.persisterAvbruttFørstegangsbehandling()
-            val (sakMedAvbruttBehandling, vedtak, behandling) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sakMedAvbruttBehandling, vedtak, behandling) = testDataHelper.persisterIverksattSøknadsbehandling(
                 sakId = sak.id,
                 fnr = søknad.fnr,
                 sak = sak,

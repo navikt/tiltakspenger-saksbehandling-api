@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingsstatusDb.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingsstatusDb.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingsstatusDb.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingsstatusDb.UNDER_BEHANDLING
@@ -26,7 +27,7 @@ fun String.toBehandlingsstatus(): BehandlingsstatusDomain =
         KLAR_TIL_BESLUTNING -> BehandlingsstatusDomain.KLAR_TIL_BESLUTNING
         UNDER_BESLUTNING -> BehandlingsstatusDomain.UNDER_BESLUTNING
         VEDTATT -> BehandlingsstatusDomain.VEDTATT
-        BehandlingsstatusDb.AVBRUTT -> BehandlingsstatusDomain.AVBRUTT
+        AVBRUTT -> BehandlingsstatusDomain.AVBRUTT
     }
 
 fun BehandlingsstatusDomain.toDb(): String =
@@ -36,5 +37,5 @@ fun BehandlingsstatusDomain.toDb(): String =
         BehandlingsstatusDomain.KLAR_TIL_BESLUTNING -> KLAR_TIL_BESLUTNING
         BehandlingsstatusDomain.UNDER_BESLUTNING -> UNDER_BESLUTNING
         BehandlingsstatusDomain.VEDTATT -> VEDTATT
-        BehandlingsstatusDomain.AVBRUTT -> BehandlingsstatusDb.AVBRUTT
+        BehandlingsstatusDomain.AVBRUTT -> AVBRUTT
     }.toString()

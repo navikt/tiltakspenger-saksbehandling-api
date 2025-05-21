@@ -12,7 +12,9 @@ class RammevedtakPostgresRepoTest {
     fun `henter vedtak for datadeling`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (_, _, rammevedtak) = testDataHelper.persisterRammevedtakMedBehandletMeldekort()
-            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling() shouldBe listOf(rammevedtak)
+            val rammevedtakTilDd = testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling()
+
+            rammevedtakTilDd shouldBe listOf(rammevedtak)
         }
     }
 

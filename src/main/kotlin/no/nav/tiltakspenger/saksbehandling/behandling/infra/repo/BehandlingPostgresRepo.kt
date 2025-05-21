@@ -532,14 +532,12 @@ class BehandlingPostgresRepo(
                 virkningsperiodeFraOgMed?.let { Periode(virkningsperiodeFraOgMed, virkningsperiodeTilOgMed!!) }
 
             val utfallType = stringOrNull("utfall")?.let { BehandlingsutfallDb.valueOf(it).toDomain() }
+            val antallDagerPerMeldeperiode = intOrNull("antall_dager_per_meldeperiode")
 
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
                     val utfall = when (utfallType) {
                         BehandlingsutfallGammel.INNVILGELSE -> SøknadsbehandlingUtfall.Innvilgelse(
-                            status = status,
-                            virkningsperiode = virkningsperiode!!,
-                            antallDagerPerMeldeperiode = int("antall_dager_per_meldeperiode"),
                             valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")?.toValgteTiltaksdeltakelser(
                                 saksopplysninger,
                             ),
@@ -577,6 +575,7 @@ class BehandlingPostgresRepo(
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avbrutt = avbrutt,
                         utfall = utfall,
+                        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                     )
                 }
 
@@ -617,6 +616,7 @@ class BehandlingPostgresRepo(
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avbrutt = avbrutt,
                         utfall = utfall,
+                        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                     )
                 }
             }
