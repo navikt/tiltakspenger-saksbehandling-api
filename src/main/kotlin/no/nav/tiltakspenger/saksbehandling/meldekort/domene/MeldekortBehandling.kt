@@ -96,17 +96,31 @@ sealed interface MeldekortBehandling {
 
         val ikkeRettTilTiltakspengerTidspunkt = if (meldeperiode.ingenDagerGirRett) nå(clock) else null
         return when (this) {
-            is MeldekortBehandletManuelt -> this.tilUnderBehandling(
-                nyMeldeperiode = meldeperiode,
-                ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-            )
+            is MeldekortBehandletManuelt -> if (ikkeRettTilTiltakspengerTidspunkt != null) {
+                this.avbrytIkkeRettTilTiltakspenger(
+                    meldeperiode = meldeperiode,
+                    ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
+                )
+            } else {
+                this.tilUnderBehandling(
+                    nyMeldeperiode = meldeperiode,
+                    ikkeRettTilTiltakspengerTidspunkt = null,
+                )
+            }
 
-            is MeldekortUnderBehandling -> this.copy(
-                meldeperiode = meldeperiode,
-                ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-                beregning = null,
-                simulering = null,
-            )
+            is MeldekortUnderBehandling -> if (ikkeRettTilTiltakspengerTidspunkt != null) {
+                this.avbrytIkkeRettTilTiltakspenger(
+                    meldeperiode = meldeperiode,
+                    ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
+                )
+            } else {
+                this.copy(
+                    meldeperiode = meldeperiode,
+                    ikkeRettTilTiltakspengerTidspunkt = null,
+                    beregning = null,
+                    simulering = null,
+                )
+            }
 
             is MeldekortBehandletAutomatisk,
             is AvbruttMeldekortBehandling,

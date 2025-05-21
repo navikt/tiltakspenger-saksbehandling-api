@@ -188,7 +188,8 @@ class MeldekortBehandlingPostgresRepo(
                         sendt_til_beslutning = :sendt_til_beslutning,
                         meldeperiode_id = :meldeperiode_id,
                         begrunnelse = :begrunnelse,
-                        attesteringer = to_json(:attesteringer::jsonb)
+                        attesteringer = to_json(:attesteringer::jsonb),
+                        avbrutt = to_jsonb(:avbrutt::jsonb)
                     where id = :id
                     """,
                     "id" to meldekortBehandling.id.toString(),
@@ -206,6 +207,7 @@ class MeldekortBehandlingPostgresRepo(
                     "meldeperiode_id" to meldekortBehandling.meldeperiode.id.toString(),
                     "begrunnelse" to meldekortBehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortBehandling.attesteringer.toDbJson(),
+                    "avbrutt" to meldekortBehandling.avbrutt?.toDbJson(),
                 ).asUpdate,
             )
         }
@@ -477,8 +479,7 @@ class MeldekortBehandlingPostgresRepo(
                     )
                 }
 
-                // TODO jah: Her blander vi sammen behandlingsstatus og om man har rett/ikke-rett. Det er mulig at man har startet en meldekortbehandling også endres statusen til IKKE_RETT_TIL_TILTAKSPENGER. Da vil behandlingen sånn som koden er nå implisitt avsluttes. Det kan hende vi bør endre dette når vi skiller grunnlag, innsending og behandling.
-                MeldekortBehandlingStatus.UNDER_BEHANDLING, MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> {
+                MeldekortBehandlingStatus.UNDER_BEHANDLING -> {
                     MeldekortUnderBehandling(
                         id = id,
                         sakId = sakId,
@@ -500,7 +501,7 @@ class MeldekortBehandlingPostgresRepo(
                     )
                 }
 
-                MeldekortBehandlingStatus.AVBRUTT -> {
+                MeldekortBehandlingStatus.AVBRUTT, MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> {
                     AvbruttMeldekortBehandling(
                         id = id,
                         sakId = sakId,

@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
@@ -271,8 +272,8 @@ data class MeldekortBehandletManuelt(
         nyMeldeperiode: Meldeperiode?,
         ikkeRettTilTiltakspengerTidspunkt: LocalDateTime? = null,
     ): MeldekortUnderBehandling {
-        require(this.status !in listOf(GODKJENT, IKKE_RETT_TIL_TILTAKSPENGER, AUTOMATISK_BEHANDLET)) {
-            "Kan ikke gå fra GODKJENT, AUTOMATISK_BEHANDLET eller IKKE_RETT_TIL_TILTAKSPENGER til UNDER_BEHANDLING"
+        require(this.status !in listOf(GODKJENT, IKKE_RETT_TIL_TILTAKSPENGER, AUTOMATISK_BEHANDLET, AVBRUTT)) {
+            "Kan ikke gå fra GODKJENT, AUTOMATISK_BEHANDLET, AVBRUTT eller IKKE_RETT_TIL_TILTAKSPENGER til UNDER_BEHANDLING"
         }
         val meldeperiode = nyMeldeperiode ?: this.meldeperiode
         return MeldekortUnderBehandling(
@@ -293,6 +294,35 @@ data class MeldekortBehandletManuelt(
             beregning = null,
             simulering = null,
             dager = meldeperiode.tilMeldekortDager(),
+        )
+    }
+
+    fun avbrytIkkeRettTilTiltakspenger(
+        meldeperiode: Meldeperiode,
+        ikkeRettTilTiltakspengerTidspunkt: LocalDateTime,
+    ): AvbruttMeldekortBehandling {
+        return AvbruttMeldekortBehandling(
+            id = id,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+            beregning = null,
+            simulering = null,
+            saksbehandler = saksbehandler,
+            navkontor = navkontor,
+            ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
+            brukersMeldekort = brukersMeldekort,
+            meldeperiode = meldeperiode,
+            type = type,
+            begrunnelse = begrunnelse,
+            attesteringer = attesteringer,
+            dager = meldeperiode.tilMeldekortDager(),
+            avbrutt = Avbrutt(
+                tidspunkt = ikkeRettTilTiltakspengerTidspunkt,
+                saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID,
+                begrunnelse = "Ikke rett til tiltakspenger",
+            ),
         )
     }
 }
