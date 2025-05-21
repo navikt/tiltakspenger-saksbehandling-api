@@ -23,7 +23,7 @@ data class BehandlingDTO(
     val id: String,
     val type: BehandlingstypeDTO,
     val status: BehandlingsstatusDTO,
-    val utfall: BehandlingsUtfallDTO?,
+    val utfall: BehandlingUtfallDTO?,
     val sakId: String,
     val saksnummer: String,
     val saksbehandler: String?,

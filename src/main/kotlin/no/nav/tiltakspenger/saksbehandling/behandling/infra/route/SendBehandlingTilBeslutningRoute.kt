@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBesl
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.SøknadsbehandlingUtfallDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingUtfallDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toAvslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
@@ -43,7 +43,7 @@ private data class Body(
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
     val antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
-    val utfall: SøknadsbehandlingUtfallDTO,
+    val utfall: BehandlingUtfallDTO,
 ) {
     fun toDomain(
         sakId: SakId,
@@ -68,8 +68,9 @@ private data class Body(
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             avslagsgrunner = avslagsgrunner?.toAvslagsgrunnlag(),
             utfall = when (utfall) {
-                SøknadsbehandlingUtfallDTO.INNVILGELSE -> SendSøknadsbehandlingTilBeslutningKommando.Utfall.INNVILGELSE
-                SøknadsbehandlingUtfallDTO.AVSLAG -> SendSøknadsbehandlingTilBeslutningKommando.Utfall.AVSLAG
+                BehandlingUtfallDTO.INNVILGELSE -> SendSøknadsbehandlingTilBeslutningKommando.Utfall.INNVILGELSE
+                BehandlingUtfallDTO.AVSLAG -> SendSøknadsbehandlingTilBeslutningKommando.Utfall.AVSLAG
+                BehandlingUtfallDTO.STANS -> throw IllegalArgumentException("Ugyldig utfall for søknadsbehandling: $utfall")
             },
         )
     }
