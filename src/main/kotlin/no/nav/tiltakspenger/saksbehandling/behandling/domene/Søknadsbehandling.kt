@@ -12,11 +12,9 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
@@ -75,38 +73,8 @@ data class Søknadsbehandling(
         super.init()
 
         when (utfall) {
-            is SøknadsbehandlingUtfall.Innvilgelse -> {
-                require(antallDagerPerMeldeperiode == null || antallDagerPerMeldeperiode in 1..14) {
-                    "Antall dager per meldeperiode må være mellom 1 og 14, kan ikke være $antallDagerPerMeldeperiode på behandling $id"
-                }
-
-                when (status) {
-                    KLAR_TIL_BESLUTNING,
-                    UNDER_BESLUTNING,
-                    VEDTATT,
-                    -> {
-                        require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for søknadsbehandling" }
-                        require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) {
-                            "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)"
-                        }
-
-                        if (utfall.barnetillegg != null) {
-                            val barnetilleggsperiode = utfall.barnetillegg.periodisering.totalePeriode
-                            require(barnetilleggsperiode == virkningsperiode) {
-                                "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)"
-                            }
-                        }
-                    }
-
-                    KLAR_TIL_BEHANDLING,
-                    UNDER_BEHANDLING,
-                    AVBRUTT,
-                    -> Unit
-                }
-            }
-
+            is SøknadsbehandlingUtfall.Innvilgelse -> utfall.valider(status, virkningsperiode)
             is SøknadsbehandlingUtfall.Avslag -> Unit
-
             null -> Unit
         }
     }

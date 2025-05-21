@@ -385,6 +385,10 @@ sealed interface Behandling {
             require(beslutter != saksbehandler) { "Saksbehandler og beslutter kan ikke være samme person" }
         }
 
+        require(antallDagerPerMeldeperiode == null || antallDagerPerMeldeperiode in 1..14) {
+            "Antall dager per meldeperiode må være mellom 1 og 14, kan ikke være $antallDagerPerMeldeperiode på behandling $id"
+        }
+
         when (status) {
             KLAR_TIL_BEHANDLING -> {
                 require(saksbehandler == null) {

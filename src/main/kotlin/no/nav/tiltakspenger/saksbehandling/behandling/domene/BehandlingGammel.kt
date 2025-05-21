@@ -44,7 +44,7 @@ import java.time.LocalDateTime
  * @param søknad Påkrevd for [Behandlingstype.SØKNADSBEHANDLING]. Kan være null for [Behandlingstype.REVURDERING]. Må vurdere på sikt om en endringssøknad (samme tiltak) er en ny førstegangssøknad eller en revurdering. Og om en ny søknad (nytt tiltak) er en førstegangssøknad, søknad eller en revurdering.
  * @param virkningsperiode Vil tilsvare innvilgelsesperiode for vedtak som gir rett til tiltakspenger og stansperiode/opphørsperiode for vedtak som fjerner rett til tiltakspenger.
  */
-data class BehandlingGammel(
+private data class BehandlingGammel(
     val id: BehandlingId, // alle behandlinger
     val sakId: SakId, // alle behandlinger
     val saksnummer: Saksnummer, // alle behandlinger
@@ -653,4 +653,10 @@ data class BehandlingGammel(
             }
         }
     }
+}
+
+private enum class BehandlingsutfallGammel {
+    INNVILGELSE,
+    AVSLAG,
+    STANS,
 }

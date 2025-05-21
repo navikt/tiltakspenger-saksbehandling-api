@@ -19,12 +19,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingsutfallGammel
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfallType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfall
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
@@ -531,24 +532,23 @@ class BehandlingPostgresRepo(
             val virkningsperiode =
                 virkningsperiodeFraOgMed?.let { Periode(virkningsperiodeFraOgMed, virkningsperiodeTilOgMed!!) }
 
-            val utfallType = stringOrNull("utfall")?.let { BehandlingsutfallDb.valueOf(it).toDomain() }
             val antallDagerPerMeldeperiode = intOrNull("antall_dager_per_meldeperiode")
 
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
+                    val utfallType = stringOrNull("utfall")?.tilSøknadsbehandlingUtfallType()
+
                     val utfall = when (utfallType) {
-                        BehandlingsutfallGammel.INNVILGELSE -> SøknadsbehandlingUtfall.Innvilgelse(
+                        SøknadsbehandlingUtfallType.INNVILGELSE -> SøknadsbehandlingUtfall.Innvilgelse(
                             valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")?.toValgteTiltaksdeltakelser(
                                 saksopplysninger,
                             ),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                         )
 
-                        BehandlingsutfallGammel.AVSLAG -> SøknadsbehandlingUtfall.Avslag(
+                        SøknadsbehandlingUtfallType.AVSLAG -> SøknadsbehandlingUtfall.Avslag(
                             avslagsgrunner = string("avslagsgrunner").toAvslagsgrunnlag(),
                         )
-
-                        BehandlingsutfallGammel.STANS -> throw IllegalStateException("Søknadsbehandling kan ikke være stans")
                         null -> null
                     }
 
@@ -580,13 +580,10 @@ class BehandlingPostgresRepo(
                 }
 
                 Behandlingstype.REVURDERING -> {
+                    val utfallType = stringOrNull("utfall")?.tilRevurderingUtfallType()
+
                     val utfall = when (utfallType) {
-                        BehandlingsutfallGammel.INNVILGELSE -> throw IllegalStateException("Ugyldig utfall for revurdering")
-
-                        BehandlingsutfallGammel.AVSLAG -> throw IllegalStateException("Ugyldig utfall for revurdering")
-
-                        BehandlingsutfallGammel.STANS -> RevurderingUtfall.Stans(
-                            virkningsperiode = virkningsperiode!!,
+                        RevurderingUtfallType.STANS -> RevurderingUtfall.Stans(
                             valgtHjemmelHarIkkeRettighet = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.toValgtHjemmelHarIkkeRettighet()
                                 ?: emptyList(),
                         )

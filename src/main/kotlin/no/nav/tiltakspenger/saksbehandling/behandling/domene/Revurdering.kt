@@ -48,7 +48,7 @@ data class Revurdering(
 ) : Behandling {
     override val barnetillegg: Barnetillegg? = null
     override val utfallsperioder: Periodisering<Utfallsperiode>? = when (utfall) {
-        is Stans -> utfall.utfallsperioder
+        is Stans -> Periodisering(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, virkningsperiode!!)
         null -> null
     }
 
@@ -75,7 +75,6 @@ data class Revurdering(
             virkningsperiode = virkningsperiode,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             utfall = Stans(
-                virkningsperiode = virkningsperiode,
                 valgtHjemmelHarIkkeRettighet = kommando.valgteHjemler,
             ),
         )
