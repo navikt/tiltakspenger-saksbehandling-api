@@ -9,10 +9,12 @@ import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.søknad.BarnetilleggFraSøknad
 
 fun nySøknadForFnr(
     fnr: Fnr,
     deltakelsesperiode: Periode? = null,
+    barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
     applicationContext: ApplicationContext,
 ): Saksnummer {
     val periode = deltakelsesperiode ?: Periode(1.april(2025), 10.april(2025))
@@ -28,6 +30,7 @@ fun nySøknadForFnr(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             periode = periode,
+            barnetillegg = barnetillegg,
         )
         applicationContext.søknadContext.søknadService.nySøknad(
             søknad = søknad,
@@ -40,6 +43,7 @@ fun nySøknadForFnr(
 
 fun nySakMedNySøknad(
     deltakelsesperiode: Periode? = null,
+    barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
     applicationContext: ApplicationContext,
 ): Saksnummer {
     val periode = deltakelsesperiode ?: Periode(1.april(2025), 10.april(2025))
@@ -55,6 +59,7 @@ fun nySakMedNySøknad(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             periode = periode,
+            barnetillegg = barnetillegg,
         )
         applicationContext.søknadContext.søknadService.nySøknad(
             søknad = søknad,

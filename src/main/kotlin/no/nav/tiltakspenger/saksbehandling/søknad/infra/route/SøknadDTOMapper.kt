@@ -97,7 +97,7 @@ object SøknadDTOMapper {
             typeNavn = dto.typeNavn,
         )
 
-    private fun mapBarnetilleggManuelle(dto: BarnetilleggDTO): BarnetilleggFraSøknad.Manuell {
+    fun mapBarnetilleggManuelle(dto: BarnetilleggDTO): BarnetilleggFraSøknad.Manuell {
         checkNotNull(dto.fornavn) { "Fornavn kan ikke være null for barnetillegg, manuelle barn " }
         checkNotNull(dto.etternavn) { "Etternavn kan ikke være null for barnetillegg, manuelle barn " }
         checkNotNull(dto.fødselsdato) { "Fødselsdato kan ikke være null for barnetillegg, manuelle barn " }
