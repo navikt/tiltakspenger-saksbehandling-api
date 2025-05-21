@@ -76,8 +76,8 @@ data class Søknadsbehandling(
 
         when (utfall) {
             is SøknadsbehandlingUtfall.Innvilgelse -> {
-                require(antallDagerPerMeldeperiode in 1..14) {
-                    "Antall dager per meldeperiode må være mellom 1 og 14"
+                require(antallDagerPerMeldeperiode == null || antallDagerPerMeldeperiode in 1..14) {
+                    "Antall dager per meldeperiode må være mellom 1 og 14, kan ikke være $antallDagerPerMeldeperiode på behandling $id"
                 }
 
                 when (status) {

@@ -4,7 +4,6 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -22,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toTilta
 
 data class BehandlingDTO(
     val id: String,
-    val type: Behandlingstype,
+    val type: BehandlingstypeDTO,
     val status: BehandlingsstatusDTO,
     val utfall: BehandlingsutfallGammelDTO?,
     val sakId: String,
@@ -57,7 +56,7 @@ fun Behandlinger.toDTO() = this.map { it.toDTO() }
 fun Søknadsbehandling.toDTO(): BehandlingDTO {
     val utenUtfallDTO = BehandlingDTO(
         id = this.id.toString(),
-        type = Behandlingstype.SØKNADSBEHANDLING,
+        type = this.behandlingstype.tilBehandlingstypeDTO(),
         status = this.status.toBehandlingsstatusDTO(),
         utfall = this.utfall?.toBehandlingsutfallDto(),
         sakId = this.sakId.toString(),
@@ -97,7 +96,7 @@ fun Søknadsbehandling.toDTO(): BehandlingDTO {
 fun Revurdering.toDTO(): BehandlingDTO {
     val utenUtfallDTO = BehandlingDTO(
         id = this.id.toString(),
-        type = behandlingstype,
+        type = this.behandlingstype.tilBehandlingstypeDTO(),
         status = this.status.toBehandlingsstatusDTO(),
         sakId = this.sakId.toString(),
         saksnummer = this.saksnummer.toString(),
