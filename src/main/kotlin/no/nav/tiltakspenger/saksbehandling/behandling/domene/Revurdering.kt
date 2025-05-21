@@ -44,11 +44,15 @@ data class Revurdering(
     override val utfall: RevurderingUtfall?,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
-) : Behandling() {
+) : Behandling {
     override val barnetillegg: Barnetillegg? = null
     override val utfallsperioder: Periodisering<Utfallsperiode>? = when (utfall) {
         is Stans -> utfall.utfallsperioder
         null -> null
+    }
+
+    init {
+        super.init()
     }
 
     fun tilBeslutning(

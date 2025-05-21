@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingsutfallGammel
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendRevurderingTilBeslutningKommando
@@ -215,7 +216,7 @@ interface BehandlingMother : MotherOfAllMothers {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
-        antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+        antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         utfall: BehandlingsutfallGammel = BehandlingsutfallGammel.INNVILGELSE,
     ): Søknadsbehandling {
@@ -520,7 +521,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingTilBeslutter(
     correlationId: CorrelationId = CorrelationId.generate(),
     fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("Fritekst"),
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("Begrunnelse"),
-    antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
     utfall: SendSøknadsbehandlingTilBeslutningKommando.Utfall,
 ): Sak {
@@ -565,7 +566,7 @@ suspend fun TestApplicationContext.førstegangsbehandlingUnderBeslutning(
     beslutter: Saksbehandler = beslutter(),
     correlationId: CorrelationId = CorrelationId.generate(),
     utfall: SendSøknadsbehandlingTilBeslutningKommando.Utfall,
-    antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
 ): Sak {
     val vilkårsvurdert = førstegangsbehandlingTilBeslutter(
         periode = periode,
@@ -593,7 +594,7 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
     beslutter: Saksbehandler = beslutter(),
     correlationId: CorrelationId = CorrelationId.generate(),
     utfall: SendSøknadsbehandlingTilBeslutningKommando.Utfall,
-    antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
 ): Sak {
     val tac = this
     val underBeslutning = førstegangsbehandlingUnderBeslutning(
@@ -628,7 +629,7 @@ suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
     clock: Clock = fixedClock,
     correlationId: CorrelationId = CorrelationId.generate(),
     utfall: SendSøknadsbehandlingTilBeslutningKommando.Utfall = SendSøknadsbehandlingTilBeslutningKommando.Utfall.INNVILGELSE,
-    antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
 ): Sak {
     val (sak, meldeperioder) = søknadssbehandlingIverksatt(
         periode = periode,

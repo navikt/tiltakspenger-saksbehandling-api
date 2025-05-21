@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling.Companion.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
@@ -29,7 +28,10 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import java.time.Clock
 import java.time.LocalDateTime
 
-sealed interface IBehandling {
+/** Hardkoder denne til 10 for nå. På sikt vil vi la saksbehandler periodisere dette selv, litt på samme måte som barnetillegg. */
+const val MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
+
+sealed interface Behandling {
     val id: BehandlingId
     val status: Behandlingsstatus
     val opprettet: LocalDateTime
@@ -306,7 +308,7 @@ sealed interface IBehandling {
      */
     fun krymp(nyPeriode: Periode): Behandling {
         if (virkningsperiode == nyPeriode) {
-            return this as Behandling
+            return this
         }
 
         val nyVirkningsperiode = virkningsperiode?.let {
@@ -374,16 +376,8 @@ sealed interface IBehandling {
             throw IllegalStateException("$errorMsg - Behandlingen er ikke under behandling - sakId=$sakId, behandlingId=$id, status=$status")
         }
     }
-}
 
-sealed class Behandling : IBehandling {
-
-    companion object {
-        /** Hardkoder denne til 10 for nå. På sikt vil vi la saksbehandler periodisere dette selv, litt på samme måte som barnetillegg. */
-        const val MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
-    }
-
-    init {
+    fun init() {
         if (beslutter != null && saksbehandler != null) {
             require(beslutter != saksbehandler) { "Saksbehandler og beslutter kan ikke være samme person" }
         }

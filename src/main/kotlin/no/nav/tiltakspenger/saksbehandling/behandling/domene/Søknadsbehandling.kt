@@ -48,7 +48,7 @@ data class Søknadsbehandling(
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     val søknad: Søknad,
-) : Behandling() {
+) : Behandling {
     override val barnetillegg: Barnetillegg?
         get() = when (utfall) {
             is SøknadsbehandlingUtfall.Avslag -> null
@@ -67,6 +67,10 @@ data class Søknadsbehandling(
         is SøknadsbehandlingUtfall.Avslag -> null
         is SøknadsbehandlingUtfall.Innvilgelse -> utfall.valgteTiltaksdeltakelser
         null -> null
+    }
+
+    init {
+        super.init()
     }
 
     fun tilBeslutning(
@@ -135,7 +139,6 @@ data class Søknadsbehandling(
     }
 
     companion object {
-
         suspend fun opprett(
             sakId: SakId,
             saksnummer: Saksnummer,
