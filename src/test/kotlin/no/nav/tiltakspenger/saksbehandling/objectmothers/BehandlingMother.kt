@@ -284,7 +284,7 @@ interface BehandlingMother : MotherOfAllMothers {
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
             oppgaveId = oppgaveId,
             utfall = utfall,
-        ).taBehandling(beslutter)
+        ).taBehandling(beslutter) as Søknadsbehandling
     }
 
     fun nyBehandlingUnderkjent(

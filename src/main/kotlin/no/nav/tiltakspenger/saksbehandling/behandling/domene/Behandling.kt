@@ -60,6 +60,7 @@ sealed interface Behandling {
 
     val barnetillegg: Barnetillegg?
     val utfallsperioder: Periodisering<Utfallsperiode>?
+    val antallDagerPerMeldeperiode: Int?
 
     val behandlingstype: Behandlingstype
         get() = when (this) {
@@ -149,10 +150,12 @@ sealed interface Behandling {
                 }
                 require(this.beslutter == null) { "Behandlingen har en eksisterende beslutter. For å overta behandlingen, bruk overta() - behandlingsId: ${this.id}" }
 
-                when (this) {
+                val lol = when (this) {
                     is Søknadsbehandling -> this.copy(beslutter = saksbehandler.navIdent, status = UNDER_BESLUTNING)
                     is Revurdering -> this.copy(beslutter = saksbehandler.navIdent, status = UNDER_BESLUTNING)
                 }
+
+                lol
             }
 
             UNDER_BESLUTNING -> throw IllegalStateException("Skal kun kunne ta behandlingen dersom det er registrert en beslutter fra før. For å overta behandlingen, skal andre operasjoner bli brukt")

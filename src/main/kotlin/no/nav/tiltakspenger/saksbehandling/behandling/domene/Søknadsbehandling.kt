@@ -49,12 +49,20 @@ data class Søknadsbehandling(
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     val søknad: Søknad,
 ) : Behandling {
+
+    override val antallDagerPerMeldeperiode: Int? get() = when (utfall) {
+        is SøknadsbehandlingUtfall.Avslag -> null
+        is SøknadsbehandlingUtfall.Innvilgelse -> utfall.antallDagerPerMeldeperiode
+        null -> null
+    }
+
     override val barnetillegg: Barnetillegg?
         get() = when (utfall) {
             is SøknadsbehandlingUtfall.Avslag -> null
             is SøknadsbehandlingUtfall.Innvilgelse -> utfall.barnetillegg
             null -> null
         }
+
     override val utfallsperioder: Periodisering<Utfallsperiode>?
         get() = when (utfall) {
             is SøknadsbehandlingUtfall.Avslag -> null
@@ -63,6 +71,7 @@ data class Søknadsbehandling(
         }
 
     val kravtidspunkt: LocalDateTime = søknad.tidsstempelHosOss
+
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (utfall) {
         is SøknadsbehandlingUtfall.Avslag -> null
         is SøknadsbehandlingUtfall.Innvilgelse -> utfall.valgteTiltaksdeltakelser
@@ -107,12 +116,6 @@ data class Søknadsbehandling(
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             utfall = utfall,
         )
-    }
-
-    override fun taBehandling(saksbehandler: Saksbehandler): Søknadsbehandling {
-        return super.taBehandling(saksbehandler).let {
-            this.copy(saksbehandler = saksbehandler.navIdent, status = UNDER_BEHANDLING)
-        }
     }
 
     fun oppdaterBarnetillegg(kommando: OppdaterBarnetilleggKommando): Søknadsbehandling {

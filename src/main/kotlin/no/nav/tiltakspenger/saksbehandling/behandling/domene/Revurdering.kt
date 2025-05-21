@@ -50,6 +50,7 @@ data class Revurdering(
         is Stans -> utfall.utfallsperioder
         null -> null
     }
+    override val antallDagerPerMeldeperiode: Int? = null
 
     init {
         super.init()

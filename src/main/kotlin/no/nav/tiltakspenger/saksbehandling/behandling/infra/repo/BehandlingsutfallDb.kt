@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingsutfallGammel
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfall
@@ -29,4 +30,10 @@ fun SøknadsbehandlingUtfall.toDb(): String = when (this) {
 
 fun RevurderingUtfall.toDb(): String = when (this) {
     is RevurderingUtfall.Stans -> BehandlingsutfallDb.STANS
+}.toString()
+
+fun BehandlingUtfall.toDb(): String = when (this) {
+    is RevurderingUtfall.Stans -> BehandlingsutfallDb.STANS
+    is SøknadsbehandlingUtfall.Avslag -> BehandlingsutfallDb.AVSLAG
+    is SøknadsbehandlingUtfall.Innvilgelse -> BehandlingsutfallDb.INNVILGELSE
 }.toString()
