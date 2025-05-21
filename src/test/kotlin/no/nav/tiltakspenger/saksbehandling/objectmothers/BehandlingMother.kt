@@ -104,7 +104,10 @@ interface BehandlingMother : MotherOfAllMothers {
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nyRevurderingKlarTilBeslutning()"),
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyRevurderingKlarTilBeslutning()"),
         virkningsperiode: Periode = virkningsperiode(),
-        saksopplysninger: Saksopplysninger = saksopplysninger(),
+        saksopplysninger: Saksopplysninger = saksopplysninger(
+            fom = virkningsperiode.fraOgMed,
+            tom = virkningsperiode.tilOgMed,
+        ),
         valgteHjemler: List<ValgtHjemmelHarIkkeRettighet> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         stansDato: LocalDate,
         sisteDagSomGirRett: LocalDate,
@@ -144,7 +147,10 @@ interface BehandlingMother : MotherOfAllMothers {
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nyRevurderingKlarTilBeslutning()"),
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyRevurderingKlarTilBeslutning()"),
         virkningsperiode: Periode = virkningsperiode(),
-        saksopplysninger: Saksopplysninger = saksopplysninger(),
+        saksopplysninger: Saksopplysninger = saksopplysninger(
+            fom = virkningsperiode.fraOgMed,
+            tom = virkningsperiode.tilOgMed,
+        ),
         valgteHjemler: List<ValgtHjemmelHarIkkeRettighet> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         attestering: Attestering = godkjentAttestering(beslutter),
         stansDato: LocalDate,
@@ -210,7 +216,10 @@ interface BehandlingMother : MotherOfAllMothers {
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nySøknadsbehandlingKlarTilBeslutning()"),
         barnetillegg: Barnetillegg? = null,
         virkningsperiode: Periode = virkningsperiode(),
-        saksopplysninger: Saksopplysninger = saksopplysninger(),
+        saksopplysninger: Saksopplysninger = saksopplysninger(
+            fom = virkningsperiode.fraOgMed,
+            tom = virkningsperiode.tilOgMed,
+        ),
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelse.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
@@ -259,7 +268,10 @@ interface BehandlingMother : MotherOfAllMothers {
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyBehandlingUnderBeslutning()"),
         barnetillegg: Barnetillegg? = null,
         virkningsperiode: Periode = virkningsperiode(),
-        saksopplysninger: Saksopplysninger = saksopplysninger(),
+        saksopplysninger: Saksopplysninger = saksopplysninger(
+            fom = virkningsperiode.fraOgMed,
+            tom = virkningsperiode.tilOgMed,
+        ),
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelse.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
@@ -299,7 +311,10 @@ interface BehandlingMother : MotherOfAllMothers {
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyBehandlingUnderBeslutning()"),
         barnetillegg: Barnetillegg? = null,
         virkningsperiode: Periode = virkningsperiode(),
-        saksopplysninger: Saksopplysninger = saksopplysninger(),
+        saksopplysninger: Saksopplysninger = saksopplysninger(
+            fom = virkningsperiode.fraOgMed,
+            tom = virkningsperiode.tilOgMed,
+        ),
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelse.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
@@ -351,7 +366,10 @@ interface BehandlingMother : MotherOfAllMothers {
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyBehandlingUnderBeslutning()"),
         barnetillegg: Barnetillegg? = null,
         virkningsperiode: Periode = virkningsperiode(),
-        saksopplysninger: Saksopplysninger = saksopplysninger(),
+        saksopplysninger: Saksopplysninger = saksopplysninger(
+            fom = virkningsperiode.fraOgMed,
+            tom = virkningsperiode.tilOgMed,
+        ),
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelse.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
