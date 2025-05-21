@@ -162,9 +162,9 @@ class IverksettBehandlingService(
             rammevedtakRepo.lagre(vedtak, tx)
             statistikkSakRepo.lagre(sakStatistikk, tx)
             statistikkStønadRepo.lagre(stønadStatistikk, tx)
+            meldeperiodeRepo.lagre(oppdaterteMeldeperioder, tx)
             // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.
             oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, null, tx) }
-            meldeperiodeRepo.lagre(oppdaterteMeldeperioder, tx)
         }
         return oppdatertSak.copy(meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
     }

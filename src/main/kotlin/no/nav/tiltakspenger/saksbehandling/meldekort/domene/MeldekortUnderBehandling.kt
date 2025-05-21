@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
@@ -54,8 +55,7 @@ data class MeldekortUnderBehandling(
     override val avbrutt: Avbrutt? = null
     override val iverksattTidspunkt = null
 
-    override val status =
-        if (ikkeRettTilTiltakspengerTidspunkt == null) UNDER_BEHANDLING else IKKE_RETT_TIL_TILTAKSPENGER
+    override val status = UNDER_BEHANDLING
 
     override val beslutter = null
 
@@ -301,15 +301,43 @@ data class MeldekortUnderBehandling(
         ).right()
     }
 
+    fun avbrytIkkeRettTilTiltakspenger(
+        ikkeRettTilTiltakspengerTidspunkt: LocalDateTime,
+    ): AvbruttMeldekortBehandling {
+        return AvbruttMeldekortBehandling(
+            id = id,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+            beregning = null,
+            simulering = null,
+            saksbehandler = saksbehandler,
+            navkontor = navkontor,
+            ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
+            brukersMeldekort = brukersMeldekort,
+            meldeperiode = meldeperiode,
+            type = type,
+            begrunnelse = begrunnelse,
+            attesteringer = attesteringer,
+            dager = dager,
+            avbrutt = Avbrutt(
+                tidspunkt = ikkeRettTilTiltakspengerTidspunkt,
+                saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID,
+                begrunnelse = "Ikke rett til tiltakspenger",
+            ),
+        )
+    }
+
     init {
-        if (status == IKKE_RETT_TIL_TILTAKSPENGER) {
-            require(dager.all { it.status == MeldekortDagStatus.SPERRET })
-        }
         require(dager.periode == this.meldeperiode.periode) {
             "Perioden for meldekortet må være lik meldeperioden"
         }
         require(dager.meldeperiode == meldeperiode) {
             "Meldekortdager.meldeperiode må være lik meldeperioden"
+        }
+        require(ikkeRettTilTiltakspengerTidspunkt == null) {
+            "Behandlinger der det ikke er rett til tiltakspenger skal ikke være under behandling"
         }
     }
 }

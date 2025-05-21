@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AVBRUTT
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -36,7 +37,7 @@ data class AvbruttMeldekortBehandling(
     override val iverksattTidspunkt = null
     override val sendtTilBeslutning = null
 
-    override val status = AVBRUTT
+    override val status = if (ikkeRettTilTiltakspengerTidspunkt == null) AVBRUTT else IKKE_RETT_TIL_TILTAKSPENGER
 
     override val beslutter = null
 
