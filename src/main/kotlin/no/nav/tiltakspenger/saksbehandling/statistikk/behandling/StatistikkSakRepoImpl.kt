@@ -202,9 +202,9 @@ internal class StatistikkSakRepoImpl(
             forventetOppstartTidspunkt = localDateOrNull("forventetoppstarttidspunkt"),
             tekniskTidspunkt = localDateTime("teknisktidspunkt"),
             sakYtelse = string("sakytelse"),
-            behandlingType = BehandlingType.valueOf(string("behandlingtype")),
-            behandlingStatus = BehandlingStatus.valueOf(string("behandlingstatus")),
-            behandlingResultat = stringOrNull("behandlingresultat")?.let { BehandlingResultat.valueOf(it) },
+            behandlingType = StatistikkBehandlingType.valueOf(string("behandlingtype")),
+            behandlingStatus = StatistikkBehandlingStatus.valueOf(string("behandlingstatus")),
+            behandlingResultat = stringOrNull("behandlingresultat")?.let { StatistikkBehandlingResultat.valueOf(it) },
             resultatBegrunnelse = stringOrNull("resultatbegrunnelse"),
             behandlingMetode = string("behandlingmetode"),
             opprettetAv = string("opprettetav"),
@@ -216,6 +216,6 @@ internal class StatistikkSakRepoImpl(
             avsender = string("avsender"),
             versjon = string("versjon"),
             hendelse = string("hendelse"),
-            behandlingAarsak = stringOrNull("behandling_aarsak")?.let { BehandlingAarsak.valueOf(it) },
+            behandlingAarsak = stringOrNull("behandling_aarsak")?.let { StatistikkBehandlingAarsak.valueOf(it) },
         )
 }

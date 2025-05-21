@@ -99,7 +99,7 @@ interface SakMother {
         clock: Clock = fixedClock,
         antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     ): Pair<Sak, Søknadsbehandling> {
-        val førstegangsbehandling =
+        val søknadsbehandling =
             runBlocking {
                 val behandling = Søknadsbehandling.opprett(
                     sakId = sakId,
@@ -137,14 +137,14 @@ interface SakMother {
             id = sakId,
             fnr = fnr,
             saksnummer = saksnummer,
-            behandlinger = Behandlinger(førstegangsbehandling),
+            behandlinger = Behandlinger(søknadsbehandling),
             vedtaksliste = Vedtaksliste.empty(),
             meldekortBehandlinger = MeldekortBehandlinger.empty(),
             utbetalinger = Utbetalinger(emptyList()),
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             soknader = listOf(søknad),
-        ) to førstegangsbehandling
+        ) to søknadsbehandling
     }
 
     fun nySakMedVedtak(
@@ -156,7 +156,7 @@ interface SakMother {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         clock: Clock = fixedClock,
     ): Triple<Sak, Vedtak, Behandling> {
-        val (sak, førstegangsbehandling) = this.sakMedOpprettetBehandling(
+        val (sak, søknadsbehandling) = this.sakMedOpprettetBehandling(
             sakId = sakId,
             fnr = fnr,
             saksnummer = saksnummer,
@@ -164,17 +164,17 @@ interface SakMother {
             saksbehandler = saksbehandler,
         )
 
-        val iverksattBehandling = førstegangsbehandling.tilBeslutning(
+        val iverksattBehandling = søknadsbehandling.tilBeslutning(
             SendSøknadsbehandlingTilBeslutningKommando(
                 sakId = sakId,
-                behandlingId = førstegangsbehandling.id,
+                behandlingId = søknadsbehandling.id,
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
                 barnetillegg = null,
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
                 behandlingsperiode = virkningsperiode,
-                tiltaksdeltakelser = førstegangsbehandling.saksopplysninger.tiltaksdeltagelse.map {
+                tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltagelse.map {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
                 antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
@@ -204,7 +204,7 @@ interface SakMother {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         clock: Clock = fixedClock,
     ): Triple<Sak, Rammevedtak, Behandling> {
-        val (sak, førstegangsbehandling) = this.sakMedOpprettetBehandling(
+        val (sak, søknadsbehandling) = this.sakMedOpprettetBehandling(
             sakId = sakId,
             fnr = fnr,
             saksnummer = saksnummer,
@@ -212,17 +212,17 @@ interface SakMother {
             saksbehandler = saksbehandler,
         )
 
-        val iverksattBehandling = førstegangsbehandling.tilBeslutning(
+        val iverksattBehandling = søknadsbehandling.tilBeslutning(
             SendSøknadsbehandlingTilBeslutningKommando(
                 sakId = sakId,
-                behandlingId = førstegangsbehandling.id,
+                behandlingId = søknadsbehandling.id,
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
                 barnetillegg = null,
                 fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nySakMedAvslagsvedtak"),
                 begrunnelseVilkårsvurdering = null,
                 behandlingsperiode = virkningsperiode,
-                tiltaksdeltakelser = førstegangsbehandling.saksopplysninger.tiltaksdeltagelse.map {
+                tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltagelse.map {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
                 avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),

@@ -16,8 +16,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendFørstegangsbehandlingTilBeslutningForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendFørstegangsbehandlingTilBeslutningReturnerRespons
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendSøknadsbehandlingTilBeslutningReturnerRespons
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
 import org.junit.jupiter.api.Test
 
@@ -39,7 +39,7 @@ class SendSøknadsbehandlingTilBeslutterTest {
                     it.saksbehandler shouldBe saksbehandler.navIdent
                     it.beslutter shouldBe null
                 }
-                sendFørstegangsbehandlingTilBeslutningForBehandlingId(
+                sendSøknadsbehandlingTilBeslutningForBehandlingId(
                     tac,
                     sak.id,
                     behandlingId,
@@ -80,7 +80,7 @@ class SendSøknadsbehandlingTilBeslutterTest {
                 val tiltaksdeltakelseFom = behandling.saksopplysninger.tiltaksdeltagelse.first().deltagelseFraOgMed!!
                 val tiltaksdeltakelseTom = behandling.saksopplysninger.tiltaksdeltagelse.first().deltagelseTilOgMed!!
 
-                val response = sendFørstegangsbehandlingTilBeslutningReturnerRespons(
+                val response = sendSøknadsbehandlingTilBeslutningReturnerRespons(
                     tac,
                     sak.id,
                     behandlingId,
@@ -112,7 +112,7 @@ class SendSøknadsbehandlingTilBeslutterTest {
                     it.beslutter shouldBe null
                 }
 
-                val response = sendFørstegangsbehandlingTilBeslutningReturnerRespons(
+                val response = sendSøknadsbehandlingTilBeslutningReturnerRespons(
                     tac,
                     sak.id,
                     behandlingId,

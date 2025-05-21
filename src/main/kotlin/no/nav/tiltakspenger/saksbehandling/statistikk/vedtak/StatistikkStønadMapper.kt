@@ -7,7 +7,7 @@ import java.util.UUID
 
 /**
  * Dette må sees på som en rammesak for stønadstatistikk der vi fyller på med utbetalingsinformasjon i tillegg.
- * TODO statistikk jah: Hør med stønadsstatistikk om vi kun skal sende denne for førstegangsbehandlingen, eller om de trenger noe nytt ved revurdering.
+ * TODO statistikk jah: Hør med stønadsstatistikk om vi kun skal sende denne for søknadsbehandlingen, eller om de trenger noe nytt ved revurdering.
  */
 fun genererStønadsstatistikkForRammevedtak(
     vedtak: Rammevedtak,

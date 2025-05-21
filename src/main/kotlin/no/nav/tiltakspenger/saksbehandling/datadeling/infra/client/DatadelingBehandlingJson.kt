@@ -17,7 +17,7 @@ fun Søknadsbehandling.toBehandlingJson(): String {
         beslutter = beslutter,
         iverksattTidspunkt = iverksattTidspunkt,
         fnr = fnr.verdi,
-        // Skal kun kalles for førstegangsbehandlinger, men det skal sjekkes lenger ut.
+        // Skal kun kalles for søknadsbehandlinger, men det skal sjekkes lenger ut.
         søknadJournalpostId = søknad.journalpostId,
         opprettetTidspunktSaksbehandlingApi = opprettet,
 

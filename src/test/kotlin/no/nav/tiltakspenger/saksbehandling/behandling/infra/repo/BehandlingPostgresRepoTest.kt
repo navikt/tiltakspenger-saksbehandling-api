@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBeslutningSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
@@ -142,7 +142,7 @@ internal class BehandlingPostgresRepoTest {
         withMigratedDb { testDataHelper ->
             val behandlingRepo = testDataHelper.behandlingRepo
             val nyBeslutter = ObjectMother.beslutter("nyBeslutter")
-            val (_, behandling) = testDataHelper.persisterUnderBeslutningFørstegangsbehandling()
+            val (_, behandling) = testDataHelper.persisterUnderBeslutningSøknadsbehandling()
 
             behandling.beslutter shouldNotBe null
             behandling.beslutter shouldNotBe nyBeslutter.navIdent

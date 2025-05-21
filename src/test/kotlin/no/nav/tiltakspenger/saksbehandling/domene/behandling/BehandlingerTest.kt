@@ -55,7 +55,7 @@ class BehandlingerTest {
 
         assertThrows<IllegalArgumentException> {
             Behandlinger(listOf(b1, b2))
-        }.message shouldBe "Førstegangsbehandlinger kan ikke ha overlappende virkningsperiode"
+        }.message shouldBe "Søknadsbehandlinger kan ikke ha overlappende virkningsperiode"
     }
 
     @Test
@@ -75,6 +75,6 @@ class BehandlingerTest {
 
         assertThrows<IllegalArgumentException> {
             Behandlinger(listOf(b1, b2))
-        }.message shouldBe "Førstegangsbehandlinger kan ikke tilstøte hverandre (må ha hull i mellom)"
+        }.message shouldBe "Søknadsbehandlinger kan ikke tilstøte hverandre (må ha hull i mellom)"
     }
 }

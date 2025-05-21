@@ -124,7 +124,7 @@ data class Revurdering(
                 sendtTilDatadeling = null,
                 sistEndret = opprettet,
                 oppgaveId = null,
-                // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for førstegangsbehandling.
+                // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for søknadsbehandling.
                 saksopplysningsperiode = saksopplysningsperiode,
                 avbrutt = null,
                 utfall = null,

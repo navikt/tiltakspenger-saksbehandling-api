@@ -34,13 +34,13 @@ data class StatistikkSakDTO(
     val tekniskTidspunkt: LocalDateTime,
     // IND
     val sakYtelse: String = "IND",
-    val behandlingType: BehandlingType,
-    val behandlingStatus: BehandlingStatus,
-    val behandlingResultat: BehandlingResultat?,
+    val behandlingType: StatistikkBehandlingType,
+    val behandlingStatus: StatistikkBehandlingStatus,
+    val behandlingResultat: StatistikkBehandlingResultat?,
     // fylles ut ved klage, avvisning, avslag
     val resultatBegrunnelse: String?,
     // manuell, automatisk
-    val behandlingMetode: String = BehandlingMetode.MANUELL.name,
+    val behandlingMetode: String = StatistikkBehandlingMetode.MANUELL.name,
     // Settes til -5 hvis kode 6 kan være systembruker
     val opprettetAv: String,
     // Settes til -5 hvis kode 6
@@ -58,48 +58,48 @@ data class StatistikkSakDTO(
     val versjon: String,
     val hendelse: String,
     /** Årsaken til behandlingen */
-    val behandlingAarsak: BehandlingAarsak?,
+    val behandlingAarsak: StatistikkBehandlingAarsak?,
 )
 
-enum class Format {
+enum class StatistikkFormat {
     PAPIR,
     DIGITAL,
 }
 
-enum class Resultat {
+enum class StatistikkResultat {
     OPPFYLT,
     IKKE_OPPFYLT,
     IKKE_VURDERT,
     UAVKLART,
 }
 
-enum class BehandlingResultat {
+enum class StatistikkBehandlingResultat {
     INNVILGET,
     AVSLAG,
     STANS,
     FORLENGELSE,
 }
 
-enum class BehandlingStatus {
+enum class StatistikkBehandlingStatus {
     UNDER_BEHANDLING,
     UNDER_BESLUTNING,
     FERDIG_BEHANDLET,
     AVSLUTTET,
 }
 
-enum class BehandlingType {
+enum class StatistikkBehandlingType {
     FØRSTEGANGSBEHANDLING,
     REVURDERING,
     KLAGE,
     ANKE,
 }
 
-enum class BehandlingMetode {
+enum class StatistikkBehandlingMetode {
     MANUELL,
     AUTOMATISK,
 }
 
-enum class BehandlingAarsak {
+enum class StatistikkBehandlingAarsak {
     SOKNAD,
     DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK,
     ALDER,

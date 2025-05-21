@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 /**
- * Kun tenkt brukt for Førstegangsbehandling i første omgang.
+ * Kun tenkt brukt for Søknadsbehandling i første omgang.
  * Det kan hende den passer for Revurdering også, men vurderer det når vi kommer dit.
  */
 enum class Behandlingsstatus {

@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSak
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.sak.Saker
 import org.junit.jupiter.api.Test
@@ -75,7 +75,7 @@ internal class SakRepoTest {
             val sak1 = testDataHelper.persisterIverksattSøknadsbehandling().first
             val sak2 = testDataHelper.persisterIverksattSøknadsbehandling().first
             testDataHelper.persisterOpprettetSøknadsbehandling().first
-            testDataHelper.persisterUnderBeslutningFørstegangsbehandling().first
+            testDataHelper.persisterUnderBeslutningSøknadsbehandling().first
 
             sakRepo.hentForSendingTilMeldekortApi() shouldBe listOf(sak1, sak2)
         }

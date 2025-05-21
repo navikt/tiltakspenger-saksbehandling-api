@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 /**
  * En samling av alle behandlinger innenfor en gitt sak. Listen er tom når vi oppretter saken og før vi oppretter den
  * første behandlingen.
- * Garanterer at første elementet er en førstegangsbehandling og de resterende revurderinger.
+ * Garanterer at første elementet er en søknadsbehandling og de resterende revurderinger.
  */
 data class Behandlinger(
     val behandlinger: List<Behandling>,
@@ -16,9 +16,6 @@ data class Behandlinger(
 
     val revurderinger: Revurderinger = Revurderinger(behandlinger.filterIsInstance<Revurdering>())
     val søknadsbehandlinger = this.behandlinger.filterIsInstance<Søknadsbehandling>()
-
-    val ikkeAvbrutteFørstegangsbehandlinger: List<Behandling> =
-        søknadsbehandlinger.filterNot { it.status == Behandlingsstatus.AVBRUTT }
 
     fun leggTilRevurdering(
         revurdering: Revurdering,
@@ -49,14 +46,14 @@ data class Behandlinger(
             .zipWithNext { a, b -> require(a < b) { "Behandlinger er ikke sortert på opprettet-tidspunkt" } }
 
         /**
-         * En antagelse er at førstegangsbehandlinger ikke kan ha tilstøtende perioder. Ved utvidelse av perioden vil lage en revurdering
-         * Det vil si at det 'alltid' skal være hull mmellom periodene til alle førstegangsbehandlingene
+         * En antagelse er at søknadsbehandlinger ikke kan ha tilstøtende perioder. Ved utvidelse av perioden vil lage en revurdering
+         * Det vil si at det 'alltid' skal være hull mmellom periodene til alle søknadsbehandlingene
          */
         behandlinger.filterIsInstance<Søknadsbehandling>().map { it.virkningsperiode }
             .zipWithNext { a, b ->
                 if (a != null && b != null) {
-                    require(!a.overlapperMed(b)) { "Førstegangsbehandlinger kan ikke ha overlappende virkningsperiode" }
-                    require(!a.tilstøter(b)) { "Førstegangsbehandlinger kan ikke tilstøte hverandre (må ha hull i mellom)" }
+                    require(!a.overlapperMed(b)) { "Søknadsbehandlinger kan ikke ha overlappende virkningsperiode" }
+                    require(!a.tilstøter(b)) { "Søknadsbehandlinger kan ikke tilstøte hverandre (må ha hull i mellom)" }
                 }
             }
     }

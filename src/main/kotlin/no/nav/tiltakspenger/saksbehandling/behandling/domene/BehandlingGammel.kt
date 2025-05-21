@@ -113,7 +113,7 @@ private data class BehandlingGammel(
     val erSØKNADSBEHANDLING: Boolean = behandlingstype == SØKNADSBEHANDLING
     val erRevurdering: Boolean = behandlingstype == REVURDERING
 
-    /** Påkrevd ved førstegangsbehandling/søknadsbehandling, men kan være null ved revurdering. */
+    /** Påkrevd ved søknadsbehandling/søknadsbehandling, men kan være null ved revurdering. */
     val kravtidspunkt = søknad?.tidsstempelHosOss
 
     companion object {
@@ -211,7 +211,7 @@ private data class BehandlingGammel(
                 behandlingstype = REVURDERING,
                 // her kan man på sikt lagre oppgaveId hvis man oppretter oppgave for revurdering
                 oppgaveId = null,
-                // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for førstegangsbehandling.
+                // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for søknadsbehandling.
                 saksopplysningsperiode = saksopplysningsperiode,
                 barnetillegg = null,
                 valgteTiltaksdeltakelser = null,
@@ -534,7 +534,7 @@ private data class BehandlingGammel(
         }
         when (behandlingstype) {
             SØKNADSBEHANDLING -> {
-                requireNotNull(søknad) { "Søknad må være satt for førstegangsbehandling" }
+                requireNotNull(søknad) { "Søknad må være satt for søknadsbehandling" }
             }
 
             REVURDERING -> {
@@ -607,7 +607,7 @@ private data class BehandlingGammel(
                     require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
                 }
                 if (behandlingstype == SØKNADSBEHANDLING) {
-                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
+                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for søknadsbehandling" }
                     require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
                 }
                 require(this.utfall != null) { "Behandlingsutfall må være satt for statusen KLAR_TIL_BESLUTNING" }
@@ -624,7 +624,7 @@ private data class BehandlingGammel(
                     require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
                 }
                 if (behandlingstype == SØKNADSBEHANDLING) {
-                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
+                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for søknadsbehandling" }
                     require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
                 }
                 require(this.utfall != null) { "Behandlingsutfall må være satt for statusen UNDER_BESLUTNING" }
@@ -642,7 +642,7 @@ private data class BehandlingGammel(
                     require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
                 }
                 if (behandlingstype == SØKNADSBEHANDLING) {
-                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
+                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for søknadsbehandling" }
                     require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
                 }
                 require(this.utfall != null) { "Behandlingsutfall må være satt for statusen VEDTATT" }

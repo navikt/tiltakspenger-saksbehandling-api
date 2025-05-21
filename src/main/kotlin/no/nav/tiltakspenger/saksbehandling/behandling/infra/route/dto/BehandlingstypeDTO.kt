@@ -5,13 +5,13 @@ import no.nav.tiltakspenger.saksbehandling.benk.BenkBehandlingstype
 
 enum class BehandlingstypeDTO {
     SØKNAD,
-    FØRSTEGANGSBEHANDLING,
+    FØRSTEGANGSBEHANDLING, // TODO: endre til SØKNADSBEHANDLING her og i frontend
     REVURDERING,
 }
 
 fun BenkBehandlingstype.toBehandlingstypeDTO(): BehandlingstypeDTO =
     when (this) {
-        BenkBehandlingstype.FØRSTEGANGSBEHANDLING -> BehandlingstypeDTO.FØRSTEGANGSBEHANDLING
+        BenkBehandlingstype.SØKNADSBEHANDLING -> BehandlingstypeDTO.FØRSTEGANGSBEHANDLING
         BenkBehandlingstype.REVURDERING -> BehandlingstypeDTO.REVURDERING
         BenkBehandlingstype.SØKNAD -> BehandlingstypeDTO.SØKNAD
     }

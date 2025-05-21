@@ -93,7 +93,7 @@ class ForhåndsvisVedtaksbrevService(
                         ifRight = { it.pdf },
                     )
 
-                    RevurderingUtfallType.STANS -> throw IllegalArgumentException("Stans er ikke gyldig utfall for førstegangsbehandling")
+                    RevurderingUtfallType.STANS -> throw IllegalArgumentException("Stans er ikke gyldig utfall for søknadsbehandling")
                 }
             }
 

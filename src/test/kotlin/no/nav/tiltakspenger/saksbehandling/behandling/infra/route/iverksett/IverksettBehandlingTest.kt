@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettForBehandlingIdReturnerRespons
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendFørstegangsbehandlingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
 import org.junit.jupiter.api.Test
@@ -58,7 +58,7 @@ class IverksettBehandlingTest {
                     it.saksbehandler shouldBe saksbehandler.navIdent
                     it.beslutter shouldBe null
                 }
-                sendFørstegangsbehandlingTilBeslutningForBehandlingId(
+                sendSøknadsbehandlingTilBeslutningForBehandlingId(
                     tac,
                     sak.id,
                     behandlingId,

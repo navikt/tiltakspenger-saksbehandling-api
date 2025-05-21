@@ -24,7 +24,7 @@ internal class StartRevurderingTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, søknad, førstegangsbehandling, revurdering) = startRevurdering(tac)
+                val (sak, søknad, søknadsbehandling, revurdering) = startRevurdering(tac)
                 revurdering.shouldBeInstanceOf<Revurdering>()
                 revurdering.behandlingstype shouldBe Behandlingstype.REVURDERING
                 revurdering.status shouldBe Behandlingsstatus.UNDER_BEHANDLING

@@ -19,7 +19,7 @@ import java.time.LocalDateTime
  * @property periode Null dersom det er en søknad.
  * @property sakId Null dersom det er en søknad.
  * @property saksnummer Er med for visning i frontend. Null dersom det er en søknad.
- * @property id Unik identifikator for behandlingen. For søknader er dette søknadId. For førstegangsbehandlinger er dette behandlingId.
+ * @property id Unik identifikator for behandlingen. For søknader er dette søknadId. For søknadsbehandlinger er dette behandlingId.
  */
 data class SaksoversiktDTO(
     val periode: PeriodeDTO?,

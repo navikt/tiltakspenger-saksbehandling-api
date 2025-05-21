@@ -98,7 +98,7 @@ class IverksettBehandlingService(
                 stønadStatistikk = stønadStatistikk,
             )
 
-            is Søknadsbehandling -> oppdatertSak.iverksettFørstegangsbehandling(
+            is Søknadsbehandling -> oppdatertSak.iverksettSøknadsbehandling(
                 vedtak = vedtak,
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk,
@@ -117,15 +117,13 @@ class IverksettBehandlingService(
         return iverksattBehandling.right()
     }
 
-    private fun Sak.iverksettFørstegangsbehandling(
+    private fun Sak.iverksettSøknadsbehandling(
         vedtak: Rammevedtak,
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
         return when (vedtak.vedtaksType) {
-            Vedtakstype.INNVILGELSE,
-            Vedtakstype.STANS,
-            -> iverksett(vedtak, sakStatistikk, stønadStatistikk)
+            Vedtakstype.INNVILGELSE -> iverksett(vedtak, sakStatistikk, stønadStatistikk)
 
             Vedtakstype.AVSLAG -> {
                 // journalføring og dokumentdistribusjon skjer i egen jobb
@@ -137,6 +135,8 @@ class IverksettBehandlingService(
                 }
                 this
             }
+
+            Vedtakstype.STANS -> throw IllegalArgumentException("Kan ikke iverksette stans-vedtak på en søknadsbehandling")
         }
     }
 

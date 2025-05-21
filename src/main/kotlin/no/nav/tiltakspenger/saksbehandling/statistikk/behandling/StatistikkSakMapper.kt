@@ -35,16 +35,16 @@ fun genererSaksstatistikkForRammevedtak(
         endretTidspunkt = vedtak.opprettet,
         utbetaltTidspunkt = null,
         tekniskTidspunkt = nå(clock),
-        søknadsformat = Format.DIGITAL.name,
-        // TODO jah: Hva gjør vi ved revurdering/stans i dette tilfellet. Skal vi sende førstegangsbehandling sin første innvilget fraOgMed eller null?
+        søknadsformat = StatistikkFormat.DIGITAL.name,
+        // TODO jah: Hva gjør vi ved revurdering/stans i dette tilfellet. Skal vi sende søknadsbehandling sin første innvilget fraOgMed eller null?
         forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.saksopplysningsperiode.fraOgMed else null,
-        behandlingType = if (erSøknadsbehandling) BehandlingType.FØRSTEGANGSBEHANDLING else BehandlingType.REVURDERING,
+        behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.FØRSTEGANGSBEHANDLING else StatistikkBehandlingType.REVURDERING,
         // TODO jah: I følge confluence-dokken så finner jeg ikke dette feltet. Burde det heller vært AVSLUTTET?
-        behandlingStatus = BehandlingStatus.FERDIG_BEHANDLET,
+        behandlingStatus = StatistikkBehandlingStatus.FERDIG_BEHANDLET,
         behandlingResultat = when (vedtak.vedtaksType) {
-            Vedtakstype.INNVILGELSE -> BehandlingResultat.INNVILGET
-            Vedtakstype.STANS -> BehandlingResultat.STANS
-            Vedtakstype.AVSLAG -> BehandlingResultat.AVSLAG
+            Vedtakstype.INNVILGELSE -> StatistikkBehandlingResultat.INNVILGET
+            Vedtakstype.STANS -> StatistikkBehandlingResultat.STANS
+            Vedtakstype.AVSLAG -> StatistikkBehandlingResultat.AVSLAG
         },
         // TODO jah: Denne bør ikke være null.
         resultatBegrunnelse = null,
@@ -85,15 +85,15 @@ fun genererSaksstatistikkForBehandling(
         endretTidspunkt = nå(clock),
         utbetaltTidspunkt = null,
         tekniskTidspunkt = nå(clock),
-        søknadsformat = Format.DIGITAL.name,
+        søknadsformat = StatistikkFormat.DIGITAL.name,
         forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.saksopplysningsperiode.fraOgMed else null,
-        behandlingType = if (erSøknadsbehandling) BehandlingType.FØRSTEGANGSBEHANDLING else BehandlingType.REVURDERING,
+        behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.FØRSTEGANGSBEHANDLING else StatistikkBehandlingType.REVURDERING,
         behandlingStatus = if (behandling.erAvbrutt) {
-            BehandlingStatus.AVSLUTTET
+            StatistikkBehandlingStatus.AVSLUTTET
         } else if (behandling.status == Behandlingsstatus.KLAR_TIL_BESLUTNING || behandling.status == Behandlingsstatus.UNDER_BESLUTNING) {
-            BehandlingStatus.UNDER_BESLUTNING
+            StatistikkBehandlingStatus.UNDER_BESLUTNING
         } else {
-            BehandlingStatus.UNDER_BEHANDLING
+            StatistikkBehandlingStatus.UNDER_BEHANDLING
         },
         behandlingResultat = null,
         resultatBegrunnelse = null,
@@ -111,9 +111,9 @@ fun genererSaksstatistikkForBehandling(
     )
 }
 
-private fun Behandling.getBehandlingAarsak(): BehandlingAarsak? {
+private fun Behandling.getBehandlingAarsak(): StatistikkBehandlingAarsak? {
     if (this is Søknadsbehandling) {
-        return BehandlingAarsak.SOKNAD
+        return StatistikkBehandlingAarsak.SOKNAD
     }
     if (this is Revurdering && this.utfall is RevurderingUtfall.Stans && utfall.valgtHjemmelHarIkkeRettighet.isNotEmpty()) {
         return utfall.valgtHjemmelHarIkkeRettighet.first().toBehandlingAarsak()
@@ -123,13 +123,13 @@ private fun Behandling.getBehandlingAarsak(): BehandlingAarsak? {
 
 private fun ValgtHjemmelHarIkkeRettighet.toBehandlingAarsak() =
     when (this) {
-        ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak -> BehandlingAarsak.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK
-        ValgtHjemmelForStans.Alder -> BehandlingAarsak.ALDER
-        ValgtHjemmelForStans.Livsoppholdytelser -> BehandlingAarsak.LIVSOPPHOLDYTELSER
-        ValgtHjemmelForStans.Institusjonsopphold -> BehandlingAarsak.INSTITUSJONSOPPHOLD
-        ValgtHjemmelForStans.Kvalifiseringsprogrammet -> BehandlingAarsak.KVALIFISERINGSPROGRAMMET
-        ValgtHjemmelForStans.Introduksjonsprogrammet -> BehandlingAarsak.INTRODUKSJONSPROGRAMMET
-        ValgtHjemmelForStans.LønnFraTiltaksarrangør -> BehandlingAarsak.LONN_FRA_TILTAKSARRANGOR
-        ValgtHjemmelForStans.LønnFraAndre -> BehandlingAarsak.LONN_FRA_ANDRE
+        ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak -> StatistikkBehandlingAarsak.DELTAR_IKKE_PA_ARBEIDSMARKEDSTILTAK
+        ValgtHjemmelForStans.Alder -> StatistikkBehandlingAarsak.ALDER
+        ValgtHjemmelForStans.Livsoppholdytelser -> StatistikkBehandlingAarsak.LIVSOPPHOLDYTELSER
+        ValgtHjemmelForStans.Institusjonsopphold -> StatistikkBehandlingAarsak.INSTITUSJONSOPPHOLD
+        ValgtHjemmelForStans.Kvalifiseringsprogrammet -> StatistikkBehandlingAarsak.KVALIFISERINGSPROGRAMMET
+        ValgtHjemmelForStans.Introduksjonsprogrammet -> StatistikkBehandlingAarsak.INTRODUKSJONSPROGRAMMET
+        ValgtHjemmelForStans.LønnFraTiltaksarrangør -> StatistikkBehandlingAarsak.LONN_FRA_TILTAKSARRANGOR
+        ValgtHjemmelForStans.LønnFraAndre -> StatistikkBehandlingAarsak.LONN_FRA_ANDRE
         else -> null
     }
