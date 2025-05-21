@@ -56,10 +56,4 @@ data class AvbruttMeldekortBehandling(
     override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): Either<KanIkkeLeggeTilbakeMeldekortBehandling, MeldekortBehandling> {
         throw IllegalStateException("Kan ikke legge tilbake avbrutt meldekortbehandling")
     }
-
-    init {
-        if (status == IKKE_RETT_TIL_TILTAKSPENGER) {
-            require(dager.all { it.status == MeldekortDagStatus.SPERRET })
-        }
-    }
 }

@@ -302,7 +302,6 @@ data class MeldekortUnderBehandling(
     }
 
     fun avbrytIkkeRettTilTiltakspenger(
-        meldeperiode: Meldeperiode,
         ikkeRettTilTiltakspengerTidspunkt: LocalDateTime,
     ): AvbruttMeldekortBehandling {
         return AvbruttMeldekortBehandling(
@@ -321,7 +320,7 @@ data class MeldekortUnderBehandling(
             type = type,
             begrunnelse = begrunnelse,
             attesteringer = attesteringer,
-            dager = meldeperiode.tilMeldekortDager(),
+            dager = dager,
             avbrutt = Avbrutt(
                 tidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                 saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID,

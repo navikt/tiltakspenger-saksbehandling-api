@@ -98,7 +98,6 @@ sealed interface MeldekortBehandling {
         return when (this) {
             is MeldekortBehandletManuelt -> if (ikkeRettTilTiltakspengerTidspunkt != null) {
                 this.avbrytIkkeRettTilTiltakspenger(
-                    meldeperiode = meldeperiode,
                     ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                 )
             } else {
@@ -110,12 +109,12 @@ sealed interface MeldekortBehandling {
 
             is MeldekortUnderBehandling -> if (ikkeRettTilTiltakspengerTidspunkt != null) {
                 this.avbrytIkkeRettTilTiltakspenger(
-                    meldeperiode = meldeperiode,
                     ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                 )
             } else {
                 this.copy(
                     meldeperiode = meldeperiode,
+                    dager = meldeperiode.tilMeldekortDager(),
                     ikkeRettTilTiltakspengerTidspunkt = null,
                     beregning = null,
                     simulering = null,
