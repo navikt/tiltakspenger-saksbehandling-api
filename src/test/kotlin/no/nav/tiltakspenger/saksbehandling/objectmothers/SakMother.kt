@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySøknad
@@ -94,7 +95,7 @@ interface SakMother {
             ),
         ),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
-        utfall: SendSøknadsbehandlingTilBeslutningKommando.Utfall = SendSøknadsbehandlingTilBeslutningKommando.Utfall.INNVILGELSE,
+        utfall: SøknadsbehandlingUtfallType = SøknadsbehandlingUtfallType.INNVILGELSE,
         clock: Clock = fixedClock,
         antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     ): Pair<Sak, Søknadsbehandling> {
@@ -178,7 +179,7 @@ interface SakMother {
                 }.toList(),
                 antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
                 avslagsgrunner = null,
-                utfall = SendSøknadsbehandlingTilBeslutningKommando.Utfall.INNVILGELSE,
+                utfall = SøknadsbehandlingUtfallType.INNVILGELSE,
             ),
             clock = clock,
         ).taBehandling(beslutter)
@@ -225,7 +226,7 @@ interface SakMother {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
                 avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
-                utfall = SendSøknadsbehandlingTilBeslutningKommando.Utfall.AVSLAG,
+                utfall = SøknadsbehandlingUtfallType.AVSLAG,
                 antallDagerPerMeldeperiode = 10,
             ),
             clock = clock,

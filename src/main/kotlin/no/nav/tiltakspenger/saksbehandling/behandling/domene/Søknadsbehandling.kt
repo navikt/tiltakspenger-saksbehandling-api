@@ -92,7 +92,7 @@ data class Søknadsbehandling(
         val virkningsperiode = kommando.behandlingsperiode
 
         val utfall: SøknadsbehandlingUtfall = when (kommando.utfall) {
-            SendSøknadsbehandlingTilBeslutningKommando.Utfall.INNVILGELSE -> {
+            SøknadsbehandlingUtfallType.INNVILGELSE -> {
                 require(kommando.avslagsgrunner == null) {
                     "Avslagsgrunner kan ikke være satt dersom behandlingen har utfallet INNVILGELSE"
                 }
@@ -103,7 +103,7 @@ data class Søknadsbehandling(
                 )
             }
 
-            SendSøknadsbehandlingTilBeslutningKommando.Utfall.AVSLAG -> {
+            SøknadsbehandlingUtfallType.AVSLAG -> {
                 requireNotNull(kommando.avslagsgrunner) {
                     "Avslagsgrunner må være satt dersom behandlingen har utfallet AVSLAG"
                 }

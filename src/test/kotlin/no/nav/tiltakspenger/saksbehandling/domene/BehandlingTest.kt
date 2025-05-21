@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -104,7 +104,7 @@ class BehandlingTest {
         fun `kaster exception dersom utfall er avslag uten avslagsgrunner`() {
             assertThrows<IllegalArgumentException> {
                 ObjectMother.nySøknadsbehandlingKlarTilBeslutning(
-                    utfall = SendSøknadsbehandlingTilBeslutningKommando.Utfall.AVSLAG,
+                    utfall = SøknadsbehandlingUtfallType.AVSLAG,
                     avslagsgrunner = null,
                 )
             }
@@ -114,7 +114,7 @@ class BehandlingTest {
         fun `kaster exception dersom utfall er innvilgelse med avslagsgrunner`() {
             assertThrows<IllegalArgumentException> {
                 ObjectMother.nySøknadsbehandlingKlarTilBeslutning(
-                    utfall = SendSøknadsbehandlingTilBeslutningKommando.Utfall.INNVILGELSE,
+                    utfall = SøknadsbehandlingUtfallType.INNVILGELSE,
                     avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
                 )
             }

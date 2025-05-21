@@ -22,17 +22,12 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
     val tiltaksdeltakelser: List<Pair<Periode, String>>,
     val antallDagerPerMeldeperiode: Int,
     val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
-    val utfall: Utfall,
+    val utfall: SøknadsbehandlingUtfallType,
 ) {
     fun valgteTiltaksdeltakelser(behandling: Behandling): ValgteTiltaksdeltakelser {
         return ValgteTiltaksdeltakelser.periodiser(
             tiltaksdeltakelser = tiltaksdeltakelser,
             behandling = behandling,
         )
-    }
-
-    enum class Utfall {
-        INNVILGELSE,
-        AVSLAG,
     }
 }
