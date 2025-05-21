@@ -89,7 +89,7 @@ fun Route.sendSøknadsbehandlingTilBeslutningRoute(
                     call.withBody<Body> { body ->
                         val correlationId = call.correlationId()
 
-                        sendBehandlingTilBeslutningService.sendFørstegangsbehandlingTilBeslutning(
+                        sendBehandlingTilBeslutningService.sendSøknadsbehandlingTilBeslutning(
                             kommando = body.toDomain(
                                 sakId = sakId,
                                 behandlingId = behandlingId,

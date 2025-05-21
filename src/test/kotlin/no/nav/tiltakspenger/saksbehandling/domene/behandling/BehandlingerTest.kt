@@ -18,12 +18,12 @@ class BehandlingerTest {
         val sakId = SakId.random()
         val fnr = Fnr.random()
         val åpenBehandling = ObjectMother.nyOpprettetSøknadsbehandling(sakId = sakId, fnr = fnr)
-        val vedtattBehandling = ObjectMother.nyVedtattBehandling(
+        val vedtattBehandling = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
             fnr = fnr,
             virkningsperiode = Periode(1.januar(2025), 10.januar(2025)),
         )
-        val avbruttBehandling = ObjectMother.nyAvbruttBehandling(
+        val avbruttBehandling = ObjectMother.nyAvbruttSøknadsbehandling(
             fnr = fnr,
             sakId = sakId,
         )
@@ -42,12 +42,12 @@ class BehandlingerTest {
     fun `kan ikke ha overlappende virkningsperioder`() {
         val sakId = SakId.random()
         val fnr = Fnr.random()
-        val b1 = ObjectMother.nyVedtattBehandling(
+        val b1 = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
             fnr = fnr,
             virkningsperiode = Periode(1.januar(2025), 10.januar(2025)),
         )
-        val b2 = ObjectMother.nyVedtattBehandling(
+        val b2 = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
             fnr = fnr,
             virkningsperiode = Periode(1.januar(2025), 10.januar(2025)),
@@ -62,12 +62,12 @@ class BehandlingerTest {
     fun `søknadsbehandlinger kan ikke tilstøte hverandre (må ha hull i mellom)`() {
         val sakId = SakId.random()
         val fnr = Fnr.random()
-        val b1 = ObjectMother.nyVedtattBehandling(
+        val b1 = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
             fnr = fnr,
             virkningsperiode = Periode(1.januar(2025), 10.januar(2025)),
         )
-        val b2 = ObjectMother.nyVedtattBehandling(
+        val b2 = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
             fnr = fnr,
             virkningsperiode = Periode(11.januar(2025), 20.januar(2025)),

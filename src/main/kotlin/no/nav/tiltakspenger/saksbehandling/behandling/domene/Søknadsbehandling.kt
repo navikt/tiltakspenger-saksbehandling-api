@@ -60,16 +60,8 @@ data class Søknadsbehandling(
             null -> null
         }
 
-    override val utfallsperioder: Periodisering<Utfallsperiode>?
-        get() = when (utfall) {
-            is SøknadsbehandlingUtfall.Avslag -> null
-            is SøknadsbehandlingUtfall.Innvilgelse -> Periodisering(
-                Utfallsperiode.RETT_TIL_TILTAKSPENGER,
-                virkningsperiode!!,
-            )
-
-            null -> null
-        }
+    override val utfallsperioder: Periodisering<Utfallsperiode>? =
+        virkningsperiode?.let { Periodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, it) }
 
     val kravtidspunkt: LocalDateTime = søknad.tidsstempelHosOss
 
@@ -114,6 +106,7 @@ data class Søknadsbehandling(
             }
 
             is SøknadsbehandlingUtfall.Avslag -> Unit
+
             null -> Unit
         }
     }
@@ -131,14 +124,26 @@ data class Søknadsbehandling(
         val virkningsperiode = kommando.behandlingsperiode
 
         val utfall: SøknadsbehandlingUtfall = when (kommando.utfall) {
-            SendSøknadsbehandlingTilBeslutningKommando.Utfall.INNVILGELSE -> SøknadsbehandlingUtfall.Innvilgelse(
-                valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
-                barnetillegg = kommando.barnetillegg,
-            )
+            SendSøknadsbehandlingTilBeslutningKommando.Utfall.INNVILGELSE -> {
+                require(kommando.avslagsgrunner == null) {
+                    "Avslagsgrunner kan ikke være satt dersom behandlingen har utfallet INNVILGELSE"
+                }
 
-            SendSøknadsbehandlingTilBeslutningKommando.Utfall.AVSLAG -> SøknadsbehandlingUtfall.Avslag(
-                avslagsgrunner = kommando.avslagsgrunner!!,
-            )
+                SøknadsbehandlingUtfall.Innvilgelse(
+                    valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
+                    barnetillegg = kommando.barnetillegg,
+                )
+            }
+
+            SendSøknadsbehandlingTilBeslutningKommando.Utfall.AVSLAG -> {
+                requireNotNull(kommando.avslagsgrunner) {
+                    "Avslagsgrunner må være satt dersom behandlingen har utfallet AVSLAG"
+                }
+
+                SøknadsbehandlingUtfall.Avslag(
+                    avslagsgrunner = kommando.avslagsgrunner,
+                )
+            }
         }
 
         return this.copy(

@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingsutfallGammel
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -39,7 +39,7 @@ class BehandlingTest {
 
     @Test
     fun `kan ikke avbryte en avbrutt behandling`() {
-        val avbruttBehandling = ObjectMother.nyAvbruttBehandling(
+        val avbruttBehandling = ObjectMother.nyAvbruttSøknadsbehandling(
             tidspunkt = førsteNovember24,
             avbruttAv = ObjectMother.saksbehandler(navIdent = "navident"),
             begrunnelse = "skal få exception",
@@ -89,7 +89,7 @@ class BehandlingTest {
 
         @Test
         fun `en beslutter kan overta behandlingen`() {
-            val behandling = ObjectMother.nyBehandlingUnderBeslutning()
+            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
             val nyBeslutter = ObjectMother.beslutter("nyNavIdent")
             val overtaBehandling = behandling.overta(saksbehandler = nyBeslutter, clock = fixedClock)
 
@@ -104,7 +104,7 @@ class BehandlingTest {
         fun `kaster exception dersom utfall er avslag uten avslagsgrunner`() {
             assertThrows<IllegalArgumentException> {
                 ObjectMother.nySøknadsbehandlingKlarTilBeslutning(
-                    utfall = BehandlingsutfallGammel.AVSLAG,
+                    utfall = SendSøknadsbehandlingTilBeslutningKommando.Utfall.AVSLAG,
                     avslagsgrunner = null,
                 )
             }
@@ -114,7 +114,7 @@ class BehandlingTest {
         fun `kaster exception dersom utfall er innvilgelse med avslagsgrunner`() {
             assertThrows<IllegalArgumentException> {
                 ObjectMother.nySøknadsbehandlingKlarTilBeslutning(
-                    utfall = BehandlingsutfallGammel.INNVILGELSE,
+                    utfall = SendSøknadsbehandlingTilBeslutningKommando.Utfall.INNVILGELSE,
                     avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
                 )
             }

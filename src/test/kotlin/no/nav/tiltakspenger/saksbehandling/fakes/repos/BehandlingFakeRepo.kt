@@ -97,18 +97,21 @@ class BehandlingFakeRepo : BehandlingRepo {
         sessionContext: SessionContext?,
     ): Boolean {
         val behandling = data.get()[behandlingId]
-        require(behandling != null && behandling.beslutter == null) {
-            "Behandling med id $behandlingId finnes ikke eller beslutter ${behandling?.beslutter} er ikke null"
+        requireNotNull(behandling) {
+            "Behandling med id $behandlingId finnes ikke"
+        }
+        require(behandling.beslutter == null) {
+            "Behandling ${behandling.saksbehandler} er ikke null"
         }
 
         data.get()[behandlingId] = when (behandling) {
             is Revurdering -> behandling.copy(
-                saksbehandler = beslutter.navIdent,
+                beslutter = beslutter.navIdent,
                 status = behandlingsstatus,
             )
 
             is Søknadsbehandling -> behandling.copy(
-                saksbehandler = beslutter.navIdent,
+                beslutter = beslutter.navIdent,
                 status = behandlingsstatus,
             )
         }

@@ -24,7 +24,7 @@ class SendBehandlingTilBeslutningService(
     private val statistikkSakRepo: StatistikkSakRepo,
     private val sessionFactory: SessionFactory,
 ) {
-    suspend fun sendFørstegangsbehandlingTilBeslutning(
+    suspend fun sendSøknadsbehandlingTilBeslutning(
         kommando: SendSøknadsbehandlingTilBeslutningKommando,
     ): Either<KanIkkeSendeTilBeslutter, Behandling> {
         val sak: Sak =
