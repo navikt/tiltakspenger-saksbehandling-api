@@ -7,16 +7,11 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
-import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
-import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
-import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.StartRevurderingService
-import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil.ikkeTilgang
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 
@@ -34,39 +29,20 @@ fun Route.startRevurderingRoute(
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 val correlationId = call.correlationId()
-                startRevurderingService.startRevurdering(StartRevurderingKommando(sakId, correlationId, saksbehandler))
-                    .fold(
-                        {
-                            when (it) {
-                                is KanIkkeStarteRevurdering.HarIkkeTilgang -> {
-                                    call.respond403Forbidden(
-                                        ikkeTilgang("Krever en av rollene ${it.kreverEnAvRollene} for å starte en behandling."),
-                                    )
-                                }
-
-                                else -> {
-                                    call.respond500InternalServerError(
-                                        ErrorJson(
-                                            melding = "Kunne ikke opprette revurdering fordi reasons",
-                                            kode = "",
-                                        ),
-                                    )
-                                }
-                            }
-                        },
-                        {
-                            val revurderingId = it.second.id
-                            auditService.logMedSakId(
-                                sakId = sakId,
-                                navIdent = saksbehandler.navIdent,
-                                action = AuditLogEvent.Action.CREATE,
-                                contextMessage = "Oppretter revurdering på sak $sakId",
-                                correlationId = correlationId,
-                                behandlingId = revurderingId,
-                            )
-                            call.respond(HttpStatusCode.OK, it.second.toDTO())
-                        },
+                startRevurderingService.startRevurdering(
+                    kommando = StartRevurderingKommando(sakId, correlationId, saksbehandler),
+                ).also {
+                    val revurderingId = it.second.id
+                    auditService.logMedSakId(
+                        sakId = sakId,
+                        navIdent = saksbehandler.navIdent,
+                        action = AuditLogEvent.Action.CREATE,
+                        contextMessage = "Oppretter revurdering på sak $sakId",
+                        correlationId = correlationId,
+                        behandlingId = revurderingId,
                     )
+                    call.respond(HttpStatusCode.OK, it.second.toDTO())
+                }
             }
         }
     }

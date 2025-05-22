@@ -39,8 +39,16 @@ interface SakService {
     ): Either<KunneIkkeHenteSakForFnr, Sak>
 
     /**
-     * Sjekker tilgang til person og at saksbehandler har SAKSBEHANDLER-rollen.
-     */
+     * Sjekker tilgang til person og at saksbehandler har SAKSBEHANDLER eller BESLUTTER-rollen.
+     * @throws kotlin.NullPointerException dersom vi ikke fant saken.
+     * @throws no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException dersom saksbehandler ikke har tilgang til saken.
+     * */
+    suspend fun hentForSakIdEllerKast(sakId: SakId, saksbehandler: Saksbehandler, correlationId: CorrelationId): Sak
+
+    /**
+     * Sjekker tilgang til person og at saksbehandler har SAKSBEHANDLER eller BESLUTTER-rollen.
+     * @throws kotlin.NullPointerException Dersom vi ikke fant saken.
+     * */
     suspend fun hentForSakId(
         sakId: SakId,
         saksbehandler: Saksbehandler,

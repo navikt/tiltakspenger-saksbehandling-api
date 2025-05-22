@@ -141,6 +141,16 @@ class SakServiceImpl(
         return sakRepo.hentForSakId(sakId)!!.right()
     }
 
+    override suspend fun hentForSakIdEllerKast(
+        sakId: SakId,
+        saksbehandler: Saksbehandler,
+        correlationId: CorrelationId,
+    ): Sak {
+        return hentForSakId(sakId, saksbehandler, correlationId).getOrElse {
+            throw TilgangException("Saksbehandler ${saksbehandler.navIdent} har ikke tilgang til person.")
+        }
+    }
+
     override suspend fun hentBenkOversikt(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,

@@ -3,31 +3,23 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteRevurdering
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDate
-
-private val loggerForStartRevurdering = KotlinLogging.logger { }
 
 suspend fun Sak.startRevurdering(
     kommando: StartRevurderingKommando,
     clock: Clock,
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger,
-): Either<KanIkkeStarteRevurdering, Pair<Sak, Revurdering>> {
+): Pair<Sak, Revurdering> {
     val saksbehandler = kommando.saksbehandler
 
     if (!kommando.saksbehandler.erSaksbehandler()) {
-        loggerForStartRevurdering.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å starte revurdering på sak ${kommando.sakId}" }
-        return KanIkkeStarteRevurdering.HarIkkeTilgang(
-            kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER),
-            harRollene = saksbehandler.roller,
-        ).left()
+        throw TilgangException("Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å starte revurdering på sak ${kommando.sakId}")
     }
 
     require(this.vedtaksliste.antallInnvilgelsesperioder == 1) {
@@ -56,7 +48,7 @@ suspend fun Sak.startRevurdering(
         clock = clock,
     )
 
-    return Pair(leggTilRevurdering(revurdering), revurdering).right()
+    return Pair(leggTilRevurdering(revurdering), revurdering)
 }
 
 fun Sak.leggTilRevurdering(
