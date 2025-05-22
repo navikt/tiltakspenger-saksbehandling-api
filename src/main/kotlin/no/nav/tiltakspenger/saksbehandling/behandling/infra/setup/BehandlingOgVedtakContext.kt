@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingServiceImpl
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBarnetilleggService
@@ -70,11 +69,10 @@ open class BehandlingOgVedtakContext(
         )
     }
     val behandlingService: BehandlingService by lazy {
-        BehandlingServiceImpl(
+        BehandlingService(
             behandlingRepo = behandlingRepo,
             sessionFactory = sessionFactory,
             tilgangsstyringService = tilgangsstyringService,
-            personService = personService,
             clock = clock,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,

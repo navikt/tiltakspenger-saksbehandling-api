@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevLageHendelserRollen
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 
@@ -18,7 +19,7 @@ class SøknadServiceImpl(
     private val log = KotlinLogging.logger {}
 
     override suspend fun nySøknad(søknad: Søknad, systembruker: Systembruker) {
-        require(systembruker.roller.harLageHendelser()) { "Systembruker mangler rollen LAGE_HENDELSER. Systembrukers roller: ${systembruker.roller}" }
+        krevLageHendelserRollen(systembruker)
         val oppgaveId =
             oppgaveGateway.opprettOppgave(søknad.fnr, JournalpostId(søknad.journalpostId), Oppgavebehov.NY_SOKNAD)
         log.info { "Opprettet oppgave med id $oppgaveId for søknad med id ${søknad.id}" }
@@ -30,8 +31,7 @@ class SøknadServiceImpl(
     }
 
     override fun hentSakIdForSoknad(søknadId: SøknadId): SakId {
-        return søknadRepo.hentSakIdForSoknad(søknadId)
-            ?: throw IllegalStateException("Fant ikke sak for søknad med id $søknadId")
+        return søknadRepo.hentSakIdForSoknad(søknadId)!!
     }
 
     override fun lagreAvbruttSøknad(søknad: Søknad, tx: TransactionContext) {

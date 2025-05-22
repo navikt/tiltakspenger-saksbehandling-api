@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
  */
 interface PersonRepo {
     fun hentFnrForSakId(sakId: SakId): Fnr?
-    fun hentFnrForBehandlingId(behandlingId: BehandlingId): Fnr?
+    fun hentFnrForBehandlingId(behandlingId: BehandlingId): Fnr
     fun hentFnrForSaksnummer(saksnummer: Saksnummer): Fnr?
     fun hentFnrForMeldekortId(meldekortId: MeldekortId): Fnr?
     fun hentFnrForSøknadId(søknadId: SøknadId): Fnr?

@@ -33,10 +33,7 @@ class OpprettMeldekortBehandlingService(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): Either<KanIkkeOppretteMeldekortBehandling, Sak> {
-        val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId).getOrElse {
-            logger.error { "Kunne ikke hente sak med id $sakId" }
-            return KanIkkeOppretteMeldekortBehandling.IkkeTilgangTilSak.left()
-        }
+        val sak = sakService.hentForSakIdEllerKast(sakId, saksbehandler, correlationId)
 
         val navkontor = Either.catch {
             navkontorService.hentOppfolgingsenhet(sak.fnr)
@@ -56,6 +53,7 @@ class OpprettMeldekortBehandlingService(
                 clock = clock,
             )
         }.getOrElse {
+            // TODO jah: Bør ikke styre flyt med throw - catch. Bytt til Either hvis det trengs.
             logger.error(it) { "Kunne ikke opprette meldekort behandling på kjede $kjedeId for sak $sakId" }
             return KanIkkeOppretteMeldekortBehandling.KanIkkeOpprettePåKjede.left()
         }
@@ -73,7 +71,6 @@ class OpprettMeldekortBehandlingService(
 }
 
 sealed interface KanIkkeOppretteMeldekortBehandling {
-    data object IkkeTilgangTilSak : KanIkkeOppretteMeldekortBehandling
     data object HenteNavkontorFeilet : KanIkkeOppretteMeldekortBehandling
     data object KanIkkeOpprettePåKjede : KanIkkeOppretteMeldekortBehandling
 }

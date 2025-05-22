@@ -131,7 +131,7 @@ sealed interface MeldekortBehandling {
 
     fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling
 
-    fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): Either<KanIkkeLeggeTilbakeMeldekortBehandling, MeldekortBehandling>
+    fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling
 
     sealed interface Behandlet : MeldekortBehandling {
         override val beregning: MeldekortBeregning

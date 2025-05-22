@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevTilgangTilPerson
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 
@@ -24,12 +25,7 @@ class OvertaBehandlingService(
      */
     suspend fun overta(command: OvertaBehandlingCommand): Either<KunneIkkeOvertaBehandling, Behandling> {
         val behandling = behandlingRepo.hent(command.behandlingId)
-        tilgangsstyringService.harTilgangTilPerson(behandling.fnr, command.saksbehandler.roller, command.correlationId)
-            .onLeft {
-                throw TilgangException("Feil ved tilgangssjekk til person ved sending av behandling tilbake til saksbehandler. Feilen var $it")
-            }.onRight {
-                if (!it) throw TilgangException("Saksbehandler ${command.saksbehandler.navIdent} har ikke tilgang til person")
-            }
+        tilgangsstyringService.krevTilgangTilPerson(command.saksbehandler, behandling.fnr, command.correlationId)
 
         return behandling.overta(command.saksbehandler, clock).onRight {
             when (it.status) {
@@ -40,6 +36,7 @@ class OvertaBehandlingService(
                         statistikkSakRepo.lagre(statistikk, tx)
                     }
                 }
+
                 Behandlingsstatus.UNDER_BESLUTNING -> {
                     val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
                     sessionFactory.withTransactionContext { tx ->
@@ -47,6 +44,7 @@ class OvertaBehandlingService(
                         statistikkSakRepo.lagre(statistikk, tx)
                     }
                 }
+
                 Behandlingsstatus.KLAR_TIL_BESLUTNING,
                 Behandlingsstatus.KLAR_TIL_BEHANDLING,
                 Behandlingsstatus.VEDTATT,

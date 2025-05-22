@@ -1,12 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
-import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDate
@@ -17,10 +16,7 @@ suspend fun Sak.startRevurdering(
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger,
 ): Pair<Sak, Revurdering> {
     val saksbehandler = kommando.saksbehandler
-
-    if (!kommando.saksbehandler.erSaksbehandler()) {
-        throw TilgangException("Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å starte revurdering på sak ${kommando.sakId}")
-    }
+    krevSaksbehandlerRolle(saksbehandler)
 
     require(this.vedtaksliste.antallInnvilgelsesperioder == 1) {
         "Kan kun opprette en stansrevurdering dersom vi har en sammenhengende innvilgelsesperiode. sakId=${this.id}"
@@ -61,9 +57,7 @@ fun Sak.sendRevurderingTilBeslutning(
     kommando: SendRevurderingTilBeslutningKommando,
     clock: Clock,
 ): Either<KanIkkeSendeTilBeslutter, Revurdering> {
-    if (!kommando.saksbehandler.erSaksbehandler()) {
-        return KanIkkeSendeTilBeslutter.MåVæreSaksbehandler.left()
-    }
+    krevSaksbehandlerRolle(kommando.saksbehandler)
 
     val stansDato = kommando.stansDato
     this.validerStansDato(stansDato)

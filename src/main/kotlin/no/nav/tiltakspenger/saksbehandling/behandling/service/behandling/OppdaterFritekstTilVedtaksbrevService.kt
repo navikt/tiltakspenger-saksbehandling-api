@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
-import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -22,11 +21,9 @@ class OppdaterFritekstTilVedtaksbrevService(
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev,
     ): Behandling {
         // Denne sjekker tilgang til person og sak.
-        val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId).getOrElse {
-            throw IllegalStateException("Kunne ikke oppdatere fritekst til vedtaksbrev. Fant ikke sak. sakId=$sakId, behandlingId=$behandlingId")
-        }
+        val sak = sakService.hentForSakIdEllerKast(sakId, saksbehandler, correlationId)
         val behandling = sak.hentBehandling(behandlingId)!!
-
+        // Denne validerer saksbehandler
         return behandling.oppdaterFritekstTilVedtaksbrev(saksbehandler, fritekstTilVedtaksbrev).also {
             behandlingRepo.lagre(it)
         }

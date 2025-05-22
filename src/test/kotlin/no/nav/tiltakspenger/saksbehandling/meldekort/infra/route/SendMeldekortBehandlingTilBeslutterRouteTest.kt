@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test
 internal class SendMeldekortBehandlingTilBeslutterRouteTest {
 
     @Test
-    fun `for mange meldedager`() {
+    fun `meldekortperioden kan ikke være frem i tid`() {
         val sakId = SakId.random()
         val meldekortId = MeldekortId.random()
         val tokenService = object : TokenService {
@@ -45,7 +45,7 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
         coEvery { auditService.logMedMeldekortId(any(), any(), any(), any(), any()) } returns Unit
         coEvery {
             sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(any())
-        } returns KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere(KanIkkeOppdatereMeldekort.MåVæreSaksbehandlerForMeldekortet).left()
+        } returns KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere(KanIkkeOppdatereMeldekort.MeldekortperiodenKanIkkeVæreFremITid).left()
         val request = """
             {
               "dager": [
@@ -83,7 +83,7 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
                     ) {
                         status shouldBe HttpStatusCode.BadRequest
                         contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-                        bodyAsText() shouldBe """{"melding":"Du kan ikke oppdatere meldekortet da du ikke er saksbehandler for denne meldekortbehandlingen","kode":"må_være_saksbehandler_for_meldekortet"}"""
+                        bodyAsText() shouldBe """{"melding":"Kan ikke sende inn et meldekort før meldekortperioden har begynt.","kode":"meldekortperioden_kan_ikke_være_frem_i_tid"}"""
                     }
                 }
             }

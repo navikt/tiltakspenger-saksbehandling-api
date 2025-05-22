@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBeslutter
@@ -27,10 +26,12 @@ class SendBehandlingTilBeslutningService(
     suspend fun sendSøknadsbehandlingTilBeslutning(
         kommando: SendSøknadsbehandlingTilBeslutningKommando,
     ): Either<KanIkkeSendeTilBeslutter, Behandling> {
-        val sak: Sak =
-            sakService.hentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId).getOrElse {
-                throw IllegalStateException("Saksbehandler ${kommando.saksbehandler.navIdent} har ikke tilgang til sak ${kommando.sakId}")
-            }
+        val sak: Sak = sakService.hentForSakIdEllerKast(
+            sakId = kommando.sakId,
+            saksbehandler = kommando.saksbehandler,
+            correlationId = kommando.correlationId,
+        )
+        // Denne validerer saksbehandler
         return sak.sendSøknadsbehandlingTilBeslutning(kommando, clock).map { (_, behandling) -> behandling }.onRight {
             val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
             sessionFactory.withTransactionContext { tx ->
@@ -41,11 +42,13 @@ class SendBehandlingTilBeslutningService(
     }
 
     suspend fun sendRevurderingTilBeslutning(kommando: SendRevurderingTilBeslutningKommando): Either<KanIkkeSendeTilBeslutter, Behandling> {
-        val sak: Sak =
-            sakService.hentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId).getOrElse {
-                throw IllegalStateException("Saksbehandler ${kommando.saksbehandler.navIdent} har ikke tilgang til sak ${kommando.sakId}")
-            }
-
+        // Denne sjekker tilgang til person og rollene SAKSBEHANDLER eller BESLUTTER.
+        val sak: Sak = sakService.hentForSakIdEllerKast(
+            sakId = kommando.sakId,
+            saksbehandler = kommando.saksbehandler,
+            correlationId = kommando.correlationId,
+        )
+        // Denne validerer saksbehandler
         return sak.sendRevurderingTilBeslutning(kommando, clock).onRight {
             val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
             sessionFactory.withTransactionContext { tx ->

@@ -19,7 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBeslutter
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBeslutter.MåVæreSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
@@ -119,7 +118,6 @@ fun Route.sendSøknadsbehandlingTilBeslutningRoute(
 }
 
 internal fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
-    MåVæreSaksbehandler -> HttpStatusCode.Forbidden to Standardfeil.måVæreSaksbehandler()
     KanIkkeSendeTilBeslutter.PeriodenOverlapperEllerTilstøterMedAnnenBehandling -> HttpStatusCode.BadRequest to ErrorJson(
         "Innvilgelsesperioden overlapper/tilstøter med eksisterende perioder på saken",
         "innvilgelsesperiode_overlapper_eller_tilstøter_med_eksisternede_perioder",

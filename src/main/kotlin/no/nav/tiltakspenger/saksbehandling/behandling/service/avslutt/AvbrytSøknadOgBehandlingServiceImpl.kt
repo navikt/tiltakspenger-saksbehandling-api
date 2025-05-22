@@ -1,8 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt
 
 import arrow.core.Either
-import arrow.core.getOrElse
-import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
@@ -21,15 +19,18 @@ class AvbrytSøknadOgBehandlingServiceImpl(
     private val statistikkSakRepo: StatistikkSakRepo,
     private val sessionFactory: SessionFactory,
 ) : AvbrytSøknadOgBehandlingService {
-    override suspend fun avbrytSøknadOgBehandling(command: AvbrytSøknadOgBehandlingCommand): Either<KunneIkkeAvbryteSøknadOgBehandling, Sak> {
-        val sak =
-            sakService.hentForSaksnummer(command.saksnummer, command.avsluttetAv, command.correlationId).getOrElse {
-                return KunneIkkeAvbryteSøknadOgBehandling.Feil.left()
-            }
 
+    override suspend fun avbrytSøknadOgBehandling(command: AvbrytSøknadOgBehandlingCommand): Either<KunneIkkeAvbryteSøknadOgBehandling, Sak> {
+        // Validerer at saksbehandler har tilgang til person og at saksbehandler har SAKSBEHANDLER eller BESLUTTER-rollen.
+        val sak = sakService.hentForSaksnummer(
+            saksnummer = command.saksnummer,
+            saksbehandler = command.avsluttetAv,
+            correlationId = command.correlationId,
+        )
+        // Validerer saksbehandler
         val (oppdatertSak, avbruttSøknad, avbruttBehandling) = sak.avbrytSøknadOgBehandling(
-            command,
-            LocalDateTime.now(),
+            command = command,
+            avbruttTidspunkt = LocalDateTime.now(),
         )
 
         val statistikk = avbruttBehandling?.let { statistikkSakService.genererStatistikkForAvsluttetBehandling(it) }

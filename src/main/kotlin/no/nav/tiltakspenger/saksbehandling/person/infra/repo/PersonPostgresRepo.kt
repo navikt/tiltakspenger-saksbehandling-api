@@ -45,8 +45,8 @@ class PersonPostgresRepo(
             )
         }
 
-    override fun hentFnrForBehandlingId(behandlingId: BehandlingId): Fnr? =
-        sessionFactory.withSession { session ->
+    override fun hentFnrForBehandlingId(behandlingId: BehandlingId): Fnr {
+        return sessionFactory.withSession { session ->
             session.run(
                 queryOf(
                     """select s.fnr from behandling b join sak s on s.id = b.sak_id where b.id = :behandlingId""",
@@ -57,7 +57,8 @@ class PersonPostgresRepo(
                     Fnr.fromString(row.string("fnr"))
                 }.asSingle,
             )
-        }
+        }!!
+    }
 
     override fun hentFnrForSøknadId(søknadId: SøknadId): Fnr? =
         sessionFactory.withSession { session ->

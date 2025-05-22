@@ -8,19 +8,14 @@ import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
-import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSakId
-import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil.ikkeTilgang
-import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil.måVæreBeslutter
 import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil.saksbehandlerOgBeslutterKanIkkeVæreLik
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeIverksetteMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeIverksetteMeldekort.MåVæreBeslutter
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeIverksetteMeldekort.SaksbehandlerOgBeslutterKanIkkeVæreLik
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortService
@@ -58,21 +53,15 @@ fun Route.iverksettMeldekortRoute(
                     utbetalingsvedtak.fold(
                         {
                             when (it) {
-                                is MåVæreBeslutter -> call.respond403Forbidden(måVæreBeslutter())
                                 is SaksbehandlerOgBeslutterKanIkkeVæreLik -> call.respond400BadRequest(
                                     saksbehandlerOgBeslutterKanIkkeVæreLik(),
                                 )
-
-                                is KanIkkeIverksetteMeldekort.KunneIkkeHenteSak -> when (val u = it.underliggende) {
-                                    is KunneIkkeHenteSakForSakId.HarIkkeTilgang -> call.respond403Forbidden(
-                                        ikkeTilgang("Må ha en av rollene ${u.kreverEnAvRollene} for å hente sak"),
-                                    )
-                                }
 
                                 KanIkkeIverksetteMeldekort.BehandlingenErIkkeUnderBeslutning -> call.respond400BadRequest(
                                     melding = "Du kan ikke godkjenne meldekort som ikke er under beslutning",
                                     kode = "meldekort_må_være_under_beslutning",
                                 )
+
                                 KanIkkeIverksetteMeldekort.MåVæreBeslutterForMeldekortet -> call.respond400BadRequest(
                                     melding = "Du kan ikke godkjenne meldekortet da du ikke er beslutter for denne meldekortbehandlingen",
                                     kode = "må_være_beslutter_for_meldekortet",

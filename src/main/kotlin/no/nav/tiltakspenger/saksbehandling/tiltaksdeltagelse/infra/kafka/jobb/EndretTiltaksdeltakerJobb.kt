@@ -25,11 +25,7 @@ class EndretTiltaksdeltakerJobb(
                 val sakId = deltaker.sakId
 
                 Either.catch {
-                    val sak = sakRepo.hentForSakId(sakId)
-                    if (sak == null) {
-                        log.error { "Fant ikke sak for sakId $sakId, skal ikke kunne skje" }
-                        throw IllegalStateException("Fant ikke sak for sakId $sakId")
-                    }
+                    val sak = sakRepo.hentForSakId(sakId)!!
                     val nyesteIverksatteBehandling = finnNyesteIverksatteBehandlingForDeltakelse(sak, deltagelseId)
                     if (nyesteIverksatteBehandling == null) {
                         log.info { "Fant ingen iverksatt behandling for sakId $sakId og ekstern deltakerId $deltagelseId, sletter deltakerinnslag" }

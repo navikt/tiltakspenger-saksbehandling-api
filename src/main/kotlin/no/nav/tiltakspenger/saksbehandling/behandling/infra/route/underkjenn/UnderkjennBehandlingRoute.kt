@@ -68,9 +68,4 @@ internal fun KanIkkeUnderkjenne.toStatusAndErrorJson(): Pair<HttpStatusCode, Err
         "Begrunnelse må være utfylt",
         "begrunnelse_må_være_utfylt",
     )
-
-    KanIkkeUnderkjenne.MåVæreBeslutter -> HttpStatusCode.BadRequest to ErrorJson(
-        "Må ha beslutter rolle",
-        "må_ha_beslutter_rolle",
-    )
 }

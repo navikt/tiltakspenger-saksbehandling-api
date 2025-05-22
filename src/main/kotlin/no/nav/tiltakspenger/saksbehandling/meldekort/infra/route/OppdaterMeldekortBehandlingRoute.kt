@@ -9,19 +9,14 @@ import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
-import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSakId
-import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort.KunneIkkeHenteSak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort.MeldekortperiodenKanIkkeVæreFremITid
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort.MåVæreSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortService
@@ -77,29 +72,6 @@ suspend fun RoutingContext.respondWithError(meldekort: KanIkkeOppdatereMeldekort
             call.respond400BadRequest(
                 melding = "Kan ikke sende inn et meldekort før meldekortperioden har begynt.",
                 kode = "meldekortperioden_kan_ikke_være_frem_i_tid",
-            )
-        }
-
-        is MåVæreSaksbehandler -> {
-            call.respond400BadRequest(
-                melding = "Kan ikke oppdatere meldekort. Krever saksbehandler-rolle.",
-                kode = "må_være_saksbehandler",
-            )
-        }
-
-        is KanIkkeOppdatereMeldekort.MåVæreSaksbehandlerForMeldekortet -> {
-            call.respond400BadRequest(
-                melding = "Du kan ikke oppdatere meldekortet da du ikke er saksbehandler for denne meldekortbehandlingen",
-                kode = "må_være_saksbehandler_for_meldekortet",
-            )
-        }
-
-        is KunneIkkeHenteSak -> when (
-            val u =
-                meldekort.underliggende
-        ) {
-            is KunneIkkeHenteSakForSakId.HarIkkeTilgang -> call.respond403Forbidden(
-                Standardfeil.ikkeTilgang("Må ha en av rollene ${u.kreverEnAvRollene} for å hente sak"),
             )
         }
     }

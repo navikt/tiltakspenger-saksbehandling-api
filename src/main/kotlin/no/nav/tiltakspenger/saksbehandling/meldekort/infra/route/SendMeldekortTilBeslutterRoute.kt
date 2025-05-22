@@ -8,11 +8,8 @@ import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
-import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSakId
-import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
@@ -52,30 +49,6 @@ fun Route.sendMeldekortTilBeslutterRoute(
                                             kode = "meldekortperioden_kan_ikke_være_frem_i_tid",
                                         )
                                     }
-
-                                    is KanIkkeSendeMeldekortTilBeslutter.MåVæreSaksbehandler -> {
-                                        call.respond400BadRequest(
-                                            melding = "Kan ikke sende meldekort til beslutter. Krever saksbehandler-rolle.",
-                                            kode = "må_være_saksbehandler",
-                                        )
-                                    }
-
-                                    is KanIkkeSendeMeldekortTilBeslutter.MåVæreSaksbehandlerForMeldekortet -> {
-                                        call.respond400BadRequest(
-                                            melding = "Du kan ikke sende meldekortet til beslutter da du ikke er saksbehandler for denne meldekortbehandlingen",
-                                            kode = "må_være_saksbehandler_for_meldekortet",
-                                        )
-                                    }
-
-                                    is KanIkkeSendeMeldekortTilBeslutter.KunneIkkeHenteSak -> when (
-                                        val u =
-                                            it.underliggende
-                                    ) {
-                                        is KunneIkkeHenteSakForSakId.HarIkkeTilgang -> call.respond403Forbidden(
-                                            Standardfeil.ikkeTilgang("Må ha en av rollene ${u.kreverEnAvRollene} for å hente sak"),
-                                        )
-                                    }
-
                                     is KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere -> respondWithError(it.underliggende)
                                 }
                             },

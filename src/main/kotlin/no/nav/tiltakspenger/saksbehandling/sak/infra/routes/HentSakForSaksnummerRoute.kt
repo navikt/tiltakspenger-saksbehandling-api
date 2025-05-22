@@ -7,12 +7,9 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
-import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil.ikkeTilgang
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSaksnummer
 import java.time.Clock
@@ -39,16 +36,9 @@ fun Route.hentSakForSaksnummerRoute(
                     saksnummer = saksnummer,
                     saksbehandler = saksbehandler,
                     correlationId = call.correlationId(),
-                ).fold(
-                    {
-                        when (it) {
-                            is KunneIkkeHenteSakForSaksnummer.HarIkkeTilgang -> call.respond403Forbidden(ikkeTilgang("Må ha en av rollene ${it.kreverEnAvRollene} for å hente sak for saksnummer."))
-                        }
-                    },
-                    { sak ->
-                        call.respond(message = sak.toSakDTO(clock), status = HttpStatusCode.OK)
-                    },
-                )
+                ).also { sak ->
+                    call.respond(message = sak.toSakDTO(clock), status = HttpStatusCode.OK)
+                }
             }
         }
     }

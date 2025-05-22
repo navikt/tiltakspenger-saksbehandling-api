@@ -5,7 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevTilgangTilPerson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KunneIkkeUnderkjenneMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
@@ -19,24 +19,25 @@ class UnderkjennMeldekortBehandlingService(
     private val clock: Clock,
 ) {
     suspend fun underkjenn(command: UnderkjennMeldekortBehandlingCommand): Either<KunneIkkeUnderkjenneMeldekortBehandling, MeldekortBehandling> {
-        val meldekortBehandling = meldekortBehandlingRepo.hent(command.meldekortId)
-            ?: throw IllegalStateException("Fant ikke meldekortBehandling for id ${command.meldekortId}")
+        val meldekortBehandling = meldekortBehandlingRepo.hent(command.meldekortId)!!
 
         if (meldekortBehandling !is MeldekortBehandletManuelt) {
             return KunneIkkeUnderkjenneMeldekortBehandling.BehandlingenErIkkeUnderBeslutning.left()
         }
-
-        tilgangsstyringService.harTilgangTilPerson(meldekortBehandling.fnr, command.saksbehandler.roller, command.correlationId).onLeft {
-            throw TilgangException("Feil ved tilgangssjekk til person ved sending av behandling tilbake til saksbehandler. Feilen var $it")
-        }.onRight {
-            if (!it) throw TilgangException("Saksbehandler ${command.saksbehandler.navIdent} har ikke tilgang til person")
-        }
+        tilgangsstyringService.krevTilgangTilPerson(
+            command.saksbehandler,
+            meldekortBehandling.fnr,
+            command.correlationId,
+        )
 
         val begrunnelse = Either.catch { command.begrunnelse.toNonBlankString() }.getOrElse {
             return KunneIkkeUnderkjenneMeldekortBehandling.BegrunnelseMåVæreUtfylt.left()
         }
 
-        return meldekortBehandling.underkjenn(begrunnelse, command.saksbehandler, clock)
-            .onRight { meldekortBehandlingRepo.oppdater(it) }
+        return meldekortBehandling.underkjenn(
+            besluttersBegrunnelse = begrunnelse,
+            beslutter = command.saksbehandler,
+            clock = clock,
+        ).onRight { meldekortBehandlingRepo.oppdater(it) }
     }
 }

@@ -16,11 +16,6 @@ interface BehandlingRepo {
         transactionContext: TransactionContext? = null,
     )
 
-    fun hentOrNull(
-        behandlingId: BehandlingId,
-        sessionContext: SessionContext? = null,
-    ): Behandling?
-
     fun hent(
         behandlingId: BehandlingId,
         sessionContext: SessionContext? = null,

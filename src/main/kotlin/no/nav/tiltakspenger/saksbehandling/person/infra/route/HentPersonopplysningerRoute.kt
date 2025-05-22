@@ -7,14 +7,11 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
-import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil
-import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil.ikkeTilgang
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SAK_PATH
@@ -35,12 +32,10 @@ fun Route.hentPersonRoute(
                 }.fold(
                     {
                         when (it) {
-                            KunneIkkeHenteEnkelPerson.FantIkkeSakId -> Standardfeil.fantIkkeSak()
                             KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl -> call.respond500InternalServerError(
                                 melding = "Feil ved kall mot PDL",
                                 kode = "feil_ved_kall_mot_pdl",
                             )
-                            is KunneIkkeHenteEnkelPerson.HarIkkeTilgang -> call.respond403Forbidden(ikkeTilgang("Må ha rollen ${it.kreverEnAvRollene} for å hente personopplysninger knyttet til sak"))
                         }
                     },
                     { personopplysninger ->

@@ -1,21 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeIverksetteMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
@@ -37,8 +31,6 @@ class IverksettMeldekortService(
     val meldeperiodeRepo: MeldeperiodeRepo,
     val brukersMeldekortRepo: BrukersMeldekortRepo,
     val sessionFactory: SessionFactory,
-    private val tilgangsstyringService: TilgangsstyringService,
-    private val personService: PersonService,
     private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
     private val clock: Clock,
@@ -49,16 +41,12 @@ class IverksettMeldekortService(
     suspend fun iverksettMeldekort(
         kommando: IverksettMeldekortKommando,
     ): Either<KanIkkeIverksetteMeldekort, Pair<Sak, Utbetalingsvedtak>> {
-        if (!kommando.beslutter.erBeslutter()) {
-            return KanIkkeIverksetteMeldekort.MåVæreBeslutter(kommando.beslutter.roller).left()
-        }
+        krevBeslutterRolle(kommando.beslutter)
 
         val meldekortId = kommando.meldekortId
         val sakId = kommando.sakId
-        kastHvisIkkeTilgangTilPerson(kommando.beslutter, meldekortId, kommando.correlationId)
-
-        val sak = sakService.hentForSakId(sakId, kommando.beslutter, kommando.correlationId)
-            .getOrElse { return KanIkkeIverksetteMeldekort.KunneIkkeHenteSak(it).left() }
+        // Denne sjekker at saksbehandler har tilgang til personen og at den har en av rollene SAKSBEHANDLER eller BESLUTTER
+        val sak = sakService.hentForSakIdEllerKast(sakId, kommando.beslutter, kommando.correlationId)
         val meldekortBehandling: MeldekortBehandling = sak.hentMeldekortBehandling(meldekortId)
             ?: throw IllegalArgumentException("Fant ikke meldekort med id $meldekortId i sak $sakId")
 
@@ -93,24 +81,6 @@ class IverksettMeldekortService(
             sak.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
                 .leggTilUtbetalingsvedtak(utbetalingsvedtak) to utbetalingsvedtak
         }
-    }
-
-    private suspend fun kastHvisIkkeTilgangTilPerson(
-        saksbehandler: Saksbehandler,
-        meldekortId: MeldekortId,
-        correlationId: CorrelationId,
-    ) {
-        val fnr = personService.hentFnrForMeldekortId(meldekortId)
-        tilgangsstyringService
-            .harTilgangTilPerson(
-                fnr = fnr,
-                roller = saksbehandler.roller,
-                correlationId = correlationId,
-            ).onLeft {
-                throw IkkeFunnetException("Feil ved sjekk av tilgang til person. meldekortId: $meldekortId. CorrelationId: $correlationId")
-            }.onRight {
-                if (!it) throw TilgangException("Saksbehandler ${saksbehandler.navIdent} har ikke tilgang til person")
-            }
     }
 
     private suspend fun ferdigstillOppgave(
