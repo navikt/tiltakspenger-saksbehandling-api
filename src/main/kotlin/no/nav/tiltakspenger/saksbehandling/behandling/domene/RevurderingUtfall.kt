@@ -10,10 +10,6 @@ sealed interface RevurderingUtfall : BehandlingUtfall {
             require(valgtHjemmel.all { it is ValgtHjemmelForStans }) {
                 "Ugyldig hjemmel for stans $valgtHjemmel"
             }
-
-            require(valgtHjemmel.map { it.javaClass.simpleName }.distinct().size <= 1) {
-                "Valgte hjemler for en behandling kan bare være av en type - $valgtHjemmel"
-            }
         }
     }
 }
