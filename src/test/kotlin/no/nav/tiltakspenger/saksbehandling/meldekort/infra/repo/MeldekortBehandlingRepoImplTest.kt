@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
@@ -27,7 +27,7 @@ class MeldekortBehandlingRepoImplTest {
             val meldekortRepo = testDataHelper.meldekortRepo
             val sakRepo = testDataHelper.sakRepo
 
-            val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sak) = testDataHelper.persisterIverksattSøknadsbehandling(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
@@ -76,7 +76,7 @@ class MeldekortBehandlingRepoImplTest {
     fun `kan oppdatere`() {
         withMigratedDb { testDataHelper ->
             runTest {
-                val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+                val (sak) = testDataHelper.persisterIverksattSøknadsbehandling(
                     deltakelseFom = 1.januar(2024),
                     deltakelseTom = 31.mars(2024),
                 )

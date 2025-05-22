@@ -15,9 +15,9 @@ import no.nav.tiltakspenger.libs.periodisering.juni
 import no.nav.tiltakspenger.libs.periodisering.mai
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurdering
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakAvslag
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
@@ -93,7 +93,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
-                testDataHelper.persisterOpprettetFørstegangsbehandling(
+                testDataHelper.persisterOpprettetSøknadsbehandling(
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     fnr = fnr,
@@ -129,7 +129,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val sak = ObjectMother.nySak(fnr = fnr)
                 val deltakelseFom = 5.januar(2025)
                 val deltakelsesTom = 5.mai(2025)
-                testDataHelper.persisterIverksattFørstegangsbehandling(
+                testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
                     deltakelseFom = deltakelseFom,
@@ -178,7 +178,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val sak = ObjectMother.nySak(fnr = fnr)
                 val deltakelseFom = 5.januar(2025)
                 val deltakelsesTom = 5.mai(2025)
-                testDataHelper.persisterIverksattFørstegangsbehandling(
+                testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
                     deltakelseFom = deltakelseFom,
@@ -226,7 +226,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val sak = ObjectMother.nySak(fnr = fnr)
                 val deltakelseFom = 5.januar(2025)
                 val deltakelsesTom = 5.mai(2025)
-                testDataHelper.persisterIverksattFørstegangsbehandling(
+                testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
                     deltakelseFom = deltakelseFom,
@@ -319,7 +319,7 @@ class EndretTiltaksdeltakerJobbTest {
                     val sakRepo = testDataHelper.sakRepo
                     val endretTiltaksdeltakerJobb =
                         EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
-                    val (sakMedFørstegangsvedtak, vedtak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+                    val (sakMedFørstegangsvedtak, vedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
                         sakId = sak.id,
                         fnr = fnr,
                         deltakelseFom = førsteDeltakelseFom,
@@ -359,7 +359,7 @@ class EndretTiltaksdeltakerJobbTest {
                     val sakRepo = testDataHelper.sakRepo
                     val endretTiltaksdeltakerJobb =
                         EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
-                    val (sakMedFørstegangsvedtak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+                    val (sakMedFørstegangsvedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
                         sakId = sak.id,
                         fnr = fnr,
                         deltakelseFom = førsteDeltakelseFom,
@@ -413,7 +413,7 @@ class EndretTiltaksdeltakerJobbTest {
                         sak = sak,
                         søknad = førsteSøknad,
                     )
-                    testDataHelper.persisterIverksattFørstegangsbehandling(
+                    testDataHelper.persisterIverksattSøknadsbehandling(
                         sakId = sakMedFørstegangsvedtak.id,
                         fnr = fnr,
                         deltakelseFom = andreDeltakelseFom,
@@ -456,7 +456,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val sak = ObjectMother.nySak(fnr = fnr)
                 val deltakelseFom = 5.januar(2025)
                 val deltakelsesTom = 5.mai(2025)
-                testDataHelper.persisterIverksattFørstegangsbehandling(
+                testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
                     deltakelseFom = deltakelseFom,
@@ -510,7 +510,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val sak = ObjectMother.nySak(fnr = fnr)
                 val deltakelseFom = 5.januar(2025)
                 val deltakelsesTom = 5.mai(2025)
-                testDataHelper.persisterIverksattFørstegangsbehandling(
+                testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
                     deltakelseFom = deltakelseFom,

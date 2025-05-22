@@ -17,13 +17,14 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBeslutter.MåVæreSaksbehandler
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingsutfallDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingUtfallDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toAvslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
@@ -35,15 +36,15 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 
-private data class SendTilBeslutningBody(
+private data class Body(
     val fritekstTilVedtaksbrev: String?,
     val begrunnelseVilkårsvurdering: String?,
     val behandlingsperiode: PeriodeDTO,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
-    val antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    val antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
-    val utfall: BehandlingsutfallDTO,
+    val utfall: BehandlingUtfallDTO,
 ) {
     fun toDomain(
         sakId: SakId,
@@ -67,7 +68,11 @@ private data class SendTilBeslutningBody(
             },
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             avslagsgrunner = avslagsgrunner?.toAvslagsgrunnlag(),
-            utfall = utfall.toDomain(),
+            utfall = when (utfall) {
+                BehandlingUtfallDTO.INNVILGELSE -> SøknadsbehandlingUtfallType.INNVILGELSE
+                BehandlingUtfallDTO.AVSLAG -> SøknadsbehandlingUtfallType.AVSLAG
+                BehandlingUtfallDTO.STANS -> throw IllegalArgumentException("Ugyldig utfall for søknadsbehandling: $utfall")
+            },
         )
     }
 }
@@ -83,10 +88,10 @@ fun Route.sendSøknadsbehandlingTilBeslutningRoute(
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<SendTilBeslutningBody> { body ->
+                    call.withBody<Body> { body ->
                         val correlationId = call.correlationId()
 
-                        sendBehandlingTilBeslutningService.sendFørstegangsbehandlingTilBeslutning(
+                        sendBehandlingTilBeslutningService.sendSøknadsbehandlingTilBeslutning(
                             kommando = body.toDomain(
                                 sakId = sakId,
                                 behandlingId = behandlingId,

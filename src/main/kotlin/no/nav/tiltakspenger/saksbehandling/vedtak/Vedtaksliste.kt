@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinjeMedHull
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
@@ -92,10 +93,12 @@ data class Vedtaksliste(
     val valgteTiltaksdeltakelser: Periodisering<Tiltaksdeltagelse?> by lazy {
         innvilgetTidslinje.perioderMedVerdi
             .flatMap {
-                if (it.verdi == null) {
+                val verdi = it.verdi
+                if (verdi == null) {
                     listOf(PeriodeMedVerdi<Tiltaksdeltagelse?>(null, it.periode))
                 } else {
-                    it.verdi!!.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(it.periode).perioderMedVerdi as List<PeriodeMedVerdi<Tiltaksdeltagelse?>>
+                    require(verdi.behandling is Søknadsbehandling)
+                    verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(it.periode).perioderMedVerdi as List<PeriodeMedVerdi<Tiltaksdeltagelse?>>
                 }
             }
             .let {

@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.juni
 import no.nav.tiltakspenger.libs.periodisering.mars
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
@@ -27,7 +27,7 @@ class MeldekortBrukerPostgresRepoTest {
     @Test
     fun `kan lagre og hente`() {
         withMigratedDb { testDataHelper ->
-            val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sak) = testDataHelper.persisterIverksattSøknadsbehandling(
                 deltakelseFom = 1.januar(2024),
                 deltakelseTom = 31.mars(2024),
             )
@@ -59,12 +59,12 @@ class MeldekortBrukerPostgresRepoTest {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
 
-            val (sak1) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sak1) = testDataHelper.persisterIverksattSøknadsbehandling(
                 deltakelseFom = 1.januar(2024),
                 deltakelseTom = 31.mars(2024),
             )
 
-            val (sak2) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sak2) = testDataHelper.persisterIverksattSøknadsbehandling(
                 deltakelseFom = 1.april(2024),
                 deltakelseTom = 30.juni(2024),
             )
@@ -93,7 +93,7 @@ class MeldekortBrukerPostgresRepoTest {
         withMigratedDb { testDataHelper ->
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
 
-            val (sak) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sak) = testDataHelper.persisterIverksattSøknadsbehandling(
                 deltakelseFom = 1.januar(2024),
                 deltakelseTom = 31.mars(2024),
             )

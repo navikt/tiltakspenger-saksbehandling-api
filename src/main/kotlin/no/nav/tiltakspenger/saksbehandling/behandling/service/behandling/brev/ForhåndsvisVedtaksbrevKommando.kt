@@ -9,8 +9,9 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsutfall
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtfallType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import java.time.LocalDate
 
@@ -24,12 +25,12 @@ data class ForhåndsvisVedtaksbrevKommando(
     val virkingsperiode: Periode?,
     val barnetillegg: Periodisering<AntallBarn>?,
     val stansDato: LocalDate?,
-    val utfall: Behandlingsutfall,
+    val utfall: BehandlingUtfallType,
     val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
 ) {
     init {
-        if (utfall == Behandlingsutfall.AVSLAG || avslagsgrunner != null) {
-            require(utfall == Behandlingsutfall.AVSLAG) { "Behandlingsutfall må være AVSLAG når det er valgt avslagsgrunner" }
+        if (utfall == SøknadsbehandlingUtfallType.AVSLAG || avslagsgrunner != null) {
+            require(utfall == SøknadsbehandlingUtfallType.AVSLAG) { "Behandlingsutfall må være AVSLAG når det er valgt avslagsgrunner" }
             require(avslagsgrunner != null) { "Det må være valgt avslagsgrunner når behandlingsutfall er AVSLAG" }
         }
     }

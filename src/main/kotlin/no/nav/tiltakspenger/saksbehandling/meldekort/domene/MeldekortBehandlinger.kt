@@ -15,7 +15,7 @@ import java.time.LocalDate
 
 /**
  * Består av ingen, én eller flere [MeldekortBehandling].
- * Vil være tom fram til første innvilgede førstegangsbehandling.
+ * Vil være tom fram til første innvilgede søknadsbehandling.
  * Kun en behandling kan være under behandling (åpen) til enhver tid.
  * Merk at [verdi] inneholder alle meldekortbehandlinger, inkludert de som er avbrutt, og bør ikke brukes direkte!
  */

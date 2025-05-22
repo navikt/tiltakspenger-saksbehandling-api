@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 
+// TODO: split innvilgelse og avslag
 data class SendSøknadsbehandlingTilBeslutningKommando(
     val sakId: SakId,
     val behandlingId: BehandlingId,
@@ -21,7 +22,7 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
     val tiltaksdeltakelser: List<Pair<Periode, String>>,
     val antallDagerPerMeldeperiode: Int,
     val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
-    val utfall: Behandlingsutfall,
+    val utfall: SøknadsbehandlingUtfallType,
 ) {
     fun valgteTiltaksdeltakelser(behandling: Behandling): ValgteTiltaksdeltakelser {
         return ValgteTiltaksdeltakelser.periodiser(

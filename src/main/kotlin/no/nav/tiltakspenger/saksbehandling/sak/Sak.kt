@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
@@ -114,12 +115,18 @@ data class Sak(
     ): Triple<Sak, Søknad?, Behandling> {
         val behandling = this.hentBehandling(command.behandlingId!!)!!
         val avbruttBehandling = behandling.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
-        val avbruttSøknad = behandling.søknad?.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
+        val avbruttSøknad =
+            if (behandling is Søknadsbehandling) {
+                behandling.søknad.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
+            } else {
+                null
+            }
 
         val oppdatertSak = this.copy(
             soknader = if (avbruttSøknad != null) this.soknader.map { if (it.id == command.søknadId) avbruttSøknad else it } else this.soknader,
             behandlinger = avbruttBehandling.let { this.behandlinger.oppdaterBehandling(it) },
         )
+
         return Triple(oppdatertSak, avbruttSøknad, avbruttBehandling)
     }
 

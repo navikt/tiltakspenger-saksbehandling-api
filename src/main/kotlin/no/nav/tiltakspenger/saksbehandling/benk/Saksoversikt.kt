@@ -21,7 +21,7 @@ data class Saksoversikt(
 
 /**
  * @property id Vi har ikke en fellestype for behandlingId og søknadId, så vi bruker Ulid. Hvis ikke må vi endre denne til en sealed interface.
- * @property kravtidspunkt settes kun for søknad og førstegangsbehandling
+ * @property kravtidspunkt settes kun for søknad og søknadsbehandling
  */
 data class BehandlingEllerSøknadForSaksoversikt(
     val periode: Periode?,

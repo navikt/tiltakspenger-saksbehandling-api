@@ -13,6 +13,6 @@ data class SendRevurderingTilBeslutningKommando(
     val correlationId: CorrelationId,
     val begrunnelse: BegrunnelseVilkårsvurdering,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-    val valgteHjemler: List<ValgtHjemmelHarIkkeRettighet>,
+    val valgteHjemler: List<ValgtHjemmelForStans>,
     val stansDato: LocalDate,
 )

@@ -30,9 +30,10 @@ interface BehandlingRepo {
 
     fun hentForSøknadId(søknadId: SøknadId): Behandling?
 
-    fun hentFørstegangsbehandlingerTilDatadeling(limit: Int = 10): List<Behandling>
+    fun hentSøknadsbehandlingerTilDatadeling(limit: Int = 10): List<Behandling>
 
     fun markerSendtTilDatadeling(id: BehandlingId, tidspunkt: LocalDateTime)
+
     fun taBehandlingSaksbehandler(
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,

@@ -3,8 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev
 import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsutfall
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfallType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.validerStansDato
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererInnvilgelsesvedtaksbrevGateway
@@ -51,16 +53,16 @@ class ForhåndsvisVedtaksbrevService(
             -> behandling.virkningsperiode!!
         }
 
-        return when (behandling.behandlingstype) {
-            Behandlingstype.FØRSTEGANGSBEHANDLING -> {
+        return when (behandling) {
+            is Søknadsbehandling -> {
                 when (kommando.utfall) {
-                    Behandlingsutfall.INNVILGELSE -> genererInnvilgelsesbrevClient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+                    SøknadsbehandlingUtfallType.INNVILGELSE -> genererInnvilgelsesbrevClient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
                         hentBrukersNavn = personService::hentNavn,
                         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         vedtaksdato = LocalDate.now(),
                         tilleggstekst = kommando.fritekstTilVedtaksbrev,
                         fnr = sak.fnr,
-                        saksbehandlerNavIdent = behandling.saksbehandler,
+                        saksbehandlerNavIdent = behandling.saksbehandler!!,
                         beslutterNavIdent = behandling.beslutter,
                         innvilgelsesperiode = virkingsperiode!!,
                         saksnummer = sak.saksnummer,
@@ -72,30 +74,30 @@ class ForhåndsvisVedtaksbrevService(
                         ifRight = { it.pdf },
                     )
 
-                    Behandlingsutfall.AVSLAG -> genererAvslagsvedtaksbrevGateway.genererAvslagsVedtaksbrev(
+                    SøknadsbehandlingUtfallType.AVSLAG -> genererAvslagsvedtaksbrevGateway.genererAvslagsVedtaksbrev(
                         hentBrukersNavn = personService::hentNavn,
                         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         avslagsgrunner = kommando.avslagsgrunner!!,
                         fnr = sak.fnr,
-                        saksbehandlerNavIdent = behandling.saksbehandler,
+                        saksbehandlerNavIdent = behandling.saksbehandler!!,
                         beslutterNavIdent = behandling.beslutter,
                         avslagsperiode = virkingsperiode!!,
                         saksnummer = sak.saksnummer,
                         sakId = sak.id,
                         tilleggstekst = kommando.fritekstTilVedtaksbrev,
                         forhåndsvisning = true,
-                        harSøktBarnetillegg = behandling.søknad?.barnetillegg?.isNotEmpty() ?: false,
+                        harSøktBarnetillegg = behandling.søknad.barnetillegg.isNotEmpty(),
                         datoForUtsending = LocalDate.now(),
                     ).fold(
                         ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
                         ifRight = { it.pdf },
                     )
 
-                    Behandlingsutfall.STANS -> throw IllegalArgumentException("Stans er ikke gyldig utfall for førstegangsbehandling")
+                    RevurderingUtfallType.STANS -> throw IllegalArgumentException("Stans er ikke gyldig utfall for søknadsbehandling")
                 }
             }
 
-            Behandlingstype.REVURDERING -> {
+            is Revurdering -> {
                 sak.validerStansDato(kommando.stansDato)
                 val stansePeriode = kommando.stansDato?.let { stansDato ->
                     sak.vedtaksliste.sisteDagSomGirRett?.let { sisteDagSomGirRett ->
@@ -108,7 +110,7 @@ class ForhåndsvisVedtaksbrevService(
                     hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                     vedtaksdato = LocalDate.now(),
                     fnr = sak.fnr,
-                    saksbehandlerNavIdent = behandling.saksbehandler,
+                    saksbehandlerNavIdent = behandling.saksbehandler!!,
                     beslutterNavIdent = behandling.beslutter,
                     virkningsperiode = stansePeriode!!,
                     saksnummer = sak.saksnummer,

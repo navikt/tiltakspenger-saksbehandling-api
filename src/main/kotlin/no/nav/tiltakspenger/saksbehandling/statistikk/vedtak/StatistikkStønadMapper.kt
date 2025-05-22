@@ -1,16 +1,29 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.VedtakStatistikkResultat.Companion.toVedtakStatistikkResultat
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.util.UUID
 
 /**
  * Dette må sees på som en rammesak for stønadstatistikk der vi fyller på med utbetalingsinformasjon i tillegg.
- * TODO statistikk jah: Hør med stønadsstatistikk om vi kun skal sende denne for førstegangsbehandlingen, eller om de trenger noe nytt ved revurdering.
+ * TODO statistikk jah: Hør med stønadsstatistikk om vi kun skal sende denne for søknadsbehandlingen, eller om de trenger noe nytt ved revurdering.
  */
 fun genererStønadsstatistikkForRammevedtak(
     vedtak: Rammevedtak,
 ): StatistikkStønadDTO {
+    val erSøknadsbehandling = vedtak.behandling is Søknadsbehandling
+
+    val søknad = if (erSøknadsbehandling) vedtak.behandling.søknad else null
+    val tiltaksdeltakelser =
+        if (erSøknadsbehandling) {
+            vedtak.behandling.valgteTiltaksdeltakelser?.let { valgteTiltaksdeltakelser ->
+                valgteTiltaksdeltakelser.getTiltaksdeltakelser().map { it.eksternDeltagelseId }
+            }
+        } else {
+            null
+        }
+
     return StatistikkStønadDTO(
         id = UUID.randomUUID(),
         brukerId = vedtak.fnr.verdi,
@@ -25,10 +38,10 @@ fun genererStønadsstatistikkForRammevedtak(
         sakTilDato = vedtak.periode.tilOgMed,
         ytelse = "IND",
 
-        søknadId = vedtak.behandling.søknad?.id?.toString(),
-        søknadDato = vedtak.behandling.søknad?.opprettet?.toLocalDate(),
-        søknadFraDato = vedtak.behandling.søknad?.tiltak?.deltakelseFom,
-        søknadTilDato = vedtak.behandling.søknad?.tiltak?.deltakelseTom,
+        søknadId = søknad?.id?.toString(),
+        søknadDato = søknad?.opprettet?.toLocalDate(),
+        søknadFraDato = søknad?.tiltak?.deltakelseFom,
+        søknadTilDato = søknad?.tiltak?.deltakelseTom,
 
         vedtakId = vedtak.id.toString(),
         vedtaksType = "Ny Rettighet",
@@ -36,8 +49,6 @@ fun genererStønadsstatistikkForRammevedtak(
         vedtakDato = vedtak.opprettet.toLocalDate(),
         vedtakFom = vedtak.periode.fraOgMed,
         vedtakTom = vedtak.periode.tilOgMed,
-        tiltaksdeltakelser = vedtak.behandling.valgteTiltaksdeltakelser?.let { valgteTiltaksdeltakelser ->
-            valgteTiltaksdeltakelser.getTiltaksdeltakelser().map { it.eksternDeltagelseId }
-        } ?: emptyList(),
+        tiltaksdeltakelser = tiltaksdeltakelser ?: emptyList(),
     )
 }

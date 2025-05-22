@@ -2,25 +2,23 @@ package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
 import no.nav.tiltakspenger.libs.datadeling.DatadelingBehandlingDTO
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 
-fun Behandling.toBehandlingJson(): String {
+fun Søknadsbehandling.toBehandlingJson(): String {
     return DatadelingBehandlingDTO(
         behandlingId = id.toString(),
         sakId = sakId.toString(),
         saksnummer = saksnummer.verdi,
-        fraOgMed = virkningsperiode?.fraOgMed ?: saksopplysningsperiode?.fraOgMed
-            ?: søknad!!.vurderingsperiode().fraOgMed,
-        tilOgMed = virkningsperiode?.tilOgMed ?: saksopplysningsperiode?.tilOgMed
-            ?: søknad!!.vurderingsperiode().tilOgMed,
+        fraOgMed = virkningsperiode?.fraOgMed ?: saksopplysningsperiode.fraOgMed,
+        tilOgMed = virkningsperiode?.tilOgMed ?: saksopplysningsperiode.tilOgMed,
         behandlingStatus = status.toDatadelingDTO(),
         saksbehandler = saksbehandler,
         beslutter = beslutter,
         iverksattTidspunkt = iverksattTidspunkt,
         fnr = fnr.verdi,
-        // Skal kun kalles for førstegangsbehandlinger, men det skal sjekkes lenger ut.
-        søknadJournalpostId = søknad!!.journalpostId,
+        // Skal kun kalles for søknadsbehandlinger, men det skal sjekkes lenger ut.
+        søknadJournalpostId = søknad.journalpostId,
         opprettetTidspunktSaksbehandlingApi = opprettet,
 
     ).let { serialize(it) }

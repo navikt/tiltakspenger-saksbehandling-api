@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBeha
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.objectmothers.førstegangsbehandlingIverksattMedMeldeperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.søknadsbehandlingIverksattMedMeldeperioder
 import org.junit.jupiter.api.Test
 
 class AutomatiskMeldekortBehandlingServiceTest {
@@ -29,7 +29,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
         val automatiskMeldekortBehandlingService = tac.meldekortContext.automatiskMeldekortBehandlingService
 
         val sak = runBlocking {
-            tac.førstegangsbehandlingIverksattMedMeldeperioder(
+            tac.søknadsbehandlingIverksattMedMeldeperioder(
                 periode = virkningsperiode,
                 clock = clock,
             )
@@ -62,7 +62,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
         val automatiskMeldekortBehandlingService = tac.meldekortContext.automatiskMeldekortBehandlingService
 
         val sak = runBlocking {
-            tac.førstegangsbehandlingIverksattMedMeldeperioder(
+            tac.søknadsbehandlingIverksattMedMeldeperioder(
                 periode = virkningsperiode,
                 clock = clock,
             )
@@ -93,7 +93,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
         val automatiskMeldekortBehandlingService = tac.meldekortContext.automatiskMeldekortBehandlingService
 
         val sak = runBlocking {
-            tac.førstegangsbehandlingIverksattMedMeldeperioder(
+            tac.søknadsbehandlingIverksattMedMeldeperioder(
                 periode = virkningsperiode,
                 clock = clock,
                 antallDagerPerMeldeperiode = 10,
@@ -134,7 +134,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
         val automatiskMeldekortBehandlingService = tac.meldekortContext.automatiskMeldekortBehandlingService
 
         val sak = runBlocking {
-            tac.førstegangsbehandlingIverksattMedMeldeperioder(
+            tac.søknadsbehandlingIverksattMedMeldeperioder(
                 periode = virkningsperiode,
                 clock = clock,
             )
@@ -184,7 +184,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
         val automatiskMeldekortBehandlingService = tac.meldekortContext.automatiskMeldekortBehandlingService
 
         val sak = runBlocking {
-            tac.førstegangsbehandlingIverksattMedMeldeperioder(
+            tac.søknadsbehandlingIverksattMedMeldeperioder(
                 periode = virkningsperiode,
                 clock = clock,
             )

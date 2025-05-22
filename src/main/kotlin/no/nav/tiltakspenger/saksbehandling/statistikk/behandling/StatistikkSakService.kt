@@ -8,6 +8,8 @@ import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 
@@ -16,11 +18,10 @@ class StatistikkSakService(
     private val gitHash: String,
     private val clock: Clock,
 ) {
-    suspend fun genererStatistikkForNyForstegangsbehandling(
-        behandling: Behandling,
+    suspend fun genererStatistikkForSøknadsbehandling(
+        behandling: Søknadsbehandling,
         søknadId: SøknadId,
     ): StatistikkSakDTO {
-        require(behandling.erFørstegangsbehandling)
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
             gjelderKode6 = gjelderKode6(behandling.fnr, "SøknadId: $søknadId"),
@@ -31,9 +32,8 @@ class StatistikkSakService(
     }
 
     suspend fun genererStatistikkForRevurdering(
-        behandling: Behandling,
+        behandling: Revurdering,
     ): StatistikkSakDTO {
-        require(behandling.erRevurdering)
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
             gjelderKode6 = gjelderKode6(behandling.fnr, "BehandlingId: ${behandling.id}"),

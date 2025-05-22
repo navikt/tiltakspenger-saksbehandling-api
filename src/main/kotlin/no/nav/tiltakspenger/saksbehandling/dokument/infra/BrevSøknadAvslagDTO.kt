@@ -10,6 +10,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Forskrift
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Paragraf
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfall
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -75,11 +77,15 @@ internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
     hentSaksbehandlersNavn: suspend (String) -> String,
     datoForUtsending: LocalDate,
 ): String {
+    require(behandling is Søknadsbehandling && behandling.utfall is SøknadsbehandlingUtfall.Avslag) {
+        "Behandlingen må være et avslag for å generere avslagbrev"
+    }
+
     val brukersNavn = hentBrukersNavn(this.fnr)
     val saksbehandlersNavn = hentSaksbehandlersNavn(this.saksbehandlerNavIdent)
     val besluttersNavn = hentSaksbehandlersNavn(this.beslutterNavIdent)
 
-    val harSøktBarnetillegg = behandling.søknad?.barnetillegg?.isNotEmpty() ?: false
+    val harSøktBarnetillegg = behandling.søknad.barnetillegg.isNotEmpty() ?: false
     return BrevSøknadAvslagDTO(
         personalia = BrevPersonaliaDTO(
             ident = fnr.verdi,
@@ -89,9 +95,9 @@ internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
         saksnummer = saksnummer.verdi,
         tilleggstekst = this.behandling.fritekstTilVedtaksbrev!!.verdi,
         forhåndsvisning = false,
-        avslagsgrunner = this.behandling.avslagsgrunner!!.toAvslagsgrunnerBrevDto(),
-        hjemlerTekst = if (this.behandling.avslagsgrunner.size > 1) {
-            this.behandling.avslagsgrunner.createBrevForskrifter(
+        avslagsgrunner = this.behandling.utfall.avslagsgrunner.toAvslagsgrunnerBrevDto(),
+        hjemlerTekst = if (this.behandling.utfall.avslagsgrunner.size > 1) {
+            this.behandling.utfall.avslagsgrunner.createBrevForskrifter(
                 harSøktBarnetillegg,
             )
         } else {
@@ -100,7 +106,7 @@ internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
         harSøktMedBarn = harSøktBarnetillegg,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
-        avslagsgrunnerSize = this.behandling.avslagsgrunner.size,
+        avslagsgrunnerSize = this.behandling.utfall.avslagsgrunner.size,
         avslagFraOgMed = this.periode.fraOgMed.format(norskDatoFormatter),
         avslagTilOgMed = this.periode.tilOgMed.format(norskDatoFormatter),
         datoForUtsending = datoForUtsending.format(norskDatoFormatter),

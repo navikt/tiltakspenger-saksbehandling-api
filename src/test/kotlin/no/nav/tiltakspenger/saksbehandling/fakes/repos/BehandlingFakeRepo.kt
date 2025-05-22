@@ -11,6 +11,8 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import java.time.LocalDateTime
 
@@ -28,32 +30,36 @@ class BehandlingFakeRepo : BehandlingRepo {
 
     override fun hentOrNull(
         behandlingId: BehandlingId,
-        sessionContext: no.nav.tiltakspenger.libs.persistering.domene.SessionContext?,
+        sessionContext: SessionContext?,
     ): Behandling? {
         return data.get()[behandlingId]
     }
 
     override fun hent(
         behandlingId: BehandlingId,
-        sessionContext: no.nav.tiltakspenger.libs.persistering.domene.SessionContext?,
+        sessionContext: SessionContext?,
     ): Behandling {
         return hentOrNull(behandlingId, sessionContext)!!
     }
 
     override fun hentAlleForFnr(fnr: Fnr): List<Behandling> = data.get().values.filter { it.fnr == fnr }
 
-    override fun hentForSøknadId(søknadId: SøknadId): Behandling? = data.get().values.find { it.søknad?.id == søknadId }
+    override fun hentForSøknadId(søknadId: SøknadId): Behandling? =
+        data.get().values.find { it is Søknadsbehandling && it.søknad.id == søknadId }
 
-    override fun hentFørstegangsbehandlingerTilDatadeling(limit: Int): List<Behandling> {
+    override fun hentSøknadsbehandlingerTilDatadeling(limit: Int): List<Behandling> {
         return data.get().values.filter {
             it.sendtTilDatadeling == null
         }
     }
 
     override fun markerSendtTilDatadeling(id: BehandlingId, tidspunkt: LocalDateTime) {
-        data.get()[id] = data.get()[id]!!.copy(
-            sendtTilDatadeling = tidspunkt,
-        )
+        val behandling = data.get()[id]!!
+
+        data.get()[id] = when (behandling) {
+            is Revurdering -> behandling.copy(sendtTilDatadeling = tidspunkt)
+            is Søknadsbehandling -> behandling.copy(sendtTilDatadeling = tidspunkt)
+        }
     }
 
     override fun taBehandlingSaksbehandler(
@@ -63,13 +69,24 @@ class BehandlingFakeRepo : BehandlingRepo {
         sessionContext: SessionContext?,
     ): Boolean {
         val behandling = data.get()[behandlingId]
-        require(behandling != null && behandling.saksbehandler == null) {
-            "Behandling med id $behandlingId finnes ikke eller beslutter ${behandling?.saksbehandler} er ikke null"
+        requireNotNull(behandling) {
+            "Behandling med id $behandlingId finnes ikke"
         }
-        data.get()[behandlingId] = data.get()[behandlingId]!!.copy(
-            saksbehandler = saksbehandler.navIdent,
-            status = behandlingsstatus,
-        )
+        require(behandling.saksbehandler == null) {
+            "Saksbehandler ${behandling.saksbehandler} er ikke null"
+        }
+
+        data.get()[behandlingId] = when (behandling) {
+            is Revurdering -> behandling.copy(
+                saksbehandler = saksbehandler.navIdent,
+                status = behandlingsstatus,
+            )
+
+            is Søknadsbehandling -> behandling.copy(
+                saksbehandler = saksbehandler.navIdent,
+                status = behandlingsstatus,
+            )
+        }
         return true
     }
 
@@ -80,13 +97,25 @@ class BehandlingFakeRepo : BehandlingRepo {
         sessionContext: SessionContext?,
     ): Boolean {
         val behandling = data.get()[behandlingId]
-        require(behandling != null && behandling.beslutter == null) {
-            "Behandling med id $behandlingId finnes ikke eller beslutter ${behandling?.beslutter} er ikke null"
+        requireNotNull(behandling) {
+            "Behandling med id $behandlingId finnes ikke"
         }
-        data.get()[behandlingId] = data.get()[behandlingId]!!.copy(
-            beslutter = beslutter.navIdent,
-            status = behandlingsstatus,
-        )
+        require(behandling.beslutter == null) {
+            "Behandling ${behandling.saksbehandler} er ikke null"
+        }
+
+        data.get()[behandlingId] = when (behandling) {
+            is Revurdering -> behandling.copy(
+                beslutter = beslutter.navIdent,
+                status = behandlingsstatus,
+            )
+
+            is Søknadsbehandling -> behandling.copy(
+                beslutter = beslutter.navIdent,
+                status = behandlingsstatus,
+            )
+        }
+
         return true
     }
 
@@ -100,9 +129,16 @@ class BehandlingFakeRepo : BehandlingRepo {
         require(behandling != null && behandling.saksbehandler == nåværendeSaksbehandler) {
             "Behandling med id $behandlingId finnes ikke eller har ikke saksbehandler $nåværendeSaksbehandler"
         }
-        data.get()[behandlingId] = data.get()[behandlingId]!!.copy(
-            saksbehandler = nySaksbehandler.navIdent,
-        )
+
+        data.get()[behandlingId] = when (behandling) {
+            is Revurdering -> behandling.copy(
+                saksbehandler = nySaksbehandler.navIdent,
+            )
+
+            is Søknadsbehandling -> behandling.copy(
+                saksbehandler = nySaksbehandler.navIdent,
+            )
+        }
         return true
     }
 
@@ -116,9 +152,16 @@ class BehandlingFakeRepo : BehandlingRepo {
         require(behandling != null && behandling.beslutter == nåværendeBeslutter) {
             "Behandling med id $behandlingId finnes ikke eller har ikke beslutter $nåværendeBeslutter"
         }
-        data.get()[behandlingId] = data.get()[behandlingId]!!.copy(
-            beslutter = nyBeslutter.navIdent,
-        )
+
+        data.get()[behandlingId] = when (behandling) {
+            is Revurdering -> behandling.copy(
+                beslutter = nyBeslutter.navIdent,
+            )
+
+            is Søknadsbehandling -> behandling.copy(
+                beslutter = nyBeslutter.navIdent,
+            )
+        }
         return true
     }
 
@@ -132,10 +175,18 @@ class BehandlingFakeRepo : BehandlingRepo {
         require(behandling != null && behandling.saksbehandler == nåværendeSaksbehandler.navIdent) {
             "Behandling med id $behandlingId finnes ikke eller har ikke saksbehandler $nåværendeSaksbehandler"
         }
-        data.get()[behandlingId] = data.get()[behandlingId]!!.copy(
-            saksbehandler = null,
-            status = behandlingsstatus,
-        )
+
+        data.get()[behandlingId] = when (behandling) {
+            is Revurdering -> behandling.copy(
+                saksbehandler = null,
+                status = behandlingsstatus,
+            )
+
+            is Søknadsbehandling -> behandling.copy(
+                saksbehandler = null,
+                status = behandlingsstatus,
+            )
+        }
         return true
     }
 
@@ -149,10 +200,18 @@ class BehandlingFakeRepo : BehandlingRepo {
         require(behandling != null && behandling.beslutter == nåværendeBeslutter.navIdent) {
             "Behandling med id $behandlingId finnes ikke eller har ikke beslutter $nåværendeBeslutter"
         }
-        data.get()[behandlingId] = data.get()[behandlingId]!!.copy(
-            beslutter = null,
-            status = behandlingsstatus,
-        )
+
+        data.get()[behandlingId] = when (behandling) {
+            is Revurdering -> behandling.copy(
+                beslutter = null,
+                status = behandlingsstatus,
+            )
+
+            is Søknadsbehandling -> behandling.copy(
+                beslutter = null,
+                status = behandlingsstatus,
+            )
+        }
         return true
     }
 

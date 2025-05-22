@@ -15,7 +15,7 @@ import no.nav.person.pdl.leesah.forelderbarnrelasjon.ForelderBarnRelasjon
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.zoneIdOslo
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -184,7 +184,7 @@ class PersonhendelseServiceTest {
                 val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personGateway, statistikkSakRepo)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
-                val (_, behandling, _) = testDataHelper.persisterOpprettetFørstegangsbehandling(
+                val (_, behandling, _) = testDataHelper.persisterOpprettetSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
                     sak = sak,
@@ -239,7 +239,7 @@ class PersonhendelseServiceTest {
                 val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personGateway, statistikkSakRepo)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
-                val (_, behandling, _) = testDataHelper.persisterOpprettetFørstegangsbehandling(
+                val (_, behandling, _) = testDataHelper.persisterOpprettetSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
                     sak = sak,

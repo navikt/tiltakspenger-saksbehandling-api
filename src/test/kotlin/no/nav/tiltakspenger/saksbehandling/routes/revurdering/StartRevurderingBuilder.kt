@@ -31,13 +31,13 @@ interface StartRevurderingBuilder {
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, Behandling, Behandling> {
-        val (sak, søknad, førstegangsbehandling) = iverksett(tac)
+        val (sak, søknad, søknadsbehandling) = iverksett(tac)
         val revurdering = startRevurderingForSakId(tac, sak.id, sak.vedtaksliste.innvilgelsesperiode!!.fraOgMed)
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
         return Tuple4(
             oppdatertSak,
             søknad,
-            førstegangsbehandling,
+            søknadsbehandling,
             revurdering,
         )
     }

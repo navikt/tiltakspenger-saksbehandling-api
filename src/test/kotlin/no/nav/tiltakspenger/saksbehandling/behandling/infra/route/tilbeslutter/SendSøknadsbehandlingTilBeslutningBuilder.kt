@@ -31,10 +31,10 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 
-interface SendFørstegangsbehandlingTilBeslutningBuilder {
+interface SendSøknadsbehandlingTilBeslutningBuilder {
 
     /** Oppretter ny sak, søknad og behandling. */
-    suspend fun ApplicationTestBuilder.sendFørstegangsbehandlingTilBeslutning(
+    suspend fun ApplicationTestBuilder.sendSøknadsbehandlingTilBeslutning(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
         virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
@@ -49,7 +49,7 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
             sak,
             søknad,
             behandlingId,
-            sendFørstegangsbehandlingTilBeslutningForBehandlingId(
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
                 tac,
                 sakId,
                 behandlingId,
@@ -61,7 +61,7 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
     }
 
     /** Forventer at det allerede finnes en behandling med status `UNDER_BEHANDLING` */
-    suspend fun ApplicationTestBuilder.sendFørstegangsbehandlingTilBeslutningForBehandlingId(
+    suspend fun ApplicationTestBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId(
         tac: TestApplicationContext,
         sakId: SakId,
         behandlingId: BehandlingId,
@@ -117,7 +117,7 @@ interface SendFørstegangsbehandlingTilBeslutningBuilder {
         }
     }
 
-    suspend fun ApplicationTestBuilder.sendFørstegangsbehandlingTilBeslutningReturnerRespons(
+    suspend fun ApplicationTestBuilder.sendSøknadsbehandlingTilBeslutningReturnerRespons(
         tac: TestApplicationContext,
         sakId: SakId,
         behandlingId: BehandlingId,

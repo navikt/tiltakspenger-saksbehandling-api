@@ -17,14 +17,15 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsutfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendRevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepoTest.Companion.random
@@ -40,7 +41,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
+internal fun TestDataHelper.persisterOpprettetSøknadsbehandling(
     sakId: SakId = SakId.random(),
     saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
     fnr: Fnr = Fnr.random(),
@@ -75,7 +76,7 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
         ),
     barnetillegg: Barnetillegg? = null,
     clock: Clock = this.clock,
-): Triple<Sak, Behandling, Søknad> {
+): Triple<Sak, Søknadsbehandling, Søknad> {
     this.persisterSakOgSøknad(
         fnr = sak.fnr,
         søknad = søknad,
@@ -96,12 +97,12 @@ internal fun TestDataHelper.persisterOpprettetFørstegangsbehandling(
 
     return Triple(
         sakRepo.hentForSakId(sakId)!!,
-        sakMedBehandling.behandlinger.singleOrNullOrThrow()!!,
+        sakMedBehandling.behandlinger.singleOrNullOrThrow()!! as Søknadsbehandling,
         søknadRepo.hentForSøknadId(søknad.id)!!,
     )
 }
 
-internal fun TestDataHelper.persisterKlarTilBeslutningFørstegangsbehandling(
+internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
@@ -132,18 +133,18 @@ internal fun TestDataHelper.persisterKlarTilBeslutningFørstegangsbehandling(
         sakId = sak.id,
         saksnummer = sak.saksnummer,
     ),
-    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterKlarTilBeslutningFørstegangsbehandling()"),
-    begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterKlarTilBeslutningFørstegangsbehandling()"),
+    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterKlarTilBeslutningSøknadsbehandling()"),
+    begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterKlarTilBeslutningSøknadsbehandling()"),
     correlationId: CorrelationId = CorrelationId.generate(),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
-    utfall: Behandlingsutfall = Behandlingsutfall.INNVILGELSE,
+    utfall: SøknadsbehandlingUtfallType = SøknadsbehandlingUtfallType.INNVILGELSE,
     /**
      * Brukt for å styre meldeperiode generering
      */
     clock: Clock = this.clock,
-    antallDagerPerMeldeperiode: Int = Behandling.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
 ): Pair<Sak, Behandling> {
-    val (sak, førstegangsbehandling) = persisterOpprettetFørstegangsbehandling(
+    val (sak, søknadsbehandling) = persisterOpprettetSøknadsbehandling(
         sakId = sak.id,
         fnr = sak.fnr,
         deltakelseFom = deltakelseFom,
@@ -155,13 +156,13 @@ internal fun TestDataHelper.persisterKlarTilBeslutningFørstegangsbehandling(
         søknad = søknad,
         sak = sak,
     )
-    val oppdatertFørstegangsbehandling =
-        førstegangsbehandling
+    val oppdatertSøknadsbehandling =
+        søknadsbehandling
             .tilBeslutning(
                 SendSøknadsbehandlingTilBeslutningKommando(
                     sakId = sak.id,
                     saksbehandler = saksbehandler,
-                    behandlingId = førstegangsbehandling.id,
+                    behandlingId = søknadsbehandling.id,
                     correlationId = correlationId,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
@@ -170,7 +171,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningFørstegangsbehandling(
                     tiltaksdeltakelser = listOf(
                         Pair(
                             tiltaksOgVurderingsperiode,
-                            førstegangsbehandling.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
+                            søknadsbehandling.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
                         ),
                     ),
                     antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
@@ -180,12 +181,12 @@ internal fun TestDataHelper.persisterKlarTilBeslutningFørstegangsbehandling(
                 clock = clock,
             )
 
-    behandlingRepo.lagre(oppdatertFørstegangsbehandling)
+    behandlingRepo.lagre(oppdatertSøknadsbehandling)
     val oppdatertSak = sakRepo.hentForSakId(sakId)!!
-    return Pair(oppdatertSak, oppdatertFørstegangsbehandling)
+    return Pair(oppdatertSak, oppdatertSøknadsbehandling)
 }
 
-internal fun TestDataHelper.persisterUnderBeslutningFørstegangsbehandling(
+internal fun TestDataHelper.persisterUnderBeslutningSøknadsbehandling(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
@@ -216,8 +217,8 @@ internal fun TestDataHelper.persisterUnderBeslutningFørstegangsbehandling(
         sakId = sak.id,
         saksnummer = sak.saksnummer,
     ),
-    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterKlarTilBeslutningFørstegangsbehandling()"),
-    begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterKlarTilBeslutningFørstegangsbehandling()"),
+    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterKlarTilBeslutningSøknadsbehandling()"),
+    begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterKlarTilBeslutningSøknadsbehandling()"),
     correlationId: CorrelationId = CorrelationId.generate(),
     /**
      * Brukt for å styre meldeperiode generering
@@ -225,7 +226,7 @@ internal fun TestDataHelper.persisterUnderBeslutningFørstegangsbehandling(
     clock: Clock = this.clock,
     beslutter: Saksbehandler = ObjectMother.beslutter(),
 ): Pair<Sak, Behandling> {
-    val behandling = persisterKlarTilBeslutningFørstegangsbehandling(
+    val behandling = persisterKlarTilBeslutningSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,
@@ -249,7 +250,7 @@ internal fun TestDataHelper.persisterUnderBeslutningFørstegangsbehandling(
     return Pair(oppdatertSak, tilBeslutning)
 }
 
-internal fun TestDataHelper.persisterAvbruttFørstegangsbehandling(
+internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
@@ -284,7 +285,7 @@ internal fun TestDataHelper.persisterAvbruttFørstegangsbehandling(
         ),
     clock: Clock = this.clock,
 ): Pair<Sak, Behandling> {
-    val (sakMedFørstegangsbehandling, _) = persisterOpprettetFørstegangsbehandling(
+    val (sakMedSøknadsbehandling, _) = persisterOpprettetSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,
@@ -297,14 +298,14 @@ internal fun TestDataHelper.persisterAvbruttFørstegangsbehandling(
         sak = sak,
         clock = clock,
     )
-    val førstegangsbehandling = sakMedFørstegangsbehandling.behandlinger.singleOrNullOrThrow()!!
-    val avbruttBehandling = førstegangsbehandling.avbryt(
+    val søknadsbehandling = sakMedSøknadsbehandling.behandlinger.singleOrNullOrThrow()!!
+    val avbruttBehandling = søknadsbehandling.avbryt(
         saksbehandler,
         "begrunnelse",
         avbruttTidspunkt,
     )
     behandlingRepo.lagre(avbruttBehandling)
-    return sakRepo.hentForSakId(sakMedFørstegangsbehandling.id)!! to avbruttBehandling
+    return sakRepo.hentForSakId(sakMedSøknadsbehandling.id)!! to avbruttBehandling
 }
 
 /** Skal kun persistere en helt tom sak */
@@ -325,7 +326,7 @@ internal fun TestDataHelper.persisterNySak(
 /**
  * Persisterer og et rammevedtak.
  */
-internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
+internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
@@ -359,14 +360,14 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
             saksnummer = sak.saksnummer,
         ),
     correlationId: CorrelationId = CorrelationId.generate(),
-    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterIverksattFørstegangsbehandling()"),
-    begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterIverksattFørstegangsbehandling()"),
+    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterIverksattSøknadsbehandling()"),
+    begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterIverksattSøknadsbehandling()"),
     /**
      * Brukt for å styre meldeperiode generering
      */
     clock: Clock = this.clock,
 ): Triple<Sak, Rammevedtak, Behandling> {
-    val (sak, førstegangsbehandling) = persisterKlarTilBeslutningFørstegangsbehandling(
+    val (sak, søknadsbehandling) = persisterKlarTilBeslutningSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,
@@ -383,11 +384,11 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
         clock = clock,
     )
 
-    val oppdatertFørstegangsbehandling =
-        førstegangsbehandling.taBehandling(beslutter)
-            .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), clock)
-    behandlingRepo.lagre(oppdatertFørstegangsbehandling)
-    val vedtak = sak.opprettVedtak(oppdatertFørstegangsbehandling, clock).second
+    val oppdatertBehandling = søknadsbehandling
+        .taBehandling(beslutter)
+        .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), clock)
+    behandlingRepo.lagre(oppdatertBehandling)
+    val vedtak = sak.opprettVedtak(oppdatertBehandling, clock).second
     vedtakRepo.lagre(vedtak)
     sakRepo.oppdaterSkalSendesTilMeldekortApi(
         sakId = vedtak.sakId,
@@ -396,10 +397,10 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandling(
     val oppdatertSak = sakRepo.hentForSakId(sakId)!!
     val (_, meldeperioder) = oppdatertSak.genererMeldeperioder(clock)
     meldeperiodeRepo.lagre(meldeperioder)
-    return Triple(sakRepo.hentForSakId(sakId)!!, vedtak, oppdatertFørstegangsbehandling)
+    return Triple(sakRepo.hentForSakId(sakId)!!, vedtak, oppdatertBehandling)
 }
 
-internal fun TestDataHelper.persisterIverksattFørstegangsbehandlingAvslag(
+internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
@@ -425,14 +426,14 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandlingAvslag(
         saksnummer = sak.saksnummer,
     ),
     correlationId: CorrelationId = CorrelationId.generate(),
-    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterIverksattFørstegangsbehandlingAvslag()"),
-    begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterIverksattFørstegangsbehandlingAvslag()"),
+    fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("persisterIverksattSøknadsbehandlingAvslag()"),
+    begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterIverksattSøknadsbehandlingAvslag()"),
     /**
      * Brukt for å styre meldeperiode generering
      */
     clock: Clock = this.clock,
 ): Triple<Sak, Rammevedtak, Behandling> {
-    val (sak, førstegangsbehandling) = persisterKlarTilBeslutningFørstegangsbehandling(
+    val (sak, søknadsbehandling) = persisterKlarTilBeslutningSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,
@@ -445,23 +446,23 @@ internal fun TestDataHelper.persisterIverksattFørstegangsbehandlingAvslag(
         søknad = søknad,
         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-        utfall = Behandlingsutfall.AVSLAG,
+        utfall = SøknadsbehandlingUtfallType.AVSLAG,
         avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
         correlationId = correlationId,
         clock = clock,
     )
 
-    val oppdatertFørstegangsbehandling =
-        førstegangsbehandling.taBehandling(beslutter)
+    val oppdatertSøknadsbehandling =
+        søknadsbehandling.taBehandling(beslutter)
             .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), clock)
-    behandlingRepo.lagre(oppdatertFørstegangsbehandling)
-    val (sakMedVedtak, vedtak) = sak.opprettVedtak(oppdatertFørstegangsbehandling, clock)
+    behandlingRepo.lagre(oppdatertSøknadsbehandling)
+    val (sakMedVedtak, vedtak) = sak.opprettVedtak(oppdatertSøknadsbehandling, clock)
     vedtakRepo.lagre(vedtak)
-    return Triple(sakMedVedtak, vedtak, oppdatertFørstegangsbehandling)
+    return Triple(sakMedVedtak, vedtak, oppdatertSøknadsbehandling)
 }
 
 /**
- * Persisterer førstegangsbehandling med tilhørende rammevedtak og starter en revurdering
+ * Persisterer søknadsbehandling med tilhørende rammevedtak og starter en revurdering
  */
 internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
     sakId: SakId = SakId.random(),
@@ -500,7 +501,7 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
     clock: Clock = this.clock,
 ): Pair<Sak, Behandling> {
     val (sak, _) = runBlocking {
-        persisterIverksattFørstegangsbehandling(
+        persisterIverksattSøknadsbehandling(
             sakId = sakId,
             fnr = fnr,
             deltakelseFom = deltakelseFom,
@@ -560,7 +561,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
     clock: Clock = this.clock,
 ): Pair<Sak, Behandling> {
     val (sak, _) = runBlocking {
-        persisterIverksattFørstegangsbehandling(
+        persisterIverksattSøknadsbehandling(
             sakId = sak.id,
             fnr = sak.fnr,
             deltakelseFom = deltakelseFom,
@@ -599,7 +600,7 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
-    valgteHjemler: List<ValgtHjemmelHarIkkeRettighet> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+    valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,
@@ -692,7 +693,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         ),
     clock: Clock = this.clock,
 ): Triple<Sak, MeldekortBehandletManuelt, Rammevedtak> {
-    val (sak, rammevedtak) = persisterIverksattFørstegangsbehandling(
+    val (sak, rammevedtak) = persisterIverksattSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,
@@ -745,7 +746,7 @@ internal fun TestDataHelper.persisterRammevedtakAvslag(
     ),
     clock: Clock = this.clock,
 ): Pair<Sak, Rammevedtak> {
-    val (sak, rammevedtak) = persisterIverksattFørstegangsbehandlingAvslag(
+    val (sak, rammevedtak) = persisterIverksattSøknadsbehandlingAvslag(
         sakId = sakId,
         fnr = fnr,
         deltakelseFom = deltakelseFom,

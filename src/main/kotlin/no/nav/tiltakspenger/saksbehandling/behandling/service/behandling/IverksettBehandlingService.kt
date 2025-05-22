@@ -12,8 +12,9 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeIverksetteBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
@@ -90,14 +91,14 @@ class IverksettBehandlingService(
         )
         val stønadStatistikk = genererStønadsstatistikkForRammevedtak(vedtak)
 
-        when (behandling.behandlingstype) {
-            Behandlingstype.FØRSTEGANGSBEHANDLING -> oppdatertSak.iverksettFørstegangsbehandling(
+        when (behandling) {
+            is Revurdering -> oppdatertSak.iverksett(
                 vedtak = vedtak,
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk,
             )
 
-            Behandlingstype.REVURDERING -> oppdatertSak.iverksett(
+            is Søknadsbehandling -> oppdatertSak.iverksettSøknadsbehandling(
                 vedtak = vedtak,
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk,
@@ -116,15 +117,13 @@ class IverksettBehandlingService(
         return iverksattBehandling.right()
     }
 
-    private fun Sak.iverksettFørstegangsbehandling(
+    private fun Sak.iverksettSøknadsbehandling(
         vedtak: Rammevedtak,
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
         return when (vedtak.vedtaksType) {
-            Vedtakstype.INNVILGELSE,
-            Vedtakstype.STANS,
-            -> iverksett(vedtak, sakStatistikk, stønadStatistikk)
+            Vedtakstype.INNVILGELSE -> iverksett(vedtak, sakStatistikk, stønadStatistikk)
 
             Vedtakstype.AVSLAG -> {
                 // journalføring og dokumentdistribusjon skjer i egen jobb
@@ -136,6 +135,8 @@ class IverksettBehandlingService(
                 }
                 this
             }
+
+            Vedtakstype.STANS -> throw IllegalArgumentException("Kan ikke iverksette stans-vedtak på en søknadsbehandling")
         }
     }
 

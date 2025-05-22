@@ -38,9 +38,9 @@ class ToBehandlingerIT {
                         it.meldeperiodeKjeder.size shouldBe 2
                     }
 
-                    val (sakEtterAndreFørstegangsbehandling) = this.iverksett(tac, fnr, andreVirkningsperiode)
+                    val (sakEtterAndreSøknadsbehandling) = this.iverksett(tac, fnr, andreVirkningsperiode)
 
-                    sakEtterAndreFørstegangsbehandling.let {
+                    sakEtterAndreSøknadsbehandling.let {
                         it.soknader.size shouldBe 2
                         it.behandlinger.size shouldBe 2
                         it.meldeperiodeKjeder.size shouldBe 3

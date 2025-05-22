@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
-import arrow.core.NonEmptySet
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -18,8 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.K
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype.FØRSTEGANGSBEHANDLING
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype.REVURDERING
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -28,65 +25,54 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import java.time.Clock
-import java.time.LocalDate
 import java.time.LocalDateTime
 
-/**
- * Revurdering: https://jira.adeo.no/browse/BEGREP-1559
- *
- * Unikt for søknadssbehandling: Søknad? (I følge begrepskatalogen kan en endringssøknad føre til en revurdering (må den da være nullable?), men gitt at det er et helt nytt uavhengig tiltak, er det da en førstegangssøknad, søknad eller endringssøknad?)
- * Unikt for Revurdering:
- *
- * @param saksbehandler Vil bli satt på en behandling ved opprettelse, men i noen tilfeller kan saksbehandler ta seg selv av behandlingen igjen.
- * @param beslutter Vil bli satt når behandlingen avsluttes (iverksett eller avbrytes) eller underkjennes.
- * @param søknad Påkrevd for [Behandlingstype.FØRSTEGANGSBEHANDLING]. Kan være null for [Behandlingstype.REVURDERING]. Må vurdere på sikt om en endringssøknad (samme tiltak) er en ny førstegangssøknad eller en revurdering. Og om en ny søknad (nytt tiltak) er en førstegangssøknad, søknad eller en revurdering.
- * @param virkningsperiode Vil tilsvare innvilgelsesperiode for vedtak som gir rett til tiltakspenger og stansperiode/opphørsperiode for vedtak som fjerner rett til tiltakspenger.
- */
-data class Behandling(
-    val id: BehandlingId,
-    val sakId: SakId,
-    val saksnummer: Saksnummer,
-    val fnr: Fnr,
-    val virkningsperiode: Periode?,
-    val søknad: Søknad?,
-    val saksbehandler: String?,
-    val sendtTilBeslutning: LocalDateTime?,
-    val beslutter: String?,
-    val saksopplysninger: Saksopplysninger,
-    /**
-     * Saksbehandler tar et aktivt valg om behandlingen skal føre til et avslag eller en innvilgelse.
-     */
-    val utfall: Behandlingsutfall?,
-    val status: Behandlingsstatus,
-    val attesteringer: List<Attestering>,
-    val opprettet: LocalDateTime,
-    val iverksattTidspunkt: LocalDateTime?,
-    val sendtTilDatadeling: LocalDateTime?,
-    val sistEndret: LocalDateTime,
-    val behandlingstype: Behandlingstype,
-    val oppgaveId: OppgaveId?,
-    val valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelHarIkkeRettighet>,
-    val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-    val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
-    val saksopplysningsperiode: Periode?,
-    val barnetillegg: Barnetillegg?,
-    val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
-    val avbrutt: Avbrutt?,
-    val antallDagerPerMeldeperiode: Int?,
-    /**
-     * Null hvis det ikke er et avslag, eller har ikke blitt behandlet til det punktet.
-     */
-    val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
-) {
-    val erAvsluttet: Boolean by lazy { status == AVBRUTT || status == VEDTATT }
-    val erUnderBehandling: Boolean = status == UNDER_BEHANDLING
-    val erAvbrutt: Boolean = status == AVBRUTT
+/** Hardkoder denne til 10 for nå. På sikt vil vi la saksbehandler periodisere dette selv, litt på samme måte som barnetillegg. */
+const val MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
 
-    val erVedtatt: Boolean = status == VEDTATT
+sealed interface Behandling {
+    val id: BehandlingId
+    val status: Behandlingsstatus
+    val opprettet: LocalDateTime
 
-    val maksDagerMedTiltakspengerForPeriode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+    val sistEndret: LocalDateTime
+    val iverksattTidspunkt: LocalDateTime?
+    val sendtTilDatadeling: LocalDateTime?
+    val sakId: SakId
+    val oppgaveId: OppgaveId?
+
+    val saksnummer: Saksnummer
+    val fnr: Fnr
+    val saksopplysninger: Saksopplysninger
+
+    val saksopplysningsperiode: Periode
+    val saksbehandler: String?
+
+    val beslutter: String?
+    val sendtTilBeslutning: LocalDateTime?
+    val attesteringer: List<Attestering>
+    val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
+    val avbrutt: Avbrutt?
+    val utfall: BehandlingUtfall?
+    val virkningsperiode: Periode?
+    val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
+
+    val barnetillegg: Barnetillegg?
+    val utfallsperioder: Periodisering<Utfallsperiode>?
+    val antallDagerPerMeldeperiode: Int?
+
+    val behandlingstype: Behandlingstype
+        get() = when (this) {
+            is Revurdering -> Behandlingstype.REVURDERING
+            is Søknadsbehandling -> Behandlingstype.SØKNADSBEHANDLING
+        }
+
+    val erUnderBehandling: Boolean get() = status == UNDER_BEHANDLING
+    val erAvbrutt: Boolean get() = status == AVBRUTT
+    val erVedtatt: Boolean get() = status == VEDTATT
+    val erAvsluttet: Boolean get() = erAvbrutt || erVedtatt
+    val maksDagerMedTiltakspengerForPeriode: Int get() = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 
     fun inneholderEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
         saksopplysninger.tiltaksdeltagelse.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
@@ -94,139 +80,52 @@ data class Behandling(
     fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? =
         saksopplysninger.getTiltaksdeltagelse(eksternDeltagelseId)
 
-    /**
-     * null dersom [virkningsperiode] ikke er satt enda. Typisk i stegene før til beslutning eller ved avslag.
-     *
-     * Dersom det er en innvilgelse, vil hele utfallsperioden være: [Utfallsperiode.RETT_TIL_TILTAKSPENGER]
-     * Dersom det er et avslag, vil den være null.
-     * Dersom det er en revurdering stans/opphør, vil hele utfallsperioden være: [Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER]
-     *
-     */
-    val utfallsperioder: Periodisering<Utfallsperiode>? by lazy {
-        if (virkningsperiode == null) return@lazy null
-        when (behandlingstype) {
-            FØRSTEGANGSBEHANDLING -> Periodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, virkningsperiode)
-            REVURDERING -> Periodisering(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, virkningsperiode)
-        }
-    }
+    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Behandling
 
-    val erFørstegangsbehandling: Boolean = behandlingstype == FØRSTEGANGSBEHANDLING
-    val erRevurdering: Boolean = behandlingstype == REVURDERING
+    fun leggTilbakeBehandling(saksbehandler: Saksbehandler): Either<KanIkkeLeggeTilbakeBehandling, Behandling> {
+        return when (status) {
+            UNDER_BEHANDLING -> {
+                check(saksbehandler.erSaksbehandler()) {
+                    "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
+                }
+                require(this.saksbehandler == saksbehandler.navIdent) {
+                    return KanIkkeLeggeTilbakeBehandling.MåVæreSaksbehandlerEllerBeslutterForBehandlingen.left()
+                }
+                require(this.beslutter == null) { "Beslutter skal ikke kunne være satt på behandlingen dersom den er UNDER_BEHANDLING" }
 
-    /** Påkrevd ved førstegangsbehandling/søknadsbehandling, men kan være null ved revurdering. */
-    val kravtidspunkt = søknad?.tidsstempelHosOss
-
-    companion object {
-        /** Hardkoder denne til 10 for nå. På sikt vil vi la saksbehandler periodisere dette selv, litt på samme måte som barnetillegg. */
-        const val MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
-
-        suspend fun opprettSøknadsbehandling(
-            sakId: SakId,
-            saksnummer: Saksnummer,
-            fnr: Fnr,
-            søknad: Søknad,
-            saksbehandler: Saksbehandler,
-            hentSaksopplysninger: suspend (saksopplysningsperiode: Periode) -> Saksopplysninger,
-            clock: Clock,
-        ): Either<KanIkkeOppretteBehandling, Behandling> {
-            val opprettet = nå(clock)
-
-            /** Kommentar jah: Det kan bli aktuelt at saksbehandler får endre på fraOgMed her. */
-            val saksopplysningsperiode: Periode = run {
-                // § 11: Tiltakspenger og barnetillegg gis for opptil tre måneder før den måneden da kravet om ytelsen ble satt fram, dersom vilkårene var oppfylt i denne perioden.
-                val fraOgMed = søknad.kravdato.withDayOfMonth(1).minusMonths(3)
-                // Forskriften gir ingen begrensninger fram i tid. 100 år bør være nok.
-                val tilOgMed = fraOgMed.plusYears(100)
-                Periode(fraOgMed, tilOgMed)
+                when (this) {
+                    is Søknadsbehandling -> this.copy(saksbehandler = null, status = KLAR_TIL_BEHANDLING).right()
+                    is Revurdering -> this.copy(saksbehandler = null, status = KLAR_TIL_BEHANDLING).right()
+                }
             }
 
-            val saksopplysninger = hentSaksopplysninger(saksopplysningsperiode)
+            UNDER_BESLUTNING -> {
+                check(saksbehandler.erBeslutter()) {
+                    "Saksbehandler må ha beslutterrolle. Utøvende saksbehandler: $saksbehandler"
+                }
+                require(this.beslutter == saksbehandler.navIdent) {
+                    return KanIkkeLeggeTilbakeBehandling.MåVæreSaksbehandlerEllerBeslutterForBehandlingen.left()
+                }
 
-            if (saksopplysninger.tiltaksdeltagelse.isEmpty()) {
-                return KanIkkeOppretteBehandling.IngenRelevanteTiltak.left()
+                when (this) {
+                    is Søknadsbehandling -> this.copy(beslutter = null, status = KLAR_TIL_BESLUTNING).right()
+                    is Revurdering -> this.copy(beslutter = null, status = KLAR_TIL_BESLUTNING).right()
+                }
             }
 
-            return Behandling(
-                id = BehandlingId.random(),
-                saksnummer = saksnummer,
-                sakId = sakId,
-                fnr = fnr,
-                søknad = søknad,
-                virkningsperiode = null,
-                saksopplysninger = saksopplysninger,
-                valgtHjemmelHarIkkeRettighet = emptyList(),
-                fritekstTilVedtaksbrev = null,
-                begrunnelseVilkårsvurdering = null,
-                saksbehandler = saksbehandler.navIdent,
-                sendtTilBeslutning = null,
-                beslutter = null,
-                status = UNDER_BEHANDLING,
-                attesteringer = emptyList(),
-                opprettet = opprettet,
-                iverksattTidspunkt = null,
-                sendtTilDatadeling = null,
-                sistEndret = opprettet,
-                behandlingstype = FØRSTEGANGSBEHANDLING,
-                oppgaveId = søknad.oppgaveId,
-                saksopplysningsperiode = saksopplysningsperiode,
-                barnetillegg = null,
-                valgteTiltaksdeltakelser = null,
-                avbrutt = null,
-                antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-                avslagsgrunner = null,
-                utfall = null,
-            ).right()
-        }
-
-        suspend fun opprettRevurdering(
-            sakId: SakId,
-            saksnummer: Saksnummer,
-            fnr: Fnr,
-            saksbehandler: Saksbehandler,
-            saksopplysningsperiode: Periode,
-            hentSaksopplysninger: suspend () -> Saksopplysninger,
-            clock: Clock,
-        ): Behandling {
-            val opprettet = nå(clock)
-            return Behandling(
-                id = BehandlingId.random(),
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                virkningsperiode = null,
-                søknad = null,
-                saksbehandler = saksbehandler.navIdent,
-                sendtTilBeslutning = null,
-                beslutter = null,
-                saksopplysninger = hentSaksopplysninger(),
-                valgtHjemmelHarIkkeRettighet = emptyList(),
-                fritekstTilVedtaksbrev = null,
-                begrunnelseVilkårsvurdering = null,
-                status = UNDER_BEHANDLING,
-                attesteringer = emptyList(),
-                opprettet = opprettet,
-                iverksattTidspunkt = null,
-                sendtTilDatadeling = null,
-                sistEndret = opprettet,
-                behandlingstype = REVURDERING,
-                // her kan man på sikt lagre oppgaveId hvis man oppretter oppgave for revurdering
-                oppgaveId = null,
-                // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for førstegangsbehandling.
-                saksopplysningsperiode = saksopplysningsperiode,
-                barnetillegg = null,
-                valgteTiltaksdeltakelser = null,
-                avbrutt = null,
-                antallDagerPerMeldeperiode = null,
-                avslagsgrunner = null,
-                // TODO - Denne må på et tidspunkt endres dersom vi kan revurdere flere ting
-                utfall = Behandlingsutfall.STANS,
-            )
+            KLAR_TIL_BESLUTNING -> throw IllegalStateException("Kan ikke legge tilbake behandling som er klar til beslutning")
+            KLAR_TIL_BEHANDLING -> throw IllegalStateException("Kan ikke legge tilbake behandling som ikke er påbegynt")
+            VEDTATT, AVBRUTT -> {
+                throw IllegalArgumentException(
+                    "Kan ikke legge tilbake behandling når behandlingen er ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
+                )
+            }
         }
     }
 
     /** Saksbehandler/beslutter tar eller overtar behandlingen. */
     fun taBehandling(saksbehandler: Saksbehandler): Behandling {
-        return when (this.status) {
+        return when (status) {
             KLAR_TIL_BEHANDLING -> {
                 check(saksbehandler.erSaksbehandler()) {
                     "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
@@ -234,10 +133,12 @@ data class Behandling(
                 require(this.saksbehandler == null) { "Saksbehandler skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
                 require(this.beslutter == null) { "Beslutter skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
 
-                this.copy(saksbehandler = saksbehandler.navIdent, status = UNDER_BEHANDLING)
+                when (this) {
+                    is Søknadsbehandling -> this.copy(saksbehandler = saksbehandler.navIdent, status = UNDER_BEHANDLING)
+                    is Revurdering -> this.copy(saksbehandler = saksbehandler.navIdent, status = UNDER_BEHANDLING)
+                }
             }
 
-            UNDER_BEHANDLING -> throw IllegalStateException("Skal kun kunne ta behandlingen dersom det er registrert en saksbehandler fra før. For å overta behandlingen, skal andre operasjoner bli brukt")
             KLAR_TIL_BESLUTNING -> {
                 check(saksbehandler.navIdent != this.saksbehandler) {
                     "Beslutter ($saksbehandler) kan ikke være den samme som saksbehandleren (${this.saksbehandler}"
@@ -246,26 +147,27 @@ data class Behandling(
                     "Saksbehandler må ha beslutterrolle. Utøvende saksbehandler: $saksbehandler"
                 }
                 require(this.beslutter == null) { "Behandlingen har en eksisterende beslutter. For å overta behandlingen, bruk overta() - behandlingsId: ${this.id}" }
-                this.copy(beslutter = saksbehandler.navIdent, status = UNDER_BESLUTNING)
+
+                when (this) {
+                    is Søknadsbehandling -> this.copy(beslutter = saksbehandler.navIdent, status = UNDER_BESLUTNING)
+                    is Revurdering -> this.copy(beslutter = saksbehandler.navIdent, status = UNDER_BESLUTNING)
+                }
             }
 
+            UNDER_BEHANDLING -> throw IllegalStateException("Skal kun kunne ta behandlingen dersom det er registrert en saksbehandler fra før. For å overta behandlingen, skal andre operasjoner bli brukt")
             UNDER_BESLUTNING -> throw IllegalStateException("Skal kun kunne ta behandlingen dersom det er registrert en beslutter fra før. For å overta behandlingen, skal andre operasjoner bli brukt")
-
-            VEDTATT -> {
+            VEDTATT, AVBRUTT -> {
                 throw IllegalArgumentException(
-                    "Kan ikke ta behandling når behandlingen er VEDTATT. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
+                    "Kan ikke ta behandling når behandlingen har status $status. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
                 )
             }
-
-            AVBRUTT -> throw IllegalArgumentException(
-                "Kan ikke ta behandling når behandlingen er AVBRUTT. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
-            )
         }
     }
 
     fun overta(saksbehandler: Saksbehandler, clock: Clock): Either<KunneIkkeOvertaBehandling, Behandling> {
-        return when (this.status) {
-            KLAR_TIL_BEHANDLING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBehandlingForÅOverta.left()
+        val sistEndret = LocalDateTime.now(clock)
+
+        return when (status) {
             UNDER_BEHANDLING -> {
                 check(saksbehandler.erSaksbehandler()) {
                     "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
@@ -273,16 +175,24 @@ data class Behandling(
                 if (this.saksbehandler == null) {
                     return KunneIkkeOvertaBehandling.BehandlingenErIkkeKnyttetTilEnSaksbehandlerForÅOverta.left()
                 }
-                this.copy(
-                    saksbehandler = saksbehandler.navIdent,
-                    sistEndret = LocalDateTime.now(clock),
-                ).let {
-                    // dersom det er beslutteren som overtar behandlingen, skal dem nulles ut som beslutter
-                    if (it.beslutter == saksbehandler.navIdent) it.copy(beslutter = null) else it
+
+                // dersom det er beslutteren som overtar behandlingen, skal dem nulles ut som beslutter
+                val beslutter = if (this.beslutter == saksbehandler.navIdent) null else this.beslutter
+
+                when (this) {
+                    is Søknadsbehandling -> this.copy(
+                        saksbehandler = saksbehandler.navIdent,
+                        beslutter = beslutter,
+                        sistEndret = sistEndret,
+                    )
+
+                    is Revurdering -> this.copy(
+                        saksbehandler = saksbehandler.navIdent,
+                        beslutter = beslutter,
+                        sistEndret = sistEndret,
+                    )
                 }.right()
             }
-
-            KLAR_TIL_BESLUTNING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
 
             UNDER_BESLUTNING -> {
                 check(saksbehandler.erBeslutter()) {
@@ -294,97 +204,27 @@ data class Behandling(
                 if (this.saksbehandler == saksbehandler.navIdent) {
                     return KunneIkkeOvertaBehandling.SaksbehandlerOgBeslutterKanIkkeVæreDenSamme.left()
                 }
-                this.copy(
-                    beslutter = saksbehandler.navIdent,
-                    sistEndret = LocalDateTime.now(clock),
-                ).right()
+
+                when (this) {
+                    is Søknadsbehandling -> this.copy(
+                        beslutter = saksbehandler.navIdent,
+                        sistEndret = sistEndret,
+                    )
+
+                    is Revurdering -> this.copy(
+                        beslutter = saksbehandler.navIdent,
+                        sistEndret = sistEndret,
+                    )
+                }.right()
             }
+
+            KLAR_TIL_BEHANDLING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBehandlingForÅOverta.left()
+            KLAR_TIL_BESLUTNING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
 
             VEDTATT,
             AVBRUTT,
             -> KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreVedtattEllerAvbrutt.left()
         }
-    }
-
-    fun leggTilbakeBehandling(saksbehandler: Saksbehandler): Either<KanIkkeLeggeTilbakeBehandling, Behandling> {
-        return when (this.status) {
-            KLAR_TIL_BEHANDLING -> throw IllegalStateException("Kan ikke legge tilbake behandling som ikke er påbegynt")
-            UNDER_BEHANDLING -> {
-                check(saksbehandler.erSaksbehandler()) {
-                    "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
-                }
-                require(this.saksbehandler == saksbehandler.navIdent) {
-                    return KanIkkeLeggeTilbakeBehandling.MåVæreSaksbehandlerEllerBeslutterForBehandlingen.left()
-                }
-                require(this.beslutter == null) { "Beslutter skal ikke kunne være satt på behandlingen dersom den er UNDER_BEHANDLING" }
-
-                this.copy(saksbehandler = null, status = KLAR_TIL_BEHANDLING).right()
-            }
-
-            KLAR_TIL_BESLUTNING -> throw IllegalStateException("Kan ikke legge tilbake behandling som er klar til beslutning")
-            UNDER_BESLUTNING -> {
-                check(saksbehandler.erBeslutter()) {
-                    "Saksbehandler må ha beslutterrolle. Utøvende saksbehandler: $saksbehandler"
-                }
-                require(this.beslutter == saksbehandler.navIdent) {
-                    return KanIkkeLeggeTilbakeBehandling.MåVæreSaksbehandlerEllerBeslutterForBehandlingen.left()
-                }
-                this.copy(beslutter = null, status = KLAR_TIL_BESLUTNING).right()
-            }
-
-            VEDTATT -> {
-                throw IllegalArgumentException(
-                    "Kan ikke legge tilbake behandling når behandlingen er VEDTATT. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
-                )
-            }
-
-            AVBRUTT -> throw IllegalArgumentException(
-                "Kan ikke legge tilbake behandling når behandlingen er AVBRUTT. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
-            )
-        }
-    }
-
-    fun tilBeslutning(
-        kommando: SendSøknadsbehandlingTilBeslutningKommando,
-        clock: Clock,
-    ): Behandling {
-        check(status == UNDER_BEHANDLING) {
-            "Behandlingen må være under behandling, det innebærer også at en saksbehandler må ta saken før den kan sendes til beslutter. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}"
-        }
-        check(kommando.saksbehandler.navIdent == this.saksbehandler) { "Det er ikke lov å sende en annen sin behandling til beslutter" }
-
-        return this.copy(
-            status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
-            utfall = kommando.utfall,
-            sendtTilBeslutning = nå(clock),
-            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
-            virkningsperiode = kommando.behandlingsperiode,
-            barnetillegg = kommando.barnetillegg,
-            valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
-            avslagsgrunner = kommando.avslagsgrunner,
-            antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
-        )
-    }
-
-    fun sendRevurderingTilBeslutning(
-        kommando: SendRevurderingTilBeslutningKommando,
-        sisteDagSomGirRett: LocalDate,
-        clock: Clock,
-    ): Behandling {
-        check(status == UNDER_BEHANDLING) {
-            "Behandlingen må være under behandling, det innebærer også at en saksbehandler må ta saken før den kan sendes til beslutter. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}"
-        }
-        check(kommando.saksbehandler.navIdent == this.saksbehandler) { "Det er ikke lov å sende en annen sin behandling til beslutter" }
-
-        return this.copy(
-            status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
-            sendtTilBeslutning = nå(clock),
-            begrunnelseVilkårsvurdering = kommando.begrunnelse,
-            virkningsperiode = Periode(kommando.stansDato, sisteDagSomGirRett),
-            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            valgtHjemmelHarIkkeRettighet = kommando.valgteHjemler,
-        )
     }
 
     fun iverksett(
@@ -401,11 +241,23 @@ data class Behandling(
                 check(!this.attesteringer.any { it.isGodkjent() }) {
                     "Behandlingen er allerede godkjent"
                 }
-                this.copy(
-                    status = VEDTATT,
-                    attesteringer = attesteringer + attestering,
-                    iverksattTidspunkt = nå(clock),
-                )
+
+                val attesteringer = attesteringer + attestering
+                val iverksattTidspunkt = nå(clock)
+
+                when (this) {
+                    is Søknadsbehandling -> this.copy(
+                        status = VEDTATT,
+                        attesteringer = attesteringer,
+                        iverksattTidspunkt = iverksattTidspunkt,
+                    )
+
+                    is Revurdering -> this.copy(
+                        status = VEDTATT,
+                        attesteringer = attesteringer,
+                        iverksattTidspunkt = iverksattTidspunkt,
+                    )
+                }
             }
 
             KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, VEDTATT, AVBRUTT -> throw IllegalStateException(
@@ -429,7 +281,20 @@ data class Behandling(
                 check(!this.attesteringer.any { it.isGodkjent() }) {
                     "Behandlingen er allerede godkjent"
                 }
-                this.copy(status = UNDER_BEHANDLING, attesteringer = attesteringer + attestering)
+
+                val attesteringer = attesteringer + attestering
+
+                when (this) {
+                    is Søknadsbehandling -> this.copy(
+                        status = UNDER_BEHANDLING,
+                        attesteringer = attesteringer,
+                    )
+
+                    is Revurdering -> this.copy(
+                        status = UNDER_BEHANDLING,
+                        attesteringer = attesteringer,
+                    )
+                }
             }
 
             KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, VEDTATT, AVBRUTT -> throw IllegalStateException(
@@ -443,130 +308,83 @@ data class Behandling(
      * Endrer ikke [Søknad].
      */
     fun krymp(nyPeriode: Periode): Behandling {
-        if (virkningsperiode == nyPeriode) return this
-        if (virkningsperiode != null) require(virkningsperiode.inneholderHele(nyPeriode)) { "Ny periode ($nyPeriode) må være innenfor vedtakets virkningsperiode ($virkningsperiode)" }
-        return this.copy(
-            virkningsperiode = if (virkningsperiode != null) nyPeriode else null,
-        )
-    }
+        if (virkningsperiode == nyPeriode) {
+            return this
+        }
 
-    fun oppdaterSaksopplysninger(
-        saksbehandler: Saksbehandler,
-        oppdaterteSaksopplysninger: Saksopplysninger,
-    ): Behandling {
-        if (!saksbehandler.erSaksbehandler()) {
-            throw IllegalArgumentException("Kunne ikke oppdatere saksopplysinger. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
+        val nyVirkningsperiode = virkningsperiode?.let {
+            require(it.inneholderHele(nyPeriode)) {
+                "Ny periode ($nyPeriode) må være innenfor vedtakets virkningsperiode ($virkningsperiode)"
+            }
+            nyPeriode
         }
-        if (this.saksbehandler != saksbehandler.navIdent) {
-            throw IllegalArgumentException("Kunne ikke oppdatere saksopplysinger. Saksbehandler (${saksbehandler.navIdent}) er ikke den som sitter på behandlingen (${this.saksbehandler}). sakId=$sakId, behandlingId=$id")
+
+        return when (this) {
+            is Søknadsbehandling -> this.copy(
+                virkningsperiode = nyVirkningsperiode,
+            )
+
+            is Revurdering -> this.copy(
+                virkningsperiode = nyVirkningsperiode,
+            )
         }
-        if (!this.erUnderBehandling) {
-            throw IllegalArgumentException("Kunne ikke oppdatere saksopplysinger. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
-        }
-        return this.copy(saksopplysninger = oppdaterteSaksopplysninger)
     }
 
     fun oppdaterBegrunnelseVilkårsvurdering(
         saksbehandler: Saksbehandler,
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering,
     ): Behandling {
-        if (!saksbehandler.erSaksbehandler()) {
-            throw IllegalArgumentException("Kunne ikke oppdatere begrunnelse/vilkårsvurdering. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
+        validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere begrunnelse/vilkårsvurdering")
+
+        return when (this) {
+            is Søknadsbehandling -> this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering)
+            is Revurdering -> this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering)
         }
-        if (this.saksbehandler != saksbehandler.navIdent) {
-            throw IllegalArgumentException("Kunne ikke oppdatere begrunnelse/vilkårsvurdering. Saksbehandler er ikke satt på behandlingen. sakId=$sakId, behandlingId=$id")
-        }
-        if (!this.erUnderBehandling) {
-            throw IllegalArgumentException("Kunne ikke oppdatere begrunnelse/vilkårsvurdering. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
-        }
-        return this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering)
     }
 
-    fun oppdaterBarnetillegg(kommando: OppdaterBarnetilleggKommando): Behandling {
-        if (!kommando.saksbehandler.erSaksbehandler()) {
-            throw IllegalArgumentException("Kunne ikke oppdatere barnetillegg. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
+    fun oppdaterSaksopplysninger(
+        saksbehandler: Saksbehandler,
+        oppdaterteSaksopplysninger: Saksopplysninger,
+    ): Behandling {
+        validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere saksopplysinger")
+
+        return when (this) {
+            is Søknadsbehandling -> this.copy(saksopplysninger = oppdaterteSaksopplysninger)
+            is Revurdering -> this.copy(saksopplysninger = oppdaterteSaksopplysninger)
         }
-        if (this.saksbehandler != kommando.saksbehandler.navIdent) {
-            throw IllegalArgumentException("Kunne ikke oppdatere barnetillegg. Saksbehandler er ikke satt på behandlingen. sakId=$sakId, behandlingId=$id")
-        }
-        if (!this.erUnderBehandling) {
-            throw IllegalArgumentException("Kunne ikke oppdatere barnetillegg. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
-        }
-        return this.copy(
-            barnetillegg = kommando.barnetillegg(this.virkningsperiode),
-        )
     }
 
     fun oppdaterFritekstTilVedtaksbrev(
         saksbehandler: Saksbehandler,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev,
     ): Behandling {
+        validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere fritekst til vedtaksbrev")
+
+        return when (this) {
+            is Søknadsbehandling -> this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev)
+            is Revurdering -> this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev)
+        }
+    }
+
+    fun validerKanOppdatere(saksbehandler: Saksbehandler, errorMsg: String) {
         if (!saksbehandler.erSaksbehandler()) {
-            throw IllegalArgumentException("Kunne ikke oppdatere fritekst til vedtaksbrev. Saksbehandler mangler rollen SAKSBEHANDLER. sakId=$sakId, behandlingId=$id")
+            throw IllegalArgumentException("$errorMsg - Saksbehandler ${saksbehandler.navIdent} mangler rollen SAKSBEHANDLER - sakId=$sakId, behandlingId=$id")
         }
         if (this.saksbehandler != saksbehandler.navIdent) {
-            throw IllegalArgumentException("Kunne ikke oppdatere fritekst til vedtaksbrev. Saksbehandler er ikke satt på behandlingen. sakId=$sakId, behandlingId=$id")
+            throw IllegalArgumentException("$errorMsg - Saksbehandler ${saksbehandler.navIdent} er ikke satt på behandlingen - sakId=$sakId, behandlingId=$id")
         }
         if (!this.erUnderBehandling) {
-            throw IllegalArgumentException("Kunne ikke oppdatere fritekst til vedtaksbrev. Behandling er ikke under behandling. sakId=$sakId, behandlingId=$id, status=$status")
+            throw IllegalStateException("$errorMsg - Behandlingen er ikke under behandling - sakId=$sakId, behandlingId=$id, status=$status")
         }
-        return this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev)
     }
 
-    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Behandling {
-        if (this.status == AVBRUTT || avbrutt != null) {
-            throw IllegalArgumentException("Behandlingen er allerede avbrutt")
-        }
-        return this.copy(
-            status = AVBRUTT,
-            søknad = this.søknad?.avbryt(avbruttAv, begrunnelse, tidspunkt),
-            avbrutt = Avbrutt(
-                tidspunkt = tidspunkt,
-                saksbehandler = avbruttAv.navIdent,
-                begrunnelse = begrunnelse,
-            ),
-        )
-    }
-
-    init {
+    fun init() {
         if (beslutter != null && saksbehandler != null) {
             require(beslutter != saksbehandler) { "Saksbehandler og beslutter kan ikke være samme person" }
         }
-        when (behandlingstype) {
-            FØRSTEGANGSBEHANDLING -> {
-                requireNotNull(søknad) { "Søknad må være satt for førstegangsbehandling" }
-            }
 
-            REVURDERING -> {
-                require(søknad == null) { "Søknad kan ikke være satt for revurdering" }
-                require(valgtHjemmelHarIkkeRettighet.none { it is Avslagsgrunnlag }) { "Revurdering kan bare føre til stans" }
-            }
-        }
-
-        require(valgtHjemmelHarIkkeRettighet.map { it.javaClass.simpleName }.distinct().size <= 1) {
-            "Valgte hjemler for en behandling kan bare være av en type"
-        }
-
-        antallDagerPerMeldeperiode?.let {
-            require(it in 1..14) {
-                "Antall dager per meldeperiode må være mellom 1 og 14"
-            }
-        }
-
-        if (avslagsgrunner != null || utfall == Behandlingsutfall.AVSLAG) {
-            require(avslagsgrunner != null) {
-                "Avslagsgrunner må være satt dersom behandlingen har utfallet AVSLAG"
-            }
-
-            require(utfall == Behandlingsutfall.AVSLAG) {
-                "Behandlingsutfall må være AVSLAG dersom det er satt avslagsgrunner"
-            }
-        }
-
-        if (utfall == Behandlingsutfall.INNVILGELSE) {
-            require(avslagsgrunner == null) {
-                "Avslagsgrunner kan ikke være satt dersom behandlingen har utfallet INNVILGELSE"
-            }
+        require(antallDagerPerMeldeperiode == null || antallDagerPerMeldeperiode in 1..14) {
+            "Antall dager per meldeperiode må være mellom 1 og 14, kan ikke være $antallDagerPerMeldeperiode på behandling $id"
         }
 
         when (status) {
@@ -586,10 +404,8 @@ data class Behandling(
                 // Selvom beslutter har underkjent, må vi kunne ta hen av behandlingen.
                 require(iverksattTidspunkt == null)
                 if (attesteringer.isEmpty()) {
-                    require(beslutter == null) { "Bestlutter kan ikke være tilknyttet behandlingen dersom det ikke er gjort noen attesteringer" }
-                }
-
-                if (attesteringer.isNotEmpty()) {
+                    require(beslutter == null) { "Beslutter kan ikke være tilknyttet behandlingen dersom det ikke er gjort noen attesteringer" }
+                } else {
                     require(utfall != null) { "Behandlingsutfall må være satt dersom det er gjort attesteringer på behandlingen" }
                 }
             }
@@ -602,14 +418,6 @@ data class Behandling(
                 }
                 require(iverksattTidspunkt == null)
                 require(virkningsperiode != null) { "Virkningsperiode må være satt for statusen KLAR_TIL_BESLUTNING" }
-                if (barnetillegg != null) {
-                    val barnetilleggsperiode = barnetillegg.periodisering.totalePeriode
-                    require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
-                }
-                if (behandlingstype == FØRSTEGANGSBEHANDLING) {
-                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
-                    require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
-                }
                 require(this.utfall != null) { "Behandlingsutfall må være satt for statusen KLAR_TIL_BESLUTNING" }
             }
 
@@ -619,14 +427,6 @@ data class Behandling(
                 requireNotNull(beslutter) { "Behandlingen må tilknyttet en beslutter når status er UNDER_BESLUTNING" }
                 require(iverksattTidspunkt == null)
                 require(virkningsperiode != null) { "Virkningsperiode må være satt for statusen UNDER_BESLUTNING" }
-                if (barnetillegg != null) {
-                    val barnetilleggsperiode = barnetillegg.periodisering.totalePeriode
-                    require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
-                }
-                if (behandlingstype == FØRSTEGANGSBEHANDLING) {
-                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
-                    require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
-                }
                 require(this.utfall != null) { "Behandlingsutfall må være satt for statusen UNDER_BESLUTNING" }
             }
 
@@ -637,14 +437,6 @@ data class Behandling(
                 requireNotNull(iverksattTidspunkt)
                 requireNotNull(sendtTilBeslutning)
                 require(virkningsperiode != null) { "Virkningsperiode må være satt for statusen VEDTATT" }
-                if (barnetillegg != null) {
-                    val barnetilleggsperiode = barnetillegg.periodisering.totalePeriode
-                    require(barnetilleggsperiode == virkningsperiode) { "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)" }
-                }
-                if (behandlingstype == FØRSTEGANGSBEHANDLING) {
-                    require(valgteTiltaksdeltakelser != null) { "Valgte tiltaksdeltakelser må være satt for førstegangsbehandling" }
-                    require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) { "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)" }
-                }
                 require(this.utfall != null) { "Behandlingsutfall må være satt for statusen VEDTATT" }
             }
 

@@ -7,10 +7,10 @@ import no.nav.tiltakspenger.saksbehandling.benk.BehandlingEllerSøknadForSaksove
 import no.nav.tiltakspenger.saksbehandling.benk.BenkBehandlingstype
 import no.nav.tiltakspenger.saksbehandling.benk.Saksoversikt
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttFørstegangsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetRevurderingDeprecated
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -24,7 +24,7 @@ class BenkOversiktPostgresRepoTest {
             val repo = testDataHelper.saksoversiktRepo
             val søknad1 = testDataHelper.persisterSakOgSøknad()
             val sakId = testDataHelper.søknadRepo.hentSakIdForSoknad(søknad1.id)!!
-            val (førstegangsBehandlingSak, førstegangsBehandling) = testDataHelper.persisterOpprettetFørstegangsbehandling()
+            val (søknadsbehandlingSak, søknadsbehandling) = testDataHelper.persisterOpprettetSøknadsbehandling()
             val (revurderingSak, revurdering) = testDataHelper.persisterOpprettetRevurderingDeprecated()
             val behandlinger = repo.hentÅpneBehandlinger()
             val søknader = repo.hentÅpneSøknader()
@@ -51,16 +51,16 @@ class BenkOversiktPostgresRepoTest {
                             BehandlingEllerSøknadForSaksoversikt(
                                 periode = null,
                                 status = BehandlingEllerSøknadForSaksoversikt.Status.Behandling(Behandlingsstatus.UNDER_BEHANDLING),
-                                behandlingstype = BenkBehandlingstype.FØRSTEGANGSBEHANDLING,
-                                fnr = førstegangsBehandling.fnr,
-                                saksnummer = førstegangsBehandlingSak.saksnummer,
-                                saksbehandler = førstegangsBehandling.saksbehandler!!,
+                                behandlingstype = BenkBehandlingstype.SØKNADSBEHANDLING,
+                                fnr = søknadsbehandling.fnr,
+                                saksnummer = søknadsbehandlingSak.saksnummer,
+                                saksbehandler = søknadsbehandling.saksbehandler!!,
                                 beslutter = null,
-                                sakId = førstegangsBehandlingSak.id,
+                                sakId = søknadsbehandlingSak.id,
                                 underkjent = false,
                                 kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
-                                id = førstegangsBehandling.id,
-                                opprettet = førstegangsBehandling.opprettet,
+                                id = søknadsbehandling.id,
+                                opprettet = søknadsbehandling.opprettet,
                             ),
                             BehandlingEllerSøknadForSaksoversikt(
                                 periode = null,
@@ -86,8 +86,8 @@ class BenkOversiktPostgresRepoTest {
     fun `Henter ikke ferdigstilte behandlinger`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val repo = testDataHelper.saksoversiktRepo
-            val (sak, søknad) = testDataHelper.persisterAvbruttFørstegangsbehandling()
-            val (sakMedAvbruttBehandling, vedtak, behandling) = testDataHelper.persisterIverksattFørstegangsbehandling(
+            val (sak, søknad) = testDataHelper.persisterAvbruttSøknadsbehandling()
+            val (sakMedAvbruttBehandling, vedtak, behandling) = testDataHelper.persisterIverksattSøknadsbehandling(
                 sakId = sak.id,
                 fnr = søknad.fnr,
                 sak = sak,
@@ -104,7 +104,7 @@ class BenkOversiktPostgresRepoTest {
                             BehandlingEllerSøknadForSaksoversikt(
                                 periode = ObjectMother.virkningsperiode(),
                                 status = BehandlingEllerSøknadForSaksoversikt.Status.Behandling(Behandlingsstatus.AVBRUTT),
-                                behandlingstype = BenkBehandlingstype.FØRSTEGANGSBEHANDLING,
+                                behandlingstype = BenkBehandlingstype.SØKNADSBEHANDLING,
                                 fnr = søknad.fnr,
                                 saksnummer = sakMedAvbruttBehandling.saksnummer,
                                 saksbehandler = behandling.saksbehandler!!,
@@ -118,7 +118,7 @@ class BenkOversiktPostgresRepoTest {
                             BehandlingEllerSøknadForSaksoversikt(
                                 periode = ObjectMother.virkningsperiode(),
                                 status = BehandlingEllerSøknadForSaksoversikt.Status.Behandling(Behandlingsstatus.VEDTATT),
-                                behandlingstype = BenkBehandlingstype.FØRSTEGANGSBEHANDLING,
+                                behandlingstype = BenkBehandlingstype.SØKNADSBEHANDLING,
                                 fnr = søknad.fnr,
                                 saksnummer = sakMedAvbruttBehandling.saksnummer,
                                 saksbehandler = vedtak.saksbehandlerNavIdent,

@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.person.Navn
@@ -37,6 +39,8 @@ internal suspend fun Rammevedtak.toRevurderingStans(
     hentSaksbehandlersNavn: suspend (String) -> String,
     vedtaksdato: LocalDate,
 ): String {
+    require(behandling is Revurdering && behandling.utfall is RevurderingUtfall.Stans)
+
     return genererStansbrev(
         hentBrukersNavn = hentBrukersNavn,
         hentSaksbehandlersNavn = hentSaksbehandlersNavn,
@@ -48,8 +52,8 @@ internal suspend fun Rammevedtak.toRevurderingStans(
         saksnummer = saksnummer,
         forhåndsvisning = false,
         barnetillegg = barnetillegg != null,
-        valgteHjemler = this.behandling.valgtHjemmelHarIkkeRettighet,
-        tilleggstekst = this.behandling.fritekstTilVedtaksbrev,
+        valgteHjemler = behandling.utfall.valgtHjemmel,
+        tilleggstekst = behandling.fritekstTilVedtaksbrev,
     )
 }
 

@@ -8,8 +8,7 @@ import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsutfall
-import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -19,7 +18,7 @@ class BehandlingTest {
 
     @Test
     fun `kan avbryte en behandling`() {
-        val behandling = ObjectMother.nyBehandling()
+        val behandling = ObjectMother.nyOpprettetSøknadsbehandling()
         val avbruttBehandling = behandling.avbryt(
             avbruttAv = ObjectMother.saksbehandler(),
             begrunnelse = "begrunnelse",
@@ -33,20 +32,17 @@ class BehandlingTest {
             it.begrunnelse shouldBe "begrunnelse"
             it.tidspunkt shouldBe førsteNovember24
         }
-        avbruttBehandling.søknad!!.avbrutt shouldNotBe null
-        avbruttBehandling.avbrutt shouldBe avbruttBehandling.søknad!!.avbrutt
+        avbruttBehandling.søknad.avbrutt shouldNotBe null
+        avbruttBehandling.avbrutt shouldBe avbruttBehandling.søknad.avbrutt
         avbruttBehandling.status shouldBe Behandlingsstatus.AVBRUTT
     }
 
     @Test
     fun `kan ikke avbryte en avbrutt behandling`() {
-        val avbruttBehandling = ObjectMother.nyBehandling(
-            status = Behandlingsstatus.AVBRUTT,
-            avbrutt = Avbrutt(
-                tidspunkt = førsteNovember24,
-                saksbehandler = "navident",
-                begrunnelse = "skal få exception",
-            ),
+        val avbruttBehandling = ObjectMother.nyAvbruttSøknadsbehandling(
+            tidspunkt = førsteNovember24,
+            avbruttAv = ObjectMother.saksbehandler(navIdent = "navident"),
+            begrunnelse = "skal få exception",
         )
 
         assertThrows<IllegalArgumentException> {
@@ -62,7 +58,7 @@ class BehandlingTest {
     inner class TaBehandling {
         @Test
         fun `en saksbehandler kan ta behandlingen`() {
-            val behandling = ObjectMother.nyOpprettetFørstegangsbehandling()
+            val behandling = ObjectMother.nyOpprettetSøknadsbehandling()
             val saksbehandler = ObjectMother.saksbehandler()
             assertThrows<IllegalStateException> {
                 behandling.taBehandling(saksbehandler)
@@ -71,7 +67,7 @@ class BehandlingTest {
 
         @Test
         fun `en beslutter kan ta behandlingen`() {
-            val behandling = ObjectMother.nyFørstegangsbehandlingKlarTilBeslutning()
+            val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning()
             val beslutter = ObjectMother.beslutter()
             val taBehandling = behandling.taBehandling(beslutter)
 
@@ -83,7 +79,7 @@ class BehandlingTest {
     inner class Overta {
         @Test
         fun `en saksbehandler kan overta behandlingen`() {
-            val behandling = ObjectMother.nyBehandling()
+            val behandling = ObjectMother.nyOpprettetSøknadsbehandling()
             val nySaksbehandler = ObjectMother.saksbehandler("nyNavIdent")
             val overtaBehandling = behandling.overta(saksbehandler = nySaksbehandler, clock = fixedClock)
 
@@ -93,7 +89,7 @@ class BehandlingTest {
 
         @Test
         fun `en beslutter kan overta behandlingen`() {
-            val behandling = ObjectMother.nyBehandlingUnderBeslutning()
+            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
             val nyBeslutter = ObjectMother.beslutter("nyNavIdent")
             val overtaBehandling = behandling.overta(saksbehandler = nyBeslutter, clock = fixedClock)
 
@@ -107,8 +103,8 @@ class BehandlingTest {
         @Test
         fun `kaster exception dersom utfall er avslag uten avslagsgrunner`() {
             assertThrows<IllegalArgumentException> {
-                ObjectMother.nyFørstegangsbehandlingKlarTilBeslutning(
-                    utfall = Behandlingsutfall.AVSLAG,
+                ObjectMother.nySøknadsbehandlingKlarTilBeslutning(
+                    utfall = SøknadsbehandlingUtfallType.AVSLAG,
                     avslagsgrunner = null,
                 )
             }
@@ -117,8 +113,8 @@ class BehandlingTest {
         @Test
         fun `kaster exception dersom utfall er innvilgelse med avslagsgrunner`() {
             assertThrows<IllegalArgumentException> {
-                ObjectMother.nyFørstegangsbehandlingKlarTilBeslutning(
-                    utfall = Behandlingsutfall.INNVILGELSE,
+                ObjectMother.nySøknadsbehandlingKlarTilBeslutning(
+                    utfall = SøknadsbehandlingUtfallType.INNVILGELSE,
                     avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
                 )
             }

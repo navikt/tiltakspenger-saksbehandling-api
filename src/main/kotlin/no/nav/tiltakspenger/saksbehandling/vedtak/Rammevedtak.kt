@@ -10,8 +10,9 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsutfall
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfall
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -52,8 +53,6 @@ data class Rammevedtak(
     /** Vil være null dersom ingen barn. */
     val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
     override val antallDagerPerMeldeperiode: Int = behandling.maksDagerMedTiltakspengerForPeriode
-
-    val erFørstegangsvedtak = vedtaksType == Vedtakstype.INNVILGELSE
 
     override fun erStansvedtak(): Boolean {
         return vedtaksType == Vedtakstype.STANS
@@ -112,16 +111,15 @@ fun Sak.opprettVedtak(
 }
 
 fun Sak.utledVedtakstype(behandling: Behandling): Vedtakstype {
-    return when (behandling.behandlingstype) {
-        Behandlingstype.FØRSTEGANGSBEHANDLING -> {
+    return when (behandling) {
+        is Søknadsbehandling -> {
             when (behandling.utfall) {
-                Behandlingsutfall.INNVILGELSE -> Vedtakstype.INNVILGELSE
-                Behandlingsutfall.AVSLAG -> Vedtakstype.AVSLAG
-                Behandlingsutfall.STANS -> throw IllegalStateException("Førstegangsbehandling skal ikke kunne ha utfall stans. id $id, for behandling ${behandling.id}")
+                is SøknadsbehandlingUtfall.Avslag -> Vedtakstype.AVSLAG
+                is SøknadsbehandlingUtfall.Innvilgelse -> Vedtakstype.INNVILGELSE
                 null -> throw IllegalArgumentException("Kan ikke lage et vedtak uten utfall. Behandlingen uten utfall er ${behandling.id}")
             }
         }
-        Behandlingstype.REVURDERING -> {
+        is Revurdering -> {
             // Kommentar jah: Dette er en førsteimplementasjon for å avgjøre om dette er et stansvedtak. Ved andre typer revurderinger må vi utvide denne.
             if (behandling.virkningsperiode!!.tilOgMed != this.utfallsperioder().totalePeriode.tilOgMed) {
                 throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - revurderingens tilOgMed (${behandling.virkningsperiode.tilOgMed}) må være lik sakens tilOgMed (${this.utfallsperioder().totalePeriode.tilOgMed})")

@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.kafka.Producer
 import no.nav.tiltakspenger.libs.periodisering.zoneIdOslo
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -71,7 +71,7 @@ class IdenthendelseJobbTest {
                 val sak = ObjectMother.nySak(fnr = gammeltFnr)
                 val deltakelseFom = LocalDate.now().minusMonths(3)
                 val deltakelsesTom = LocalDate.now().minusWeeks(2)
-                val (_, vedtak, _) = testDataHelper.persisterIverksattFørstegangsbehandling(
+                val (_, vedtak, _) = testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = gammeltFnr,
                     deltakelseFom = deltakelseFom,
@@ -160,7 +160,7 @@ class IdenthendelseJobbTest {
                 val sak = ObjectMother.nySak(fnr = gammeltFnr)
                 val deltakelseFom = LocalDate.now().minusMonths(3)
                 val deltakelsesTom = LocalDate.now().minusWeeks(2)
-                val (_, vedtak, _) = testDataHelper.persisterIverksattFørstegangsbehandling(
+                val (_, vedtak, _) = testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = gammeltFnr,
                     deltakelseFom = deltakelseFom,

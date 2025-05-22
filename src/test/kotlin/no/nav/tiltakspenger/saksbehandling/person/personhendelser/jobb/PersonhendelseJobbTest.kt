@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattFørstegangsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -93,7 +93,7 @@ class PersonhendelseJobbTest {
                 val sak = ObjectMother.nySak(fnr = fnr)
                 val deltakelseFom = LocalDate.now().minusMonths(3)
                 val deltakelsesTom = LocalDate.now().minusWeeks(2)
-                testDataHelper.persisterIverksattFørstegangsbehandling(
+                testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
                     deltakelseFom = deltakelseFom,
@@ -140,7 +140,7 @@ class PersonhendelseJobbTest {
                 val sak = ObjectMother.nySak(fnr = fnr)
                 val deltakelseFom = LocalDate.now().minusMonths(3)
                 val deltakelsesTom = LocalDate.now().plusWeeks(2)
-                testDataHelper.persisterIverksattFørstegangsbehandling(
+                testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
                     deltakelseFom = deltakelseFom,
@@ -190,7 +190,7 @@ class PersonhendelseJobbTest {
                 val sak = ObjectMother.nySak(fnr = fnr)
                 val deltakelseFom = LocalDate.now().plusDays(3)
                 val deltakelsesTom = LocalDate.now().plusMonths(2)
-                testDataHelper.persisterIverksattFørstegangsbehandling(
+                testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
                     deltakelseFom = deltakelseFom,
@@ -241,7 +241,7 @@ class PersonhendelseJobbTest {
                 val sak = ObjectMother.nySak(fnr = fnr)
                 val deltakelseFom = LocalDate.now().plusDays(3)
                 val deltakelsesTom = LocalDate.now().plusMonths(2)
-                testDataHelper.persisterIverksattFørstegangsbehandling(
+                testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
                     deltakelseFom = deltakelseFom,
@@ -293,7 +293,7 @@ class PersonhendelseJobbTest {
                 val sak = ObjectMother.nySak(fnr = fnr)
                 val deltakelseFom = LocalDate.now().plusDays(3)
                 val deltakelsesTom = LocalDate.now().plusMonths(2)
-                testDataHelper.persisterIverksattFørstegangsbehandling(
+                testDataHelper.persisterIverksattSøknadsbehandling(
                     sakId = sak.id,
                     fnr = fnr,
                     deltakelseFom = deltakelseFom,

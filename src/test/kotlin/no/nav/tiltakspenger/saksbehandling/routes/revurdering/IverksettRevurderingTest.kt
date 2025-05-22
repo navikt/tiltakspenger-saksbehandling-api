@@ -22,12 +22,12 @@ internal class IverksettRevurderingTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, _, førstegangsbehandling, revurdering) = startRevurdering(tac)
+                val (sak, _, søknadsbehandling, revurdering) = startRevurdering(tac)
                 sendRevurderingTilBeslutterForBehandlingId(
                     tac,
                     sak.id,
                     revurdering.id,
-                    stansperiode = førstegangsbehandling.virkningsperiode!!,
+                    stansperiode = søknadsbehandling.virkningsperiode!!,
                     valgteHjemler = listOf("Alder"),
                 )
                 taBehanding(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())

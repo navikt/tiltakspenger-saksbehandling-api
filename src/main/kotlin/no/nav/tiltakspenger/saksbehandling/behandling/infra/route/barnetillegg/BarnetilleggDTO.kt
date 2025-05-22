@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.periodiserOgFyllUtHullMed0
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 
-internal data class BarnetilleggDTO(
+data class BarnetilleggDTO(
     val perioder: List<BarnetilleggPeriodeDTO>,
     val begrunnelse: String?,
 ) {
@@ -20,12 +20,12 @@ internal data class BarnetilleggDTO(
     )
 }
 
-internal data class BarnetilleggPeriodeDTO(
+data class BarnetilleggPeriodeDTO(
     val antallBarn: Int,
     val periode: PeriodeDTO,
 )
 
-internal fun Barnetillegg.toBarnetilleggDTO(): BarnetilleggDTO = BarnetilleggDTO(
+fun Barnetillegg.toBarnetilleggDTO(): BarnetilleggDTO = BarnetilleggDTO(
     perioder = periodisering.perioderMedVerdi.filter { it.verdi.value > 0 }.map {
         BarnetilleggPeriodeDTO(
             antallBarn = it.verdi.value,
@@ -35,6 +35,6 @@ internal fun Barnetillegg.toBarnetilleggDTO(): BarnetilleggDTO = BarnetilleggDTO
     begrunnelse = begrunnelse?.verdi?.let { saniter(it) },
 )
 
-internal fun List<BarnetilleggPeriodeDTO>.tilPeriodisering(virkningsperiode: Periode?) =
+fun List<BarnetilleggPeriodeDTO>.tilPeriodisering(virkningsperiode: Periode?) =
     this.map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) }
         .periodiserOgFyllUtHullMed0(virkningsperiode)
