@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Forskrift
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Ledd
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Paragraf
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfall
@@ -139,36 +140,38 @@ fun Set<Avslagsgrunnlag>.createBrevForskrifter(harSøktBarnetillegg: Boolean): S
                 it
             }
         }
-        .distinctBy { it.paragraf.nummer }
-        .sortedBy { it.paragraf.nummer }
+        .groupBy { it.paragraf.nummer }
+        .map { e -> Pair(e.key, e.value.distinct().mapNotNull { it.ledd }.sortedBy { it.nummer }) }
+        .sortedBy { it.first }
 
     val arbeidsmarkedlovenHjemler = hjemler.filter { it.forskrift == Forskrift.Arbeidsmarkedsloven }
-        .distinctBy { it.paragraf.nummer }
-        .sortedBy { it.paragraf.nummer }
+        .groupBy { it.paragraf.nummer }
+        .map { e -> Pair(e.key, e.value.distinct().mapNotNull { it.ledd }.sortedBy { it.nummer }) }
+        .sortedBy { it.first }
 
     return when {
         arbeidsmarkedlovenHjemler.isNotEmpty() && tiltakspengeHjemler.isEmpty() -> {
             val paragraf = if (arbeidsmarkedlovenHjemler.size == 1) "§" else "§§"
             "Dette kommer frem av arbeidsmarkedsloven $paragraf " + arbeidsmarkedlovenHjemler.joinToString {
-                "${it.paragraf.nummer}" + if (it.toLeddTekst().isBlank()) "" else " ${it.toLeddTekst()}"
+                "${it.first}" + if (it.second.isEmpty()) "" else " ${it.second.toLeddTekst()}"
             } + "."
         }
 
         arbeidsmarkedlovenHjemler.isEmpty() && tiltakspengeHjemler.isNotEmpty() -> {
             val paragraf = if (tiltakspengeHjemler.size == 1) "§" else "§§"
             "Dette kommer frem av tiltakspengeforskriften $paragraf " + tiltakspengeHjemler.joinToString {
-                "${it.paragraf.nummer}" + if (it.toLeddTekst().isBlank()) "" else " ${it.toLeddTekst()}"
+                "${it.first}" + if (it.second.isEmpty()) "" else " ${it.second.toLeddTekst()}"
             } + "."
         }
 
         arbeidsmarkedlovenHjemler.isNotEmpty() && tiltakspengeHjemler.isNotEmpty() -> {
-            val paragragArbeidsmarkedloven = if (arbeidsmarkedlovenHjemler.size == 1) "§" else "§§"
+            val paragrafArbeidsmarkedloven = if (arbeidsmarkedlovenHjemler.size == 1) "§" else "§§"
             val paragrafTiltakspenger = if (tiltakspengeHjemler.size == 1) "§" else "§§"
-            "Dette kommer frem av arbeidsmarkedsloven $paragragArbeidsmarkedloven " + arbeidsmarkedlovenHjemler.joinToString {
-                "${it.paragraf.nummer}" + if (it.toLeddTekst().isBlank()) "" else " ${it.toLeddTekst()}"
+            "Dette kommer frem av arbeidsmarkedsloven $paragrafArbeidsmarkedloven " + arbeidsmarkedlovenHjemler.joinToString {
+                "${it.first}" + if (it.second.isEmpty()) "" else " ${it.second.toLeddTekst()}"
             } +
                 ", og tiltakspengeforskriften $paragrafTiltakspenger " + tiltakspengeHjemler.joinToString {
-                    "${it.paragraf.nummer}" + if (it.toLeddTekst().isBlank()) "" else " ${it.toLeddTekst()}"
+                    "${it.first}" + if (it.second.isEmpty()) "" else " ${it.second.toLeddTekst()}"
                 } + "."
         }
 
@@ -176,12 +179,22 @@ fun Set<Avslagsgrunnlag>.createBrevForskrifter(harSøktBarnetillegg: Boolean): S
     }
 }
 
-private fun Hjemmel.toLeddTekst(): String = when (this.ledd?.nummer) {
-    1 -> "første ledd"
-    2 -> "andre ledd"
-    3 -> "tredje ledd"
-    null -> ""
+private fun Ledd.toLeddTekst(): String = when (this.nummer) {
+    1 -> "første"
+    2 -> "andre"
+    3 -> "tredje"
     else -> throw IllegalArgumentException("Fant ikke mapping mellom paragraf og ledd")
+}
+
+private fun List<Ledd>.toLeddTekst(): String = when (this.size) {
+    0 -> ""
+    1 -> "${this[0].toLeddTekst()} ledd"
+    2 -> "${this[0].toLeddTekst()} og ${this[1].toLeddTekst()} ledd"
+    else -> {
+        val alleUnntattSiste = this.dropLast(1).joinToString(", ") { it.toLeddTekst() }
+        val siste = this.last().toLeddTekst()
+        "$alleUnntattSiste, og $siste ledd"
+    }
 }
 
 fun Avslagsgrunnlag.toAvslagsgrunnerBrevDto(): AvslagsgrunnerBrevDto = when (this) {
