@@ -412,7 +412,7 @@ class BehandlingPostgresRepo(
 
                     val utfall = when (utfallType) {
                         RevurderingUtfallType.STANS -> RevurderingUtfall.Stans(
-                            valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.toValgtHjemmelHarIkkeRettighet()
+                            valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.tilHjemmelForStans()
                                 ?: emptyList(),
                         )
 

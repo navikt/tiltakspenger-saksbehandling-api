@@ -133,7 +133,6 @@ sealed interface Behandling {
                 require(this.saksbehandler == null) { "Saksbehandler skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
                 require(this.beslutter == null) { "Beslutter skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
 
-                // Meeeeeeh
                 when (this) {
                     is Søknadsbehandling -> this.copy(saksbehandler = saksbehandler.navIdent, status = UNDER_BEHANDLING)
                     is Revurdering -> this.copy(saksbehandler = saksbehandler.navIdent, status = UNDER_BEHANDLING)

@@ -26,7 +26,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKom
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepoTest.Companion.random
@@ -601,7 +600,7 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
-    valgteHjemler: List<ValgtHjemmelHarIkkeRettighet> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+    valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,

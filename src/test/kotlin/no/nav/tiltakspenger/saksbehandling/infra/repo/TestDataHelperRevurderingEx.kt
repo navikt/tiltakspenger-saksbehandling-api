@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendRevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -65,7 +64,7 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("TestDataHelper.persisterRevurderingTilBeslutning"),
     stansDato: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
-    valgteHjemler: List<ValgtHjemmelHarIkkeRettighet> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+    valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, Behandling> = { s -> this.persisterOpprettetRevurdering(s) },
 ): Pair<Sak, Behandling> {
@@ -103,7 +102,7 @@ internal fun TestDataHelper.persisterIverksattRevurdering(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("TestDataHelper.persisterRevurderingTilBeslutning"),
     stansDato: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
-    valgteHjemler: List<ValgtHjemmelHarIkkeRettighet> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+    valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, Behandling> = { s ->
         this.persisterRevurderingTilBeslutning(

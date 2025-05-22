@@ -29,7 +29,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandl
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -109,7 +108,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        valgteHjemler: List<ValgtHjemmelHarIkkeRettighet> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         stansDato: LocalDate,
         sisteDagSomGirRett: LocalDate,
     ): Revurdering {
@@ -152,7 +151,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        valgteHjemler: List<ValgtHjemmelHarIkkeRettighet> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         attestering: Attestering = godkjentAttestering(beslutter),
         stansDato: LocalDate,
         sisteDagSomGirRett: LocalDate,
