@@ -52,7 +52,7 @@ internal suspend fun Rammevedtak.toRevurderingStans(
         saksnummer = saksnummer,
         forhåndsvisning = false,
         barnetillegg = barnetillegg != null,
-        valgteHjemler = behandling.utfall.valgtHjemmelHarIkkeRettighet,
+        valgteHjemler = behandling.utfall.valgtHjemmel,
         tilleggstekst = behandling.fritekstTilVedtaksbrev,
     )
 }

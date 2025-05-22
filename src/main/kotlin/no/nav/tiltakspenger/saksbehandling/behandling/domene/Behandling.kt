@@ -84,7 +84,6 @@ sealed interface Behandling {
 
     fun leggTilbakeBehandling(saksbehandler: Saksbehandler): Either<KanIkkeLeggeTilbakeBehandling, Behandling> {
         return when (status) {
-            KLAR_TIL_BEHANDLING -> throw IllegalStateException("Kan ikke legge tilbake behandling som ikke er påbegynt")
             UNDER_BEHANDLING -> {
                 check(saksbehandler.erSaksbehandler()) {
                     "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
@@ -100,7 +99,6 @@ sealed interface Behandling {
                 }
             }
 
-            KLAR_TIL_BESLUTNING -> throw IllegalStateException("Kan ikke legge tilbake behandling som er klar til beslutning")
             UNDER_BESLUTNING -> {
                 check(saksbehandler.erBeslutter()) {
                     "Saksbehandler må ha beslutterrolle. Utøvende saksbehandler: $saksbehandler"
@@ -115,6 +113,8 @@ sealed interface Behandling {
                 }
             }
 
+            KLAR_TIL_BESLUTNING -> throw IllegalStateException("Kan ikke legge tilbake behandling som er klar til beslutning")
+            KLAR_TIL_BEHANDLING -> throw IllegalStateException("Kan ikke legge tilbake behandling som ikke er påbegynt")
             VEDTATT, AVBRUTT -> {
                 throw IllegalArgumentException(
                     "Kan ikke legge tilbake behandling når behandlingen er ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
@@ -140,7 +140,6 @@ sealed interface Behandling {
                 }
             }
 
-            UNDER_BEHANDLING -> throw IllegalStateException("Skal kun kunne ta behandlingen dersom det er registrert en saksbehandler fra før. For å overta behandlingen, skal andre operasjoner bli brukt")
             KLAR_TIL_BESLUTNING -> {
                 check(saksbehandler.navIdent != this.saksbehandler) {
                     "Beslutter ($saksbehandler) kan ikke være den samme som saksbehandleren (${this.saksbehandler}"
@@ -150,31 +149,26 @@ sealed interface Behandling {
                 }
                 require(this.beslutter == null) { "Behandlingen har en eksisterende beslutter. For å overta behandlingen, bruk overta() - behandlingsId: ${this.id}" }
 
-                val lol = when (this) {
+                when (this) {
                     is Søknadsbehandling -> this.copy(beslutter = saksbehandler.navIdent, status = UNDER_BESLUTNING)
                     is Revurdering -> this.copy(beslutter = saksbehandler.navIdent, status = UNDER_BESLUTNING)
                 }
-
-                lol
             }
 
+            UNDER_BEHANDLING -> throw IllegalStateException("Skal kun kunne ta behandlingen dersom det er registrert en saksbehandler fra før. For å overta behandlingen, skal andre operasjoner bli brukt")
             UNDER_BESLUTNING -> throw IllegalStateException("Skal kun kunne ta behandlingen dersom det er registrert en beslutter fra før. For å overta behandlingen, skal andre operasjoner bli brukt")
-
-            VEDTATT -> {
+            VEDTATT, AVBRUTT -> {
                 throw IllegalArgumentException(
-                    "Kan ikke ta behandling når behandlingen er VEDTATT. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
+                    "Kan ikke ta behandling når behandlingen har status $status. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
                 )
             }
-
-            AVBRUTT -> throw IllegalArgumentException(
-                "Kan ikke ta behandling når behandlingen er AVBRUTT. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
-            )
         }
     }
 
     fun overta(saksbehandler: Saksbehandler, clock: Clock): Either<KunneIkkeOvertaBehandling, Behandling> {
+        val sistEndret = LocalDateTime.now(clock)
+
         return when (status) {
-            KLAR_TIL_BEHANDLING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBehandlingForÅOverta.left()
             UNDER_BEHANDLING -> {
                 check(saksbehandler.erSaksbehandler()) {
                     "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
@@ -183,26 +177,23 @@ sealed interface Behandling {
                     return KunneIkkeOvertaBehandling.BehandlingenErIkkeKnyttetTilEnSaksbehandlerForÅOverta.left()
                 }
 
+                // dersom det er beslutteren som overtar behandlingen, skal dem nulles ut som beslutter
+                val beslutter = if (this.beslutter == saksbehandler.navIdent) null else this.beslutter
+
                 when (this) {
                     is Søknadsbehandling -> this.copy(
                         saksbehandler = saksbehandler.navIdent,
-                        sistEndret = LocalDateTime.now(clock),
-                    ).let {
-                        // dersom det er beslutteren som overtar behandlingen, skal dem nulles ut som beslutter
-                        if (it.beslutter == saksbehandler.navIdent) it.copy(beslutter = null) else it
-                    }
+                        beslutter = beslutter,
+                        sistEndret = sistEndret,
+                    )
 
                     is Revurdering -> this.copy(
                         saksbehandler = saksbehandler.navIdent,
-                        sistEndret = LocalDateTime.now(clock),
-                    ).let {
-                        // dersom det er beslutteren som overtar behandlingen, skal dem nulles ut som beslutter
-                        if (it.beslutter == saksbehandler.navIdent) it.copy(beslutter = null) else it
-                    }
+                        beslutter = beslutter,
+                        sistEndret = sistEndret,
+                    )
                 }.right()
             }
-
-            KLAR_TIL_BESLUTNING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
 
             UNDER_BESLUTNING -> {
                 check(saksbehandler.erBeslutter()) {
@@ -218,15 +209,18 @@ sealed interface Behandling {
                 when (this) {
                     is Søknadsbehandling -> this.copy(
                         beslutter = saksbehandler.navIdent,
-                        sistEndret = LocalDateTime.now(clock),
+                        sistEndret = sistEndret,
                     )
 
                     is Revurdering -> this.copy(
                         beslutter = saksbehandler.navIdent,
-                        sistEndret = LocalDateTime.now(clock),
+                        sistEndret = sistEndret,
                     )
                 }.right()
             }
+
+            KLAR_TIL_BEHANDLING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBehandlingForÅOverta.left()
+            KLAR_TIL_BESLUTNING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
 
             VEDTATT,
             AVBRUTT,
@@ -249,17 +243,20 @@ sealed interface Behandling {
                     "Behandlingen er allerede godkjent"
                 }
 
+                val attesteringer = attesteringer + attestering
+                val iverksattTidspunkt = nå(clock)
+
                 when (this) {
                     is Søknadsbehandling -> this.copy(
                         status = VEDTATT,
-                        attesteringer = attesteringer + attestering,
-                        iverksattTidspunkt = nå(clock),
+                        attesteringer = attesteringer,
+                        iverksattTidspunkt = iverksattTidspunkt,
                     )
 
                     is Revurdering -> this.copy(
                         status = VEDTATT,
-                        attesteringer = attesteringer + attestering,
-                        iverksattTidspunkt = nå(clock),
+                        attesteringer = attesteringer,
+                        iverksattTidspunkt = iverksattTidspunkt,
                     )
                 }
             }
@@ -286,15 +283,17 @@ sealed interface Behandling {
                     "Behandlingen er allerede godkjent"
                 }
 
+                val attesteringer = attesteringer + attestering
+
                 when (this) {
                     is Søknadsbehandling -> this.copy(
                         status = UNDER_BEHANDLING,
-                        attesteringer = attesteringer + attestering,
+                        attesteringer = attesteringer,
                     )
 
                     is Revurdering -> this.copy(
                         status = UNDER_BEHANDLING,
-                        attesteringer = attesteringer + attestering,
+                        attesteringer = attesteringer,
                     )
                 }
             }

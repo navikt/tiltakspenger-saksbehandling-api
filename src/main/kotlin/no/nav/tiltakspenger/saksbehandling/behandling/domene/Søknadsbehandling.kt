@@ -198,7 +198,7 @@ data class Søknadsbehandling(
                 utfall = null,
                 virkningsperiode = null,
                 begrunnelseVilkårsvurdering = null,
-                antallDagerPerMeldeperiode = null,
+                antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
             ).right()
         }
     }

@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 
+// TODO: split avslag/stans
 enum class ValgtHjemmelHarIkkeRettighetDb {
     STANS_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK,
     STANS_ALDER,
@@ -34,7 +35,7 @@ fun String.toValgtHjemmelHarIkkeRettighet(): List<ValgtHjemmelHarIkkeRettighet> 
     return deserializeList<ValgtHjemmelHarIkkeRettighetDb>(this).map { it.toDomain() }
 }
 
-internal fun ValgtHjemmelHarIkkeRettighet.toDb(): ValgtHjemmelHarIkkeRettighetDb {
+fun ValgtHjemmelHarIkkeRettighet.toDb(): ValgtHjemmelHarIkkeRettighetDb {
     return when (this) {
         is ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak -> ValgtHjemmelHarIkkeRettighetDb.STANS_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK
         is ValgtHjemmelForStans.Alder -> ValgtHjemmelHarIkkeRettighetDb.STANS_ALDER
@@ -56,7 +57,7 @@ internal fun ValgtHjemmelHarIkkeRettighet.toDb(): ValgtHjemmelHarIkkeRettighetDb
     }
 }
 
-internal fun ValgtHjemmelHarIkkeRettighetDb.toDomain(): ValgtHjemmelHarIkkeRettighet {
+private fun ValgtHjemmelHarIkkeRettighetDb.toDomain(): ValgtHjemmelHarIkkeRettighet {
     return when (this) {
         ValgtHjemmelHarIkkeRettighetDb.STANS_DELTAR_IKKE_PÅ_ARBEIDSMARKEDSTILTAK -> ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak
         ValgtHjemmelHarIkkeRettighetDb.STANS_ALDER -> ValgtHjemmelForStans.Alder

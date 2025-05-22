@@ -7,21 +7,21 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfallType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfall
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
 class BehandlingsutfallDbTest {
 
     @Test
     fun `mapper til db type`() {
-        val søknadsbehandlingInnvilgelse = SøknadsbehandlingUtfall.Innvilgelse(
-            valgteTiltaksdeltakelser = null,
-            barnetillegg = null,
-        )
+        val vedtattBehandling = ObjectMother.nyVedtattSøknadsbehandling()
+
+        val søknadsbehandlingInnvilgelse = vedtattBehandling.utfall as SøknadsbehandlingUtfall.Innvilgelse
         val søknadsbehandlingAvslag = SøknadsbehandlingUtfall.Avslag(
             avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
         )
         val revurderingStans = RevurderingUtfall.Stans(
-            valgtHjemmelHarIkkeRettighet = emptyList(),
+            valgtHjemmel = emptyList(),
         )
 
         søknadsbehandlingInnvilgelse.toDb() shouldBe "INNVILGELSE"

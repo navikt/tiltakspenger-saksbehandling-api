@@ -368,9 +368,8 @@ class BehandlingPostgresRepo(
 
                     val utfall = when (utfallType) {
                         SøknadsbehandlingUtfallType.INNVILGELSE -> SøknadsbehandlingUtfall.Innvilgelse(
-                            valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")?.toValgteTiltaksdeltakelser(
-                                saksopplysninger,
-                            ),
+                            valgteTiltaksdeltakelser = string("valgte_tiltaksdeltakelser")
+                                .toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                         )
 
@@ -413,7 +412,7 @@ class BehandlingPostgresRepo(
 
                     val utfall = when (utfallType) {
                         RevurderingUtfallType.STANS -> RevurderingUtfall.Stans(
-                            valgtHjemmelHarIkkeRettighet = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.toValgtHjemmelHarIkkeRettighet()
+                            valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.toValgtHjemmelHarIkkeRettighet()
                                 ?: emptyList(),
                         )
 
@@ -630,11 +629,11 @@ private fun BehandlingUtfall?.tilDbParams(): Array<Pair<String, Any?>> = when (t
 
     is SøknadsbehandlingUtfall.Innvilgelse -> arrayOf(
         "barnetillegg" to this.barnetillegg?.toDbJson(),
-        "valgte_tiltaksdeltakelser" to this.valgteTiltaksdeltakelser?.toDbJson(),
+        "valgte_tiltaksdeltakelser" to this.valgteTiltaksdeltakelser.toDbJson(),
     )
 
     is RevurderingUtfall.Stans -> arrayOf(
-        "valgt_hjemmel_har_ikke_rettighet" to this.valgtHjemmelHarIkkeRettighet.toDbJson(),
+        "valgt_hjemmel_har_ikke_rettighet" to this.valgtHjemmel.toDbJson(),
     )
 
     null -> emptyArray()

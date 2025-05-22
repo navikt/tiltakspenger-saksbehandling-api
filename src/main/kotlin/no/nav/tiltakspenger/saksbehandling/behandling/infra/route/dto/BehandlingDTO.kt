@@ -84,11 +84,13 @@ fun Søknadsbehandling.toDTO(): BehandlingDTO {
     return when (utfall) {
         is SøknadsbehandlingUtfall.Innvilgelse -> utenUtfallDTO.copy(
             barnetillegg = utfall.barnetillegg?.toBarnetilleggDTO(),
-            valgteTiltaksdeltakelser = utfall.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.map { it.toTiltaksdeltakelsePeriodeDTO() },
+            valgteTiltaksdeltakelser = utfall.valgteTiltaksdeltakelser.periodisering.perioderMedVerdi.map { it.toTiltaksdeltakelsePeriodeDTO() },
         )
+
         is SøknadsbehandlingUtfall.Avslag -> utenUtfallDTO.copy(
             avslagsgrunner = utfall.avslagsgrunner.toValgtHjemmelForAvslagDTO(),
         )
+
         null -> utenUtfallDTO
     }
 }
@@ -123,8 +125,9 @@ fun Revurdering.toDTO(): BehandlingDTO {
 
     return when (utfall) {
         is RevurderingUtfall.Stans -> utenUtfallDTO.copy(
-            valgtHjemmelHarIkkeRettighet = utfall.valgtHjemmelHarIkkeRettighet.toDTO(this.behandlingstype),
+            valgtHjemmelHarIkkeRettighet = utfall.valgtHjemmel.toDTO(this.behandlingstype),
         )
+
         null -> utenUtfallDTO
     }
 }
