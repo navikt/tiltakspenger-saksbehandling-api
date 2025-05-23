@@ -128,7 +128,7 @@ fun Revurdering.toDTO(): BehandlingDTO {
             valgtHjemmelHarIkkeRettighet = utfall.valgtHjemmel.toDTO(this.behandlingstype),
         )
 
-        is RevurderingUtfall.Innvilgelsesperiode -> TODO()
+        is RevurderingUtfall.Innvilgelse -> TODO()
 
         null -> utenUtfallDTO
     }

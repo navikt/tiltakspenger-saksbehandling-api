@@ -61,12 +61,12 @@ fun Route.startRevurderingRoute(
 
 private enum class RevurderingUtfallTypeDTO {
     STANS,
-    INNVILGELSESPERIODE,
+    INNVILGELSE,
     ;
 
     fun tilRevurderingUtfallType(): RevurderingUtfallType = when (this) {
         STANS -> RevurderingUtfallType.STANS
-        INNVILGELSESPERIODE -> RevurderingUtfallType.INNVILGELSESPERIODE
+        INNVILGELSE -> RevurderingUtfallType.INNVILGELSE
     }
 }
 

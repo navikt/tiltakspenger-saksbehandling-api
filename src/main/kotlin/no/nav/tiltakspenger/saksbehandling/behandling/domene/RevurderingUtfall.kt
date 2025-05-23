@@ -5,5 +5,5 @@ sealed interface RevurderingUtfall : BehandlingUtfall {
         val valgtHjemmel: List<ValgtHjemmelForStans>,
     ) : RevurderingUtfall
 
-    data object Innvilgelsesperiode : RevurderingUtfall
+    data object Innvilgelse : RevurderingUtfall
 }

@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 sealed interface BehandlingUtfall {
     val type: BehandlingUtfallType get() = when (this) {
-        is RevurderingUtfall.Innvilgelsesperiode -> RevurderingUtfallType.INNVILGELSESPERIODE
+        is RevurderingUtfall.Innvilgelse -> RevurderingUtfallType.INNVILGELSE
         is RevurderingUtfall.Stans -> RevurderingUtfallType.STANS
         is SøknadsbehandlingUtfall.Avslag -> SøknadsbehandlingUtfallType.AVSLAG
         is SøknadsbehandlingUtfall.Innvilgelse -> SøknadsbehandlingUtfallType.INNVILGELSE
@@ -18,5 +18,5 @@ enum class SøknadsbehandlingUtfallType : BehandlingUtfallType {
 
 enum class RevurderingUtfallType : BehandlingUtfallType {
     STANS,
-    INNVILGELSESPERIODE,
+    INNVILGELSE,
 }

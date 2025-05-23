@@ -110,10 +110,11 @@ private data class SendRevurderingTilBeslutningBody(
             behandlingId = behandlingId,
             saksbehandler = saksbehandler,
             correlationId = correlationId,
-            stansDato = stansDato,
+            stansFraOgMed = stansDato,
             begrunnelse = BegrunnelseVilkårsvurdering(saniter(begrunnelse)),
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
             valgteHjemler = valgteHjemler?.map { it.tilDomene() } ?: emptyList(),
+            sisteDagSomGirRett = null,
         )
     }
 }

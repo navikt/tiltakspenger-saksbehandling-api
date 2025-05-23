@@ -26,7 +26,7 @@ fun String.tilRevurderingUtfallType(): RevurderingUtfallType = when (Revurdering
 
 fun BehandlingUtfall.toDb(): String = when (this) {
     is RevurderingUtfall.Stans -> RevurderingUtfallDb.STANS
-    is RevurderingUtfall.Innvilgelsesperiode -> TODO()
+    is RevurderingUtfall.Innvilgelse -> TODO()
     is SøknadsbehandlingUtfall.Avslag -> SøknadsbehandlingUtfallDb.AVSLAG
     is SøknadsbehandlingUtfall.Innvilgelse -> SøknadsbehandlingUtfallDb.INNVILGELSE
 }.toString()

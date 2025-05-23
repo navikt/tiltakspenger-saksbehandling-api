@@ -41,7 +41,7 @@ suspend fun Sak.startRevurdering(
             clock = clock,
         )
 
-        RevurderingUtfallType.INNVILGELSESPERIODE -> throw NotImplementedError("Revurdering av innvilgelsesperiode er ikke implementert ennå")
+        RevurderingUtfallType.INNVILGELSE -> throw NotImplementedError("Revurdering av innvilgelsesperiode er ikke implementert ennå")
     }
 
     return Pair(
@@ -59,15 +59,21 @@ fun Sak.sendRevurderingTilBeslutning(
     val behandling = this.hentBehandling(kommando.behandlingId)
     require(behandling is Revurdering) { "Behandlingen må være en revurdering, men var: ${behandling?.behandlingstype}" }
 
-    if (kommando is RevurderingStansTilBeslutningKommando) {
-        validerStansDato(kommando.stansDato)
-    }
+    return when (kommando) {
+        is RevurderingInnvilgelseTilBeslutningKommando -> behandling.tilBeslutning(
+            kommando = kommando,
+            clock = clock,
+        )
 
-    return behandling.tilBeslutning(
-        kommando = kommando,
-        sisteDagSomGirRett = sisteDagSomGirRett,
-        clock = clock,
-    ).right()
+        is RevurderingStansTilBeslutningKommando -> {
+            validerStansDato(kommando.stansFraOgMed)
+
+            behandling.tilBeslutning(
+                kommando = kommando.copy(sisteDagSomGirRett = sisteDagSomGirRett),
+                clock = clock,
+            )
+        }
+    }.right()
 }
 
 fun Sak.validerStansDato(stansDato: LocalDate?) {

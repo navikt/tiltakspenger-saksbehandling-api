@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.A
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall.Innvilgelsesperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall.Innvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall.Stans
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -20,7 +20,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class Revurdering(
@@ -56,7 +55,7 @@ data class Revurdering(
 
         when (utfall) {
             is Stans -> Periodisering(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, virkningsperiode)
-            is Innvilgelsesperiode -> null
+            is Innvilgelse -> Periodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, virkningsperiode)
             null -> null
         }
     }
@@ -67,53 +66,37 @@ data class Revurdering(
 
     fun tilBeslutning(
         kommando: RevurderingTilBeslutningKommando,
-        sisteDagSomGirRett: LocalDate?, // TODO: flytt denne inn i stans-kommandoen kanskje?
         clock: Clock,
     ): Revurdering {
         validerSendTilBeslutning(kommando.saksbehandler)
 
-        return when (kommando) {
-            is RevurderingInnvilgelsesperiodeTilBeslutningKommando -> innvilgelsesperiodeTilBeslutning(
-                kommando = kommando,
-                clock = clock,
+        val (virkningsperiode, utfall) = when (kommando) {
+            is RevurderingInnvilgelseTilBeslutningKommando -> Pair(
+                kommando.nyInnvilgelsesperiode,
+                Innvilgelse,
             )
 
-            is RevurderingStansTilBeslutningKommando -> stansTilBeslutning(
-                kommando = kommando,
-                sisteDagSomGirRett = sisteDagSomGirRett!!,
-                clock = clock,
-            )
+            is RevurderingStansTilBeslutningKommando -> {
+                requireNotNull(kommando.sisteDagSomGirRett) {
+                    "Siste dag som gir rett må være bestemt før stans kan sendes til beslutning"
+                }
+
+                Pair(
+                    Periode(kommando.stansFraOgMed, kommando.sisteDagSomGirRett),
+                    Stans(
+                        valgtHjemmel = kommando.valgteHjemler,
+                    ),
+                )
+            }
         }
-    }
 
-    private fun stansTilBeslutning(
-        kommando: RevurderingStansTilBeslutningKommando,
-        sisteDagSomGirRett: LocalDate,
-        clock: Clock,
-    ): Revurdering {
         return this.copy(
             status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
             sendtTilBeslutning = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelse,
-            virkningsperiode = Periode(kommando.stansDato, sisteDagSomGirRett),
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            utfall = Stans(
-                valgtHjemmel = kommando.valgteHjemler,
-            ),
-        )
-    }
-
-    private fun innvilgelsesperiodeTilBeslutning(
-        kommando: RevurderingInnvilgelsesperiodeTilBeslutningKommando,
-        clock: Clock,
-    ): Revurdering {
-        return this.copy(
-            status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
-            sendtTilBeslutning = nå(clock),
-            begrunnelseVilkårsvurdering = kommando.begrunnelse,
-            virkningsperiode = kommando.nyInnvilgelsesperiode,
-            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            utfall = Innvilgelsesperiode,
+            virkningsperiode = virkningsperiode,
+            utfall = utfall,
         )
     }
 

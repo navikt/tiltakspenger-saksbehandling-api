@@ -123,7 +123,7 @@ private data class SøknadsbehandlingTilBeslutningBody(
                 BehandlingUtfallDTO.INNVILGELSE -> SøknadsbehandlingUtfallType.INNVILGELSE
                 BehandlingUtfallDTO.AVSLAG -> SøknadsbehandlingUtfallType.AVSLAG
                 BehandlingUtfallDTO.STANS,
-                BehandlingUtfallDTO.REVURDERING_INNVILGELSESPERIODE,
+                BehandlingUtfallDTO.REVURDERING_INNVILGELSE,
                 -> throw IllegalArgumentException("Ugyldig utfall for søknadsbehandling: $utfall")
             },
         )

@@ -650,9 +650,10 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
                 saksbehandler = saksbehandler,
                 correlationId = CorrelationId.generate(),
                 begrunnelse = begrunnelse,
-                stansDato = stansDato,
+                stansFraOgMed = stansDato,
                 valgteHjemler = valgteHjemler,
                 fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("fritekstTilVedtaksbrev"),
+                sisteDagSomGirRett = null,
             ),
             clock = clock,
         )

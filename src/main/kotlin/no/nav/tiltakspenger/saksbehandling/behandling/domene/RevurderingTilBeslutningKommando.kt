@@ -24,10 +24,12 @@ data class RevurderingStansTilBeslutningKommando(
     override val begrunnelse: BegrunnelseVilkårsvurdering,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val valgteHjemler: List<ValgtHjemmelForStans>,
-    val stansDato: LocalDate,
+    val stansFraOgMed: LocalDate,
+    // Bestemmes av tidligere vedtak på saken, må settes før behandlingen settes til under beslutning
+    val sisteDagSomGirRett: LocalDate?,
 ) : RevurderingTilBeslutningKommando
 
-data class RevurderingInnvilgelsesperiodeTilBeslutningKommando(
+data class RevurderingInnvilgelseTilBeslutningKommando(
     override val sakId: SakId,
     override val behandlingId: BehandlingId,
     override val saksbehandler: Saksbehandler,

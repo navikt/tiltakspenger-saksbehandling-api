@@ -92,7 +92,7 @@ class ForhåndsvisVedtaksbrevService(
                         ifRight = { it.pdf },
                     )
 
-                    RevurderingUtfallType.INNVILGELSESPERIODE,
+                    RevurderingUtfallType.INNVILGELSE,
                     RevurderingUtfallType.STANS,
                     -> throw IllegalArgumentException("$utfall er ikke gyldig utfall for søknadsbehandling")
                 }

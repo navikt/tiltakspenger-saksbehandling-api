@@ -10,14 +10,14 @@ enum class BehandlingUtfallDTO {
     INNVILGELSE,
     AVSLAG,
     STANS,
-    REVURDERING_INNVILGELSESPERIODE,
+    REVURDERING_INNVILGELSE,
     ;
 
     fun toDomain(): BehandlingUtfallType = when (this) {
         INNVILGELSE -> SøknadsbehandlingUtfallType.INNVILGELSE
         AVSLAG -> SøknadsbehandlingUtfallType.AVSLAG
         STANS -> RevurderingUtfallType.STANS
-        REVURDERING_INNVILGELSESPERIODE -> RevurderingUtfallType.INNVILGELSESPERIODE
+        REVURDERING_INNVILGELSE -> RevurderingUtfallType.INNVILGELSE
     }
 }
 
@@ -28,5 +28,5 @@ fun SøknadsbehandlingUtfall.tilUtfallDTO(): BehandlingUtfallDTO = when (this) {
 
 fun RevurderingUtfall.tilUtfallDTO(): BehandlingUtfallDTO = when (this) {
     is RevurderingUtfall.Stans -> BehandlingUtfallDTO.STANS
-    is RevurderingUtfall.Innvilgelsesperiode -> BehandlingUtfallDTO.REVURDERING_INNVILGELSESPERIODE
+    is RevurderingUtfall.Innvilgelse -> BehandlingUtfallDTO.REVURDERING_INNVILGELSE
 }
