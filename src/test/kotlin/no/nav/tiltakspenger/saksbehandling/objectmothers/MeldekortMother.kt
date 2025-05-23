@@ -357,7 +357,7 @@ interface MeldekortMother : MotherOfAllMothers {
         meldeperioder: NonEmptyList<NonEmptyList<Dager.Dag>>,
         utfallsperioder: Periodisering<Utfallsperiode> = Periodisering(
             initiellVerdi = Utfallsperiode.RETT_TIL_TILTAKSPENGER,
-            totalePeriode = vurderingsperiode,
+            totalPeriode = vurderingsperiode,
         ),
         navkontor: Navkontor = ObjectMother.navkontor(),
         barnetilleggsPerioder: Periodisering<AntallBarn?> = Periodisering.empty(),

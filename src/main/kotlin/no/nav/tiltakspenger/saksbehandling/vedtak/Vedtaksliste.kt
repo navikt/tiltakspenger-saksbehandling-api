@@ -41,12 +41,7 @@ data class Vedtaksliste(
     }
 
     val innvilgetTidslinje: Periodisering<Rammevedtak?> by lazy {
-        tidslinje.perioderMedVerdi.filter { it.verdi == null || it.verdi?.vedtaksType == Vedtakstype.INNVILGELSE }.map {
-            PeriodeMedVerdi(
-                periode = it.periode,
-                verdi = it.verdi,
-            )
-        }.let { Periodisering(it) }
+        tidslinje.filter { verdi, _ -> verdi?.vedtaksType == Vedtakstype.INNVILGELSE }
     }
 
     val antallInnvilgelsesperioder: Int by lazy { innvilgelsesperioder.size }
@@ -70,13 +65,10 @@ data class Vedtaksliste(
      */
     @Suppress("UNCHECKED_CAST")
     val utfallsperioder: Periodisering<Utfallsperiode?> by lazy {
-        tidslinje.perioderMedVerdi.flatMap {
-            if (it.verdi == null) {
-                listOf(PeriodeMedVerdi<Utfallsperiode?>(null, it.periode))
-            } else {
-                it.verdi!!.utfallsperioder!!.krymp(it.periode).perioderMedVerdi as List<PeriodeMedVerdi<Utfallsperiode?>>
-            }
-        }.let { Periodisering(it) }
+        tidslinje.flatMap {
+            it.verdi?.utfallsperioder?.krymp(it.periode)?.perioderMedVerdi as? List<PeriodeMedVerdi<Utfallsperiode?>>
+                ?: listOf(PeriodeMedVerdi(null, it.periode))
+        }
     }
 
     fun utfallForPeriode(periode: Periode): Periodisering<Utfallsperiode?> {
@@ -84,26 +76,21 @@ data class Vedtaksliste(
     }
 
     fun vedtakForPeriode(periode: Periode): Periodisering<VedtakId?> = tidslinje
-        .map { it?.id }
-        .utvid(null, periode)
-        .krymp(periode)
+        .map { verdi, _ -> verdi?.id }
+        .nyPeriode(periode, null)
 
     // Denne fungerer bare for førstegangsvedtak der man har valgte tiltaksdeltakelser
     @Suppress("UNCHECKED_CAST")
     val valgteTiltaksdeltakelser: Periodisering<Tiltaksdeltagelse?> by lazy {
-        innvilgetTidslinje.perioderMedVerdi
-            .flatMap {
-                val verdi = it.verdi
-                if (verdi == null) {
-                    listOf(PeriodeMedVerdi<Tiltaksdeltagelse?>(null, it.periode))
-                } else {
-                    require(verdi.behandling is Søknadsbehandling)
-                    verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(it.periode).perioderMedVerdi as List<PeriodeMedVerdi<Tiltaksdeltagelse?>>
-                }
+        innvilgetTidslinje.flatMap { (verdi, periode) ->
+            if (verdi == null) {
+                listOf(PeriodeMedVerdi(null, periode))
+            } else {
+                // TODO John og Anders: Fix for revurdering
+                require(verdi.behandling is Søknadsbehandling)
+                verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(periode).perioderMedVerdi as List<PeriodeMedVerdi<Tiltaksdeltagelse?>>
             }
-            .let {
-                Periodisering(it)
-            }
+        }
     }
 
     fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<Tiltaksdeltagelse?> {
@@ -121,25 +108,21 @@ data class Vedtaksliste(
     /** Tidslinje for antall barn. Første og siste periode vil være 1 eller flere. Kan inneholde hull med 0 barn. */
     @Suppress("UNCHECKED_CAST")
     val barnetilleggsperioder: Periodisering<AntallBarn?> by lazy {
-        tidslinje.perioderMedVerdi.flatMap {
-            if (it.verdi == null) {
-                listOf(PeriodeMedVerdi<AntallBarn?>(null, it.periode))
-            } else {
-                it.verdi?.barnetillegg?.periodisering?.krymp(it.periode)?.perioderMedVerdi?.let {
-                    it as List<PeriodeMedVerdi<AntallBarn?>>
-                } ?: listOf(PeriodeMedVerdi<AntallBarn?>(null, it.periode))
-            }
-        }.let { Periodisering(it) }
+        tidslinje.flatMap {
+            it.verdi?.barnetillegg?.periodisering?.krymp(it.periode)?.perioderMedVerdi?.let {
+                it as List<PeriodeMedVerdi<AntallBarn?>>
+            } ?: listOf(PeriodeMedVerdi(null, it.periode))
+        }
     }
 
     val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett?> by lazy {
-        valgteTiltaksdeltakelser.map { it?.typeKode }
+        valgteTiltaksdeltakelser.mapVerdi { verdi, _ -> verdi?.typeKode }
     }
 
     fun leggTilFørstegangsVedtak(vedtak: Rammevedtak): Vedtaksliste = copy(value = this.value.plus(vedtak))
 
     fun hentTiltaksdataForPeriode(periode: Periode): List<Tiltaksdeltagelse?> {
-        return valgteTiltaksdeltakelserForPeriode(periode).perioderMedVerdi.map { it.verdi }
+        return valgteTiltaksdeltakelserForPeriode(periode).verdier
     }
 
     init {

@@ -27,12 +27,12 @@ sealed interface SøknadsbehandlingUtfall : BehandlingUtfall {
                 UNDER_BESLUTNING,
                 VEDTATT,
                 -> {
-                    require(valgteTiltaksdeltakelser.periodisering.totalePeriode == virkningsperiode) {
-                        "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalePeriode}) må stemme overens med virkningsperioden ($virkningsperiode)"
+                    require(valgteTiltaksdeltakelser.periodisering.totalPeriode == virkningsperiode) {
+                        "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalPeriode}) må stemme overens med virkningsperioden ($virkningsperiode)"
                     }
 
                     if (barnetillegg != null) {
-                        val barnetilleggsperiode = barnetillegg.periodisering.totalePeriode
+                        val barnetilleggsperiode = barnetillegg.periodisering.totalPeriode
                         require(barnetilleggsperiode == virkningsperiode) {
                             "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)"
                         }
