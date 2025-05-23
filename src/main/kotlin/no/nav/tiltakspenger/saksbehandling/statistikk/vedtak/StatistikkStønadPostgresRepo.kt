@@ -58,6 +58,8 @@ class StatistikkStønadPostgresRepo(
                     "sistEndret" to nå(clock),
                     "opprettet" to nå(clock),
                     "tiltaksdeltakelser" to toPGObject(dto.tiltaksdeltakelser),
+                    "barnetillegg" to toPGObject(dto.barnetillegg),
+                    "harBarnetillegg" to dto.harBarnetillegg,
                 ),
             ).asUpdate,
         )
@@ -156,7 +158,9 @@ class StatistikkStønadPostgresRepo(
         fagsystem,
         sist_endret,
         opprettet,
-        tiltaksdeltakelser
+        tiltaksdeltakelser,
+        barnetillegg,
+        har_barnetillegg
         ) values (
         :id,
         :brukerId,
@@ -179,7 +183,9 @@ class StatistikkStønadPostgresRepo(
         :fagsystem,
         :sistEndret,
         :opprettet,
-        :tiltaksdeltakelser
+        :tiltaksdeltakelser,
+        :barnetillegg,
+        :harBarnetillegg
         )
         """.trimIndent()
 
@@ -239,5 +245,7 @@ class StatistikkStønadPostgresRepo(
             vedtakTom = localDate("til_og_med"),
             fagsystem = string("fagsystem"),
             tiltaksdeltakelser = objectMapper.readValue(string("tiltaksdeltakelser")),
+            barnetillegg = objectMapper.readValue(string("barnetillegg")),
+            harBarnetillegg = boolean("har_barnetillegg"),
         )
 }

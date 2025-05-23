@@ -24,6 +24,17 @@ fun genererStønadsstatistikkForRammevedtak(
             null
         }
 
+    val barnetillegg = vedtak.barnetillegg?.periodisering?.mapNotNull { bt ->
+        if (bt.verdi.value > 0) {
+            StatistikkStønadDTO.Barnetillegg(
+                fraOgMed = bt.periode.fraOgMed,
+                tilOgMed = bt.periode.tilOgMed,
+                antallBarn = bt.verdi.value,
+            )
+        } else {
+            null
+        }
+    } ?: emptyList()
     return StatistikkStønadDTO(
         id = UUID.randomUUID(),
         brukerId = vedtak.fnr.verdi,
@@ -50,5 +61,7 @@ fun genererStønadsstatistikkForRammevedtak(
         vedtakFom = vedtak.periode.fraOgMed,
         vedtakTom = vedtak.periode.tilOgMed,
         tiltaksdeltakelser = tiltaksdeltakelser ?: emptyList(),
+        barnetillegg = barnetillegg,
+        harBarnetillegg = barnetillegg.isNotEmpty(),
     )
 }

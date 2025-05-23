@@ -37,7 +37,15 @@ data class StatistikkStønadDTO(
     val fagsystem: String = "TPSAK",
     // tiltaksdeltakelser (eksternId) som det er innvilget tiltakspenger for
     val tiltaksdeltakelser: List<String>,
-)
+    val barnetillegg: List<Barnetillegg>,
+    val harBarnetillegg: Boolean,
+) {
+    data class Barnetillegg(
+        val fraOgMed: LocalDate,
+        val tilOgMed: LocalDate,
+        val antallBarn: Int,
+    )
+}
 
 enum class VedtakStatistikkResultat {
     Innvilgelse,
