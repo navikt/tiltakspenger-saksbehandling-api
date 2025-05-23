@@ -4,7 +4,7 @@ import arrow.core.Either
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBeslutter
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendRevurderingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendSøknadsbehandlingTilBeslutning
@@ -41,7 +41,7 @@ class SendBehandlingTilBeslutningService(
         }
     }
 
-    suspend fun sendRevurderingTilBeslutning(kommando: SendRevurderingTilBeslutningKommando): Either<KanIkkeSendeTilBeslutter, Behandling> {
+    suspend fun sendRevurderingTilBeslutning(kommando: RevurderingTilBeslutningKommando): Either<KanIkkeSendeTilBeslutter, Behandling> {
         // Denne sjekker tilgang til person og rollene SAKSBEHANDLER eller BESLUTTER.
         val sak: Sak = sakService.hentForSakIdEllerKast(
             sakId = kommando.sakId,

@@ -23,8 +23,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendRevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
@@ -82,7 +83,7 @@ interface BehandlingMother : MotherOfAllMothers {
         },
     ): Revurdering {
         return runBlocking {
-            Revurdering.opprett(
+            Revurdering.opprettStans(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
@@ -111,6 +112,17 @@ interface BehandlingMother : MotherOfAllMothers {
         valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         stansDato: LocalDate,
         sisteDagSomGirRett: LocalDate,
+        kommando: RevurderingTilBeslutningKommando = RevurderingStansTilBeslutningKommando(
+            sakId = sakId,
+            behandlingId = id,
+            saksbehandler = saksbehandler,
+            correlationId = CorrelationId.generate(),
+            begrunnelse = begrunnelseVilkårsvurdering,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            valgteHjemler = valgteHjemler,
+            stansFraOgMed = stansDato,
+            sisteDagSomGirRett = sisteDagSomGirRett,
+        ),
     ): Revurdering {
         return this.nyOpprettetRevurdering(
             id = id,
@@ -121,17 +133,7 @@ interface BehandlingMother : MotherOfAllMothers {
             virkningsperiode = virkningsperiode,
             hentSaksopplysninger = { saksopplysninger },
         ).tilBeslutning(
-            kommando = SendRevurderingTilBeslutningKommando(
-                sakId = sakId,
-                behandlingId = id,
-                saksbehandler = saksbehandler,
-                correlationId = CorrelationId.generate(),
-                begrunnelse = begrunnelseVilkårsvurdering,
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                valgteHjemler = valgteHjemler,
-                stansDato = stansDato,
-            ),
-            sisteDagSomGirRett = sisteDagSomGirRett,
+            kommando = kommando,
             clock = clock,
         )
     }

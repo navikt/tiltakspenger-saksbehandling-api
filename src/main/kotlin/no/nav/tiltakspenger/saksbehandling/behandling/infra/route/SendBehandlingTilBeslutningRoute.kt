@@ -35,47 +35,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 
-private data class Body(
-    val fritekstTilVedtaksbrev: String?,
-    val begrunnelseVilkårsvurdering: String?,
-    val behandlingsperiode: PeriodeDTO,
-    val barnetillegg: BarnetilleggDTO?,
-    val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
-    val antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-    val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
-    val utfall: BehandlingUtfallDTO,
-) {
-    fun toDomain(
-        sakId: SakId,
-        behandlingId: BehandlingId,
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
-    ): SendSøknadsbehandlingTilBeslutningKommando {
-        val behandlingsperiode = behandlingsperiode.toDomain()
-
-        return SendSøknadsbehandlingTilBeslutningKommando(
-            sakId = sakId,
-            behandlingId = behandlingId,
-            saksbehandler = saksbehandler,
-            correlationId = correlationId,
-            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
-            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { BegrunnelseVilkårsvurdering(saniter(it)) },
-            behandlingsperiode = behandlingsperiode,
-            barnetillegg = barnetillegg?.tilBarnetillegg(behandlingsperiode),
-            tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
-                Pair(it.periode.toDomain(), it.eksternDeltagelseId)
-            },
-            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
-            avslagsgrunner = avslagsgrunner?.toAvslagsgrunnlag(),
-            utfall = when (utfall) {
-                BehandlingUtfallDTO.INNVILGELSE -> SøknadsbehandlingUtfallType.INNVILGELSE
-                BehandlingUtfallDTO.AVSLAG -> SøknadsbehandlingUtfallType.AVSLAG
-                BehandlingUtfallDTO.STANS -> throw IllegalArgumentException("Ugyldig utfall for søknadsbehandling: $utfall")
-            },
-        )
-    }
-}
-
 fun Route.sendSøknadsbehandlingTilBeslutningRoute(
     sendBehandlingTilBeslutningService: SendBehandlingTilBeslutningService,
     auditService: AuditService,
@@ -87,7 +46,7 @@ fun Route.sendSøknadsbehandlingTilBeslutningRoute(
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<Body> { body ->
+                    call.withBody<SøknadsbehandlingTilBeslutningBody> { body ->
                         val correlationId = call.correlationId()
 
                         sendBehandlingTilBeslutningService.sendSøknadsbehandlingTilBeslutning(
@@ -126,4 +85,47 @@ internal fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJ
     is KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler -> HttpStatusCode.BadRequest to Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
         this.eiesAvSaksbehandler,
     )
+}
+
+private data class SøknadsbehandlingTilBeslutningBody(
+    val fritekstTilVedtaksbrev: String?,
+    val begrunnelseVilkårsvurdering: String?,
+    val behandlingsperiode: PeriodeDTO,
+    val barnetillegg: BarnetilleggDTO?,
+    val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
+    val antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
+    val utfall: BehandlingUtfallDTO,
+) {
+    fun toDomain(
+        sakId: SakId,
+        behandlingId: BehandlingId,
+        saksbehandler: Saksbehandler,
+        correlationId: CorrelationId,
+    ): SendSøknadsbehandlingTilBeslutningKommando {
+        val behandlingsperiode = behandlingsperiode.toDomain()
+
+        return SendSøknadsbehandlingTilBeslutningKommando(
+            sakId = sakId,
+            behandlingId = behandlingId,
+            saksbehandler = saksbehandler,
+            correlationId = correlationId,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { BegrunnelseVilkårsvurdering(saniter(it)) },
+            behandlingsperiode = behandlingsperiode,
+            barnetillegg = barnetillegg?.tilBarnetillegg(behandlingsperiode),
+            tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
+                Pair(it.periode.toDomain(), it.eksternDeltagelseId)
+            },
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+            avslagsgrunner = avslagsgrunner?.toAvslagsgrunnlag(),
+            utfall = when (utfall) {
+                BehandlingUtfallDTO.INNVILGELSE -> SøknadsbehandlingUtfallType.INNVILGELSE
+                BehandlingUtfallDTO.AVSLAG -> SøknadsbehandlingUtfallType.AVSLAG
+                BehandlingUtfallDTO.STANS,
+                BehandlingUtfallDTO.REVURDERING_INNVILGELSE,
+                -> throw IllegalArgumentException("Ugyldig utfall for søknadsbehandling: $utfall")
+            },
+        )
+    }
 }

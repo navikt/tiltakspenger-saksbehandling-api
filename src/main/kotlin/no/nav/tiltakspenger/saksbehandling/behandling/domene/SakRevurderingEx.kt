@@ -22,10 +22,6 @@ suspend fun Sak.startRevurdering(
         "Kan kun opprette en stansrevurdering dersom vi har en sammenhengende innvilgelsesperiode. sakId=${this.id}"
     }
 
-    // TODO - dette gjelder bare så lenge dette er en stans revurdering
-    // Her har vi ikke valgt revurderingsperioden, men ved forlengelse vil den kunne være større.
-    val saksopplysningsperiode = this.vedtaksliste.innvilgelsesperiode!!
-
     val hentSaksopplysninger: suspend (Periode) -> Saksopplysninger = { periode: Periode ->
         hentSaksopplysninger(
             fnr,
@@ -34,41 +30,50 @@ suspend fun Sak.startRevurdering(
         )
     }
 
-    val revurdering = Revurdering.opprett(
-        sakId = this.id,
-        saksnummer = this.saksnummer,
-        fnr = this.fnr,
-        saksbehandler = saksbehandler,
-        hentSaksopplysninger = hentSaksopplysninger,
-        saksopplysningsperiode = saksopplysningsperiode,
-        clock = clock,
+    val revurdering = when (kommando.revurderingType) {
+        RevurderingUtfallType.STANS -> Revurdering.opprettStans(
+            sakId = this.id,
+            saksnummer = this.saksnummer,
+            fnr = this.fnr,
+            saksbehandler = saksbehandler,
+            hentSaksopplysninger = hentSaksopplysninger,
+            saksopplysningsperiode = this.vedtaksliste.innvilgelsesperiode!!,
+            clock = clock,
+        )
+
+        RevurderingUtfallType.INNVILGELSE -> throw NotImplementedError("Revurdering av innvilgelsesperiode er ikke implementert ennå")
+    }
+
+    return Pair(
+        copy(behandlinger = behandlinger.leggTilRevurdering(revurdering)),
+        revurdering,
     )
-
-    return Pair(leggTilRevurdering(revurdering), revurdering)
-}
-
-fun Sak.leggTilRevurdering(
-    revurdering: Revurdering,
-): Sak {
-    return copy(behandlinger = behandlinger.leggTilRevurdering(revurdering))
 }
 
 fun Sak.sendRevurderingTilBeslutning(
-    kommando: SendRevurderingTilBeslutningKommando,
+    kommando: RevurderingTilBeslutningKommando,
     clock: Clock,
 ): Either<KanIkkeSendeTilBeslutter, Revurdering> {
     krevSaksbehandlerRolle(kommando.saksbehandler)
 
-    val stansDato = kommando.stansDato
-    this.validerStansDato(stansDato)
-
     val behandling = this.hentBehandling(kommando.behandlingId)
     require(behandling is Revurdering) { "Behandlingen må være en revurdering, men var: ${behandling?.behandlingstype}" }
 
-    val oppdatertBehandling =
-        behandling.tilBeslutning(kommando, this.vedtaksliste.sisteDagSomGirRett!!, clock)
+    return when (kommando) {
+        is RevurderingInnvilgelseTilBeslutningKommando -> behandling.tilBeslutning(
+            kommando = kommando,
+            clock = clock,
+        )
 
-    return oppdatertBehandling.right()
+        is RevurderingStansTilBeslutningKommando -> {
+            validerStansDato(kommando.stansFraOgMed)
+
+            behandling.tilBeslutning(
+                kommando = kommando.copy(sisteDagSomGirRett = sisteDagSomGirRett),
+                clock = clock,
+            )
+        }
+    }.right()
 }
 
 fun Sak.validerStansDato(stansDato: LocalDate?) {

@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.routes.revurdering
 import arrow.core.Tuple4
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -55,15 +56,18 @@ interface StartRevurderingBuilder {
                 path("/sak/$sakId/revurdering/start")
             },
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(),
-        ).apply {
-            val bodyAsText = this.bodyAsText()
-            withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-            ) {
-                status shouldBe HttpStatusCode.OK
-            }
-            val revurderingId = BehandlingId.fromString(JSONObject(bodyAsText).getString("id"))
-            return tac.behandlingContext.behandlingRepo.hent(revurderingId)
+        ) {
+            setBody("""{"revurderingType": "STANS"}""")
         }
+            .apply {
+                val bodyAsText = this.bodyAsText()
+                withClue(
+                    "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
+                ) {
+                    status shouldBe HttpStatusCode.OK
+                }
+                val revurderingId = BehandlingId.fromString(JSONObject(bodyAsText).getString("id"))
+                return tac.behandlingContext.behandlingRepo.hent(revurderingId)
+            }
     }
 }

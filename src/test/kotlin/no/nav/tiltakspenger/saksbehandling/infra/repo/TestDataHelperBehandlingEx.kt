@@ -19,8 +19,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårs
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfallType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendRevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -522,6 +523,7 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
                 sakId = sakId,
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
+                revurderingType = RevurderingUtfallType.STANS,
             ),
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,
@@ -559,6 +561,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
         ),
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
     clock: Clock = this.clock,
+    revurderingType: RevurderingUtfallType = RevurderingUtfallType.STANS,
 ): Pair<Sak, Behandling> {
     val (sak, _) = runBlocking {
         persisterIverksattSøknadsbehandling(
@@ -582,6 +585,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
                 sakId = sakId,
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
+                revurderingType = revurderingType,
             ),
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,
@@ -640,15 +644,16 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
     }
     return runBlocking {
         sak.sendRevurderingTilBeslutning(
-            kommando = SendRevurderingTilBeslutningKommando(
+            kommando = RevurderingStansTilBeslutningKommando(
                 sakId = sakId,
                 behandlingId = behandling.id,
                 saksbehandler = saksbehandler,
                 correlationId = CorrelationId.generate(),
                 begrunnelse = begrunnelse,
-                stansDato = stansDato,
+                stansFraOgMed = stansDato,
                 valgteHjemler = valgteHjemler,
                 fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("fritekstTilVedtaksbrev"),
+                sisteDagSomGirRett = null,
             ),
             clock = clock,
         )
