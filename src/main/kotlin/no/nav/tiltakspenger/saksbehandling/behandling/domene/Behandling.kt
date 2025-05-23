@@ -43,7 +43,7 @@ sealed interface Behandling {
     val iverksattTidspunkt: LocalDateTime?
     val sendtTilDatadeling: LocalDateTime?
     val sakId: SakId
-    val oppgaveId: OppgaveId?
+    val oppgaveId: OppgaveId? // søknadOppgaveId?
 
     val saksnummer: Saksnummer
     val fnr: Fnr

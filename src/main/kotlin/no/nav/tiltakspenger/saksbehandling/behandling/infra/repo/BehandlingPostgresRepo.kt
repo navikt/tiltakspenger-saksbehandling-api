@@ -352,6 +352,7 @@ class BehandlingPostgresRepo(
 
             val virkningsperiode =
                 virkningsperiodeFraOgMed?.let { Periode(virkningsperiodeFraOgMed, virkningsperiodeTilOgMed!!) }
+            val søknadId = SøknadId.fromString(string("soknad_id"))
 
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
@@ -553,6 +554,7 @@ class BehandlingPostgresRepo(
         return sessionFactory.withSession { session ->
             session.run(
                 queryOf(
+                    // language=SQL
                     """
                     select b.*,sak.saksnummer,sak.fnr
                     from behandling b
