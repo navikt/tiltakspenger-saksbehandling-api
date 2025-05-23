@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksoversiktRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakServiceImpl
 import no.nav.tiltakspenger.saksbehandling.benk.infra.repo.BenkOversiktPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
 import no.nav.tiltakspenger.saksbehandling.sak.SaksnummerGenerator
@@ -24,7 +23,7 @@ open class SakContext(
     clock: Clock,
 ) {
     val sakService: SakService by lazy {
-        SakServiceImpl(
+        SakService(
             sakRepo = sakRepo,
             saksoversiktRepo = saksoversiktRepo,
             tilgangsstyringService = tilgangsstyringService,
