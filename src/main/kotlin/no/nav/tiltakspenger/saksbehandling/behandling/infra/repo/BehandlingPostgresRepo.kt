@@ -409,6 +409,8 @@ class BehandlingPostgresRepo(
                                 ?: emptyList(),
                         )
 
+                        RevurderingUtfallType.INNVILGELSESPERIODE -> TODO()
+
                         null -> null
                     }
 
@@ -628,6 +630,8 @@ private fun BehandlingUtfall?.tilDbParams(): Array<Pair<String, Any?>> = when (t
     is RevurderingUtfall.Stans -> arrayOf(
         "valgt_hjemmel_har_ikke_rettighet" to this.valgtHjemmel.toDbJson(),
     )
+
+    is RevurderingUtfall.Innvilgelsesperiode -> TODO()
 
     null -> emptyArray()
 }

@@ -8,8 +8,9 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfallType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendRevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
@@ -35,6 +36,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
     genererSak: (Sak?) -> Sak = { s ->
         s ?: this.persisterIverksattSøknadsbehandling().first
     },
+    revurderingType: RevurderingUtfallType = RevurderingUtfallType.STANS,
 ): Pair<Sak, Behandling> {
     val sakMedVedtak = genererSak(sak)
 
@@ -44,6 +46,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
                 sakId = sakMedVedtak.id,
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
+                revurderingType = revurderingType,
             ),
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,
@@ -72,7 +75,7 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
 
     return runBlocking {
         sakMedRevurdering.sendRevurderingTilBeslutning(
-            kommando = SendRevurderingTilBeslutningKommando(
+            kommando = RevurderingStansTilBeslutningKommando(
                 sakId = sakMedRevurdering.id,
                 behandlingId = revurdering.id,
                 saksbehandler = saksbehandler,

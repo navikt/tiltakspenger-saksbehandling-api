@@ -16,7 +16,8 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendRevurderingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
@@ -25,43 +26,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import java.time.LocalDate
-
-fun String.valgtHjemmelForStans(): ValgtHjemmelForStans = when (this) {
-    "DeltarIkkePåArbeidsmarkedstiltak" -> ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak
-    "Alder" -> ValgtHjemmelForStans.Alder
-    "Livsoppholdytelser" -> ValgtHjemmelForStans.Livsoppholdytelser
-    "Kvalifiseringsprogrammet" -> ValgtHjemmelForStans.Kvalifiseringsprogrammet
-    "Introduksjonsprogrammet" -> ValgtHjemmelForStans.Introduksjonsprogrammet
-    "LønnFraTiltaksarrangør" -> ValgtHjemmelForStans.LønnFraTiltaksarrangør
-    "LønnFraAndre" -> ValgtHjemmelForStans.LønnFraAndre
-    "Institusjonsopphold" -> ValgtHjemmelForStans.Institusjonsopphold
-    else -> throw IllegalArgumentException("Ukjent kode for ValgtHjemmelForStans: $this")
-}
-
-private data class SendRevurderingTilBeslutningBody(
-    val begrunnelse: String,
-    val fritekstTilVedtaksbrev: String?,
-    val valgteHjemler: List<String>?, // TODO Midlertidig nullable for å unngå breaking change
-    val stansDato: LocalDate,
-) {
-    fun toDomain(
-        sakId: SakId,
-        behandlingId: BehandlingId,
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
-    ): SendRevurderingTilBeslutningKommando {
-        return SendRevurderingTilBeslutningKommando(
-            sakId = sakId,
-            behandlingId = behandlingId,
-            saksbehandler = saksbehandler,
-            correlationId = correlationId,
-            stansDato = stansDato,
-            begrunnelse = BegrunnelseVilkårsvurdering(saniter(begrunnelse)),
-            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
-            valgteHjemler = valgteHjemler?.map { it.valgtHjemmelForStans() } ?: emptyList(),
-        )
-    }
-}
 
 private const val PATH = "/sak/{sakId}/revurdering/{behandlingId}/sendtilbeslutning"
 
@@ -103,5 +67,53 @@ fun Route.sendRevurderingTilBeslutningRoute(
                 }
             }
         }
+    }
+}
+
+private enum class ValgtHjemmelForStansDTO {
+    DeltarIkkePåArbeidsmarkedstiltak,
+    Alder,
+    Livsoppholdytelser,
+    Kvalifiseringsprogrammet,
+    Introduksjonsprogrammet,
+    LønnFraTiltaksarrangør,
+    LønnFraAndre,
+    Institusjonsopphold,
+    ;
+
+    fun tilDomene(): ValgtHjemmelForStans = when (this) {
+        DeltarIkkePåArbeidsmarkedstiltak -> ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak
+        Alder -> ValgtHjemmelForStans.Alder
+        Livsoppholdytelser -> ValgtHjemmelForStans.Livsoppholdytelser
+        Kvalifiseringsprogrammet -> ValgtHjemmelForStans.Kvalifiseringsprogrammet
+        Introduksjonsprogrammet -> ValgtHjemmelForStans.Introduksjonsprogrammet
+        LønnFraTiltaksarrangør -> ValgtHjemmelForStans.LønnFraTiltaksarrangør
+        LønnFraAndre -> ValgtHjemmelForStans.LønnFraAndre
+        Institusjonsopphold -> ValgtHjemmelForStans.Institusjonsopphold
+    }
+}
+
+private data class SendRevurderingTilBeslutningBody(
+    val begrunnelse: String,
+    val fritekstTilVedtaksbrev: String?,
+    val valgteHjemler: List<ValgtHjemmelForStansDTO>?, // TODO Midlertidig nullable for å unngå breaking change
+    val stansDato: LocalDate,
+) {
+    fun toDomain(
+        sakId: SakId,
+        behandlingId: BehandlingId,
+        saksbehandler: Saksbehandler,
+        correlationId: CorrelationId,
+    ): RevurderingTilBeslutningKommando {
+        return RevurderingStansTilBeslutningKommando(
+            sakId = sakId,
+            behandlingId = behandlingId,
+            saksbehandler = saksbehandler,
+            correlationId = correlationId,
+            stansDato = stansDato,
+            begrunnelse = BegrunnelseVilkårsvurdering(saniter(begrunnelse)),
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
+            valgteHjemler = valgteHjemler?.map { it.tilDomene() } ?: emptyList(),
+        )
     }
 }
