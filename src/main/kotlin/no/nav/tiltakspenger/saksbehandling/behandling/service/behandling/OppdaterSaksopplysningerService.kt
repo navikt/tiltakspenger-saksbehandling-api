@@ -28,7 +28,7 @@ class OppdaterSaksopplysningerService(
         correlationId: CorrelationId,
     ): Behandling {
         // Denne sjekker tilgang til person og rollene SAKSBEHANDLER eller BESLUTTER.
-        val sak = sakService.sjekkTilgangOgHentForSakId(sakId, saksbehandler, correlationId)
+        val sak = sakService.hentForSakIdEllerKast(sakId, saksbehandler, correlationId)
         val behandling = sak.hentBehandling(behandlingId)!!
         val oppdaterteSaksopplysninger: Saksopplysninger = hentSaksopplysningerFraRegistre(
             fnr = sak.fnr,

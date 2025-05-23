@@ -50,7 +50,7 @@ class OppdaterMeldekortService(
         krevSaksbehandlerRolle(kommando.saksbehandler)
 
         // Denne sjekker at saksbehandler har tilgang til personen og at den har en av rollene SAKSBEHANDLER eller BESLUTTER
-        val sak = sakService.sjekkTilgangOgHentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
+        val sak = sakService.hentForSakIdEllerKast(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
 
         val meldekortbehandling = sak.hentMeldekortBehandling(kommando.meldekortId)!!
         val meldeperiode = meldekortbehandling.meldeperiode

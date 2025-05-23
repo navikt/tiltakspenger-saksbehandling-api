@@ -103,6 +103,19 @@ class StatistikkSakService(
         )
     }
 
+    suspend fun genererStatistikkForSøknadSomBehandlesPåNytt(
+        behandling: Søknadsbehandling,
+        søknadId: SøknadId,
+    ): StatistikkSakDTO {
+        return genererSaksstatistikkForBehandling(
+            behandling = behandling,
+            gjelderKode6 = gjelderKode6(behandling.fnr, "SøknadId: $søknadId"),
+            versjon = gitHash,
+            clock = clock,
+            hendelse = "søknad_behandlet_på_nytt",
+        )
+    }
+
     private suspend fun gjelderKode6(fnr: Fnr, sporingsinformasjon: String): Boolean {
         val adressebeskyttelseGradering: List<AdressebeskyttelseGradering>? =
             tilgangsstyringService.adressebeskyttelseEnkel(fnr)

@@ -37,8 +37,10 @@ class BehandlingFakeRepo : BehandlingRepo {
 
     override fun hentAlleForFnr(fnr: Fnr): List<Behandling> = data.get().values.filter { it.fnr == fnr }
 
-    override fun hentForSøknadId(søknadId: SøknadId): Behandling? =
-        data.get().values.find { it is Søknadsbehandling && it.søknad.id == søknadId }
+    override fun hentForSøknadId(søknadId: SøknadId): List<Søknadsbehandling> =
+        data.get().values
+            .filterIsInstance<Søknadsbehandling>()
+            .filter { it.søknad.id == søknadId }
 
     override fun hentSøknadsbehandlingerTilDatadeling(limit: Int): List<Behandling> {
         return data.get().values.filter {

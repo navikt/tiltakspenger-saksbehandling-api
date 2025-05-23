@@ -54,7 +54,7 @@ class SendMeldekortTilBeslutterService(
         krevSaksbehandlerRolle(kommando.saksbehandler)
 
         // Sjekker om saksbehandler har tilgang til person og har en rollene SAKSBEHANDLER eller BESLUTTER
-        val sak = sakService.sjekkTilgangOgHentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
+        val sak = sakService.hentForSakIdEllerKast(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
 
         val meldekortbehandling = sak.hentMeldekortBehandling(kommando.meldekortId)!!
         val meldeperiode = meldekortbehandling.meldeperiode
