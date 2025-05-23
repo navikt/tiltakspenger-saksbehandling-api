@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 class BehandlingerTest {
 
@@ -36,45 +35,5 @@ class BehandlingerTest {
 
         val actualVedtattOgAvbrutt = vedtattOgAvbrutt.hentÅpneBehandlinger()
         actualVedtattOgAvbrutt.size shouldBe 0
-    }
-
-    @Test
-    fun `kan ikke ha overlappende virkningsperioder`() {
-        val sakId = SakId.random()
-        val fnr = Fnr.random()
-        val b1 = ObjectMother.nyVedtattSøknadsbehandling(
-            sakId = sakId,
-            fnr = fnr,
-            virkningsperiode = Periode(1.januar(2025), 10.januar(2025)),
-        )
-        val b2 = ObjectMother.nyVedtattSøknadsbehandling(
-            sakId = sakId,
-            fnr = fnr,
-            virkningsperiode = Periode(1.januar(2025), 10.januar(2025)),
-        )
-
-        assertThrows<IllegalArgumentException> {
-            Behandlinger(listOf(b1, b2))
-        }.message shouldBe "Søknadsbehandlinger kan ikke ha overlappende virkningsperiode"
-    }
-
-    @Test
-    fun `søknadsbehandlinger kan ikke tilstøte hverandre (må ha hull i mellom)`() {
-        val sakId = SakId.random()
-        val fnr = Fnr.random()
-        val b1 = ObjectMother.nyVedtattSøknadsbehandling(
-            sakId = sakId,
-            fnr = fnr,
-            virkningsperiode = Periode(1.januar(2025), 10.januar(2025)),
-        )
-        val b2 = ObjectMother.nyVedtattSøknadsbehandling(
-            sakId = sakId,
-            fnr = fnr,
-            virkningsperiode = Periode(11.januar(2025), 20.januar(2025)),
-        )
-
-        assertThrows<IllegalArgumentException> {
-            Behandlinger(listOf(b1, b2))
-        }.message shouldBe "Søknadsbehandlinger kan ikke tilstøte hverandre (må ha hull i mellom)"
     }
 }

@@ -44,17 +44,5 @@ data class Behandlinger(
         require(behandlinger.distinctBy { it.saksnummer }.size <= 1) { "Behandlinger inneholder behandlinger for ulike saksnummer: ${behandlinger.map { it.saksnummer.toString() }}" }
         behandlinger.map { it.opprettet }
             .zipWithNext { a, b -> require(a < b) { "Behandlinger er ikke sortert på opprettet-tidspunkt" } }
-
-        /**
-         * En antagelse er at søknadsbehandlinger ikke kan ha tilstøtende perioder. Ved utvidelse av perioden vil lage en revurdering
-         * Det vil si at det 'alltid' skal være hull mmellom periodene til alle søknadsbehandlingene
-         */
-        behandlinger.filterIsInstance<Søknadsbehandling>().map { it.virkningsperiode }
-            .zipWithNext { a, b ->
-                if (a != null && b != null) {
-                    require(!a.overlapperMed(b)) { "Søknadsbehandlinger kan ikke ha overlappende virkningsperiode" }
-                    require(!a.tilstøter(b)) { "Søknadsbehandlinger kan ikke tilstøte hverandre (må ha hull i mellom)" }
-                }
-            }
     }
 }

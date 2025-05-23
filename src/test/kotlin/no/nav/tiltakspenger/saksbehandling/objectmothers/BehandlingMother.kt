@@ -412,6 +412,12 @@ interface BehandlingMother : MotherOfAllMothers {
         avbruttAv: Saksbehandler = saksbehandler(),
         begrunnelse: String = "fordi",
         tidspunkt: LocalDateTime = LocalDateTime.now(clock),
+        hentSaksopplysninger: (Periode) -> Saksopplysninger = {
+            saksopplysninger(
+                fom = it.fraOgMed,
+                tom = it.tilOgMed,
+            )
+        },
     ): Søknadsbehandling {
         return nyOpprettetSøknadsbehandling(
             id = id,
@@ -419,6 +425,7 @@ interface BehandlingMother : MotherOfAllMothers {
             saksnummer = saksnummer,
             fnr = fnr,
             saksbehandler = saksbehandler,
+            hentSaksopplysninger = { saksopplysninger() },
         ).avbryt(
             avbruttAv = avbruttAv,
             begrunnelse = begrunnelse,
