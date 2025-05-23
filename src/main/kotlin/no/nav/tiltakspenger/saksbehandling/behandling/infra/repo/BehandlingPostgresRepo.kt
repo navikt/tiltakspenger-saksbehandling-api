@@ -30,7 +30,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingU
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
@@ -48,17 +47,11 @@ class BehandlingPostgresRepo(
     override fun hent(
         behandlingId: BehandlingId,
         sessionContext: SessionContext?,
-    ): Behandling =
-        hentOrNull(behandlingId, sessionContext)
-            ?: throw IkkeFunnetException("Behandling med id $behandlingId ikke funnet")
-
-    override fun hentOrNull(
-        behandlingId: BehandlingId,
-        sessionContext: SessionContext?,
-    ): Behandling? =
-        sessionFactory.withSession(sessionContext) { session ->
-            hentOrNull(behandlingId, session)
+    ): Behandling {
+        return sessionFactory.withSession(sessionContext) { session ->
+            hentOrNull(behandlingId, session)!!
         }
+    }
 
     /**
      * Denne returnerer ikke [Behandlinger] siden vi ikke har avklart om en person kan ha flere saker. I så fall vil dette bli en liste med [Behandlinger].

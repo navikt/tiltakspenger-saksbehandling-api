@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 
@@ -10,9 +11,7 @@ fun Sak.sendSøknadsbehandlingTilBeslutning(
     kommando: SendSøknadsbehandlingTilBeslutningKommando,
     clock: Clock,
 ): Either<KanIkkeSendeTilBeslutter, Pair<Sak, Søknadsbehandling>> {
-    if (!kommando.saksbehandler.erSaksbehandler()) {
-        return KanIkkeSendeTilBeslutter.MåVæreSaksbehandler.left()
-    }
+    krevSaksbehandlerRolle(kommando.saksbehandler)
 
     val behandling = this.hentBehandling(kommando.behandlingId)
     require(behandling is Søknadsbehandling) { "Behandlingen må være en søknadsbehandling, men var: ${behandling?.behandlingstype}" }

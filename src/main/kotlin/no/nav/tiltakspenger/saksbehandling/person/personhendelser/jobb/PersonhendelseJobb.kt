@@ -22,11 +22,7 @@ class PersonhendelseJobb(
         personhendelser.forEach { personhendelse ->
             try {
                 val sakId = personhendelse.sakId
-                val sak = sakRepo.hentForSakId(sakId)
-                if (sak == null) {
-                    log.error { "Fant ikke sak for sakId $sakId, skal ikke kunne skje" }
-                    throw IllegalStateException("Fant ikke sak for sakId $sakId")
-                }
+                val sak = sakRepo.hentForSakId(sakId)!!
                 if (mottarTiltakspengerNaEllerIFremtiden(sak)) {
                     log.info { "Oppretter oppgave for hendelse med id ${personhendelse.hendelseId}" }
                     val oppgaveId = oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(

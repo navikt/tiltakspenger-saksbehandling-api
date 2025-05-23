@@ -576,11 +576,11 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
             utfall = utfall,
         ),
     ).getOrFail()
-    return this.sakContext.sakService.hentForSakId(
+    return this.sakContext.sakService.hentForSakIdEllerKast(
         sakMedSøknadsbehandling.id,
         saksbehandler,
         correlationId = correlationId,
-    ).getOrFail()
+    )
 }
 
 suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
@@ -604,11 +604,11 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
         beslutter,
         correlationId = correlationId,
     )
-    return this.sakContext.sakService.hentForSakId(
+    return this.sakContext.sakService.hentForSakIdEllerKast(
         vilkårsvurdert.id,
         saksbehandler,
         correlationId = correlationId,
-    ).getOrFail()
+    )
 }
 
 suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
@@ -638,11 +638,11 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
         )
     }
 
-    return this.sakContext.sakService.hentForSakId(
+    return this.sakContext.sakService.hentForSakIdEllerKast(
         underBeslutning.id,
         saksbehandler,
         correlationId = correlationId,
-    ).getOrFail()
+    )
 }
 
 suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
@@ -691,11 +691,11 @@ suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
         saksbehandler = saksbehandler,
         correlationId = correlationId,
     )
-    return this.sakContext.sakService.hentForSakId(
+    return this.sakContext.sakService.hentForSakIdEllerKast(
         sak.id,
         saksbehandler,
         correlationId = correlationId,
-    ).getOrFail()
+    )
 }
 
 suspend fun TestApplicationContext.meldekortTilBeslutter(
@@ -717,8 +717,7 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
             saksbehandler,
         ),
     )
-    return this.sakContext.sakService.hentForSakId(sak.id, saksbehandler, correlationId = correlationId)
-        .getOrFail()
+    return this.sakContext.sakService.hentForSakIdEllerKast(sak.id, saksbehandler, correlationId = correlationId)
 }
 
 /**
@@ -753,7 +752,7 @@ suspend fun TestApplicationContext.førsteMeldekortIverksatt(
     )
     // Emulerer at jobben kjører
     tac.utbetalingContext.sendUtbetalingerService.send()
-    return this.sakContext.sakService.hentForSakId(sak.id, saksbehandler, correlationId = correlationId).getOrFail()
+    return this.sakContext.sakService.hentForSakIdEllerKast(sak.id, saksbehandler, correlationId = correlationId)
 }
 
 suspend fun TestApplicationContext.andreMeldekortIverksatt(
@@ -778,5 +777,5 @@ suspend fun TestApplicationContext.andreMeldekortIverksatt(
         correlationId = correlationId,
     )
 
-    return this.sakContext.sakService.hentForSakId(sak.id, saksbehandler, correlationId = correlationId).getOrFail()
+    return this.sakContext.sakService.hentForSakIdEllerKast(sak.id, saksbehandler, correlationId = correlationId)
 }

@@ -81,16 +81,6 @@ fun Route.avbrytMeldekortBehandlingRoute(
 
 internal fun KanIkkeAvbryteMeldekortBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
-        KanIkkeAvbryteMeldekortBehandling.MåVæreOpprettetAvSaksbehandler -> HttpStatusCode.BadRequest to ErrorJson(
-            "Meldekortbehandlingen må være opprettet av saksbehandler for å kunne avbrytes",
-            "behandlingen_opprettet_av_saksbehandler",
-        )
-
-        KanIkkeAvbryteMeldekortBehandling.MåVæreSaksbehandlerEllerBeslutter -> HttpStatusCode.BadRequest to ErrorJson(
-            "Du må være saksbehandler eller beslutter for å kunne avbryte meldekortbehandlingen",
-            "må_være_saksbehandler_eller_beslutter",
-        )
-
         KanIkkeAvbryteMeldekortBehandling.MåVæreSaksbehandlerForMeldekortet -> HttpStatusCode.BadRequest to ErrorJson(
             "Meldekortbehandlingen er tildelt en annen saksbehandler",
             "behandlingen_tildelt_annen_saksbehandler",

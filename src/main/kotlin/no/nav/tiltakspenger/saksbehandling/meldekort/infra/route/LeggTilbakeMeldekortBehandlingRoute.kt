@@ -7,14 +7,10 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
-import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
-import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil.måVæreSaksbehandlerEllerBeslutter
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeLeggeTilbakeMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.UtbetalingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldekortBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekortBehandlingService
@@ -33,29 +29,24 @@ fun Route.leggTilbakeMeldekortBehandlingRoute(
             call.withMeldekortId { meldekortId ->
                 val correlationId = call.correlationId()
 
-                leggTilbakeMeldekortBehandlingService.leggTilbakeMeldekortBehandling(meldekortId, saksbehandler, correlationId = correlationId).fold(
-                    {
-                        when (it) {
-                            KanIkkeLeggeTilbakeMeldekortBehandling.MåVæreSaksbehandlerEllerBeslutter -> call.respond403Forbidden(måVæreSaksbehandlerEllerBeslutter())
-                            KanIkkeLeggeTilbakeMeldekortBehandling.MåVæreSaksbehandlerEllerBeslutterForBehandlingen -> call.respond400BadRequest(
-                                "Du kan ikke legge tilbake en meldekortbehandling som ikke er tildelt deg",
-                                "må_være_saksbehandler_eller_beslutter_for_meldekortbehandlingen",
-                            )
-                        }
-                    },
+                leggTilbakeMeldekortBehandlingService.leggTilbakeMeldekortBehandling(
+                    meldekortId,
+                    saksbehandler,
+                    correlationId = correlationId,
+                ).also {
+                    auditService.logMedMeldekortId(
+                        meldekortId = meldekortId,
+                        navIdent = saksbehandler.navIdent,
+                        action = AuditLogEvent.Action.UPDATE,
+                        contextMessage = "Saksbehandler fjernes fra meldekortbehandlingen",
+                        correlationId = correlationId,
+                    )
 
-                    {
-                        auditService.logMedMeldekortId(
-                            meldekortId = meldekortId,
-                            navIdent = saksbehandler.navIdent,
-                            action = AuditLogEvent.Action.UPDATE,
-                            contextMessage = "Saksbehandler fjernes fra meldekortbehandlingen",
-                            correlationId = correlationId,
-                        )
-
-                        call.respond(status = HttpStatusCode.OK, it.toMeldekortBehandlingDTO(UtbetalingsstatusDTO.IKKE_GODKJENT))
-                    },
-                )
+                    call.respond(
+                        status = HttpStatusCode.OK,
+                        it.toMeldekortBehandlingDTO(UtbetalingsstatusDTO.IKKE_GODKJENT),
+                    )
+                }
             }
         }
     }

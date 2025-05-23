@@ -19,8 +19,8 @@ class PersonFakeRepo(
         return sakFakeRepo.data.get()[sakId]!!.fnr
     }
 
-    override fun hentFnrForBehandlingId(behandlingId: BehandlingId): Fnr? {
-        return behandlingFakeRepo.hentOrNull(behandlingId)?.fnr
+    override fun hentFnrForBehandlingId(behandlingId: BehandlingId): Fnr {
+        return behandlingFakeRepo.hent(behandlingId).fnr
     }
 
     override fun hentFnrForSaksnummer(saksnummer: Saksnummer): Fnr? {

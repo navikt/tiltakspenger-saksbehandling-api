@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev
 
-import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -29,9 +28,7 @@ class ForhåndsvisVedtaksbrevService(
         kommando: ForhåndsvisVedtaksbrevKommando,
     ): PdfA {
         // hentForSakId sjekker tilgang til person og sak.
-        val sak = sakService.hentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId).getOrElse {
-            throw IllegalStateException("Kunne ikke forhåndsvise vedtaksbrev. Fant ikke sak eller hadde ikke tilgang til sak. sakId=${kommando.sakId}, behandlingId=${kommando.behandlingId}")
-        }
+        val sak = sakService.hentForSakIdEllerKast(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
         val behandling = sak.hentBehandling(kommando.behandlingId)!!
         if (behandling.saksbehandler == null) {
             throw IllegalStateException("Kunne ikke forhåndsvise vedtaksbrev. Behandling har ingen saksbehandler. sakId=${kommando.sakId}, behandlingId=${kommando.behandlingId}")

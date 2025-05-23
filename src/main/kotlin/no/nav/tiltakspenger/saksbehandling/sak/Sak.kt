@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
@@ -98,6 +99,7 @@ data class Sak(
         command: AvbrytSøknadOgBehandlingCommand,
         avbruttTidspunkt: LocalDateTime,
     ): Triple<Sak, Søknad?, Behandling?> {
+        krevSaksbehandlerRolle(command.avsluttetAv)
         if (command.søknadId != null && command.behandlingId != null) {
             return avbrytBehandling(command, avbruttTidspunkt)
         }

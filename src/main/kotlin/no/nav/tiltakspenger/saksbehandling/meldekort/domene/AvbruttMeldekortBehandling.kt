@@ -53,7 +53,7 @@ data class AvbruttMeldekortBehandling(
         throw IllegalStateException("Kan ikke tildele avbrutt meldekortbehandling")
     }
 
-    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): Either<KanIkkeLeggeTilbakeMeldekortBehandling, MeldekortBehandling> {
+    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
         throw IllegalStateException("Kan ikke legge tilbake avbrutt meldekortbehandling")
     }
 }

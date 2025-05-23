@@ -48,7 +48,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,
         )
-    }.getOrNull()!!.also {
+    }.also {
         behandlingRepo.lagre(it.second)
     }
 }

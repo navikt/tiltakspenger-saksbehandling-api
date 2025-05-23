@@ -8,7 +8,6 @@ import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
-import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
@@ -45,19 +44,14 @@ fun Route.opprettMeldekortBehandlingRoute(
                     ).fold(
                         {
                             when (it) {
-                                is KanIkkeOppretteMeldekortBehandling.IkkeTilgangTilSak -> call.respond403Forbidden(
-                                    melding = "Du har ikke tilgang til sak $sakId",
-                                    kode = "",
-                                )
-
                                 is KanIkkeOppretteMeldekortBehandling.HenteNavkontorFeilet -> call.respond500InternalServerError(
                                     melding = "Kunne ikke hente Nav-kontor for brukeren",
-                                    kode = "",
+                                    kode = "kunne_ikke_hente_navkontor",
                                 )
 
                                 is KanIkkeOppretteMeldekortBehandling.KanIkkeOpprettePåKjede -> call.respond400BadRequest(
                                     melding = "Meldeperiodekjeden er ikke i en tilstand som tillater å opprette en behandling",
-                                    kode = "",
+                                    kode = "mel",
                                 )
                             }
                         },

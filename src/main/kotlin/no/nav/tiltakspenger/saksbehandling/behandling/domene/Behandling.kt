@@ -21,6 +21,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevBeslutterRolle
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
@@ -81,34 +84,30 @@ sealed interface Behandling {
 
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Behandling
 
-    fun leggTilbakeBehandling(saksbehandler: Saksbehandler): Either<KanIkkeLeggeTilbakeBehandling, Behandling> {
+    fun leggTilbakeBehandling(saksbehandler: Saksbehandler): Behandling {
         return when (status) {
             UNDER_BEHANDLING -> {
-                check(saksbehandler.erSaksbehandler()) {
-                    "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
-                }
+                krevSaksbehandlerRolle(saksbehandler)
                 require(this.saksbehandler == saksbehandler.navIdent) {
-                    return KanIkkeLeggeTilbakeBehandling.MåVæreSaksbehandlerEllerBeslutterForBehandlingen.left()
+                    throw IllegalArgumentException("Kan bare legge tilbake behandling dersom saksbehandler selv er på behandlingen")
                 }
                 require(this.beslutter == null) { "Beslutter skal ikke kunne være satt på behandlingen dersom den er UNDER_BEHANDLING" }
 
                 when (this) {
-                    is Søknadsbehandling -> this.copy(saksbehandler = null, status = KLAR_TIL_BEHANDLING).right()
-                    is Revurdering -> this.copy(saksbehandler = null, status = KLAR_TIL_BEHANDLING).right()
+                    is Søknadsbehandling -> this.copy(saksbehandler = null, status = KLAR_TIL_BEHANDLING)
+                    is Revurdering -> this.copy(saksbehandler = null, status = KLAR_TIL_BEHANDLING)
                 }
             }
 
             UNDER_BESLUTNING -> {
-                check(saksbehandler.erBeslutter()) {
-                    "Saksbehandler må ha beslutterrolle. Utøvende saksbehandler: $saksbehandler"
-                }
+                krevBeslutterRolle(saksbehandler)
                 require(this.beslutter == saksbehandler.navIdent) {
-                    return KanIkkeLeggeTilbakeBehandling.MåVæreSaksbehandlerEllerBeslutterForBehandlingen.left()
+                    throw IllegalArgumentException("Kan bare legge tilbake behandling dersom saksbehandler selv er på behandlingen")
                 }
 
                 when (this) {
-                    is Søknadsbehandling -> this.copy(beslutter = null, status = KLAR_TIL_BESLUTNING).right()
-                    is Revurdering -> this.copy(beslutter = null, status = KLAR_TIL_BESLUTNING).right()
+                    is Søknadsbehandling -> this.copy(beslutter = null, status = KLAR_TIL_BESLUTNING)
+                    is Revurdering -> this.copy(beslutter = null, status = KLAR_TIL_BESLUTNING)
                 }
             }
 
@@ -126,9 +125,8 @@ sealed interface Behandling {
     fun taBehandling(saksbehandler: Saksbehandler): Behandling {
         return when (status) {
             KLAR_TIL_BEHANDLING -> {
-                check(saksbehandler.erSaksbehandler()) {
-                    "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
-                }
+                krevSaksbehandlerRolle(saksbehandler)
+
                 require(this.saksbehandler == null) { "Saksbehandler skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
                 require(this.beslutter == null) { "Beslutter skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
 
@@ -142,9 +140,7 @@ sealed interface Behandling {
                 check(saksbehandler.navIdent != this.saksbehandler) {
                     "Beslutter ($saksbehandler) kan ikke være den samme som saksbehandleren (${this.saksbehandler}"
                 }
-                check(saksbehandler.erBeslutter()) {
-                    "Saksbehandler må ha beslutterrolle. Utøvende saksbehandler: $saksbehandler"
-                }
+                krevBeslutterRolle(saksbehandler)
                 require(this.beslutter == null) { "Behandlingen har en eksisterende beslutter. For å overta behandlingen, bruk overta() - behandlingsId: ${this.id}" }
 
                 when (this) {
@@ -168,9 +164,7 @@ sealed interface Behandling {
 
         return when (status) {
             UNDER_BEHANDLING -> {
-                check(saksbehandler.erSaksbehandler()) {
-                    "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
-                }
+                krevSaksbehandlerRolle(saksbehandler)
                 if (this.saksbehandler == null) {
                     return KunneIkkeOvertaBehandling.BehandlingenErIkkeKnyttetTilEnSaksbehandlerForÅOverta.left()
                 }
@@ -194,9 +188,7 @@ sealed interface Behandling {
             }
 
             UNDER_BESLUTNING -> {
-                check(saksbehandler.erBeslutter()) {
-                    "Saksbehandler må ha beslutterrolle. Utøvende saksbehandler: $saksbehandler"
-                }
+                krevBeslutterRolle(saksbehandler)
                 if (this.beslutter == null) {
                     return KunneIkkeOvertaBehandling.BehandlingenErIkkeKnyttetTilEnBeslutterForÅOverta.left()
                 }
@@ -235,7 +227,7 @@ sealed interface Behandling {
 
         return when (status) {
             UNDER_BESLUTNING -> {
-                check(utøvendeBeslutter.erBeslutter()) { "utøvende saksbehandler må være beslutter" }
+                krevBeslutterRolle(utøvendeBeslutter)
                 check(this.beslutter == utøvendeBeslutter.navIdent) { "Kan ikke iverksette en behandling man ikke er beslutter på" }
                 check(!this.attesteringer.any { it.isGodkjent() }) {
                     "Behandlingen er allerede godkjent"
@@ -265,15 +257,16 @@ sealed interface Behandling {
         }
     }
 
+    /**
+     * Sjekker om [utøvendeBeslutter] har BESLUTTER-rollen og at det er beslutteren som har saken.
+     */
     fun sendTilbakeTilBehandling(
         utøvendeBeslutter: Saksbehandler,
         attestering: Attestering,
     ): Behandling {
         return when (status) {
             UNDER_BESLUTNING -> {
-                check(
-                    utøvendeBeslutter.erBeslutter(),
-                ) { "utøvende saksbehandler må være beslutter" }
+                krevBeslutterRolle(utøvendeBeslutter)
                 check(this.beslutter == utøvendeBeslutter.navIdent) {
                     "Kun beslutter som har saken kan sende tilbake"
                 }
@@ -340,7 +333,7 @@ sealed interface Behandling {
 
     fun validerKanOppdatere(saksbehandler: Saksbehandler, errorMsg: String) {
         if (!saksbehandler.erSaksbehandler()) {
-            throw IllegalArgumentException("$errorMsg - Saksbehandler ${saksbehandler.navIdent} mangler rollen SAKSBEHANDLER - sakId=$sakId, behandlingId=$id")
+            throw TilgangException("$errorMsg - Saksbehandler ${saksbehandler.navIdent} mangler rollen SAKSBEHANDLER - sakId=$sakId, behandlingId=$id")
         }
         if (this.saksbehandler != saksbehandler.navIdent) {
             throw IllegalArgumentException("$errorMsg - Saksbehandler ${saksbehandler.navIdent} er ikke satt på behandlingen - sakId=$sakId, behandlingId=$id")

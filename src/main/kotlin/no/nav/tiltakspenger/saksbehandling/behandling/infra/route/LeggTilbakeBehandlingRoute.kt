@@ -7,14 +7,10 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
-import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
-import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeLeggeTilbakeBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
-import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil.måVæreSaksbehandlerEllerBeslutter
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 
@@ -32,29 +28,21 @@ fun Route.leggTilbakeBehandlingRoute(
             call.withBehandlingId { behandlingId ->
                 val correlationId = call.correlationId()
 
-                leggTilbakeBehandlingService.leggTilbakeBehandling(behandlingId, saksbehandler, correlationId = correlationId).fold(
-                    {
-                        when (it) {
-                            KanIkkeLeggeTilbakeBehandling.MåVæreSaksbehandlerEllerBeslutter -> call.respond403Forbidden(måVæreSaksbehandlerEllerBeslutter())
-                            KanIkkeLeggeTilbakeBehandling.MåVæreSaksbehandlerEllerBeslutterForBehandlingen -> call.respond400BadRequest(
-                                "Du kan ikke legge tilbake en behandling som ikke er tildelt deg",
-                                "må_være_saksbehandler_eller_beslutter for behandlingen",
-                            )
-                        }
-                    },
+                leggTilbakeBehandlingService.leggTilbakeBehandling(
+                    behandlingId,
+                    saksbehandler,
+                    correlationId = correlationId,
+                ).also {
+                    auditService.logMedBehandlingId(
+                        behandlingId = behandlingId,
+                        navIdent = saksbehandler.navIdent,
+                        action = AuditLogEvent.Action.UPDATE,
+                        contextMessage = "Saksbehandler fjernes fra behandlingen",
+                        correlationId = correlationId,
+                    )
 
-                    {
-                        auditService.logMedBehandlingId(
-                            behandlingId = behandlingId,
-                            navIdent = saksbehandler.navIdent,
-                            action = AuditLogEvent.Action.UPDATE,
-                            contextMessage = "Saksbehandler fjernes fra behandlingen",
-                            correlationId = correlationId,
-                        )
-
-                        call.respond(status = HttpStatusCode.OK, it.toDTO())
-                    },
-                )
+                    call.respond(status = HttpStatusCode.OK, it.toDTO())
+                }
             }
         }
     }

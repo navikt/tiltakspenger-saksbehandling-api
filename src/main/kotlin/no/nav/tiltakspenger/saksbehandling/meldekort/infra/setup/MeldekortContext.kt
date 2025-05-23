@@ -78,16 +78,12 @@ open class MeldekortContext(
             sakService = sakService,
             utbetalingsvedtakRepo = utbetalingsvedtakRepo,
             statistikkStønadRepo = statistikkStønadRepo,
-            tilgangsstyringService = tilgangsstyringService,
-            personService = personService,
             clock = clock,
             oppgaveGateway = oppgaveGateway,
         )
     }
     val oppdaterMeldekortService by lazy {
         OppdaterMeldekortService(
-            tilgangsstyringService = tilgangsstyringService,
-            personService = personService,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakService = sakService,
             simulerService = simulerService,
@@ -168,8 +164,6 @@ open class MeldekortContext(
 
     val sendMeldekortTilBeslutterService by lazy {
         SendMeldekortTilBeslutterService(
-            tilgangsstyringService = tilgangsstyringService,
-            personService = personService,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakService = sakService,
             simulerService = simulerService,

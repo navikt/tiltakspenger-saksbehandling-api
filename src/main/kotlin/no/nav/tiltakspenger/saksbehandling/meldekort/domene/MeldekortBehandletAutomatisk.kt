@@ -69,7 +69,7 @@ data class MeldekortBehandletAutomatisk(
         throw IllegalStateException("Kan ikke tildele automatisk behandlet meldekort")
     }
 
-    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): Either<KanIkkeLeggeTilbakeMeldekortBehandling, MeldekortBehandling> {
+    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
         throw IllegalStateException("Kan ikke legge tilbake automatisk behandlet meldekort")
     }
 }

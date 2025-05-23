@@ -12,15 +12,12 @@ import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.UgyldigFnrException
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
-import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
 import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForFnr
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil
-import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil.ikkeTilgang
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import java.time.Clock
@@ -53,25 +50,21 @@ fun Route.hentSakForFnrRoute(
                 }
                 val correlationId = call.correlationId()
 
-                sakService.hentForFnr(fnr, saksbehandler, correlationId).fold(
-                    ifLeft = {
-                        when (it) {
-                            is KunneIkkeHenteSakForFnr.FantIkkeSakForFnr -> call.respond404NotFound(Standardfeil.fantIkkeFnr())
-                            is KunneIkkeHenteSakForFnr.HarIkkeTilgang -> call.respond403Forbidden(ikkeTilgang("Må ha en av rollene ${it.kreverEnAvRollene} for å hente sak for fnr."))
-                        }
-                    },
-                    ifRight = {
-                        auditService.logMedBrukerId(
-                            brukerId = fnr,
-                            navIdent = saksbehandler.navIdent,
-                            action = AuditLogEvent.Action.SEARCH,
-                            contextMessage = "Søker opp alle sakene til brukeren",
-                            correlationId = correlationId,
-                        )
+                sakService.hentForFnr(fnr, saksbehandler, correlationId).also {
+                    auditService.logMedBrukerId(
+                        brukerId = fnr,
+                        navIdent = saksbehandler.navIdent,
+                        action = AuditLogEvent.Action.SEARCH,
+                        contextMessage = "Søker opp alle sakene til brukeren",
+                        correlationId = correlationId,
+                    )
+                    if (it == null) {
+                        call.respond404NotFound(Standardfeil.fantIkkeFnr())
+                    } else {
                         val sakDTO = it.toSakDTO(clock)
                         call.respond(message = sakDTO, status = HttpStatusCode.OK)
-                    },
-                )
+                    }
+                }
             }
         }
     }

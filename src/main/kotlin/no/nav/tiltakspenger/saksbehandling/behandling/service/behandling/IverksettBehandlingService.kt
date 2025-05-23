@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -20,7 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeHenteSakForSakId
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
@@ -58,21 +56,15 @@ class IverksettBehandlingService(
         correlationId: CorrelationId,
         sakId: SakId,
     ): Either<KanIkkeIverksetteBehandling, Behandling> {
-        if (!beslutter.erBeslutter()) {
-            logger.warn { "Navident ${beslutter.navIdent} med rollene ${beslutter.roller} har ikke tilgang til å iverksette behandlingen" }
-            return KanIkkeIverksetteBehandling.MåVæreBeslutter.left()
-        }
-        val sak = sakService.hentForSakId(sakId, beslutter, correlationId).getOrElse {
-            @Suppress("USELESS_IS_CHECK")
-            when (it) {
-                is KunneIkkeHenteSakForSakId -> return KanIkkeIverksetteBehandling.MåVæreBeslutter.left()
-            }
-        }
+        // Denne sjekker at saksbehandler har tilgang til personen og en av rollene SAKSBEHANDLER eller BESLUTTER.
+        val sak = sakService.hentForSakIdEllerKast(sakId, beslutter, correlationId)
         val behandling = sak.hentBehandling(behandlingId)!!
 
         if (behandling.beslutter != beslutter.navIdent) {
-            return KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter(eiesAvBeslutter = behandling.beslutter)
-                .left()
+            // TODO jah: Fjern denne feilen? Skal vel mye til at denne skjer i praksis?
+            return KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter(
+                eiesAvBeslutter = behandling.beslutter,
+            ).left()
         }
 
         val attestering = Attestering(
@@ -81,6 +73,7 @@ class IverksettBehandlingService(
             beslutter = beslutter.navIdent,
             tidspunkt = nå(clock),
         )
+        // Denne validerer saksbehandler
         val iverksattBehandling = behandling.iverksett(beslutter, attestering, clock)
 
         val (oppdatertSak, vedtak) = sak.opprettVedtak(iverksattBehandling, clock)

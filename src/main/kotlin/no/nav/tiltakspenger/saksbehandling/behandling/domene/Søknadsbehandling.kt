@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
@@ -158,6 +159,7 @@ data class Søknadsbehandling(
             hentSaksopplysninger: suspend (saksopplysningsperiode: Periode) -> Saksopplysninger,
             clock: Clock,
         ): Either<KanIkkeOppretteBehandling, Søknadsbehandling> {
+            krevSaksbehandlerRolle(saksbehandler)
             val opprettet = nå(clock)
 
             /** Kommentar jah: Det kan bli aktuelt at saksbehandler får endre på fraOgMed her. */

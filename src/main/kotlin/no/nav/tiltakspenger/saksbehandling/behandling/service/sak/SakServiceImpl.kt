@@ -10,8 +10,6 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
-import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
@@ -24,7 +22,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonServi
 import no.nav.tiltakspenger.saksbehandling.benk.Saksoversikt
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevLageHendelserRollen
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerEllerBeslutterRolle
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevTilgangTilPerson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPersonMedSkjerming
@@ -47,7 +47,7 @@ class SakServiceImpl(
         systembruker: Systembruker,
         correlationId: CorrelationId,
     ): Sak {
-        require(systembruker.roller.harLageHendelser()) { "Systembruker mangler rollen LAGE_HENDELSER. Systembrukers roller: ${systembruker.roller}" }
+        krevLageHendelserRollen(systembruker)
 
         val saker = sakRepo.hentForFnr(fnr)
         if (saker.size > 1) {
@@ -78,85 +78,62 @@ class SakServiceImpl(
         saksnummer: Saksnummer,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<KunneIkkeHenteSakForSaksnummer, Sak> {
-        if (!saksbehandler.erSaksbehandlerEllerBeslutter()) {
-            logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å hente sak for saksnummer" }
-            return KunneIkkeHenteSakForSaksnummer.HarIkkeTilgang(
-                kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.BESLUTTER),
-                harRollene = saksbehandler.roller,
-            ).left()
-        }
+    ): Sak {
+        krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
         val sak = sakRepo.hentForSaksnummer(saksnummer)
             ?: throw IkkeFunnetException("Fant ikke sak med saksnummer $saksnummer")
-        sjekkTilgangTilPerson(sak.id, saksbehandler, correlationId)
-
-        return sak.right()
+        tilgangsstyringService.krevTilgangTilPerson(saksbehandler, sak.fnr, correlationId)
+        return sak
     }
 
     override suspend fun hentForSaksnummer(
         saksnummer: Saksnummer,
         systembruker: Systembruker,
     ): Sak {
-        require(systembruker.roller.harLageHendelser()) { "Systembruker mangler rollen LAGE_HENDELSER. Systembrukers roller: ${systembruker.roller}" }
-        val sak = sakRepo.hentForSaksnummer(saksnummer)
+        // TODO jah: Bør vi heller sjekke HENTE_DATA rollen her?
+        krevLageHendelserRollen(systembruker)
+
+        return sakRepo.hentForSaksnummer(saksnummer)
             ?: throw IkkeFunnetException("Fant ikke sak med saksnummer $saksnummer")
-        return sak
     }
 
     override suspend fun hentForFnr(
         fnr: Fnr,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<KunneIkkeHenteSakForFnr, Sak> {
-        if (!saksbehandler.erSaksbehandlerEllerBeslutter()) {
-            logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å hente sak for fnr" }
-            return KunneIkkeHenteSakForFnr.HarIkkeTilgang(
-                kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.BESLUTTER),
-                harRollene = saksbehandler.roller,
-            ).left()
-        }
+    ): Sak? {
+        krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
+
         val saker = sakRepo.hentForFnr(fnr)
-        if (saker.saker.isEmpty()) return KunneIkkeHenteSakForFnr.FantIkkeSakForFnr.left()
-        if (saker.size > 1) throw IllegalStateException("Vi støtter ikke flere saker per søker i piloten.")
+        if (saker.saker.isEmpty()) return null
 
         val sak = saker.single()
-        sjekkTilgangTilPerson(sak.id, saksbehandler, correlationId)
+        tilgangsstyringService.krevTilgangTilPerson(saksbehandler, sak.fnr, correlationId)
 
-        return sak.right()
+        return sak
     }
 
-    override suspend fun hentForSakId(
+    override suspend fun hentForSakIdEllerKast(
         sakId: SakId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<KunneIkkeHenteSakForSakId, Sak> {
-        if (!saksbehandler.erSaksbehandlerEllerBeslutter()) {
-            logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å hente sak for fnr" }
-            return KunneIkkeHenteSakForSakId.HarIkkeTilgang(
-                kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.BESLUTTER),
-                harRollene = saksbehandler.roller,
-            ).left()
-        }
-        sjekkTilgangTilPerson(sakId, saksbehandler, correlationId)
-        return sakRepo.hentForSakId(sakId)!!.right()
+    ): Sak {
+        krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
+        val sak = sakRepo.hentForSakId(sakId) ?: throw IkkeFunnetException("Fant ikke sak med sakId $sakId")
+        tilgangsstyringService.krevTilgangTilPerson(saksbehandler, sak.fnr, correlationId)
+        return sak
     }
 
     override suspend fun hentBenkOversikt(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<KanIkkeHenteSaksoversikt, Saksoversikt> {
-        if (!saksbehandler.erSaksbehandlerEllerBeslutter()) {
-            logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å hente saksoversikt" }
-            return KanIkkeHenteSaksoversikt.HarIkkeTilgang(
-                kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.BESLUTTER),
-                harRollene = saksbehandler.roller,
-            ).left()
-        }
+    ): Saksoversikt {
+        krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
         val behandlinger = saksoversiktRepo.hentÅpneBehandlinger()
         val søknader = saksoversiktRepo.hentÅpneSøknader()
         val benkOversikt = Saksoversikt(behandlinger + søknader)
 
-        if (benkOversikt.isEmpty()) return benkOversikt.right()
+        if (benkOversikt.isEmpty()) return benkOversikt
         val tilganger = tilgangsstyringService.harTilgangTilPersoner(
             fnrListe = benkOversikt.map { it.fnr }.toNonEmptyListOrNull()!!,
             roller = saksbehandler.roller,
@@ -173,7 +150,7 @@ class SakServiceImpl(
                 Sikkerlogg.debug { "tilgangsstyring: Filtrerte vekk bruker ${it.fnr.verdi} fra benk for saksbehandler $saksbehandler. Saksbehandler har ikke tilgang." }
             }
             harTilgang == true
-        }.right()
+        }
     }
 
     override suspend fun hentEnkelPersonForSakId(
@@ -181,14 +158,9 @@ class SakServiceImpl(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): Either<KunneIkkeHenteEnkelPerson, EnkelPersonMedSkjerming> {
-        if (!saksbehandler.erSaksbehandlerEllerBeslutter()) {
-            logger.warn { "Navident ${saksbehandler.navIdent} med rollene ${saksbehandler.roller} har ikke tilgang til å hente sak for fnr" }
-            return KunneIkkeHenteEnkelPerson.HarIkkeTilgang(
-                kreverEnAvRollene = setOf(Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.BESLUTTER),
-                harRollene = saksbehandler.roller,
-            ).left()
-        }
-        val fnr = sakRepo.hentFnrForSakId(sakId) ?: return KunneIkkeHenteEnkelPerson.FantIkkeSakId.left()
+        krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
+        // Merk at denne IKKE skal sjekke tilgang til person, siden informasjonen skal vise til saksbehandleren, slik at hen skjønner at hen ikke kan behandle denne saken uten de riktige rollene.
+        val fnr = sakRepo.hentFnrForSakId(sakId)!!
         val erSkjermet = poaoTilgangGateway.erSkjermet(fnr, correlationId)
         val person = personService.hentEnkelPersonFnr(fnr)
             .getOrElse { return KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl.left() }
@@ -210,37 +182,5 @@ class SakServiceImpl(
             skalSendesTilMeldekortApi = skalSendesTilMeldekortApi,
             sessionContext = sessionContext,
         )
-    }
-
-    private suspend fun sjekkTilgangTilPerson(
-        sakId: SakId,
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
-    ) {
-        val fnr = personService.hentFnrForSakId(sakId)
-        tilgangsstyringService
-            .harTilgangTilPerson(
-                fnr = fnr,
-                roller = saksbehandler.roller,
-                correlationId = correlationId,
-            )
-            .onLeft { throw IkkeFunnetException("Feil ved sjekk av tilgang til person. SakId: $sakId. CorrelationId: $correlationId") }
-            .onRight { if (!it) throw TilgangException("Saksbehandler ${saksbehandler.navIdent} har ikke tilgang til person") }
-    }
-
-    private suspend fun sjekkTilgangTilSøknad(
-        fnr: Fnr,
-        søknadId: SøknadId,
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
-    ) {
-        tilgangsstyringService
-            .harTilgangTilPerson(
-                fnr = fnr,
-                roller = saksbehandler.roller,
-                correlationId = correlationId,
-            )
-            .onLeft { throw IkkeFunnetException("Feil ved sjekk av tilgang til person. SøknadId: $søknadId. CorrelationId: $correlationId") }
-            .onRight { if (!it) throw TilgangException("Saksbehandler ${saksbehandler.navIdent} har ikke tilgang til person") }
     }
 }

@@ -22,26 +22,33 @@ class PersonService(
 ) {
     val logger = KotlinLogging.logger {}
 
-    fun hentFnrForBehandlingId(behandlingId: BehandlingId): Fnr =
-        personRepo.hentFnrForBehandlingId(behandlingId)
-            ?: throw IkkeFunnetException("Fant ikke fnr på behandlingId: $behandlingId")
+    fun hentFnrForBehandlingId(behandlingId: BehandlingId): Fnr {
+        return personRepo.hentFnrForBehandlingId(behandlingId)
+    }
 
-    fun hentFnrForSakId(sakId: SakId): Fnr =
-        personRepo.hentFnrForSakId(sakId)
+    fun hentFnrForSakId(sakId: SakId): Fnr {
+        return personRepo.hentFnrForSakId(sakId)
             ?: throw IkkeFunnetException("Fant ikke fnr på sakId: $sakId")
+    }
 
-    fun hentFnrForSaksnummer(saksnummer: Saksnummer): Fnr =
-        personRepo.hentFnrForSaksnummer(saksnummer)
+    fun hentFnrForSaksnummer(saksnummer: Saksnummer): Fnr {
+        return personRepo.hentFnrForSaksnummer(saksnummer)
             ?: throw IkkeFunnetException("Fant ikke fnr for saksnummer: $saksnummer")
+    }
 
-    fun hentFnrForMeldekortId(meldekortId: MeldekortId): Fnr =
-        personRepo.hentFnrForMeldekortId(meldekortId)
+    fun hentFnrForMeldekortId(meldekortId: MeldekortId): Fnr {
+        return personRepo.hentFnrForMeldekortId(meldekortId)
             ?: throw IkkeFunnetException("Fant ikke fnr på meldekortId: $meldekortId")
+    }
 
-    fun hentFnrForSøknadId(søknadId: SøknadId): Fnr =
-        personRepo.hentFnrForSøknadId(søknadId)
+    fun hentFnrForSøknadId(søknadId: SøknadId): Fnr {
+        return personRepo.hentFnrForSøknadId(søknadId)
             ?: throw IkkeFunnetException("Fant ikke fnr på søknadId: søknadId")
+    }
 
+    /**
+     * Merk at denne ikke skal gjøre noen tilgangskontroll.
+     */
     suspend fun hentEnkelPersonFnr(fnr: Fnr): Either<KunneIkkeHenteEnkelPerson, EnkelPerson> {
         // TODO post-mvp jah: Her burde klienten logget feilen og gitt en Left.
         return Either.catch {

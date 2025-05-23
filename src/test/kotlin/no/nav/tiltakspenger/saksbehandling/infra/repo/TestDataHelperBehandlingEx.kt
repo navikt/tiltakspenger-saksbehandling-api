@@ -526,7 +526,7 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,
         )
-    }.getOrNull()!!.also {
+    }.also {
         behandlingRepo.lagre(it.second)
     }
 }
@@ -586,7 +586,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,
         )
-    }.getOrNull()!!.also {
+    }.also {
         behandlingRepo.lagre(it.second)
     }
 }

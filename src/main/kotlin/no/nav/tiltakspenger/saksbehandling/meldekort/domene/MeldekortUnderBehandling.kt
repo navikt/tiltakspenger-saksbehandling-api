@@ -9,11 +9,11 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AVBRUTT
@@ -138,34 +138,26 @@ data class MeldekortUnderBehandling(
     }
 
     sealed interface TilgangEllerTilstandsfeil {
-        data class MåVæreSaksbehandler(val roller: Saksbehandlerroller) : TilgangEllerTilstandsfeil
-        data object MåVæreSaksbehandlerForMeldekortet : TilgangEllerTilstandsfeil
+
         data object MeldekortperiodenKanIkkeVæreFremITid : TilgangEllerTilstandsfeil
 
         fun tilKanIkkeOppdatereMeldekort(): KanIkkeOppdatereMeldekort {
             return when (this) {
-                is MåVæreSaksbehandler -> KanIkkeOppdatereMeldekort.MåVæreSaksbehandler(roller)
-                is MåVæreSaksbehandlerForMeldekortet -> KanIkkeOppdatereMeldekort.MåVæreSaksbehandlerForMeldekortet
                 is MeldekortperiodenKanIkkeVæreFremITid -> KanIkkeOppdatereMeldekort.MeldekortperiodenKanIkkeVæreFremITid
             }
         }
 
         fun tilKanIkkeSendeMeldekortTilBeslutter(): KanIkkeSendeMeldekortTilBeslutter {
             return when (this) {
-                is MåVæreSaksbehandler -> KanIkkeSendeMeldekortTilBeslutter.MåVæreSaksbehandler(roller)
-                is MåVæreSaksbehandlerForMeldekortet -> KanIkkeSendeMeldekortTilBeslutter.MåVæreSaksbehandlerForMeldekortet
                 is MeldekortperiodenKanIkkeVæreFremITid -> KanIkkeSendeMeldekortTilBeslutter.MeldekortperiodenKanIkkeVæreFremITid
             }
         }
     }
 
     private fun validerSaksbehandlerOgTilstand(saksbehandler: Saksbehandler): Either<TilgangEllerTilstandsfeil, Unit> {
-        if (!saksbehandler.erSaksbehandler()) {
-            return TilgangEllerTilstandsfeil.MåVæreSaksbehandler(saksbehandler.roller).left()
-        }
-        if (saksbehandler.navIdent != this.saksbehandler) {
-            return TilgangEllerTilstandsfeil.MåVæreSaksbehandlerForMeldekortet.left()
-        }
+        krevSaksbehandlerRolle(saksbehandler)
+
+        require(saksbehandler.navIdent == this.saksbehandler)
         if (this.status != UNDER_BEHANDLING) {
             throw IllegalStateException("Status må være UNDER_BEHANDLING. Kan ikke oppdatere meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler.")
         }
@@ -186,9 +178,7 @@ data class MeldekortUnderBehandling(
     ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
         return when (this.status) {
             UNDER_BEHANDLING -> {
-                check(saksbehandler.erSaksbehandler()) {
-                    "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
-                }
+                krevSaksbehandlerRolle(saksbehandler)
                 if (this.saksbehandler == null) {
                     return KunneIkkeOvertaMeldekortBehandling.BehandlingenErIkkeKnyttetTilEnSaksbehandlerForÅOverta.left()
                 }
@@ -210,9 +200,7 @@ data class MeldekortUnderBehandling(
     override fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
         return when (this.status) {
             UNDER_BEHANDLING -> {
-                check(saksbehandler.erSaksbehandler()) {
-                    "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
-                }
+                krevSaksbehandlerRolle(saksbehandler)
                 require(this.saksbehandler == null) { "Meldekortbehandlingen har en eksisterende saksbehandler. For å overta meldekortbehandlingen, bruk overta() - meldekortId: ${this.id}" }
                 this.copy(
                     saksbehandler = saksbehandler.navIdent,
@@ -233,18 +221,14 @@ data class MeldekortUnderBehandling(
         }
     }
 
-    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): Either<KanIkkeLeggeTilbakeMeldekortBehandling, MeldekortBehandling> {
+    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
         return when (this.status) {
             UNDER_BEHANDLING -> {
-                check(saksbehandler.erSaksbehandler()) {
-                    "Saksbehandler må ha rolle saksbehandler. Utøvende saksbehandler: $saksbehandler"
-                }
-                require(this.saksbehandler == saksbehandler.navIdent) {
-                    return KanIkkeLeggeTilbakeMeldekortBehandling.MåVæreSaksbehandlerEllerBeslutterForBehandlingen.left()
-                }
+                krevSaksbehandlerRolle(saksbehandler)
+                require(this.saksbehandler == saksbehandler.navIdent)
                 this.copy(
                     saksbehandler = null,
-                ).right()
+                )
             }
 
             KLAR_TIL_BESLUTNING,
@@ -266,9 +250,7 @@ data class MeldekortUnderBehandling(
         begrunnelse: String,
         tidspunkt: LocalDateTime,
     ): Either<KanIkkeAvbryteMeldekortBehandling, MeldekortBehandling> {
-        require(avbruttAv.erSaksbehandlerEllerBeslutter()) {
-            return KanIkkeAvbryteMeldekortBehandling.MåVæreSaksbehandlerEllerBeslutter.left()
-        }
+        krevSaksbehandlerRolle(avbruttAv)
         require(this.status == UNDER_BEHANDLING) {
             return KanIkkeAvbryteMeldekortBehandling.MåVæreUnderBehandling.left()
         }

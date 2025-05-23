@@ -120,6 +120,16 @@ class BrevSøknadAvslagDTOKtTest {
 
             actual shouldBe expected
         }
+
+        @Test
+        fun `referer til flere ledd gitt samme paragraf`() {
+            val actual = setOf(Avslagsgrunnlag.Kvalifiseringsprogrammet, Avslagsgrunnlag.Livsoppholdytelser).createBrevForskrifter(false)
+            val expected = """
+                Dette kommer frem av arbeidsmarkedsloven § 13 første ledd, og tiltakspengeforskriften § 7 første og tredje ledd.
+            """.trimIndent()
+
+            actual shouldBe expected
+        }
     }
 
     @Test

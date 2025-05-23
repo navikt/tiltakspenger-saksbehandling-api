@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AVBRUTT
@@ -101,9 +102,7 @@ data class MeldekortBehandletManuelt(
         beslutter: Saksbehandler,
         clock: Clock,
     ): Either<KanIkkeIverksetteMeldekort, MeldekortBehandletManuelt> {
-        if (!beslutter.erBeslutter()) {
-            return KanIkkeIverksetteMeldekort.MåVæreBeslutter(beslutter.roller).left()
-        }
+        krevBeslutterRolle(beslutter)
         if (saksbehandler == beslutter.navIdent) {
             return KanIkkeIverksetteMeldekort.SaksbehandlerOgBeslutterKanIkkeVæreLik.left()
         }
@@ -189,9 +188,7 @@ data class MeldekortBehandletManuelt(
             UNDER_BEHANDLING -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status UNDER_BEHANDLING")
             KLAR_TIL_BESLUTNING -> KunneIkkeOvertaMeldekortBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
             UNDER_BESLUTNING -> {
-                check(saksbehandler.erBeslutter()) {
-                    "Saksbehandler må ha beslutterrolle. Utøvende saksbehandler: $saksbehandler"
-                }
+                krevBeslutterRolle(saksbehandler)
                 if (this.beslutter == null) {
                     return KunneIkkeOvertaMeldekortBehandling.BehandlingenErIkkeKnyttetTilEnBeslutterForÅOverta.left()
                 }
@@ -215,9 +212,7 @@ data class MeldekortBehandletManuelt(
                 check(saksbehandler.navIdent != this.saksbehandler) {
                     "Beslutter ($saksbehandler) kan ikke være den samme som saksbehandleren (${this.saksbehandler}"
                 }
-                check(saksbehandler.erBeslutter()) {
-                    "Saksbehandler må ha beslutterrolle. Utøvende saksbehandler: $saksbehandler"
-                }
+                krevBeslutterRolle(saksbehandler)
                 require(this.beslutter == null) { "Meldekortbehandlingen har en eksisterende beslutter. For å overta meldekortbehandlingen, bruk overta() - meldekortId: ${this.id}" }
                 this.copy(
                     beslutter = saksbehandler.navIdent,
@@ -239,19 +234,15 @@ data class MeldekortBehandletManuelt(
         }
     }
 
-    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): Either<KanIkkeLeggeTilbakeMeldekortBehandling, MeldekortBehandling> {
+    override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
         return when (this.status) {
             UNDER_BESLUTNING -> {
-                check(saksbehandler.erBeslutter()) {
-                    "Saksbehandler må ha beslutterrolle. Utøvende saksbehandler: $saksbehandler"
-                }
-                require(this.beslutter == saksbehandler.navIdent) {
-                    return KanIkkeLeggeTilbakeMeldekortBehandling.MåVæreSaksbehandlerEllerBeslutterForBehandlingen.left()
-                }
+                krevBeslutterRolle(saksbehandler)
+                require(this.beslutter == saksbehandler.navIdent)
                 this.copy(
                     beslutter = null,
                     status = KLAR_TIL_BESLUTNING,
-                ).right()
+                )
             }
 
             UNDER_BEHANDLING,
