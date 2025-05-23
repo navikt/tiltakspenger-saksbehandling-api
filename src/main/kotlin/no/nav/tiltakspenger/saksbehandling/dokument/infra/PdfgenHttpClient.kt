@@ -65,7 +65,8 @@ internal class PdfgenHttpClient(
     private val vedtakInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakInnvilgelse")
     private val vedtakAvslagUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakAvslag")
     private val utbetalingsvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/utbetalingsvedtak")
-    private val stansvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingsvedtak")
+    private val stansvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/stansvedtak")
+    private val revurderingsvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingsvedtak")
 
     override suspend fun genererInnvilgelsesvedtaksbrev(
         vedtak: Rammevedtak,
@@ -135,6 +136,35 @@ internal class PdfgenHttpClient(
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",
             uri = vedtakInnvilgelseUri,
+        )
+    }
+
+    override suspend fun genererInnvilgetRevurderingBrev(
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+        fnr: Fnr,
+        saksbehandlerNavIdent: String,
+        beslutterNavIdent: String?,
+        saksnummer: Saksnummer,
+        sakId: SakId,
+        forhåndsvisning: Boolean,
+        vurderingsperiode: Periode,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return pdfgenRequest(
+            jsonPayload = {
+                genererRevurderingInnvilgetBrev(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    fnr = fnr,
+                    saksbehandlerNavIdent = saksbehandlerNavIdent,
+                    beslutterNavIdent = beslutterNavIdent,
+                    saksnummer = saksnummer,
+                    forhåndsvisning = forhåndsvisning,
+                    vurderingsperiode = vurderingsperiode,
+                )
+            },
+            errorContext = "SakId: $sakId, saksnummer: $saksnummer",
+            uri = revurderingsvedtakUri,
         )
     }
 

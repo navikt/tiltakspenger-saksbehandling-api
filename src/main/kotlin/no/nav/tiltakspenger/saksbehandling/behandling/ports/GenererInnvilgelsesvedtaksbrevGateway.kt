@@ -44,4 +44,16 @@ interface GenererInnvilgelsesvedtaksbrevGateway {
         forhåndsvisning: Boolean,
         barnetilleggsPerioder: Periodisering<AntallBarn>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
+
+    suspend fun genererInnvilgetRevurderingBrev(
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+        fnr: Fnr,
+        saksbehandlerNavIdent: String,
+        beslutterNavIdent: String?,
+        saksnummer: Saksnummer,
+        sakId: SakId,
+        forhåndsvisning: Boolean,
+        vurderingsperiode: Periode,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

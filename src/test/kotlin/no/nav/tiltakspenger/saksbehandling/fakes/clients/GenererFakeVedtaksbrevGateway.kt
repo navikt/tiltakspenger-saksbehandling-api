@@ -63,6 +63,18 @@ class GenererFakeVedtaksbrevGateway :
         return response
     }
 
+    override suspend fun genererInnvilgetRevurderingBrev(
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+        fnr: Fnr,
+        saksbehandlerNavIdent: String,
+        beslutterNavIdent: String?,
+        saksnummer: Saksnummer,
+        sakId: SakId,
+        forhåndsvisning: Boolean,
+        vurderingsperiode: Periode,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> = response
+
     override suspend fun genererStansvedtak(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
