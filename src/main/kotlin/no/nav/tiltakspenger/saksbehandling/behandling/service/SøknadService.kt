@@ -1,8 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
@@ -12,14 +10,14 @@ import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevLageHendelserRo
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 
-class SøknadServiceImpl(
+class SøknadService(
     private val søknadRepo: SøknadRepo,
     private val oppgaveGateway: OppgaveGateway,
-) : SøknadService {
+) {
     private val log = KotlinLogging.logger {}
 
     /** Skal i førsteomgang kun brukes til digitale søknader. Dersom en saksbehandler skal registere en papirsøknad må vi ha en egen funksjon som sjekker tilgang.*/
-    override suspend fun nySøknad(søknad: Søknad, systembruker: Systembruker) {
+    suspend fun nySøknad(søknad: Søknad, systembruker: Systembruker) {
         krevLageHendelserRollen(systembruker)
         val oppgaveId =
             oppgaveGateway.opprettOppgave(søknad.fnr, JournalpostId(søknad.journalpostId), Oppgavebehov.NY_SOKNAD)
@@ -27,15 +25,7 @@ class SøknadServiceImpl(
         søknadRepo.lagre(søknad.copy(oppgaveId = oppgaveId))
     }
 
-    override fun hentSøknad(søknadId: SøknadId): Søknad {
-        return søknadRepo.hentForSøknadId(søknadId)!!
-    }
-
-    override fun hentSakIdForSoknad(søknadId: SøknadId): SakId {
-        return søknadRepo.hentSakIdForSoknad(søknadId)!!
-    }
-
-    override fun lagreAvbruttSøknad(søknad: Søknad, tx: TransactionContext) {
+    fun lagreAvbruttSøknad(søknad: Søknad, tx: TransactionContext) {
         søknadRepo.lagreAvbruttSøknad(søknad, tx)
     }
 }
