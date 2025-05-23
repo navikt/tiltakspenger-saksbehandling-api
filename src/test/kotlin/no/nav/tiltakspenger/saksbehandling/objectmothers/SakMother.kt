@@ -86,6 +86,7 @@ interface SakMother {
         saksopplysninger: Saksopplysninger = Saksopplysninger(
             fødselsdato = fødselsdato,
             tiltaksdeltagelse = registrerteTiltak,
+            periode = søknad.saksopplysningsperiode(),
         ),
         barnetillegg: Barnetillegg? = null,
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = listOf(

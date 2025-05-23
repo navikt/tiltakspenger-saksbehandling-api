@@ -32,10 +32,9 @@ class IverksettBehandlingTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, _, behandling) = this.iverksett(tac)
+                val (_, _, behandling) = this.iverksett(tac)
                 behandling.virkningsperiode.shouldNotBeNull()
                 behandling.status shouldBe Behandlingsstatus.VEDTATT
-                behandling.saksopplysningsperiode.shouldNotBeNull()
             }
         }
     }

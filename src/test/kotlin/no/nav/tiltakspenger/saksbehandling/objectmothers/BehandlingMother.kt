@@ -88,8 +88,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 saksbehandler = saksbehandler,
-                saksopplysningsperiode = virkningsperiode,
-                hentSaksopplysninger = hentSaksopplysninger,
+                saksopplysninger = hentSaksopplysninger(virkningsperiode),
                 clock = clock,
             )
         }
@@ -300,6 +299,7 @@ interface BehandlingMother : MotherOfAllMothers {
         ).taBehandling(beslutter) as Søknadsbehandling
     }
 
+    @Suppress("unused")
     fun nySøknadsbehandlingUnderkjent(
         id: BehandlingId = BehandlingId.random(),
         sakId: SakId = SakId.random(),

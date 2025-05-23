@@ -60,6 +60,7 @@ class OppdaterSaksopplysningerService(
         return Saksopplysninger(
             fødselsdato = personopplysninger.fødselsdato,
             tiltaksdeltagelse = overlappendeTiltak,
+            periode = saksopplysningsperiode,
         )
     }
 }

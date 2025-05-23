@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.SaksopplysningerDbJson.TiltaksdeltagelseDbJson
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
@@ -69,10 +70,11 @@ fun Saksopplysninger.toDbJson(): String {
     ).let { serialize(it) }
 }
 
-fun String.toSaksopplysninger(): Saksopplysninger {
+fun String.toSaksopplysninger(saksopplysningsperiode: Periode): Saksopplysninger {
     val dbJson = deserialize<SaksopplysningerDbJson>(this)
     return Saksopplysninger(
         fødselsdato = LocalDate.parse(dbJson.fødselsdato),
         tiltaksdeltagelse = dbJson.tiltaksdeltagelse.map { it.toDomain() },
+        periode = saksopplysningsperiode,
     )
 }

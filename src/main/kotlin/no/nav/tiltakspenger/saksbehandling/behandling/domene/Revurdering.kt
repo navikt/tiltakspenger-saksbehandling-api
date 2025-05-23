@@ -34,7 +34,6 @@ data class Revurdering(
     override val saksnummer: Saksnummer,
     override val fnr: Fnr,
     override val saksopplysninger: Saksopplysninger,
-    override val saksopplysningsperiode: Periode,
     override val saksbehandler: String?,
     override val beslutter: String?,
     override val sendtTilBeslutning: LocalDateTime?,
@@ -123,40 +122,75 @@ data class Revurdering(
     }
 
     companion object {
-        suspend fun opprettStans(
+        fun opprettStans(
             sakId: SakId,
             saksnummer: Saksnummer,
             fnr: Fnr,
             saksbehandler: Saksbehandler,
-            saksopplysningsperiode: Periode,
-            hentSaksopplysninger: suspend (periode: Periode) -> Saksopplysninger,
+            saksopplysninger: Saksopplysninger,
             clock: Clock,
         ): Revurdering {
-            val opprettet = nå(clock)
+            return opprett(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                saksopplysninger = saksopplysninger,
+                opprettet = nå(clock),
+                utfall = Stans(
+                    valgtHjemmel = emptyList(),
+                ),
+            )
+        }
+
+        fun opprettInnvilgelse(
+            sakId: SakId,
+            saksnummer: Saksnummer,
+            fnr: Fnr,
+            saksbehandler: Saksbehandler,
+            saksopplysninger: Saksopplysninger,
+            clock: Clock,
+        ): Revurdering {
+            return opprett(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                saksopplysninger = saksopplysninger,
+                opprettet = nå(clock),
+                utfall = Innvilgelse,
+            )
+        }
+
+        private fun opprett(
+            sakId: SakId,
+            saksnummer: Saksnummer,
+            fnr: Fnr,
+            saksbehandler: Saksbehandler,
+            saksopplysninger: Saksopplysninger,
+            opprettet: LocalDateTime,
+            utfall: RevurderingUtfall,
+        ): Revurdering {
             return Revurdering(
                 id = BehandlingId.random(),
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                virkningsperiode = null,
+                status = UNDER_BEHANDLING,
                 saksbehandler = saksbehandler.navIdent,
+                saksopplysninger = saksopplysninger,
+                opprettet = opprettet,
+                sistEndret = opprettet,
+                utfall = utfall,
+                attesteringer = emptyList(),
+                virkningsperiode = null,
                 sendtTilBeslutning = null,
                 beslutter = null,
-                saksopplysninger = hentSaksopplysninger(saksopplysningsperiode),
                 fritekstTilVedtaksbrev = null,
-                status = UNDER_BEHANDLING,
-                attesteringer = emptyList(),
-                opprettet = opprettet,
                 iverksattTidspunkt = null,
                 sendtTilDatadeling = null,
-                sistEndret = opprettet,
                 oppgaveId = null,
-                // Kommentar John: Dersom en revurdering tar utgangspunkt i en søknad, bør denne bestemmes på samme måte som for søknadsbehandling.
-                saksopplysningsperiode = saksopplysningsperiode,
                 avbrutt = null,
-                utfall = Stans(
-                    valgtHjemmel = emptyList(),
-                ),
                 begrunnelseVilkårsvurdering = null,
                 antallDagerPerMeldeperiode = null,
             )

@@ -64,6 +64,16 @@ data class Søknad(
 
     fun vurderingsperiode(): Periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom)
 
+    fun saksopplysningsperiode(): Periode {
+        // § 11: Tiltakspenger og barnetillegg gis for opptil tre måneder før den måneden da kravet om ytelsen ble satt fram, dersom vilkårene var oppfylt i denne perioden.
+        val fraOgMed = kravdato.withDayOfMonth(1).minusMonths(3)
+        // Forskriften gir ingen begrensninger fram i tid. 100 år bør være nok.
+        val tilOgMed = fraOgMed.plusYears(100)
+
+        return Periode(fraOgMed, tilOgMed)
+    }
+
+    @Suppress("unused")
     fun harLivsoppholdYtelser(): Boolean =
         sykepenger.erJa() ||
             etterlønn.erJa() ||

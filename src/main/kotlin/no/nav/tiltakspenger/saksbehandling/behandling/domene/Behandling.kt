@@ -48,12 +48,11 @@ sealed interface Behandling {
     val fnr: Fnr
     val saksopplysninger: Saksopplysninger
 
-    val saksopplysningsperiode: Periode
     val saksbehandler: String?
-
     val beslutter: String?
     val sendtTilBeslutning: LocalDateTime?
     val attesteringer: List<Attestering>
+
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val avbrutt: Avbrutt?
     val utfall: BehandlingUtfall?
@@ -75,6 +74,8 @@ sealed interface Behandling {
     val erVedtatt: Boolean get() = status == VEDTATT
     val erAvsluttet: Boolean get() = erAvbrutt || erVedtatt
     val maksDagerMedTiltakspengerForPeriode: Int get() = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+
+    val saksopplysningsperiode: Periode get() = saksopplysninger.periode
 
     fun inneholderEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
         saksopplysninger.tiltaksdeltagelse.find { it.eksternDeltagelseId == eksternDeltagelseId } != null

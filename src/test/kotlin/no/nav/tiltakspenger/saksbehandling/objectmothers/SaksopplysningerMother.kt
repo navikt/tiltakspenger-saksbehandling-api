@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
@@ -16,6 +17,7 @@ interface SaksopplysningerMother {
         return Saksopplysninger(
             fødselsdato = fødselsdato,
             tiltaksdeltagelse = listOf(tiltaksdeltagelse),
+            periode = Periode(fom, tom),
         )
     }
 }

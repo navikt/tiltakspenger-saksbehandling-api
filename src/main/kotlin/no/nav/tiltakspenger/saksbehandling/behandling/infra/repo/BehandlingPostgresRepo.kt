@@ -341,7 +341,7 @@ class BehandlingPostgresRepo(
                 localDate("saksopplysningsperiode_til_og_med"),
             )
 
-            val saksopplysninger = string("saksopplysninger").toSaksopplysninger()
+            val saksopplysninger = string("saksopplysninger").toSaksopplysninger(saksopplysningsperiode)
 
             val virkningsperiodeFraOgMed = localDateOrNull("virkningsperiode_fra_og_med")
             val virkningsperiodeTilOgMed = localDateOrNull("virkningsperiode_til_og_med")
@@ -385,7 +385,6 @@ class BehandlingPostgresRepo(
                         saksnummer = saksnummer,
                         fnr = fnr,
                         saksopplysninger = saksopplysninger,
-                        saksopplysningsperiode = saksopplysningsperiode,
                         søknad = SøknadDAO.hentForBehandlingId(id, session)!!,
                         virkningsperiode = virkningsperiode,
                         saksbehandler = saksbehandler,
@@ -426,7 +425,6 @@ class BehandlingPostgresRepo(
                         saksnummer = saksnummer,
                         fnr = fnr,
                         saksopplysninger = saksopplysninger,
-                        saksopplysningsperiode = saksopplysningsperiode,
                         virkningsperiode = virkningsperiode,
                         saksbehandler = saksbehandler,
                         sendtTilBeslutning = sendtTilBeslutning,

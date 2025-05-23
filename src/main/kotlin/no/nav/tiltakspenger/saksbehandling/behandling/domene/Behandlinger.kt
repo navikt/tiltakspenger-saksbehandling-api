@@ -17,6 +17,10 @@ data class Behandlinger(
     val revurderinger: Revurderinger = Revurderinger(behandlinger.filterIsInstance<Revurdering>())
     val søknadsbehandlinger = this.behandlinger.filterIsInstance<Søknadsbehandling>()
 
+    val sisteVedtatteBehandling by lazy {
+        behandlinger.findLast { it.erVedtatt }
+    }
+
     fun leggTilRevurdering(
         revurdering: Revurdering,
     ): Behandlinger {

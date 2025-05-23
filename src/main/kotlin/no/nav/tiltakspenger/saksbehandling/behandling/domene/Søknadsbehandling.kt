@@ -38,7 +38,6 @@ data class Søknadsbehandling(
     override val saksnummer: Saksnummer,
     override val fnr: Fnr,
     override val saksopplysninger: Saksopplysninger,
-    override val saksopplysningsperiode: Periode,
     override val saksbehandler: String?,
     override val beslutter: String?,
     override val sendtTilBeslutning: LocalDateTime?,
@@ -163,13 +162,7 @@ data class Søknadsbehandling(
             val opprettet = nå(clock)
 
             /** Kommentar jah: Det kan bli aktuelt at saksbehandler får endre på fraOgMed her. */
-            val saksopplysningsperiode: Periode = run {
-                // § 11: Tiltakspenger og barnetillegg gis for opptil tre måneder før den måneden da kravet om ytelsen ble satt fram, dersom vilkårene var oppfylt i denne perioden.
-                val fraOgMed = søknad.kravdato.withDayOfMonth(1).minusMonths(3)
-                // Forskriften gir ingen begrensninger fram i tid. 100 år bør være nok.
-                val tilOgMed = fraOgMed.plusYears(100)
-                Periode(fraOgMed, tilOgMed)
-            }
+            val saksopplysningsperiode: Periode = søknad.saksopplysningsperiode()
 
             val saksopplysninger = hentSaksopplysninger(saksopplysningsperiode)
 
@@ -195,7 +188,6 @@ data class Søknadsbehandling(
                 iverksattTidspunkt = null,
                 sendtTilDatadeling = null,
                 sistEndret = opprettet,
-                saksopplysningsperiode = saksopplysningsperiode,
                 avbrutt = null,
                 utfall = null,
                 virkningsperiode = null,
