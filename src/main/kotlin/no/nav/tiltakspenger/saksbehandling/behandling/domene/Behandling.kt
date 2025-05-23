@@ -42,7 +42,7 @@ sealed interface Behandling {
     val iverksattTidspunkt: LocalDateTime?
     val sendtTilDatadeling: LocalDateTime?
     val sakId: SakId
-    val oppgaveId: OppgaveId?
+    val oppgaveId: OppgaveId? // søknadOppgaveId?
 
     val saksnummer: Saksnummer
     val fnr: Fnr
@@ -117,6 +117,37 @@ sealed interface Behandling {
             VEDTATT, AVBRUTT -> {
                 throw IllegalArgumentException(
                     "Kan ikke legge tilbake behandling når behandlingen er ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
+                )
+            }
+        }
+    }
+
+    fun gjenåpneBehandling(saksbehandler: Saksbehandler): Behandling {
+        return when (this) {
+            /**
+             * TODO Hva med datadeling? Fjerne markering og sende på nytt?
+             * TODO Legge til attestering som sier at den har blitt gjenåpnet? Eventuelt annen markering?
+             * TODO Nullstille beslutningstidspunkt?
+             * TODO Nullstille iverksattTidspunkt?
+             * TODO Eget felt for å si noe om når behandlingen ble gjenåpnet?
+             */
+            is Søknadsbehandling -> {
+                this.copy(
+                    status = UNDER_BEHANDLING,
+                    saksbehandler = saksbehandler.navIdent,
+                    beslutter = null,
+                    utfall = null,
+                    avbrutt = null,
+                )
+            }
+
+            is Revurdering -> {
+                this.copy(
+                    status = UNDER_BEHANDLING,
+                    saksbehandler = saksbehandler.navIdent,
+                    beslutter = null,
+                    utfall = null,
+                    avbrutt = null,
                 )
             }
         }
