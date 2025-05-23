@@ -20,12 +20,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfallType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
@@ -138,7 +138,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterKlarTilBeslutningSøknadsbehandling()"),
     correlationId: CorrelationId = CorrelationId.generate(),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
-    utfall: SøknadsbehandlingUtfallType = SøknadsbehandlingUtfallType.INNVILGELSE,
+    utfall: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
     /**
      * Brukt for å styre meldeperiode generering
      */
@@ -310,6 +310,7 @@ internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
 }
 
 /** Skal kun persistere en helt tom sak */
+@Suppress("unused")
 internal fun TestDataHelper.persisterNySak(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
@@ -447,7 +448,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
         søknad = søknad,
         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-        utfall = SøknadsbehandlingUtfallType.AVSLAG,
+        utfall = SøknadsbehandlingType.AVSLAG,
         avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
         correlationId = correlationId,
         clock = clock,
@@ -523,7 +524,7 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
                 sakId = sakId,
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
-                revurderingType = RevurderingUtfallType.STANS,
+                revurderingType = RevurderingType.STANS,
             ),
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,
@@ -561,7 +562,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
         ),
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
     clock: Clock = this.clock,
-    revurderingType: RevurderingUtfallType = RevurderingUtfallType.STANS,
+    revurderingType: RevurderingType = RevurderingType.STANS,
 ): Pair<Sak, Behandling> {
     val (sak, _) = runBlocking {
         persisterIverksattSøknadsbehandling(

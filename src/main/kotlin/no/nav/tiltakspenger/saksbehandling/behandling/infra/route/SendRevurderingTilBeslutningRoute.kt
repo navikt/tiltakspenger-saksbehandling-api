@@ -7,25 +7,15 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
-import no.nav.tiltakspenger.libs.common.BehandlingId
-import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RevurderingTilBeslutningDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
-import java.time.LocalDate
 
 private const val PATH = "/sak/{sakId}/revurdering/{behandlingId}/sendtilbeslutning"
 
@@ -40,11 +30,11 @@ fun Route.sendRevurderingTilBeslutningRoute(
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<SendRevurderingTilBeslutningBody> { body ->
+                    call.withBody<RevurderingTilBeslutningDTO> { body ->
                         val correlationId = call.correlationId()
 
                         sendBehandlingTilBeslutningService.sendRevurderingTilBeslutning(
-                            kommando = body.toDomain(
+                            kommando = body.tilKommando(
                                 sakId = sakId,
                                 behandlingId = behandlingId,
                                 saksbehandler = saksbehandler,
@@ -67,54 +57,5 @@ fun Route.sendRevurderingTilBeslutningRoute(
                 }
             }
         }
-    }
-}
-
-private enum class ValgtHjemmelForStansDTO {
-    DeltarIkkePåArbeidsmarkedstiltak,
-    Alder,
-    Livsoppholdytelser,
-    Kvalifiseringsprogrammet,
-    Introduksjonsprogrammet,
-    LønnFraTiltaksarrangør,
-    LønnFraAndre,
-    Institusjonsopphold,
-    ;
-
-    fun tilDomene(): ValgtHjemmelForStans = when (this) {
-        DeltarIkkePåArbeidsmarkedstiltak -> ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak
-        Alder -> ValgtHjemmelForStans.Alder
-        Livsoppholdytelser -> ValgtHjemmelForStans.Livsoppholdytelser
-        Kvalifiseringsprogrammet -> ValgtHjemmelForStans.Kvalifiseringsprogrammet
-        Introduksjonsprogrammet -> ValgtHjemmelForStans.Introduksjonsprogrammet
-        LønnFraTiltaksarrangør -> ValgtHjemmelForStans.LønnFraTiltaksarrangør
-        LønnFraAndre -> ValgtHjemmelForStans.LønnFraAndre
-        Institusjonsopphold -> ValgtHjemmelForStans.Institusjonsopphold
-    }
-}
-
-private data class SendRevurderingTilBeslutningBody(
-    val begrunnelse: String,
-    val fritekstTilVedtaksbrev: String?,
-    val valgteHjemler: List<ValgtHjemmelForStansDTO>?, // TODO Midlertidig nullable for å unngå breaking change
-    val stansDato: LocalDate,
-) {
-    fun toDomain(
-        sakId: SakId,
-        behandlingId: BehandlingId,
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
-    ): RevurderingTilBeslutningKommando {
-        return RevurderingStansTilBeslutningKommando(
-            sakId = sakId,
-            behandlingId = behandlingId,
-            saksbehandler = saksbehandler,
-            correlationId = correlationId,
-            stansFraOgMed = stansDato,
-            begrunnelse = BegrunnelseVilkårsvurdering(saniter(begrunnelse)),
-            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
-            valgteHjemler = valgteHjemler?.map { it.tilDomene() } ?: emptyList(),
-            sisteDagSomGirRett = null,
-        )
     }
 }

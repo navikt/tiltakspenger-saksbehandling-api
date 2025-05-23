@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtfallType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfallType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfall
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultatType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 
 enum class BehandlingUtfallDTO {
     INNVILGELSE,
@@ -13,20 +13,20 @@ enum class BehandlingUtfallDTO {
     REVURDERING_INNVILGELSE,
     ;
 
-    fun toDomain(): BehandlingUtfallType = when (this) {
-        INNVILGELSE -> SøknadsbehandlingUtfallType.INNVILGELSE
-        AVSLAG -> SøknadsbehandlingUtfallType.AVSLAG
-        STANS -> RevurderingUtfallType.STANS
-        REVURDERING_INNVILGELSE -> RevurderingUtfallType.INNVILGELSE
+    fun toDomain(): BehandlingResultatType = when (this) {
+        INNVILGELSE -> SøknadsbehandlingType.INNVILGELSE
+        AVSLAG -> SøknadsbehandlingType.AVSLAG
+        STANS -> RevurderingType.STANS
+        REVURDERING_INNVILGELSE -> RevurderingType.INNVILGELSE
     }
 }
 
-fun SøknadsbehandlingUtfall.tilUtfallDTO(): BehandlingUtfallDTO = when (this) {
-    is SøknadsbehandlingUtfall.Avslag -> BehandlingUtfallDTO.AVSLAG
-    is SøknadsbehandlingUtfall.Innvilgelse -> BehandlingUtfallDTO.INNVILGELSE
+fun SøknadsbehandlingResultat.tilUtfallDTO(): BehandlingUtfallDTO = when (this) {
+    is SøknadsbehandlingResultat.Avslag -> BehandlingUtfallDTO.AVSLAG
+    is SøknadsbehandlingResultat.Innvilgelse -> BehandlingUtfallDTO.INNVILGELSE
 }
 
-fun RevurderingUtfall.tilUtfallDTO(): BehandlingUtfallDTO = when (this) {
-    is RevurderingUtfall.Stans -> BehandlingUtfallDTO.STANS
-    is RevurderingUtfall.Innvilgelse -> BehandlingUtfallDTO.REVURDERING_INNVILGELSE
+fun RevurderingResultat.tilUtfallDTO(): BehandlingUtfallDTO = when (this) {
+    is RevurderingResultat.Stans -> BehandlingUtfallDTO.STANS
+    is RevurderingResultat.Innvilgelse -> BehandlingUtfallDTO.REVURDERING_INNVILGELSE
 }

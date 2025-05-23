@@ -11,11 +11,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 
-sealed interface SøknadsbehandlingUtfall : BehandlingUtfall {
+sealed interface SøknadsbehandlingResultat : BehandlingResultat {
     data class Innvilgelse(
         val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser,
         val barnetillegg: Barnetillegg?,
-    ) : SøknadsbehandlingUtfall {
+    ) : SøknadsbehandlingResultat {
 
         fun valider(status: Behandlingsstatus, virkningsperiode: Periode?) {
             requireNotNull(virkningsperiode) {
@@ -49,5 +49,5 @@ sealed interface SøknadsbehandlingUtfall : BehandlingUtfall {
 
     data class Avslag(
         val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
-    ) : SøknadsbehandlingUtfall
+    ) : SøknadsbehandlingResultat
 }

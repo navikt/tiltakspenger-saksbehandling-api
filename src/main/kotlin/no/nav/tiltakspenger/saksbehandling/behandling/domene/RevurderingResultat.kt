@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
-sealed interface RevurderingUtfall : BehandlingUtfall {
+sealed interface RevurderingResultat : BehandlingResultat {
     data class Stans(
         val valgtHjemmel: List<ValgtHjemmelForStans>,
-    ) : RevurderingUtfall
+    ) : RevurderingResultat
 
-    data object Innvilgelse : RevurderingUtfall
+    data object Innvilgelse : RevurderingResultat
 }

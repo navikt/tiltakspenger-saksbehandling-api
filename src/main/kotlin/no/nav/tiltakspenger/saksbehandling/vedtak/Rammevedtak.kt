@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfall
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -102,8 +102,8 @@ fun Sak.utledVedtakstype(behandling: Behandling): Vedtakstype {
     return when (behandling) {
         is Søknadsbehandling -> {
             when (behandling.utfall) {
-                is SøknadsbehandlingUtfall.Avslag -> Vedtakstype.AVSLAG
-                is SøknadsbehandlingUtfall.Innvilgelse -> Vedtakstype.INNVILGELSE
+                is SøknadsbehandlingResultat.Avslag -> Vedtakstype.AVSLAG
+                is SøknadsbehandlingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
                 null -> throw IllegalArgumentException("Kan ikke lage et vedtak uten utfall. Behandlingen uten utfall er ${behandling.id}")
             }
         }

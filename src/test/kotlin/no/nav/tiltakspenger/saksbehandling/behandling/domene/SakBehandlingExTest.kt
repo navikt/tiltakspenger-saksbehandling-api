@@ -40,7 +40,7 @@ class SakBehandlingExTest {
             ),
             antallDagerPerMeldeperiode = 10,
             avslagsgrunner = null,
-            utfall = SøknadsbehandlingUtfallType.INNVILGELSE,
+            utfall = SøknadsbehandlingType.INNVILGELSE,
         )
 
         søknadsbehandling.status shouldNotBe Behandlingsstatus.KLAR_TIL_BESLUTNING
@@ -74,7 +74,7 @@ class SakBehandlingExTest {
                 fnr = fnr,
                 saksopplysninger = saksopplysninger,
                 virkningsperiode = virkningsperiode,
-                utfall = SøknadsbehandlingUtfallType.AVSLAG,
+                utfall = SøknadsbehandlingType.AVSLAG,
                 avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
             )
 
@@ -106,7 +106,7 @@ class SakBehandlingExTest {
             ),
             antallDagerPerMeldeperiode = 10,
             avslagsgrunner = null,
-            utfall = SøknadsbehandlingUtfallType.INNVILGELSE,
+            utfall = SøknadsbehandlingType.INNVILGELSE,
         )
 
         val resultat = sak.sendSøknadsbehandlingTilBeslutning(kommando, clock)

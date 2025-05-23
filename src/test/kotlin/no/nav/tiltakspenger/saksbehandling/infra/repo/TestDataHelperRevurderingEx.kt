@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårs
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfallType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
@@ -36,7 +36,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
     genererSak: (Sak?) -> Sak = { s ->
         s ?: this.persisterIverksattSøknadsbehandling().first
     },
-    revurderingType: RevurderingUtfallType = RevurderingUtfallType.STANS,
+    revurderingType: RevurderingType = RevurderingType.STANS,
 ): Pair<Sak, Behandling> {
     val sakMedVedtak = genererSak(sak)
 

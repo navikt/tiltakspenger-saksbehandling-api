@@ -5,9 +5,9 @@ import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfall
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
@@ -80,12 +80,12 @@ fun Søknadsbehandling.toDTO(): BehandlingDTO {
     val utfall = this.utfall
 
     return when (utfall) {
-        is SøknadsbehandlingUtfall.Innvilgelse -> utenUtfallDTO.copy(
+        is SøknadsbehandlingResultat.Innvilgelse -> utenUtfallDTO.copy(
             barnetillegg = utfall.barnetillegg?.toBarnetilleggDTO(),
             valgteTiltaksdeltakelser = utfall.valgteTiltaksdeltakelser.periodisering.perioderMedVerdi.map { it.toTiltaksdeltakelsePeriodeDTO() },
         )
 
-        is SøknadsbehandlingUtfall.Avslag -> utenUtfallDTO.copy(
+        is SøknadsbehandlingResultat.Avslag -> utenUtfallDTO.copy(
             avslagsgrunner = utfall.avslagsgrunner.toValgtHjemmelForAvslagDTO(),
         )
 
@@ -121,11 +121,11 @@ fun Revurdering.toDTO(): BehandlingDTO {
     val utfall = this.utfall
 
     return when (utfall) {
-        is RevurderingUtfall.Stans -> utenUtfallDTO.copy(
+        is RevurderingResultat.Stans -> utenUtfallDTO.copy(
             valgtHjemmelHarIkkeRettighet = utfall.valgtHjemmel.toDTO(this.behandlingstype),
         )
 
-        is RevurderingUtfall.Innvilgelse -> TODO()
+        is RevurderingResultat.Innvilgelse -> TODO()
 
         null -> utenUtfallDTO
     }

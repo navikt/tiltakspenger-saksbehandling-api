@@ -55,7 +55,7 @@ sealed interface Behandling {
 
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val avbrutt: Avbrutt?
-    val utfall: BehandlingUtfall?
+    val utfall: BehandlingResultat?
     val virkningsperiode: Periode?
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
 

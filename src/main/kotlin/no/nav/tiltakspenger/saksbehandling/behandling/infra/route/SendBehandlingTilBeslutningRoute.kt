@@ -21,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingUtfallDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
@@ -120,8 +120,8 @@ private data class SøknadsbehandlingTilBeslutningBody(
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             avslagsgrunner = avslagsgrunner?.toAvslagsgrunnlag(),
             utfall = when (utfall) {
-                BehandlingUtfallDTO.INNVILGELSE -> SøknadsbehandlingUtfallType.INNVILGELSE
-                BehandlingUtfallDTO.AVSLAG -> SøknadsbehandlingUtfallType.AVSLAG
+                BehandlingUtfallDTO.INNVILGELSE -> SøknadsbehandlingType.INNVILGELSE
+                BehandlingUtfallDTO.AVSLAG -> SøknadsbehandlingType.AVSLAG
                 BehandlingUtfallDTO.STANS,
                 BehandlingUtfallDTO.REVURDERING_INNVILGELSE,
                 -> throw IllegalArgumentException("Ugyldig utfall for søknadsbehandling: $utfall")

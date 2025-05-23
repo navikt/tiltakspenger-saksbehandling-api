@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startRevurdering
+import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 
 class SendRevurderingTilBeslutningTest {
@@ -49,10 +50,15 @@ class SendRevurderingTilBeslutningTest {
                     ),
                 ) {
                     setBody(
+                        @Language("JSON")
                         """
                             {
+                                "type": "STANS",
                                 "begrunnelse": "Begrunnelse",
-                                "stansDato": "$stansdato"
+                                "stans": {
+                                    "stansFraOgMed": "$stansdato",
+                                    "valgteHjemler": []
+                                }
                             }
                         """.trimIndent(),
                     )
@@ -94,10 +100,15 @@ class SendRevurderingTilBeslutningTest {
                     ),
                 ) {
                     setBody(
+                        @Language("JSON")
                         """
                             {
+                                "type": "STANS",
                                 "begrunnelse": "Begrunnelse",
-                                "stansDato": "$stansdato"
+                                "stans": {
+                                    "stansFraOgMed": "$stansdato",
+                                    "valgteHjemler": []
+                                }
                             }
                         """.trimIndent(),
                     )
@@ -136,10 +147,15 @@ class SendRevurderingTilBeslutningTest {
                     ),
                 ) {
                     setBody(
+                        @Language("JSON")
                         """
                             {
+                                "type": "STANS",
                                 "begrunnelse": "Begrunnelse",
-                                "stansDato": "$stansdato"
+                                "stans": {
+                                    "stansFraOgMed": "$stansdato",
+                                    "valgteHjemler": []
+                                }
                             }
                         """.trimIndent(),
                     )

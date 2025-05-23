@@ -16,17 +16,17 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtfall
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfallType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfall
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
@@ -360,13 +360,13 @@ class BehandlingPostgresRepo(
                     val utfallType = stringOrNull("utfall")?.tilSøknadsbehandlingUtfallType()
 
                     val utfall = when (utfallType) {
-                        SøknadsbehandlingUtfallType.INNVILGELSE -> SøknadsbehandlingUtfall.Innvilgelse(
+                        SøknadsbehandlingType.INNVILGELSE -> SøknadsbehandlingResultat.Innvilgelse(
                             valgteTiltaksdeltakelser = string("valgte_tiltaksdeltakelser")
                                 .toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                         )
 
-                        SøknadsbehandlingUtfallType.AVSLAG -> SøknadsbehandlingUtfall.Avslag(
+                        SøknadsbehandlingType.AVSLAG -> SøknadsbehandlingResultat.Avslag(
                             avslagsgrunner = string("avslagsgrunner").toAvslagsgrunnlag(),
                         )
 
@@ -403,12 +403,12 @@ class BehandlingPostgresRepo(
                     val utfallType = stringOrNull("utfall")?.tilRevurderingUtfallType()
 
                     val utfall = when (utfallType) {
-                        RevurderingUtfallType.STANS -> RevurderingUtfall.Stans(
+                        RevurderingType.STANS -> RevurderingResultat.Stans(
                             valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.tilHjemmelForStans()
                                 ?: emptyList(),
                         )
 
-                        RevurderingUtfallType.INNVILGELSE -> TODO()
+                        RevurderingType.INNVILGELSE -> TODO()
 
                         null -> null
                     }
@@ -615,21 +615,21 @@ private fun Behandling.tilDbParams(): Map<String, Any?> = mapOf(
     *this.utfall.tilDbParams(),
 )
 
-private fun BehandlingUtfall?.tilDbParams(): Array<Pair<String, Any?>> = when (this) {
-    is SøknadsbehandlingUtfall.Avslag -> arrayOf(
+private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when (this) {
+    is SøknadsbehandlingResultat.Avslag -> arrayOf(
         "avslagsgrunner" to this.avslagsgrunner.toDb(),
     )
 
-    is SøknadsbehandlingUtfall.Innvilgelse -> arrayOf(
+    is SøknadsbehandlingResultat.Innvilgelse -> arrayOf(
         "barnetillegg" to this.barnetillegg?.toDbJson(),
         "valgte_tiltaksdeltakelser" to this.valgteTiltaksdeltakelser.toDbJson(),
     )
 
-    is RevurderingUtfall.Stans -> arrayOf(
+    is RevurderingResultat.Stans -> arrayOf(
         "valgt_hjemmel_har_ikke_rettighet" to this.valgtHjemmel.toDbJson(),
     )
 
-    is RevurderingUtfall.Innvilgelse -> TODO()
+    is RevurderingResultat.Innvilgelse -> TODO()
 
     null -> emptyArray()
 }

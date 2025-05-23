@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtfall
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfallType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfall
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 
 private enum class SøknadsbehandlingUtfallDb {
     INNVILGELSE,
@@ -15,18 +15,18 @@ private enum class RevurderingUtfallDb {
     STANS,
 }
 
-fun String.tilSøknadsbehandlingUtfallType(): SøknadsbehandlingUtfallType = when (SøknadsbehandlingUtfallDb.valueOf(this)) {
-    SøknadsbehandlingUtfallDb.INNVILGELSE -> SøknadsbehandlingUtfallType.INNVILGELSE
-    SøknadsbehandlingUtfallDb.AVSLAG -> SøknadsbehandlingUtfallType.AVSLAG
+fun String.tilSøknadsbehandlingUtfallType(): SøknadsbehandlingType = when (SøknadsbehandlingUtfallDb.valueOf(this)) {
+    SøknadsbehandlingUtfallDb.INNVILGELSE -> SøknadsbehandlingType.INNVILGELSE
+    SøknadsbehandlingUtfallDb.AVSLAG -> SøknadsbehandlingType.AVSLAG
 }
 
-fun String.tilRevurderingUtfallType(): RevurderingUtfallType = when (RevurderingUtfallDb.valueOf(this)) {
-    RevurderingUtfallDb.STANS -> RevurderingUtfallType.STANS
+fun String.tilRevurderingUtfallType(): RevurderingType = when (RevurderingUtfallDb.valueOf(this)) {
+    RevurderingUtfallDb.STANS -> RevurderingType.STANS
 }
 
-fun BehandlingUtfall.toDb(): String = when (this) {
-    is RevurderingUtfall.Stans -> RevurderingUtfallDb.STANS
-    is RevurderingUtfall.Innvilgelse -> TODO()
-    is SøknadsbehandlingUtfall.Avslag -> SøknadsbehandlingUtfallDb.AVSLAG
-    is SøknadsbehandlingUtfall.Innvilgelse -> SøknadsbehandlingUtfallDb.INNVILGELSE
+fun BehandlingResultat.toDb(): String = when (this) {
+    is RevurderingResultat.Stans -> RevurderingUtfallDb.STANS
+    is RevurderingResultat.Innvilgelse -> TODO()
+    is SøknadsbehandlingResultat.Avslag -> SøknadsbehandlingUtfallDb.AVSLAG
+    is SøknadsbehandlingResultat.Innvilgelse -> SøknadsbehandlingUtfallDb.INNVILGELSE
 }.toString()

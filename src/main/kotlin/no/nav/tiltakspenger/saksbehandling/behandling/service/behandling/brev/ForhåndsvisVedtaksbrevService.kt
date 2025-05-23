@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfallType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfallType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.validerStansDato
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererInnvilgelsesvedtaksbrevGateway
@@ -55,7 +55,7 @@ class ForhåndsvisVedtaksbrevService(
         return when (behandling) {
             is Søknadsbehandling -> {
                 when (utfall) {
-                    SøknadsbehandlingUtfallType.INNVILGELSE -> genererInnvilgelsesbrevClient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+                    SøknadsbehandlingType.INNVILGELSE -> genererInnvilgelsesbrevClient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
                         hentBrukersNavn = personService::hentNavn,
                         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         vedtaksdato = LocalDate.now(),
@@ -73,7 +73,7 @@ class ForhåndsvisVedtaksbrevService(
                         ifRight = { it.pdf },
                     )
 
-                    SøknadsbehandlingUtfallType.AVSLAG -> genererAvslagsvedtaksbrevGateway.genererAvslagsVedtaksbrev(
+                    SøknadsbehandlingType.AVSLAG -> genererAvslagsvedtaksbrevGateway.genererAvslagsVedtaksbrev(
                         hentBrukersNavn = personService::hentNavn,
                         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         avslagsgrunner = kommando.avslagsgrunner!!,
@@ -92,8 +92,8 @@ class ForhåndsvisVedtaksbrevService(
                         ifRight = { it.pdf },
                     )
 
-                    RevurderingUtfallType.INNVILGELSE,
-                    RevurderingUtfallType.STANS,
+                    RevurderingType.INNVILGELSE,
+                    RevurderingType.STANS,
                     -> throw IllegalArgumentException("$utfall er ikke gyldig utfall for søknadsbehandling")
                 }
             }

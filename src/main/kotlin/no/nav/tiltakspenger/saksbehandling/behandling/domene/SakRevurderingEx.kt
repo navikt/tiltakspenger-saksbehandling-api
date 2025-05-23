@@ -34,8 +34,8 @@ suspend fun Sak.startRevurdering(
     }
 
     val revurdering = when (kommando.revurderingType) {
-        RevurderingUtfallType.STANS -> startStans(saksbehandler, hentSaksopplysninger, clock)
-        RevurderingUtfallType.INNVILGELSE -> startInnvilgelse(saksbehandler, hentSaksopplysninger, clock)
+        RevurderingType.STANS -> startStans(saksbehandler, hentSaksopplysninger, clock)
+        RevurderingType.INNVILGELSE -> startInnvilgelse(saksbehandler, hentSaksopplysninger, clock)
     }
 
     return Pair(
@@ -63,7 +63,7 @@ private suspend fun Sak.startInnvilgelse(saksbehandler: Saksbehandler, hentSakso
     // Dette blir nok litt for enkelt, f.eks. hvis det finnes vedtak for flere søknader på saken og vi vil revurdere noe annet enn den siste
     // Bør kanskje opprette revurderingen på en spesifikk tidligere behandling som saksbehandler velger. Skal det valget isåfall tas ved oppretting
     // eller underveis i behandlingen, før send til beslutter?
-    require(sisteVedtatteBehandling != null && sisteVedtatteBehandling.utfall is SøknadsbehandlingUtfall.Innvilgelse) {
+    require(sisteVedtatteBehandling != null && sisteVedtatteBehandling.utfall is SøknadsbehandlingResultat.Innvilgelse) {
         "Må ha en tidligere vedtatt innvilgelse for å kunne revurdere innvilgelse"
     }
 
@@ -87,10 +87,14 @@ fun Sak.sendRevurderingTilBeslutning(
     require(behandling is Revurdering) { "Behandlingen må være en revurdering, men var: ${behandling?.behandlingstype}" }
 
     return when (kommando) {
-        is RevurderingInnvilgelseTilBeslutningKommando -> behandling.tilBeslutning(
-            kommando = kommando,
-            clock = clock,
-        )
+        is RevurderingInnvilgelseTilBeslutningKommando -> {
+            // TODO: valider innvilgelsesperioden
+
+            behandling.tilBeslutning(
+                kommando = kommando,
+                clock = clock,
+            )
+        }
 
         is RevurderingStansTilBeslutningKommando -> {
             validerStansDato(kommando.stansFraOgMed)

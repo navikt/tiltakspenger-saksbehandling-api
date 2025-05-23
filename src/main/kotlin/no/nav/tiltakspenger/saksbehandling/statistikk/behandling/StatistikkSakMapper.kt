@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfall
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
@@ -37,7 +37,7 @@ fun genererSaksstatistikkForRammevedtak(
         tekniskTidspunkt = nå(clock),
         søknadsformat = StatistikkFormat.DIGITAL.name,
         // TODO jah: Hva gjør vi ved revurdering/stans i dette tilfellet. Skal vi sende søknadsbehandling sin første innvilget fraOgMed eller null?
-        forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.saksopplysningsperiode.fraOgMed else null,
+        forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.virkningsperiode?.fraOgMed else null,
         behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.FØRSTEGANGSBEHANDLING else StatistikkBehandlingType.REVURDERING,
         // TODO jah: I følge confluence-dokken så finner jeg ikke dette feltet. Burde det heller vært AVSLUTTET?
         behandlingStatus = StatistikkBehandlingStatus.FERDIG_BEHANDLET,
@@ -86,7 +86,7 @@ fun genererSaksstatistikkForBehandling(
         utbetaltTidspunkt = null,
         tekniskTidspunkt = nå(clock),
         søknadsformat = StatistikkFormat.DIGITAL.name,
-        forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.saksopplysningsperiode.fraOgMed else null,
+        forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.virkningsperiode?.fraOgMed else null,
         behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.FØRSTEGANGSBEHANDLING else StatistikkBehandlingType.REVURDERING,
         behandlingStatus = if (behandling.erAvbrutt) {
             StatistikkBehandlingStatus.AVSLUTTET
@@ -115,7 +115,7 @@ private fun Behandling.getBehandlingAarsak(): StatistikkBehandlingAarsak? {
     if (this is Søknadsbehandling) {
         return StatistikkBehandlingAarsak.SOKNAD
     }
-    if (this is Revurdering && this.utfall is RevurderingUtfall.Stans && utfall.valgtHjemmel.isNotEmpty()) {
+    if (this is Revurdering && this.utfall is RevurderingResultat.Stans && utfall.valgtHjemmel.isNotEmpty()) {
         return utfall.valgtHjemmel.first().toBehandlingAarsak()
     }
     return null

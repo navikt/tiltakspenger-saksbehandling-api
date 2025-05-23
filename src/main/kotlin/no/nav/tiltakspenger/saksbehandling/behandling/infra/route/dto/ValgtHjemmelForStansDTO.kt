@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev
+package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 

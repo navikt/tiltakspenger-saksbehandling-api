@@ -8,5 +8,5 @@ data class StartRevurderingKommando(
     val sakId: SakId,
     val correlationId: CorrelationId,
     val saksbehandler: Saksbehandler,
-    val revurderingType: RevurderingUtfallType,
+    val revurderingType: RevurderingType,
 )

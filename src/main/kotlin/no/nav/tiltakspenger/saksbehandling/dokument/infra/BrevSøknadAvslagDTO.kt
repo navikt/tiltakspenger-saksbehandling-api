@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Ledd
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Paragraf
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingUtfall
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -78,7 +78,7 @@ internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
     hentSaksbehandlersNavn: suspend (String) -> String,
     datoForUtsending: LocalDate,
 ): String {
-    require(behandling is Søknadsbehandling && behandling.utfall is SøknadsbehandlingUtfall.Avslag) {
+    require(behandling is Søknadsbehandling && behandling.utfall is SøknadsbehandlingResultat.Avslag) {
         "Behandlingen må være et avslag for å generere avslagbrev"
     }
 
@@ -86,7 +86,7 @@ internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
     val saksbehandlersNavn = hentSaksbehandlersNavn(this.saksbehandlerNavIdent)
     val besluttersNavn = hentSaksbehandlersNavn(this.beslutterNavIdent)
 
-    val harSøktBarnetillegg = behandling.søknad.barnetillegg.isNotEmpty() ?: false
+    val harSøktBarnetillegg = behandling.søknad.barnetillegg.isNotEmpty()
     return BrevSøknadAvslagDTO(
         personalia = BrevPersonaliaDTO(
             ident = fnr.verdi,

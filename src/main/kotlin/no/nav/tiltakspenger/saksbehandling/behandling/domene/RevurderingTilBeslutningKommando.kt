@@ -25,7 +25,7 @@ data class RevurderingStansTilBeslutningKommando(
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val valgteHjemler: List<ValgtHjemmelForStans>,
     val stansFraOgMed: LocalDate,
-    // Bestemmes av tidligere vedtak på saken, må settes før behandlingen settes til under beslutning
+    // Bestemmes av tidligere vedtak på saken, må settes når behandlingen sendes til beslutning
     val sisteDagSomGirRett: LocalDate?,
 ) : RevurderingTilBeslutningKommando
 

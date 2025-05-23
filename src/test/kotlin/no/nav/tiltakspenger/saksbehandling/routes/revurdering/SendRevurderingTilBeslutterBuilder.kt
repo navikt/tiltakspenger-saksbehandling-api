@@ -25,10 +25,12 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import org.intellij.lang.annotations.Language
 
 interface SendRevurderingTilBeslutterBuilder {
 
     /** Oppretter ny sak, søknad og behandling. */
+    @Suppress("unused")
     suspend fun ApplicationTestBuilder.sendRevurderingTilBeslutter(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
@@ -76,12 +78,16 @@ interface SendRevurderingTilBeslutterBuilder {
             ),
         ) {
             setBody(
+                @Language("JSON")
                 """
-            {
-                "begrunnelse": "$begrunnelseVilkårsvurdering",
-                "stansDato": "${stansperiode.fraOgMed}",
-                "valgteHjemler": [${valgteHjemler.joinToString(separator = ",", prefix = "\"", postfix = "\"")}]
-            }
+                {
+                    "type": "STANS",
+                    "begrunnelse": "$begrunnelseVilkårsvurdering",
+                    "stans": {
+                        "stansFraOgMed": "${stansperiode.fraOgMed}",
+                        "valgteHjemler": [${valgteHjemler.joinToString(separator = ",", prefix = "\"", postfix = "\"")}]
+                    }
+                }
                 """.trimIndent(),
             )
         }.apply {

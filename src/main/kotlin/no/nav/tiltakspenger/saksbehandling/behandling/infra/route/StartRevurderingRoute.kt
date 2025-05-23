@@ -12,8 +12,8 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingUtfallType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RevurderingTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -59,19 +59,8 @@ fun Route.startRevurderingRoute(
     }
 }
 
-private enum class RevurderingUtfallTypeDTO {
-    STANS,
-    INNVILGELSE,
-    ;
-
-    fun tilRevurderingUtfallType(): RevurderingUtfallType = when (this) {
-        STANS -> RevurderingUtfallType.STANS
-        INNVILGELSE -> RevurderingUtfallType.INNVILGELSE
-    }
-}
-
 private data class StartRevurderingBody(
-    val revurderingType: RevurderingUtfallTypeDTO,
+    val revurderingType: RevurderingTypeDTO,
 ) {
     fun tilKommando(
         sakId: SakId,
@@ -82,7 +71,7 @@ private data class StartRevurderingBody(
             sakId = sakId,
             correlationId = correlationId,
             saksbehandler = saksbehandler,
-            revurderingType = revurderingType.tilRevurderingUtfallType(),
+            revurderingType = revurderingType.tilRevurderingType(),
         )
     }
 }
