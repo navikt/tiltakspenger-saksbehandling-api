@@ -58,18 +58,6 @@ data class Rammevedtak(
         return vedtaksType == Vedtakstype.STANS
     }
 
-    /**
-     * Krymper [periode] og [behandling] til [nyPeriode].
-     */
-    fun krymp(nyPeriode: Periode): Rammevedtak {
-        if (periode == nyPeriode) return this
-        require(periode.inneholderHele(nyPeriode)) { "Ny periode ($nyPeriode) må være innenfor vedtakets periode ($periode)" }
-        return this.copy(
-            periode = nyPeriode,
-            behandling = behandling.krymp(nyPeriode),
-        )
-    }
-
     init {
         require(behandling.erVedtatt) { "Kan ikke lage vedtak for behandling som ikke er vedtatt. BehandlingId: ${behandling.id}" }
         require(sakId == behandling.sakId) { "SakId i vedtak og behandling må være lik. SakId: $sakId, BehandlingId: ${behandling.id}" }

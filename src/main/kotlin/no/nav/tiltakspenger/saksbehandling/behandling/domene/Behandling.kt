@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import java.time.Clock
 import java.time.LocalDateTime
@@ -299,33 +298,6 @@ sealed interface Behandling {
 
             KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, VEDTATT, AVBRUTT -> throw IllegalStateException(
                 "Må ha status UNDER_BESLUTNING for å sende tilbake. Behandlingsstatus: $status",
-            )
-        }
-    }
-
-    /**
-     * Krymper [virkningsperiode] til [nyPeriode].
-     * Endrer ikke [Søknad].
-     */
-    fun krymp(nyPeriode: Periode): Behandling {
-        if (virkningsperiode == nyPeriode) {
-            return this
-        }
-
-        val nyVirkningsperiode = virkningsperiode?.let {
-            require(it.inneholderHele(nyPeriode)) {
-                "Ny periode ($nyPeriode) må være innenfor vedtakets virkningsperiode ($virkningsperiode)"
-            }
-            nyPeriode
-        }
-
-        return when (this) {
-            is Søknadsbehandling -> this.copy(
-                virkningsperiode = nyVirkningsperiode,
-            )
-
-            is Revurdering -> this.copy(
-                virkningsperiode = nyVirkningsperiode,
             )
         }
     }
