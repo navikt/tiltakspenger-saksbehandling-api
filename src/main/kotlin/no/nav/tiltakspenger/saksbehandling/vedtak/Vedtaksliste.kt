@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinjeMedHull
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
@@ -92,6 +93,16 @@ data class Vedtaksliste(
             }
         }
     }
+
+    fun behandlingForPeriode(periode: Periode): Periodisering<Behandling?> = tidslinje
+        .map { verdi, _ -> verdi?.behandling }
+        .nyPeriode(periode, null)
+
+    fun innvilgedeDagerPrMeldeperiode(periode: Periode): Int =
+        behandlingForPeriode(periode).krymp(periode).verdier
+            .filter { it?.antallDagerPerMeldeperiode != null }
+            .maxByOrNull { it!!.antallDagerPerMeldeperiode!! }
+            ?.antallDagerPerMeldeperiode ?: 0
 
     fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<Tiltaksdeltagelse?> {
         return valgteTiltaksdeltakelser.overlapperMed(periode)

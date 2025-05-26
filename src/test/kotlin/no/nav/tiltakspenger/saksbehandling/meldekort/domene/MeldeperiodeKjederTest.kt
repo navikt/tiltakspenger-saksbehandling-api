@@ -218,4 +218,34 @@ class MeldeperiodeKjederTest {
             it.first.meldeperioder.last().maksAntallDagerForMeldeperiode shouldBe 0
         }
     }
+
+    @Test
+    fun `genererer meldeperioder for et innvilgelsevedtak 5 dager pr meldeperiode`() {
+        val sakId = SakId.random()
+        val periode = Periode(2.januar(2023), 17.januar(2023))
+        val kjeder = MeldeperiodeKjeder(emptyList())
+        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(sakId = sakId, periode = periode, antallDagerPerMeldeperiode = 5)
+        val actual = kjeder.genererMeldeperioder(
+            Vedtaksliste(
+                innvilgelseVedtak,
+            ),
+            fixedClock,
+        )
+
+        val forventetFørstePeriode = Periode(2.januar(2023), 15.januar(2023))
+        val forventetSistePeriode = Periode(16.januar(2023), 29.januar(2023))
+
+        actual.let {
+            it.first.meldeperioder shouldBe it.second
+
+            it.first.first().periode shouldBe forventetFørstePeriode
+            it.first.last().periode shouldBe forventetSistePeriode
+
+            it.first.meldeperioder.first().antallDagerSomGirRett shouldBe 14
+            it.first.meldeperioder.first().maksAntallDagerForMeldeperiode shouldBe 5
+
+            it.first.meldeperioder.last().antallDagerSomGirRett shouldBe 2
+            it.first.meldeperioder.last().maksAntallDagerForMeldeperiode shouldBe 2
+        }
+    }
 }
