@@ -122,37 +122,6 @@ sealed interface Behandling {
         }
     }
 
-    fun gjenåpneBehandling(saksbehandler: Saksbehandler): Behandling {
-        return when (this) {
-            /**
-             * TODO Hva med datadeling? Fjerne markering og sende på nytt?
-             * TODO Legge til attestering som sier at den har blitt gjenåpnet? Eventuelt annen markering?
-             * TODO Nullstille beslutningstidspunkt?
-             * TODO Nullstille iverksattTidspunkt?
-             * TODO Eget felt for å si noe om når behandlingen ble gjenåpnet?
-             */
-            is Søknadsbehandling -> {
-                this.copy(
-                    status = UNDER_BEHANDLING,
-                    saksbehandler = saksbehandler.navIdent,
-                    beslutter = null,
-                    utfall = null,
-                    avbrutt = null,
-                )
-            }
-
-            is Revurdering -> {
-                this.copy(
-                    status = UNDER_BEHANDLING,
-                    saksbehandler = saksbehandler.navIdent,
-                    beslutter = null,
-                    utfall = null,
-                    avbrutt = null,
-                )
-            }
-        }
-    }
-
     /** Saksbehandler/beslutter tar eller overtar behandlingen. */
     fun taBehandling(saksbehandler: Saksbehandler): Behandling {
         return when (status) {
