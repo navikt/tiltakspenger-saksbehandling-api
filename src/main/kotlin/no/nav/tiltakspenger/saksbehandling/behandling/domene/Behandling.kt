@@ -73,7 +73,7 @@ sealed interface Behandling {
     val erAvbrutt: Boolean get() = status == AVBRUTT
     val erVedtatt: Boolean get() = status == VEDTATT
     val erAvsluttet: Boolean get() = erAvbrutt || erVedtatt
-    val maksDagerMedTiltakspengerForPeriode: Int get() = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+    val maksDagerMedTiltakspengerForPeriode: Int get() = antallDagerPerMeldeperiode ?: MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 
     val saksopplysningsperiode: Periode get() = saksopplysninger.periode
 

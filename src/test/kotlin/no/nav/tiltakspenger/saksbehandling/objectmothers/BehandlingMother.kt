@@ -278,6 +278,7 @@ interface BehandlingMother : MotherOfAllMothers {
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         utfall: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
         clock: Clock = fixedClock,
     ): Søknadsbehandling {
         return nySøknadsbehandlingKlarTilBeslutning(
@@ -296,6 +297,7 @@ interface BehandlingMother : MotherOfAllMothers {
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
             oppgaveId = oppgaveId,
             utfall = utfall,
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         ).taBehandling(beslutter) as Søknadsbehandling
     }
 
@@ -378,6 +380,7 @@ interface BehandlingMother : MotherOfAllMothers {
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         utfall: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         clock: Clock = fixedClock,
+        antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     ): Behandling {
         return nySøknadsbehandlingUnderBeslutning(
             id = id,
@@ -397,6 +400,7 @@ interface BehandlingMother : MotherOfAllMothers {
             oppgaveId = oppgaveId,
             utfall = utfall,
             clock = clock,
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         ).iverksett(
             utøvendeBeslutter = beslutter,
             attestering = godkjentAttestering(beslutter),
