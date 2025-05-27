@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
@@ -19,6 +20,8 @@ data class Vedtaksliste(
 ) : List<Vedtak> by value {
     @Suppress("unused")
     constructor(value: Rammevedtak) : this(listOf(value))
+
+    val log = KotlinLogging.logger {}
 
     val fnr = value.distinctBy { it.fnr }.map { it.fnr }.singleOrNullOrThrow()
     val sakId = value.distinctBy { it.sakId }.map { it.sakId }.singleOrNullOrThrow()
@@ -94,15 +97,21 @@ data class Vedtaksliste(
         }
     }
 
-    fun behandlingForPeriode(periode: Periode): Periodisering<Behandling?> = tidslinje
+    fun innvilgetBehandlingForPeriode(periode: Periode): Periodisering<Behandling?> = innvilgetTidslinje
         .map { verdi, _ -> verdi?.behandling }
         .nyPeriode(periode, null)
 
-    fun innvilgedeDagerPrMeldeperiode(periode: Periode): Int =
-        behandlingForPeriode(periode).krymp(periode).verdier
-            .filter { it?.antallDagerPerMeldeperiode != null }
-            .maxByOrNull { it!!.antallDagerPerMeldeperiode!! }
+    fun innvilgedeDagerPrMeldeperiode(periode: Periode): Int {
+        val behandlingerForPeriode = innvilgetBehandlingForPeriode(periode).verdier.filterNotNull()
+        if (behandlingerForPeriode.size > 1 && behandlingerForPeriode.distinctBy { it.antallDagerPerMeldeperiode }.size > 1) {
+            log.error { "Fant flere behandlinger for periode der antall dager pr meldeperiode er ulike, behandlingId ${behandlingerForPeriode[0].id}" }
+            throw IllegalStateException("Kan ikke ha mer enn et vedtak for en periode der antall dager pr meldeperiode er ulike")
+        }
+        return behandlingerForPeriode
+            .filter { it.antallDagerPerMeldeperiode != null }
+            .maxByOrNull { it.antallDagerPerMeldeperiode!! }
             ?.antallDagerPerMeldeperiode ?: 0
+    }
 
     fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<Tiltaksdeltagelse?> {
         return valgteTiltaksdeltakelser.overlapperMed(periode)
