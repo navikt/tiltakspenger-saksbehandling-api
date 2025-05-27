@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.overlapperIkke
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -163,9 +164,8 @@ data class MeldeperiodeKjeder(
             val utfallsperiodeCount = nærmesteMeldeperiode.tilDager().count {
                 (utfallsperioder.hentVerdiForDag(it) == Utfallsperiode.RETT_TIL_TILTAKSPENGER)
             }
-            val innvilgedeDagerPrMeldeperiode = vedtaksliste.innvilgedeDagerPrMeldeperiode(nærmesteMeldeperiode)
             val antallDagerSomGirRettForMeldePeriode =
-                min(utfallsperiodeCount, innvilgedeDagerPrMeldeperiode)
+                min(utfallsperiodeCount, MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)
 
             val kjede = this.hentMeldeperiodeKjedeForPeriode(nærmesteMeldeperiode)
             val versjon = kjede?.nesteVersjon() ?: HendelseVersjon.ny()
