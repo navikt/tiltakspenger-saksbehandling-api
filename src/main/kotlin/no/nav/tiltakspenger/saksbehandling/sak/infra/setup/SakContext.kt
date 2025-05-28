@@ -5,10 +5,10 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksoversiktRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.benk.infra.repo.BenkOversiktPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
 import no.nav.tiltakspenger.saksbehandling.sak.SaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
@@ -25,7 +25,6 @@ open class SakContext(
     val sakService: SakService by lazy {
         SakService(
             sakRepo = sakRepo,
-            saksoversiktRepo = saksoversiktRepo,
             tilgangsstyringService = tilgangsstyringService,
             poaoTilgangGateway = poaoTilgangGateway,
             personService = personService,
@@ -45,7 +44,7 @@ open class SakContext(
             clock = clock,
         )
     }
-    open val saksoversiktRepo: SaksoversiktRepo by lazy {
+    open val benkOversiktRepo: BenkOversiktRepo by lazy {
         BenkOversiktPostgresRepo(
             sessionFactory = sessionFactory as PostgresSessionFactory,
         )

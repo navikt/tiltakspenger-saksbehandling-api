@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkOversiktContext
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.GenererFakeUtbetalingsvedtakGateway
@@ -31,13 +32,13 @@ import no.nav.tiltakspenger.saksbehandling.fakes.clients.TiltaksdeltagelseFakeGa
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.UtbetalingFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.VeilarboppfolgingFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.BehandlingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.fakes.repos.BenkOversiktFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.BrukersMeldekortFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.MeldekortBehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.MeldeperiodeFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.PersonFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.RammevedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.SakFakeRepo
-import no.nav.tiltakspenger.saksbehandling.fakes.repos.SaksoversiktFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.StatistikkSakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.StatistikkStønadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fakes.repos.SøknadFakeRepo
@@ -94,6 +95,7 @@ class TestApplicationContext(
     private val journalførFakeVedtaksbrevGateway = JournalførFakeVedtaksbrevGateway(journalpostIdGenerator)
     private val dokdistFakeGateway = Dokumentdistribusjonsklient(distribusjonIdGenerator)
     private val meldekortApiGateway = MeldekortApiFakeGateway()
+    private val benkOversiktFakeRepo = BenkOversiktFakeRepo(søknadFakeRepo, behandlingFakeRepo)
 
     val jwtGenerator = JwtGenerator()
 
@@ -125,7 +127,7 @@ class TestApplicationContext(
     }
 
     private val saksoversiktFakeRepo =
-        SaksoversiktFakeRepo(
+        BenkOversiktFakeRepo(
             søknadFakeRepo = søknadFakeRepo,
             behandlingFakeRepo = behandlingFakeRepo,
         )
@@ -191,7 +193,7 @@ class TestApplicationContext(
             clock = clock,
         ) {
             override val sakRepo = sakFakeRepo
-            override val saksoversiktRepo = saksoversiktFakeRepo
+            override val benkOversiktRepo = saksoversiktFakeRepo
         }
     }
     private val utbetalingGatewayFake = UtbetalingFakeGateway(sakContext.sakRepo as SakFakeRepo)
@@ -242,6 +244,15 @@ class TestApplicationContext(
         ) {
             override val rammevedtakRepo = rammevedtakFakeRepo
             override val behandlingRepo = behandlingFakeRepo
+        }
+    }
+
+    override val benkOversiktContext by lazy {
+        object : BenkOversiktContext(
+            sessionFactory = sessionFactory,
+            tilgangsstyringService = tilgangsstyringFakeGateway,
+        ) {
+            override val benkOversiktRepo = benkOversiktFakeRepo
         }
     }
 

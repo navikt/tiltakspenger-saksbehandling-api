@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
@@ -16,12 +17,15 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.auth.core.TokenService
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.hentBenkRoute
 import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SAK_PATH
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.hentSakForFnrRoute
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
@@ -32,9 +36,10 @@ class ExceptionHandlingTest {
     fun `IllegalStateException skal bli til 500`() {
         val tokenServiceMock = mockk<TokenService>()
         val sakService = mockk<SakService>()
+        val auditServiceMock = mockk<AuditService>()
         runTest {
             coEvery { tokenServiceMock.validerOgHentBruker(any()) } returns ObjectMother.beslutter().right()
-            coEvery { sakService.hentBenkOversikt(any(), any()) } throws IllegalStateException("Wuzza")
+            coEvery { sakService.hentForFnr(any(), any(), any()) } throws IllegalStateException("Wuzza")
 
             val exceptedStatusCode = HttpStatusCode.InternalServerError
             val expectedBody =
@@ -50,19 +55,23 @@ class ExceptionHandlingTest {
                     jacksonSerialization()
                     configureExceptions()
                     routing {
-                        hentBenkRoute(
+                        hentSakForFnrRoute(
                             tokenService = tokenServiceMock,
                             sakService = sakService,
+                            auditService = auditServiceMock,
+                            clock = fixedClock,
                         )
                     }
                 }
                 defaultRequest(
-                    HttpMethod.Get,
+                    HttpMethod.Post,
                     url {
                         protocol = URLProtocol.HTTPS
-                        path(BEHANDLINGER_PATH)
+                        path(SAK_PATH)
                     },
-                ).apply {
+                ) {
+                    setBody("""{"fnr": "12345678901"}""")
+                }.apply {
                     status shouldBe exceptedStatusCode
                     contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
                     JSONAssert.assertEquals(

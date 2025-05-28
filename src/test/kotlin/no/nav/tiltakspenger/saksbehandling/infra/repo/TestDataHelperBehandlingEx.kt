@@ -299,7 +299,9 @@ internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
         sak = sak,
         clock = clock,
     )
-    val søknadsbehandling = sakMedSøknadsbehandling.behandlinger.singleOrNullOrThrow()!!
+    val søknadsbehandling =
+        sakMedSøknadsbehandling.behandlinger.filter { it is Søknadsbehandling && it.søknad.id == id }
+            .singleOrNullOrThrow()!!
     val avbruttBehandling = søknadsbehandling.avbryt(
         saksbehandler,
         "begrunnelse",

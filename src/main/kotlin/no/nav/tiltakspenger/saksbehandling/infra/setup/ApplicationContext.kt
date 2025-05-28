@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.AvbrytSøknadOgBehandlingContext
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkOversiktContext
 import no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
@@ -206,7 +207,14 @@ open class ApplicationContext(
 
     open val personContext by lazy { PersonContext(sessionFactory, entraIdSystemtokenClient) }
     open val dokumentContext by lazy { DokumentContext(entraIdSystemtokenClient) }
-    open val statistikkContext by lazy { StatistikkContext(sessionFactory, personContext.tilgangsstyringService, gitHash, clock) }
+    open val statistikkContext by lazy {
+        StatistikkContext(
+            sessionFactory,
+            personContext.tilgangsstyringService,
+            gitHash,
+            clock,
+        )
+    }
     open val søknadContext by lazy { SøknadContext(sessionFactory, oppgaveGateway) }
     open val tiltakContext by lazy { TiltaksdeltagelseContext(entraIdSystemtokenClient) }
     open val profile by lazy { Configuration.applicationProfile() }
@@ -268,6 +276,12 @@ open class ApplicationContext(
             oppgaveGateway = oppgaveGateway,
             clock = clock,
             statistikkSakService = statistikkContext.statistikkSakService,
+        )
+    }
+    open val benkOversiktContext by lazy {
+        BenkOversiktContext(
+            sessionFactory = sessionFactory,
+            tilgangsstyringService = personContext.tilgangsstyringService,
         )
     }
 
