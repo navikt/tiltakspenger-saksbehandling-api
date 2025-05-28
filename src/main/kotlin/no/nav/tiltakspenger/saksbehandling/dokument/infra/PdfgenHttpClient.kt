@@ -47,7 +47,7 @@ import kotlin.time.toJavaDuration
 internal class PdfgenHttpClient(
     baseUrl: String,
     connectTimeout: Duration = 1.seconds,
-    private val timeout: Duration = 15.seconds,
+    private val timeout: Duration = 20.seconds,
 ) : GenererInnvilgelsesvedtaksbrevGateway,
     GenererUtbetalingsvedtakGateway,
     GenererStansvedtaksbrevGateway,
