@@ -1,139 +1,123 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 
 import kotliquery.queryOf
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.SøknadId
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.toBehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.toBehandlingstype
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksoversiktRepo
-import no.nav.tiltakspenger.saksbehandling.benk.BehandlingEllerSøknadForSaksoversikt
-import no.nav.tiltakspenger.saksbehandling.benk.BenkBehandlingstype
-import no.nav.tiltakspenger.saksbehandling.benk.toBenkBehandlingstype
+import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
+import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 class BenkOversiktPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
-) : SaksoversiktRepo {
-
-    override fun hentÅpneBehandlinger(sessionContext: SessionContext?): List<BehandlingEllerSøknadForSaksoversikt> {
+) : BenkOversiktRepo {
+    override fun hentÅpneBehandlinger(sessionContext: SessionContext?, limit: Int): List<Behandlingssammendrag> {
         return sessionFactory.withSession(sessionContext) { session ->
-            session
-                .run(
-                    queryOf(
-                        //language=SQL
-                        """
-                            select behandling.id as behandling_id,
-                              sak.fnr,
-                              behandling.opprettet,
-                              behandling.virkningsperiode_fra_og_med,
-                              behandling.virkningsperiode_til_og_med,
-                              behandling.status,
-                              sak.saksnummer,
-                              behandling.saksbehandler,
-                              behandling.beslutter,
-                              behandling.attesteringer,
-                              behandling.sak_id,
-                              behandling.behandlingstype,
-                              søknad.tidsstempel_hos_oss as kravtidspunkt
-                            from behandling
-                            left join sak on sak.id = behandling.sak_id
-                            left join søknad on behandling.id = søknad.behandling_id
-                            where behandling.status != 'VEDTATT' and behandling.status != 'AVBRUTT'
-                            order by sak.saksnummer, behandling.id
-                        """.trimIndent(),
-                    ).map { row ->
-                        val id = row.string("behandling_id").let { BehandlingId.fromString(it) }
-                        val virkningsperiodeFraOgMed = row.localDateOrNull("virkningsperiode_fra_og_med")
-                        val periode = virkningsperiodeFraOgMed?.let {
-                            Periode(
-                                fraOgMed = it,
-                                tilOgMed = row.localDate("virkningsperiode_til_og_med"),
-                            )
-                        }
+            session.run(
+                queryOf(
+                    //language="sql"
+                    """
+                        with åpneSøknaderUtenBehandling AS (select sø.fnr                  as fnr,
+                                                                   sa.saksnummer           as saksnummer,
+                                                                   sø.opprettet            as startet,
+                                                                   'SØKNADSBEHANDLING' AS behandlingstype,
+                                                                   null                    AS status,
+                                                                   null                    AS saksbehandler,
+                                                                   null                    AS beslutter
+                                                            from søknad sø
+                                                                     join sak sa on sø.sak_id = sa.id
+                                                            where behandling_id is null
+                                                              and avbrutt is null),
+                             åpneSøknadsbehandlinger AS (select sa.fnr            as fnr,
+                                                                sa.saksnummer     as saksnummer,
+                                                                b.opprettet       as startet,
+                                                                'SØKNADSBEHANDLING' as behandlingstype,
+                                                                b.status          as status,
+                                                                b.saksbehandler   as saksbehandler,
+                                                                b.beslutter       as beslutter
+                                                         from behandling b
+                                                                  join søknad s on b.id = s.behandling_id
+                                                                  join sak sa on b.sak_id = sa.id
+                                                         where b.avbrutt is null
+                                                           and b.behandlingstype = 'FØRSTEGANGSBEHANDLING'
+                                                           and b.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING',
+                                                                            'UNDER_BESLUTNING')),
+                             åpneRevurderinger AS (select sa.fnr          as fnr,
+                                                          sa.saksnummer   as saksnummer,
+                                                          b.opprettet     as startet,
+                                                          'REVURDERING'   as behandlingstype,
+                                                          b.status        as status,
+                                                          b.saksbehandler as saksbehandler,
+                                                          b.beslutter     as beslutter
+                                                   from behandling b
+                                                            join sak sa on b.sak_id = sa.id
+                                                   where b.behandlingstype = 'REVURDERING'
+                                                     and b.avbrutt is null 
+                                                     and b.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING',
+                                                                            'UNDER_BESLUTNING')),
+                             åpneMeldekortBehandlinger AS (select s.fnr                 as fnr,
+                                                                  s.saksnummer          as saksnummer,
+                                                                  m.opprettet           as startet,
+                                                                  'MELDEKORTBEHANDLING' as behandlingstype,
+                                                                  m.status              as status,
+                                                                  m.saksbehandler       as saksbehandler,
+                                                                  m.beslutter           as beslutter
+                                                           from meldekortbehandling m
+                                                                    join sak s on m.sak_id = s.id
+                                                           where m.avbrutt is null
+                                                             and m.status in ('KLAR_TIL_UTFYLLING', 'KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')),
+                             slåttSammen AS (select *
+                                             from åpneSøknaderUtenBehandling
+                                             union all
+                                             select *
+                                             from åpneSøknadsbehandlinger
+                                             union all
+                                             select *
+                                             from åpneRevurderinger
+                                             union all
+                                             select *
+                                             from åpneMeldekortBehandlinger)
+                        select *
+                        from slåttSammen order by startet limit :limit;
+                    """.trimIndent(),
+                    mapOf(
+                        "limit" to limit,
+                    ),
+                ).map { row ->
+                    val fnr = Fnr.fromString(row.string("fnr"))
+                    val saksnummer = Saksnummer(row.string("saksnummer"))
+                    val startet = row.localDateTime("startet")
+                    val behandlingstype = row.string("behandlingstype").let { BehandlingssammendragTypeDb.valueOf(it) }
+                    val status = row.stringOrNull("status")?.toBehandlingsstatus()
+                    val saksbehandler = row.stringOrNull("saksbehandler")
+                    val beslutter = row.stringOrNull("beslutter")
 
-                        val kravtidspunkt = row.localDateTimeOrNull("kravtidspunkt")
-                        val beslutter = row.stringOrNull("beslutter")
-                        val saksbehandler = row.stringOrNull("saksbehandler")
-                        val behandlingstype = row.string("behandlingstype").toBehandlingstype().toBenkBehandlingstype()
-                        val status =
-                            BehandlingEllerSøknadForSaksoversikt.Status.Behandling(
-                                row.string("status").toBehandlingsstatus(),
-                            )
-                        val attesteringer = row.string("attesteringer").toAttesteringer()
-                        BehandlingEllerSøknadForSaksoversikt(
-                            periode = periode,
-                            status = status,
-                            underkjent = attesteringer.any { attestering -> attestering.isUnderkjent() },
-                            kravtidspunkt = kravtidspunkt,
-                            behandlingstype = behandlingstype,
-                            fnr = Fnr.fromString(row.string("fnr")),
-                            saksnummer = Saksnummer(
-                                row.string(
-                                    "saksnummer",
-                                ),
-                            ),
-                            id = id,
-                            saksbehandler = saksbehandler,
-                            beslutter = beslutter,
-                            sakId = SakId.fromString(row.string("sak_id")),
-                            opprettet = row.localDateTime("opprettet"),
-                        )
-                    }.asList,
-                )
+                    Behandlingssammendrag(
+                        fnr = fnr,
+                        saksnummer = saksnummer,
+                        startet = startet,
+                        behandlingstype = behandlingstype.toDomain(),
+                        status = status,
+                        saksbehandler = saksbehandler,
+                        beslutter = beslutter,
+                    )
+                }.asList,
+            )
         }
     }
+}
 
-    override fun hentÅpneSøknader(sessionContext: SessionContext?): List<BehandlingEllerSøknadForSaksoversikt> =
-        sessionFactory.withSession(sessionContext) { session ->
-            session
-                .run(
-                    queryOf(
-                        //language=SQL
-                        """
-                        select søknad.id as søknad_id,
-                          søknad.fnr,
-                          søknad.opprettet,
-                          søknad.behandling_id,
-                          søknad.sak_id,
-                          søknad.tidsstempel_hos_oss as kravtidspunkt,
-                          sak.saksnummer,
-                          søknad.avbrutt
-                        from søknad join sak on søknad.sak_id = sak.id
-                        where søknad.behandling_id is null and søknad.avbrutt is null
-                        order by søknad.id
-                        """.trimIndent(),
-                    ).map { row ->
-                        val id = row.string("søknad_id").let { SøknadId.fromString(row.string("søknad_id")) }
-                        val opprettet = row.localDateTime("opprettet")
-                        val kravtidspunkt = row.localDateTime("kravtidspunkt")
-                        val behandlingstype = BenkBehandlingstype.SØKNAD
-                        val status = BehandlingEllerSøknadForSaksoversikt.Status.Søknad
+private enum class BehandlingssammendragTypeDb {
+    SØKNADSBEHANDLING,
+    REVURDERING,
+    MELDEKORTBEHANDLING,
+    ;
 
-                        BehandlingEllerSøknadForSaksoversikt(
-                            periode = null,
-                            status = status,
-                            underkjent = false,
-                            kravtidspunkt = kravtidspunkt,
-                            behandlingstype = behandlingstype,
-                            fnr = Fnr.fromString(row.string("fnr")),
-                            saksnummer = Saksnummer(
-                                row.string(
-                                    "saksnummer",
-                                ),
-                            ),
-                            id = id,
-                            saksbehandler = null,
-                            beslutter = null,
-                            sakId = SakId.fromString(row.string("sak_id")),
-                            opprettet = opprettet,
-                        )
-                    }.asList,
-                )
-        }
+    fun toDomain(): BehandlingssammendragType = when (this) {
+        SØKNADSBEHANDLING -> BehandlingssammendragType.SØKNADSBEHANDLING
+        REVURDERING -> BehandlingssammendragType.REVURDERING
+        MELDEKORTBEHANDLING -> BehandlingssammendragType.MELDEKORTBEHANDLING
+    }
 }
