@@ -38,12 +38,18 @@ internal class MottaMeldekortRouteTest {
         },
     )
 
-    private suspend fun ApplicationTestBuilder.mottaMeldekortRequest(dto: BrukerutfyltMeldekortDTO) = defaultRequest(
+    private suspend fun ApplicationTestBuilder.mottaMeldekortRequest(
+        dto: BrukerutfyltMeldekortDTO,
+        tac: TestApplicationContext,
+    ) = defaultRequest(
         HttpMethod.Post,
         url {
             protocol = URLProtocol.HTTPS
             path("/meldekort/motta")
         },
+        jwt = tac.jwtGenerator.createJwtForSystembruker(
+            roles = listOf("lage_hendelser"),
+        ),
     ) {
         setBody(serialize(dto))
     }
@@ -66,11 +72,12 @@ internal class MottaMeldekortRouteTest {
                     routing {
                         mottaMeldekortRoutes(
                             mottaBrukerutfyltMeldekortService = tac.mottaBrukerutfyltMeldekortService,
+                            tokenService = tac.tokenService,
                         )
                     }
                 }
 
-                mottaMeldekortRequest(dto).apply {
+                mottaMeldekortRequest(dto, tac).apply {
                     status shouldBe HttpStatusCode.OK
                     brukersMeldekortRepo.hentForMeldekortId(MeldekortId.fromString(dto.id)).shouldNotBeNull()
                 }
@@ -96,21 +103,22 @@ internal class MottaMeldekortRouteTest {
                     routing {
                         mottaMeldekortRoutes(
                             mottaBrukerutfyltMeldekortService = tac.mottaBrukerutfyltMeldekortService,
+                            tokenService = tac.tokenService,
                         )
                     }
                 }
 
-                mottaMeldekortRequest(dto).apply {
+                mottaMeldekortRequest(dto, tac).apply {
                     status shouldBe HttpStatusCode.OK
                     brukersMeldekortRepo.hentForMeldekortId(MeldekortId.fromString(dto.id)).shouldNotBeNull()
                 }
 
-                mottaMeldekortRequest(dto).apply {
+                mottaMeldekortRequest(dto, tac).apply {
                     status shouldBe HttpStatusCode.OK
                     brukersMeldekortRepo.hentForMeldekortId(MeldekortId.fromString(dto.id)).shouldNotBeNull()
                 }
 
-                mottaMeldekortRequest(dto).apply {
+                mottaMeldekortRequest(dto, tac).apply {
                     status shouldBe HttpStatusCode.OK
                     brukersMeldekortRepo.hentForMeldekortId(MeldekortId.fromString(dto.id)).shouldNotBeNull()
                 }
@@ -137,15 +145,16 @@ internal class MottaMeldekortRouteTest {
                     routing {
                         mottaMeldekortRoutes(
                             mottaBrukerutfyltMeldekortService = tac.mottaBrukerutfyltMeldekortService,
+                            tokenService = tac.tokenService,
                         )
                     }
                 }
 
-                mottaMeldekortRequest(dto).apply {
+                mottaMeldekortRequest(dto, tac).apply {
                     status shouldBe HttpStatusCode.OK
                 }
 
-                mottaMeldekortRequest(dtoMedDiff).apply {
+                mottaMeldekortRequest(dtoMedDiff, tac).apply {
                     status shouldBe HttpStatusCode.Conflict
                     brukersMeldekortRepo.hentForMeldekortId(MeldekortId.fromString(dto.id))!!.mottatt shouldBe dto.mottatt
                 }

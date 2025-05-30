@@ -88,6 +88,9 @@ spec:
       rules:
         - application: tiltakspenger-saksbehandling
         - application: tiltakspenger-meldekort-api
+          permissions:
+            roles:
+              - "lage_hendelser"
         - application: tiltakspenger-datadeling
           permissions:
             roles:
