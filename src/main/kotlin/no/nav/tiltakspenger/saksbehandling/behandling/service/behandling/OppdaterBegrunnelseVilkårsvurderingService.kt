@@ -21,7 +21,7 @@ class OppdaterBegrunnelseVilkårsvurderingService(
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering,
     ): Behandling {
         // Denne sjekker tilgang til person og sak.
-        val sak = sakService.hentForSakIdEllerKast(sakId, saksbehandler, correlationId)
+        val sak = sakService.sjekkTilgangOgHentForSakId(sakId, saksbehandler, correlationId)
         val behandling = sak.hentBehandling(behandlingId)!!
         // Denne validerer saksbehandler
         return behandling.oppdaterBegrunnelseVilkårsvurdering(saksbehandler, begrunnelseVilkårsvurdering).also {

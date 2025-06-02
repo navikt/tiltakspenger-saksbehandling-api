@@ -13,7 +13,7 @@ class OppdaterBarnetilleggService(
         kommando: OppdaterBarnetilleggKommando,
     ): Behandling {
         // Denne sjekker tilgang til person og sak.
-        val sak = sakService.hentForSakIdEllerKast(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
+        val sak = sakService.sjekkTilgangOgHentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
         val behandling = sak.hentBehandling(kommando.behandlingId)!!
 
         require(behandling is Søknadsbehandling)

@@ -4,7 +4,6 @@ import kotliquery.Row
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -49,33 +48,6 @@ internal object SøknadDAO {
         session.run(
             queryOf("select * from søknad s join sak on sak.id = s.sak_id where s.id = ?", søknadId.toString())
                 .map { row -> row.toSakId() }
-                .asSingle,
-        )
-
-    fun hentSøknad(
-        søknadId: SøknadId,
-        session: Session,
-    ): Søknad? =
-        session.run(
-            queryOf(
-                // language=SQL
-                "select * from søknad where id = ?",
-                søknadId.toString(),
-            )
-                .map { row -> row.toSøknad(session) }
-                .asSingle,
-        )
-
-    fun hentForBehandlingId(
-        behandlingId: BehandlingId,
-        session: Session,
-    ): Søknad? =
-        session.run(
-            queryOf(
-                "select * from søknad s join sak on sak.id = s.sak_id where s.behandling_id = ?",
-                behandlingId.toString(),
-            )
-                .map { row -> row.toSøknad(session) }
                 .asSingle,
         )
 
@@ -136,34 +108,6 @@ internal object SøknadDAO {
                     row.toSøknad(session)
                 }.asList,
             )
-
-    /**
-     * Knytter en søknad til en behandling.
-     * @throws RuntimeException hvis søknaden allerede er knyttet til en behandling.
-     */
-    fun knyttSøknadTilBehandling(
-        behandlingId: BehandlingId,
-        søknadId: SøknadId,
-        session: Session,
-    ) {
-        val oppdaterteRader = session.run(
-            queryOf(
-                // language=SQL
-                """
-                    update søknad 
-                    set behandling_id = :behandling_id 
-                    where id = :soknad_id and behandling_id is null
-                """.trimMargin(),
-                mapOf(
-                    "behandling_id" to behandlingId.toString(),
-                    "soknad_id" to søknadId.toString(),
-                ),
-            ).asUpdate,
-        )
-        if (oppdaterteRader == 0) {
-            throw RuntimeException("Kunne ikke knytte søknad til behandling. Det finnes allerede en knytning. behandlingId: $behandlingId, søknadId: $søknadId")
-        }
-    }
 
     private fun søknadFinnes(
         søknadId: SøknadId,
@@ -262,7 +206,6 @@ internal object SøknadDAO {
                     id,
                     versjon,
                     sak_id,
-                    behandling_id,
                     journalpost_id,
                     fornavn, 
                     etternavn, 
@@ -315,7 +258,6 @@ internal object SøknadDAO {
                     :id,
                     :versjon,
                     :sak_id,
-                    :behandling_id,
                     :journalpost_id,
                     :fornavn, 
                     :etternavn,
@@ -373,7 +315,6 @@ internal object SøknadDAO {
                         "id" to søknad.id.toString(),
                         "versjon" to søknad.versjon,
                         "sak_id" to søknad.sakId.toString(),
-                        "behandling_id" to null,
                         "fornavn" to søknad.personopplysninger.fornavn,
                         "etternavn" to søknad.personopplysninger.etternavn,
                         "fnr" to søknad.fnr.verdi,

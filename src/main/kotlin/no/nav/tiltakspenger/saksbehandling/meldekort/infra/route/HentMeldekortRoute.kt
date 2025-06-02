@@ -34,7 +34,7 @@ fun Route.hentMeldekortRoute(
                     val correlationId = call.correlationId()
 
                     // Sjekker om saksbehandler har tilgang til person og har en rolle SAKSBEHANDLER eller BESLUTTER
-                    val sak = sakService.hentForSakIdEllerKast(sakId, saksbehandler, correlationId = correlationId)
+                    val sak = sakService.sjekkTilgangOgHentForSakId(sakId, saksbehandler, correlationId = correlationId)
 
                     val meldeperiodeKjedeDTO = sak.toMeldeperiodeKjedeDTO(kjedeId = kjedeId, clock = clock)
 

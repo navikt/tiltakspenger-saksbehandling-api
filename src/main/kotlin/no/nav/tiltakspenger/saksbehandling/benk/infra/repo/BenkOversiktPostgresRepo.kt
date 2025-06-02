@@ -42,7 +42,8 @@ class BenkOversiktPostgresRepo(
                                                                    null                  AS beslutter
                                                             from søknad sø
                                                                      join sak sa on sø.sak_id = sa.id
-                                                            where behandling_id is null
+                                                                     left join behandling b on sø.id = b.soknad_id
+                                                            where b.behandling_id is null
                                                               and avbrutt is null),
                              åpneSøknadsbehandlinger AS (select sa.id               as sakId,
                                                                 sa.fnr              as fnr,
@@ -53,7 +54,7 @@ class BenkOversiktPostgresRepo(
                                                                 b.saksbehandler     as saksbehandler,
                                                                 b.beslutter         as beslutter
                                                          from behandling b
-                                                                  join søknad s on b.id = s.behandling_id
+                                                                  join søknad s on s.id = b.soknad_id
                                                                   join sak sa on b.sak_id = sa.id
                                                          where b.avbrutt is null
                                                            and b.behandlingstype = 'FØRSTEGANGSBEHANDLING'

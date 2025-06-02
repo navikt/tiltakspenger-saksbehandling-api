@@ -33,7 +33,7 @@ class OpprettMeldekortBehandlingService(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): Either<KanIkkeOppretteMeldekortBehandling, Sak> {
-        val sak = sakService.hentForSakIdEllerKast(sakId, saksbehandler, correlationId)
+        val sak = sakService.sjekkTilgangOgHentForSakId(sakId, saksbehandler, correlationId)
 
         val navkontor = Either.catch {
             navkontorService.hentOppfolgingsenhet(sak.fnr)

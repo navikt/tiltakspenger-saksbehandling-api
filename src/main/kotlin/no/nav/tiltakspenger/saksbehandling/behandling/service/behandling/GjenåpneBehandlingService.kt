@@ -36,7 +36,7 @@ class GjenåpneBehandlingService(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): Either<KanIkkeStarteSøknadsbehandling, Søknadsbehandling> {
-        val sak = sakService.hentForSakIdEllerKast(sakId, saksbehandler, correlationId)
+        val sak = sakService.sjekkTilgangOgHentForSakId(sakId, saksbehandler, correlationId)
         val behandling = behandlingRepo.hentForSøknadId(søknadId)
 
         if (behandling == null) {
