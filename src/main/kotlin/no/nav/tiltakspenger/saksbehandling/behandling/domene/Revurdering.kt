@@ -43,9 +43,21 @@ data class Revurdering(
     override val utfall: RevurderingResultat?,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
-    override val antallDagerPerMeldeperiode: Int?,
 ) : Behandling {
-    override val barnetillegg: Barnetillegg? = null
+
+    override val barnetillegg: Barnetillegg?
+        get() = when (utfall) {
+            is Innvilgelse -> utfall.barnetillegg
+            is Stans -> null
+            null -> null
+        }
+
+    override val antallDagerPerMeldeperiode: Int?
+        get() = when (utfall) {
+            is Innvilgelse -> utfall.antallDagerPerMeldeperiode
+            is Stans -> null
+            null -> null
+        }
 
     override val utfallsperioder: Periodisering<Utfallsperiode>? by lazy {
         if (virkningsperiode == null) {
@@ -63,30 +75,15 @@ data class Revurdering(
         super.init()
     }
 
-    fun tilBeslutning(
-        kommando: RevurderingTilBeslutningKommando,
+    // TODO abn: separat håndtering av stans vil antagelig fjernes på sikt
+    fun stansTilBeslutning(
+        kommando: RevurderingStansTilBeslutningKommando,
         clock: Clock,
     ): Revurdering {
         validerSendTilBeslutning(kommando.saksbehandler)
 
-        val (virkningsperiode, utfall) = when (kommando) {
-            is RevurderingInnvilgelseTilBeslutningKommando -> Pair(
-                kommando.nyInnvilgelsesperiode,
-                Innvilgelse,
-            )
-
-            is RevurderingStansTilBeslutningKommando -> {
-                requireNotNull(kommando.sisteDagSomGirRett) {
-                    "Siste dag som gir rett må være bestemt før stans kan sendes til beslutning"
-                }
-
-                Pair(
-                    Periode(kommando.stansFraOgMed, kommando.sisteDagSomGirRett),
-                    Stans(
-                        valgtHjemmel = kommando.valgteHjemler,
-                    ),
-                )
-            }
+        requireNotNull(kommando.sisteDagSomGirRett) {
+            "Siste dag som gir rett må være bestemt før stans kan sendes til beslutning"
         }
 
         return this.copy(
@@ -94,8 +91,25 @@ data class Revurdering(
             sendtTilBeslutning = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelse,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            virkningsperiode = virkningsperiode,
-            utfall = utfall,
+            virkningsperiode = Periode(kommando.stansFraOgMed, kommando.sisteDagSomGirRett),
+            utfall = Stans(
+                valgtHjemmel = kommando.valgteHjemler,
+            ),
+        )
+    }
+
+    fun tilBeslutning(
+        kommando: RevurderingInnvilgelseTilBeslutningKommando,
+        clock: Clock,
+    ): Revurdering {
+        validerSendTilBeslutning(kommando.saksbehandler)
+
+        return this.copy(
+            status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
+            sendtTilBeslutning = nå(clock),
+            begrunnelseVilkårsvurdering = kommando.begrunnelse,
+            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
+            virkningsperiode = kommando.innvilgelsesperiode,
         )
     }
 
@@ -149,8 +163,13 @@ data class Revurdering(
             fnr: Fnr,
             saksbehandler: Saksbehandler,
             saksopplysninger: Saksopplysninger,
+            forrigeBehandling: Behandling,
             clock: Clock,
         ): Revurdering {
+            val forrigeUtfall = forrigeBehandling.utfall
+
+            require(forrigeUtfall is BehandlingResultat.Innvilgelse)
+
             return opprett(
                 sakId = sakId,
                 saksnummer = saksnummer,
@@ -158,7 +177,11 @@ data class Revurdering(
                 saksbehandler = saksbehandler,
                 saksopplysninger = saksopplysninger,
                 opprettet = nå(clock),
-                utfall = Innvilgelse,
+                utfall = Innvilgelse(
+                    valgteTiltaksdeltakelser = forrigeUtfall.valgteTiltaksdeltakelser,
+                    barnetillegg = forrigeUtfall.barnetillegg,
+                    antallDagerPerMeldeperiode = forrigeUtfall.antallDagerPerMeldeperiode,
+                ),
             )
         }
 
@@ -192,7 +215,6 @@ data class Revurdering(
                 oppgaveId = null,
                 avbrutt = null,
                 begrunnelseVilkårsvurdering = null,
-                antallDagerPerMeldeperiode = null,
             )
         }
     }

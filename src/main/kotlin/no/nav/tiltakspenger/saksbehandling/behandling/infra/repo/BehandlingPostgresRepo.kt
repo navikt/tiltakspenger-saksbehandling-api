@@ -353,8 +353,6 @@ class BehandlingPostgresRepo(
             val virkningsperiode =
                 virkningsperiodeFraOgMed?.let { Periode(virkningsperiodeFraOgMed, virkningsperiodeTilOgMed!!) }
 
-            val antallDagerPerMeldeperiode = intOrNull("antall_dager_per_meldeperiode")
-
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
                     val utfallType = stringOrNull("utfall")?.tilSøknadsbehandlingUtfallType()
@@ -364,6 +362,7 @@ class BehandlingPostgresRepo(
                             valgteTiltaksdeltakelser = string("valgte_tiltaksdeltakelser")
                                 .toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
+                            antallDagerPerMeldeperiode = int("antall_dager_per_meldeperiode"),
                         )
 
                         SøknadsbehandlingType.AVSLAG -> SøknadsbehandlingResultat.Avslag(
@@ -395,7 +394,6 @@ class BehandlingPostgresRepo(
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avbrutt = avbrutt,
                         utfall = utfall,
-                        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                     )
                 }
 
@@ -408,7 +406,12 @@ class BehandlingPostgresRepo(
                                 ?: emptyList(),
                         )
 
-                        RevurderingType.INNVILGELSE -> TODO()
+                        RevurderingType.INNVILGELSE -> RevurderingResultat.Innvilgelse(
+                            valgteTiltaksdeltakelser = string("valgte_tiltaksdeltakelser")
+                                .toValgteTiltaksdeltakelser(saksopplysninger),
+                            barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
+                            antallDagerPerMeldeperiode = int("antall_dager_per_meldeperiode"),
+                        )
 
                         null -> null
                     }
@@ -434,7 +437,6 @@ class BehandlingPostgresRepo(
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avbrutt = avbrutt,
                         utfall = utfall,
-                        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                     )
                 }
             }
@@ -608,7 +610,6 @@ private fun Behandling.tilDbParams(): Map<String, Any?> = mapOf(
     "saksopplysningsperiode_til_og_med" to this.saksopplysningsperiode.tilOgMed,
     "avbrutt" to this.avbrutt?.toDbJson(),
     "utfall" to this.utfall?.toDb(),
-    "antall_dager_per_meldeperiode" to this.antallDagerPerMeldeperiode,
     "opprettet" to this.opprettet,
     "sak_id" to this.sakId.toString(),
     "behandlingstype" to this.behandlingstype.toDbValue(),
@@ -620,16 +621,17 @@ private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when 
         "avslagsgrunner" to this.avslagsgrunner.toDb(),
     )
 
-    is SøknadsbehandlingResultat.Innvilgelse -> arrayOf(
+    is SøknadsbehandlingResultat.Innvilgelse,
+    is RevurderingResultat.Innvilgelse,
+    -> arrayOf(
         "barnetillegg" to this.barnetillegg?.toDbJson(),
         "valgte_tiltaksdeltakelser" to this.valgteTiltaksdeltakelser.toDbJson(),
+        "antall_dager_per_meldeperiode" to this.antallDagerPerMeldeperiode,
     )
 
     is RevurderingResultat.Stans -> arrayOf(
         "valgt_hjemmel_har_ikke_rettighet" to this.valgtHjemmel.toDbJson(),
     )
-
-    is RevurderingResultat.Innvilgelse -> TODO()
 
     null -> emptyArray()
 }

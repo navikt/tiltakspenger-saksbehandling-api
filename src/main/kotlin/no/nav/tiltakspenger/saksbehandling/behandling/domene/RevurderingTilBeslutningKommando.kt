@@ -36,5 +36,5 @@ data class RevurderingInnvilgelseTilBeslutningKommando(
     override val correlationId: CorrelationId,
     override val begrunnelse: BegrunnelseVilkårsvurdering,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-    val nyInnvilgelsesperiode: Periode,
+    val innvilgelsesperiode: Periode,
 ) : RevurderingTilBeslutningKommando

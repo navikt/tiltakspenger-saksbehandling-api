@@ -29,6 +29,7 @@ data class RevurderingTilBeslutningDTO(
 
     data class Innvilgelse(
         val innvilgelsesperiode: PeriodeDTO,
+        val forrigeBehandlingId: String,
     )
 
     fun tilKommando(
@@ -53,6 +54,7 @@ data class RevurderingTilBeslutningDTO(
                     sisteDagSomGirRett = null,
                 )
             }
+
             RevurderingTypeDTO.INNVILGELSE -> {
                 requireNotNull(innvilgelse)
 
@@ -63,7 +65,7 @@ data class RevurderingTilBeslutningDTO(
                     correlationId = correlationId,
                     begrunnelse = BegrunnelseVilkårsvurdering(saniter(begrunnelse)),
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
-                    nyInnvilgelsesperiode = innvilgelse.innvilgelsesperiode.toDomain(),
+                    innvilgelsesperiode = innvilgelse.innvilgelsesperiode.toDomain(),
                 )
             }
         }

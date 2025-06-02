@@ -1,11 +1,61 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
+
 sealed interface BehandlingResultat {
-    val type: BehandlingResultatType get() = when (this) {
-        is RevurderingResultat.Innvilgelse -> RevurderingType.INNVILGELSE
-        is RevurderingResultat.Stans -> RevurderingType.STANS
-        is SøknadsbehandlingResultat.Avslag -> SøknadsbehandlingType.AVSLAG
-        is SøknadsbehandlingResultat.Innvilgelse -> SøknadsbehandlingType.INNVILGELSE
+    val type: BehandlingResultatType
+        get() = when (this) {
+            is SøknadsbehandlingResultat.Avslag -> SøknadsbehandlingType.AVSLAG
+            is SøknadsbehandlingResultat.Innvilgelse -> SøknadsbehandlingType.INNVILGELSE
+            is RevurderingResultat.Stans -> RevurderingType.STANS
+            is RevurderingResultat.Innvilgelse -> RevurderingType.INNVILGELSE
+        }
+
+    sealed interface Innvilgelse {
+        val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser
+        val antallDagerPerMeldeperiode: Int
+        val barnetillegg: Barnetillegg?
+
+        fun valider(status: Behandlingsstatus, virkningsperiode: Periode?) {
+            requireNotNull(virkningsperiode) {
+                "Virkningsperiode må være satt for innvilget behandling"
+            }
+
+            when (status) {
+                KLAR_TIL_BESLUTNING,
+                UNDER_BESLUTNING,
+                VEDTATT,
+                -> {
+                    requireNotNull(valgteTiltaksdeltakelser) {
+                        "Valgte tiltaksdeltakelser må være satt ved status $status"
+                    }
+
+                    require(valgteTiltaksdeltakelser.periodisering.totalPeriode == virkningsperiode) {
+                        "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalPeriode}) må stemme overens med virkningsperioden ($virkningsperiode)"
+                    }
+
+                    if (barnetillegg != null) {
+                        val barnetilleggsperiode = barnetillegg!!.periodisering.totalPeriode
+                        require(barnetilleggsperiode == virkningsperiode) {
+                            "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)"
+                        }
+                    }
+                }
+
+                KLAR_TIL_BEHANDLING,
+                UNDER_BEHANDLING,
+                AVBRUTT,
+                -> Unit
+            }
+        }
     }
 }
 
