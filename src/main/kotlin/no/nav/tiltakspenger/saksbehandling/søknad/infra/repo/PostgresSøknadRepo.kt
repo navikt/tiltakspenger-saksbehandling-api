@@ -59,4 +59,8 @@ internal class PostgresSøknadRepo(
             )
         }
     }
+
+    override fun hentApneSoknader(fnr: Fnr): List<Søknad> {
+
+    }
 }
