@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinjeMedHull
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
@@ -86,8 +86,7 @@ data class Vedtaksliste(
             if (verdi == null) {
                 listOf(PeriodeMedVerdi(null, periode))
             } else {
-                // TODO John og Anders: Fix for revurdering
-                require(verdi.behandling is Søknadsbehandling)
+                require(verdi.behandling.utfall is BehandlingResultat.Innvilgelse)
                 verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(periode).perioderMedVerdi as List<PeriodeMedVerdi<Tiltaksdeltagelse?>>
             }
         }

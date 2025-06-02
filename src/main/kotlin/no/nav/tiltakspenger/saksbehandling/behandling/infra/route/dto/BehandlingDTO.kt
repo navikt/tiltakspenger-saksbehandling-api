@@ -109,7 +109,7 @@ fun Revurdering.toDTO(): BehandlingDTO {
         begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
         avbrutt = this.avbrutt?.toAvbruttDTO(),
         iverksattTidspunkt = this.iverksattTidspunkt?.toString(),
-        utfall = this.utfall?.tilUtfallDTO(),
+        utfall = this.utfall.tilUtfallDTO(),
         valgtHjemmelHarIkkeRettighet = null,
         valgteTiltaksdeltakelser = null,
         antallDagerPerMeldeperiode = null,
@@ -125,8 +125,10 @@ fun Revurdering.toDTO(): BehandlingDTO {
             valgtHjemmelHarIkkeRettighet = utfall.valgtHjemmel.toDTO(this.behandlingstype),
         )
 
-        is RevurderingResultat.Innvilgelse -> TODO()
-
-        null -> utenUtfallDTO
+        is RevurderingResultat.Innvilgelse -> utenUtfallDTO.copy(
+            antallDagerPerMeldeperiode = utfall.antallDagerPerMeldeperiode,
+            barnetillegg = utfall.barnetillegg?.toBarnetilleggDTO(),
+            valgteTiltaksdeltakelser = utfall.valgteTiltaksdeltakelser.periodisering.perioderMedVerdi.map { it.toTiltaksdeltakelsePeriodeDTO() },
+        )
     }
 }

@@ -362,7 +362,7 @@ class BehandlingPostgresRepo(
                             valgteTiltaksdeltakelser = string("valgte_tiltaksdeltakelser")
                                 .toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
-                            antallDagerPerMeldeperiode = int("antall_dager_per_meldeperiode"),
+                            antallDagerPerMeldeperiode = intOrNull("antall_dager_per_meldeperiode"),
                         )
 
                         SøknadsbehandlingType.AVSLAG -> SøknadsbehandlingResultat.Avslag(
@@ -398,7 +398,7 @@ class BehandlingPostgresRepo(
                 }
 
                 Behandlingstype.REVURDERING -> {
-                    val utfallType = stringOrNull("utfall")?.tilRevurderingUtfallType()
+                    val utfallType = string("utfall").tilRevurderingUtfallType()
 
                     val utfall = when (utfallType) {
                         RevurderingType.STANS -> RevurderingResultat.Stans(
@@ -412,8 +412,6 @@ class BehandlingPostgresRepo(
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                             antallDagerPerMeldeperiode = int("antall_dager_per_meldeperiode"),
                         )
-
-                        null -> null
                     }
 
                     return Revurdering(

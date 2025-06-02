@@ -105,4 +105,65 @@ interface SendRevurderingTilBeslutterBuilder {
             return bodyAsText
         }
     }
+
+    /** Forventer at det allerede finnes en behandling med status `UNDER_BEHANDLING` */
+    suspend fun ApplicationTestBuilder.sendRevurderingInnvilgelseTilBeslutterForBehandlingId(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        behandlingId: BehandlingId,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        fritekstTilVedtaksbrev: String = "fritekst",
+        begrunnelseVilkårsvurdering: String = "begrunnelse",
+        eksternDeltagelseId: String = "TA12345",
+        innvilgelsesperiode: Periode,
+    ): String {
+        defaultRequest(
+            HttpMethod.Post,
+            url {
+                protocol = URLProtocol.HTTPS
+                path("/sak/$sakId/revurdering/$behandlingId/sendtilbeslutning")
+            },
+            jwt = tac.jwtGenerator.createJwtForSaksbehandler(
+                saksbehandler = saksbehandler,
+            ),
+        ) {
+            setBody(
+                //language=JSON
+                """
+                {
+                    "type": "INNVILGELSE",
+                    "begrunnelse": "$begrunnelseVilkårsvurdering",
+                    "innvilgelse": {
+                        "innvilgelsesperiode": {
+                            "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
+                            "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
+                        },
+                        "valgteTiltaksdeltakelser": [
+                            {
+                                "eksternDeltagelseId": "$eksternDeltagelseId",
+                                "periode": {
+                                    "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
+                                    "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
+                                }
+                            }
+                        ]
+                    }
+                }
+                """.trimIndent(),
+            )
+        }.apply {
+            val bodyAsText = this.bodyAsText()
+            withClue(
+                """
+                    Response details:
+                    Status: ${this.status}
+                    Content-Type: ${this.contentType()}
+                    Body: $bodyAsText
+                """.trimMargin(),
+            ) {
+                status shouldBe HttpStatusCode.OK
+            }
+            return bodyAsText
+        }
+    }
 }

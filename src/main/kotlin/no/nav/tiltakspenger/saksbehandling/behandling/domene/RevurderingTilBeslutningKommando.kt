@@ -37,4 +37,5 @@ data class RevurderingInnvilgelseTilBeslutningKommando(
     override val begrunnelse: BegrunnelseVilkårsvurdering,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val innvilgelsesperiode: Periode,
+    val tiltaksdeltakelser: List<Pair<Periode, String>>,
 ) : RevurderingTilBeslutningKommando

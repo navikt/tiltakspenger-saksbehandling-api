@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksett
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettSøknadsbehandling
 import org.junit.jupiter.api.Test
 
 class GenererMeldeperioderSakIT {
@@ -32,7 +32,7 @@ class GenererMeldeperioderSakIT {
                 }
 
                 val fnr = Fnr.random()
-                val (sak) = this.iverksett(
+                val (sak) = this.iverksettSøknadsbehandling(
                     tac = tac,
                     fnr = fnr,
                     /**

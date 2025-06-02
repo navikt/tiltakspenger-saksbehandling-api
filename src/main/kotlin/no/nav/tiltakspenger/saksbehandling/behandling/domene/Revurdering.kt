@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -40,7 +41,7 @@ data class Revurdering(
     override val attesteringer: List<Attestering>,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val avbrutt: Avbrutt?,
-    override val utfall: RevurderingResultat?,
+    override val utfall: RevurderingResultat,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
 ) : Behandling {
@@ -49,15 +50,18 @@ data class Revurdering(
         get() = when (utfall) {
             is Innvilgelse -> utfall.barnetillegg
             is Stans -> null
-            null -> null
         }
 
     override val antallDagerPerMeldeperiode: Int?
         get() = when (utfall) {
             is Innvilgelse -> utfall.antallDagerPerMeldeperiode
             is Stans -> null
-            null -> null
         }
+
+    override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (utfall) {
+        is Innvilgelse -> utfall.valgteTiltaksdeltakelser
+        is Stans -> null
+    }
 
     override val utfallsperioder: Periodisering<Utfallsperiode>? by lazy {
         if (virkningsperiode == null) {
@@ -67,12 +71,16 @@ data class Revurdering(
         when (utfall) {
             is Stans -> Periodisering(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, virkningsperiode)
             is Innvilgelse -> Periodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, virkningsperiode)
-            null -> null
         }
     }
 
     init {
         super.init()
+
+        when (utfall) {
+            is Innvilgelse -> utfall.valider(status, virkningsperiode)
+            is Stans -> Unit
+        }
     }
 
     // TODO abn: separat håndtering av stans vil antagelig fjernes på sikt
@@ -104,12 +112,20 @@ data class Revurdering(
     ): Revurdering {
         validerSendTilBeslutning(kommando.saksbehandler)
 
+        require(this.utfall is Innvilgelse)
+
         return this.copy(
             status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
             sendtTilBeslutning = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelse,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             virkningsperiode = kommando.innvilgelsesperiode,
+            utfall = this.utfall.copy(
+                valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
+                    tiltaksdeltakelser = kommando.tiltaksdeltakelser,
+                    behandling = this,
+                ),
+            ),
         )
     }
 

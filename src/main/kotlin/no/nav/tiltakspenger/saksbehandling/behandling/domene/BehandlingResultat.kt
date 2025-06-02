@@ -21,19 +21,19 @@ sealed interface BehandlingResultat {
 
     sealed interface Innvilgelse {
         val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser
-        val antallDagerPerMeldeperiode: Int
+        val antallDagerPerMeldeperiode: Int?
         val barnetillegg: Barnetillegg?
 
         fun valider(status: Behandlingsstatus, virkningsperiode: Periode?) {
-            requireNotNull(virkningsperiode) {
-                "Virkningsperiode må være satt for innvilget behandling"
-            }
-
             when (status) {
                 KLAR_TIL_BESLUTNING,
                 UNDER_BESLUTNING,
                 VEDTATT,
                 -> {
+                    requireNotNull(virkningsperiode) {
+                        "Virkningsperiode må være satt for innvilget behandling med status $status"
+                    }
+
                     requireNotNull(valgteTiltaksdeltakelser) {
                         "Valgte tiltaksdeltakelser må være satt ved status $status"
                     }

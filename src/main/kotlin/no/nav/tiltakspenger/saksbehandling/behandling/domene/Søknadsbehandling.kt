@@ -67,13 +67,13 @@ data class Søknadsbehandling(
     override val utfallsperioder: Periodisering<Utfallsperiode>? =
         virkningsperiode?.let { Periodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, it) }
 
-    val kravtidspunkt: LocalDateTime = søknad.tidsstempelHosOss
-
-    val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (utfall) {
+    override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (utfall) {
         is SøknadsbehandlingResultat.Avslag -> null
         is SøknadsbehandlingResultat.Innvilgelse -> utfall.valgteTiltaksdeltakelser
         null -> null
     }
+
+    val kravtidspunkt: LocalDateTime = søknad.tidsstempelHosOss
 
     init {
         super.init()
