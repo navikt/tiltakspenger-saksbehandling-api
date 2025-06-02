@@ -7,9 +7,9 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.BEHANDLINGER_PATH
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
 import no.nav.tiltakspenger.saksbehandling.benk.service.BenkOversiktService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -36,22 +36,23 @@ fun Route.hentBenkRoute(
 private fun List<Behandlingssammendrag>.toDTO(): List<BehandlingssammendragDTO> = this.map { it.toDTO() }
 
 private fun Behandlingssammendrag.toDTO() = BehandlingssammendragDTO(
+    sakId = sakId.toString(),
     fnr = fnr.verdi,
     saksnummer = saksnummer.verdi,
     startet = startet.toString(),
+    kravtidspunkt = kravtidspunkt?.toString(),
     behandlingstype = behandlingstype.toDTO(),
     status = status?.toBehandlingssammendragStatusDto(),
     saksbehandler = saksbehandler,
     beslutter = beslutter,
 )
 
-private fun Behandlingsstatus.toBehandlingssammendragStatusDto(): BehandlingssammendragStatusDto = when (this) {
-    Behandlingsstatus.KLAR_TIL_BEHANDLING -> BehandlingssammendragStatusDto.KLAR_TIL_BEHANDLING
-    Behandlingsstatus.UNDER_BEHANDLING -> BehandlingssammendragStatusDto.UNDER_BEHANDLING
-    Behandlingsstatus.KLAR_TIL_BESLUTNING -> BehandlingssammendragStatusDto.KLAR_TIL_BESLUTNING
-    Behandlingsstatus.UNDER_BESLUTNING -> BehandlingssammendragStatusDto.UNDER_BESLUTNING
-    Behandlingsstatus.VEDTATT -> throw IllegalStateException("Vedtatt behandling er ikke støttet for å vises i benkoversikten")
-    Behandlingsstatus.AVBRUTT -> throw IllegalStateException("Avbrutt behandling er ikke støttet for å vises i benkoversikten")
+private fun BehandlingssammendragStatus.toBehandlingssammendragStatusDto(): BehandlingssammendragStatusDto = when (this) {
+    BehandlingssammendragStatus.KLAR_TIL_BEHANDLING -> BehandlingssammendragStatusDto.KLAR_TIL_BEHANDLING
+    BehandlingssammendragStatus.UNDER_BEHANDLING -> BehandlingssammendragStatusDto.UNDER_BEHANDLING
+    BehandlingssammendragStatus.KLAR_TIL_BESLUTNING -> BehandlingssammendragStatusDto.KLAR_TIL_BESLUTNING
+    BehandlingssammendragStatus.UNDER_BESLUTNING -> BehandlingssammendragStatusDto.UNDER_BESLUTNING
+    BehandlingssammendragStatus.KLAR_TIL_UTFYLLING -> BehandlingssammendragStatusDto.KLAR_TIL_UTFYLLING
 }
 
 private fun BehandlingssammendragType.toDTO(): BehandlingssammendragTypeDTO = when (this) {

@@ -1,8 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.fakes.repos
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 
@@ -28,10 +30,18 @@ class BenkOversiktFakeRepo(
                     Behandlingstype.SØKNADSBEHANDLING -> BehandlingssammendragType.SØKNADSBEHANDLING
                     Behandlingstype.REVURDERING -> BehandlingssammendragType.REVURDERING
                 },
-                status = behandling.status,
+                status = when (behandling.status) {
+                    Behandlingsstatus.KLAR_TIL_BEHANDLING -> BehandlingssammendragStatus.KLAR_TIL_BEHANDLING
+                    Behandlingsstatus.UNDER_BEHANDLING -> BehandlingssammendragStatus.UNDER_BEHANDLING
+                    Behandlingsstatus.KLAR_TIL_BESLUTNING -> BehandlingssammendragStatus.KLAR_TIL_BESLUTNING
+                    Behandlingsstatus.UNDER_BESLUTNING -> BehandlingssammendragStatus.UNDER_BESLUTNING
+                    Behandlingsstatus.VEDTATT -> throw IllegalStateException("Vedtatte behandlinger skal ikke være åpne")
+                    Behandlingsstatus.AVBRUTT -> throw IllegalStateException("Avbrutte behandlinger skal ikke være åpne")
+                },
                 saksbehandler = behandling.saksbehandler,
                 beslutter = behandling.beslutter,
-
+                sakId = behandling.sakId,
+                kravtidspunkt = if (behandling.behandlingstype == Behandlingstype.SØKNADSBEHANDLING) behandling.opprettet else null,
             )
         }
 
@@ -44,6 +54,8 @@ class BenkOversiktFakeRepo(
             status = null,
             saksbehandler = null,
             beslutter = null,
+            sakId = søknad.sakId,
+            kravtidspunkt = søknad.opprettet,
         )
     }
 }
