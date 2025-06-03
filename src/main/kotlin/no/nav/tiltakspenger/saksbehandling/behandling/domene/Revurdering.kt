@@ -46,17 +46,15 @@ data class Revurdering(
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
 ) : Behandling {
 
-    override val barnetillegg: Barnetillegg?
-        get() = when (utfall) {
-            is Innvilgelse -> utfall.barnetillegg
-            is Stans -> null
-        }
+    override val barnetillegg: Barnetillegg? = when (utfall) {
+        is Innvilgelse -> utfall.barnetillegg
+        is Stans -> null
+    }
 
-    override val antallDagerPerMeldeperiode: Int?
-        get() = when (utfall) {
-            is Innvilgelse -> utfall.antallDagerPerMeldeperiode
-            is Stans -> null
-        }
+    override val antallDagerPerMeldeperiode: Int? = when (utfall) {
+        is Innvilgelse -> utfall.antallDagerPerMeldeperiode
+        is Stans -> null
+    }
 
     override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (utfall) {
         is Innvilgelse -> utfall.valgteTiltaksdeltakelser
@@ -69,8 +67,8 @@ data class Revurdering(
         }
 
         when (utfall) {
-            is Stans -> Periodisering(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, virkningsperiode)
             is Innvilgelse -> Periodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, virkningsperiode)
+            is Stans -> Periodisering(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, virkningsperiode)
         }
     }
 

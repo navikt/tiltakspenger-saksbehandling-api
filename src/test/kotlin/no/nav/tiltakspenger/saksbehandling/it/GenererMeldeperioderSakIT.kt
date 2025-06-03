@@ -15,7 +15,11 @@ import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendRevurderingInnvilgelseTilBeslutterForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
 import org.junit.jupiter.api.Test
 
 class GenererMeldeperioderSakIT {
@@ -46,6 +50,46 @@ class GenererMeldeperioderSakIT {
                 sak.meldeperiodeKjeder.let {
                     it.size shouldBe 2
                     it.last().last().versjon shouldBe HendelseVersjon(1)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `skal generere flere meldeperioder når innvilgelsesperioden forlenges`() {
+        val clock = TikkendeKlokke(fixedClockAt(22.april(2025)))
+        with(TestApplicationContext(clock = clock)) {
+            val tac = this
+            testApplication {
+                application {
+                    jacksonSerialization()
+                    routing { routes(tac) }
+                }
+
+                val søknadsbehandlingInnvilgelse = Periode(1.april(2025), 13.april(2025))
+                val revurderingInnvilgelse = søknadsbehandlingInnvilgelse.plusTilOgMed(28L)
+
+                val (sak, _, søknadsbehandling, revurdering) = startRevurderingInnvilgelse(
+                    tac,
+                    søknadsbehandlingVirkningsperiode = søknadsbehandlingInnvilgelse,
+                    revurderingVirkningsperiode = revurderingInnvilgelse,
+                )
+
+                sak.meldeperiodeKjeder.size shouldBe 1
+
+                sendRevurderingInnvilgelseTilBeslutterForBehandlingId(
+                    tac,
+                    sak.id,
+                    revurdering.id,
+                    innvilgelsesperiode = revurderingInnvilgelse,
+                    eksternDeltagelseId = søknadsbehandling.søknad.tiltak.id,
+                )
+                taBehanding(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+                val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id)
+
+                oppdatertSak.meldeperiodeKjeder.let {
+                    it.size shouldBe 3
+                    it.all { kjede -> kjede.last().versjon == HendelseVersjon(1) } shouldBe true
                 }
             }
         }
