@@ -8,7 +8,7 @@ import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
@@ -30,7 +30,7 @@ internal class StartRevurderingTest {
                 revurdering.shouldBeInstanceOf<Revurdering>()
                 revurdering.behandlingstype shouldBe Behandlingstype.REVURDERING
                 revurdering.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
-                revurdering.utfall.type shouldBe RevurderingType.STANS
+                revurdering.utfall.shouldBeInstanceOf<RevurderingResultat.Stans>()
                 revurdering.sakId shouldBe sak.id
                 revurdering.oppgaveId shouldBe null
                 revurdering.fritekstTilVedtaksbrev shouldBe null
@@ -57,7 +57,7 @@ internal class StartRevurderingTest {
                 revurdering.shouldBeInstanceOf<Revurdering>()
                 revurdering.behandlingstype shouldBe Behandlingstype.REVURDERING
                 revurdering.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
-                revurdering.utfall.type shouldBe RevurderingType.INNVILGELSE
+                revurdering.utfall.shouldBeInstanceOf<RevurderingResultat.Innvilgelse>()
                 revurdering.sakId shouldBe sak.id
                 revurdering.oppgaveId shouldBe null
                 revurdering.fritekstTilVedtaksbrev shouldBe null

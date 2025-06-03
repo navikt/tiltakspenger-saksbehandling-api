@@ -11,13 +11,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.V
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 
 sealed interface BehandlingResultat {
-    val type: BehandlingResultatType
-        get() = when (this) {
-            is SøknadsbehandlingResultat.Avslag -> SøknadsbehandlingType.AVSLAG
-            is SøknadsbehandlingResultat.Innvilgelse -> SøknadsbehandlingType.INNVILGELSE
-            is RevurderingResultat.Stans -> RevurderingType.STANS
-            is RevurderingResultat.Innvilgelse -> RevurderingType.INNVILGELSE
-        }
 
     sealed interface Innvilgelse {
         val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser
