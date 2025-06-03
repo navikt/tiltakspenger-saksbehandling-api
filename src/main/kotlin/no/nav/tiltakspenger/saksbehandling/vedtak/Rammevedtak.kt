@@ -108,20 +108,24 @@ fun Sak.utledVedtakstype(behandling: Behandling): Vedtakstype {
                 null -> throw IllegalArgumentException("Kan ikke lage et vedtak uten utfall. Behandlingen uten utfall er ${behandling.id}")
             }
         }
+
         is Revurdering -> {
             when (behandling.utfall) {
                 is RevurderingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
                 is RevurderingResultat.Stans -> {
-                    // Kommentar jah: Dette er en førsteimplementasjon for å avgjøre om dette er et stansvedtak. Ved andre typer revurderinger må vi utvide denne.
-                    if (behandling.virkningsperiode!!.tilOgMed != this.utfallsperioder().totalPeriode.tilOgMed) {
-                        throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - revurderingens tilOgMed (${behandling.virkningsperiode.tilOgMed}) må være lik sakens tilOgMed (${this.utfallsperioder().totalPeriode.tilOgMed})")
+                    val revurderingTilOgmed = behandling.virkningsperiode!!.tilOgMed
+                    val sakTilOgMed = this.utfallsperioder().totalPeriode.tilOgMed
+                    val sisteUtbetalteMeldekortDag = this.sisteUtbetalteMeldekortDag()
+
+                    check(revurderingTilOgmed == sakTilOgMed) {
+                        "Kan ikke lage stansvedtak for revurdering - revurderingens tilOgMed ($revurderingTilOgmed) må være lik sakens tilOgMed ($sakTilOgMed)"
                     }
 
-                    if (this.sisteUtbetalteMeldekortDag() == null || this.sisteUtbetalteMeldekortDag()!! < behandling.virkningsperiode.fraOgMed) {
-                        Vedtakstype.STANS
-                    } else {
-                        throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - godkjent meldekort overlapper revurderingsperioden")
+                    check(sisteUtbetalteMeldekortDag == null || sisteUtbetalteMeldekortDag < behandling.virkningsperiode.fraOgMed) {
+                        "Kan ikke lage stansvedtak for revurdering - godkjent meldekort overlapper revurderingsperioden"
                     }
+
+                    Vedtakstype.STANS
                 }
             }
         }
