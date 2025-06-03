@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
@@ -107,16 +108,25 @@ fun Sak.utledVedtakstype(behandling: Behandling): Vedtakstype {
                 null -> throw IllegalArgumentException("Kan ikke lage et vedtak uten utfall. Behandlingen uten utfall er ${behandling.id}")
             }
         }
-        is Revurdering -> {
-            // Kommentar jah: Dette er en førsteimplementasjon for å avgjøre om dette er et stansvedtak. Ved andre typer revurderinger må vi utvide denne.
-            if (behandling.virkningsperiode!!.tilOgMed != this.utfallsperioder().totalPeriode.tilOgMed) {
-                throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - revurderingens tilOgMed (${behandling.virkningsperiode.tilOgMed}) må være lik sakens tilOgMed (${this.utfallsperioder().totalPeriode.tilOgMed})")
-            }
 
-            if (this.sisteUtbetalteMeldekortDag() == null || this.sisteUtbetalteMeldekortDag()!! < behandling.virkningsperiode.fraOgMed) {
-                Vedtakstype.STANS
-            } else {
-                throw IllegalStateException("Kan ikke lage stansvedtak for revurdering - godkjent meldekort overlapper revurderingsperioden")
+        is Revurdering -> {
+            when (behandling.utfall) {
+                is RevurderingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
+                is RevurderingResultat.Stans -> {
+                    val revurderingTilOgmed = behandling.virkningsperiode!!.tilOgMed
+                    val sakTilOgMed = this.utfallsperioder().totalPeriode.tilOgMed
+                    val sisteUtbetalteMeldekortDag = this.sisteUtbetalteMeldekortDag()
+
+                    check(revurderingTilOgmed == sakTilOgMed) {
+                        "Kan ikke lage stansvedtak for revurdering - revurderingens tilOgMed ($revurderingTilOgmed) må være lik sakens tilOgMed ($sakTilOgMed)"
+                    }
+
+                    check(sisteUtbetalteMeldekortDag == null || sisteUtbetalteMeldekortDag < behandling.virkningsperiode.fraOgMed) {
+                        "Kan ikke lage stansvedtak for revurdering - godkjent meldekort overlapper revurderingsperioden"
+                    }
+
+                    Vedtakstype.STANS
+                }
             }
         }
     }

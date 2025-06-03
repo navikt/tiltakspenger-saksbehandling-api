@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 
 data class Utbetalinger(
@@ -15,6 +16,10 @@ data class Utbetalinger(
         return Utbetalinger(verdi + utbetalingsvedtak)
     }
 
+    fun hentUtbetalingerFraPeriode(periode: Periode): List<Utbetalingsvedtak> {
+        return verdi.filter { periode.overlapperMed(it.periode) }
+    }
+
     init {
         if (verdi.isNotEmpty()) {
             require(
@@ -24,7 +29,7 @@ data class Utbetalinger(
             require(
                 verdi.map { it.saksnummer }
                     .distinct().size == 1,
-            ) { "Alle utbetalingsvedtakene må være for samme sak.  ${verdi.map { it.id to it.saksnummer }}" }
+            ) { "Alle utbetalingsvedtakene må være for samme sak. ${verdi.map { it.id to it.saksnummer }}" }
             require(
                 verdi.map { it.sakId }
                     .distinct().size == 1,

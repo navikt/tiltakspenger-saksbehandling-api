@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRo
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -59,6 +60,7 @@ sealed interface Behandling {
     val virkningsperiode: Periode?
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
 
+    val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?
     val barnetillegg: Barnetillegg?
     val utfallsperioder: Periodisering<Utfallsperiode>?
     val antallDagerPerMeldeperiode: Int?

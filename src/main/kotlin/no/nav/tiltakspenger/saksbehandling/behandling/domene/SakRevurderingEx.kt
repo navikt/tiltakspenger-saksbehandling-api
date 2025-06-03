@@ -21,8 +21,9 @@ suspend fun Sak.startRevurdering(
     val saksbehandler = kommando.saksbehandler
     krevSaksbehandlerRolle(saksbehandler)
 
+    // TODO abn: beholder denne for nå, men bør støtte dette asap
     require(this.vedtaksliste.antallInnvilgelsesperioder == 1) {
-        "Kan kun opprette en stansrevurdering dersom vi har en sammenhengende innvilgelsesperiode. sakId=${this.id}"
+        "Kan kun opprette en revurdering dersom vi har en sammenhengende innvilgelsesperiode. sakId=${this.id}"
     }
 
     val hentSaksopplysninger: HentSaksopplysninger = { periode: Periode ->
@@ -44,7 +45,11 @@ suspend fun Sak.startRevurdering(
     )
 }
 
-private suspend fun Sak.startStans(saksbehandler: Saksbehandler, hentSaksopplysninger: HentSaksopplysninger, clock: Clock): Revurdering {
+private suspend fun Sak.startStans(
+    saksbehandler: Saksbehandler,
+    hentSaksopplysninger: HentSaksopplysninger,
+    clock: Clock,
+): Revurdering {
     val saksopplysningsperiode = this.vedtaksliste.innvilgelsesperiode!!
 
     return Revurdering.opprettStans(
@@ -57,14 +62,15 @@ private suspend fun Sak.startStans(saksbehandler: Saksbehandler, hentSaksopplysn
     )
 }
 
-private suspend fun Sak.startInnvilgelse(saksbehandler: Saksbehandler, hentSaksopplysninger: HentSaksopplysninger, clock: Clock): Revurdering {
-    val sisteVedtatteBehandling = this.behandlinger.sisteVedtatteBehandling
+private suspend fun Sak.startInnvilgelse(
+    saksbehandler: Saksbehandler,
+    hentSaksopplysninger: HentSaksopplysninger,
+    clock: Clock,
+): Revurdering {
+    val sisteBehandling = hentSisteInnvilgetBehandling()
 
-    // Dette blir nok litt for enkelt, f.eks. hvis det finnes vedtak for flere søknader på saken og vi vil revurdere noe annet enn den siste
-    // Bør kanskje opprette revurderingen på en spesifikk tidligere behandling som saksbehandler velger. Skal det valget isåfall tas ved oppretting
-    // eller underveis i behandlingen, før send til beslutter?
-    require(sisteVedtatteBehandling != null && sisteVedtatteBehandling.utfall is SøknadsbehandlingResultat.Innvilgelse) {
-        "Må ha en tidligere vedtatt innvilgelse for å kunne revurdere innvilgelse"
+    requireNotNull(sisteBehandling) {
+        "Må ha en tidligere vedtatt behandling for å kunne revurdere innvilgelse"
     }
 
     return Revurdering.opprettInnvilgelse(
@@ -72,7 +78,8 @@ private suspend fun Sak.startInnvilgelse(saksbehandler: Saksbehandler, hentSakso
         saksnummer = this.saksnummer,
         fnr = this.fnr,
         saksbehandler = saksbehandler,
-        saksopplysninger = hentSaksopplysninger(sisteVedtatteBehandling.saksopplysningsperiode),
+        saksopplysninger = hentSaksopplysninger(sisteBehandling.saksopplysningsperiode),
+        forrigeBehandling = sisteBehandling,
         clock = clock,
     )
 }
@@ -84,11 +91,14 @@ fun Sak.sendRevurderingTilBeslutning(
     krevSaksbehandlerRolle(kommando.saksbehandler)
 
     val behandling = this.hentBehandling(kommando.behandlingId)
-    require(behandling is Revurdering) { "Behandlingen må være en revurdering, men var: ${behandling?.behandlingstype}" }
+
+    require(behandling is Revurdering) {
+        "Behandlingen må være en revurdering, men er: ${behandling?.behandlingstype}"
+    }
 
     return when (kommando) {
         is RevurderingInnvilgelseTilBeslutningKommando -> {
-            // TODO: valider innvilgelsesperioden
+            validerInnvilgelsesperiode(kommando.innvilgelsesperiode)
 
             behandling.tilBeslutning(
                 kommando = kommando,
@@ -99,12 +109,22 @@ fun Sak.sendRevurderingTilBeslutning(
         is RevurderingStansTilBeslutningKommando -> {
             validerStansDato(kommando.stansFraOgMed)
 
-            behandling.tilBeslutning(
+            behandling.stansTilBeslutning(
                 kommando = kommando.copy(sisteDagSomGirRett = sisteDagSomGirRett),
                 clock = clock,
             )
         }
     }.right()
+}
+
+private fun Sak.validerInnvilgelsesperiode(innvilgelsesperiode: Periode) {
+    val utbetalingsvedtakIderFraPeriode = utbetalinger.hentUtbetalingerFraPeriode(innvilgelsesperiode).map {
+        it.id
+    }
+
+    require(utbetalingsvedtakIderFraPeriode.isEmpty()) {
+        "Revurdert innvilgelsesperiode kan ikke ha eksisterende utbetalingsvedtak - $innvilgelsesperiode har $utbetalingsvedtakIderFraPeriode"
+    }
 }
 
 fun Sak.validerStansDato(stansDato: LocalDate?) {

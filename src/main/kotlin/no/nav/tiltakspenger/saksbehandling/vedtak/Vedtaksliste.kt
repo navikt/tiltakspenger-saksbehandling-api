@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinjeMedHull
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
@@ -23,7 +23,17 @@ data class Vedtaksliste(
     val sakId = value.distinctBy { it.sakId }.map { it.sakId }.singleOrNullOrThrow()
     val saksnummer = value.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
 
-    val tidslinje: Periodisering<Rammevedtak?> by lazy { value.toTidslinjeMedHull() }
+    val tidslinje: Periodisering<Rammevedtak?> by lazy {
+        value.filter {
+            when (it.vedtaksType) {
+                Vedtakstype.INNVILGELSE,
+                Vedtakstype.STANS,
+                -> true
+
+                Vedtakstype.AVSLAG -> false
+            }
+        }.toTidslinjeMedHull()
+    }
 
     val innvilgelsesperiode: Periode? by lazy {
         innvilgelsesperioder.ifEmpty { null }
@@ -86,8 +96,7 @@ data class Vedtaksliste(
             if (verdi == null) {
                 listOf(PeriodeMedVerdi(null, periode))
             } else {
-                // TODO John og Anders: Fix for revurdering
-                require(verdi.behandling is Søknadsbehandling)
+                require(verdi.behandling.utfall is BehandlingResultat.Innvilgelse)
                 verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(periode).perioderMedVerdi as List<PeriodeMedVerdi<Tiltaksdeltagelse?>>
             }
         }
