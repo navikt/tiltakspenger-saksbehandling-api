@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltak
 
 sealed interface BehandlingResultat {
 
+    /* Denne benyttes både i søknadsbehandlinger og revurderinger */
     sealed interface Innvilgelse {
         val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser
         val antallDagerPerMeldeperiode: Int?

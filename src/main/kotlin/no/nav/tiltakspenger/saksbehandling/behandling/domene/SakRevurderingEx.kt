@@ -67,10 +67,10 @@ private suspend fun Sak.startInnvilgelse(
     hentSaksopplysninger: HentSaksopplysninger,
     clock: Clock,
 ): Revurdering {
-    val sisteInnvilgetBehandling = this.behandlinger.sisteInnvilgetBehandling
+    val sisteBehandling = hentSisteVedtatteBehandling()
 
-    requireNotNull(sisteInnvilgetBehandling) {
-        "Må ha en tidligere vedtatt innvilgelse for å kunne revurdere innvilgelse"
+    requireNotNull(sisteBehandling) {
+        "Må ha en tidligere vedtatt behandling for å kunne revurdere innvilgelse"
     }
 
     return Revurdering.opprettInnvilgelse(
@@ -78,8 +78,8 @@ private suspend fun Sak.startInnvilgelse(
         saksnummer = this.saksnummer,
         fnr = this.fnr,
         saksbehandler = saksbehandler,
-        saksopplysninger = hentSaksopplysninger(sisteInnvilgetBehandling.saksopplysningsperiode),
-        forrigeBehandling = sisteInnvilgetBehandling,
+        saksopplysninger = hentSaksopplysninger(sisteBehandling.saksopplysningsperiode),
+        forrigeBehandling = sisteBehandling,
         clock = clock,
     )
 }

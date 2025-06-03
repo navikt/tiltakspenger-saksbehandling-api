@@ -62,6 +62,10 @@ data class Sak(
 
     val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett?> by lazy { vedtaksliste.tiltakstypeperioder }
 
+    fun hentSisteVedtatteBehandling(): Behandling? {
+        return this.vedtaksliste.tidslinje.lastOrNull()?.verdi?.behandling
+    }
+
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
         return meldekortBehandlinger.hentMeldekortBehandling(meldekortId)
     }
