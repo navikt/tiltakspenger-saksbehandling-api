@@ -56,7 +56,7 @@ class GenererMeldeperioderSakIT {
     }
 
     @Test
-    fun `skal generere flere meldeperioder når innvilgelsesperioden forlenges`() {
+    fun `skal generere flere meldeperioder når innvilgelsesperioden forlenges fremover`() {
         val clock = TikkendeKlokke(fixedClockAt(22.april(2025)))
         with(TestApplicationContext(clock = clock)) {
             val tac = this
@@ -90,6 +90,47 @@ class GenererMeldeperioderSakIT {
                 oppdatertSak.meldeperiodeKjeder.let {
                     it.size shouldBe 3
                     it.all { kjede -> kjede.last().versjon == HendelseVersjon(1) } shouldBe true
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `skal generere flere meldeperioder når innvilgelsesperioden forlenges bakover`() {
+        val clock = TikkendeKlokke(fixedClockAt(22.april(2025)))
+        with(TestApplicationContext(clock = clock)) {
+            val tac = this
+            testApplication {
+                application {
+                    jacksonSerialization()
+                    routing { routes(tac) }
+                }
+
+                val søknadsbehandlingInnvilgelse = Periode(1.april(2025), 13.april(2025))
+                val revurderingInnvilgelse = søknadsbehandlingInnvilgelse.minusFraOgMed(14L)
+
+                val (sak, _, søknadsbehandling, revurdering) = startRevurderingInnvilgelse(
+                    tac,
+                    søknadsbehandlingVirkningsperiode = søknadsbehandlingInnvilgelse,
+                    revurderingVirkningsperiode = revurderingInnvilgelse,
+                )
+
+                sak.meldeperiodeKjeder.size shouldBe 1
+
+                sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
+                    tac,
+                    sak.id,
+                    revurdering.id,
+                    innvilgelsesperiode = revurderingInnvilgelse,
+                    eksternDeltagelseId = søknadsbehandling.søknad.tiltak.id,
+                )
+                taBehanding(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+                val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id)
+
+                oppdatertSak.meldeperiodeKjeder.let {
+                    it.size shouldBe 2
+                    it.first().last().versjon shouldBe HendelseVersjon(1)
+                    it.last().last().versjon shouldBe HendelseVersjon(2)
                 }
             }
         }

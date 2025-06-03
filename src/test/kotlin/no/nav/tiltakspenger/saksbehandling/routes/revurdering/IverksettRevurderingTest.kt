@@ -41,7 +41,7 @@ internal class IverksettRevurderingTest {
     }
 
     @Test
-    fun `kan iverksette revurdering innvilgelse`() {
+    fun `kan iverksette revurdering innvilgelsesperiode fremover`() {
         with(TestApplicationContext()) {
             val tac = this
             testApplication {
@@ -52,6 +52,38 @@ internal class IverksettRevurderingTest {
 
                 val søknadsbehandlingVirkningsperiode = Periode(1.april(2025), 10.april(2025))
                 val revurderingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode.plusTilOgMed(14L)
+
+                val (sak, _, søknadsbehandling, revurdering) = startRevurderingInnvilgelse(
+                    tac,
+                    søknadsbehandlingVirkningsperiode = søknadsbehandlingVirkningsperiode,
+                    revurderingVirkningsperiode = revurderingInnvilgelsesperiode,
+                )
+
+                sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
+                    tac,
+                    sak.id,
+                    revurdering.id,
+                    innvilgelsesperiode = revurderingInnvilgelsesperiode,
+                    eksternDeltagelseId = søknadsbehandling.søknad.tiltak.id,
+                )
+                taBehanding(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+                iverksettForBehandlingId(tac, sak.id, revurdering.id)
+            }
+        }
+    }
+
+    @Test
+    fun `kan iverksette revurdering innvilgelsesperiode bakover`() {
+        with(TestApplicationContext()) {
+            val tac = this
+            testApplication {
+                application {
+                    jacksonSerialization()
+                    routing { routes(tac) }
+                }
+
+                val søknadsbehandlingVirkningsperiode = Periode(1.april(2025), 10.april(2025))
+                val revurderingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode.minusFraOgMed(14L)
 
                 val (sak, _, søknadsbehandling, revurdering) = startRevurderingInnvilgelse(
                     tac,
