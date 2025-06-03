@@ -9,8 +9,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendRevurderingInnvilgelseTilBeslutterForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendRevurderingTilBeslutterForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendRevurderingInnvilgelseTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendRevurderingStansTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
@@ -27,7 +27,7 @@ internal class IverksettRevurderingTest {
                     routing { routes(tac) }
                 }
                 val (sak, _, søknadsbehandling, revurdering) = startRevurderingStans(tac)
-                sendRevurderingTilBeslutterForBehandlingId(
+                sendRevurderingStansTilBeslutningForBehandlingId(
                     tac,
                     sak.id,
                     revurdering.id,
@@ -59,7 +59,7 @@ internal class IverksettRevurderingTest {
                     revurderingVirkningsperiode = revurderingInnvilgelsesperiode,
                 )
 
-                sendRevurderingInnvilgelseTilBeslutterForBehandlingId(
+                sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
                     tac,
                     sak.id,
                     revurdering.id,

@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendRevurderingInnvilgelseTilBeslutterForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendRevurderingInnvilgelseTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
 import org.junit.jupiter.api.Test
@@ -77,7 +77,7 @@ class GenererMeldeperioderSakIT {
 
                 sak.meldeperiodeKjeder.size shouldBe 1
 
-                sendRevurderingInnvilgelseTilBeslutterForBehandlingId(
+                sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
                     tac,
                     sak.id,
                     revurdering.id,

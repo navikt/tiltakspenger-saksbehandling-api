@@ -92,6 +92,8 @@ data class Revurdering(
             "Siste dag som gir rett må være bestemt før stans kan sendes til beslutning"
         }
 
+        require(utfall is Stans)
+
         return this.copy(
             status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
             sendtTilBeslutning = nå(clock),

@@ -28,7 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendRevurderingInnvilgelseTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startRevurderingStans
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
@@ -180,7 +180,7 @@ class SendRevurderingTilBeslutningTest {
     }
 
     @Test
-    fun `kan sende revurdering innvilgelse til beslutning`() {
+    fun `kan sende revurdering med forlenget innvilgelse til beslutning`() {
         with(TestApplicationContext()) {
             val tac = this
             testApplication {
@@ -192,69 +192,28 @@ class SendRevurderingTilBeslutningTest {
                 val søknadsbehandlingVirkningsperiode = Periode(1.april(2025), 10.april(2025))
                 val revurderingInnvilgelsesperiode = søknadsbehandlingVirkningsperiode.plusTilOgMed(14L)
 
-                val (sak, _, søknadsbehandling, revurdering) = startRevurderingInnvilgelse(
+                val (_, _, søknadsbehandling, jsonResponse) = sendRevurderingInnvilgelseTilBeslutning(
                     tac,
                     søknadsbehandlingVirkningsperiode = søknadsbehandlingVirkningsperiode,
                     revurderingVirkningsperiode = revurderingInnvilgelsesperiode,
                 )
 
-                defaultRequest(
-                    HttpMethod.Post,
-                    url {
-                        protocol = URLProtocol.HTTPS
-                        path("/sak/${sak.id}/revurdering/${revurdering.id}/sendtilbeslutning")
-                    },
-                    jwt = tac.jwtGenerator.createJwtForSaksbehandler(
-                        saksbehandler = ObjectMother.saksbehandler(),
-                    ),
-                ) {
-                    setBody(
-                        //language=JSON
-                        """
-                            {
-                                "type": "INNVILGELSE",
-                                "begrunnelse": "Begrunnelse",
-                                "innvilgelse": {
-                                    "innvilgelsesperiode": {
-                                        "fraOgMed": "${revurderingInnvilgelsesperiode.fraOgMed}",
-                                        "tilOgMed": "${revurderingInnvilgelsesperiode.tilOgMed}"
-                                    },
-                                    "valgteTiltaksdeltakelser": [
-                                        {
-                                            "eksternDeltagelseId": "${søknadsbehandling.søknad.tiltak.id}",
-                                            "periode": {
-                                                "fraOgMed": "${revurderingInnvilgelsesperiode.fraOgMed}",
-                                                "tilOgMed": "${revurderingInnvilgelsesperiode.tilOgMed}"
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        """.trimIndent(),
-                    )
-                }.apply {
-                    val bodyAsText = this.bodyAsText()
-                    withClue(
-                        "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-                    ) {
-                        status shouldBe HttpStatusCode.OK
-                        val behandlingDTO = objectMapper.readValue<BehandlingDTO>(bodyAsText)
-                        behandlingDTO.status shouldBe BehandlingsstatusDTO.KLAR_TIL_BESLUTNING
-                        behandlingDTO.utfall shouldBe BehandlingUtfallDTO.REVURDERING_INNVILGELSE
+                val behandlingDTO = objectMapper.readValue<BehandlingDTO>(jsonResponse)
 
-                        val revurdering =
-                            tac.behandlingContext.behandlingRepo.hent(BehandlingId.fromString(behandlingDTO.id))
-                        revurdering.shouldBeInstanceOf<Revurdering>()
+                behandlingDTO.status shouldBe BehandlingsstatusDTO.KLAR_TIL_BESLUTNING
+                behandlingDTO.utfall shouldBe BehandlingUtfallDTO.REVURDERING_INNVILGELSE
 
-                        revurdering.utfall shouldBe RevurderingResultat.Innvilgelse(
-                            valgteTiltaksdeltakelser = revurdering.valgteTiltaksdeltakelser!!,
-                            barnetillegg = søknadsbehandling.barnetillegg,
-                            antallDagerPerMeldeperiode = søknadsbehandling.antallDagerPerMeldeperiode!!,
-                        )
+                val revurdering = tac.behandlingContext.behandlingRepo.hent(BehandlingId.fromString(behandlingDTO.id))
 
-                        revurdering.virkningsperiode shouldBe revurderingInnvilgelsesperiode
-                    }
-                }
+                revurdering.shouldBeInstanceOf<Revurdering>()
+
+                revurdering.utfall shouldBe RevurderingResultat.Innvilgelse(
+                    valgteTiltaksdeltakelser = revurdering.valgteTiltaksdeltakelser!!,
+                    barnetillegg = søknadsbehandling.barnetillegg,
+                    antallDagerPerMeldeperiode = søknadsbehandling.antallDagerPerMeldeperiode!!,
+                )
+
+                revurdering.virkningsperiode shouldBe revurderingInnvilgelsesperiode
             }
         }
     }

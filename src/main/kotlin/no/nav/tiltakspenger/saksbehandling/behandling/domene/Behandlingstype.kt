@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 /**
- * https://kodeverk.ansatt.nav.no/kodeverk/Behandlingsstegtyper
+ * https://kodeverk.ansatt.nav.no/kodeverk/Behandlingstyper
  *
  * ae0245 Førstegangssøknad
  * ae0034 Søknad

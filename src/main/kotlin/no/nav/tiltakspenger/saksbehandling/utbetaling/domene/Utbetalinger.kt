@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 
 data class Utbetalinger(
@@ -13,6 +14,10 @@ data class Utbetalinger(
 
     fun leggTil(utbetalingsvedtak: Utbetalingsvedtak): Utbetalinger {
         return Utbetalinger(verdi + utbetalingsvedtak)
+    }
+
+    fun finnUtbetalingerUtenforPeriode(periode: Periode): List<Utbetalingsvedtak> {
+        return verdi.filter { !periode.inneholderHele(it.periode) }
     }
 
     init {

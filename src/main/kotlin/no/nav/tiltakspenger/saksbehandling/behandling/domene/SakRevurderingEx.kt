@@ -21,6 +21,7 @@ suspend fun Sak.startRevurdering(
     val saksbehandler = kommando.saksbehandler
     krevSaksbehandlerRolle(saksbehandler)
 
+    // TODO abn: beholder denne for nå, men bør støtte dette asap
     require(this.vedtaksliste.antallInnvilgelsesperioder == 1) {
         "Kan kun opprette en revurdering dersom vi har en sammenhengende innvilgelsesperiode. sakId=${this.id}"
     }
@@ -66,9 +67,9 @@ private suspend fun Sak.startInnvilgelse(
     hentSaksopplysninger: HentSaksopplysninger,
     clock: Clock,
 ): Revurdering {
-    val sisteVedtatteBehandling = this.behandlinger.sisteInnvilgetBehandling
+    val sisteInnvilgetBehandling = this.behandlinger.sisteInnvilgetBehandling
 
-    require(sisteVedtatteBehandling != null) {
+    requireNotNull(sisteInnvilgetBehandling) {
         "Må ha en tidligere vedtatt innvilgelse for å kunne revurdere innvilgelse"
     }
 
@@ -77,8 +78,8 @@ private suspend fun Sak.startInnvilgelse(
         saksnummer = this.saksnummer,
         fnr = this.fnr,
         saksbehandler = saksbehandler,
-        saksopplysninger = hentSaksopplysninger(sisteVedtatteBehandling.saksopplysningsperiode),
-        forrigeBehandling = sisteVedtatteBehandling,
+        saksopplysninger = hentSaksopplysninger(sisteInnvilgetBehandling.saksopplysningsperiode),
+        forrigeBehandling = sisteInnvilgetBehandling,
         clock = clock,
     )
 }
@@ -90,11 +91,13 @@ fun Sak.sendRevurderingTilBeslutning(
     krevSaksbehandlerRolle(kommando.saksbehandler)
 
     val behandling = this.hentBehandling(kommando.behandlingId)
-    require(behandling is Revurdering) { "Behandlingen må være en revurdering, men var: ${behandling?.behandlingstype}" }
+    require(behandling is Revurdering) {
+        "Behandlingen må være en revurdering, men var: ${behandling?.behandlingstype}"
+    }
 
     return when (kommando) {
         is RevurderingInnvilgelseTilBeslutningKommando -> {
-            validerInnvilgelsesperiode(kommando.innvilgelsesperiode)
+            validerInnvilgelse(kommando.innvilgelsesperiode)
 
             behandling.tilBeslutning(
                 kommando = kommando,
@@ -113,7 +116,12 @@ fun Sak.sendRevurderingTilBeslutning(
     }.right()
 }
 
-private fun Sak.validerInnvilgelsesperiode(innvilgelsesperiode: Periode) {
+private fun Sak.validerInnvilgelse(innvilgelsesperiode: Periode) {
+    val utbetalingerUtenforInnvilgelsesperioden = utbetalinger.finnUtbetalingerUtenforPeriode(innvilgelsesperiode)
+
+    if (utbetalingerUtenforInnvilgelsesperioden.isNotEmpty()) {
+        throw IllegalArgumentException("Innvilgelsesperioden må omfatte alle tidligere utbetalingsvedtak")
+    }
 }
 
 fun Sak.validerStansDato(stansDato: LocalDate?) {
