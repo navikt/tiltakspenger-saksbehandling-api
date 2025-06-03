@@ -81,7 +81,7 @@ data class Revurdering(
         }
     }
 
-    // TODO abn: separat håndtering av stans vil antagelig fjernes på sikt
+    // TODO abn: separat håndtering av stans vil kanskje fjernes på sikt
     fun stansTilBeslutning(
         kommando: RevurderingStansTilBeslutningKommando,
         clock: Clock,

@@ -67,7 +67,7 @@ private suspend fun Sak.startInnvilgelse(
     hentSaksopplysninger: HentSaksopplysninger,
     clock: Clock,
 ): Revurdering {
-    val sisteBehandling = hentSisteVedtatteBehandling()
+    val sisteBehandling = hentSisteInnvilgetBehandling()
 
     requireNotNull(sisteBehandling) {
         "Må ha en tidligere vedtatt behandling for å kunne revurdere innvilgelse"
@@ -91,8 +91,9 @@ fun Sak.sendRevurderingTilBeslutning(
     krevSaksbehandlerRolle(kommando.saksbehandler)
 
     val behandling = this.hentBehandling(kommando.behandlingId)
+
     require(behandling is Revurdering) {
-        "Behandlingen må være en revurdering, men var: ${behandling?.behandlingstype}"
+        "Behandlingen må være en revurdering, men er: ${behandling?.behandlingstype}"
     }
 
     return when (kommando) {
@@ -117,11 +118,11 @@ fun Sak.sendRevurderingTilBeslutning(
 }
 
 private fun Sak.validerInnvilgelse(innvilgelsesperiode: Periode) {
-    val utbetalingerUtenforInnvilgelsesperioden = utbetalinger.finnUtbetalingerUtenforPeriode(innvilgelsesperiode)
-
-    if (utbetalingerUtenforInnvilgelsesperioden.isNotEmpty()) {
-        throw IllegalArgumentException("Innvilgelsesperioden må omfatte alle tidligere utbetalingsvedtak")
-    }
+//    val utbetalingerUtenforInnvilgelsesperioden = utbetalinger.finnUtbetalingerUtenforPeriode(innvilgelsesperiode)
+//
+//    if (utbetalingerUtenforInnvilgelsesperioden.isNotEmpty()) {
+//        throw IllegalArgumentException("Innvilgelsesperioden må omfatte alle tidligere utbetalingsvedtak")
+//    }
 }
 
 fun Sak.validerStansDato(stansDato: LocalDate?) {

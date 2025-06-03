@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
@@ -62,8 +63,8 @@ data class Sak(
 
     val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett?> by lazy { vedtaksliste.tiltakstypeperioder }
 
-    fun hentSisteVedtatteBehandling(): Behandling? {
-        return this.vedtaksliste.tidslinje.lastOrNull()?.verdi?.behandling
+    fun hentSisteInnvilgetBehandling(): Behandling? {
+        return this.vedtaksliste.tidslinje.find { it.verdi?.behandling?.utfall is BehandlingResultat.Innvilgelse }?.verdi?.behandling
     }
 
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
