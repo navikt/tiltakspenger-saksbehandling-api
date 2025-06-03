@@ -135,4 +135,62 @@ class GenererMeldeperioderSakIT {
             }
         }
     }
+
+    @Test
+    fun `skal generere meldeperioder når innvilgelsesperioden forlenges fremover med hull midt i en meldeperiode`() {
+        val clock = TikkendeKlokke(fixedClockAt(22.april(2025)))
+        with(TestApplicationContext(clock = clock)) {
+            val tac = this
+            testApplication {
+                application {
+                    jacksonSerialization()
+                    routing { routes(tac) }
+                }
+
+                val søknadsbehandlingInnvilgelse = Periode(1.april(2025), 14.april(2025))
+                val revurderingInnvilgelse = Periode(17.april(2025), 25.april(2025))
+
+                val (sak, _, søknadsbehandling, revurdering) = startRevurderingInnvilgelse(
+                    tac,
+                    søknadsbehandlingVirkningsperiode = søknadsbehandlingInnvilgelse,
+                    revurderingVirkningsperiode = revurderingInnvilgelse,
+                )
+
+                sak.meldeperiodeKjeder.size shouldBe 2
+
+                sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
+                    tac,
+                    sak.id,
+                    revurdering.id,
+                    innvilgelsesperiode = revurderingInnvilgelse,
+                    eksternDeltagelseId = søknadsbehandling.søknad.tiltak.id,
+                )
+                taBehanding(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+                val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id)
+
+                oppdatertSak.meldeperiodeKjeder.let {
+                    it.size shouldBe 2
+                    it.first().last().versjon shouldBe HendelseVersjon(1)
+                    val sisteMeldeperiode = it.last().last()
+                    sisteMeldeperiode.versjon shouldBe HendelseVersjon(2)
+                    sisteMeldeperiode.girRett shouldBe mapOf(
+                        14.april(2025) to true,
+                        15.april(2025) to false,
+                        16.april(2025) to false,
+                        17.april(2025) to true,
+                        18.april(2025) to true,
+                        19.april(2025) to true,
+                        20.april(2025) to true,
+                        21.april(2025) to true,
+                        22.april(2025) to true,
+                        23.april(2025) to true,
+                        24.april(2025) to true,
+                        25.april(2025) to true,
+                        26.april(2025) to false,
+                        27.april(2025) to false,
+                    )
+                }
+            }
+        }
+    }
 }
