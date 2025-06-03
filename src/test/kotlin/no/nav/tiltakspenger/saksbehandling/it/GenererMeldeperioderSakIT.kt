@@ -147,8 +147,11 @@ class GenererMeldeperioderSakIT {
                     routing { routes(tac) }
                 }
 
+                // Tirsdag til mandag (over to meldeperioder)
                 val søknadsbehandlingInnvilgelse = Periode(1.april(2025), 14.april(2025))
-                val revurderingInnvilgelse = Periode(17.april(2025), 25.april(2025))
+
+                // Torsdag til søndag
+                val revurderingInnvilgelse = Periode(17.april(2025), 20.april(2025))
 
                 val (sak, _, søknadsbehandling, revurdering) = startRevurderingInnvilgelse(
                     tac,
@@ -181,14 +184,15 @@ class GenererMeldeperioderSakIT {
                         18.april(2025) to true,
                         19.april(2025) to true,
                         20.april(2025) to true,
-                        21.april(2025) to true,
-                        22.april(2025) to true,
-                        23.april(2025) to true,
-                        24.april(2025) to true,
-                        25.april(2025) to true,
+                        21.april(2025) to false,
+                        22.april(2025) to false,
+                        23.april(2025) to false,
+                        24.april(2025) to false,
+                        25.april(2025) to false,
                         26.april(2025) to false,
                         27.april(2025) to false,
                     )
+                    sisteMeldeperiode.antallDagerSomGirRett shouldBe 5
                 }
             }
         }

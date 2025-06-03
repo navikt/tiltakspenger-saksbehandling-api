@@ -24,7 +24,15 @@ data class Vedtaksliste(
     val saksnummer = value.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
 
     val tidslinje: Periodisering<Rammevedtak?> by lazy {
-        value.filterNot { it.vedtaksType == Vedtakstype.AVSLAG }.toTidslinjeMedHull()
+        value.filter {
+            when (it.vedtaksType) {
+                Vedtakstype.INNVILGELSE,
+                Vedtakstype.STANS,
+                -> true
+
+                Vedtakstype.AVSLAG -> false
+            }
+        }.toTidslinjeMedHull()
     }
 
     val innvilgelsesperiode: Periode? by lazy {
