@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.enUkeEtterFixedClock
 import no.nav.tiltakspenger.libs.common.fixedClock
@@ -13,7 +14,10 @@ import no.nav.tiltakspenger.libs.periodisering.desember
 import no.nav.tiltakspenger.libs.periodisering.februar
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
+import no.nav.tiltakspenger.libs.periodisering.september
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -117,16 +121,16 @@ class MeldeperiodeKjederTest {
         val forventetSistePeriode = Periode(16.januar(2023), 29.januar(2023))
 
         actual.let {
-            it.first.meldeperioder shouldBe it.second
+            it.first.sisteMeldeperiodePerKjede shouldBe it.second
 
             it.first.first().periode shouldBe forventetFørstePeriode
             it.first.last().periode shouldBe forventetSistePeriode
 
-            it.first.meldeperioder.first().antallDagerSomGirRett shouldBe 14
-            it.first.meldeperioder.first().maksAntallDagerForMeldeperiode shouldBe 10
+            it.first.sisteMeldeperiodePerKjede.first().antallDagerSomGirRett shouldBe 14
+            it.first.sisteMeldeperiodePerKjede.first().maksAntallDagerForMeldeperiode shouldBe 10
 
-            it.first.meldeperioder.last().antallDagerSomGirRett shouldBe 2
-            it.first.meldeperioder.last().maksAntallDagerForMeldeperiode shouldBe 2
+            it.first.sisteMeldeperiodePerKjede.last().antallDagerSomGirRett shouldBe 2
+            it.first.sisteMeldeperiodePerKjede.last().maksAntallDagerForMeldeperiode shouldBe 2
         }
     }
 
@@ -174,17 +178,17 @@ class MeldeperiodeKjederTest {
         val forventetSistePeriode = Periode(16.januar(2023), 29.januar(2023))
 
         val (nyeKjederV1) = kjederV1.genererMeldeperioder(v1, fixedClock).also {
-            it.first.meldeperioder.size shouldBe 2
-            it.first.meldeperioder shouldBe it.second
+            it.first.sisteMeldeperiodePerKjede.size shouldBe 2
+            it.first.sisteMeldeperiodePerKjede shouldBe it.second
 
-            it.first.meldeperioder.first().periode shouldBe forventetFørstePeriode
-            it.first.meldeperioder.last().periode shouldBe forventetSistePeriode
+            it.first.sisteMeldeperiodePerKjede.first().periode shouldBe forventetFørstePeriode
+            it.first.sisteMeldeperiodePerKjede.last().periode shouldBe forventetSistePeriode
 
-            it.first.meldeperioder.first().antallDagerSomGirRett shouldBe 14
-            it.first.meldeperioder.first().maksAntallDagerForMeldeperiode shouldBe 10
+            it.first.sisteMeldeperiodePerKjede.first().antallDagerSomGirRett shouldBe 14
+            it.first.sisteMeldeperiodePerKjede.first().maksAntallDagerForMeldeperiode shouldBe 10
 
-            it.first.meldeperioder.last().antallDagerSomGirRett shouldBe 2
-            it.first.meldeperioder.last().maksAntallDagerForMeldeperiode shouldBe 2
+            it.first.sisteMeldeperiodePerKjede.last().antallDagerSomGirRett shouldBe 2
+            it.first.sisteMeldeperiodePerKjede.last().maksAntallDagerForMeldeperiode shouldBe 2
         }
 
         val stansVedtak = ObjectMother.nyRammevedtakStans(
@@ -205,17 +209,69 @@ class MeldeperiodeKjederTest {
         val actual = nyeKjederV1.genererMeldeperioder(v2, enUkeEtterFixedClock)
 
         actual.let {
-            it.first.meldeperioder.size shouldBe 2
-            it.first.meldeperioder shouldBe it.second
+            it.first.sisteMeldeperiodePerKjede.size shouldBe 2
+            it.first.sisteMeldeperiodePerKjede shouldBe it.second
 
             it.first.first().periode shouldBe forventetFørstePeriode
             it.first.last().periode shouldBe forventetSistePeriode
 
-            it.first.meldeperioder.first().antallDagerSomGirRett shouldBe 0
-            it.first.meldeperioder.first().maksAntallDagerForMeldeperiode shouldBe 0
+            it.first.sisteMeldeperiodePerKjede.first().antallDagerSomGirRett shouldBe 0
+            it.first.sisteMeldeperiodePerKjede.first().maksAntallDagerForMeldeperiode shouldBe 0
 
-            it.first.meldeperioder.last().antallDagerSomGirRett shouldBe 0
-            it.first.meldeperioder.last().maksAntallDagerForMeldeperiode shouldBe 0
+            it.first.sisteMeldeperiodePerKjede.last().antallDagerSomGirRett shouldBe 0
+            it.first.sisteMeldeperiodePerKjede.last().maksAntallDagerForMeldeperiode shouldBe 0
         }
+    }
+
+    @Test
+    fun `test forskjellige hent-funksjoner`() {
+        val sakId = SakId.random()
+        val saksnummer = Saksnummer.genererSaknummer(løpenr = "2001")
+        val fnr = Fnr.random()
+        val periode1 = 1 til 14.september(2025)
+        val periode2 = 15 til 28.september(2025)
+        val meldeperiode1V1 = ObjectMother.meldeperiode(
+            periode = periode1,
+            saksnummer = saksnummer,
+            versjon = HendelseVersjon(1),
+            sakId = sakId,
+            fnr = fnr,
+        )
+        val meldeperiode1V2 = ObjectMother.meldeperiode(
+            periode = periode1,
+            saksnummer = saksnummer,
+            versjon = HendelseVersjon(2),
+            fnr = fnr,
+            sakId = sakId,
+            antallDagerForPeriode = 9,
+        )
+        val meldeperiode2 = ObjectMother.meldeperiode(
+            periode = periode2,
+            saksnummer = saksnummer,
+            sakId = sakId,
+            fnr = fnr,
+        )
+        val k1 = MeldeperiodeKjede(meldeperiode1V1, meldeperiode1V2)
+        val k2 = MeldeperiodeKjede(meldeperiode2)
+        val kjeder = MeldeperiodeKjeder(k1, k2)
+        kjeder.hentMeldeperioderForPeriode(periode1) shouldBe listOf(meldeperiode1V2)
+        kjeder.hentMeldeperioderForPeriode(periode2) shouldBe listOf(meldeperiode2)
+        kjeder.hentMeldeperioderForPeriode(14 til 15.september(2025)) shouldBe listOf(meldeperiode1V2, meldeperiode2)
+        kjeder.hentMeldeperiode(14 til 15.september(2025)) shouldBe null
+        kjeder.hentMeldeperiode(periode1) shouldBe meldeperiode1V2
+        kjeder.hentMeldeperiode(periode2) shouldBe meldeperiode2
+        kjeder.hentForMeldeperiodeId(meldeperiode1V1.id) shouldBe meldeperiode1V1
+        kjeder.hentForMeldeperiodeId(meldeperiode1V2.id) shouldBe meldeperiode1V2
+        kjeder.hentForMeldeperiodeId(meldeperiode2.id) shouldBe meldeperiode2
+        kjeder.hentSisteMeldeperiodeForKjede(meldeperiode1V1.kjedeId) shouldBe meldeperiode1V2
+        kjeder.hentSisteMeldeperiodeForKjede(meldeperiode1V2.kjedeId) shouldBe meldeperiode1V2
+        kjeder.hentSisteMeldeperiodeForKjede(meldeperiode2.kjedeId) shouldBe meldeperiode2
+        kjeder.hentMeldeperiodeKjedeForPeriode(periode1) shouldBe MeldeperiodeKjede(meldeperiode1V1, meldeperiode1V2)
+        kjeder.hentMeldeperiodeKjedeForPeriode(periode2) shouldBe MeldeperiodeKjede(meldeperiode2)
+        kjeder.hentMeldeperiodeKjedeForPeriode(14 til 15.september(2025)) shouldBe null
+        kjeder.hentForegåendeMeldeperiodekjede(meldeperiode1V1.kjedeId) shouldBe null
+        kjeder.hentForegåendeMeldeperiodekjede(meldeperiode2.kjedeId) shouldBe MeldeperiodeKjede(meldeperiode1V1, meldeperiode1V2)
+        kjeder.hentSisteMeldeperiodeForKjedeId(meldeperiode1V1.kjedeId) shouldBe meldeperiode1V2
+        kjeder.hentSisteMeldeperiodeForKjedeId(meldeperiode2.kjedeId) shouldBe meldeperiode2
     }
 }

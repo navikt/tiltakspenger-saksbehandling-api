@@ -26,6 +26,7 @@ data class MeldeperiodeKjeder(
     private val meldeperiodeKjeder: List<MeldeperiodeKjede>,
 ) : List<MeldeperiodeKjede> by meldeperiodeKjeder {
     constructor(meldeperiodeKjede: MeldeperiodeKjede) : this(listOf(meldeperiodeKjede))
+    constructor(vararg meldeperiodeKjeder: MeldeperiodeKjede) : this(meldeperiodeKjeder.toList())
 
     val sakId: SakId? = meldeperiodeKjeder.map { it.sakId }.distinct().singleOrNullOrThrow()
     val saksnummer: Saksnummer? = meldeperiodeKjeder.map { it.saksnummer }.distinct().singleOrNullOrThrow()
@@ -58,28 +59,19 @@ data class MeldeperiodeKjeder(
     }
 
     /** Siste versjon av meldeperiodene */
-    val meldeperioder: List<Meldeperiode> get() = this.map { it.last() }
+    val sisteMeldeperiodePerKjede: List<Meldeperiode> get() = this.map { it.last() }
 
     /** Alle versjoner av meldeperiodene */
     val alleMeldeperioder: List<Meldeperiode> get() = this.flatten()
 
-    val periode: Periode? = meldeperiodeKjeder.map { it.periode }.let {
-        if (it.isEmpty()) {
-            null
-        } else {
-            Periode(it.first().fraOgMed, it.last().tilOgMed)
-        }
-    }
-
+    /** Henter siste versjon av en meldeperiode. Perioden må matche 1-1 med en meldeperiode. */
     fun hentMeldeperiode(periode: Periode): Meldeperiode? {
         return meldeperiodeKjeder.singleOrNullOrThrow {
             it.periode == periode
         }?.hentSisteMeldeperiode()
     }
 
-    /**
-     * Henter alle meldeperioder som overlapper med perioden.
-     */
+    /** Henter siste versjon av hver meldeperiode som overlapper med perioden. */
     fun hentMeldeperioderForPeriode(periode: Periode): List<Meldeperiode> {
         return meldeperiodeKjeder.mapNotNull { kjede ->
             if (kjede.periode.overlapperMed(periode)) {
@@ -94,6 +86,7 @@ data class MeldeperiodeKjeder(
         return meldeperiodeKjeder.singleOrNullOrThrow { it.periode == periode }
     }
 
+    /** Perioden må matche 1-1 med en meldeperiode. */
     fun harMeldeperiode(periode: Periode): Boolean = hentMeldeperiode(periode) != null
 
     fun hentSisteMeldeperiodeForKjedeId(kjedeId: MeldeperiodeKjedeId): Meldeperiode {
@@ -109,6 +102,7 @@ data class MeldeperiodeKjeder(
         return meldeperiode == meldeperiodeKjede.last()
     }
 
+    /** Perioden må matche 1-1 med en eksisterende meldeperiode, hvis ikke legger den til en ny. */
     fun oppdaterEllerLeggTilNy(meldeperiode: Meldeperiode): Pair<MeldeperiodeKjeder, Meldeperiode?> {
         val kjede = hentMeldeperiodeKjedeForPeriode(meldeperiode.periode)
             ?: return run {
@@ -192,10 +186,10 @@ data class MeldeperiodeKjeder(
         return this.oppdaterEllerLeggTilNy(potensielleNyeMeldeperioder)
     }
 
+    /** Kun public for testing. Finner første meldeperiode med [dato] */
     fun finnNærmesteMeldeperiode(dato: LocalDate): Periode {
-        if (this.isEmpty()) {
-            return Companion.finnNærmesteMeldeperiode(dato)
-        }
+        require(dato != LocalDate.MIN && dato != LocalDate.MAX) { "Dato må være en gyldig dato, ikke MIN eller MAX" }
+        if (this.isEmpty()) return Companion.finnNærmesteMeldeperiode(dato)
 
         val førstePeriode = this.meldeperiodeKjeder.first().periode
 
@@ -230,10 +224,6 @@ data class MeldeperiodeKjeder(
     }
 
     fun hentForMeldeperiodeId(meldeperiodeId: MeldeperiodeId): Meldeperiode? {
-        return meldeperioder.singleOrNullOrThrow { it.id == meldeperiodeId }
-    }
-
-    fun hentForMeldeperiodeIdFraAlleVersjoner(meldeperiodeId: MeldeperiodeId): Meldeperiode? {
         return alleMeldeperioder.singleOrNullOrThrow { it.id == meldeperiodeId }
     }
 

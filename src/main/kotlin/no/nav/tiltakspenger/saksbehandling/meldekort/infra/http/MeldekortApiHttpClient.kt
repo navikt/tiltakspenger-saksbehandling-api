@@ -89,6 +89,6 @@ private fun Sak.tilMeldekortApiDTO(): SakTilMeldekortApiDTO {
         fnr = this.fnr.verdi,
         sakId = this.id.toString(),
         saksnummer = this.saksnummer.toString(),
-        meldeperioder = this.meldeperiodeKjeder.meldeperioder.map { it.tilMeldekortApiDTO() },
+        meldeperioder = this.meldeperiodeKjeder.sisteMeldeperiodePerKjede.map { it.tilMeldekortApiDTO() },
     )
 }

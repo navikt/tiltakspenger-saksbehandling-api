@@ -23,24 +23,24 @@ class MeldeperiodePostgresRepoTest {
             meldeperiodekjeder shouldBe sak.meldeperiodeKjeder
             meldeperiodekjeder.size shouldBe 7
 
-            val forsteRelaterteVedtak = meldeperiodekjeder.meldeperioder.first().rammevedtak
+            val forsteRelaterteVedtak = meldeperiodekjeder.sisteMeldeperiodePerKjede.first().rammevedtak
             forsteRelaterteVedtak?.size shouldBe 2
             forsteRelaterteVedtak?.firstOrNull()?.periode shouldBe Periode(1.januar(2024), 1.januar(2024))
             forsteRelaterteVedtak?.firstOrNull()?.verdi shouldBe null
             forsteRelaterteVedtak?.lastOrNull()?.periode shouldBe Periode(2.januar(2024), meldeperiodekjeder.first().periode.tilOgMed)
             forsteRelaterteVedtak?.lastOrNull()?.verdi shouldBe rammevedtak.id
 
-            val andreRelaterteVedtak = meldeperiodekjeder.meldeperioder[1].rammevedtak
+            val andreRelaterteVedtak = meldeperiodekjeder.sisteMeldeperiodePerKjede[1].rammevedtak
             andreRelaterteVedtak?.size shouldBe 1
             andreRelaterteVedtak?.firstOrNull()?.verdi shouldBe rammevedtak.id
-            andreRelaterteVedtak?.firstOrNull()?.periode shouldBe meldeperiodekjeder.meldeperioder[1].periode
+            andreRelaterteVedtak?.firstOrNull()?.periode shouldBe meldeperiodekjeder.sisteMeldeperiodePerKjede[1].periode
 
-            val sisteRelaterteVedtak = meldeperiodekjeder.meldeperioder.last().rammevedtak
+            val sisteRelaterteVedtak = meldeperiodekjeder.sisteMeldeperiodePerKjede.last().rammevedtak
             sisteRelaterteVedtak?.size shouldBe 2
             sisteRelaterteVedtak?.firstOrNull()?.verdi shouldBe rammevedtak.id
-            sisteRelaterteVedtak?.firstOrNull()?.periode shouldBe Periode(meldeperiodekjeder.meldeperioder.last().periode.fraOgMed, rammevedtak.tilOgMed)
+            sisteRelaterteVedtak?.firstOrNull()?.periode shouldBe Periode(meldeperiodekjeder.sisteMeldeperiodePerKjede.last().periode.fraOgMed, rammevedtak.tilOgMed)
             sisteRelaterteVedtak?.lastOrNull()?.verdi shouldBe null
-            sisteRelaterteVedtak?.lastOrNull()?.periode shouldBe Periode(rammevedtak.tilOgMed.plusDays(1), meldeperiodekjeder.meldeperioder.last().periode.tilOgMed)
+            sisteRelaterteVedtak?.lastOrNull()?.periode shouldBe Periode(rammevedtak.tilOgMed.plusDays(1), meldeperiodekjeder.sisteMeldeperiodePerKjede.last().periode.tilOgMed)
         }
     }
 }
