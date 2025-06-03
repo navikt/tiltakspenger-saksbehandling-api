@@ -16,8 +16,8 @@ data class Utbetalinger(
         return Utbetalinger(verdi + utbetalingsvedtak)
     }
 
-    fun finnUtbetalingerUtenforPeriode(periode: Periode): List<Utbetalingsvedtak> {
-        return verdi.filter { !periode.inneholderHele(it.periode) }
+    fun hentUtbetalingerFraPeriode(periode: Periode): List<Utbetalingsvedtak> {
+        return verdi.filter { periode.overlapperMed(it.periode) }
     }
 
     init {
@@ -29,7 +29,7 @@ data class Utbetalinger(
             require(
                 verdi.map { it.saksnummer }
                     .distinct().size == 1,
-            ) { "Alle utbetalingsvedtakene må være for samme sak.  ${verdi.map { it.id to it.saksnummer }}" }
+            ) { "Alle utbetalingsvedtakene må være for samme sak. ${verdi.map { it.id to it.saksnummer }}" }
             require(
                 verdi.map { it.sakId }
                     .distinct().size == 1,

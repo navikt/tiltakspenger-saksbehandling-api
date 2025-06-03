@@ -98,7 +98,7 @@ fun Sak.sendRevurderingTilBeslutning(
 
     return when (kommando) {
         is RevurderingInnvilgelseTilBeslutningKommando -> {
-            validerInnvilgelse(kommando.innvilgelsesperiode)
+            validerInnvilgelsesperiode(kommando.innvilgelsesperiode)
 
             behandling.tilBeslutning(
                 kommando = kommando,
@@ -117,12 +117,14 @@ fun Sak.sendRevurderingTilBeslutning(
     }.right()
 }
 
-private fun Sak.validerInnvilgelse(innvilgelsesperiode: Periode) {
-//    val utbetalingerUtenforInnvilgelsesperioden = utbetalinger.finnUtbetalingerUtenforPeriode(innvilgelsesperiode)
-//
-//    if (utbetalingerUtenforInnvilgelsesperioden.isNotEmpty()) {
-//        throw IllegalArgumentException("Innvilgelsesperioden må omfatte alle tidligere utbetalingsvedtak")
-//    }
+private fun Sak.validerInnvilgelsesperiode(innvilgelsesperiode: Periode) {
+    val utbetalingsvedtakIderFraPeriode = utbetalinger.hentUtbetalingerFraPeriode(innvilgelsesperiode).map {
+        it.id
+    }
+
+    require(utbetalingsvedtakIderFraPeriode.isEmpty()) {
+        "Revurdert innvilgelsesperiode kan ikke ha eksisterende utbetalingsvedtak - $innvilgelsesperiode har $utbetalingsvedtakIderFraPeriode"
+    }
 }
 
 fun Sak.validerStansDato(stansDato: LocalDate?) {

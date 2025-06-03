@@ -28,16 +28,12 @@ sealed interface BehandlingResultat {
                         "Virkningsperiode må være satt for innvilget behandling med status $status"
                     }
 
-                    requireNotNull(valgteTiltaksdeltakelser) {
-                        "Valgte tiltaksdeltakelser må være satt ved status $status"
-                    }
-
                     require(valgteTiltaksdeltakelser.periodisering.totalPeriode == virkningsperiode) {
                         "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalPeriode}) må stemme overens med virkningsperioden ($virkningsperiode)"
                     }
 
-                    if (barnetillegg != null) {
-                        val barnetilleggsperiode = barnetillegg!!.periodisering.totalPeriode
+                    barnetillegg?.also {
+                        val barnetilleggsperiode = it.periodisering.totalPeriode
                         require(barnetilleggsperiode == virkningsperiode) {
                             "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)"
                         }
