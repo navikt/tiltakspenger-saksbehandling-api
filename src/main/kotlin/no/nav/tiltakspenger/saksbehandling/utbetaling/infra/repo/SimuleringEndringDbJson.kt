@@ -99,7 +99,7 @@ private data class SimuleringEndringDbJson(
             totalBeløp = this.totalBeløp,
             simuleringPerMeldeperiode = this.perMeldeperiode.map {
                 SimuleringForMeldeperiode(
-                    meldeperiode = meldeperiodeKjeder.hentForMeldeperiodeId(MeldeperiodeId.fromString(it.meldeperiodeId))!!,
+                    meldeperiode = meldeperiodeKjeder.hentForMeldeperiodeIdFraAlleVersjoner(MeldeperiodeId.fromString(it.meldeperiodeId))!!,
                     simuleringsdager = it.simuleringsdager.map { dag ->
                         Simuleringsdag(
                             dato = dag.dato,

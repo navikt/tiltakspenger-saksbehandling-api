@@ -60,6 +60,9 @@ data class MeldeperiodeKjeder(
     /** Siste versjon av meldeperiodene */
     val meldeperioder: List<Meldeperiode> get() = this.map { it.last() }
 
+    /** Alle versjoner av meldeperiodene */
+    val alleMeldeperioder: List<Meldeperiode> get() = this.flatten()
+
     val periode: Periode? = meldeperiodeKjeder.map { it.periode }.let {
         if (it.isEmpty()) {
             null
@@ -228,6 +231,10 @@ data class MeldeperiodeKjeder(
 
     fun hentForMeldeperiodeId(meldeperiodeId: MeldeperiodeId): Meldeperiode? {
         return meldeperioder.singleOrNullOrThrow { it.id == meldeperiodeId }
+    }
+
+    fun hentForMeldeperiodeIdFraAlleVersjoner(meldeperiodeId: MeldeperiodeId): Meldeperiode? {
+        return alleMeldeperioder.singleOrNullOrThrow { it.id == meldeperiodeId }
     }
 
     companion object {
