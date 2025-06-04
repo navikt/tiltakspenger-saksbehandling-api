@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.meldekortRoutes
 import no.nav.tiltakspenger.saksbehandling.person.infra.route.hentPersonRoute
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.sakRoutes
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.route.meRoute
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.harSoknadUnderBehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.mottaSøknadRoute
 
 fun Route.routes(
@@ -68,10 +67,6 @@ fun Route.routes(
     mottaSøknadRoute(
         applicationContext.søknadContext.søknadService,
         applicationContext.sakContext.sakService,
-        tokenService = applicationContext.tokenService,
-    )
-    harSoknadUnderBehandlingRoute(
-        søknadService = applicationContext.søknadContext.søknadService,
         tokenService = applicationContext.tokenService,
     )
     staticResources(
