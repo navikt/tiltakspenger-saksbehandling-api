@@ -5,10 +5,13 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 
-class SøknadFakeRepo : SøknadRepo {
+class SøknadFakeRepo(
+    private val behandlingFakeRepo: BehandlingFakeRepo,
+) : SøknadRepo {
     private val data = Atomic(mutableMapOf<SøknadId, Søknad>())
 
     val alle get() = data.get().values.toList()
@@ -42,6 +45,16 @@ class SøknadFakeRepo : SøknadRepo {
                     fnr = nyttFnr,
                 ),
             )
+        }
+    }
+
+    override fun hentApneSoknader(fnr: Fnr): List<Søknad> {
+        val avsluttedeSoknadsbehandlinger = behandlingFakeRepo.hentAlleForFnr(fnr)
+            .filterIsInstance<Søknadsbehandling>()
+            .filter { it.erAvsluttet }
+        val soknader = data.get().values.filter { it.fnr == fnr && !it.erAvbrutt }
+        return soknader.filter { soknad ->
+            avsluttedeSoknadsbehandlinger.find { it.søknad.id == soknad.id } == null
         }
     }
 

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
@@ -27,5 +28,10 @@ class SøknadService(
 
     fun lagreAvbruttSøknad(søknad: Søknad, tx: TransactionContext) {
         søknadRepo.lagreAvbruttSøknad(søknad, tx)
+    }
+
+    fun harSoknadUnderBehandling(fnr: Fnr): Boolean {
+        val apneSoknader = søknadRepo.hentApneSoknader(fnr)
+        return apneSoknader.isNotEmpty()
     }
 }
