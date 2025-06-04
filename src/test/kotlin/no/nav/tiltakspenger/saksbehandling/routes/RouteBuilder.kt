@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.routes
 
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.SendRevurderingTilBeslutningBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.StartRevurderingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.begrunnelse.OppdaterBegrunnelseBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.fritekst.OppdaterFritekstBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettBehandlingBuilder
@@ -10,8 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.Ove
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.TaBehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.SendSøknadsbehandlingTilBeslutningBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.TaMeldekortBehandlingBuilder
-import no.nav.tiltakspenger.saksbehandling.routes.revurdering.SendRevurderingTilBeslutningBuilder
-import no.nav.tiltakspenger.saksbehandling.routes.revurdering.StartRevurderingBuilder
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.OpprettSakRouteBuilder
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.MottaSøknadRouteBuilder
 
