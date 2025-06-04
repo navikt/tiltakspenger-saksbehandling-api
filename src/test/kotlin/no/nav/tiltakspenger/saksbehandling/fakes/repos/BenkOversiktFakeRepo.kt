@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 
 class BenkOversiktFakeRepo(
@@ -16,8 +17,11 @@ class BenkOversiktFakeRepo(
     override fun hentÅpneBehandlinger(
         sessionContext: SessionContext?,
         limit: Int,
-    ): List<Behandlingssammendrag> {
-        return hentÅpneBehandlinger() + hentÅpneSøknader()
+    ): BenkOversikt {
+        return BenkOversikt(
+            behandlingssammendrag = hentÅpneBehandlinger() + hentÅpneSøknader(),
+            totalAntall = hentÅpneBehandlinger().size + hentÅpneSøknader().size,
+        )
     }
 
     private fun hentÅpneBehandlinger(): List<Behandlingssammendrag> =

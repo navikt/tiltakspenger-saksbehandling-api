@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.BEHANDLINGER_P
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
 import no.nav.tiltakspenger.saksbehandling.benk.service.BenkOversiktService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 
@@ -32,6 +33,11 @@ fun Route.hentBenkRoute(
         }
     }
 }
+
+private fun BenkOversikt.toDTO(): BenkOversiktDTO = BenkOversiktDTO(
+    behandlingssammendrag = this.behandlingssammendrag.toDTO(),
+    totalAntall = this.totalAntall,
+)
 
 private fun List<Behandlingssammendrag>.toDTO(): List<BehandlingssammendragDTO> = this.map { it.toDTO() }
 

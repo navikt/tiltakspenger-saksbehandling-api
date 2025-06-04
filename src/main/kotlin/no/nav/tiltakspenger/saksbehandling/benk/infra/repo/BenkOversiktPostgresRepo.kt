@@ -8,15 +8,22 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+
+data class BehandlingssamendragMedCount(
+    val behandlingssammendrag: Behandlingssammendrag,
+    val totalAntall: Int,
+)
 
 class BenkOversiktPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : BenkOversiktRepo {
-    override fun hentÅpneBehandlinger(sessionContext: SessionContext?, limit: Int): List<Behandlingssammendrag> {
+
+    override fun hentÅpneBehandlinger(sessionContext: SessionContext?, limit: Int): BenkOversikt {
         return sessionFactory.withSession(sessionContext) { session ->
-            session.run(
+            val rows = session.run(
                 queryOf(
                     //language="sql"
                     """
@@ -84,10 +91,11 @@ class BenkOversiktPostgresRepo(
                                          union all
                                          select *
                                          from åpneMeldekortBehandlinger)
-                    select *
-                    from slåttSammen
-                    order by startet
-                    limit :limit
+                    select *,
+                        count(*) over () as total_count
+                        from slåttSammen
+                        order by startet
+                        limit :limit;
                     """.trimIndent(),
                     mapOf(
                         "limit" to limit,
@@ -102,20 +110,29 @@ class BenkOversiktPostgresRepo(
                     val status = row.stringOrNull("status")?.toBehandlingssammendragStatus()
                     val saksbehandler = row.stringOrNull("saksbehandler")
                     val beslutter = row.stringOrNull("beslutter")
+                    val count = row.int("total_count")
 
-                    Behandlingssammendrag(
-                        sakId = sakId,
-                        fnr = fnr,
-                        saksnummer = saksnummer,
-                        startet = startet,
-                        kravtidspunkt = if (behandlingstype == BehandlingssammendragType.SØKNADSBEHANDLING) startet else null,
-                        behandlingstype = behandlingstype,
-                        status = status,
-                        saksbehandler = saksbehandler,
-                        beslutter = beslutter,
+                    BehandlingssamendragMedCount(
+                        Behandlingssammendrag(
+                            sakId = sakId,
+                            fnr = fnr,
+                            saksnummer = saksnummer,
+                            startet = startet,
+                            kravtidspunkt = if (behandlingstype == BehandlingssammendragType.SØKNADSBEHANDLING) startet else null,
+                            behandlingstype = behandlingstype,
+                            status = status,
+                            saksbehandler = saksbehandler,
+                            beslutter = beslutter,
+                        ),
+                        totalAntall = count,
                     )
                 }.asList,
             )
+
+            val behandlingssammendrag = rows.map { it.behandlingssammendrag }
+            val totalAntall = rows.firstOrNull()?.totalAntall ?: 0
+
+            BenkOversikt(behandlingssammendrag, totalAntall)
         }
     }
 }
