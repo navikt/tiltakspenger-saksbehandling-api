@@ -32,6 +32,6 @@ class SøknadService(
 
     fun harSoknadUnderBehandling(fnr: Fnr): Boolean {
         val apneSoknader = søknadRepo.hentApneSoknader(fnr)
-        return false
+        return apneSoknader.isNotEmpty()
     }
 }

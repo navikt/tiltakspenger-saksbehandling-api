@@ -105,6 +105,27 @@ internal object SøknadDAO {
                 }.asList,
             )
 
+    fun hentApneSoknader(
+        fnr: Fnr,
+        session: Session,
+    ): List<Søknad> =
+        session
+            .run(
+                sqlQuery(
+                    """
+                    select *
+                    from søknad s
+                             join sak on sak.id = s.sak_id
+                             left join public.behandling b on b.id = s.behandling_id
+                    where ((s.behandling_id is null and s.avbrutt is null) or (b.status != 'VEDTATT' and b.status != 'AVBRUTT'))
+                      and sak.fnr = :fnr
+                    """.trimIndent(),
+                    "fnr" to fnr.verdi,
+                ).map { row ->
+                    row.toSøknad(session)
+                }.asList,
+            )
+
     /**
      * Knytter en søknad til en behandling.
      * @throws RuntimeException hvis søknaden allerede er knyttet til en behandling.
