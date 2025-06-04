@@ -122,6 +122,11 @@ class IverksettBehandlingService(
                 // journalføring og dokumentdistribusjon skjer i egen jobb
                 sessionFactory.withTransactionContext { tx ->
                     behandlingRepo.lagre(vedtak.behandling, tx)
+                    sakService.oppdaterSkalSendesTilMeldekortApi(
+                        sakId = this.id,
+                        skalSendesTilMeldekortApi = true,
+                        sessionContext = tx,
+                    )
                     rammevedtakRepo.lagre(vedtak, tx)
                     statistikkSakRepo.lagre(sakStatistikk, tx)
                     statistikkStønadRepo.lagre(stønadStatistikk, tx)

@@ -90,5 +90,6 @@ private fun Sak.tilMeldekortApiDTO(): SakTilMeldekortApiDTO {
         sakId = this.id.toString(),
         saksnummer = this.saksnummer.toString(),
         meldeperioder = this.meldeperiodeKjeder.sisteMeldeperiodePerKjede.map { it.tilMeldekortApiDTO() },
+        harSoknadUnderBehandling = this.harSoknadUnderBehandling(),
     )
 }
