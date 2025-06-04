@@ -46,7 +46,7 @@ internal class SøknadPostgresRepo(
             throw IllegalArgumentException("Kan ikke lagre en søknad som ikke er avbrutt")
         }
         sessionFactory.withTransaction(txContext) {
-            SøknadDAO.lagreAvbruttSøknad(søknad.id, søknad.avbrutt, it)
+            SøknadDAO.lagreAvbruttSøknad(søknad.id, søknad.avbrutt!!, it)
         }
     }
 
@@ -57,12 +57,6 @@ internal class SøknadPostgresRepo(
                 nyttFnr = nyttFnr,
                 session = it,
             )
-        }
-    }
-
-    override fun hentApneSoknader(fnr: Fnr): List<Søknad> {
-        return sessionFactory.withSession {
-            SøknadDAO.hentApneSoknader(fnr, it)
         }
     }
 }

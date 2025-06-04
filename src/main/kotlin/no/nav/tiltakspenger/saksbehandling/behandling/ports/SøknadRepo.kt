@@ -23,6 +23,4 @@ interface SøknadRepo {
     fun lagreAvbruttSøknad(søknad: Søknad, txContext: TransactionContext? = null)
 
     fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr)
-
-    fun hentApneSoknader(fnr: Fnr): List<Søknad>
 }
