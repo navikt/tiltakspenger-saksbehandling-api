@@ -140,7 +140,6 @@ open class BehandlingOgVedtakContext(
         StartRevurderingService(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
-            tilgangsstyringService = tilgangsstyringService,
             saksopplysningerService = oppdaterSaksopplysningerService,
             clock = clock,
             statistikkSakService = statistikkSakService,

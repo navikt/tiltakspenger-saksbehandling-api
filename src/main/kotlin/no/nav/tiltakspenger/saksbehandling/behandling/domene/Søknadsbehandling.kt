@@ -47,9 +47,15 @@ data class Søknadsbehandling(
     override val utfall: SøknadsbehandlingResultat?,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
-    override val antallDagerPerMeldeperiode: Int?,
     val søknad: Søknad,
 ) : Behandling {
+
+    override val antallDagerPerMeldeperiode: Int?
+        get() = when (utfall) {
+            is SøknadsbehandlingResultat.Avslag -> null
+            is SøknadsbehandlingResultat.Innvilgelse -> utfall.antallDagerPerMeldeperiode
+            null -> null
+        }
 
     override val barnetillegg: Barnetillegg?
         get() = when (utfall) {
@@ -61,13 +67,13 @@ data class Søknadsbehandling(
     override val utfallsperioder: Periodisering<Utfallsperiode>? =
         virkningsperiode?.let { Periodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, it) }
 
-    val kravtidspunkt: LocalDateTime = søknad.tidsstempelHosOss
-
-    val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (utfall) {
+    override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (utfall) {
         is SøknadsbehandlingResultat.Avslag -> null
         is SøknadsbehandlingResultat.Innvilgelse -> utfall.valgteTiltaksdeltakelser
         null -> null
     }
+
+    val kravtidspunkt: LocalDateTime = søknad.tidsstempelHosOss
 
     init {
         super.init()
@@ -100,6 +106,7 @@ data class Søknadsbehandling(
                 SøknadsbehandlingResultat.Innvilgelse(
                     valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
                     barnetillegg = kommando.barnetillegg,
+                    antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
                 )
             }
 
@@ -121,7 +128,6 @@ data class Søknadsbehandling(
             virkningsperiode = virkningsperiode,
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             utfall = utfall,
-            antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
         )
     }
 
@@ -192,7 +198,6 @@ data class Søknadsbehandling(
                 utfall = null,
                 virkningsperiode = null,
                 begrunnelseVilkårsvurdering = null,
-                antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
             ).right()
         }
     }

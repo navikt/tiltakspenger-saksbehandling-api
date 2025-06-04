@@ -15,8 +15,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettForBehandlingIdReturnerRespons
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
@@ -32,7 +32,7 @@ class IverksettBehandlingTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (_, _, behandling) = this.iverksett(tac)
+                val (_, _, behandling) = this.iverksettSøknadsbehandling(tac)
                 behandling.virkningsperiode.shouldNotBeNull()
                 behandling.status shouldBe Behandlingsstatus.VEDTATT
             }

@@ -16,25 +16,64 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.april
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.fakes.clients.TiltaksdeltagelseFakeGateway
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksett
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import org.json.JSONObject
-import java.time.LocalDate
 
 interface StartRevurderingBuilder {
 
     /** Oppretter ny sak, søknad, innvilget søknadsbehandling og revurdering. */
-    suspend fun ApplicationTestBuilder.startRevurdering(
+    suspend fun ApplicationTestBuilder.startRevurderingStans(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    ): Tuple4<Sak, Søknad, Behandling, Behandling> {
-        val (sak, søknad, søknadsbehandling) = iverksett(tac)
-        val revurdering = startRevurderingForSakId(tac, sak.id, sak.vedtaksliste.innvilgelsesperiode!!.fraOgMed)
+    ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering> {
+        val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(tac)
+        val revurdering = startRevurderingForSakId(tac, sak.id, RevurderingType.STANS)
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+        return Tuple4(
+            oppdatertSak,
+            søknad,
+            søknadsbehandling,
+            revurdering,
+        )
+    }
+
+    /** Oppretter ny sak, søknad, innvilget søknadsbehandling og revurdering. */
+    suspend fun ApplicationTestBuilder.startRevurderingInnvilgelse(
+        tac: TestApplicationContext,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        søknadsbehandlingVirkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        revurderingVirkningsperiode: Periode = søknadsbehandlingVirkningsperiode.plusTilOgMed(14L),
+    ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering> {
+        val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(tac, virkingsperiode = søknadsbehandlingVirkningsperiode)
+
+        val tiltaksdeltagelseFakeGateway =
+            tac.tiltakContext.tiltaksdeltagelseGateway as TiltaksdeltagelseFakeGateway
+
+        val oppdatertTiltaksdeltagelse =
+            søknadsbehandling.saksopplysninger.getTiltaksdeltagelse(søknadsbehandling.søknad.tiltak.id)!!.copy(
+                deltagelseFraOgMed = revurderingVirkningsperiode.fraOgMed,
+                deltagelseTilOgMed = revurderingVirkningsperiode.tilOgMed,
+            )
+
+        tiltaksdeltagelseFakeGateway.lagre(
+            sak.fnr,
+            oppdatertTiltaksdeltagelse,
+        )
+
+        val revurdering = startRevurderingForSakId(tac, sak.id, RevurderingType.INNVILGELSE)
+        val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+
         return Tuple4(
             oppdatertSak,
             søknad,
@@ -47,8 +86,8 @@ interface StartRevurderingBuilder {
     suspend fun ApplicationTestBuilder.startRevurderingForSakId(
         tac: TestApplicationContext,
         sakId: SakId,
-        revurderingFraOgMed: LocalDate,
-    ): Behandling {
+        type: RevurderingType,
+    ): Revurdering {
         defaultRequest(
             HttpMethod.Post,
             url {
@@ -57,7 +96,7 @@ interface StartRevurderingBuilder {
             },
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(),
         ) {
-            setBody("""{"revurderingType": "STANS"}""")
+            setBody("""{"revurderingType": "${type.tilDTO()}"}""")
         }
             .apply {
                 val bodyAsText = this.bodyAsText()
@@ -67,7 +106,7 @@ interface StartRevurderingBuilder {
                     status shouldBe HttpStatusCode.OK
                 }
                 val revurderingId = BehandlingId.fromString(JSONObject(bodyAsText).getString("id"))
-                return tac.behandlingContext.behandlingRepo.hent(revurderingId)
+                return tac.behandlingContext.behandlingRepo.hent(revurderingId) as Revurdering
             }
     }
 }

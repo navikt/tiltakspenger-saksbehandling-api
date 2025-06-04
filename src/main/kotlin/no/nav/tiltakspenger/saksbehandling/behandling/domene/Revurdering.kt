@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -40,12 +41,25 @@ data class Revurdering(
     override val attesteringer: List<Attestering>,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val avbrutt: Avbrutt?,
-    override val utfall: RevurderingResultat?,
+    override val utfall: RevurderingResultat,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
-    override val antallDagerPerMeldeperiode: Int?,
 ) : Behandling {
-    override val barnetillegg: Barnetillegg? = null
+
+    override val barnetillegg: Barnetillegg? = when (utfall) {
+        is Innvilgelse -> utfall.barnetillegg
+        is Stans -> null
+    }
+
+    override val antallDagerPerMeldeperiode: Int? = when (utfall) {
+        is Innvilgelse -> utfall.antallDagerPerMeldeperiode
+        is Stans -> null
+    }
+
+    override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (utfall) {
+        is Innvilgelse -> utfall.valgteTiltaksdeltakelser
+        is Stans -> null
+    }
 
     override val utfallsperioder: Periodisering<Utfallsperiode>? by lazy {
         if (virkningsperiode == null) {
@@ -53,49 +67,65 @@ data class Revurdering(
         }
 
         when (utfall) {
-            is Stans -> Periodisering(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, virkningsperiode)
             is Innvilgelse -> Periodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, virkningsperiode)
-            null -> null
+            is Stans -> Periodisering(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, virkningsperiode)
         }
     }
 
     init {
         super.init()
+
+        when (utfall) {
+            is Innvilgelse -> utfall.valider(status, virkningsperiode)
+            is Stans -> Unit
+        }
     }
 
-    fun tilBeslutning(
-        kommando: RevurderingTilBeslutningKommando,
+    // TODO abn: separat håndtering av stans vil kanskje fjernes på sikt
+    fun stansTilBeslutning(
+        kommando: RevurderingStansTilBeslutningKommando,
         clock: Clock,
     ): Revurdering {
         validerSendTilBeslutning(kommando.saksbehandler)
 
-        val (virkningsperiode, utfall) = when (kommando) {
-            is RevurderingInnvilgelseTilBeslutningKommando -> Pair(
-                kommando.nyInnvilgelsesperiode,
-                Innvilgelse,
-            )
-
-            is RevurderingStansTilBeslutningKommando -> {
-                requireNotNull(kommando.sisteDagSomGirRett) {
-                    "Siste dag som gir rett må være bestemt før stans kan sendes til beslutning"
-                }
-
-                Pair(
-                    Periode(kommando.stansFraOgMed, kommando.sisteDagSomGirRett),
-                    Stans(
-                        valgtHjemmel = kommando.valgteHjemler,
-                    ),
-                )
-            }
+        requireNotNull(kommando.sisteDagSomGirRett) {
+            "Siste dag som gir rett må være bestemt før stans kan sendes til beslutning"
         }
+
+        require(utfall is Stans)
 
         return this.copy(
             status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
             sendtTilBeslutning = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelse,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            virkningsperiode = virkningsperiode,
-            utfall = utfall,
+            virkningsperiode = Periode(kommando.stansFraOgMed, kommando.sisteDagSomGirRett),
+            utfall = Stans(
+                valgtHjemmel = kommando.valgteHjemler,
+            ),
+        )
+    }
+
+    fun tilBeslutning(
+        kommando: RevurderingInnvilgelseTilBeslutningKommando,
+        clock: Clock,
+    ): Revurdering {
+        validerSendTilBeslutning(kommando.saksbehandler)
+
+        require(this.utfall is Innvilgelse)
+
+        return this.copy(
+            status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
+            sendtTilBeslutning = nå(clock),
+            begrunnelseVilkårsvurdering = kommando.begrunnelse,
+            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
+            virkningsperiode = kommando.innvilgelsesperiode,
+            utfall = this.utfall.copy(
+                valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
+                    tiltaksdeltakelser = kommando.tiltaksdeltakelser,
+                    behandling = this,
+                ),
+            ),
         )
     }
 
@@ -149,8 +179,13 @@ data class Revurdering(
             fnr: Fnr,
             saksbehandler: Saksbehandler,
             saksopplysninger: Saksopplysninger,
+            forrigeBehandling: Behandling,
             clock: Clock,
         ): Revurdering {
+            val forrigeUtfall = forrigeBehandling.utfall
+
+            require(forrigeUtfall is BehandlingResultat.Innvilgelse)
+
             return opprett(
                 sakId = sakId,
                 saksnummer = saksnummer,
@@ -158,7 +193,11 @@ data class Revurdering(
                 saksbehandler = saksbehandler,
                 saksopplysninger = saksopplysninger,
                 opprettet = nå(clock),
-                utfall = Innvilgelse,
+                utfall = Innvilgelse(
+                    valgteTiltaksdeltakelser = forrigeUtfall.valgteTiltaksdeltakelser,
+                    barnetillegg = forrigeUtfall.barnetillegg,
+                    antallDagerPerMeldeperiode = forrigeUtfall.antallDagerPerMeldeperiode,
+                ),
             )
         }
 
@@ -192,7 +231,6 @@ data class Revurdering(
                 oppgaveId = null,
                 avbrutt = null,
                 begrunnelseVilkårsvurdering = null,
-                antallDagerPerMeldeperiode = null,
             )
         }
     }

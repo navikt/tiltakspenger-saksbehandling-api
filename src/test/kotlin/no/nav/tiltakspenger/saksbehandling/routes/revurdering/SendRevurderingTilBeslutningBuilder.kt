@@ -17,21 +17,24 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.april
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.oppdaterBegrunnelseForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.oppdaterFritekstForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import org.intellij.lang.annotations.Language
 
-interface SendRevurderingTilBeslutterBuilder {
+interface SendRevurderingTilBeslutningBuilder {
 
     /** Oppretter ny sak, søknad og behandling. */
     @Suppress("unused")
-    suspend fun ApplicationTestBuilder.sendRevurderingTilBeslutter(
+    suspend fun ApplicationTestBuilder.sendRevurderingStansTilBeslutning(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
@@ -45,7 +48,7 @@ interface SendRevurderingTilBeslutterBuilder {
             sak,
             søknad,
             behandlingId,
-            sendRevurderingTilBeslutterForBehandlingId(
+            sendRevurderingStansTilBeslutningForBehandlingId(
                 tac,
                 sakId,
                 behandlingId,
@@ -56,8 +59,36 @@ interface SendRevurderingTilBeslutterBuilder {
         )
     }
 
+    /** Oppretter ny sak, søknad og behandling. */
+    suspend fun ApplicationTestBuilder.sendRevurderingInnvilgelseTilBeslutning(
+        tac: TestApplicationContext,
+        søknadsbehandlingVirkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        revurderingVirkningsperiode: Periode = søknadsbehandlingVirkningsperiode.plusTilOgMed(14L),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    ): Tuple4<Sak, Søknad, Søknadsbehandling, String> {
+        val (sak, søknad, søknadsbehandling, revurdering) = startRevurderingInnvilgelse(
+            tac,
+            søknadsbehandlingVirkningsperiode = søknadsbehandlingVirkningsperiode,
+            revurderingVirkningsperiode = revurderingVirkningsperiode,
+        )
+
+        return Tuple4(
+            sak,
+            søknad,
+            søknadsbehandling,
+            sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
+                tac,
+                sak.id,
+                revurdering.id,
+                saksbehandler,
+                innvilgelsesperiode = revurderingVirkningsperiode,
+                eksternDeltagelseId = søknad.tiltak.id,
+            ),
+        )
+    }
+
     /** Forventer at det allerede finnes en behandling med status `UNDER_BEHANDLING` */
-    suspend fun ApplicationTestBuilder.sendRevurderingTilBeslutterForBehandlingId(
+    suspend fun ApplicationTestBuilder.sendRevurderingStansTilBeslutningForBehandlingId(
         tac: TestApplicationContext,
         sakId: SakId,
         behandlingId: BehandlingId,
@@ -86,6 +117,67 @@ interface SendRevurderingTilBeslutterBuilder {
                     "stans": {
                         "stansFraOgMed": "${stansperiode.fraOgMed}",
                         "valgteHjemler": [${valgteHjemler.joinToString(separator = ",", prefix = "\"", postfix = "\"")}]
+                    }
+                }
+                """.trimIndent(),
+            )
+        }.apply {
+            val bodyAsText = this.bodyAsText()
+            withClue(
+                """
+                    Response details:
+                    Status: ${this.status}
+                    Content-Type: ${this.contentType()}
+                    Body: $bodyAsText
+                """.trimMargin(),
+            ) {
+                status shouldBe HttpStatusCode.OK
+            }
+            return bodyAsText
+        }
+    }
+
+    /** Forventer at det allerede finnes en behandling med status `UNDER_BEHANDLING` */
+    suspend fun ApplicationTestBuilder.sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        behandlingId: BehandlingId,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        fritekstTilVedtaksbrev: String = "fritekst",
+        begrunnelseVilkårsvurdering: String = "begrunnelse",
+        eksternDeltagelseId: String = "TA12345",
+        innvilgelsesperiode: Periode,
+    ): String {
+        defaultRequest(
+            HttpMethod.Post,
+            url {
+                protocol = URLProtocol.HTTPS
+                path("/sak/$sakId/revurdering/$behandlingId/sendtilbeslutning")
+            },
+            jwt = tac.jwtGenerator.createJwtForSaksbehandler(
+                saksbehandler = saksbehandler,
+            ),
+        ) {
+            setBody(
+                //language=JSON
+                """
+                {
+                    "type": "INNVILGELSE",
+                    "begrunnelse": "$begrunnelseVilkårsvurdering",
+                    "innvilgelse": {
+                        "innvilgelsesperiode": {
+                            "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
+                            "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
+                        },
+                        "valgteTiltaksdeltakelser": [
+                            {
+                                "eksternDeltagelseId": "$eksternDeltagelseId",
+                                "periode": {
+                                    "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
+                                    "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
+                                }
+                            }
+                        ]
                     }
                 }
                 """.trimIndent(),

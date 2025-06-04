@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
+import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.SakId
@@ -15,6 +16,7 @@ data class MeldeperiodeKjede(
 ) : List<Meldeperiode> by meldeperioder,
     Comparable<MeldeperiodeKjede> {
     constructor(meldeperiode: Meldeperiode) : this(nonEmptyListOf(meldeperiode))
+    constructor(vararg meldeperioder: Meldeperiode) : this(meldeperioder.toList().toNonEmptyListOrThrow())
 
     // Disse fungerer også som validering, hvis du fjerner må du legge de inn som init.
     val sakId: SakId = meldeperioder.map { it.sakId }.distinct().single()

@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksett
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettSøknadsbehandling
 import org.junit.jupiter.api.Test
 
 class ToBehandlingerIT {
@@ -30,7 +30,7 @@ class ToBehandlingerIT {
                     val fnr = Fnr.random()
                     val førsteVirkningsperiode = Periode(1.mars(2024), 15.mars(2024))
                     val andreVirkningsperiode = Periode(16.april(2024), 21.april(2024))
-                    val (sak) = this.iverksett(tac, fnr, førsteVirkningsperiode)
+                    val (sak) = this.iverksettSøknadsbehandling(tac, fnr, førsteVirkningsperiode)
 
                     sak.let {
                         it.soknader.size shouldBe 1
@@ -38,7 +38,7 @@ class ToBehandlingerIT {
                         it.meldeperiodeKjeder.size shouldBe 2
                     }
 
-                    val (sakEtterAndreSøknadsbehandling) = this.iverksett(tac, fnr, andreVirkningsperiode)
+                    val (sakEtterAndreSøknadsbehandling) = this.iverksettSøknadsbehandling(tac, fnr, andreVirkningsperiode)
 
                     sakEtterAndreSøknadsbehandling.let {
                         it.soknader.size shouldBe 2

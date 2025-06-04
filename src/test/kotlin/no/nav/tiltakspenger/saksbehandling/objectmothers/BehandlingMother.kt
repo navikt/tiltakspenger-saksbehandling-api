@@ -24,7 +24,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -111,7 +110,7 @@ interface BehandlingMother : MotherOfAllMothers {
         valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         stansDato: LocalDate,
         sisteDagSomGirRett: LocalDate,
-        kommando: RevurderingTilBeslutningKommando = RevurderingStansTilBeslutningKommando(
+        kommando: RevurderingStansTilBeslutningKommando = RevurderingStansTilBeslutningKommando(
             sakId = sakId,
             behandlingId = id,
             saksbehandler = saksbehandler,
@@ -131,7 +130,7 @@ interface BehandlingMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             virkningsperiode = virkningsperiode,
             hentSaksopplysninger = { saksopplysninger },
-        ).tilBeslutning(
+        ).stansTilBeslutning(
             kommando = kommando,
             clock = clock,
         )

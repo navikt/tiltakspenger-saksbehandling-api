@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.Ove
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.TaBehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.SendSøknadsbehandlingTilBeslutningBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.TaMeldekortBehandlingBuilder
-import no.nav.tiltakspenger.saksbehandling.routes.revurdering.SendRevurderingTilBeslutterBuilder
+import no.nav.tiltakspenger.saksbehandling.routes.revurdering.SendRevurderingTilBeslutningBuilder
 import no.nav.tiltakspenger.saksbehandling.routes.revurdering.StartRevurderingBuilder
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.OpprettSakRouteBuilder
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.MottaSøknadRouteBuilder
@@ -23,7 +23,7 @@ object RouteBuilder :
     OppdaterFritekstBuilder,
     OppdaterBegrunnelseBuilder,
     SendSøknadsbehandlingTilBeslutningBuilder,
-    SendRevurderingTilBeslutterBuilder,
+    SendRevurderingTilBeslutningBuilder,
     SendTilbakeBuilder,
     IverksettBehandlingBuilder,
     StartRevurderingBuilder,
