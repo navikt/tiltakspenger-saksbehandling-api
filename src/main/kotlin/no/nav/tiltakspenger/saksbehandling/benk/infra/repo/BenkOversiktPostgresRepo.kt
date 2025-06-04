@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.toBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.toBehandlingstype
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksoversiktRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.benk.BehandlingEllerSøknadForSaksoversikt
 import no.nav.tiltakspenger.saksbehandling.benk.BenkBehandlingstype
 import no.nav.tiltakspenger.saksbehandling.benk.toBenkBehandlingstype
@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 class BenkOversiktPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
-) : SaksoversiktRepo {
+) : BenkOversiktRepo {
 
     override fun hentÅpneBehandlinger(sessionContext: SessionContext?): List<BehandlingEllerSøknadForSaksoversikt> {
         return sessionFactory.withSession(sessionContext) { session ->

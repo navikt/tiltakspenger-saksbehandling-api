@@ -15,9 +15,9 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppretteBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SaksoversiktRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.benk.Saksoversikt
@@ -37,7 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 
 class SakService(
     private val sakRepo: SakRepo,
-    private val saksoversiktRepo: SaksoversiktRepo,
+    private val benkOversiktRepo: BenkOversiktRepo,
     private val personService: PersonService,
     private val tilgangsstyringService: TilgangsstyringService,
     private val poaoTilgangGateway: PoaoTilgangGateway,
@@ -155,8 +155,8 @@ class SakService(
         correlationId: CorrelationId,
     ): Saksoversikt {
         krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
-        val behandlinger = saksoversiktRepo.hentÅpneBehandlinger()
-        val søknader = saksoversiktRepo.hentÅpneSøknader()
+        val behandlinger = benkOversiktRepo.hentÅpneBehandlinger()
+        val søknader = benkOversiktRepo.hentÅpneSøknader()
         val benkOversikt = Saksoversikt(behandlinger + søknader)
 
         if (benkOversikt.isEmpty()) return benkOversikt

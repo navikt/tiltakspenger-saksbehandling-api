@@ -15,10 +15,13 @@ import no.nav.tiltakspenger.libs.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.benk.infra.repo.BenkOversiktFakeRepo
+import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonIdGenerator
+import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
-import no.nav.tiltakspenger.saksbehandling.fakes.clients.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.GenererFakeUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.GenererFakeVedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.JournalførFakeMeldekortGateway
@@ -30,31 +33,30 @@ import no.nav.tiltakspenger.saksbehandling.fakes.clients.TilgangsstyringFakeGate
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.TiltaksdeltagelseFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.UtbetalingFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.VeilarboppfolgingFakeGateway
-import no.nav.tiltakspenger.saksbehandling.fakes.repos.BehandlingFakeRepo
-import no.nav.tiltakspenger.saksbehandling.fakes.repos.BrukersMeldekortFakeRepo
-import no.nav.tiltakspenger.saksbehandling.fakes.repos.MeldekortBehandlingFakeRepo
-import no.nav.tiltakspenger.saksbehandling.fakes.repos.MeldeperiodeFakeRepo
-import no.nav.tiltakspenger.saksbehandling.fakes.repos.PersonFakeRepo
-import no.nav.tiltakspenger.saksbehandling.fakes.repos.RammevedtakFakeRepo
-import no.nav.tiltakspenger.saksbehandling.fakes.repos.SakFakeRepo
-import no.nav.tiltakspenger.saksbehandling.fakes.repos.SaksoversiktFakeRepo
-import no.nav.tiltakspenger.saksbehandling.fakes.repos.StatistikkSakFakeRepo
-import no.nav.tiltakspenger.saksbehandling.fakes.repos.StatistikkStønadFakeRepo
-import no.nav.tiltakspenger.saksbehandling.fakes.repos.SøknadFakeRepo
-import no.nav.tiltakspenger.saksbehandling.fakes.repos.UtbetalingsvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortFakeRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
+import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonFakeRepo
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
+import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakFakeRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadFakeRepo
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingsvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
 
 /**
  * Oppretter en tom ApplicationContext for bruk i tester.
@@ -92,7 +94,7 @@ class TestApplicationContext(
     private val genererFakeVedtaksbrevGateway = GenererFakeVedtaksbrevGateway()
     private val journalførFakeMeldekortGateway = JournalførFakeMeldekortGateway(journalpostIdGenerator)
     private val journalførFakeVedtaksbrevGateway = JournalførFakeVedtaksbrevGateway(journalpostIdGenerator)
-    private val dokdistFakeGateway = Dokumentdistribusjonsklient(distribusjonIdGenerator)
+    private val dokdistFakeGateway = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
     private val meldekortApiGateway = MeldekortApiFakeGateway()
 
     val jwtGenerator = JwtGenerator()
@@ -125,7 +127,7 @@ class TestApplicationContext(
     }
 
     private val saksoversiktFakeRepo =
-        SaksoversiktFakeRepo(
+        BenkOversiktFakeRepo(
             søknadFakeRepo = søknadFakeRepo,
             behandlingFakeRepo = behandlingFakeRepo,
         )
@@ -191,7 +193,7 @@ class TestApplicationContext(
             clock = clock,
         ) {
             override val sakRepo = sakFakeRepo
-            override val saksoversiktRepo = saksoversiktFakeRepo
+            override val benkOversiktRepo = saksoversiktFakeRepo
         }
     }
     private val utbetalingGatewayFake = UtbetalingFakeGateway(sakContext.sakRepo as SakFakeRepo)

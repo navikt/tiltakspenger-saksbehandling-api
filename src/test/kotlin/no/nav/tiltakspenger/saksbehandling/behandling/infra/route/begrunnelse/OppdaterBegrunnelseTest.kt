@@ -26,7 +26,7 @@ internal class OppdaterBegrunnelseTest {
                     it.begrunnelseVilkårsvurdering?.verdi shouldBe null
                 }
                 val begrunnelse = "some_tekst"
-                val (oppdatertSak, oppdatertBehandling, responseJson) = oppdaterBegrunnelseForBehandlingId(
+                val (_, oppdatertBehandling, responseJson) = oppdaterBegrunnelseForBehandlingId(
                     tac,
                     sak.id,
                     behandling.id,

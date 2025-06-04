@@ -20,12 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningSÃ
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
-import java.util.Random
 
 internal class BehandlingPostgresRepoTest {
-    companion object {
-        val random = Random()
-    }
 
     @Test
     fun `lagre og hente en gammel flyt behandling`() {

@@ -5,7 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.util.date.getTimeMillis
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import no.nav.tiltakspenger.saksbehandling.common.TestSaksnummerGenerator
+import no.nav.tiltakspenger.saksbehandling.sak.TestSaksnummerGenerator
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
 import org.testcontainers.containers.PostgreSQLContainer

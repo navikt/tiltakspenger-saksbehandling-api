@@ -11,12 +11,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtak
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
-import no.nav.tiltakspenger.saksbehandling.clients.person.FakeNavIdentClient
-import no.nav.tiltakspenger.saksbehandling.common.DistribusjonIdGenerator
-import no.nav.tiltakspenger.saksbehandling.common.JournalpostIdGenerator
+import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonIdGenerator
+import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
-import no.nav.tiltakspenger.saksbehandling.fakes.clients.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.FellesFakeAdressebeskyttelseKlient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.FellesFakeSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.GenererFakeUtbetalingsvedtakGateway
@@ -31,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.fakes.clients.UtbetalingFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.VeilarboppfolgingFakeGateway
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -40,6 +39,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingGa
 import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
@@ -79,7 +79,7 @@ class LocalApplicationContext(
         if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevGateway()
     private val journalførFakeMeldekortGateway = JournalførFakeMeldekortGateway(journalpostIdGenerator)
     private val journalførFakeVedtaksbrevGateway = JournalførFakeVedtaksbrevGateway(journalpostIdGenerator)
-    private val dokdistFakeGateway = Dokumentdistribusjonsklient(distribusjonIdGenerator)
+    private val dokdistFakeGateway = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
     private val fellesFakeAdressebeskyttelseKlient = FellesFakeAdressebeskyttelseKlient()
     private val fellesFakeSkjermingsklient = FellesFakeSkjermingsklient()
     private val poaoTilgangskontrollFake = PoaoTilgangskontrollFake()

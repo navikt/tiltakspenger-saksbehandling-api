@@ -5,13 +5,13 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.PostgresSøknadRepo
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadPostgresRepo
 
 open class SøknadContext(
     sessionFactory: SessionFactory,
     oppgaveGateway: OppgaveGateway,
 ) {
-    open val søknadRepo: SøknadRepo by lazy { PostgresSøknadRepo(sessionFactory = sessionFactory as PostgresSessionFactory) }
+    open val søknadRepo: SøknadRepo by lazy { SøknadPostgresRepo(sessionFactory = sessionFactory as PostgresSessionFactory) }
     val søknadService: SøknadService by lazy {
         SøknadService(
             søknadRepo,
