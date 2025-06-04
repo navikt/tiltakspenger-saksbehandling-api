@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.nySøknad
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksett
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
 import org.junit.jupiter.api.Test
 
@@ -71,7 +71,7 @@ class HarSoknadUnderBehandlingRouteTest {
                     routing { routes(tac) }
                 }
                 val fnr = Fnr.random()
-                iverksett(tac, fnr = fnr)
+                iverksettSøknadsbehandling(tac, fnr = fnr)
                 harSoknadUnderBehandling(tac, fnr).also {
                     it shouldBe """{"harSoknadUnderBehandling":false}"""
                 }
