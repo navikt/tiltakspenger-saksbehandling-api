@@ -4,12 +4,12 @@ import arrow.core.getOrElse
 import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
+import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerEllerBeslutterRolle
 
@@ -20,19 +20,18 @@ class BenkOversiktService(
     val logger = KotlinLogging.logger { }
 
     suspend fun hentBenkOversikt(
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
+        command: HentÅpneBehandlingerCommand,
     ): BenkOversikt {
-        krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
-        val benkOversikt = benkOversiktRepo.hentÅpneBehandlinger()
+        krevSaksbehandlerEllerBeslutterRolle(command.saksbehandler)
+        val benkOversikt = benkOversiktRepo.hentÅpneBehandlinger(command)
 
         if (benkOversikt.isEmpty()) return benkOversikt
         val tilganger = tilgangsstyringService.harTilgangTilPersoner(
             fnrListe = benkOversikt.fødselsnummere().toNonEmptyListOrNull()!!,
-            roller = saksbehandler.roller,
-            correlationId = correlationId,
+            roller = command.saksbehandler.roller,
+            correlationId = command.correlationId,
         ).getOrElse { throw IllegalStateException("Feil ved henting av tilganger") }
-        return filtrerIkkeTilgang(benkOversikt, tilganger, saksbehandler, logger)
+        return filtrerIkkeTilgang(benkOversikt, tilganger, command.saksbehandler, logger)
     }
 }
 

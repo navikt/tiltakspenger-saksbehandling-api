@@ -2,9 +2,13 @@ package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 
 import io.kotest.matchers.shouldBe
 import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
+import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
+import no.nav.tiltakspenger.saksbehandling.benk.domene.Sortering
+import no.nav.tiltakspenger.saksbehandling.benk.domene.ÅpneBehandlingerFiltrering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.TestDataHelper
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttSøknadsbehandling
@@ -26,11 +30,27 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
 class BenkOversiktPostgresRepoTest {
+    private fun newCommand(
+        behandlingstype: List<BehandlingssammendragType>? = null,
+        status: List<BehandlingssammendragStatus>? = null,
+        sortering: Sortering = Sortering.ASC,
+    ): HentÅpneBehandlingerCommand {
+        return HentÅpneBehandlingerCommand(
+            åpneBehandlingerFiltrering = ÅpneBehandlingerFiltrering(
+                behandlingstype = behandlingstype,
+                status = status,
+            ),
+            sortering = sortering,
+            saksbehandler = ObjectMother.saksbehandler(),
+            correlationId = CorrelationId.generate(),
+        )
+    }
+
     @Test
     fun `henter åpne søknader uten behandling`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val søknad = testDataHelper.persisterSakOgSøknad()
-            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger()
+            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
             totalAntall shouldBe 1
             actual.size shouldBe 1
@@ -41,7 +61,7 @@ class BenkOversiktPostgresRepoTest {
                 startet = søknad.opprettet,
                 kravtidspunkt = søknad.opprettet,
                 behandlingstype = BehandlingssammendragType.SØKNADSBEHANDLING,
-                status = null,
+                status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
                 saksbehandler = null,
                 beslutter = null,
             )
@@ -78,7 +98,7 @@ class BenkOversiktPostgresRepoTest {
                 sak = sakAvslag,
             )
 
-            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger()
+            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
             totalAntall shouldBe 3
             actual.size shouldBe 3
@@ -132,7 +152,7 @@ class BenkOversiktPostgresRepoTest {
             testDataHelper.persisterIverksattRevurdering(sak = sakMedRevurderingUnderBeslutning)
             testDataHelper.persisterAvbruttRevurdering(sak = sakMedRevurderingUnderBeslutning)
 
-            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger()
+            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
             totalAntall shouldBe 3
             actual.size shouldBe 3
@@ -181,7 +201,7 @@ class BenkOversiktPostgresRepoTest {
             val (sakMedMeldekortbehandlingTilBeslutning, meldekortbehandlingTilBeslutning) = testDataHelper.persisterManuellMeldekortBehandlingTilBeslutning()
             testDataHelper.persisterIverksattMeldekortbehandling()
 
-            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger()
+            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
             totalAntall shouldBe 2
             actual.size shouldBe 2
@@ -222,10 +242,103 @@ class BenkOversiktPostgresRepoTest {
             testDataHelper.persisterOpprettetRevurdering()
             testDataHelper.persisterOpprettetManuellMeldekortBehandling()
 
-            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger()
+            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
             totalAntall shouldBe 4
             actual.size shouldBe 4
+        }
+    }
+
+    @Test
+    fun `kan filtrere basert på behandlingstype`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            testDataHelper.persisterSakOgSøknad()
+            testDataHelper.persisterOpprettetSøknadsbehandling()
+            testDataHelper.persisterOpprettetRevurdering()
+            testDataHelper.persisterOpprettetManuellMeldekortBehandling()
+
+            val (actualSøknadsbehandlinger, totalAntallSøknadbehandlinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(behandlingstype = listOf(BehandlingssammendragType.SØKNADSBEHANDLING)),
+            )
+            val (actualRevurderinger, totalAntallRevurderinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(behandlingstype = listOf(BehandlingssammendragType.REVURDERING)),
+            )
+            val (actualMeldekortBehandlinger, totalAntallMeldekortbehandlinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(behandlingstype = listOf(BehandlingssammendragType.MELDEKORTBEHANDLING)),
+            )
+
+            actualSøknadsbehandlinger.size shouldBe 2
+            totalAntallSøknadbehandlinger shouldBe 2
+            actualRevurderinger.size shouldBe 1
+            totalAntallRevurderinger shouldBe 1
+            actualMeldekortBehandlinger.size shouldBe 1
+            totalAntallMeldekortbehandlinger shouldBe 1
+        }
+    }
+
+    @Test
+    fun `kan filtrere basert på status`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            testDataHelper.persisterSakOgSøknad()
+            testDataHelper.persisterOpprettetSøknadsbehandling()
+            testDataHelper.persisterKlarTilBeslutningSøknadsbehandling()
+            testDataHelper.persisterUnderBeslutningSøknadsbehandling()
+
+            testDataHelper.persisterOpprettetRevurdering()
+            testDataHelper.persisterRevurderingTilBeslutning()
+            testDataHelper.persisterRevurderingUnderBeslutning()
+
+            testDataHelper.persisterOpprettetManuellMeldekortBehandling()
+            testDataHelper.persisterManuellMeldekortBehandlingTilBeslutning()
+
+            val (actualKlarTilBehandling, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(status = listOf(BehandlingssammendragStatus.KLAR_TIL_BEHANDLING)),
+            )
+
+            val (actualKlarTilUtfylling, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(status = listOf(BehandlingssammendragStatus.KLAR_TIL_UTFYLLING)),
+            )
+
+            val (actualUnderBehandling, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(status = listOf(BehandlingssammendragStatus.UNDER_BEHANDLING)),
+            )
+
+            val (actualKlarTilBeslutning, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(status = listOf(BehandlingssammendragStatus.KLAR_TIL_BESLUTNING)),
+            )
+
+            val (actualUnderBeslutning, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(status = listOf(BehandlingssammendragStatus.UNDER_BESLUTNING)),
+            )
+
+            actualKlarTilBehandling.size shouldBe 1
+            actualUnderBehandling.size shouldBe 2
+            actualKlarTilBeslutning.size shouldBe 3
+            actualUnderBeslutning.size shouldBe 2
+            actualKlarTilUtfylling.size shouldBe 1
+        }
+    }
+
+    @Test
+    fun `kan sortere asc og desc`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val søknad = testDataHelper.persisterSakOgSøknad()
+            val (sak2, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
+
+            val (actualAsc, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+            val (actualDesc, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand(sortering = Sortering.DESC))
+
+            actualAsc.size shouldBe 2
+            actualAsc.let {
+                it.first().sakId shouldBe søknad.sakId
+                it.last().sakId shouldBe sak2.id
+            }
+
+            actualDesc.size shouldBe 2
+            actualDesc.let {
+                it.first().sakId shouldBe sak2.id
+                it.last().sakId shouldBe søknad.sakId
+            }
         }
     }
 }

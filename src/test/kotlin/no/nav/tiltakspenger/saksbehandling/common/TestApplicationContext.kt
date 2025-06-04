@@ -95,7 +95,7 @@ class TestApplicationContext(
     private val journalførFakeVedtaksbrevGateway = JournalførFakeVedtaksbrevGateway(journalpostIdGenerator)
     private val dokdistFakeGateway = Dokumentdistribusjonsklient(distribusjonIdGenerator)
     private val meldekortApiGateway = MeldekortApiFakeGateway()
-    private val benkOversiktFakeRepo = BenkOversiktFakeRepo(søknadFakeRepo, behandlingFakeRepo)
+    private val benkOversiktFakeRepo = BenkOversiktFakeRepo(søknadFakeRepo, behandlingFakeRepo, meldekortBehandlingFakeRepo)
 
     val jwtGenerator = JwtGenerator()
 
@@ -130,6 +130,7 @@ class TestApplicationContext(
         BenkOversiktFakeRepo(
             søknadFakeRepo = søknadFakeRepo,
             behandlingFakeRepo = behandlingFakeRepo,
+            meldekortBehandlingFakeRepo = meldekortBehandlingFakeRepo,
         )
     private val sakFakeRepo =
         SakFakeRepo(
