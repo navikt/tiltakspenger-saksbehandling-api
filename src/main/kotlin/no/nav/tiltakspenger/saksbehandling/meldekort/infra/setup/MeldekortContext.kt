@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiHttpClientGateway
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortBehandlingService
@@ -112,7 +112,7 @@ open class MeldekortContext(
         )
     }
 
-    open val meldekortApiHttpClient: MeldekortApiHttpClientGateway by lazy {
+    open val meldekortApiHttpClient: MeldekortApiKlient by lazy {
         MeldekortApiHttpClient(
             baseUrl = Configuration.meldekortApiUrl,
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.meldekortApiScope) },
