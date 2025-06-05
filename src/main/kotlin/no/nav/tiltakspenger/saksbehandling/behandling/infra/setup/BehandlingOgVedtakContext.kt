@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
@@ -87,6 +88,17 @@ open class BehandlingOgVedtakContext(
             oppdaterSaksopplysningerService = oppdaterSaksopplysningerService,
             clock = clock,
             statistikkSakService = statistikkSakService,
+        )
+    }
+    val behandleSøknadPåNyttService: BehandleSøknadPåNyttService by lazy {
+        BehandleSøknadPåNyttService(
+            sakService = sakService,
+            sessionFactory = sessionFactory,
+            behandlingRepo = behandlingRepo,
+            statistikkSakRepo = statistikkSakRepo,
+            statistikkSakService = statistikkSakService,
+            startSøknadsbehandlingService = startSøknadsbehandlingService,
+            clock = clock,
         )
     }
     val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService by lazy {

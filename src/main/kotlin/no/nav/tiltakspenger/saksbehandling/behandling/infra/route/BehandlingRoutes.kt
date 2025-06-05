@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.forhånds
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.oppdaterFritekstTilVedtaksbrevRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.iverksettBehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.underkjennBehandlingRoute
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
@@ -30,6 +31,7 @@ fun Route.behandlingRoutes(
     tokenService: TokenService,
     auditService: AuditService,
     startSøknadsbehandlingService: StartSøknadsbehandlingService,
+    behandleSøknadPåNyttService: BehandleSøknadPåNyttService,
     oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
     oppdaterBegrunnelseVilkårsvurderingService: OppdaterBegrunnelseVilkårsvurderingService,
     oppdaterFritekstTilVedtaksbrevService: OppdaterFritekstTilVedtaksbrevService,
@@ -44,6 +46,7 @@ fun Route.behandlingRoutes(
 ) {
     hentBehandlingRoute(tokenService, behandlingService, auditService)
     startSøknadsbehandlingRoute(tokenService, startSøknadsbehandlingService, auditService)
+    behandleSøknadPåNyttRoute(tokenService, behandleSøknadPåNyttService, auditService)
     oppdaterSaksopplysningerRoute(tokenService, auditService, oppdaterSaksopplysningerService)
     oppdaterBegrunnelseVilkårsvurderingRoute(tokenService, auditService, oppdaterBegrunnelseVilkårsvurderingService)
     oppdaterFritekstTilVedtaksbrevRoute(tokenService, auditService, oppdaterFritekstTilVedtaksbrevService)

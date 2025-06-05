@@ -1,26 +1,27 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeBehandleSøknadPåNytt
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 
-class GjenåpneBehandlingService(
+class BehandleSøknadPåNyttService(
     private val clock: Clock,
-    private val tilgangsstyringService: TilgangsstyringService,
     private val behandlingRepo: BehandlingRepo,
     private val sakService: SakService,
     private val startSøknadsbehandlingService: StartSøknadsbehandlingService,
@@ -30,44 +31,56 @@ class GjenåpneBehandlingService(
 ) {
     val logger = KotlinLogging.logger { }
 
-    suspend fun gjenåpneBehandling(
+    suspend fun startSøknadsbehandlingPåNytt(
         søknadId: SøknadId,
         sakId: SakId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<KanIkkeStarteSøknadsbehandling, Søknadsbehandling> {
-        val sak = sakService.sjekkTilgangOgHentForSakId(sakId, saksbehandler, correlationId)
+    ): Either<KanIkkeBehandleSøknadPåNytt, Søknadsbehandling> {
+        val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId)
         val behandling = behandlingRepo.hentForSøknadId(søknadId)
 
         if (behandling == null) {
-            throw IllegalStateException("Ingen behandling funnet for søknadId: $søknadId")
+            return KanIkkeBehandleSøknadPåNytt.FantIngenBehandlingForSøknad(søknadId).left()
         }
 
         when (behandling) {
             is Søknadsbehandling -> {
-                if (!behandling.erVedtatt || behandling.utfall is SøknadsbehandlingResultat.Innvilgelse) {
-                    throw IllegalStateException("Kan ikke gjenåpne en behandling som ikke er vedtatt eller har et utfall som er innvilget. BehandlingId: ${behandling.id}")
-                }
-                val vurderingsperiode = behandling.søknad.vurderingsperiode()
-                val innvilgedePerioder = sak.vedtaksliste.innvilgetTidslinje.overlapperMed(vurderingsperiode)
-                if (innvilgedePerioder.perioderMedVerdi.isNotEmpty()) {
-                    throw IllegalStateException(
-                        """
-                            Kan ikke gjenåpne en behandling som overlapper med en periode som allerede er innvilget.
-                            BehandlingId: ${behandling.id}, innvilgedePerioder: $innvilgedePerioder""",
-                    )
+                val søknad = behandling.søknad
+                if (behandling.utfall !is SøknadsbehandlingResultat.Avslag && !behandling.erVedtatt) {
+                    return KanIkkeBehandleSøknadPåNytt.BehandlingMåVæreVedtattAvslag(behandling.id).left()
                 }
 
-                return startSøknadsbehandlingService.startSøknadsbehandling(
+                val innvilgedePerioder = sak.vedtaksliste.innvilgetTidslinje.overlapperMed(søknad.vurderingsperiode())
+                if (innvilgedePerioder.perioderMedVerdi.isNotEmpty()) {
+                    return KanIkkeBehandleSøknadPåNytt.PeriodeOverlapperInnvilgetVedtak(søknadId, innvilgedePerioder).left()
+                }
+
+                val opprettetSøknadsbehandling = startSøknadsbehandlingService.startSøknadsbehandling(
                     søknadId = søknadId,
                     sakId = sakId,
                     saksbehandler = saksbehandler,
                     correlationId = correlationId,
                 )
+
+                val søknadsbehandling = opprettetSøknadsbehandling.getOrElse {
+                    return KanIkkeBehandleSøknadPåNytt.OppretteBehandling(it).left()
+                }
+
+                val statistikk = statistikkSakService.genererStatistikkForGjenåpnetSøknadsbehandling(
+                    behandling = søknadsbehandling,
+                    søknadId = søknadId,
+                )
+
+                sessionFactory.withTransactionContext { tx ->
+                    statistikkSakRepo.lagre(statistikk, tx)
+                }
+
+                return søknadsbehandling.right()
             }
 
             is Revurdering -> {
-                throw IllegalStateException("Kan ikke gjenåpne en revurdering. BehandlingId: ${behandling.id}")
+                return KanIkkeBehandleSøknadPåNytt.RevurderingKanIkkeBehandlesPåNytt(behandling.id).left()
             }
         }
     }
