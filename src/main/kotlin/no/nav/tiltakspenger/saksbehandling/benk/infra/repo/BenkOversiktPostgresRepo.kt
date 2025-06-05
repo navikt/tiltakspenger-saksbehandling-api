@@ -101,6 +101,7 @@ class BenkOversiktPostgresRepo(
                     from slåttSammen
                     where behandlingstype = any (:behandlingstype)
                         and status = any (:status)
+                        and ((cardinality(:identer::text[]) is null OR saksbehandler = ANY (:identer)) OR (cardinality(:identer::text[]) is null OR beslutter = ANY (:identer)))
                     order by startet ${command.sortering}
                     limit :limit;
                     """.trimIndent(),
@@ -122,6 +123,7 @@ class BenkOversiktPostgresRepo(
                         } else {
                             command.åpneBehandlingerFiltrering.status.map { it.toString() }.toTypedArray()
                         },
+                        "identer" to command.åpneBehandlingerFiltrering.identer?.toTypedArray(),
                     ),
                 ).map { row ->
                     val sakId = SakId.fromString(row.string("sakId"))

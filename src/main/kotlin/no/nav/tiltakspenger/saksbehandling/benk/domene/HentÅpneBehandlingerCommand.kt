@@ -14,6 +14,7 @@ data class HentÅpneBehandlingerCommand(
 data class ÅpneBehandlingerFiltrering(
     val behandlingstype: List<BehandlingssammendragType>?,
     val status: List<BehandlingssammendragStatus>?,
+    val identer: List<String>? = null,
 )
 
 enum class Sortering {

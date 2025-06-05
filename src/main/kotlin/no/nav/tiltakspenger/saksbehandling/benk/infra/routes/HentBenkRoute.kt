@@ -4,7 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -30,6 +30,7 @@ fun Route.hentBenkRoute(
     data class HentBenkOversiktBody(
         val behandlingstype: List<String>?,
         val status: List<String>? = null,
+        val identer: List<String>? = null,
         val sortering: String,
     ) {
         fun toCommand(saksbehandler: Saksbehandler, correlationId: CorrelationId): HentÅpneBehandlingerCommand =
@@ -44,7 +45,7 @@ fun Route.hentBenkRoute(
             )
     }
 
-    get(BEHANDLINGER_PATH) {
+    post(BEHANDLINGER_PATH) {
         logger.debug { "Mottatt get-request på $BEHANDLINGER_PATH for å hente alle behandlinger på benken" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withBody<HentBenkOversiktBody> {

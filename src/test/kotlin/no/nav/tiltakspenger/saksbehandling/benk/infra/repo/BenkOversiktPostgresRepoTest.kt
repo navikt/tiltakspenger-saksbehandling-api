@@ -3,12 +3,18 @@ package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 import io.kotest.matchers.shouldBe
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.GenerellSystembrukerrolle
+import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
+import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
+import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Sortering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.ÅpneBehandlingerFiltrering
+import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.repo.TestDataHelper
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttSøknadsbehandling
@@ -33,12 +39,14 @@ class BenkOversiktPostgresRepoTest {
     private fun newCommand(
         behandlingstype: List<BehandlingssammendragType>? = null,
         status: List<BehandlingssammendragStatus>? = null,
+        saksbehandlere: List<String>? = null,
         sortering: Sortering = Sortering.ASC,
     ): HentÅpneBehandlingerCommand {
         return HentÅpneBehandlingerCommand(
             åpneBehandlingerFiltrering = ÅpneBehandlingerFiltrering(
                 behandlingstype = behandlingstype,
                 status = status,
+                identer = saksbehandlere,
             ),
             sortering = sortering,
             saksbehandler = ObjectMother.saksbehandler(),
@@ -316,6 +324,39 @@ class BenkOversiktPostgresRepoTest {
             actualKlarTilBeslutning.size shouldBe 3
             actualUnderBeslutning.size shouldBe 2
             actualKlarTilUtfylling.size shouldBe 1
+        }
+    }
+
+    @Test
+    fun `kan filtrere basert på saksbehandler og beslutter`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            @Suppress("UNCHECKED_CAST")
+            val saksbehandler = Saksbehandler(
+                navIdent = "ocurreret",
+                brukernavn = "dissentiunt",
+                epost = "hac",
+                roller = Saksbehandlerroller(setOf(Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.BESLUTTER)),
+                scopes = Systembrukerroller(emptySet()) as GenerellSystembrukerroller<GenerellSystembrukerrolle>,
+                klientId = "persius",
+                klientnavn = "possim",
+            )
+            testDataHelper.persisterOpprettetSøknadsbehandling(saksbehandler = saksbehandler)
+            testDataHelper.persisterKlarTilBeslutningSøknadsbehandling()
+            testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = saksbehandler)
+
+            val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(saksbehandlere = listOf(saksbehandler.navIdent)),
+            )
+
+            totalAntall shouldBe 2
+            behandlingssamendrag.size shouldBe 2
+            behandlingssamendrag.let {
+                it.first().saksbehandler shouldBe saksbehandler.navIdent
+                it.first().beslutter shouldBe null
+
+                it.last().saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
+                it.last().beslutter shouldBe saksbehandler.navIdent
+            }
         }
     }
 
