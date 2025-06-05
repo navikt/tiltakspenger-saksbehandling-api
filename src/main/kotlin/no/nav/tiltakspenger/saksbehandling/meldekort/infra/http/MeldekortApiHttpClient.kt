@@ -5,7 +5,6 @@ import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.AccessToken
-import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.meldekort.SakTilMeldekortApiDTO
@@ -33,8 +32,6 @@ class MeldekortApiHttpClient(
     override suspend fun sendSak(sak: Sak): Either<FeilVedSendingTilMeldekortApi, Unit> {
         return Either.catch {
             val payload = serialize(sak.tilMeldekortApiDTO())
-            // OBS, må fjernes før merge, kun for feilsøking i dev!
-            logger.info { "Sender payload til meldekort-api: ${objectMapper.writeValueAsString(payload)}" }
 
             val response = client.sendAsync(
                 createRequest(sakUrl, payload),
