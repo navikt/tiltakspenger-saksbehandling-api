@@ -26,7 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingGateway
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import no.nav.utsjekk.kontrakter.iverksett.IverksettStatus
 import java.net.URI
 import java.net.http.HttpClient
@@ -41,12 +41,12 @@ private val log = KotlinLogging.logger {}
 /**
  * https://navikt.github.io/utsjekk-docs/
  */
-class UtbetalingHttpClient(
+class UtbetalingHttpKlient(
     private val baseUrl: String,
     private val getToken: suspend () -> AccessToken,
-    connectTimeout: Duration = 1.seconds,
-    private val timeout: Duration = 1.seconds,
-) : UtbetalingGateway {
+    connectTimeout: Duration = 5.seconds,
+    private val timeout: Duration = 15.seconds,
+) : Utbetalingsklient {
 
     private val client =
         HttpClient

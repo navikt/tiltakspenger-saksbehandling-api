@@ -8,8 +8,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.validerStansDato
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
@@ -18,7 +18,7 @@ import java.time.LocalDate
 
 class ForhåndsvisVedtaksbrevService(
     private val sakService: SakService,
-    private val genererInnvilgelsesbrevClient: GenererInnvilgelsesvedtaksbrevGateway,
+    private val genererInnvilgelsesbrevClient: GenererVedtaksbrevForInnvilgelseKlient,
     private val genererAvslagsvedtaksbrevGateway: GenererAvslagsvedtaksbrevGateway,
     private val genererStansbrevClient: GenererStansvedtaksbrevGateway,
     private val personService: PersonService,

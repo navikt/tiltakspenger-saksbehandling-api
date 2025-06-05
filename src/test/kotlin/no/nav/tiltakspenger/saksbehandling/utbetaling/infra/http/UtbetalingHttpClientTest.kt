@@ -17,12 +17,11 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpClient
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 
 /**
- * Test for [UtbetalingHttpClient]
+ * Test for [UtbetalingHttpKlient]
  */
 internal class UtbetalingHttpClientTest {
     @Test
@@ -40,7 +39,7 @@ internal class UtbetalingHttpClientTest {
                 body = response
             }
 
-            val pdlClient = UtbetalingHttpClient(
+            val pdlClient = UtbetalingHttpKlient(
                 baseUrl = wiremock.baseUrl(),
                 getToken = { ObjectMother.accessToken() },
             )

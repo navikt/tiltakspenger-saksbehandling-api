@@ -6,8 +6,8 @@ import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførVedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
@@ -49,7 +49,7 @@ open class BehandlingOgVedtakContext(
     statistikkSakRepo: StatistikkSakRepo,
     statistikkStønadRepo: StatistikkStønadRepo,
     journalførVedtaksbrevGateway: JournalførVedtaksbrevGateway,
-    genererVedtaksbrevGateway: GenererInnvilgelsesvedtaksbrevGateway,
+    genererVedtaksbrevGateway: GenererVedtaksbrevForInnvilgelseKlient,
     genererAvslagsvedtaksbrevGateway: GenererAvslagsvedtaksbrevGateway,
     genererStansvedtaksbrevGateway: GenererStansvedtaksbrevGateway,
     tilgangsstyringService: TilgangsstyringService,
@@ -158,7 +158,7 @@ open class BehandlingOgVedtakContext(
         JournalførRammevedtakService(
             journalførVedtaksbrevGateway = journalførVedtaksbrevGateway,
             rammevedtakRepo = rammevedtakRepo,
-            genererInnvilgelsesvedtaksbrevGateway = genererVedtaksbrevGateway,
+            genererVedtaksbrevForInnvilgelseKlient = genererVedtaksbrevGateway,
             genererAvslagsvedtaksbrevGateway = genererAvslagsvedtaksbrevGateway,
             personService = personService,
             navIdentClient = navIdentClient,

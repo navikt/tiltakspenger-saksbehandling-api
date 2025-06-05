@@ -4,7 +4,7 @@ import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingGateway
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import java.time.Clock
 
@@ -13,7 +13,7 @@ import java.time.Clock
  */
 class SendUtbetalingerService(
     private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
-    private val utbetalingsklient: UtbetalingGateway,
+    private val utbetalingsklient: Utbetalingsklient,
     private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }

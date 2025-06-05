@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
 
-interface GenererInnvilgelsesvedtaksbrevGateway {
+interface GenererVedtaksbrevForInnvilgelseKlient {
     suspend fun genererInnvilgelsesvedtaksbrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,

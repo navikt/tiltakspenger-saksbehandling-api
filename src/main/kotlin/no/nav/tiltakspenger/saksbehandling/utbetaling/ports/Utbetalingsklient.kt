@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHe
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 
-interface UtbetalingGateway {
+interface Utbetalingsklient {
     suspend fun iverksett(
         vedtak: Utbetalingsvedtak,
         forrigeUtbetalingJson: String?,

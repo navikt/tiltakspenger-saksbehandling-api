@@ -8,19 +8,18 @@ import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringSer
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonIdGenerator
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeUtbetalingsvedtakGateway
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.PersonFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.PoaoTilgangskontrollFake
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.TiltaksdeltagelseFakeGateway
-import no.nav.tiltakspenger.saksbehandling.fakes.clients.UtbetalingFakeGateway
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.VeilarboppfolgingFakeGateway
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
@@ -28,7 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortGateway
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeVedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toSøknadstiltak
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
@@ -43,6 +42,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import java.time.Clock
 
@@ -68,10 +68,10 @@ class LocalApplicationContext(
     }
 
     private val personGatewayFake = PersonFakeGateway(clock)
-    private val genererFakeUtbetalingsvedtakGateway: GenererUtbetalingsvedtakGateway =
-        if (usePdfGen) realPdfGen!! else GenererFakeUtbetalingsvedtakGateway()
+    private val genererFakeVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient =
+        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevForUtbetalingKlient()
 
-    private val genererInnvilgelsevedtaksbrevGateway: GenererInnvilgelsesvedtaksbrevGateway =
+    private val genererInnvilgelsevedtaksbrevGateway: GenererVedtaksbrevForInnvilgelseKlient =
         if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevGateway()
     private val genererAvslagssevedtaksbrevGateway: GenererAvslagsvedtaksbrevGateway =
         if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevGateway()
@@ -125,8 +125,8 @@ class LocalApplicationContext(
         object : DokumentContext(entraIdSystemtokenClient) {
             override val journalførMeldekortGateway = journalførFakeMeldekortGateway
             override val journalførVedtaksbrevGateway = journalførFakeVedtaksbrevGateway
-            override val genererUtbetalingsvedtakGateway = genererFakeUtbetalingsvedtakGateway
-            override val genererInnvilgelsesvedtaksbrevGateway = genererInnvilgelsevedtaksbrevGateway
+            override val genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient
+            override val genererVedtaksbrevForInnvilgelseKlient = genererInnvilgelsevedtaksbrevGateway
         }
     }
 
@@ -150,7 +150,7 @@ class LocalApplicationContext(
             clock = clock,
         ) {}
     }
-    private val utbetalingGatewayFake = UtbetalingFakeGateway(sakContext.sakRepo)
+    private val utbetalingFakeKlient = UtbetalingFakeKlient(sakContext.sakRepo)
     override val meldekortContext by lazy {
         object : MeldekortContext(
             sessionFactory = sessionFactory,
@@ -192,7 +192,7 @@ class LocalApplicationContext(
     override val utbetalingContext by lazy {
         object : UtbetalingContext(
             sessionFactory = sessionFactory,
-            genererUtbetalingsvedtakGateway = genererFakeUtbetalingsvedtakGateway,
+            genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient,
             journalførMeldekortGateway = journalførFakeMeldekortGateway,
             entraIdSystemtokenClient = entraIdSystemtokenClient,
             sakRepo = sakContext.sakRepo,
@@ -200,7 +200,7 @@ class LocalApplicationContext(
             clock = clock,
             navkontorService = navkontorService,
         ) {
-            override val utbetalingGateway = utbetalingGatewayFake
+            override val utbetalingsklient = utbetalingFakeKlient
         }
     }
 

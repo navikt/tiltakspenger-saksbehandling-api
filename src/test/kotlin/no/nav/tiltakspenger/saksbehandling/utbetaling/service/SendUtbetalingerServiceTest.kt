@@ -11,13 +11,13 @@ import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingGateway
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import org.junit.jupiter.api.Test
 
 internal class SendUtbetalingerServiceTest {
     private val utbetalingsvedtakRepo = mockk<UtbetalingsvedtakRepo>()
-    private val utbetalingsklient = mockk<UtbetalingGateway>()
+    private val utbetalingsklient = mockk<Utbetalingsklient>()
     private val sendUtbetalingerService = SendUtbetalingerService(utbetalingsvedtakRepo, utbetalingsklient, fixedClock)
 
     @Test

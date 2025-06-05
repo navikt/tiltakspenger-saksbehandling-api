@@ -12,8 +12,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
 
 class GenererFakeVedtaksbrevGateway :
-    GenererInnvilgelsesvedtaksbrevGateway,
+    GenererVedtaksbrevForInnvilgelseKlient,
     GenererStansvedtaksbrevGateway,
     GenererAvslagsvedtaksbrevGateway {
     private val response by lazy { PdfOgJson(PdfA("pdf".toByteArray()), "json").right() }

@@ -1,6 +1,6 @@
 @file:Suppress("UnusedImport")
 
-package no.nav.tiltakspenger.saksbehandling.fakes.clients
+package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 
 import arrow.atomic.Atomic
 import arrow.core.Either
@@ -20,11 +20,11 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingGateway
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 
-class UtbetalingFakeGateway(
+class UtbetalingFakeKlient(
     private val sakFakeRepo: SakRepo,
-) : UtbetalingGateway {
+) : Utbetalingsklient {
     private val utbetalinger = Atomic(mutableMapOf<VedtakId, Utbetaling>())
 
     override suspend fun iverksett(

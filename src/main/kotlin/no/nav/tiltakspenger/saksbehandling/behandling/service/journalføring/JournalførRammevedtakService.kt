@@ -6,8 +6,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererInnvilgelsesvedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførVedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -19,7 +19,7 @@ import java.time.LocalDate
 class JournalførRammevedtakService(
     private val journalførVedtaksbrevGateway: JournalførVedtaksbrevGateway,
     private val rammevedtakRepo: RammevedtakRepo,
-    private val genererInnvilgelsesvedtaksbrevGateway: GenererInnvilgelsesvedtaksbrevGateway,
+    private val genererVedtaksbrevForInnvilgelseKlient: GenererVedtaksbrevForInnvilgelseKlient,
     private val genererStansvedtaksbrevGateway: GenererStansvedtaksbrevGateway,
     private val genererAvslagsvedtaksbrevGateway: GenererAvslagsvedtaksbrevGateway,
     private val personService: PersonService,
@@ -37,7 +37,7 @@ class JournalførRammevedtakService(
                 Either.catch {
                     val vedtaksdato = LocalDate.now()
                     val pdfOgJson = when (vedtak.vedtaksType) {
-                        Vedtakstype.INNVILGELSE -> genererInnvilgelsesvedtaksbrevGateway.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
+                        Vedtakstype.INNVILGELSE -> genererVedtaksbrevForInnvilgelseKlient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
                             vedtaksdato = vedtaksdato,
                             vedtak = vedtak,
                             tilleggstekst = vedtak.behandling.fritekstTilVedtaksbrev,
