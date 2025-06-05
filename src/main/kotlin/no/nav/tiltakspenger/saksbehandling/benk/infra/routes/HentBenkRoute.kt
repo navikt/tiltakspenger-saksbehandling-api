@@ -38,6 +38,7 @@ fun Route.hentBenkRoute(
                 åpneBehandlingerFiltrering = ÅpneBehandlingerFiltrering(
                     behandlingstype = behandlingstype?.map { BehandlingssammendragType.valueOf(it) },
                     status = status?.map { BehandlingssammendragStatus.valueOf(it) },
+                    identer = identer,
                 ),
                 sortering = Sortering.valueOf(sortering),
                 saksbehandler = saksbehandler,
