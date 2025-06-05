@@ -207,7 +207,7 @@ open class ApplicationContext(
     open val personContext by lazy { PersonContext(sessionFactory, entraIdSystemtokenClient) }
     open val dokumentContext by lazy { DokumentContext(entraIdSystemtokenClient) }
     open val statistikkContext by lazy { StatistikkContext(sessionFactory, personContext.tilgangsstyringService, gitHash, clock) }
-    open val søknadContext by lazy { SøknadContext(sessionFactory, oppgaveGateway) }
+    open val søknadContext by lazy { SøknadContext(sessionFactory, oppgaveGateway, sakContext.sakService) }
     open val tiltakContext by lazy { TiltaksdeltagelseContext(entraIdSystemtokenClient) }
     open val profile by lazy { Configuration.applicationProfile() }
     open val sakContext by lazy {

@@ -89,4 +89,26 @@ class SakTest {
             nyeMeldeperioder.size shouldBe 0
         }
     }
+
+    @Test
+    fun `harSoknadUnderBehandling - har åpen søknad - returnerer true`() {
+        val søknad = ObjectMother.nySøknad()
+        val sak = ObjectMother.nySak(søknader = listOf(søknad))
+
+        sak.harSoknadUnderBehandling() shouldBe true
+    }
+
+    @Test
+    fun `harSoknadUnderBehandling - har åpen søknadsbehandling - returnerer true`() {
+        val sak = ObjectMother.sakMedOpprettetBehandling().first
+
+        sak.harSoknadUnderBehandling() shouldBe true
+    }
+
+    @Test
+    fun `harSoknadUnderBehandling - har iverksatt søknadsbehandling - returnerer false`() {
+        val sak = ObjectMother.nySakMedVedtak().first
+
+        sak.harSoknadUnderBehandling() shouldBe false
+    }
 }

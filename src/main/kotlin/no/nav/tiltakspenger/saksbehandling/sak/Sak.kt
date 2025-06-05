@@ -83,6 +83,16 @@ data class Sak(
 
     fun sisteUtbetalteMeldekortDag(): LocalDate? = meldekortBehandlinger.sisteUtbetalteMeldekortDag
 
+    fun harSoknadUnderBehandling(): Boolean {
+        val avsluttedeSoknadsbehandlinger = behandlinger
+            .filterIsInstance<Søknadsbehandling>()
+            .filter { it.erAvsluttet }
+        val apneSoknader = soknader.filterNot { it.erAvbrutt }
+        return apneSoknader.any { soknad ->
+            avsluttedeSoknadsbehandlinger.find { it.søknad.id == soknad.id } == null
+        }
+    }
+
     fun førsteLovligeStansdato(): LocalDate? {
         val innvilgelsesperioder = this.vedtaksliste.innvilgelsesperioder
         if (innvilgelsesperioder.isEmpty()) return null
