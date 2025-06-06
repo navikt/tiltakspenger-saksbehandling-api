@@ -111,4 +111,30 @@ class SakTest {
 
         sak.harSoknadUnderBehandling() shouldBe false
     }
+
+    @Test
+    fun `harSoknadUnderBehandling - har iverksatt søknadsbehandling og ny søknad - returnerer true`() {
+        val sak = ObjectMother.nySakMedVedtak().first
+        val soknad = ObjectMother.nySøknad(fnr = sak.fnr, sakId = sak.id)
+        val soknader = sak.soknader
+        val oppdatertSak = sak.copy(soknader = soknader + soknad)
+
+        oppdatertSak.harSoknadUnderBehandling() shouldBe true
+    }
+
+    @Test
+    fun `harSoknadUnderBehandling - har iverksatt søknadsbehandling og ny behandling av samme søknad - returnerer true`() {
+        val sak = ObjectMother.nySakMedVedtak().first
+        val behandling = ObjectMother.nyOpprettetSøknadsbehandling(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            fnr = sak.fnr,
+            søknad = sak.soknader.first(),
+        )
+
+        val behandlinger = sak.behandlinger
+        val oppdatertSak = sak.copy(behandlinger = Behandlinger(behandlinger + behandling))
+
+        oppdatertSak.harSoknadUnderBehandling() shouldBe true
+    }
 }
