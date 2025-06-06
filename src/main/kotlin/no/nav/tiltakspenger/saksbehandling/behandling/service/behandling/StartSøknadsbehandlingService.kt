@@ -68,6 +68,11 @@ class StartSøknadsbehandlingService(
         sessionFactory.withTransactionContext { tx ->
             behandlingRepo.lagre(behandling, tx)
             statistikkSakRepo.lagre(statistikk, tx)
+            sakService.oppdaterSkalSendesTilMeldekortApi(
+                sakId = sakId,
+                skalSendesTilMeldekortApi = true,
+                sessionContext = tx,
+            )
         }
 
         return behandling.right()
