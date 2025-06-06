@@ -5,11 +5,11 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførVedtaksbrevGateway
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførRammevedtaksbrevKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
@@ -35,7 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRe
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseGateway
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import java.time.Clock
 
@@ -48,17 +48,17 @@ open class BehandlingOgVedtakContext(
     meldeperiodeRepo: MeldeperiodeRepo,
     statistikkSakRepo: StatistikkSakRepo,
     statistikkStønadRepo: StatistikkStønadRepo,
-    journalførVedtaksbrevGateway: JournalførVedtaksbrevGateway,
-    genererVedtaksbrevGateway: GenererVedtaksbrevForInnvilgelseKlient,
-    genererAvslagsvedtaksbrevGateway: GenererAvslagsvedtaksbrevGateway,
-    genererStansvedtaksbrevGateway: GenererStansvedtaksbrevGateway,
+    journalførRammevedtaksbrevKlient: JournalførRammevedtaksbrevKlient,
+    genererVedtaksbrevForInnvilgelseKlient: GenererVedtaksbrevForInnvilgelseKlient,
+    genererVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient,
+    genererVedtaksbrevForStansKlient: GenererVedtaksbrevForStansKlient,
     tilgangsstyringService: TilgangsstyringService,
     personService: PersonService,
     dokumentdistribusjonsklient: Dokumentdistribusjonsklient,
     navIdentClient: NavIdentClient,
     sakService: SakService,
-    tiltaksdeltagelseGateway: TiltaksdeltagelseGateway,
-    oppgaveGateway: OppgaveGateway,
+    tiltaksdeltagelseKlient: TiltaksdeltagelseKlient,
+    oppgaveKlient: OppgaveKlient,
     statistikkSakService: StatistikkSakService,
     clock: Clock,
 ) {
@@ -93,7 +93,7 @@ open class BehandlingOgVedtakContext(
         OppdaterSaksopplysningerService(
             sakService = sakService,
             personService = personService,
-            tiltaksdeltagelseGateway = tiltaksdeltagelseGateway,
+            tiltaksdeltagelseKlient = tiltaksdeltagelseKlient,
             behandlingRepo = behandlingRepo,
         )
     }
@@ -120,7 +120,7 @@ open class BehandlingOgVedtakContext(
             statistikkSakRepo = statistikkSakRepo,
             statistikkStønadRepo = statistikkStønadRepo,
             sakService = sakService,
-            oppgaveGateway = oppgaveGateway,
+            oppgaveKlient = oppgaveKlient,
             clock = clock,
             statistikkSakService = statistikkSakService,
         )
@@ -156,13 +156,13 @@ open class BehandlingOgVedtakContext(
 
     val journalførVedtaksbrevService by lazy {
         JournalførRammevedtakService(
-            journalførVedtaksbrevGateway = journalførVedtaksbrevGateway,
+            journalførRammevedtaksbrevKlient = journalførRammevedtaksbrevKlient,
             rammevedtakRepo = rammevedtakRepo,
-            genererVedtaksbrevForInnvilgelseKlient = genererVedtaksbrevGateway,
-            genererAvslagsvedtaksbrevGateway = genererAvslagsvedtaksbrevGateway,
+            genererVedtaksbrevForInnvilgelseKlient = genererVedtaksbrevForInnvilgelseKlient,
+            genererVedtaksbrevForAvslagKlient = genererVedtaksbrevForAvslagKlient,
             personService = personService,
             navIdentClient = navIdentClient,
-            genererStansvedtaksbrevGateway = genererStansvedtaksbrevGateway,
+            genererVedtaksbrevForStansKlient = genererVedtaksbrevForStansKlient,
             clock = clock,
         )
     }
@@ -178,9 +178,9 @@ open class BehandlingOgVedtakContext(
     val forhåndsvisVedtaksbrevService by lazy {
         ForhåndsvisVedtaksbrevService(
             sakService = sakService,
-            genererInnvilgelsesbrevClient = genererVedtaksbrevGateway,
-            genererAvslagsvedtaksbrevGateway = genererAvslagsvedtaksbrevGateway,
-            genererStansbrevClient = genererStansvedtaksbrevGateway,
+            genererInnvilgelsesbrevClient = genererVedtaksbrevForInnvilgelseKlient,
+            genererVedtaksbrevForAvslagKlient = genererVedtaksbrevForAvslagKlient,
+            genererStansbrevClient = genererVedtaksbrevForStansKlient,
             personService = personService,
             navIdentClient = navIdentClient,
         )

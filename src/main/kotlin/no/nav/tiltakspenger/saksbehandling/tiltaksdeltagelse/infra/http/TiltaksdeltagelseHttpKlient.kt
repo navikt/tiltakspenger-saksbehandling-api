@@ -3,11 +3,11 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseGateway
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
 
-class TiltaksdeltagelseGatewayImpl(
+class TiltaksdeltagelseHttpKlient(
     private val tiltaksdeltagelseHttpklient: TiltaksdeltagelseHttpklient,
-) : TiltaksdeltagelseGateway {
+) : TiltaksdeltagelseKlient {
     override suspend fun hentTiltaksdeltagelse(
         fnr: Fnr,
         correlationId: CorrelationId,

@@ -21,13 +21,13 @@ import io.ktor.http.contentType
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførVedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførRammevedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.infra.http.httpClientWithRetry
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.toJournalpostRequest
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortGateway
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.http.utgåendeJournalpostRequest
 
@@ -41,12 +41,12 @@ internal class JoarkHttpClient(
     private val baseUrl: String,
     private val client: HttpClient = httpClientWithRetry(timeout = 30L),
     private val getToken: suspend () -> AccessToken,
-) : JournalførVedtaksbrevGateway,
-    JournalførMeldekortGateway {
+) : JournalførRammevedtaksbrevKlient,
+    JournalførMeldekortKlient {
 
     private val log = KotlinLogging.logger {}
 
-    override suspend fun journalførVedtaksbrev(
+    override suspend fun journalførVedtaksbrevForRammevedtak(
         vedtak: Rammevedtak,
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,

@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.sammenlign
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortGateway
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import java.time.Clock
@@ -19,7 +19,7 @@ import java.time.Clock
  * Denne er kun ment og kalles fra en jobb.
  */
 class JournalførUtbetalingsvedtakService(
-    private val journalførMeldekortGateway: JournalførMeldekortGateway,
+    private val journalførMeldekortKlient: JournalførMeldekortKlient,
     private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
     private val genererVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient,
     private val navIdentClient: NavIdentClient,
@@ -61,7 +61,7 @@ class JournalførUtbetalingsvedtakService(
                                 .ifEmpty { throw IllegalStateException("Forventet at et det skal finnes tilbaksdeltagelse for utbetalingsvedtaksperioden") },
                         ).getOrElse { return@forEach }
                     log.info { "Pdf generert for utbetalingsvedtak. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
-                    val journalpostId = journalførMeldekortGateway.journalførMeldekortBehandling(
+                    val journalpostId = journalførMeldekortKlient.journalførMeldekortBehandling(
                         meldekortBehandling = utbetalingsvedtak.meldekortbehandling,
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,

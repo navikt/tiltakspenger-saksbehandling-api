@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.AvbrytSøknadOgBehandlingContext
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkOversiktContext
 import no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient
@@ -25,7 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.DataSourceSetup
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMeldekortService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingGateway
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingHttpClient
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.IdenthendelseService
@@ -89,14 +89,14 @@ open class ApplicationContext(
             clientSecret = Configuration.clientSecret,
         )
     }
-    open val veilarboppfolgingGateway: VeilarboppfolgingGateway by lazy {
+    open val veilarboppfolgingKlient: VeilarboppfolgingKlient by lazy {
         VeilarboppfolgingHttpClient(
             baseUrl = Configuration.veilarboppfolgingUrl,
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.veilarboppfolgingScope) },
         )
     }
-    open val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingGateway) }
-    open val oppgaveGateway: OppgaveGateway by lazy {
+    open val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingKlient) }
+    open val oppgaveKlient: OppgaveKlient by lazy {
         OppgaveHttpClient(
             baseUrl = Configuration.oppgaveUrl,
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.oppgaveScope) },
@@ -120,7 +120,7 @@ open class ApplicationContext(
         EndretTiltaksdeltakerJobb(
             tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
             sakRepo = sakContext.sakRepo,
-            oppgaveGateway = oppgaveGateway,
+            oppgaveKlient = oppgaveKlient,
         )
     }
 
@@ -147,7 +147,7 @@ open class ApplicationContext(
         PersonhendelseService(
             sakRepo = sakContext.sakRepo,
             personhendelseRepository = personhendelseRepository,
-            personGateway = personContext.personGateway,
+            personKlient = personContext.personKlient,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
         )
     }
@@ -176,7 +176,7 @@ open class ApplicationContext(
         PersonhendelseJobb(
             personhendelseRepository = personhendelseRepository,
             sakRepo = sakContext.sakRepo,
-            oppgaveGateway = oppgaveGateway,
+            oppgaveKlient = oppgaveKlient,
         )
     }
 
@@ -215,14 +215,14 @@ open class ApplicationContext(
             clock,
         )
     }
-    open val søknadContext by lazy { SøknadContext(sessionFactory, oppgaveGateway, sakContext.sakService) }
+    open val søknadContext by lazy { SøknadContext(sessionFactory, oppgaveKlient, sakContext.sakService) }
     open val tiltakContext by lazy { TiltaksdeltagelseContext(entraIdSystemtokenClient) }
     open val profile by lazy { Configuration.applicationProfile() }
     open val sakContext by lazy {
         SakContext(
             sessionFactory = sessionFactory,
             tilgangsstyringService = personContext.tilgangsstyringService,
-            poaoTilgangGateway = personContext.poaoTilgangGateway,
+            poaoTilgangKlient = personContext.poaoTilgangKlient,
             personService = personContext.personService,
             profile = profile,
             clock = clock,
@@ -232,7 +232,7 @@ open class ApplicationContext(
         UtbetalingContext(
             sessionFactory = sessionFactory,
             genererVedtaksbrevForUtbetalingKlient = dokumentContext.genererVedtaksbrevForUtbetalingKlient,
-            journalførMeldekortGateway = dokumentContext.journalførMeldekortGateway,
+            journalførMeldekortKlient = dokumentContext.journalførMeldekortKlient,
             entraIdSystemtokenClient = entraIdSystemtokenClient,
             navIdentClient = personContext.navIdentClient,
             sakRepo = sakContext.sakRepo,
@@ -250,7 +250,7 @@ open class ApplicationContext(
             personService = personContext.personService,
             entraIdSystemtokenClient = entraIdSystemtokenClient,
             navkontorService = navkontorService,
-            oppgaveGateway = oppgaveGateway,
+            oppgaveKlient = oppgaveKlient,
             sakRepo = sakContext.sakRepo,
             clock = clock,
             simulerService = utbetalingContext.simulerService,
@@ -263,17 +263,17 @@ open class ApplicationContext(
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
-            journalførVedtaksbrevGateway = dokumentContext.journalførVedtaksbrevGateway,
-            genererVedtaksbrevGateway = dokumentContext.genererVedtaksbrevForInnvilgelseKlient,
-            genererAvslagsvedtaksbrevGateway = dokumentContext.genererAvslagsvedtaksbrevGateway,
-            genererStansvedtaksbrevGateway = dokumentContext.genererStansvedtaksbrevGateway,
+            journalførRammevedtaksbrevKlient = dokumentContext.journalførRammevedtaksbrevKlient,
+            genererVedtaksbrevForInnvilgelseKlient = dokumentContext.genererVedtaksbrevForInnvilgelseKlient,
+            genererVedtaksbrevForAvslagKlient = dokumentContext.genererVedtaksbrevForAvslagKlient,
+            genererVedtaksbrevForStansKlient = dokumentContext.genererVedtaksbrevForStansKlient,
             tilgangsstyringService = personContext.tilgangsstyringService,
             dokumentdistribusjonsklient = dokumentContext.dokumentdistribusjonsklient,
             personService = personContext.personService,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
-            tiltaksdeltagelseGateway = tiltakContext.tiltaksdeltagelseGateway,
-            oppgaveGateway = oppgaveGateway,
+            tiltaksdeltagelseKlient = tiltakContext.tiltaksdeltagelseKlient,
+            oppgaveKlient = oppgaveKlient,
             clock = clock,
             statistikkSakService = statistikkContext.statistikkSakService,
         )
@@ -285,7 +285,7 @@ open class ApplicationContext(
         )
     }
 
-    private val datadelingGateway by lazy {
+    private val datadelingKlient by lazy {
         DatadelingHttpClient(
             baseUrl = Configuration.datadelingUrl,
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.datadelingScope) },
@@ -296,7 +296,7 @@ open class ApplicationContext(
         SendTilDatadelingService(
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
             behandlingRepo = behandlingContext.behandlingRepo,
-            datadelingClient = datadelingGateway,
+            datadelingClient = datadelingKlient,
             clock = clock,
         )
     }

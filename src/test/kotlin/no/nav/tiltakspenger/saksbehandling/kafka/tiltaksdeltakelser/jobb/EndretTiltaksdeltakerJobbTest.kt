@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.juni
 import no.nav.tiltakspenger.libs.periodisering.mai
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
@@ -35,14 +35,14 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class EndretTiltaksdeltakerJobbTest {
-    private val oppgaveGateway = mockk<OppgaveGateway>()
+    private val oppgaveKlient = mockk<OppgaveKlient>()
     private val oppgaveId = OppgaveId("50")
 
     @BeforeEach
     fun clearMockData() {
-        clearMocks(oppgaveGateway)
+        clearMocks(oppgaveKlient)
         coEvery {
-            oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(
+            oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                 any(),
                 Oppgavebehov.ENDRET_TILTAKDELTAKER,
             )
@@ -56,7 +56,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -77,7 +77,7 @@ class EndretTiltaksdeltakerJobbTest {
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
 
-                coVerify(exactly = 0) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
             }
         }
     }
@@ -89,7 +89,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -111,7 +111,7 @@ class EndretTiltaksdeltakerJobbTest {
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
-                coVerify(exactly = 0) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
             }
         }
     }
@@ -123,7 +123,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -160,7 +160,7 @@ class EndretTiltaksdeltakerJobbTest {
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
-                coVerify(exactly = 0) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
             }
         }
     }
@@ -172,7 +172,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -208,7 +208,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
                 oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                 oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
-                coVerify(exactly = 1) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
             }
         }
     }
@@ -220,7 +220,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -257,7 +257,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
                 oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                 oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
-                coVerify(exactly = 1) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
             }
         }
     }
@@ -318,7 +318,7 @@ class EndretTiltaksdeltakerJobbTest {
                     val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                     val sakRepo = testDataHelper.sakRepo
                     val endretTiltaksdeltakerJobb =
-                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
+                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient)
                     val (sakMedFørstegangsvedtak, vedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
                         sakId = sak.id,
                         fnr = fnr,
@@ -346,7 +346,7 @@ class EndretTiltaksdeltakerJobbTest {
                     val oppdatertTiltaksdeltakerKafkaDb =
                         tiltaksdeltakerKafkaRepository.hent(førsteSøknad.id.toString())
                     oppdatertTiltaksdeltakerKafkaDb shouldBe null
-                    coVerify(exactly = 0) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                    coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
                 }
             }
         }
@@ -358,7 +358,7 @@ class EndretTiltaksdeltakerJobbTest {
                     val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                     val sakRepo = testDataHelper.sakRepo
                     val endretTiltaksdeltakerJobb =
-                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
+                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient)
                     val (sakMedFørstegangsvedtak) = testDataHelper.persisterIverksattSøknadsbehandling(
                         sakId = sak.id,
                         fnr = fnr,
@@ -391,7 +391,7 @@ class EndretTiltaksdeltakerJobbTest {
                     val andreOppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(andreSøknadstiltakId)
                     andreOppdatertTiltaksdeltakerKafkaDb shouldBe null
 
-                    coVerify(exactly = 1) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                    coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
                 }
             }
         }
@@ -403,7 +403,7 @@ class EndretTiltaksdeltakerJobbTest {
                     val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                     val sakRepo = testDataHelper.sakRepo
                     val endretTiltaksdeltakerJobb =
-                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
+                        EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient)
                     val (sakMedFørstegangsvedtak) = testDataHelper.persisterRammevedtakAvslag(
                         sakId = sak.id,
                         fnr = fnr,
@@ -436,7 +436,7 @@ class EndretTiltaksdeltakerJobbTest {
                     andreOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                     andreOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
 
-                    coVerify(exactly = 1) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                    coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
                 }
             }
         }
@@ -444,13 +444,13 @@ class EndretTiltaksdeltakerJobbTest {
 
     @Test
     fun `opprydning - opprettet oppgave, ikke ferdigstilt - oppdaterer sist sjekket`() {
-        coEvery { oppgaveGateway.erFerdigstilt(any()) } returns false
+        coEvery { oppgaveKlient.erFerdigstilt(any()) } returns false
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -491,20 +491,20 @@ class EndretTiltaksdeltakerJobbTest {
                 oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
                 oppdatertTiltaksdeltakerKafkaDb?.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe LocalDateTime.now()
                     .truncatedTo(ChronoUnit.MINUTES)
-                coVerify(exactly = 1) { oppgaveGateway.erFerdigstilt(oppgaveId) }
+                coVerify(exactly = 1) { oppgaveKlient.erFerdigstilt(oppgaveId) }
             }
         }
     }
 
     @Test
     fun `opprydning - opprettet oppgave, ferdigstilt - sletter fra db`() {
-        coEvery { oppgaveGateway.erFerdigstilt(any()) } returns true
+        coEvery { oppgaveKlient.erFerdigstilt(any()) } returns true
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
                 val sakRepo = testDataHelper.sakRepo
                 val endretTiltaksdeltakerJobb =
-                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveGateway)
+                    EndretTiltaksdeltakerJobb(tiltaksdeltakerKafkaRepository, sakRepo, oppgaveKlient)
                 val id = UUID.randomUUID().toString()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -541,7 +541,7 @@ class EndretTiltaksdeltakerJobbTest {
                 endretTiltaksdeltakerJobb.opprydning()
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
-                coVerify(exactly = 1) { oppgaveGateway.erFerdigstilt(oppgaveId) }
+                coVerify(exactly = 1) { oppgaveKlient.erFerdigstilt(oppgaveId) }
             }
         }
     }

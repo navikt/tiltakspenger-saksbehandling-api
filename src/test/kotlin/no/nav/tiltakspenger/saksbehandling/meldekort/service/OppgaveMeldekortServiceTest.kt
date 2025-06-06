@@ -9,7 +9,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
@@ -20,10 +20,10 @@ import org.junit.jupiter.api.Test
 
 class OppgaveMeldekortServiceTest {
 
-    private val oppgaveGateway = mockk<OppgaveGateway>(relaxed = true)
+    private val oppgaveKlient = mockk<OppgaveKlient>(relaxed = true)
     private val sakRepo = mockk<SakRepo>()
     private val brukersMeldekortRepo = mockk<BrukersMeldekortRepo>()
-    private val service = OppgaveMeldekortService(oppgaveGateway, sakRepo, brukersMeldekortRepo)
+    private val service = OppgaveMeldekortService(oppgaveKlient, sakRepo, brukersMeldekortRepo)
 
     @BeforeEach
     fun setup() {
@@ -57,7 +57,7 @@ class OppgaveMeldekortServiceTest {
             service.opprettOppgaveForMeldekortSomIkkeBehandlesAutomatisk()
 
             coVerify {
-                oppgaveGateway.opprettOppgave(
+                oppgaveKlient.opprettOppgave(
                     any(),
                     journalpostId,
                     Oppgavebehov.NYTT_MELDEKORT,
@@ -77,7 +77,7 @@ class OppgaveMeldekortServiceTest {
 
             service.opprettOppgaveForMeldekortSomIkkeBehandlesAutomatisk()
 
-            coVerify(exactly = 0) { oppgaveGateway.opprettOppgave(any(), any(), any()) }
+            coVerify(exactly = 0) { oppgaveKlient.opprettOppgave(any(), any(), any()) }
         }
     }
 
@@ -92,7 +92,7 @@ class OppgaveMeldekortServiceTest {
             service.opprettOppgaveForMeldekortSomIkkeBehandlesAutomatisk()
 
             coVerify(exactly = meldekort.size) {
-                oppgaveGateway.opprettOppgave(any(), any(), Oppgavebehov.NYTT_MELDEKORT)
+                oppgaveKlient.opprettOppgave(any(), any(), Oppgavebehov.NYTT_MELDEKORT)
             }
         }
     }

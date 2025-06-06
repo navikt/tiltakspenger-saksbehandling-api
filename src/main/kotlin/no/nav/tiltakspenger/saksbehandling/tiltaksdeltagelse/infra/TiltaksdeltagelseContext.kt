@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra
 
 import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseGatewayImpl
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseHttpKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseHttpklient
 
 open class TiltaksdeltagelseContext(
@@ -16,5 +16,5 @@ open class TiltaksdeltagelseContext(
             },
         )
     }
-    open val tiltaksdeltagelseGateway: TiltaksdeltagelseGateway by lazy { TiltaksdeltagelseGatewayImpl(tiltaksdeltagelseklient) }
+    open val tiltaksdeltagelseKlient: TiltaksdeltagelseKlient by lazy { TiltaksdeltagelseHttpKlient(tiltaksdeltagelseklient) }
 }

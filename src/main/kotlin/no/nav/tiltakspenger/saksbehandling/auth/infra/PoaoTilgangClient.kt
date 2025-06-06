@@ -13,12 +13,12 @@ import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangKlient
 
 class PoaoTilgangClient(
     baseUrl: String,
     val getToken: suspend () -> AccessToken,
-) : PoaoTilgangGateway {
+) : PoaoTilgangKlient {
     private val log = KotlinLogging.logger {}
     private val poaoTilgangclient: PoaoTilgangClient =
         PoaoTilgangHttpClient(

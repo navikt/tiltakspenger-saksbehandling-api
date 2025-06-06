@@ -5,10 +5,10 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførVedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførRammevedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
@@ -17,11 +17,11 @@ import java.time.Clock
 import java.time.LocalDate
 
 class JournalførRammevedtakService(
-    private val journalførVedtaksbrevGateway: JournalførVedtaksbrevGateway,
+    private val journalførRammevedtaksbrevKlient: JournalførRammevedtaksbrevKlient,
     private val rammevedtakRepo: RammevedtakRepo,
     private val genererVedtaksbrevForInnvilgelseKlient: GenererVedtaksbrevForInnvilgelseKlient,
-    private val genererStansvedtaksbrevGateway: GenererStansvedtaksbrevGateway,
-    private val genererAvslagsvedtaksbrevGateway: GenererAvslagsvedtaksbrevGateway,
+    private val genererVedtaksbrevForStansKlient: GenererVedtaksbrevForStansKlient,
+    private val genererVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient,
     private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
     private val clock: Clock,
@@ -45,14 +45,14 @@ class JournalførRammevedtakService(
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         ).getOrElse { return@forEach }
 
-                        Vedtakstype.STANS -> genererStansvedtaksbrevGateway.genererStansvedtak(
+                        Vedtakstype.STANS -> genererVedtaksbrevForStansKlient.genererStansvedtak(
                             vedtaksdato = vedtaksdato,
                             vedtak = vedtak,
                             hentBrukersNavn = personService::hentNavn,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         ).getOrElse { return@forEach }
 
-                        Vedtakstype.AVSLAG -> genererAvslagsvedtaksbrevGateway.genererAvslagsvVedtaksbrev(
+                        Vedtakstype.AVSLAG -> genererVedtaksbrevForAvslagKlient.genererAvslagsvVedtaksbrev(
                             vedtak = vedtak,
                             datoForUtsending = vedtaksdato,
                             hentBrukersNavn = personService::hentNavn,
@@ -61,7 +61,7 @@ class JournalførRammevedtakService(
                     }
                     log.info { "Vedtaksbrev generert for vedtak ${vedtak.id}" }
                     val journalpostId =
-                        journalførVedtaksbrevGateway.journalførVedtaksbrev(vedtak, pdfOgJson, correlationId)
+                        journalførRammevedtaksbrevKlient.journalførVedtaksbrevForRammevedtak(vedtak, pdfOgJson, correlationId)
                     log.info { "Vedtaksbrev journalført for vedtak ${vedtak.id}" }
                     rammevedtakRepo.markerJournalført(vedtak.id, vedtaksdato, pdfOgJson.json, journalpostId, nå(clock))
                     log.info { "Vedtaksbrev markert som journalført for vedtak ${vedtak.id}" }

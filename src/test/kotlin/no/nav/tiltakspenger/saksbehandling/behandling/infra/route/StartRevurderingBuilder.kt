@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.fakes.clients.TiltaksdeltagelseFakeGateway
+import no.nav.tiltakspenger.saksbehandling.fakes.clients.TiltaksdeltagelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -57,8 +57,8 @@ interface StartRevurderingBuilder {
     ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering> {
         val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(tac, virkingsperiode = søknadsbehandlingVirkningsperiode)
 
-        val tiltaksdeltagelseFakeGateway =
-            tac.tiltakContext.tiltaksdeltagelseGateway as TiltaksdeltagelseFakeGateway
+        val tiltaksdeltagelseFakeKlient =
+            tac.tiltakContext.tiltaksdeltagelseKlient as TiltaksdeltagelseFakeKlient
 
         val oppdatertTiltaksdeltagelse =
             søknadsbehandling.saksopplysninger.getTiltaksdeltagelse(søknadsbehandling.søknad.tiltak.id)!!.copy(
@@ -66,7 +66,7 @@ interface StartRevurderingBuilder {
                 deltagelseTilOgMed = revurderingVirkningsperiode.tilOgMed,
             )
 
-        tiltaksdeltagelseFakeGateway.lagre(
+        tiltaksdeltagelseFakeKlient.lagre(
             sak.fnr,
             oppdatertTiltaksdeltagelse,
         )

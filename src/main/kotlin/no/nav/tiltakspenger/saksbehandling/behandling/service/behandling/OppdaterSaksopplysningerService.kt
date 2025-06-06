@@ -12,12 +12,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseGateway
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
 
 class OppdaterSaksopplysningerService(
     private val sakService: SakService,
     private val personService: PersonService,
-    private val tiltaksdeltagelseGateway: TiltaksdeltagelseGateway,
+    private val tiltaksdeltagelseKlient: TiltaksdeltagelseKlient,
     private val behandlingRepo: BehandlingRepo,
 ) {
     suspend fun oppdaterSaksopplysninger(
@@ -50,7 +50,7 @@ class OppdaterSaksopplysningerService(
     ): Saksopplysninger {
         val personopplysninger = personService.hentPersonopplysninger(fnr)
         val alleRelevanteTiltak = runBlocking {
-            tiltaksdeltagelseGateway.hentTiltaksdeltagelse(
+            tiltaksdeltagelseKlient.hentTiltaksdeltagelse(
                 fnr = fnr,
                 correlationId = correlationId,
             )

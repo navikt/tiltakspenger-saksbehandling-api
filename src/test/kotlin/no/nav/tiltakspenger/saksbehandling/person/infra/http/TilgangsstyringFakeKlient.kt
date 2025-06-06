@@ -1,6 +1,6 @@
 @file:Suppress("UnusedImport")
 
-package no.nav.tiltakspenger.saksbehandling.fakes.clients
+package no.nav.tiltakspenger.saksbehandling.person.infra.http
 
 import arrow.atomic.Atomic
 import arrow.core.Either
@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.personklient.pdl.KunneIkkeGjøreTilgangskontroll
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 
-class TilgangsstyringFakeGateway : TilgangsstyringService {
+class TilgangsstyringFakeKlient : TilgangsstyringService {
     private val data = Atomic(mutableMapOf<Fnr, List<AdressebeskyttelseGradering>>())
 
     fun lagre(

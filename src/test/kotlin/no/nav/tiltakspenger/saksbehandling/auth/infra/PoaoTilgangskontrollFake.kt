@@ -5,9 +5,9 @@ package no.nav.tiltakspenger.saksbehandling.fakes.clients
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangKlient
 
-class PoaoTilgangskontrollFake : PoaoTilgangGateway {
+class PoaoTilgangskontrollFake : PoaoTilgangKlient {
 
     private val data = Atomic(mutableMapOf<Fnr, Boolean>())
 

@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.FeilVedSendingTilMeld
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
-class MeldekortApiFakeGateway : MeldekortApiKlient {
+class MeldekortApiFakeKlient : MeldekortApiKlient {
     override suspend fun sendSak(sak: Sak): Either<FeilVedSendingTilMeldekortApi, Unit> {
         return Unit.right()
     }

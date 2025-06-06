@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -48,7 +48,7 @@ open class MeldekortContext(
     statistikkStønadRepo: StatistikkStønadRepo,
     entraIdSystemtokenClient: EntraIdSystemtokenClient,
     navkontorService: NavkontorService,
-    oppgaveGateway: OppgaveGateway,
+    oppgaveKlient: OppgaveKlient,
     sakRepo: SakRepo,
     clock: Clock,
     simulerService: SimulerService,
@@ -79,7 +79,7 @@ open class MeldekortContext(
             utbetalingsvedtakRepo = utbetalingsvedtakRepo,
             statistikkStønadRepo = statistikkStønadRepo,
             clock = clock,
-            oppgaveGateway = oppgaveGateway,
+            oppgaveKlient = oppgaveKlient,
         )
     }
     val oppdaterMeldekortService by lazy {
@@ -127,7 +127,7 @@ open class MeldekortContext(
 
     val oppgaveMeldekortService by lazy {
         OppgaveMeldekortService(
-            oppgaveGateway = oppgaveGateway,
+            oppgaveKlient = oppgaveKlient,
             sakRepo = sakRepo,
             brukersMeldekortRepo = brukersMeldekortRepo,
         )

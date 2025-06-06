@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingGateway
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingKlient
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
@@ -21,7 +21,7 @@ class VeilarboppfolgingHttpClient(
     private val getToken: suspend () -> AccessToken,
     connectTimeout: kotlin.time.Duration = 1.seconds,
     private val timeout: kotlin.time.Duration = 1.seconds,
-) : VeilarboppfolgingGateway {
+) : VeilarboppfolgingKlient {
     private val logger = KotlinLogging.logger {}
     private val client =
         java.net.http.HttpClient

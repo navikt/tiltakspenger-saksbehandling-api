@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppretteBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -35,7 +35,7 @@ class SakService(
     private val sakRepo: SakRepo,
     private val personService: PersonService,
     private val tilgangsstyringService: TilgangsstyringService,
-    private val poaoTilgangGateway: PoaoTilgangGateway,
+    private val poaoTilgangKlient: PoaoTilgangKlient,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -156,7 +156,7 @@ class SakService(
         krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
         // Merk at denne IKKE skal sjekke tilgang til person, siden informasjonen skal vise til saksbehandleren, slik at hen skjønner at hen ikke kan behandle denne saken uten de riktige rollene.
         val fnr = sakRepo.hentFnrForSakId(sakId)!!
-        val erSkjermet = poaoTilgangGateway.erSkjermet(fnr, correlationId)
+        val erSkjermet = poaoTilgangKlient.erSkjermet(fnr, correlationId)
         val person = personService.hentEnkelPersonFnr(fnr)
             .getOrElse { return KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl.left() }
         val personMedSkjerming =
