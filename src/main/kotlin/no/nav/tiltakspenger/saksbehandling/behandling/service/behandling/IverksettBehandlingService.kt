@@ -57,7 +57,7 @@ class IverksettBehandlingService(
         sakId: SakId,
     ): Either<KanIkkeIverksetteBehandling, Behandling> {
         // Denne sjekker at saksbehandler har tilgang til personen og en av rollene SAKSBEHANDLER eller BESLUTTER.
-        val sak = sakService.sjekkTilgangOgHentForSakId(sakId, beslutter, correlationId)
+        val sak = sakService.hentForSakIdEllerKast(sakId, beslutter, correlationId)
         val behandling = sak.hentBehandling(behandlingId)!!
 
         if (behandling.beslutter != beslutter.navIdent) {
