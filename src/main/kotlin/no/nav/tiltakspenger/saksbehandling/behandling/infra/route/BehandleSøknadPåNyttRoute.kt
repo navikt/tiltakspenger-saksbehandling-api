@@ -10,10 +10,10 @@ import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.respond501NotImplemented
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppretteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeBehandleSøknadPåNytt
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -43,7 +43,7 @@ fun Route.behandleSøknadPåNyttRoute(
                             when (it) {
                                 is KanIkkeBehandleSøknadPåNytt.OppretteBehandling ->
                                     when (it.underliggende) {
-                                        is KanIkkeStarteSøknadsbehandling.OppretteBehandling -> call.respond501NotImplemented(
+                                        KanIkkeOppretteBehandling.IngenRelevanteTiltak -> call.respond501NotImplemented(
                                             Standardfeil.ikkeImplementert(
                                                 "Ingen relevante tiltak for denne søknaden - dette støtter vi ikke ennå",
                                             ),
