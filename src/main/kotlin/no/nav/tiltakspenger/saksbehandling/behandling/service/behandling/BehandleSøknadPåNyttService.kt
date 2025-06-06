@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeBehandleSøknadPåNytt
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -21,7 +20,6 @@ import java.time.Clock
 
 class BehandleSøknadPåNyttService(
     private val clock: Clock,
-    private val behandlingRepo: BehandlingRepo,
     private val sakService: SakService,
     private val startSøknadsbehandlingService: StartSøknadsbehandlingService,
     private val statistikkSakService: StatistikkSakService,
@@ -37,11 +35,6 @@ class BehandleSøknadPåNyttService(
         correlationId: CorrelationId,
     ): Either<KanIkkeBehandleSøknadPåNytt, Søknadsbehandling> {
         val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId)
-        // val behandlingerViaSak = sak.behandlinger
-        //    .søknadsbehandlinger
-        //    .filter { it.søknad.id == søknadId }
-
-        // Vedtatte avslag
         val avslåtteSøknadsbehandlinger = sak.vedtaksliste.value
             .filter { it.vedtaksType == Vedtakstype.AVSLAG }
             .map { it.behandling }
@@ -49,14 +42,14 @@ class BehandleSøknadPåNyttService(
             .filter { it.søknad == søknadId }
 
         if (avslåtteSøknadsbehandlinger.isEmpty()) {
-            throw IllegalStateException("Kan ikke behandle søknad på nytt")
+            throw IllegalStateException("Kan ikke behandle søknad på nytt fordi det finnes ikke vedtatte avslag på søknaden: $søknadId")
         }
 
         val søknad = avslåtteSøknadsbehandlinger.first().søknad
+        val perioderMedUtbetalinger = sak.utbetalinger.hentUtbetalingerFraPeriode(søknad.vurderingsperiode())
 
-        val innvilgedePerioder = sak.vedtaksliste.innvilgetTidslinje.overlapperMed(søknad.vurderingsperiode())
-        if (innvilgedePerioder.perioderMedVerdi.isNotEmpty()) {
-            return KanIkkeBehandleSøknadPåNytt.PeriodeOverlapperInnvilgetVedtak(søknadId, innvilgedePerioder).left()
+        if (perioderMedUtbetalinger.isNotEmpty()) {
+            throw IllegalStateException("Det finnes utbetalinger i vurderingsperioden til søknaden: ${søknad.id}")
         }
 
         val opprettetSøknadsbehandling = startSøknadsbehandlingService.startSøknadsbehandling(

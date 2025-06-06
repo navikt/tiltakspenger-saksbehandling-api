@@ -7,8 +7,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
-import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
-import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
 import no.nav.tiltakspenger.libs.ktor.common.respond501NotImplemented
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
@@ -43,10 +41,6 @@ fun Route.behandleSøknadPåNyttRoute(
                     ).fold(
                         {
                             when (it) {
-                                is KanIkkeBehandleSøknadPåNytt.FantIngenBehandlingerForSøknad -> call.respond404NotFound(
-                                    Standardfeil.fantIkkeBehandling(),
-                                )
-
                                 is KanIkkeBehandleSøknadPåNytt.OppretteBehandling ->
                                     when (it.underliggende) {
                                         is KanIkkeStarteSøknadsbehandling.OppretteBehandling -> call.respond501NotImplemented(
@@ -55,14 +49,6 @@ fun Route.behandleSøknadPåNyttRoute(
                                             ),
                                         )
                                     }
-
-                                is KanIkkeBehandleSøknadPåNytt.BehandlingMåVæreVedtattAvslag,
-                                is KanIkkeBehandleSøknadPåNytt.PeriodeOverlapperInnvilgetVedtak,
-                                is KanIkkeBehandleSøknadPåNytt.RevurderingKanIkkeBehandlesPåNytt,
-                                is KanIkkeBehandleSøknadPåNytt.SøknadenHarEnInnvilgetBehandling,
-                                -> call.respond400BadRequest(
-                                    Standardfeil.ugyldigRequest(),
-                                )
                             }
                         },
                         {

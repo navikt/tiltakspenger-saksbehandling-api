@@ -94,7 +94,6 @@ open class BehandlingOgVedtakContext(
         BehandleSøknadPåNyttService(
             sakService = sakService,
             sessionFactory = sessionFactory,
-            behandlingRepo = behandlingRepo,
             statistikkSakRepo = statistikkSakRepo,
             statistikkSakService = statistikkSakService,
             startSøknadsbehandlingService = startSøknadsbehandlingService,

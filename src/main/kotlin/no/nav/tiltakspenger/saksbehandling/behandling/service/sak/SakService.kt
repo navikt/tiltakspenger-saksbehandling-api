@@ -5,13 +5,10 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.SøknadId
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
@@ -32,7 +29,6 @@ import no.nav.tiltakspenger.saksbehandling.person.EnkelPersonMedSkjerming
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 
 class SakService(
@@ -199,28 +195,7 @@ sealed interface KanIkkeStarteSøknadsbehandling {
 }
 
 sealed interface KanIkkeBehandleSøknadPåNytt {
-    class FantIngenBehandlingerForSøknad(
-        val søknadId: SøknadId,
-    ) : KanIkkeBehandleSøknadPåNytt
-
     data class OppretteBehandling(
         val underliggende: KanIkkeStarteSøknadsbehandling,
-    ) : KanIkkeBehandleSøknadPåNytt
-
-    data class PeriodeOverlapperInnvilgetVedtak(
-        val søknadId: SøknadId,
-        val innvilgedePerioder: Periodisering<Rammevedtak?>,
-    ) : KanIkkeBehandleSøknadPåNytt
-
-    data class SøknadenHarEnInnvilgetBehandling(
-        val behandlingId: BehandlingId,
-    ) : KanIkkeBehandleSøknadPåNytt
-
-    data class BehandlingMåVæreVedtattAvslag(
-        val behandlingId: BehandlingId,
-    ) : KanIkkeBehandleSøknadPåNytt
-
-    data class RevurderingKanIkkeBehandlesPåNytt(
-        val behandlingId: BehandlingId,
     ) : KanIkkeBehandleSøknadPåNytt
 }
