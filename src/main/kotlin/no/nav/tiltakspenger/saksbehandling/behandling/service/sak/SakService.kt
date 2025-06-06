@@ -196,6 +196,6 @@ sealed interface KanIkkeStarteSøknadsbehandling {
 
 sealed interface KanIkkeBehandleSøknadPåNytt {
     data class OppretteBehandling(
-        val underliggende: KanIkkeStarteSøknadsbehandling,
+        val underliggende: KanIkkeOppretteBehandling,
     ) : KanIkkeBehandleSøknadPåNytt
 }

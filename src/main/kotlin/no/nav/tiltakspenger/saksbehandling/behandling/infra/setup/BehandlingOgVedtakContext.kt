@@ -96,8 +96,9 @@ open class BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
             statistikkSakRepo = statistikkSakRepo,
             statistikkSakService = statistikkSakService,
-            startSøknadsbehandlingService = startSøknadsbehandlingService,
             clock = clock,
+            behandlingRepo = behandlingRepo,
+            oppdaterSaksopplysningerService = oppdaterSaksopplysningerService,
         )
     }
     val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService by lazy {

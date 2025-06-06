@@ -103,7 +103,7 @@ class StatistikkSakService(
         )
     }
 
-    suspend fun genererStatistikkForGjenåpnetSøknadsbehandling(
+    suspend fun genererStatistikkForSøknadSomBehandlesPåNytt(
         behandling: Søknadsbehandling,
         søknadId: SøknadId,
     ): StatistikkSakDTO {
