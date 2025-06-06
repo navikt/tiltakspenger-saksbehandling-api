@@ -4,23 +4,19 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppretteBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangGateway
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
-import no.nav.tiltakspenger.saksbehandling.benk.Saksoversikt
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
@@ -37,7 +33,6 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 
 class SakService(
     private val sakRepo: SakRepo,
-    private val benkOversiktRepo: BenkOversiktRepo,
     private val personService: PersonService,
     private val tilgangsstyringService: TilgangsstyringService,
     private val poaoTilgangGateway: PoaoTilgangGateway,
@@ -150,35 +145,6 @@ class SakService(
         return sak
     }
 
-    suspend fun hentBenkOversikt(
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
-    ): Saksoversikt {
-        krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
-        val behandlinger = benkOversiktRepo.hentÅpneBehandlinger()
-        val søknader = benkOversiktRepo.hentÅpneSøknader()
-        val benkOversikt = Saksoversikt(behandlinger + søknader)
-
-        if (benkOversikt.isEmpty()) return benkOversikt
-        val tilganger = tilgangsstyringService.harTilgangTilPersoner(
-            fnrListe = benkOversikt.map { it.fnr }.toNonEmptyListOrNull()!!,
-            roller = saksbehandler.roller,
-            correlationId = correlationId,
-        ).getOrElse { throw IllegalStateException("Feil ved henting av tilganger") }
-        return benkOversikt.filter {
-            val harTilgang = tilganger[it.fnr]
-            if (harTilgang == null) {
-                logger.debug { "tilgangsstyring: Filtrerte vekk bruker fra benk for saksbehandler $saksbehandler. Kunne ikke avgjøre om hen har tilgang. Se sikkerlogg for mer kontekst." }
-                Sikkerlogg.debug { "tilgangsstyring: Filtrerte vekk bruker ${it.fnr.verdi} fra benk for saksbehandler $saksbehandler. Kunne ikke avgjøre om hen har tilgang." }
-            }
-            if (harTilgang == false) {
-                logger.debug { "tilgangsstyring: Filtrerte vekk bruker fra benk for saksbehandler $saksbehandler. Saksbehandler har ikke tilgang. Se sikkerlogg for mer kontekst." }
-                Sikkerlogg.debug { "tilgangsstyring: Filtrerte vekk bruker ${it.fnr.verdi} fra benk for saksbehandler $saksbehandler. Saksbehandler har ikke tilgang." }
-            }
-            harTilgang == true
-        }
-    }
-
     /**
      * Merk at denne ikke skal sjekke om saksbehandler har tilgang til personen.
      */
@@ -213,6 +179,7 @@ class SakService(
         )
     }
 }
+
 sealed interface KanIkkeStarteSøknadsbehandling {
     data class OppretteBehandling(
         val underliggende: KanIkkeOppretteBehandling,

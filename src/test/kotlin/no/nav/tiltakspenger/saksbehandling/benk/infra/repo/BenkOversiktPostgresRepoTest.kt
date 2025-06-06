@@ -1,138 +1,395 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.benk.BehandlingEllerSøknadForSaksoversikt
-import no.nav.tiltakspenger.saksbehandling.benk.BenkBehandlingstype
-import no.nav.tiltakspenger.saksbehandling.benk.Saksoversikt
-import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
+import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.GenerellSystembrukerrolle
+import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
+import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
+import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
+import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
+import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
+import no.nav.tiltakspenger.saksbehandling.benk.domene.Sortering
+import no.nav.tiltakspenger.saksbehandling.benk.domene.ÅpneBehandlingerFiltrering
+import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerroller
+import no.nav.tiltakspenger.saksbehandling.infra.repo.TestDataHelper
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetRevurderingDeprecated
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandlingAvslag
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBeslutningSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterManuellMeldekortBehandlingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetManuellMeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingUnderBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 
 class BenkOversiktPostgresRepoTest {
-    @Test
-    fun `Hent alle søknader og behandlinger`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
-            val repo = testDataHelper.saksoversiktRepo
-            val søknad1 = testDataHelper.persisterSakOgSøknad()
-            val sakId = testDataHelper.søknadRepo.hentSakIdForSoknad(søknad1.id)!!
-            val (søknadsbehandlingSak, søknadsbehandling) = testDataHelper.persisterOpprettetSøknadsbehandling()
-            val (revurderingSak, revurdering) = testDataHelper.persisterOpprettetRevurderingDeprecated()
-            val behandlinger = repo.hentÅpneBehandlinger()
-            val søknader = repo.hentÅpneSøknader()
-            val benkOversikt = Saksoversikt(søknader + behandlinger)
+    private fun newCommand(
+        behandlingstype: List<BehandlingssammendragType>? = null,
+        status: List<BehandlingssammendragStatus>? = null,
+        saksbehandlere: List<String>? = null,
+        sortering: Sortering = Sortering.ASC,
+    ): HentÅpneBehandlingerCommand {
+        return HentÅpneBehandlingerCommand(
+            åpneBehandlingerFiltrering = ÅpneBehandlingerFiltrering(
+                behandlingstype = behandlingstype,
+                status = status,
+                identer = saksbehandlere,
+            ),
+            sortering = sortering,
+            saksbehandler = ObjectMother.saksbehandler(),
+            correlationId = CorrelationId.generate(),
+        )
+    }
 
-            benkOversikt.also {
-                it shouldBe
-                    Saksoversikt(
-                        listOf(
-                            BehandlingEllerSøknadForSaksoversikt(
-                                periode = null,
-                                status = BehandlingEllerSøknadForSaksoversikt.Status.Søknad,
-                                behandlingstype = BenkBehandlingstype.SØKNAD,
-                                fnr = søknad1.fnr,
-                                saksnummer = søknad1.saksnummer,
-                                saksbehandler = null,
-                                beslutter = null,
-                                sakId = sakId,
-                                underkjent = false,
-                                kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
-                                id = søknad1.id,
-                                opprettet = søknad1.opprettet,
-                            ),
-                            BehandlingEllerSøknadForSaksoversikt(
-                                periode = null,
-                                status = BehandlingEllerSøknadForSaksoversikt.Status.Behandling(Behandlingsstatus.UNDER_BEHANDLING),
-                                behandlingstype = BenkBehandlingstype.SØKNADSBEHANDLING,
-                                fnr = søknadsbehandling.fnr,
-                                saksnummer = søknadsbehandlingSak.saksnummer,
-                                saksbehandler = søknadsbehandling.saksbehandler!!,
-                                beslutter = null,
-                                sakId = søknadsbehandlingSak.id,
-                                underkjent = false,
-                                kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
-                                id = søknadsbehandling.id,
-                                opprettet = søknadsbehandling.opprettet,
-                            ),
-                            BehandlingEllerSøknadForSaksoversikt(
-                                periode = null,
-                                status = BehandlingEllerSøknadForSaksoversikt.Status.Behandling(Behandlingsstatus.UNDER_BEHANDLING),
-                                behandlingstype = BenkBehandlingstype.REVURDERING,
-                                fnr = revurdering.fnr,
-                                saksnummer = revurderingSak.saksnummer,
-                                saksbehandler = revurdering.saksbehandler!!,
-                                beslutter = null,
-                                sakId = revurdering.sakId,
-                                underkjent = false,
-                                kravtidspunkt = null,
-                                id = revurdering.id,
-                                opprettet = revurdering.opprettet,
-                            ),
-                        ),
-                    )
+    @Test
+    fun `henter åpne søknader uten behandling`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val søknad = testDataHelper.persisterSakOgSøknad()
+            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+
+            totalAntall shouldBe 1
+            actual.size shouldBe 1
+            actual.first() shouldBe Behandlingssammendrag(
+                sakId = søknad.sakId,
+                fnr = søknad.fnr,
+                saksnummer = søknad.saksnummer,
+                startet = søknad.opprettet,
+                kravtidspunkt = søknad.opprettet,
+                behandlingstype = BehandlingssammendragType.SØKNADSBEHANDLING,
+                status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
+                saksbehandler = null,
+                beslutter = null,
+            )
+        }
+    }
+
+    @Test
+    fun `henter åpne søknadsbehandlinger`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val (sakOpprettetBehandling, opprettetBehandling) = testDataHelper.persisterOpprettetSøknadsbehandling()
+            val (sakKlarTilBeslutning, klarTilBeslutning) = testDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
+                sakId = sakOpprettetBehandling.id,
+                fnr = sakOpprettetBehandling.fnr,
+                sak = sakOpprettetBehandling,
+            )
+            val (sakUnderBeslutning, underBeslutning) = testDataHelper.persisterUnderBeslutningSøknadsbehandling(
+                sakId = sakKlarTilBeslutning.id,
+                fnr = sakKlarTilBeslutning.fnr,
+                sak = sakKlarTilBeslutning,
+            )
+            val (sakIverksatt) = testDataHelper.persisterIverksattSøknadsbehandling(
+                sakId = sakUnderBeslutning.id,
+                fnr = sakUnderBeslutning.fnr,
+                sak = sakUnderBeslutning,
+            )
+            val (sakAvslag) = testDataHelper.persisterIverksattSøknadsbehandlingAvslag(
+                sakId = sakIverksatt.id,
+                fnr = sakIverksatt.fnr,
+                sak = sakIverksatt,
+            )
+            testDataHelper.persisterAvbruttSøknadsbehandling(
+                sakId = sakAvslag.id,
+                fnr = sakAvslag.fnr,
+                sak = sakAvslag,
+            )
+
+            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+
+            totalAntall shouldBe 3
+            actual.size shouldBe 3
+            actual.let {
+                it.first() shouldBe Behandlingssammendrag(
+                    sakId = sakOpprettetBehandling.id,
+                    fnr = opprettetBehandling.fnr,
+                    saksnummer = opprettetBehandling.saksnummer,
+                    startet = opprettetBehandling.opprettet,
+                    kravtidspunkt = opprettetBehandling.opprettet,
+                    behandlingstype = BehandlingssammendragType.SØKNADSBEHANDLING,
+                    status = BehandlingssammendragStatus.UNDER_BEHANDLING,
+                    saksbehandler = ObjectMother.saksbehandler().navIdent,
+                    beslutter = null,
+                )
+                it[1] shouldBe Behandlingssammendrag(
+                    sakId = sakKlarTilBeslutning.id,
+                    fnr = klarTilBeslutning.fnr,
+                    saksnummer = klarTilBeslutning.saksnummer,
+                    startet = klarTilBeslutning.opprettet,
+                    kravtidspunkt = klarTilBeslutning.opprettet,
+                    behandlingstype = BehandlingssammendragType.SØKNADSBEHANDLING,
+                    status = BehandlingssammendragStatus.KLAR_TIL_BESLUTNING,
+                    saksbehandler = ObjectMother.saksbehandler().navIdent,
+                    beslutter = null,
+                )
+                it.last() shouldBe Behandlingssammendrag(
+                    sakId = sakUnderBeslutning.id,
+                    fnr = underBeslutning.fnr,
+                    saksnummer = underBeslutning.saksnummer,
+                    startet = underBeslutning.opprettet,
+                    kravtidspunkt = underBeslutning.opprettet,
+                    behandlingstype = BehandlingssammendragType.SØKNADSBEHANDLING,
+                    status = BehandlingssammendragStatus.UNDER_BESLUTNING,
+                    saksbehandler = ObjectMother.saksbehandler().navIdent,
+                    beslutter = ObjectMother.beslutter().navIdent,
+                )
             }
         }
     }
 
     @Test
-    fun `Henter ikke ferdigstilte behandlinger`() {
+    fun `henter åpne revurderinger`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val repo = testDataHelper.saksoversiktRepo
-            val (sak, søknad) = testDataHelper.persisterAvbruttSøknadsbehandling()
-            val (sakMedAvbruttBehandling, vedtak, behandling) = testDataHelper.persisterIverksattSøknadsbehandling(
-                sakId = sak.id,
-                fnr = søknad.fnr,
-                sak = sak,
-            )
+            val (sakOpprettetRevurdering, opprettetRevurdering) = testDataHelper.persisterOpprettetRevurdering()
+            val (sakRevurderingTilBeslutning, revurderingTilBeslutning) =
+                testDataHelper.persisterRevurderingTilBeslutning(s = sakOpprettetRevurdering)
+            val (sakMedRevurderingUnderBeslutning, revurderingUnderBeslutning) =
+                testDataHelper.persisterRevurderingUnderBeslutning(sakRevurderingTilBeslutning)
 
-            val behandlinger = repo.hentÅpneBehandlinger()
-            val søknader = repo.hentÅpneSøknader()
-            val benkOversikt = Saksoversikt(søknader + behandlinger)
+            testDataHelper.persisterIverksattRevurdering(sak = sakMedRevurderingUnderBeslutning)
+            testDataHelper.persisterAvbruttRevurdering(sak = sakMedRevurderingUnderBeslutning)
 
-            benkOversikt.also {
-                it shouldNotBe
-                    Saksoversikt(
-                        listOf(
-                            BehandlingEllerSøknadForSaksoversikt(
-                                periode = ObjectMother.virkningsperiode(),
-                                status = BehandlingEllerSøknadForSaksoversikt.Status.Behandling(Behandlingsstatus.AVBRUTT),
-                                behandlingstype = BenkBehandlingstype.SØKNADSBEHANDLING,
-                                fnr = søknad.fnr,
-                                saksnummer = sakMedAvbruttBehandling.saksnummer,
-                                saksbehandler = behandling.saksbehandler!!,
-                                beslutter = null,
-                                sakId = sakMedAvbruttBehandling.id,
-                                underkjent = false,
-                                kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
-                                id = behandling.id,
-                                opprettet = behandling.opprettet,
-                            ),
-                            BehandlingEllerSøknadForSaksoversikt(
-                                periode = ObjectMother.virkningsperiode(),
-                                status = BehandlingEllerSøknadForSaksoversikt.Status.Behandling(Behandlingsstatus.VEDTATT),
-                                behandlingstype = BenkBehandlingstype.SØKNADSBEHANDLING,
-                                fnr = søknad.fnr,
-                                saksnummer = sakMedAvbruttBehandling.saksnummer,
-                                saksbehandler = vedtak.saksbehandlerNavIdent,
-                                beslutter = null,
-                                sakId = sakMedAvbruttBehandling.id,
-                                underkjent = false,
-                                kravtidspunkt = LocalDateTime.from(1.januarDateTime(2022)),
-                                id = vedtak.id,
-                                opprettet = vedtak.opprettet,
-                            ),
+            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
-                        ),
-                    )
+            totalAntall shouldBe 3
+            actual.size shouldBe 3
+            actual.let {
+                it.first() shouldBe Behandlingssammendrag(
+                    sakId = sakOpprettetRevurdering.id,
+                    fnr = opprettetRevurdering.fnr,
+                    saksnummer = opprettetRevurdering.saksnummer,
+                    startet = opprettetRevurdering.opprettet,
+                    behandlingstype = BehandlingssammendragType.REVURDERING,
+                    status = BehandlingssammendragStatus.UNDER_BEHANDLING,
+                    saksbehandler = ObjectMother.saksbehandler().navIdent,
+                    beslutter = null,
+                    kravtidspunkt = null,
+                )
+                it[1] shouldBe Behandlingssammendrag(
+                    sakId = sakRevurderingTilBeslutning.id,
+                    fnr = revurderingTilBeslutning.fnr,
+                    saksnummer = revurderingTilBeslutning.saksnummer,
+                    startet = revurderingTilBeslutning.opprettet,
+                    behandlingstype = BehandlingssammendragType.REVURDERING,
+                    status = BehandlingssammendragStatus.KLAR_TIL_BESLUTNING,
+                    saksbehandler = ObjectMother.saksbehandler().navIdent,
+                    beslutter = null,
+                    kravtidspunkt = null,
+                )
+                it.last() shouldBe Behandlingssammendrag(
+                    sakId = sakMedRevurderingUnderBeslutning.id,
+                    fnr = revurderingUnderBeslutning.fnr,
+                    saksnummer = revurderingUnderBeslutning.saksnummer,
+                    startet = revurderingUnderBeslutning.opprettet,
+                    kravtidspunkt = null,
+                    behandlingstype = BehandlingssammendragType.REVURDERING,
+                    status = BehandlingssammendragStatus.UNDER_BESLUTNING,
+                    saksbehandler = ObjectMother.saksbehandler().navIdent,
+                    beslutter = ObjectMother.beslutter().navIdent,
+                )
             }
         }
+    }
+
+    @Test
+    fun `henter åpne meldekortbehandlinger`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val (sakMedOpprettetMeldekortBehandling, opprettetMeldekortbehandling) = testDataHelper.persisterOpprettetManuellMeldekortBehandling()
+            val (sakMedMeldekortbehandlingTilBeslutning, meldekortbehandlingTilBeslutning) = testDataHelper.persisterManuellMeldekortBehandlingTilBeslutning()
+            testDataHelper.persisterIverksattMeldekortbehandling()
+
+            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+
+            totalAntall shouldBe 2
+            actual.size shouldBe 2
+            testDataHelper.verifiserViHar3MeldekortBehandlinger()
+
+            actual.let {
+                it.first() shouldBe Behandlingssammendrag(
+                    sakId = sakMedOpprettetMeldekortBehandling.id,
+                    fnr = sakMedOpprettetMeldekortBehandling.fnr,
+                    saksnummer = sakMedOpprettetMeldekortBehandling.saksnummer,
+                    startet = opprettetMeldekortbehandling.opprettet,
+                    kravtidspunkt = null,
+                    behandlingstype = BehandlingssammendragType.MELDEKORTBEHANDLING,
+                    status = BehandlingssammendragStatus.KLAR_TIL_UTFYLLING,
+                    saksbehandler = ObjectMother.saksbehandler().navIdent,
+                    beslutter = null,
+                )
+                it.last() shouldBe Behandlingssammendrag(
+                    sakId = sakMedMeldekortbehandlingTilBeslutning.id,
+                    fnr = sakMedMeldekortbehandlingTilBeslutning.fnr,
+                    saksnummer = sakMedMeldekortbehandlingTilBeslutning.saksnummer,
+                    startet = meldekortbehandlingTilBeslutning.opprettet,
+                    kravtidspunkt = null,
+                    behandlingstype = BehandlingssammendragType.MELDEKORTBEHANDLING,
+                    status = BehandlingssammendragStatus.KLAR_TIL_BESLUTNING,
+                    saksbehandler = ObjectMother.saksbehandler().navIdent,
+                    beslutter = null,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `henter mix av behandlingene`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            testDataHelper.persisterSakOgSøknad()
+            testDataHelper.persisterOpprettetSøknadsbehandling()
+            testDataHelper.persisterOpprettetRevurdering()
+            testDataHelper.persisterOpprettetManuellMeldekortBehandling()
+
+            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+
+            totalAntall shouldBe 4
+            actual.size shouldBe 4
+        }
+    }
+
+    @Test
+    fun `kan filtrere basert på behandlingstype`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            testDataHelper.persisterSakOgSøknad()
+            testDataHelper.persisterOpprettetSøknadsbehandling()
+            testDataHelper.persisterOpprettetRevurdering()
+            testDataHelper.persisterOpprettetManuellMeldekortBehandling()
+
+            val (actualSøknadsbehandlinger, totalAntallSøknadbehandlinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(behandlingstype = listOf(BehandlingssammendragType.SØKNADSBEHANDLING)),
+            )
+            val (actualRevurderinger, totalAntallRevurderinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(behandlingstype = listOf(BehandlingssammendragType.REVURDERING)),
+            )
+            val (actualMeldekortBehandlinger, totalAntallMeldekortbehandlinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(behandlingstype = listOf(BehandlingssammendragType.MELDEKORTBEHANDLING)),
+            )
+
+            actualSøknadsbehandlinger.size shouldBe 2
+            totalAntallSøknadbehandlinger shouldBe 2
+            actualRevurderinger.size shouldBe 1
+            totalAntallRevurderinger shouldBe 1
+            actualMeldekortBehandlinger.size shouldBe 1
+            totalAntallMeldekortbehandlinger shouldBe 1
+        }
+    }
+
+    @Test
+    fun `kan filtrere basert på status`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            testDataHelper.persisterSakOgSøknad()
+            testDataHelper.persisterOpprettetSøknadsbehandling()
+            testDataHelper.persisterKlarTilBeslutningSøknadsbehandling()
+            testDataHelper.persisterUnderBeslutningSøknadsbehandling()
+
+            testDataHelper.persisterOpprettetRevurdering()
+            testDataHelper.persisterRevurderingTilBeslutning()
+            testDataHelper.persisterRevurderingUnderBeslutning()
+
+            testDataHelper.persisterOpprettetManuellMeldekortBehandling()
+            testDataHelper.persisterManuellMeldekortBehandlingTilBeslutning()
+
+            val (actualKlarTilBehandling, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(status = listOf(BehandlingssammendragStatus.KLAR_TIL_BEHANDLING)),
+            )
+
+            val (actualKlarTilUtfylling, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(status = listOf(BehandlingssammendragStatus.KLAR_TIL_UTFYLLING)),
+            )
+
+            val (actualUnderBehandling, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(status = listOf(BehandlingssammendragStatus.UNDER_BEHANDLING)),
+            )
+
+            val (actualKlarTilBeslutning, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(status = listOf(BehandlingssammendragStatus.KLAR_TIL_BESLUTNING)),
+            )
+
+            val (actualUnderBeslutning, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(status = listOf(BehandlingssammendragStatus.UNDER_BESLUTNING)),
+            )
+
+            actualKlarTilBehandling.size shouldBe 1
+            actualUnderBehandling.size shouldBe 2
+            actualKlarTilBeslutning.size shouldBe 3
+            actualUnderBeslutning.size shouldBe 2
+            actualKlarTilUtfylling.size shouldBe 1
+        }
+    }
+
+    @Test
+    fun `kan filtrere basert på saksbehandler og beslutter`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            @Suppress("UNCHECKED_CAST")
+            val saksbehandler = Saksbehandler(
+                navIdent = "ocurreret",
+                brukernavn = "dissentiunt",
+                epost = "hac",
+                roller = Saksbehandlerroller(setOf(Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.BESLUTTER)),
+                scopes = Systembrukerroller(emptySet()) as GenerellSystembrukerroller<GenerellSystembrukerrolle>,
+                klientId = "persius",
+                klientnavn = "possim",
+            )
+            testDataHelper.persisterOpprettetSøknadsbehandling(saksbehandler = saksbehandler)
+            testDataHelper.persisterKlarTilBeslutningSøknadsbehandling()
+            testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = saksbehandler)
+
+            val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(saksbehandlere = listOf(saksbehandler.navIdent)),
+            )
+
+            totalAntall shouldBe 2
+            behandlingssamendrag.size shouldBe 2
+            behandlingssamendrag.let {
+                it.first().saksbehandler shouldBe saksbehandler.navIdent
+                it.first().beslutter shouldBe null
+
+                it.last().saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
+                it.last().beslutter shouldBe saksbehandler.navIdent
+            }
+        }
+    }
+
+    @Test
+    fun `kan sortere asc og desc`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val søknad = testDataHelper.persisterSakOgSøknad()
+            val (sak2, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
+
+            val (actualAsc, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+            val (actualDesc, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand(sortering = Sortering.DESC))
+
+            actualAsc.size shouldBe 2
+            actualAsc.let {
+                it.first().sakId shouldBe søknad.sakId
+                it.last().sakId shouldBe sak2.id
+            }
+
+            actualDesc.size shouldBe 2
+            actualDesc.let {
+                it.first().sakId shouldBe sak2.id
+                it.last().sakId shouldBe søknad.sakId
+            }
+        }
+    }
+}
+
+private fun TestDataHelper.verifiserViHar3MeldekortBehandlinger() {
+    sessionFactory.withSession { session ->
+        session.run(
+            queryOf("SELECT COUNT(*) FROM meldekortbehandling", emptyMap()).map {
+                it.int(1)
+            }.asSingle,
+        ) shouldBe 3
     }
 }

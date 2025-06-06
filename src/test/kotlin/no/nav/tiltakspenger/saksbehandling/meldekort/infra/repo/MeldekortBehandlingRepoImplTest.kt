@@ -62,7 +62,7 @@ class MeldekortBehandlingRepoImplTest {
                 ObjectMother.navkontor(),
                 ObjectMother.saksbehandler(),
                 fixedClock,
-            ).also { meldekortRepo.lagre(it, null) }
+            ).second.also { meldekortRepo.lagre(it, null) }
 
             val hentForMeldekortId2 =
                 testDataHelper.sessionFactory.withSession {
@@ -85,7 +85,7 @@ class MeldekortBehandlingRepoImplTest {
                     ObjectMother.navkontor(),
                     ObjectMother.saksbehandler(),
                     fixedClock,
-                )
+                ).second
 
                 val meldekortRepo = testDataHelper.meldekortRepo
 

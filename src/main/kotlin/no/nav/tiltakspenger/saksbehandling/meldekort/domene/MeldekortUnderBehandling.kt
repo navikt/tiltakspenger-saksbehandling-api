@@ -82,7 +82,10 @@ data class MeldekortUnderBehandling(
         )
         // TODO jah: I første omgang kjører vi simulering som best effort. Men dersom den feiler, er det viktig at vi nuller den ut. Også kan vi senere tvinge den på, evt. kunne ha et flagg som dropper kjøre simulering.
         val simuleringMedMetadata = simuler(oppdatertBehandling).getOrElse { null }
-        return Pair(oppdatertBehandling.copy(simulering = simuleringMedMetadata?.simulering), simuleringMedMetadata).right()
+        return Pair(
+            oppdatertBehandling.copy(simulering = simuleringMedMetadata?.simulering),
+            simuleringMedMetadata,
+        ).right()
     }
 
     suspend fun sendTilBeslutter(
@@ -329,7 +332,7 @@ fun Sak.opprettManuellMeldekortBehandling(
     navkontor: Navkontor,
     saksbehandler: Saksbehandler,
     clock: Clock,
-): MeldekortUnderBehandling {
+): Pair<Sak, MeldekortUnderBehandling> {
     validerOpprettMeldekortBehandling(kjedeId)
 
     val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
@@ -358,5 +361,7 @@ fun Sak.opprettManuellMeldekortBehandling(
         beregning = null,
         simulering = null,
         dager = meldeperiode.tilMeldekortDager(),
-    )
+    ).let {
+        this.leggTilMeldekortbehandling(it) to it
+    }
 }

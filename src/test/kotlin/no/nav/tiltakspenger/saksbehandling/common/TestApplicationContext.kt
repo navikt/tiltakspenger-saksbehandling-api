@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
-import no.nav.tiltakspenger.saksbehandling.benk.infra.repo.BenkOversiktFakeRepo
+import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkOversiktContext
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonIdGenerator
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForUtbetalingKlient
@@ -35,6 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortGateway
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeVedtaksbrevGateway
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiFakeGateway
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BenkOversiktFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeFakeRepo
@@ -96,6 +97,7 @@ class TestApplicationContext(
     private val journalførFakeVedtaksbrevGateway = JournalførFakeVedtaksbrevGateway(journalpostIdGenerator)
     private val dokdistFakeGateway = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
     private val meldekortApiGateway = MeldekortApiFakeGateway()
+    private val benkOversiktFakeRepo = BenkOversiktFakeRepo(søknadFakeRepo, behandlingFakeRepo, meldekortBehandlingFakeRepo)
 
     val jwtGenerator = JwtGenerator()
 
@@ -130,6 +132,7 @@ class TestApplicationContext(
         BenkOversiktFakeRepo(
             søknadFakeRepo = søknadFakeRepo,
             behandlingFakeRepo = behandlingFakeRepo,
+            meldekortBehandlingFakeRepo = meldekortBehandlingFakeRepo,
         )
     private val sakFakeRepo =
         SakFakeRepo(
@@ -244,6 +247,15 @@ class TestApplicationContext(
         ) {
             override val rammevedtakRepo = rammevedtakFakeRepo
             override val behandlingRepo = behandlingFakeRepo
+        }
+    }
+
+    override val benkOversiktContext by lazy {
+        object : BenkOversiktContext(
+            sessionFactory = sessionFactory,
+            tilgangsstyringService = tilgangsstyringFakeGateway,
+        ) {
+            override val benkOversiktRepo = benkOversiktFakeRepo
         }
     }
 

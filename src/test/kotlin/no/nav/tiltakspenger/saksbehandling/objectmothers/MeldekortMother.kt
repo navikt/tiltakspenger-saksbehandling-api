@@ -804,3 +804,22 @@ fun OppdaterMeldekortKommando.tilSendMeldekortTilBeslutterKommando(): SendMeldek
         correlationId = correlationId,
     )
 }
+
+fun saksbehandlerFyllerUtMeldeperiodeDager(meldeperiode: Meldeperiode): Dager {
+    return Dager(
+        dager = buildList {
+            val dagerFraPeriode = meldeperiode.periode.tilDager()
+            require(dagerFraPeriode.size == 14)
+            addAll(
+                dagerFraPeriode.take(5)
+                    .map { Dager.Dag(it, OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET) },
+            )
+            addAll(dagerFraPeriode.subList(5, 7).map { Dager.Dag(it, OppdaterMeldekortKommando.Status.IKKE_DELTATT) })
+            addAll(
+                dagerFraPeriode.subList(7, 12)
+                    .map { Dager.Dag(it, OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET) },
+            )
+            addAll(dagerFraPeriode.subList(12, 14).map { Dager.Dag(it, OppdaterMeldekortKommando.Status.IKKE_DELTATT) })
+        }.toNonEmptyListOrNull()!!,
+    )
+}

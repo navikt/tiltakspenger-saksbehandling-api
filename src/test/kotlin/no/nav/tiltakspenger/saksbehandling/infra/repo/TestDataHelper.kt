@@ -20,13 +20,12 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.reposit
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingsvedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
-import java.time.Clock
 import javax.sql.DataSource
 
 internal class TestDataHelper(
     private val dataSource: DataSource,
     val saksnummerGenerator: TestSaksnummerGenerator,
-    val clock: Clock = TikkendeKlokke(),
+    val clock: TikkendeKlokke = TikkendeKlokke(),
 ) {
     private val log = KotlinLogging.logger {}
     private val sessionCounter = SessionCounter(log)
@@ -36,7 +35,6 @@ internal class TestDataHelper(
         no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo(sessionFactory)
     val vedtakRepo = RammevedtakPostgresRepo(sessionFactory)
     val sakRepo = SakPostgresRepo(sessionFactory, saksnummerGenerator, clock)
-    val saksoversiktRepo = BenkOversiktPostgresRepo(sessionFactory)
     val statistikkSakRepo = StatistikkSakPostgresRepo(sessionFactory)
     val statistikkStønadRepo = StatistikkStønadPostgresRepo(sessionFactory, clock)
     val meldekortRepo = MeldekortBehandlingPostgresRepo(sessionFactory)
@@ -47,6 +45,7 @@ internal class TestDataHelper(
     val tiltaksdeltakerKafkaRepository = TiltaksdeltakerKafkaRepository(sessionFactory)
     val personhendelseRepository = PersonhendelseRepository(sessionFactory)
     val identhendelseRepository = IdenthendelseRepository(sessionFactory)
+    val benkOversiktRepo = BenkOversiktPostgresRepo(sessionFactory)
 }
 
 private val dbManager = TestDatabaseManager()

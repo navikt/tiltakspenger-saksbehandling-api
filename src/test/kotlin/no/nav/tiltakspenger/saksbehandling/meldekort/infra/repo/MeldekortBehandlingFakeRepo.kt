@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetada
  */
 class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
     private val data = Atomic(mutableMapOf<MeldekortId, MeldekortBehandling>())
+    val alle get() = data.get().values.toList()
 
     override fun lagre(
         meldekortBehandling: MeldekortBehandling,

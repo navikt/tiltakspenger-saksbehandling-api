@@ -38,7 +38,7 @@ fun Route.routes(
     )
     hentBenkRoute(
         tokenService = applicationContext.tokenService,
-        sakService = applicationContext.sakContext.sakService,
+        benkOversiktService = applicationContext.benkOversiktContext.benkOversiktService,
     )
     hentPersonRoute(applicationContext.tokenService, applicationContext.sakContext.sakService, applicationContext.personContext.auditService)
     sakRoutes(
