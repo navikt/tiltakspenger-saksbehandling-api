@@ -41,7 +41,7 @@ class StartSøknadsbehandlingService(
     ): Either<KanIkkeStarteSøknadsbehandling, Søknadsbehandling> {
         krevSaksbehandlerRolle(saksbehandler)
         // Denne sjekker tilgang til person og rollene SAKSBEHANDLER eller BESLUTTER.
-        val sak = sakService.hentForSakIdEllerKast(sakId, saksbehandler, correlationId)
+        val sak = sakService.sjekkTilgangOgHentForSakId(sakId, saksbehandler, correlationId)
 
         val hentSaksopplysninger: suspend (Periode) -> Saksopplysninger = { saksopplysningsperiode: Periode ->
             oppdaterSaksopplysningerService.hentSaksopplysningerFraRegistre(
