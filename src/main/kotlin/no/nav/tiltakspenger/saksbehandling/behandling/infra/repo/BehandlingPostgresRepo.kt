@@ -69,7 +69,7 @@ class BehandlingPostgresRepo(
         }
     }
 
-    override fun hentForSøknadId(søknadId: SøknadId): Behandling? =
+    override fun hentForSøknadId(søknadId: SøknadId): List<Behandling> =
         sessionFactory.withSession { session ->
             session.run(
                 // TODO gå via soknad_id
@@ -81,7 +81,7 @@ class BehandlingPostgresRepo(
                     where b.soknad_id = :id
                     """.trimIndent(),
                     "id" to søknadId.toString(),
-                ).map { it.toBehandling(session) }.asSingle,
+                ).map { it.toBehandling(session) }.asList,
             )
         }
 

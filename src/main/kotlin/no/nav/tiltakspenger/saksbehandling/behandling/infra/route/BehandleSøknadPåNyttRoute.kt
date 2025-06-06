@@ -43,7 +43,7 @@ fun Route.behandleSøknadPåNyttRoute(
                     ).fold(
                         {
                             when (it) {
-                                is KanIkkeBehandleSøknadPåNytt.FantIngenBehandlingForSøknad -> call.respond404NotFound(
+                                is KanIkkeBehandleSøknadPåNytt.FantIngenBehandlingerForSøknad -> call.respond404NotFound(
                                     Standardfeil.fantIkkeBehandling(),
                                 )
 

@@ -200,7 +200,7 @@ sealed interface KanIkkeStarteSøknadsbehandling {
 }
 
 sealed interface KanIkkeBehandleSøknadPåNytt {
-    class FantIngenBehandlingForSøknad(
+    class FantIngenBehandlingerForSøknad(
         val søknadId: SøknadId,
     ) : KanIkkeBehandleSøknadPåNytt
 
