@@ -43,6 +43,11 @@ class AvbrytSøknadOgBehandlingService(
         sessionFactory.withTransactionContext { tx ->
             avbruttSøknad?.let { søknadService.lagreAvbruttSøknad(it, tx) }
             avbruttBehandling?.let { behandlingService.lagreBehandling(it, tx) }
+            sakService.oppdaterSkalSendesTilMeldekortApi(
+                sakId = sak.id,
+                skalSendesTilMeldekortApi = true,
+                sessionContext = tx,
+            )
             statistikk?.let { statistikkSakRepo.lagre(it, tx) }
         }.also {
             return oppdatertSak.right()

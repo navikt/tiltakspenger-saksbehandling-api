@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.toAttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toSøknadDTO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toTiltaksdeltakelsePeriodeDTO
 
@@ -82,7 +83,7 @@ fun Søknadsbehandling.toDTO(): BehandlingDTO {
     return when (utfall) {
         is SøknadsbehandlingResultat.Innvilgelse -> utenUtfallDTO.copy(
             barnetillegg = utfall.barnetillegg?.toBarnetilleggDTO(),
-            valgteTiltaksdeltakelser = utfall.valgteTiltaksdeltakelser.periodisering.perioderMedVerdi.map { it.toTiltaksdeltakelsePeriodeDTO() },
+            valgteTiltaksdeltakelser = utfall.valgteTiltaksdeltakelser.tilDTO(),
         )
 
         is SøknadsbehandlingResultat.Avslag -> utenUtfallDTO.copy(
@@ -109,7 +110,7 @@ fun Revurdering.toDTO(): BehandlingDTO {
         begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
         avbrutt = this.avbrutt?.toAvbruttDTO(),
         iverksattTidspunkt = this.iverksattTidspunkt?.toString(),
-        utfall = this.utfall?.tilUtfallDTO(),
+        utfall = this.utfall.tilUtfallDTO(),
         valgtHjemmelHarIkkeRettighet = null,
         valgteTiltaksdeltakelser = null,
         antallDagerPerMeldeperiode = null,
@@ -125,8 +126,14 @@ fun Revurdering.toDTO(): BehandlingDTO {
             valgtHjemmelHarIkkeRettighet = utfall.valgtHjemmel.toDTO(this.behandlingstype),
         )
 
-        is RevurderingResultat.Innvilgelse -> TODO()
-
-        null -> utenUtfallDTO
+        is RevurderingResultat.Innvilgelse -> utenUtfallDTO.copy(
+            antallDagerPerMeldeperiode = utfall.antallDagerPerMeldeperiode,
+            barnetillegg = utfall.barnetillegg?.toBarnetilleggDTO(),
+            valgteTiltaksdeltakelser = utfall.valgteTiltaksdeltakelser.tilDTO(),
+        )
     }
+}
+
+private fun ValgteTiltaksdeltakelser.tilDTO(): List<TiltaksdeltakelsePeriodeDTO> {
+    return periodisering.perioderMedVerdi.map { it.toTiltaksdeltakelsePeriodeDTO() }
 }

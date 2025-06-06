@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.sammenlign
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortGateway
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
@@ -21,7 +21,7 @@ import java.time.Clock
 class JournalførUtbetalingsvedtakService(
     private val journalførMeldekortGateway: JournalførMeldekortGateway,
     private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
-    private val genererUtbetalingsvedtakGateway: GenererUtbetalingsvedtakGateway,
+    private val genererVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient,
     private val navIdentClient: NavIdentClient,
     private val sakRepo: SakRepo,
     private val clock: Clock,
@@ -53,7 +53,7 @@ class JournalførUtbetalingsvedtakService(
                         }
 
                     val pdfOgJson =
-                        genererUtbetalingsvedtakGateway.genererUtbetalingsvedtak(
+                        genererVedtaksbrevForUtbetalingKlient.genererUtbetalingsvedtak(
                             utbetalingsvedtak,
                             sammenligning = sammenligning,
                             hentSaksbehandlersNavn = hentSaksbehandlersNavn,

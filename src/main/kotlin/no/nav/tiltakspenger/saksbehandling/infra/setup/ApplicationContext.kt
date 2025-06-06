@@ -215,7 +215,7 @@ open class ApplicationContext(
             clock,
         )
     }
-    open val søknadContext by lazy { SøknadContext(sessionFactory, oppgaveGateway) }
+    open val søknadContext by lazy { SøknadContext(sessionFactory, oppgaveGateway, sakContext.sakService) }
     open val tiltakContext by lazy { TiltaksdeltagelseContext(entraIdSystemtokenClient) }
     open val profile by lazy { Configuration.applicationProfile() }
     open val sakContext by lazy {
@@ -231,7 +231,7 @@ open class ApplicationContext(
     open val utbetalingContext by lazy {
         UtbetalingContext(
             sessionFactory = sessionFactory,
-            genererUtbetalingsvedtakGateway = dokumentContext.genererUtbetalingsvedtakGateway,
+            genererVedtaksbrevForUtbetalingKlient = dokumentContext.genererVedtaksbrevForUtbetalingKlient,
             journalførMeldekortGateway = dokumentContext.journalførMeldekortGateway,
             entraIdSystemtokenClient = entraIdSystemtokenClient,
             navIdentClient = personContext.navIdentClient,
@@ -264,7 +264,7 @@ open class ApplicationContext(
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             journalførVedtaksbrevGateway = dokumentContext.journalførVedtaksbrevGateway,
-            genererVedtaksbrevGateway = dokumentContext.genererInnvilgelsesvedtaksbrevGateway,
+            genererVedtaksbrevGateway = dokumentContext.genererVedtaksbrevForInnvilgelseKlient,
             genererAvslagsvedtaksbrevGateway = dokumentContext.genererAvslagsvedtaksbrevGateway,
             genererStansvedtaksbrevGateway = dokumentContext.genererStansvedtaksbrevGateway,
             tilgangsstyringService = personContext.tilgangsstyringService,

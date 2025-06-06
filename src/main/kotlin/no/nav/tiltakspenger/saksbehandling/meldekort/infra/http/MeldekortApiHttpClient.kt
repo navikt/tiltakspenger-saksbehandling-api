@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.meldekort.SakTilMeldekortApiDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.FeilVedSendingTilMeldekortApi
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiHttpClientGateway
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.net.URI
 import java.net.http.HttpRequest
@@ -19,7 +19,7 @@ import java.net.http.HttpResponse
 class MeldekortApiHttpClient(
     baseUrl: String,
     private val getToken: suspend () -> AccessToken,
-) : MeldekortApiHttpClientGateway {
+) : MeldekortApiKlient {
     private val client = java.net.http.HttpClient
         .newBuilder()
         .followRedirects(java.net.http.HttpClient.Redirect.NEVER)
@@ -89,6 +89,7 @@ private fun Sak.tilMeldekortApiDTO(): SakTilMeldekortApiDTO {
         fnr = this.fnr.verdi,
         sakId = this.id.toString(),
         saksnummer = this.saksnummer.toString(),
-        meldeperioder = this.meldeperiodeKjeder.meldeperioder.map { it.tilMeldekortApiDTO() },
+        meldeperioder = this.meldeperiodeKjeder.sisteMeldeperiodePerKjede.map { it.tilMeldekortApiDTO() },
+        harSoknadUnderBehandling = this.harSoknadUnderBehandling(),
     )
 }

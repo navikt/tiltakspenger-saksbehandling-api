@@ -3,14 +3,14 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiHttpClientGateway
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
 
 /**
  * Sender meldeperioder som er klare for utfylling til meldekort-api, som serverer videre til bruker
  */
 class SendTilMeldekortApiService(
     private val sakRepo: SakRepo,
-    private val meldekortApiHttpClient: MeldekortApiHttpClientGateway,
+    private val meldekortApiHttpClient: MeldekortApiKlient,
 ) {
     private val logger = KotlinLogging.logger { }
 

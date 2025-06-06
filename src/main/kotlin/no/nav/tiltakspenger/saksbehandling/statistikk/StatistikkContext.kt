@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakRepoImpl
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadPostgresRepo
 import java.time.Clock
@@ -16,7 +16,7 @@ open class StatistikkContext(
     gitHash: String,
     clock: Clock,
 ) {
-    open val statistikkSakRepo: StatistikkSakRepo by lazy { StatistikkSakRepoImpl(sessionFactory as PostgresSessionFactory) }
+    open val statistikkSakRepo: StatistikkSakRepo by lazy { StatistikkSakPostgresRepo(sessionFactory as PostgresSessionFactory) }
     open val statistikkStønadRepo: StatistikkStønadRepo by lazy { StatistikkStønadPostgresRepo(sessionFactory as PostgresSessionFactory, clock) }
 
     val statistikkSakService: StatistikkSakService by lazy {

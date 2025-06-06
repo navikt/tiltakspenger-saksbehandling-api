@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingGateway
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import java.time.Clock
 import java.time.LocalDateTime
@@ -18,7 +18,7 @@ import java.time.temporal.ChronoUnit
  */
 class OppdaterUtbetalingsstatusService(
     private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
-    private val utbetalingGateway: UtbetalingGateway,
+    private val utbetalingsklient: Utbetalingsklient,
     private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger { }
@@ -37,7 +37,7 @@ class OppdaterUtbetalingsstatusService(
 
     private suspend fun oppdaterEnkel(utbetaling: UtbetalingDetSkalHentesStatusFor) {
         Either.catch {
-            utbetalingGateway.hentUtbetalingsstatus(utbetaling).onRight {
+            utbetalingsklient.hentUtbetalingsstatus(utbetaling).onRight {
                 utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
                     utbetaling.vedtakId,
                     it,

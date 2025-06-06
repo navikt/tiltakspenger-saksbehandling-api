@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 val jvmVersion = JvmTarget.JVM_21
 val kotlinxCoroutinesVersion = "1.10.2"
 val kotestVersion = "5.9.1"
-val felleslibVersion = "0.0.476"
+val felleslibVersion = "0.0.482"
 val mockkVersion = "1.14.2"
 val ktorVersion = "3.1.3"
 val testContainersVersion = "1.21.1"
@@ -117,7 +117,7 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
     // need quarkus-junit-4-mock because of https://github.com/testcontainers/testcontainers-java/issues/970
-    testImplementation("io.quarkus:quarkus-junit4-mock:3.23.0")
+    testImplementation("io.quarkus:quarkus-junit4-mock:3.23.2")
     testImplementation("io.github.serpro69:kotlin-faker:1.16.0")
     testApi("com.github.navikt.tiltakspenger-libs:ktor-test-common:$felleslibVersion")
     testApi("com.github.navikt.tiltakspenger-libs:auth-test-core:$felleslibVersion")

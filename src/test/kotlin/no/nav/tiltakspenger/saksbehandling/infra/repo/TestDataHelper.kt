@@ -5,17 +5,17 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.saksbehandling.benk.infra.repo.BenkOversiktPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.common.TestSaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseRepository
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseRepository
+import no.nav.tiltakspenger.saksbehandling.sak.TestSaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakRepoImpl
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.PostgresSøknadRepo
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingsvedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
@@ -30,12 +30,12 @@ internal class TestDataHelper(
     private val log = KotlinLogging.logger {}
     private val sessionCounter = SessionCounter(log)
     val sessionFactory = PostgresSessionFactory(dataSource, sessionCounter)
-    val søknadRepo = PostgresSøknadRepo(sessionFactory)
+    val søknadRepo = SøknadPostgresRepo(sessionFactory)
     val behandlingRepo =
         no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo(sessionFactory)
     val vedtakRepo = RammevedtakPostgresRepo(sessionFactory)
     val sakRepo = SakPostgresRepo(sessionFactory, saksnummerGenerator, clock)
-    val statistikkSakRepo = StatistikkSakRepoImpl(sessionFactory)
+    val statistikkSakRepo = StatistikkSakPostgresRepo(sessionFactory)
     val statistikkStønadRepo = StatistikkStønadPostgresRepo(sessionFactory, clock)
     val meldekortRepo = MeldekortBehandlingPostgresRepo(sessionFactory)
     val meldeperiodeRepo = MeldeperiodePostgresRepo(sessionFactory)

@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingInnvilge
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import java.time.LocalDate
 
 data class RevurderingTilBeslutningDTO(
@@ -29,6 +30,7 @@ data class RevurderingTilBeslutningDTO(
 
     data class Innvilgelse(
         val innvilgelsesperiode: PeriodeDTO,
+        val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
     )
 
     fun tilKommando(
@@ -53,6 +55,7 @@ data class RevurderingTilBeslutningDTO(
                     sisteDagSomGirRett = null,
                 )
             }
+
             RevurderingTypeDTO.INNVILGELSE -> {
                 requireNotNull(innvilgelse)
 
@@ -63,7 +66,10 @@ data class RevurderingTilBeslutningDTO(
                     correlationId = correlationId,
                     begrunnelse = BegrunnelseVilkårsvurdering(saniter(begrunnelse)),
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
-                    nyInnvilgelsesperiode = innvilgelse.innvilgelsesperiode.toDomain(),
+                    innvilgelsesperiode = innvilgelse.innvilgelsesperiode.toDomain(),
+                    tiltaksdeltakelser = innvilgelse.valgteTiltaksdeltakelser.map {
+                        Pair(it.periode.toDomain(), it.eksternDeltagelseId)
+                    },
                 )
             }
         }
@@ -79,4 +85,9 @@ enum class RevurderingTypeDTO {
         STANS -> RevurderingType.STANS
         INNVILGELSE -> RevurderingType.INNVILGELSE
     }
+}
+
+fun RevurderingType.tilDTO() = when (this) {
+    RevurderingType.STANS -> RevurderingTypeDTO.STANS
+    RevurderingType.INNVILGELSE -> RevurderingTypeDTO.INNVILGELSE
 }

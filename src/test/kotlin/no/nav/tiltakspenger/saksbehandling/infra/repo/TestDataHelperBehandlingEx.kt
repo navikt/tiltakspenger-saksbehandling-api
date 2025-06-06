@@ -29,7 +29,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepoTest.Companion.random
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -41,6 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlin.random.Random
 
 internal fun TestDataHelper.persisterOpprettetSøknadsbehandling(
     sakId: SakId = SakId.random(),
@@ -48,7 +48,7 @@ internal fun TestDataHelper.persisterOpprettetSøknadsbehandling(
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
     deltakelseTom: LocalDate = 31.mars(2023),
-    journalpostId: String = random.nextInt().toString(),
+    journalpostId: String = Random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
     id: SøknadId = Søknad.randomId(),
@@ -108,7 +108,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
     deltakelseTom: LocalDate = 31.mars(2023),
-    journalpostId: String = random.nextInt().toString(),
+    journalpostId: String = Random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
     sak: Sak = ObjectMother.nySak(
@@ -192,7 +192,7 @@ internal fun TestDataHelper.persisterUnderBeslutningSøknadsbehandling(
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
     deltakelseTom: LocalDate = 31.mars(2023),
-    journalpostId: String = random.nextInt().toString(),
+    journalpostId: String = Random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
     sak: Sak = ObjectMother.nySak(
@@ -256,7 +256,7 @@ internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
     deltakelseTom: LocalDate = 31.mars(2023),
-    journalpostId: String = random.nextInt().toString(),
+    journalpostId: String = Random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     avbruttTidspunkt: LocalDateTime = førsteNovember24,
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
@@ -335,7 +335,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
     deltakelseTom: LocalDate = 31.mars(2023),
-    journalpostId: String = random.nextInt().toString(),
+    journalpostId: String = Random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
@@ -409,7 +409,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
     deltakelseTom: LocalDate = 31.mars(2023),
-    journalpostId: String = random.nextInt().toString(),
+    journalpostId: String = Random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
@@ -473,7 +473,7 @@ internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = ObjectMother.virkningsperiode().fraOgMed,
     deltakelseTom: LocalDate = ObjectMother.virkningsperiode().tilOgMed,
-    journalpostId: String = random.nextInt().toString(),
+    journalpostId: String = Random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
@@ -541,7 +541,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = ObjectMother.virkningsperiode().fraOgMed,
     deltakelseTom: LocalDate = ObjectMother.virkningsperiode().tilOgMed,
-    journalpostId: String = random.nextInt().toString(),
+    journalpostId: String = Random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
@@ -603,7 +603,7 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = ObjectMother.virkningsperiode().fraOgMed,
     deltakelseTom: LocalDate = ObjectMother.virkningsperiode().tilOgMed,
-    journalpostId: String = random.nextInt().toString(),
+    journalpostId: String = Random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
@@ -671,7 +671,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 2.januar(2023),
     deltakelseTom: LocalDate = 31.mars(2023),
-    journalpostId: String = random.nextInt().toString(),
+    journalpostId: String = Random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
@@ -715,7 +715,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         sak = sak,
         clock = clock,
     )
-    val meldeperioder = sak.meldeperiodeKjeder.meldeperioder
+    val meldeperioder = sak.meldeperiodeKjeder.sisteMeldeperiodePerKjede
     val behandletMeldekort = ObjectMother.meldekortBehandletManuelt(
         sakId = sak.id,
         fnr = sak.fnr,
@@ -732,7 +732,7 @@ internal fun TestDataHelper.persisterRammevedtakAvslag(
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 2.januar(2023),
     deltakelseTom: LocalDate = 31.mars(2023),
-    journalpostId: String = random.nextInt().toString(),
+    journalpostId: String = Random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),

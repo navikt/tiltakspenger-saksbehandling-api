@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
@@ -62,6 +63,10 @@ data class Sak(
 
     val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett?> by lazy { vedtaksliste.tiltakstypeperioder }
 
+    fun hentSisteInnvilgetBehandling(): Behandling? {
+        return this.vedtaksliste.tidslinje.findLast { it.verdi?.behandling?.utfall is BehandlingResultat.Innvilgelse }?.verdi?.behandling
+    }
+
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
         return meldekortBehandlinger.hentMeldekortBehandling(meldekortId)
     }
@@ -77,6 +82,16 @@ data class Sak(
     fun hentBehandling(behandlingId: BehandlingId): Behandling? = behandlinger.hentBehandling(behandlingId)
 
     fun sisteUtbetalteMeldekortDag(): LocalDate? = meldekortBehandlinger.sisteUtbetalteMeldekortDag
+
+    fun harSoknadUnderBehandling(): Boolean {
+        val avsluttedeSoknadsbehandlinger = behandlinger
+            .filterIsInstance<Søknadsbehandling>()
+            .filter { it.erAvsluttet }
+        val apneSoknader = soknader.filterNot { it.erAvbrutt }
+        return apneSoknader.any { soknad ->
+            avsluttedeSoknadsbehandlinger.find { it.søknad.id == soknad.id } == null
+        }
+    }
 
     fun førsteLovligeStansdato(): LocalDate? {
         val innvilgelsesperioder = this.vedtaksliste.innvilgelsesperioder

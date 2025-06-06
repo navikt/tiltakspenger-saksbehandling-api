@@ -13,6 +13,7 @@ private enum class SøknadsbehandlingUtfallDb {
 
 private enum class RevurderingUtfallDb {
     STANS,
+    REVURDERING_INNVILGELSE,
 }
 
 fun String.tilSøknadsbehandlingUtfallType(): SøknadsbehandlingType = when (SøknadsbehandlingUtfallDb.valueOf(this)) {
@@ -22,11 +23,12 @@ fun String.tilSøknadsbehandlingUtfallType(): SøknadsbehandlingType = when (Sø
 
 fun String.tilRevurderingUtfallType(): RevurderingType = when (RevurderingUtfallDb.valueOf(this)) {
     RevurderingUtfallDb.STANS -> RevurderingType.STANS
+    RevurderingUtfallDb.REVURDERING_INNVILGELSE -> RevurderingType.INNVILGELSE
 }
 
 fun BehandlingResultat.toDb(): String = when (this) {
     is RevurderingResultat.Stans -> RevurderingUtfallDb.STANS
-    is RevurderingResultat.Innvilgelse -> TODO()
+    is RevurderingResultat.Innvilgelse -> RevurderingUtfallDb.REVURDERING_INNVILGELSE
     is SøknadsbehandlingResultat.Avslag -> SøknadsbehandlingUtfallDb.AVSLAG
     is SøknadsbehandlingResultat.Innvilgelse -> SøknadsbehandlingUtfallDb.INNVILGELSE
 }.toString()

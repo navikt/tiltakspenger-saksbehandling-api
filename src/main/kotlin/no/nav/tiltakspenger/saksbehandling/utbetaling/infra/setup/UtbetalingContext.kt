@@ -5,13 +5,13 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererUtbetalingsvedtakGateway
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortGateway
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpClient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingsvedtakPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingGateway
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.JournalførUtbetalingsvedtakService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsstatusService
@@ -21,7 +21,7 @@ import java.time.Clock
 
 open class UtbetalingContext(
     sessionFactory: SessionFactory,
-    genererUtbetalingsvedtakGateway: GenererUtbetalingsvedtakGateway,
+    genererVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient,
     journalførMeldekortGateway: JournalførMeldekortGateway,
     navIdentClient: NavIdentClient,
     entraIdSystemtokenClient: EntraIdSystemtokenClient,
@@ -29,8 +29,8 @@ open class UtbetalingContext(
     clock: Clock,
     navkontorService: NavkontorService,
 ) {
-    open val utbetalingGateway: UtbetalingGateway by lazy {
-        UtbetalingHttpClient(
+    open val utbetalingsklient: Utbetalingsklient by lazy {
+        UtbetalingHttpKlient(
             baseUrl = Configuration.utbetalingUrl,
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.utbetalingScope) },
         )
@@ -44,13 +44,13 @@ open class UtbetalingContext(
         SimulerService(
             utbetalingsvedtakRepo = utbetalingsvedtakRepo,
             navkontorService = navkontorService,
-            utbetalingsklient = utbetalingGateway,
+            utbetalingsklient = utbetalingsklient,
         )
     }
     val sendUtbetalingerService: SendUtbetalingerService by lazy {
         SendUtbetalingerService(
             utbetalingsvedtakRepo = utbetalingsvedtakRepo,
-            utbetalingsklient = utbetalingGateway,
+            utbetalingsklient = utbetalingsklient,
             clock = clock,
         )
     }
@@ -58,7 +58,7 @@ open class UtbetalingContext(
         JournalførUtbetalingsvedtakService(
             utbetalingsvedtakRepo = utbetalingsvedtakRepo,
             journalførMeldekortGateway = journalførMeldekortGateway,
-            genererUtbetalingsvedtakGateway = genererUtbetalingsvedtakGateway,
+            genererVedtaksbrevForUtbetalingKlient = genererVedtaksbrevForUtbetalingKlient,
             navIdentClient = navIdentClient,
             sakRepo = sakRepo,
             clock = clock,
@@ -68,7 +68,7 @@ open class UtbetalingContext(
     val oppdaterUtbetalingsstatusService by lazy {
         OppdaterUtbetalingsstatusService(
             utbetalingsvedtakRepo = utbetalingsvedtakRepo,
-            utbetalingGateway = utbetalingGateway,
+            utbetalingsklient = utbetalingsklient,
             clock = clock,
         )
     }

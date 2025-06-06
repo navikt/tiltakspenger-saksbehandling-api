@@ -8,11 +8,11 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingGateway
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 
 class SimulerService(
-    private val utbetalingsklient: UtbetalingGateway,
+    private val utbetalingsklient: Utbetalingsklient,
     private val navkontorService: NavkontorService,
     private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
 ) {

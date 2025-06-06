@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksett
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettSøknadsbehandling
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
@@ -37,7 +37,7 @@ class OvertaMeldekortBehandlingRouteTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, _, _) = this.iverksett(tac)
+                val (sak, _, _) = this.iverksettSøknadsbehandling(tac)
                 val saksbehandlerIdent = "Z12345"
                 val meldekortBehandling = ObjectMother.meldekortUnderBehandling(
                     sakId = sak.id,
@@ -68,7 +68,7 @@ class OvertaMeldekortBehandlingRouteTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, _, _) = this.iverksett(tac)
+                val (sak, _, _) = this.iverksettSøknadsbehandling(tac)
                 val beslutterIdent = "Z12345"
                 val meldekortBehandling = ObjectMother.meldekortBehandletManuelt(
                     sakId = sak.id,

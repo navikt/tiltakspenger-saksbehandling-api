@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.sak
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
@@ -16,7 +15,6 @@ import java.time.Clock
 class StartRevurderingService(
     private val sakService: SakService,
     private val behandlingRepo: BehandlingRepo,
-    private val tilgangsstyringService: TilgangsstyringService,
     private val saksopplysningerService: OppdaterSaksopplysningerService,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
