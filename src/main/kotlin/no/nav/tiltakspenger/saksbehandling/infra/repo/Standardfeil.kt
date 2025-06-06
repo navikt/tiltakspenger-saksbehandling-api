@@ -14,6 +14,11 @@ object Standardfeil {
         "fant_ikke_sak",
     )
 
+    fun fantIkkeBehandling(): ErrorJson = ErrorJson(
+        "Fant ikke behandling",
+        "fant_ikke_behandling",
+    )
+
     fun måVæreBeslutter(): ErrorJson = ErrorJson(
         "Må ha beslutter-rolle.",
         "må_ha_beslutter_rolle",
@@ -64,5 +69,10 @@ object Standardfeil {
     fun ikkeFunnet(): ErrorJson = ErrorJson(
         "Fant ikke ressursen",
         "ikke_funnet",
+    )
+
+    fun ikkeImplementert(melding: String): ErrorJson = ErrorJson(
+        melding,
+        "ikke_implementert",
     )
 }

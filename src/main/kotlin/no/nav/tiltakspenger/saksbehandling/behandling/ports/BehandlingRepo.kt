@@ -23,7 +23,7 @@ interface BehandlingRepo {
 
     fun hentAlleForFnr(fnr: Fnr): List<Behandling>
 
-    fun hentForSøknadId(søknadId: SøknadId): Behandling?
+    fun hentForSøknadId(søknadId: SøknadId): List<Behandling>
 
     fun hentSøknadsbehandlingerTilDatadeling(limit: Int = 10): List<Behandling>
 

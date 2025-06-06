@@ -29,6 +29,12 @@ object MetricRegister {
         .withoutExemplars()
         .register()
 
+    val SØKNAD_BEHANDLET_PÅ_NYTT: Counter = Counter.builder()
+        .name("${METRICS_NS}_soknad_behandlet_paa_nytt_count")
+        .help("Antall søknader som er behandlet på nytt")
+        .withoutExemplars()
+        .register()
+
     val IVERKSATT_BEHANDLING: Counter = Counter.builder()
         .name("${METRICS_NS}_iverksatt_behandling_count")
         .help("Antall iverksatte behandlinger")
