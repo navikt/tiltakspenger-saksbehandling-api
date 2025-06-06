@@ -87,9 +87,13 @@ data class Sak(
         val avsluttedeSoknadsbehandlinger = behandlinger
             .filterIsInstance<Søknadsbehandling>()
             .filter { it.erAvsluttet }
+        val apneSoknadsbehandlinger = behandlinger
+            .filterIsInstance<Søknadsbehandling>()
+            .filterNot { it.erAvsluttet }
         val apneSoknader = soknader.filterNot { it.erAvbrutt }
         return apneSoknader.any { soknad ->
-            avsluttedeSoknadsbehandlinger.find { it.søknad.id == soknad.id } == null
+            avsluttedeSoknadsbehandlinger.find { it.søknad.id == soknad.id } == null ||
+                apneSoknadsbehandlinger.find { it.søknad.id == soknad.id } != null
         }
     }
 
