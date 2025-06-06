@@ -21,12 +21,15 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendSøknadsbehandlingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
+/**
+ * Gjelder for både søknadsbehandling og revurdering.
+ */
 class LeggTilbakeBehandlingRouteTest {
     @Test
     fun `saksbehandler kan legge tilbake behandling`() {
@@ -37,7 +40,7 @@ class LeggTilbakeBehandlingRouteTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, _, behandling) = startBehandling(tac)
+                val (sak, _, behandling) = startSøknadsbehandling(tac)
                 val behandlingId = behandling.id
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING

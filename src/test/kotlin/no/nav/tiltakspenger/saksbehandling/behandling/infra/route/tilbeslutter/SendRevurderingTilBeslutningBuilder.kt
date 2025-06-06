@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
+package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter
 
 import arrow.core.Tuple4
 import io.kotest.assertions.withClue
@@ -21,11 +21,11 @@ import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.oppdaterBegrunnelseForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.oppdaterFritekstForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBegrunnelseForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterFritekstForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import org.intellij.lang.annotations.Language
@@ -38,7 +38,7 @@ interface SendRevurderingTilBeslutningBuilder {
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
-        val (sak, søknad, behandling) = startBehandling(tac)
+        val (sak, søknad, behandling) = startRevurderingStans(tac)
         val sakId = sak.id
         val behandlingId = behandling.id
         oppdaterFritekstForBehandlingId(tac, sakId, behandlingId, saksbehandler)
@@ -99,9 +99,9 @@ interface SendRevurderingTilBeslutningBuilder {
         valgteHjemler: List<String>,
     ): String {
         defaultRequest(
-            HttpMethod.Post,
+            HttpMethod.Companion.Post,
             url {
-                protocol = URLProtocol.HTTPS
+                protocol = URLProtocol.Companion.HTTPS
                 path("/sak/$sakId/revurdering/$behandlingId/sendtilbeslutning")
             },
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(
@@ -131,7 +131,7 @@ interface SendRevurderingTilBeslutningBuilder {
                     Body: $bodyAsText
                 """.trimMargin(),
             ) {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.Companion.OK
             }
             return bodyAsText
         }
@@ -149,9 +149,9 @@ interface SendRevurderingTilBeslutningBuilder {
         innvilgelsesperiode: Periode,
     ): String {
         defaultRequest(
-            HttpMethod.Post,
+            HttpMethod.Companion.Post,
             url {
-                protocol = URLProtocol.HTTPS
+                protocol = URLProtocol.Companion.HTTPS
                 path("/sak/$sakId/revurdering/$behandlingId/sendtilbeslutning")
             },
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(
@@ -192,7 +192,7 @@ interface SendRevurderingTilBeslutningBuilder {
                     Body: $bodyAsText
                 """.trimMargin(),
             ) {
-                status shouldBe HttpStatusCode.OK
+                status shouldBe HttpStatusCode.Companion.OK
             }
             return bodyAsText
         }

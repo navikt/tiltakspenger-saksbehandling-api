@@ -6,14 +6,14 @@ import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.oppdaterBegrunnelseForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBegrunnelseForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
-internal class OppdaterBegrunnelseTest {
+internal class OppdaterBegrunnelsePåRevurderingTest {
     @Test
-    fun `kan starte behandling`() {
+    fun `kan oppdatere begrunnelse på revurdering`() {
         with(TestApplicationContext()) {
             val tac = this
             testApplication {
@@ -21,15 +21,15 @@ internal class OppdaterBegrunnelseTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, _, behandling) = startBehandling(tac)
-                tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
+                val (sak, _, _, revurdering) = startRevurderingInnvilgelse(tac)
+                tac.behandlingContext.behandlingRepo.hent(revurdering.id).also {
                     it.begrunnelseVilkårsvurdering?.verdi shouldBe null
                 }
                 val begrunnelse = "some_tekst"
                 val (_, oppdatertBehandling, responseJson) = oppdaterBegrunnelseForBehandlingId(
                     tac,
                     sak.id,
-                    behandling.id,
+                    revurdering.id,
                     begrunnelse = begrunnelse,
                 )
                 JSONObject(responseJson).getString("begrunnelseVilkårsvurdering") shouldBe begrunnelse

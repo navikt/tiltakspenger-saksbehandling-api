@@ -19,6 +19,9 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
+/**
+ * Gjelder for både søknadsbehandling og revurdering.
+ */
 interface OppdaterSaksopplysningerBuilder {
 
     /** Forventer at det allerede finnes en behandling. Denne fungerer både for saksbehandler og beslutter. */

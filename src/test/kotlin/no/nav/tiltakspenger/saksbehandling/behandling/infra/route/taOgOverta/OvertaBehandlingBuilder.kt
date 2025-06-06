@@ -18,6 +18,9 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 
+/**
+ * Gjelder for både søknadsbehandling og revurdering.
+ */
 interface OvertaBehandlingBuilder {
 
     /** Forventer at det allerede finnes en behandling. Denne fungerer både for saksbehandler og beslutter. */

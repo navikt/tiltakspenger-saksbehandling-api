@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
+package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start
 
 import arrow.core.Tuple4
 import io.kotest.assertions.withClue
@@ -25,7 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.TiltaksdeltagelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import org.json.JSONObject
@@ -89,9 +89,9 @@ interface StartRevurderingBuilder {
         type: RevurderingType,
     ): Revurdering {
         defaultRequest(
-            HttpMethod.Post,
+            HttpMethod.Companion.Post,
             url {
-                protocol = URLProtocol.HTTPS
+                protocol = URLProtocol.Companion.HTTPS
                 path("/sak/$sakId/revurdering/start")
             },
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(),
@@ -103,9 +103,9 @@ interface StartRevurderingBuilder {
                 withClue(
                     "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
                 ) {
-                    status shouldBe HttpStatusCode.OK
+                    status shouldBe HttpStatusCode.Companion.OK
                 }
-                val revurderingId = BehandlingId.fromString(JSONObject(bodyAsText).getString("id"))
+                val revurderingId = BehandlingId.Companion.fromString(JSONObject(bodyAsText).getString("id"))
                 return tac.behandlingContext.behandlingRepo.hent(revurderingId) as Revurdering
             }
     }
