@@ -23,27 +23,27 @@ import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.opprettSakOgSøknad
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import org.json.JSONObject
 
-interface StartBehandlingBuilder {
+interface StartSøknadsbehandlingBuilder {
 
-    /** Oppretter ny sak, søknad og behandling. */
-    suspend fun ApplicationTestBuilder.startBehandling(
+    /** Oppretter ny sak, søknad og søknadsbehandling. */
+    suspend fun ApplicationTestBuilder.startSøknadsbehandling(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
         virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, Behandling, String> {
         val (sak, søknad) = opprettSakOgSøknad(tac, fnr, deltakelsesperiode = virkingsperiode)
-        val (behandling, response) = startBehandlingForSøknadId(tac, sak.id, søknad.id)
+        val (behandling, response) = startSøknadsbehandlingForSøknadId(tac, sak.id, søknad.id)
         return Tuple4(sak, søknad, behandling, response)
     }
 
     /** Forventer at det allerede finnes en sak og søknad. */
-    suspend fun ApplicationTestBuilder.startBehandlingForSøknadId(
+    suspend fun ApplicationTestBuilder.startSøknadsbehandlingForSøknadId(
         tac: TestApplicationContext,
         sakId: SakId,
         søknadId: SøknadId,

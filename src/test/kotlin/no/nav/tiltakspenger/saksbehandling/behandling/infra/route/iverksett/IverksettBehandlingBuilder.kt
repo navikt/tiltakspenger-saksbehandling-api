@@ -24,11 +24,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendSøknadsbehandlingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 
+/**
+ * Gjelder for både søknadsbehandling og revurdering.
+ */
 interface IverksettBehandlingBuilder {
 
     /** Oppretter ny sak, søknad og behandling. */

@@ -11,12 +11,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startSøknadsbehandling
 import org.junit.jupiter.api.Test
 
-internal class StartBehandlingTest {
+internal class StartSøknadsbehandlingTest {
     @Test
-    fun `kan starte behandling`() {
+    fun `kan starte søknadsbehandling`() {
         with(TestApplicationContext()) {
             val tac = this
             testApplication {
@@ -24,7 +24,7 @@ internal class StartBehandlingTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, søknad, behandling) = startBehandling(tac)
+                val (sak, søknad, behandling) = startSøknadsbehandling(tac)
                 val behandlingId = behandling.id
                 val opprettetBehandling = tac.behandlingContext.behandlingRepo.hent(behandlingId)
                 opprettetBehandling.shouldBeInstanceOf<Søknadsbehandling>()

@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 val jvmVersion = JvmTarget.JVM_21
 val kotlinxCoroutinesVersion = "1.10.2"
 val kotestVersion = "5.9.1"
-val felleslibVersion = "0.0.482"
+val felleslibVersion = "0.0.485"
 val mockkVersion = "1.14.2"
 val ktorVersion = "3.1.3"
 val testContainersVersion = "1.21.1"
@@ -12,7 +12,7 @@ val poaoTilgangVersjon = "2025.06.06_07.18-71cefb1c2699"
 val iverksettVersjon = "1.0_20241213145703_7ff5f9c"
 val confluentVersion = "7.9.1"
 val avroVersion = "1.12.0"
-val prometeusVersion = "1.15.0"
+val prometeusVersion = "1.15.1"
 
 dependencies {
     // Align versions of all Kotlin components
@@ -98,9 +98,9 @@ dependencies {
     implementation("io.arrow-kt:arrow-core:2.1.2")
 
     // Caffeine
-    implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.1")
 
-    testImplementation(platform("org.junit:junit-bom:5.13.0"))
+    testImplementation(platform("org.junit:junit-bom:5.13.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.junit.jupiter:junit-jupiter-params")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

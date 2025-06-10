@@ -8,13 +8,13 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklient
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
-import no.nav.tiltakspenger.saksbehandling.person.PersonGateway
+import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 
 class PersonHttpklient(
     endepunkt: String,
     private val getToken: suspend () -> AccessToken,
-) : PersonGateway {
+) : PersonKlient {
     private val personklient =
         FellesPersonklient.create(
             endepunkt = endepunkt,

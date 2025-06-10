@@ -29,7 +29,7 @@ class StartRevurderingService(
         val (sakId, correlationId, saksbehandler) = kommando
 
         // Denne sjekker tilgang til person og at saksbehandler har rollen SAKSBEHANDLER eller BESLUTTER.
-        val sak = sakService.hentForSakIdEllerKast(sakId, saksbehandler, correlationId)
+        val sak = sakService.sjekkTilgangOgHentForSakId(sakId, saksbehandler, correlationId)
 
         val (oppdatertSak, behandling) = sak.startRevurdering(
             kommando = kommando,

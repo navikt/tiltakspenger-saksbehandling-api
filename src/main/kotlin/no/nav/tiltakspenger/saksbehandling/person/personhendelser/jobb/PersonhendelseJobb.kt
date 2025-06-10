@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.person.personhendelser.jobb
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
@@ -13,7 +13,7 @@ import java.time.LocalDate
 class PersonhendelseJobb(
     private val personhendelseRepository: PersonhendelseRepository,
     private val sakRepo: SakRepo,
-    private val oppgaveGateway: OppgaveGateway,
+    private val oppgaveKlient: OppgaveKlient,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -25,7 +25,7 @@ class PersonhendelseJobb(
                 val sak = sakRepo.hentForSakId(sakId)!!
                 if (mottarTiltakspengerNaEllerIFremtiden(sak)) {
                     log.info { "Oppretter oppgave for hendelse med id ${personhendelse.hendelseId}" }
-                    val oppgaveId = oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(
+                    val oppgaveId = oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                         fnr = sak.fnr,
                         oppgavebehov = personhendelse.finnOppgavebehov(),
                     )
@@ -49,7 +49,7 @@ class PersonhendelseJobb(
                 val oppgaveId = it.oppgaveId
 
                 if (oppgaveId != null) {
-                    val ferdigstilt = oppgaveGateway.erFerdigstilt(oppgaveId)
+                    val ferdigstilt = oppgaveKlient.erFerdigstilt(oppgaveId)
                     if (ferdigstilt) {
                         log.info { "Oppgave med id $oppgaveId er ferdigstilt, sletter innslag for personhendelse med hendelseId $hendelseId" }
                         personhendelseRepository.slett(it.id)

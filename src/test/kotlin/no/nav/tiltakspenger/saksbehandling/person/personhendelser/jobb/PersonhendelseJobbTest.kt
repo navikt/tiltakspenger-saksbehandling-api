@@ -10,7 +10,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
@@ -28,14 +28,14 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class PersonhendelseJobbTest {
-    private val oppgaveGateway = mockk<OppgaveGateway>()
+    private val oppgaveKlient = mockk<OppgaveKlient>()
     private val oppgaveId = OppgaveId("50")
 
     @BeforeEach
     fun clearMockData() {
-        clearMocks(oppgaveGateway)
+        clearMocks(oppgaveKlient)
         coEvery {
-            oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(
+            oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                 any(),
                 any(),
             )
@@ -49,7 +49,7 @@ class PersonhendelseJobbTest {
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveGateway)
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient)
                 val id = UUID.randomUUID()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -75,7 +75,7 @@ class PersonhendelseJobbTest {
 
                 personhendelseRepository.hent(fnr) shouldBe emptyList()
 
-                coVerify(exactly = 0) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
             }
         }
     }
@@ -87,7 +87,7 @@ class PersonhendelseJobbTest {
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveGateway)
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient)
                 val id = UUID.randomUUID()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -122,7 +122,7 @@ class PersonhendelseJobbTest {
 
                 personhendelseRepository.hent(fnr) shouldBe emptyList()
 
-                coVerify(exactly = 0) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
             }
         }
     }
@@ -134,7 +134,7 @@ class PersonhendelseJobbTest {
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveGateway)
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient)
                 val id = UUID.randomUUID()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -172,7 +172,7 @@ class PersonhendelseJobbTest {
                 val personhendelseFraDb = personhendelser.first()
                 personhendelseFraDb.oppgaveId shouldBe oppgaveId
 
-                coVerify(exactly = 1) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.DOED) }
+                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.DOED) }
             }
         }
     }
@@ -184,7 +184,7 @@ class PersonhendelseJobbTest {
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveGateway)
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient)
                 val id = UUID.randomUUID()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -222,20 +222,20 @@ class PersonhendelseJobbTest {
                 val personhendelseFraDb = personhendelser.first()
                 personhendelseFraDb.oppgaveId shouldBe oppgaveId
 
-                coVerify(exactly = 1) { oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.FATT_BARN) }
+                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.FATT_BARN) }
             }
         }
     }
 
     @Test
     fun `opprydning - opprettet oppgave, ikke ferdigstilt - oppdaterer sist sjekket`() {
-        coEvery { oppgaveGateway.erFerdigstilt(any()) } returns false
+        coEvery { oppgaveKlient.erFerdigstilt(any()) } returns false
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveGateway)
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient)
                 val id = UUID.randomUUID()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -274,20 +274,20 @@ class PersonhendelseJobbTest {
                 oppdatertPersonhendelseDb.oppgaveId shouldBe oppgaveId
                 oppdatertPersonhendelseDb.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe LocalDateTime.now()
                     .truncatedTo(ChronoUnit.MINUTES)
-                coVerify(exactly = 1) { oppgaveGateway.erFerdigstilt(oppgaveId) }
+                coVerify(exactly = 1) { oppgaveKlient.erFerdigstilt(oppgaveId) }
             }
         }
     }
 
     @Test
     fun `opprydning - opprettet oppgave, ferdigstilt - sletter fra db`() {
-        coEvery { oppgaveGateway.erFerdigstilt(any()) } returns true
+        coEvery { oppgaveKlient.erFerdigstilt(any()) } returns true
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveGateway)
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient)
                 val id = UUID.randomUUID()
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
@@ -322,7 +322,7 @@ class PersonhendelseJobbTest {
                 personhendelseJobb.opprydning()
 
                 personhendelseRepository.hent(fnr) shouldBe emptyList()
-                coVerify(exactly = 1) { oppgaveGateway.erFerdigstilt(oppgaveId) }
+                coVerify(exactly = 1) { oppgaveKlient.erFerdigstilt(oppgaveId) }
             }
         }
     }

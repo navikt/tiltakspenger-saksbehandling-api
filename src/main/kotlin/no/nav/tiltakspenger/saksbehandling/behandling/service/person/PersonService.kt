@@ -12,13 +12,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.PersonRepo
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.Navn
-import no.nav.tiltakspenger.saksbehandling.person.PersonGateway
+import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 class PersonService(
     private val personRepo: PersonRepo,
-    private val personClient: PersonGateway,
+    private val personClient: PersonKlient,
 ) {
     val logger = KotlinLogging.logger {}
 

@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet
 import no.nav.tiltakspenger.libs.common.Fnr
 
 class NavkontorService(
-    private val veilarboppfolgingGateway: VeilarboppfolgingGateway,
+    private val veilarboppfolgingKlient: VeilarboppfolgingKlient,
 ) {
     suspend fun hentOppfolgingsenhet(fnr: Fnr): Navkontor {
-        return veilarboppfolgingGateway.hentOppfolgingsenhet(fnr)
+        return veilarboppfolgingKlient.hentOppfolgingsenhet(fnr)
     }
 }

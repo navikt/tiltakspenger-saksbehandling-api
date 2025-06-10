@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
-import no.nav.tiltakspenger.saksbehandling.person.PersonGateway
+import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.genererSaksstatistikkForBehandling
@@ -31,11 +31,11 @@ import java.time.Instant
 import java.time.LocalDate
 
 class PersonhendelseServiceTest {
-    private val personGateway = mockk<PersonGateway>()
+    private val personKlient = mockk<PersonKlient>()
 
     @BeforeEach
     fun clearMockData() {
-        clearMocks(personGateway)
+        clearMocks(personKlient)
     }
 
     @Test
@@ -45,7 +45,7 @@ class PersonhendelseServiceTest {
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
-                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personGateway, statistikkSakRepo)
+                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
                 val fnr = Fnr.random()
 
                 personhendelseService.behandlePersonhendelse(
@@ -67,7 +67,7 @@ class PersonhendelseServiceTest {
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
-                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personGateway, statistikkSakRepo)
+                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
                 testDataHelper.persisterSakOgSøknad(
@@ -107,7 +107,7 @@ class PersonhendelseServiceTest {
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
-                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personGateway, statistikkSakRepo)
+                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
                 testDataHelper.persisterSakOgSøknad(
@@ -150,7 +150,7 @@ class PersonhendelseServiceTest {
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
-                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personGateway, statistikkSakRepo)
+                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
                 testDataHelper.persisterSakOgSøknad(
@@ -181,7 +181,7 @@ class PersonhendelseServiceTest {
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
-                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personGateway, statistikkSakRepo)
+                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
                 val (_, behandling, _) = testDataHelper.persisterOpprettetSøknadsbehandling(
@@ -207,7 +207,7 @@ class PersonhendelseServiceTest {
                     fnr = fnr,
                     adressebeskyttelse = Adressebeskyttelse(Gradering.STRENGT_FORTROLIG),
                 )
-                coEvery { personGateway.hentEnkelPerson(fnr) } returns EnkelPerson(
+                coEvery { personKlient.hentEnkelPerson(fnr) } returns EnkelPerson(
                     fnr = fnr,
                     fornavn = "Fornavn",
                     mellomnavn = null,
@@ -236,7 +236,7 @@ class PersonhendelseServiceTest {
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
-                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personGateway, statistikkSakRepo)
+                val personhendelseService = PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkSakRepo)
                 val fnr = Fnr.random()
                 val sak = ObjectMother.nySak(fnr = fnr)
                 val (_, behandling, _) = testDataHelper.persisterOpprettetSøknadsbehandling(
@@ -262,7 +262,7 @@ class PersonhendelseServiceTest {
                     fnr = fnr,
                     adressebeskyttelse = Adressebeskyttelse(Gradering.STRENGT_FORTROLIG),
                 )
-                coEvery { personGateway.hentEnkelPerson(fnr) } returns EnkelPerson(
+                coEvery { personKlient.hentEnkelPerson(fnr) } returns EnkelPerson(
                     fnr = fnr,
                     fornavn = "Fornavn",
                     mellomnavn = null,

@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.person.PersonGateway
+import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseDb
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseRepository
@@ -17,7 +17,7 @@ import java.util.UUID
 class PersonhendelseService(
     private val sakRepo: SakRepo,
     private val personhendelseRepository: PersonhendelseRepository,
-    private val personGateway: PersonGateway,
+    private val personKlient: PersonKlient,
     private val statistikkSakRepo: StatistikkSakRepo,
 ) {
     private val log = KotlinLogging.logger { }
@@ -69,7 +69,7 @@ class PersonhendelseService(
         personhendelse: Personhendelse,
     ) {
         log.info { "Håndterer hendelse om adressebeskyttelse med hendelsesId ${personhendelse.hendelseId}" }
-        val pdlPerson = personGateway.hentEnkelPerson(fnr)
+        val pdlPerson = personKlient.hentEnkelPerson(fnr)
         if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland) {
             log.info { "Person har adressebeskyttelse, oppdaterer. HendelseId ${personhendelse.hendelseId}" }
             statistikkSakRepo.oppdaterAdressebeskyttelse(sakId)

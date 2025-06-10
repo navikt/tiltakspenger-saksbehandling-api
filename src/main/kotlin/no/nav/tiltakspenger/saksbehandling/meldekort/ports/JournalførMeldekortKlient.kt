@@ -1,13 +1,13 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.ports
+package no.nav.tiltakspenger.saksbehandling.meldekort.ports
 
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 
-interface JournalførVedtaksbrevGateway {
-    suspend fun journalførVedtaksbrev(
-        vedtak: Rammevedtak,
+interface JournalførMeldekortKlient {
+    suspend fun journalførMeldekortBehandling(
+        meldekortBehandling: MeldekortBehandling,
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
     ): JournalpostId

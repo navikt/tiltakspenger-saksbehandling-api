@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendTilbake
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendTilbake
 import org.junit.jupiter.api.Test
 
 class SendTilbakeTilSaksbehandlerTest {

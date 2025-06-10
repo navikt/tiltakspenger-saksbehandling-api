@@ -7,11 +7,11 @@ import io.github.serpro69.kfaker.faker
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
-import no.nav.tiltakspenger.saksbehandling.person.PersonGateway
+import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 import java.time.Clock
 
-class PersonFakeGateway(private val clock: Clock) : PersonGateway {
+class PersonFakeKlient(private val clock: Clock) : PersonKlient {
     private val data = Atomic(mutableMapOf<Fnr, PersonopplysningerSøker>())
 
     private val kall = Atomic(mutableListOf<Fnr>())

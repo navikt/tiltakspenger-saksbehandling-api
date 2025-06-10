@@ -15,14 +15,14 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettForBehandlingIdReturnerRespons
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.iverksettSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.taBehanding
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingIdReturnerRespons
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
 import org.junit.jupiter.api.Test
 
-class IverksettBehandlingTest {
+class IverksettSøknadsbehandlingTest {
     @Test
     fun `send til beslutter endrer status på behandlingen`() = runTest {
         with(TestApplicationContext()) {
@@ -50,7 +50,7 @@ class IverksettBehandlingTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, søknad, behandling) = this.startBehandling(tac, saksbehandler = saksbehandler)
+                val (sak, søknad, behandling) = this.startSøknadsbehandling(tac, saksbehandler = saksbehandler)
                 val behandlingId = behandling.id
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING

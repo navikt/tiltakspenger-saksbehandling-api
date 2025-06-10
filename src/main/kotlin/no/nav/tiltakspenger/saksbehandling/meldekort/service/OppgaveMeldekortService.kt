@@ -2,13 +2,13 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 
 class OppgaveMeldekortService(
-    private val oppgaveGateway: OppgaveGateway,
+    private val oppgaveKlient: OppgaveKlient,
     private val sakRepo: SakRepo,
     private val brukersMeldekortRepo: BrukersMeldekortRepo,
 ) {
@@ -29,7 +29,7 @@ class OppgaveMeldekortService(
                         ?: log.warn { "Fant ikke sak for sakId ${meldekort.sakId}" }.let { return@forEach }
 
                     log.info { "Oppretter oppgave for meldekortId $meldekortId" }
-                    val oppgaveId = oppgaveGateway.opprettOppgave(sak.fnr, journalpostId, Oppgavebehov.NYTT_MELDEKORT)
+                    val oppgaveId = oppgaveKlient.opprettOppgave(sak.fnr, journalpostId, Oppgavebehov.NYTT_MELDEKORT)
 
                     log.info { "Opprettet oppgave med id $oppgaveId for meldekort med id $meldekortId" }
                     brukersMeldekortRepo.oppdaterOppgaveId(meldekortId = meldekortId, oppgaveId = oppgaveId)

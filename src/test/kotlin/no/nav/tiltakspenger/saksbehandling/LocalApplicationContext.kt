@@ -7,32 +7,31 @@ import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringServiceImpl
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonIdGenerator
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForUtbetalingKlient
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
-import no.nav.tiltakspenger.saksbehandling.fakes.clients.PersonFakeGateway
+import no.nav.tiltakspenger.saksbehandling.fakes.clients.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.PoaoTilgangskontrollFake
-import no.nav.tiltakspenger.saksbehandling.fakes.clients.TiltaksdeltagelseFakeGateway
-import no.nav.tiltakspenger.saksbehandling.fakes.clients.VeilarboppfolgingFakeGateway
+import no.nav.tiltakspenger.saksbehandling.fakes.clients.VeilarboppfolgingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
-import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortGateway
-import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeVedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toSøknadstiltak
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingGateway
-import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeGateway
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingKlient
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeAdressebeskyttelseKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
@@ -42,6 +41,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import java.time.Clock
@@ -67,19 +67,19 @@ class LocalApplicationContext(
         null
     }
 
-    private val personGatewayFake = PersonFakeGateway(clock)
+    private val personFakeKlient = PersonFakeKlient(clock)
     private val genererFakeVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient =
         if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevForUtbetalingKlient()
 
-    private val genererInnvilgelsevedtaksbrevGateway: GenererVedtaksbrevForInnvilgelseKlient =
-        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevGateway()
-    private val genererAvslagssevedtaksbrevGateway: GenererAvslagsvedtaksbrevGateway =
-        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevGateway()
-    private val genererStansvedtaksbrevGateway: GenererStansvedtaksbrevGateway =
-        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevGateway()
-    private val journalførFakeMeldekortGateway = JournalførFakeMeldekortGateway(journalpostIdGenerator)
-    private val journalførFakeVedtaksbrevGateway = JournalførFakeVedtaksbrevGateway(journalpostIdGenerator)
-    private val dokdistFakeGateway = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
+    private val genererFakeVedtaksbrevForInnvilgelseKlient: GenererVedtaksbrevForInnvilgelseKlient =
+        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevKlient()
+    private val genererFakeVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient =
+        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevKlient()
+    private val genererFakeVedtaksbrevForStansKlient: GenererVedtaksbrevForStansKlient =
+        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevKlient()
+    private val journalførFakeMeldekortKlient = JournalførFakeMeldekortKlient(journalpostIdGenerator)
+    private val journalførFakeRammevedtaksbrevKlient = JournalførFakeRammevedtaksbrevKlient(journalpostIdGenerator)
+    private val dokumentdistribusjonsklientFakeKlient = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
     private val fellesFakeAdressebeskyttelseKlient = FellesFakeAdressebeskyttelseKlient()
     private val fellesFakeSkjermingsklient = FellesFakeSkjermingsklient()
     private val poaoTilgangskontrollFake = PoaoTilgangskontrollFake()
@@ -100,44 +100,36 @@ class LocalApplicationContext(
     )
     private val søknadstiltak = tiltaksdeltagelse.toSøknadstiltak()
 
-    override val oppgaveGateway: OppgaveGateway by lazy { OppgaveFakeGateway() }
+    override val oppgaveKlient: OppgaveKlient by lazy { OppgaveFakeKlient() }
 
     override val entraIdSystemtokenClient = EntraIdSystemtokenFakeClient()
 
-    override val veilarboppfolgingGateway: VeilarboppfolgingGateway by lazy {
-        VeilarboppfolgingFakeGateway()
+    override val veilarboppfolgingKlient: VeilarboppfolgingKlient by lazy {
+        VeilarboppfolgingFakeKlient()
     }
 
-    override val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingGateway) }
+    override val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingKlient) }
 
     override val personContext =
         object : PersonContext(sessionFactory, entraIdSystemtokenClient) {
-            override val personGateway = personGatewayFake
+            override val personKlient = personFakeKlient
             override val tilgangsstyringService = TilgangsstyringServiceImpl(
                 fellesPersonTilgangsstyringsklient = fellesFakeAdressebeskyttelseKlient,
                 skjermingClient = fellesFakeSkjermingsklient,
             )
-            override val poaoTilgangGateway = poaoTilgangskontrollFake
+            override val poaoTilgangKlient = poaoTilgangskontrollFake
             override val navIdentClient = if (usePdfGen) FakeNavIdentClient() else super.navIdentClient
         }
 
     override val dokumentContext by lazy {
         object : DokumentContext(entraIdSystemtokenClient) {
-            override val journalførMeldekortGateway = journalførFakeMeldekortGateway
-            override val journalførVedtaksbrevGateway = journalførFakeVedtaksbrevGateway
+            override val journalførMeldekortKlient = journalførFakeMeldekortKlient
+            override val journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient
             override val genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient
-            override val genererVedtaksbrevForInnvilgelseKlient = genererInnvilgelsevedtaksbrevGateway
+            override val genererVedtaksbrevForInnvilgelseKlient = this@LocalApplicationContext.genererFakeVedtaksbrevForInnvilgelseKlient
         }
     }
 
-    private val tiltakGatewayFake =
-        TiltaksdeltagelseFakeGateway(søknadRepo = søknadContext.søknadRepo)
-
-    override val tiltakContext by lazy {
-        object : TiltaksdeltagelseContext(entraIdSystemtokenClient) {
-            override val tiltaksdeltagelseGateway = tiltakGatewayFake
-        }
-    }
     override val profile by lazy { Profile.LOCAL }
 
     override val sakContext by lazy {
@@ -145,7 +137,7 @@ class LocalApplicationContext(
             sessionFactory = sessionFactory,
             personService = personContext.personService,
             tilgangsstyringService = personContext.tilgangsstyringService,
-            poaoTilgangGateway = personContext.poaoTilgangGateway,
+            poaoTilgangKlient = personContext.poaoTilgangKlient,
             profile = profile,
             clock = clock,
         ) {}
@@ -161,12 +153,22 @@ class LocalApplicationContext(
             personService = personContext.personService,
             entraIdSystemtokenClient = entraIdSystemtokenClient,
             navkontorService = navkontorService,
-            oppgaveGateway = oppgaveGateway,
+            oppgaveKlient = oppgaveKlient,
             sakRepo = sakContext.sakRepo,
             clock = clock,
             simulerService = utbetalingContext.simulerService,
         ) {}
     }
+
+    private val tiltaksdeltagelseFakeKlient =
+        TiltaksdeltagelseFakeKlient(søknadRepo = søknadContext.søknadRepo)
+
+    override val tiltakContext by lazy {
+        object : TiltaksdeltagelseContext(entraIdSystemtokenClient) {
+            override val tiltaksdeltagelseKlient = tiltaksdeltagelseFakeKlient
+        }
+    }
+
     override val behandlingContext by lazy {
         object : BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
@@ -174,17 +176,17 @@ class LocalApplicationContext(
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
-            journalførVedtaksbrevGateway = journalførFakeVedtaksbrevGateway,
-            genererVedtaksbrevGateway = genererInnvilgelsevedtaksbrevGateway,
-            genererAvslagsvedtaksbrevGateway = genererAvslagssevedtaksbrevGateway,
-            genererStansvedtaksbrevGateway = genererStansvedtaksbrevGateway,
+            journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient,
+            genererVedtaksbrevForInnvilgelseKlient = genererFakeVedtaksbrevForInnvilgelseKlient,
+            genererVedtaksbrevForAvslagKlient = genererFakeVedtaksbrevForAvslagKlient,
+            genererVedtaksbrevForStansKlient = genererFakeVedtaksbrevForStansKlient,
             personService = personContext.personService,
             tilgangsstyringService = personContext.tilgangsstyringService,
-            dokumentdistribusjonsklient = dokdistFakeGateway,
+            dokumentdistribusjonsklient = dokumentdistribusjonsklientFakeKlient,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
-            tiltaksdeltagelseGateway = tiltakGatewayFake,
-            oppgaveGateway = oppgaveGateway,
+            tiltaksdeltagelseKlient = tiltaksdeltagelseFakeKlient,
+            oppgaveKlient = oppgaveKlient,
             clock = clock,
             statistikkSakService = statistikkContext.statistikkSakService,
         ) {}
@@ -193,7 +195,7 @@ class LocalApplicationContext(
         object : UtbetalingContext(
             sessionFactory = sessionFactory,
             genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient,
-            journalførMeldekortGateway = journalførFakeMeldekortGateway,
+            journalførMeldekortKlient = journalførFakeMeldekortKlient,
             entraIdSystemtokenClient = entraIdSystemtokenClient,
             sakRepo = sakContext.sakRepo,
             navIdentClient = personContext.navIdentClient,
@@ -234,7 +236,7 @@ class LocalApplicationContext(
     ) {
         fellesFakeSkjermingsklient.leggTil(fnr = fnr, skjermet = false)
         fellesFakeAdressebeskyttelseKlient.leggTil(fnr = fnr, gradering = listOf(AdressebeskyttelseGradering.UGRADERT))
-        personGatewayFake.leggTilPersonopplysning(fnr = fnr, personopplysninger = personopplysningerForBruker)
+        personFakeKlient.leggTilPersonopplysning(fnr = fnr, personopplysninger = personopplysningerForBruker)
         poaoTilgangskontrollFake.leggTil(fnr = fnr, skjermet = false)
     }
 }

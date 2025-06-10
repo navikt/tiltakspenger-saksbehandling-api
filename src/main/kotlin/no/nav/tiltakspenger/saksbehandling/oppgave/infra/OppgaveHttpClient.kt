@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
@@ -25,7 +25,7 @@ class OppgaveHttpClient(
     private val getToken: suspend () -> AccessToken,
     connectTimeout: kotlin.time.Duration = 1.seconds,
     private val timeout: kotlin.time.Duration = 5.seconds,
-) : OppgaveGateway {
+) : OppgaveKlient {
     private val logger = KotlinLogging.logger {}
     private val client =
         java.net.http.HttpClient

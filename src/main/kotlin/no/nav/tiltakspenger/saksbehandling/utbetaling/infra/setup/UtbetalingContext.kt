@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortGateway
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient
@@ -22,7 +22,7 @@ import java.time.Clock
 open class UtbetalingContext(
     sessionFactory: SessionFactory,
     genererVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient,
-    journalførMeldekortGateway: JournalførMeldekortGateway,
+    journalførMeldekortKlient: JournalførMeldekortKlient,
     navIdentClient: NavIdentClient,
     entraIdSystemtokenClient: EntraIdSystemtokenClient,
     sakRepo: SakRepo,
@@ -57,7 +57,7 @@ open class UtbetalingContext(
     val journalførUtbetalingsvedtakService by lazy {
         JournalførUtbetalingsvedtakService(
             utbetalingsvedtakRepo = utbetalingsvedtakRepo,
-            journalførMeldekortGateway = journalførMeldekortGateway,
+            journalførMeldekortKlient = journalførMeldekortKlient,
             genererVedtaksbrevForUtbetalingKlient = genererVedtaksbrevForUtbetalingKlient,
             navIdentClient = navIdentClient,
             sakRepo = sakRepo,

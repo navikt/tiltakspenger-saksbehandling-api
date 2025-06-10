@@ -19,20 +19,22 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.tiltak.TiltakTilSaksbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.infra.http.httpClientGeneric
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
 
-class TiltaksdeltagelseHttpklient(
+class TiltaksdeltagelseHttpKlient(
     val baseUrl: String,
     private val getToken: suspend () -> AccessToken,
     engine: HttpClientEngine? = null,
     private val httpClient: HttpClient = httpClientGeneric(engine = engine),
-) {
+) : TiltaksdeltagelseKlient {
     val log = KotlinLogging.logger {}
 
     companion object {
         const val NAV_CALL_ID_HEADER = "Nav-Call-Id"
     }
 
-    suspend fun hentTiltaksdeltagelser(fnr: Fnr, correlationId: CorrelationId): List<TiltakTilSaksbehandlingDTO> {
+    override suspend fun hentTiltaksdeltagelser(fnr: Fnr, correlationId: CorrelationId): List<Tiltaksdeltagelse> {
         val token = getToken()
         val httpResponse = httpClient.preparePost("$baseUrl/azure/tiltak") {
             header(NAV_CALL_ID_HEADER, correlationId.value)
@@ -42,7 +44,12 @@ class TiltaksdeltagelseHttpklient(
             setBody(TiltakRequestDTO(fnr.verdi))
         }.execute()
         return when (httpResponse.status) {
-            HttpStatusCode.OK -> httpResponse.call.response.body()
+            HttpStatusCode.OK -> httpResponse.call.response.body<List<TiltakTilSaksbehandlingDTO>>().let { dto ->
+                val relevanteTiltak = dto.filter { it.harFomOgTomEllerRelevantStatus() }
+                    .filter { it.rettPaTiltakspenger() }
+                mapTiltak(relevanteTiltak)
+            }
+
             else -> {
                 if (httpResponse.status == Unauthorized || httpResponse.status == Forbidden) {
                     log.error(RuntimeException("Trigger stacktrace for debug.")) { "Invaliderer cache for systemtoken mot tiltakspenger-tiltak. status: $httpResponse.status." }

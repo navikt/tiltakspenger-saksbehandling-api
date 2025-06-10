@@ -2,19 +2,17 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra
 
 import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseGatewayImpl
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseHttpklient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseHttpKlient
 
 open class TiltaksdeltagelseContext(
     entraIdSystemtokenClient: EntraIdSystemtokenClient,
 ) {
-    private val tiltaksdeltagelseklient: TiltaksdeltagelseHttpklient by lazy {
-        TiltaksdeltagelseHttpklient(
+    open val tiltaksdeltagelseKlient: TiltaksdeltagelseKlient by lazy {
+        TiltaksdeltagelseHttpKlient(
             baseUrl = Configuration.tiltakUrl,
             getToken = {
                 entraIdSystemtokenClient.getSystemtoken(Configuration.tiltakScope)
             },
         )
     }
-    open val tiltaksdeltagelseGateway: TiltaksdeltagelseGateway by lazy { TiltaksdeltagelseGatewayImpl(tiltaksdeltagelseklient) }
 }

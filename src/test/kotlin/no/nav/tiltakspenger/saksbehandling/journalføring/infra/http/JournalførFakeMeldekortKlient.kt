@@ -9,11 +9,11 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortGateway
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 
-class JournalførFakeMeldekortGateway(
+class JournalførFakeMeldekortKlient(
     private val journalpostIdGenerator: JournalpostIdGenerator,
-) : JournalførMeldekortGateway {
+) : JournalførMeldekortKlient {
 
     private val data = Atomic(mutableMapOf<MeldekortId, JournalpostId>())
 

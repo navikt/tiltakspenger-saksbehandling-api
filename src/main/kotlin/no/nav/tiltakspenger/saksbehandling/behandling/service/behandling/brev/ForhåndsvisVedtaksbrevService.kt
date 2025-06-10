@@ -7,9 +7,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.validerStansDato
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererAvslagsvedtaksbrevGateway
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererStansvedtaksbrevGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
@@ -19,8 +19,8 @@ import java.time.LocalDate
 class ForhåndsvisVedtaksbrevService(
     private val sakService: SakService,
     private val genererInnvilgelsesbrevClient: GenererVedtaksbrevForInnvilgelseKlient,
-    private val genererAvslagsvedtaksbrevGateway: GenererAvslagsvedtaksbrevGateway,
-    private val genererStansbrevClient: GenererStansvedtaksbrevGateway,
+    private val genererVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient,
+    private val genererStansbrevClient: GenererVedtaksbrevForStansKlient,
     private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
 ) {
@@ -28,7 +28,7 @@ class ForhåndsvisVedtaksbrevService(
         kommando: ForhåndsvisVedtaksbrevKommando,
     ): PdfA {
         // hentForSakId sjekker tilgang til person og sak.
-        val sak = sakService.hentForSakIdEllerKast(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
+        val sak = sakService.sjekkTilgangOgHentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
         val behandling = sak.hentBehandling(kommando.behandlingId)!!
         if (behandling.saksbehandler == null) {
             throw IllegalStateException("Kunne ikke forhåndsvise vedtaksbrev. Behandling har ingen saksbehandler. sakId=${kommando.sakId}, behandlingId=${kommando.behandlingId}")
@@ -73,7 +73,7 @@ class ForhåndsvisVedtaksbrevService(
                         ifRight = { it.pdf },
                     )
 
-                    SøknadsbehandlingType.AVSLAG -> genererAvslagsvedtaksbrevGateway.genererAvslagsVedtaksbrev(
+                    SøknadsbehandlingType.AVSLAG -> genererVedtaksbrevForAvslagKlient.genererAvslagsVedtaksbrev(
                         hentBrukersNavn = personService::hentNavn,
                         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         avslagsgrunner = kommando.avslagsgrunner!!,

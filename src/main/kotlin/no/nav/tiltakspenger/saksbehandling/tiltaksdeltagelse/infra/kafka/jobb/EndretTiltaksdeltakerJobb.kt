@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.jobb
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.reposit
 class EndretTiltaksdeltakerJobb(
     private val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository,
     private val sakRepo: SakRepo,
-    private val oppgaveGateway: OppgaveGateway,
+    private val oppgaveKlient: OppgaveKlient,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -39,7 +39,7 @@ class EndretTiltaksdeltakerJobb(
                     if (deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling)) {
                         log.info { "Tiltaksdeltakelse $deltagelseId er endret, oppretter oppgave" }
                         val oppgaveId =
-                            oppgaveGateway.opprettOppgaveUtenDuplikatkontroll(
+                            oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                                 sak.fnr,
                                 Oppgavebehov.ENDRET_TILTAKDELTAKER,
                             )
@@ -68,7 +68,7 @@ class EndretTiltaksdeltakerJobb(
 
                 Either.catch {
                     if (oppgaveId != null) {
-                        val ferdigstilt = oppgaveGateway.erFerdigstilt(oppgaveId)
+                        val ferdigstilt = oppgaveKlient.erFerdigstilt(oppgaveId)
                         if (ferdigstilt) {
                             log.info { "Oppgave med id $oppgaveId er ferdigstilt, sletter innslag for tiltaksdeltakelse $deltagelseId" }
                             tiltaksdeltakerKafkaRepository.slett(deltagelseId)

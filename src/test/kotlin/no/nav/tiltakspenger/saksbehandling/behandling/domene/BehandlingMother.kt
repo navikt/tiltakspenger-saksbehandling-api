@@ -16,19 +16,6 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -582,7 +569,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
             utfall = utfall,
         ),
     ).getOrFail()
-    return this.sakContext.sakService.hentForSakIdEllerKast(
+    return this.sakContext.sakService.sjekkTilgangOgHentForSakId(
         sakMedSøknadsbehandling.id,
         saksbehandler,
         correlationId = correlationId,
@@ -610,7 +597,7 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
         beslutter,
         correlationId = correlationId,
     )
-    return this.sakContext.sakService.hentForSakIdEllerKast(
+    return this.sakContext.sakService.sjekkTilgangOgHentForSakId(
         vilkårsvurdert.id,
         saksbehandler,
         correlationId = correlationId,
@@ -644,7 +631,7 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
         )
     }
 
-    return this.sakContext.sakService.hentForSakIdEllerKast(
+    return this.sakContext.sakService.sjekkTilgangOgHentForSakId(
         underBeslutning.id,
         saksbehandler,
         correlationId = correlationId,
@@ -697,7 +684,7 @@ suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
         saksbehandler = saksbehandler,
         correlationId = correlationId,
     )
-    return this.sakContext.sakService.hentForSakIdEllerKast(
+    return this.sakContext.sakService.sjekkTilgangOgHentForSakId(
         sak.id,
         saksbehandler,
         correlationId = correlationId,
@@ -723,7 +710,7 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
             saksbehandler,
         ),
     )
-    return this.sakContext.sakService.hentForSakIdEllerKast(sak.id, saksbehandler, correlationId = correlationId)
+    return this.sakContext.sakService.sjekkTilgangOgHentForSakId(sak.id, saksbehandler, correlationId = correlationId)
 }
 
 /**
@@ -758,7 +745,7 @@ suspend fun TestApplicationContext.førsteMeldekortIverksatt(
     )
     // Emulerer at jobben kjører
     tac.utbetalingContext.sendUtbetalingerService.send()
-    return this.sakContext.sakService.hentForSakIdEllerKast(sak.id, saksbehandler, correlationId = correlationId)
+    return this.sakContext.sakService.sjekkTilgangOgHentForSakId(sak.id, saksbehandler, correlationId = correlationId)
 }
 
 suspend fun TestApplicationContext.andreMeldekortIverksatt(
@@ -783,5 +770,5 @@ suspend fun TestApplicationContext.andreMeldekortIverksatt(
         correlationId = correlationId,
     )
 
-    return this.sakContext.sakService.hentForSakIdEllerKast(sak.id, saksbehandler, correlationId = correlationId)
+    return this.sakContext.sakService.sjekkTilgangOgHentForSakId(sak.id, saksbehandler, correlationId = correlationId)
 }

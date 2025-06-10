@@ -25,9 +25,9 @@ import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.oppdaterBegrunnelseForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.oppdaterFritekstForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBuilder.startBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBegrunnelseForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterFritekstForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 
@@ -40,7 +40,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
-        val (sak, søknad, behandling) = startBehandling(tac, fnr, virkingsperiode, saksbehandler)
+        val (sak, søknad, behandling) = startSøknadsbehandling(tac, fnr, virkingsperiode, saksbehandler)
         val sakId = sak.id
         val behandlingId = behandling.id
         oppdaterFritekstForBehandlingId(tac, sakId, behandlingId, saksbehandler)

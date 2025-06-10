@@ -8,10 +8,10 @@ import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringSer
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.infra.PoaoTilgangClient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.PersonRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangGateway
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
-import no.nav.tiltakspenger.saksbehandling.person.PersonGateway
+import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonHttpklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
@@ -22,7 +22,7 @@ open class PersonContext(
     sessionFactory: SessionFactory,
     entraIdSystemtokenClient: EntraIdSystemtokenClient,
 ) {
-    open val personGateway: PersonGateway by lazy {
+    open val personKlient: PersonKlient by lazy {
         PersonHttpklient(
             endepunkt = Configuration.pdlUrl,
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.pdlScope) },
@@ -42,7 +42,7 @@ open class PersonContext(
             baseUrl = Configuration.microsoftUrl,
         )
     }
-    open val poaoTilgangGateway: PoaoTilgangGateway by lazy {
+    open val poaoTilgangKlient: PoaoTilgangKlient by lazy {
         PoaoTilgangClient(
             baseUrl = Configuration.poaoTilgangUrl,
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.poaoTilgangScope) },
@@ -56,7 +56,7 @@ open class PersonContext(
     val personService by lazy {
         PersonService(
             personRepo = personRepo,
-            personClient = personGateway,
+            personClient = personKlient,
         )
     }
     val auditService by lazy {
