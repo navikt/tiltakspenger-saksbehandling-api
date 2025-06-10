@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -98,7 +99,7 @@ fun Sak.sendRevurderingTilBeslutning(
 
     return when (kommando) {
         is RevurderingInnvilgelseTilBeslutningKommando -> {
-            validerInnvilgelsesperiode(kommando.innvilgelsesperiode)
+            validerInnvilgelsesperiode(kommando.innvilgelsesperiode).onLeft { return it.left() }
 
             behandling.tilBeslutning(
                 kommando = kommando,
@@ -117,14 +118,11 @@ fun Sak.sendRevurderingTilBeslutning(
     }.right()
 }
 
-private fun Sak.validerInnvilgelsesperiode(innvilgelsesperiode: Periode) {
-    val utbetalingsvedtakIderFraPeriode = utbetalinger.hentUtbetalingerFraPeriode(innvilgelsesperiode).map {
-        it.id
+private fun Sak.validerInnvilgelsesperiode(innvilgelsesperiode: Periode): Either<KanIkkeSendeTilBeslutter.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode, Unit> {
+    if (utbetalinger.hentUtbetalingerFraPeriode(innvilgelsesperiode).isNotEmpty()) {
+        return KanIkkeSendeTilBeslutter.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode.left()
     }
-
-    require(utbetalingsvedtakIderFraPeriode.isEmpty()) {
-        "Revurdert innvilgelsesperiode kan ikke ha eksisterende utbetalingsvedtak - $innvilgelsesperiode har $utbetalingsvedtakIderFraPeriode"
-    }
+    return Unit.right()
 }
 
 fun Sak.validerStansDato(stansDato: LocalDate?) {

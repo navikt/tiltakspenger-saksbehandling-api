@@ -20,6 +20,9 @@ fun Sak.sendSøknadsbehandlingTilBeslutning(
         return KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(eiesAvSaksbehandler = behandling.saksbehandler)
             .left()
     }
+    if (kommando.utfall == SøknadsbehandlingType.INNVILGELSE && this.utbetalinger.hentUtbetalingerFraPeriode(kommando.behandlingsperiode).isNotEmpty()) {
+        return KanIkkeSendeTilBeslutter.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode.left()
+    }
     val oppdatertBehandling = behandling.tilBeslutning(kommando, clock)
     return (this.copy(behandlinger = this.behandlinger.oppdaterBehandling(oppdatertBehandling)) to oppdatertBehandling).right()
 }
