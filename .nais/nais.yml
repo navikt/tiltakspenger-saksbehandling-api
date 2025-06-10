@@ -84,6 +84,7 @@ spec:
         - host: {{ urlDokdist }}
         - host: {{ urlMicrosoftGraphApi }}
         - host: {{ urlOppgave }}
+        - host: {{ urlSokosUtbetaldata }}
     inbound:
       rules:
         - application: tiltakspenger-saksbehandling

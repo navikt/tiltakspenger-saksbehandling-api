@@ -13,6 +13,7 @@ urlJoark: dokarkiv-q2.dev-fss-pub.nais.io
 urlDokdist: dokdistfordeling.dev-fss-pub.nais.io
 urlMicrosoftGraphApi: graph.microsoft.com
 urlOppgave: oppgave.dev-fss-pub.nais.io
+urlSokosUtbetaldata: sokos-utbetaldata.dev-fss-pub.nais.io
 azure:
   groups:
     - name: ROLE_SAKSBEHANDLER
