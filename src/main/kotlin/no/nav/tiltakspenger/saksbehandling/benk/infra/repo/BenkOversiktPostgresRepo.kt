@@ -56,7 +56,7 @@ class BenkOversiktPostgresRepo(
                                                                   join søknad s on b.id = s.behandling_id
                                                                   join sak sa on b.sak_id = sa.id
                                                          where b.avbrutt is null
-                                                           and b.behandlingstype = 'FØRSTEGANGSBEHANDLING'
+                                                           and b.behandlingstype = 'SØKNADSBEHANDLING'
                                                            and b.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING',
                                                                             'UNDER_BESLUTNING')),
                              åpneRevurderinger AS (select sa.id           as sakId,

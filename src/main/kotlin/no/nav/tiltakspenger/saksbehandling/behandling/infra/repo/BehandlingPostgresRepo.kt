@@ -558,7 +558,7 @@ class BehandlingPostgresRepo(
                     from behandling b
                     join sak on sak.id = b.sak_id
                     where
-                      b.behandlingstype = 'FØRSTEGANGSBEHANDLING' and
+                      b.behandlingstype = 'SØKNADSBEHANDLING' and
                       (b.sendt_til_datadeling is null or b.sendt_til_datadeling < b.sist_endret)
                     order by b.opprettet
                     limit :limit
