@@ -96,7 +96,7 @@ data class Vedtaksliste(
             if (verdi == null) {
                 listOf(PeriodeMedVerdi(null, periode))
             } else {
-                require(verdi.behandling.utfall is BehandlingResultat.Innvilgelse)
+                require(verdi.behandling.resultat is BehandlingResultat.Innvilgelse)
                 verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(periode).perioderMedVerdi as List<PeriodeMedVerdi<Tiltaksdeltagelse?>>
             }
         }

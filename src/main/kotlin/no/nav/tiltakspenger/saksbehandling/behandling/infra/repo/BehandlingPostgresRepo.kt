@@ -355,9 +355,9 @@ class BehandlingPostgresRepo(
 
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
-                    val utfallType = stringOrNull("utfall")?.tilSøknadsbehandlingUtfallType()
+                    val resultatType = stringOrNull("utfall")?.tilSøknadsbehandlingUtfallType()
 
-                    val utfall = when (utfallType) {
+                    val resultat = when (resultatType) {
                         SøknadsbehandlingType.INNVILGELSE -> SøknadsbehandlingResultat.Innvilgelse(
                             valgteTiltaksdeltakelser = string("valgte_tiltaksdeltakelser")
                                 .toValgteTiltaksdeltakelser(saksopplysninger),
@@ -393,14 +393,14 @@ class BehandlingPostgresRepo(
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avbrutt = avbrutt,
-                        utfall = utfall,
+                        resultat = resultat,
                     )
                 }
 
                 Behandlingstype.REVURDERING -> {
-                    val utfallType = string("utfall").tilRevurderingUtfallType()
+                    val resultatType = string("utfall").tilRevurderingUtfallType()
 
-                    val utfall = when (utfallType) {
+                    val resultat = when (resultatType) {
                         RevurderingType.STANS -> RevurderingResultat.Stans(
                             valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.tilHjemmelForStans()
                                 ?: emptyList(),
@@ -434,7 +434,7 @@ class BehandlingPostgresRepo(
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avbrutt = avbrutt,
-                        utfall = utfall,
+                        resultat = resultat,
                     )
                 }
             }
@@ -607,11 +607,11 @@ private fun Behandling.tilDbParams(): Map<String, Any?> = mapOf(
     "saksopplysningsperiode_fra_og_med" to this.saksopplysningsperiode.fraOgMed,
     "saksopplysningsperiode_til_og_med" to this.saksopplysningsperiode.tilOgMed,
     "avbrutt" to this.avbrutt?.toDbJson(),
-    "utfall" to this.utfall?.toDb(),
+    "utfall" to this.resultat?.toDb(),
     "opprettet" to this.opprettet,
     "sak_id" to this.sakId.toString(),
     "behandlingstype" to this.behandlingstype.toDbValue(),
-    *this.utfall.tilDbParams(),
+    *this.resultat.tilDbParams(),
 )
 
 private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when (this) {

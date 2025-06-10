@@ -41,23 +41,23 @@ data class Revurdering(
     override val attesteringer: List<Attestering>,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val avbrutt: Avbrutt?,
-    override val utfall: RevurderingResultat,
+    override val resultat: RevurderingResultat,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
 ) : Behandling {
 
-    override val barnetillegg: Barnetillegg? = when (utfall) {
-        is Innvilgelse -> utfall.barnetillegg
+    override val barnetillegg: Barnetillegg? = when (resultat) {
+        is Innvilgelse -> resultat.barnetillegg
         is Stans -> null
     }
 
-    override val antallDagerPerMeldeperiode: Int? = when (utfall) {
-        is Innvilgelse -> utfall.antallDagerPerMeldeperiode
+    override val antallDagerPerMeldeperiode: Int? = when (resultat) {
+        is Innvilgelse -> resultat.antallDagerPerMeldeperiode
         is Stans -> null
     }
 
-    override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (utfall) {
-        is Innvilgelse -> utfall.valgteTiltaksdeltakelser
+    override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (resultat) {
+        is Innvilgelse -> resultat.valgteTiltaksdeltakelser
         is Stans -> null
     }
 
@@ -66,7 +66,7 @@ data class Revurdering(
             return@lazy null
         }
 
-        when (utfall) {
+        when (resultat) {
             is Innvilgelse -> Periodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, virkningsperiode)
             is Stans -> Periodisering(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, virkningsperiode)
         }
@@ -75,8 +75,8 @@ data class Revurdering(
     init {
         super.init()
 
-        when (utfall) {
-            is Innvilgelse -> utfall.valider(status, virkningsperiode)
+        when (resultat) {
+            is Innvilgelse -> resultat.valider(status, virkningsperiode)
             is Stans -> Unit
         }
     }
@@ -92,7 +92,7 @@ data class Revurdering(
             "Siste dag som gir rett må være bestemt før stans kan sendes til beslutning"
         }
 
-        require(utfall is Stans)
+        require(resultat is Stans)
 
         return this.copy(
             status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
@@ -100,7 +100,7 @@ data class Revurdering(
             begrunnelseVilkårsvurdering = kommando.begrunnelse,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             virkningsperiode = Periode(kommando.stansFraOgMed, kommando.sisteDagSomGirRett),
-            utfall = Stans(
+            resultat = Stans(
                 valgtHjemmel = kommando.valgteHjemler,
             ),
         )
@@ -112,7 +112,7 @@ data class Revurdering(
     ): Revurdering {
         validerSendTilBeslutning(kommando.saksbehandler)
 
-        require(this.utfall is Innvilgelse)
+        require(this.resultat is Innvilgelse)
 
         return this.copy(
             status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
@@ -120,7 +120,7 @@ data class Revurdering(
             begrunnelseVilkårsvurdering = kommando.begrunnelse,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             virkningsperiode = kommando.innvilgelsesperiode,
-            utfall = this.utfall.copy(
+            resultat = this.resultat.copy(
                 valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
                     tiltaksdeltakelser = kommando.tiltaksdeltakelser,
                     behandling = this,
@@ -167,7 +167,7 @@ data class Revurdering(
                 saksbehandler = saksbehandler,
                 saksopplysninger = saksopplysninger,
                 opprettet = nå(clock),
-                utfall = Stans(
+                resultat = Stans(
                     valgtHjemmel = emptyList(),
                 ),
             )
@@ -182,7 +182,7 @@ data class Revurdering(
             forrigeBehandling: Behandling,
             clock: Clock,
         ): Revurdering {
-            val forrigeUtfall = forrigeBehandling.utfall
+            val forrigeUtfall = forrigeBehandling.resultat
 
             require(forrigeUtfall is BehandlingResultat.Innvilgelse)
 
@@ -193,7 +193,7 @@ data class Revurdering(
                 saksbehandler = saksbehandler,
                 saksopplysninger = saksopplysninger,
                 opprettet = nå(clock),
-                utfall = Innvilgelse(
+                resultat = Innvilgelse(
                     valgteTiltaksdeltakelser = forrigeUtfall.valgteTiltaksdeltakelser,
                     barnetillegg = forrigeUtfall.barnetillegg,
                     antallDagerPerMeldeperiode = forrigeUtfall.antallDagerPerMeldeperiode,
@@ -208,7 +208,7 @@ data class Revurdering(
             saksbehandler: Saksbehandler,
             saksopplysninger: Saksopplysninger,
             opprettet: LocalDateTime,
-            utfall: RevurderingResultat,
+            resultat: RevurderingResultat,
         ): Revurdering {
             return Revurdering(
                 id = BehandlingId.random(),
@@ -220,7 +220,7 @@ data class Revurdering(
                 saksopplysninger = saksopplysninger,
                 opprettet = opprettet,
                 sistEndret = opprettet,
-                utfall = utfall,
+                resultat = resultat,
                 attesteringer = emptyList(),
                 virkningsperiode = null,
                 sendtTilBeslutning = null,

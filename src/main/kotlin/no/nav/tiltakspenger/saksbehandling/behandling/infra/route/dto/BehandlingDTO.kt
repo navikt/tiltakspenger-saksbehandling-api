@@ -24,7 +24,7 @@ data class BehandlingDTO(
     val id: String,
     val type: BehandlingstypeDTO,
     val status: BehandlingsstatusDTO,
-    val utfall: BehandlingUtfallDTO?,
+    val utfall: BehandlingResultatDTO?,
     val sakId: String,
     val saksnummer: String,
     val saksbehandler: String?,
@@ -58,7 +58,7 @@ fun Søknadsbehandling.toDTO(): BehandlingDTO {
         id = this.id.toString(),
         type = this.behandlingstype.tilBehandlingstypeDTO(),
         status = this.status.toBehandlingsstatusDTO(),
-        utfall = this.utfall?.tilUtfallDTO(),
+        utfall = this.resultat?.tilUtfallDTO(),
         sakId = this.sakId.toString(),
         saksnummer = this.saksnummer.toString(),
         saksbehandler = this.saksbehandler,
@@ -78,16 +78,16 @@ fun Søknadsbehandling.toDTO(): BehandlingDTO {
         avslagsgrunner = null,
     )
 
-    val utfall = this.utfall
+    val resultat = this.resultat
 
-    return when (utfall) {
+    return when (resultat) {
         is SøknadsbehandlingResultat.Innvilgelse -> utenUtfallDTO.copy(
-            barnetillegg = utfall.barnetillegg?.toBarnetilleggDTO(),
-            valgteTiltaksdeltakelser = utfall.valgteTiltaksdeltakelser.tilDTO(),
+            barnetillegg = resultat.barnetillegg?.toBarnetilleggDTO(),
+            valgteTiltaksdeltakelser = resultat.valgteTiltaksdeltakelser.tilDTO(),
         )
 
         is SøknadsbehandlingResultat.Avslag -> utenUtfallDTO.copy(
-            avslagsgrunner = utfall.avslagsgrunner.toValgtHjemmelForAvslagDTO(),
+            avslagsgrunner = resultat.avslagsgrunner.toValgtHjemmelForAvslagDTO(),
         )
 
         null -> utenUtfallDTO
@@ -110,7 +110,7 @@ fun Revurdering.toDTO(): BehandlingDTO {
         begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
         avbrutt = this.avbrutt?.toAvbruttDTO(),
         iverksattTidspunkt = this.iverksattTidspunkt?.toString(),
-        utfall = this.utfall.tilUtfallDTO(),
+        utfall = this.resultat.tilUtfallDTO(),
         valgtHjemmelHarIkkeRettighet = null,
         valgteTiltaksdeltakelser = null,
         antallDagerPerMeldeperiode = null,
@@ -119,17 +119,17 @@ fun Revurdering.toDTO(): BehandlingDTO {
         søknad = null,
     )
 
-    val utfall = this.utfall
+    val resultat = this.resultat
 
-    return when (utfall) {
+    return when (resultat) {
         is RevurderingResultat.Stans -> utenUtfallDTO.copy(
-            valgtHjemmelHarIkkeRettighet = utfall.valgtHjemmel.toDTO(this.behandlingstype),
+            valgtHjemmelHarIkkeRettighet = resultat.valgtHjemmel.toDTO(this.behandlingstype),
         )
 
         is RevurderingResultat.Innvilgelse -> utenUtfallDTO.copy(
-            antallDagerPerMeldeperiode = utfall.antallDagerPerMeldeperiode,
-            barnetillegg = utfall.barnetillegg?.toBarnetilleggDTO(),
-            valgteTiltaksdeltakelser = utfall.valgteTiltaksdeltakelser.tilDTO(),
+            antallDagerPerMeldeperiode = resultat.antallDagerPerMeldeperiode,
+            barnetillegg = resultat.barnetillegg?.toBarnetilleggDTO(),
+            valgteTiltaksdeltakelser = resultat.valgteTiltaksdeltakelser.tilDTO(),
         )
     }
 }

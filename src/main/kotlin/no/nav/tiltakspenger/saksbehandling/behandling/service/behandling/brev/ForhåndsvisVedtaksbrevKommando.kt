@@ -25,13 +25,13 @@ data class ForhåndsvisVedtaksbrevKommando(
     val virkingsperiode: Periode?,
     val barnetillegg: Periodisering<AntallBarn>?,
     val stansDato: LocalDate?,
-    val utfall: BehandlingResultatType,
+    val resultat: BehandlingResultatType,
     val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
 ) {
     init {
-        if (utfall == SøknadsbehandlingType.AVSLAG || avslagsgrunner != null) {
-            require(utfall == SøknadsbehandlingType.AVSLAG) { "Behandlingsutfall må være AVSLAG når det er valgt avslagsgrunner" }
-            require(avslagsgrunner != null) { "Det må være valgt avslagsgrunner når behandlingsutfall er AVSLAG" }
+        if (resultat == SøknadsbehandlingType.AVSLAG || avslagsgrunner != null) {
+            require(resultat == SøknadsbehandlingType.AVSLAG) { "Behandlingsresultat må være AVSLAG når det er valgt avslagsgrunner" }
+            require(avslagsgrunner != null) { "Det må være valgt avslagsgrunner når behandlingsresultat er AVSLAG" }
         }
     }
 }

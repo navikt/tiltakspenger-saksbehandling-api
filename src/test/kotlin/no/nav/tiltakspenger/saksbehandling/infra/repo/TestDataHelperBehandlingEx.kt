@@ -138,7 +138,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("persisterKlarTilBeslutningSøknadsbehandling()"),
     correlationId: CorrelationId = CorrelationId.generate(),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
-    utfall: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+    resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
     /**
      * Brukt for å styre meldeperiode generering
      */
@@ -177,7 +177,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
                     ),
                     antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                     avslagsgrunner = avslagsgrunner,
-                    utfall = utfall,
+                    resultat = resultat,
                 ),
                 clock = clock,
             )
@@ -450,7 +450,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
         søknad = søknad,
         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-        utfall = SøknadsbehandlingType.AVSLAG,
+        resultat = SøknadsbehandlingType.AVSLAG,
         avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
         correlationId = correlationId,
         clock = clock,

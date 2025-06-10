@@ -218,7 +218,7 @@ interface BehandlingMother : MotherOfAllMothers {
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
-        utfall: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
     ): Søknadsbehandling {
         return this.nyOpprettetSøknadsbehandling(
             id = id,
@@ -241,7 +241,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 tiltaksdeltakelser = valgteTiltaksdeltakelser,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                 avslagsgrunner = avslagsgrunner,
-                utfall = utfall,
+                resultat = resultat,
             ),
             clock = fixedClock,
         )
@@ -268,7 +268,7 @@ interface BehandlingMother : MotherOfAllMothers {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
-        utfall: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         clock: Clock = fixedClock,
     ): Søknadsbehandling {
         return nySøknadsbehandlingKlarTilBeslutning(
@@ -286,7 +286,7 @@ interface BehandlingMother : MotherOfAllMothers {
             saksopplysninger = saksopplysninger,
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
             oppgaveId = oppgaveId,
-            utfall = utfall,
+            resultat = resultat,
         ).taBehandling(beslutter) as Søknadsbehandling
     }
 
@@ -313,7 +313,7 @@ interface BehandlingMother : MotherOfAllMothers {
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         utdøvendeBeslutter: Saksbehandler = beslutter(),
-        utfall: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         clock: Clock = fixedClock,
     ): Søknadsbehandling {
         return nySøknadsbehandlingUnderBeslutning(
@@ -332,7 +332,7 @@ interface BehandlingMother : MotherOfAllMothers {
             saksopplysninger = saksopplysninger,
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
             oppgaveId = oppgaveId,
-            utfall = utfall,
+            resultat = resultat,
             clock = clock,
         ).sendTilbakeTilBehandling(
             utøvendeBeslutter = utdøvendeBeslutter,
@@ -367,7 +367,7 @@ interface BehandlingMother : MotherOfAllMothers {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
-        utfall: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         clock: Clock = fixedClock,
     ): Behandling {
         return nySøknadsbehandlingUnderBeslutning(
@@ -386,7 +386,7 @@ interface BehandlingMother : MotherOfAllMothers {
             saksopplysninger = saksopplysninger,
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
             oppgaveId = oppgaveId,
-            utfall = utfall,
+            resultat = resultat,
             clock = clock,
         ).iverksett(
             utøvendeBeslutter = beslutter,
@@ -540,7 +540,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("Begrunnelse"),
     antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
-    utfall: SøknadsbehandlingType,
+    resultat: SøknadsbehandlingType,
 ): Sak {
     val sakMedSøknadsbehandling = startSøknadsbehandling(
         periode = periode,
@@ -566,7 +566,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
             ),
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             avslagsgrunner = avslagsgrunner,
-            utfall = utfall,
+            resultat = resultat,
         ),
     ).getOrFail()
     return this.sakContext.sakService.sjekkTilgangOgHentForSakId(
@@ -582,14 +582,14 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
     correlationId: CorrelationId = CorrelationId.generate(),
-    utfall: SøknadsbehandlingType,
+    resultat: SøknadsbehandlingType,
     antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
 ): Sak {
     val vilkårsvurdert = søknadsbehandlingTilBeslutter(
         periode = periode,
         fnr = fnr,
         saksbehandler = saksbehandler,
-        utfall = utfall,
+        resultat = resultat,
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
     )
     this.behandlingContext.taBehandlingService.taBehandling(
@@ -610,7 +610,7 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
     correlationId: CorrelationId = CorrelationId.generate(),
-    utfall: SøknadsbehandlingType,
+    resultat: SøknadsbehandlingType,
     antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
 ): Sak {
     val tac = this
@@ -619,7 +619,7 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
         fnr = fnr,
         saksbehandler = saksbehandler,
         beslutter = beslutter,
-        utfall = utfall,
+        resultat = resultat,
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
     )
     runBlocking {
@@ -645,7 +645,7 @@ suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
     beslutter: Saksbehandler = beslutter(),
     clock: Clock = fixedClock,
     correlationId: CorrelationId = CorrelationId.generate(),
-    utfall: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+    resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
     antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
 ): Sak {
     val (sak, meldeperioder) = søknadssbehandlingIverksatt(
@@ -654,7 +654,7 @@ suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
         saksbehandler = saksbehandler,
         beslutter = beslutter,
         correlationId = correlationId,
-        utfall = utfall,
+        resultat = resultat,
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
     ).genererMeldeperioder(clock)
 
@@ -676,7 +676,7 @@ suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
         fnr = fnr,
         saksbehandler = saksbehandler,
         beslutter = beslutter,
-        utfall = SøknadsbehandlingType.INNVILGELSE,
+        resultat = SøknadsbehandlingType.INNVILGELSE,
     )
     tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
         sakId = sak.id,

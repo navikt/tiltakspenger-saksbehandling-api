@@ -22,7 +22,7 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
     val tiltaksdeltakelser: List<Pair<Periode, String>>,
     val antallDagerPerMeldeperiode: Int,
     val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
-    val utfall: SøknadsbehandlingType,
+    val resultat: SøknadsbehandlingType,
 ) {
     fun valgteTiltaksdeltakelser(behandling: Behandling): ValgteTiltaksdeltakelser {
         return ValgteTiltaksdeltakelser.periodiser(

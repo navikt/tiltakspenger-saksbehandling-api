@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingUtfallDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
@@ -201,13 +201,13 @@ class SendRevurderingTilBeslutningTest {
                 val behandlingDTO = objectMapper.readValue<BehandlingDTO>(jsonResponse)
 
                 behandlingDTO.status shouldBe BehandlingsstatusDTO.KLAR_TIL_BESLUTNING
-                behandlingDTO.utfall shouldBe BehandlingUtfallDTO.REVURDERING_INNVILGELSE
+                behandlingDTO.utfall shouldBe BehandlingResultatDTO.REVURDERING_INNVILGELSE
 
                 val revurdering = tac.behandlingContext.behandlingRepo.hent(BehandlingId.fromString(behandlingDTO.id))
 
                 revurdering.shouldBeInstanceOf<Revurdering>()
 
-                revurdering.utfall shouldBe RevurderingResultat.Innvilgelse(
+                revurdering.resultat shouldBe RevurderingResultat.Innvilgelse(
                     valgteTiltaksdeltakelser = revurdering.valgteTiltaksdeltakelser!!,
                     barnetillegg = søknadsbehandling.barnetillegg,
                     antallDagerPerMeldeperiode = søknadsbehandling.antallDagerPerMeldeperiode!!,

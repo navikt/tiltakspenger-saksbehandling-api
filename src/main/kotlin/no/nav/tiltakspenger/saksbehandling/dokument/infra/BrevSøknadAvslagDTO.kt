@@ -78,7 +78,7 @@ internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
     hentSaksbehandlersNavn: suspend (String) -> String,
     datoForUtsending: LocalDate,
 ): String {
-    require(behandling is Søknadsbehandling && behandling.utfall is SøknadsbehandlingResultat.Avslag) {
+    require(behandling is Søknadsbehandling && behandling.resultat is SøknadsbehandlingResultat.Avslag) {
         "Behandlingen må være et avslag for å generere avslagbrev"
     }
 
@@ -96,9 +96,9 @@ internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
         saksnummer = saksnummer.verdi,
         tilleggstekst = this.behandling.fritekstTilVedtaksbrev!!.verdi,
         forhåndsvisning = false,
-        avslagsgrunner = this.behandling.utfall.avslagsgrunner.toAvslagsgrunnerBrevDto(),
-        hjemlerTekst = if (this.behandling.utfall.avslagsgrunner.size > 1) {
-            this.behandling.utfall.avslagsgrunner.createBrevForskrifter(
+        avslagsgrunner = this.behandling.resultat.avslagsgrunner.toAvslagsgrunnerBrevDto(),
+        hjemlerTekst = if (this.behandling.resultat.avslagsgrunner.size > 1) {
+            this.behandling.resultat.avslagsgrunner.createBrevForskrifter(
                 harSøktBarnetillegg,
             )
         } else {
@@ -107,7 +107,7 @@ internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
         harSøktMedBarn = harSøktBarnetillegg,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
-        avslagsgrunnerSize = this.behandling.utfall.avslagsgrunner.size,
+        avslagsgrunnerSize = this.behandling.resultat.avslagsgrunner.size,
         avslagFraOgMed = this.periode.fraOgMed.format(norskDatoFormatter),
         avslagTilOgMed = this.periode.tilOgMed.format(norskDatoFormatter),
         datoForUtsending = datoForUtsending.format(norskDatoFormatter),

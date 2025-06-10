@@ -96,7 +96,7 @@ interface SakMother {
             ),
         ),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
-        utfall: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         clock: Clock = fixedClock,
         antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     ): Pair<Sak, Søknadsbehandling> {
@@ -128,7 +128,7 @@ interface SakMother {
                             tiltaksdeltakelser = valgteTiltaksdeltakelser,
                             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                             avslagsgrunner = avslagsgrunner,
-                            utfall = utfall,
+                            resultat = resultat,
                         ),
                         clock = clock,
                     )
@@ -180,7 +180,7 @@ interface SakMother {
                 }.toList(),
                 antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
                 avslagsgrunner = null,
-                utfall = SøknadsbehandlingType.INNVILGELSE,
+                resultat = SøknadsbehandlingType.INNVILGELSE,
             ),
             clock = clock,
         ).taBehandling(beslutter)
@@ -227,7 +227,7 @@ interface SakMother {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
                 avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
-                utfall = SøknadsbehandlingType.AVSLAG,
+                resultat = SøknadsbehandlingType.AVSLAG,
                 antallDagerPerMeldeperiode = 10,
             ),
             clock = clock,

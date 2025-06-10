@@ -10,13 +10,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingT
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
-class BehandlingsutfallDbTest {
+class BehandlingsresultatDbTest {
 
     @Test
     fun `mapper til db type`() {
         val vedtattBehandling = ObjectMother.nyVedtattSøknadsbehandling()
 
-        val søknadsbehandlingInnvilgelse = vedtattBehandling.utfall as SøknadsbehandlingResultat.Innvilgelse
+        val søknadsbehandlingInnvilgelse = vedtattBehandling.resultat as SøknadsbehandlingResultat.Innvilgelse
         val søknadsbehandlingAvslag = SøknadsbehandlingResultat.Avslag(
             avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
         )

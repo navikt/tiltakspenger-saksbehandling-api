@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilPeriodisering
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingUtfallDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toAvslagsgrunnlag
@@ -37,7 +37,7 @@ private data class Body(
     val stansDato: LocalDate?,
     val valgteHjemler: List<ValgtHjemmelForStansDTO>?,
     val barnetillegg: List<BarnetilleggPeriodeDTO>?,
-    val utfall: BehandlingUtfallDTO,
+    val utfall: BehandlingResultatDTO,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
 ) {
     fun toDomain(
@@ -58,7 +58,7 @@ private data class Body(
             valgteHjemler = (valgteHjemler ?: emptyList()).toDomain(),
             stansDato = stansDato,
             barnetillegg = barnetillegg?.tilPeriodisering(virkningsperiode),
-            utfall = utfall.toDomain(),
+            resultat = utfall.toDomain(),
             avslagsgrunner = this.avslagsgrunner?.toAvslagsgrunnlag(),
         )
     }

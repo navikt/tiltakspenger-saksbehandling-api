@@ -56,7 +56,7 @@ sealed interface Behandling {
 
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val avbrutt: Avbrutt?
-    val utfall: BehandlingResultat?
+    val resultat: BehandlingResultat?
     val virkningsperiode: Periode?
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
 
@@ -92,9 +92,11 @@ sealed interface Behandling {
             UNDER_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
                 require(this.saksbehandler == saksbehandler.navIdent) {
-                    throw IllegalArgumentException("Kan bare legge tilbake behandling dersom saksbehandler selv er på behandlingen")
+                    "Kan bare legge tilbake behandling dersom saksbehandler selv er på behandlingen"
                 }
-                require(this.beslutter == null) { "Beslutter skal ikke kunne være satt på behandlingen dersom den er UNDER_BEHANDLING" }
+                require(this.beslutter == null) {
+                    "Beslutter skal ikke kunne være satt på behandlingen dersom den er UNDER_BEHANDLING"
+                }
 
                 when (this) {
                     is Søknadsbehandling -> this.copy(saksbehandler = null, status = KLAR_TIL_BEHANDLING)
@@ -105,7 +107,7 @@ sealed interface Behandling {
             UNDER_BESLUTNING -> {
                 krevBeslutterRolle(saksbehandler)
                 require(this.beslutter == saksbehandler.navIdent) {
-                    throw IllegalArgumentException("Kan bare legge tilbake behandling dersom saksbehandler selv er på behandlingen")
+                    "Kan bare legge tilbake behandling dersom saksbehandler selv er på behandlingen"
                 }
 
                 when (this) {
@@ -374,7 +376,7 @@ sealed interface Behandling {
                 if (attesteringer.isEmpty()) {
                     require(beslutter == null) { "Beslutter kan ikke være tilknyttet behandlingen dersom det ikke er gjort noen attesteringer" }
                 } else {
-                    require(utfall != null) { "Behandlingsutfall må være satt dersom det er gjort attesteringer på behandlingen" }
+                    require(resultat != null) { "Behandlingsresultat må være satt dersom det er gjort attesteringer på behandlingen" }
                 }
             }
 
@@ -386,7 +388,7 @@ sealed interface Behandling {
                 }
                 require(iverksattTidspunkt == null)
                 require(virkningsperiode != null) { "Virkningsperiode må være satt for statusen KLAR_TIL_BESLUTNING" }
-                require(this.utfall != null) { "Behandlingsutfall må være satt for statusen KLAR_TIL_BESLUTNING" }
+                require(this.resultat != null) { "Behandlingsresultat må være satt for statusen KLAR_TIL_BESLUTNING" }
             }
 
             UNDER_BESLUTNING -> {
@@ -395,7 +397,7 @@ sealed interface Behandling {
                 requireNotNull(beslutter) { "Behandlingen må tilknyttet en beslutter når status er UNDER_BESLUTNING" }
                 require(iverksattTidspunkt == null)
                 require(virkningsperiode != null) { "Virkningsperiode må være satt for statusen UNDER_BESLUTNING" }
-                require(this.utfall != null) { "Behandlingsutfall må være satt for statusen UNDER_BESLUTNING" }
+                require(this.resultat != null) { "Behandlingsresultat må være satt for statusen UNDER_BESLUTNING" }
             }
 
             VEDTATT -> {
@@ -405,7 +407,7 @@ sealed interface Behandling {
                 requireNotNull(iverksattTidspunkt)
                 requireNotNull(sendtTilBeslutning)
                 require(virkningsperiode != null) { "Virkningsperiode må være satt for statusen VEDTATT" }
-                require(this.utfall != null) { "Behandlingsutfall må være satt for statusen VEDTATT" }
+                require(this.resultat != null) { "Behandlingsresultat må være satt for statusen VEDTATT" }
             }
 
             AVBRUTT -> {

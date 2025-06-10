@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 
-enum class BehandlingUtfallDTO {
+enum class BehandlingResultatDTO {
     INNVILGELSE,
     AVSLAG,
     STANS,
@@ -21,12 +21,12 @@ enum class BehandlingUtfallDTO {
     }
 }
 
-fun SøknadsbehandlingResultat.tilUtfallDTO(): BehandlingUtfallDTO = when (this) {
-    is SøknadsbehandlingResultat.Avslag -> BehandlingUtfallDTO.AVSLAG
-    is SøknadsbehandlingResultat.Innvilgelse -> BehandlingUtfallDTO.INNVILGELSE
+fun SøknadsbehandlingResultat.tilUtfallDTO(): BehandlingResultatDTO = when (this) {
+    is SøknadsbehandlingResultat.Avslag -> BehandlingResultatDTO.AVSLAG
+    is SøknadsbehandlingResultat.Innvilgelse -> BehandlingResultatDTO.INNVILGELSE
 }
 
-fun RevurderingResultat.tilUtfallDTO(): BehandlingUtfallDTO = when (this) {
-    is RevurderingResultat.Stans -> BehandlingUtfallDTO.STANS
-    is RevurderingResultat.Innvilgelse -> BehandlingUtfallDTO.REVURDERING_INNVILGELSE
+fun RevurderingResultat.tilUtfallDTO(): BehandlingResultatDTO = when (this) {
+    is RevurderingResultat.Stans -> BehandlingResultatDTO.STANS
+    is RevurderingResultat.Innvilgelse -> BehandlingResultatDTO.REVURDERING_INNVILGELSE
 }

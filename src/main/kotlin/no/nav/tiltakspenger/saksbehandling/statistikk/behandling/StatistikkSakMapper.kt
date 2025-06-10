@@ -115,8 +115,8 @@ private fun Behandling.getBehandlingAarsak(): StatistikkBehandlingAarsak? {
     if (this is Søknadsbehandling) {
         return StatistikkBehandlingAarsak.SOKNAD
     }
-    if (this is Revurdering && this.utfall is RevurderingResultat.Stans && utfall.valgtHjemmel.isNotEmpty()) {
-        return utfall.valgtHjemmel.first().toBehandlingAarsak()
+    if (this is Revurdering && this.resultat is RevurderingResultat.Stans && resultat.valgtHjemmel.isNotEmpty()) {
+        return resultat.valgtHjemmel.first().toBehandlingAarsak()
     }
     return null
 }

@@ -44,32 +44,32 @@ data class Søknadsbehandling(
     override val attesteringer: List<Attestering>,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val avbrutt: Avbrutt?,
-    override val utfall: SøknadsbehandlingResultat?,
+    override val resultat: SøknadsbehandlingResultat?,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     val søknad: Søknad,
 ) : Behandling {
 
     override val antallDagerPerMeldeperiode: Int?
-        get() = when (utfall) {
+        get() = when (resultat) {
             is SøknadsbehandlingResultat.Avslag -> null
-            is SøknadsbehandlingResultat.Innvilgelse -> utfall.antallDagerPerMeldeperiode
+            is SøknadsbehandlingResultat.Innvilgelse -> resultat.antallDagerPerMeldeperiode
             null -> null
         }
 
     override val barnetillegg: Barnetillegg?
-        get() = when (utfall) {
+        get() = when (resultat) {
             is SøknadsbehandlingResultat.Avslag -> null
-            is SøknadsbehandlingResultat.Innvilgelse -> utfall.barnetillegg
+            is SøknadsbehandlingResultat.Innvilgelse -> resultat.barnetillegg
             null -> null
         }
 
     override val utfallsperioder: Periodisering<Utfallsperiode>? =
         virkningsperiode?.let { Periodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, it) }
 
-    override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (utfall) {
+    override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (resultat) {
         is SøknadsbehandlingResultat.Avslag -> null
-        is SøknadsbehandlingResultat.Innvilgelse -> utfall.valgteTiltaksdeltakelser
+        is SøknadsbehandlingResultat.Innvilgelse -> resultat.valgteTiltaksdeltakelser
         null -> null
     }
 
@@ -78,8 +78,8 @@ data class Søknadsbehandling(
     init {
         super.init()
 
-        when (utfall) {
-            is SøknadsbehandlingResultat.Innvilgelse -> utfall.valider(status, virkningsperiode)
+        when (resultat) {
+            is SøknadsbehandlingResultat.Innvilgelse -> resultat.valider(status, virkningsperiode)
             is SøknadsbehandlingResultat.Avslag -> Unit
             null -> Unit
         }
@@ -97,10 +97,10 @@ data class Søknadsbehandling(
         val status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING
         val virkningsperiode = kommando.behandlingsperiode
 
-        val utfall: SøknadsbehandlingResultat = when (kommando.utfall) {
+        val resultat: SøknadsbehandlingResultat = when (kommando.resultat) {
             SøknadsbehandlingType.INNVILGELSE -> {
                 require(kommando.avslagsgrunner == null) {
-                    "Avslagsgrunner kan ikke være satt dersom behandlingen har utfallet INNVILGELSE"
+                    "Avslagsgrunner kan ikke være satt dersom behandlingen har resultatet INNVILGELSE"
                 }
 
                 SøknadsbehandlingResultat.Innvilgelse(
@@ -112,7 +112,7 @@ data class Søknadsbehandling(
 
             SøknadsbehandlingType.AVSLAG -> {
                 requireNotNull(kommando.avslagsgrunner) {
-                    "Avslagsgrunner må være satt dersom behandlingen har utfallet AVSLAG"
+                    "Avslagsgrunner må være satt dersom behandlingen har resultatet AVSLAG"
                 }
 
                 SøknadsbehandlingResultat.Avslag(
@@ -127,15 +127,15 @@ data class Søknadsbehandling(
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             virkningsperiode = virkningsperiode,
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
-            utfall = utfall,
+            resultat = resultat,
         )
     }
 
     fun oppdaterBarnetillegg(kommando: OppdaterBarnetilleggKommando): Søknadsbehandling {
-        require(this.utfall is SøknadsbehandlingResultat.Innvilgelse)
+        require(this.resultat is SøknadsbehandlingResultat.Innvilgelse)
         validerKanOppdatere(kommando.saksbehandler, "Kunne ikke oppdatere barnetillegg")
 
-        return this.copy(utfall = utfall.copy(barnetillegg = kommando.barnetillegg(this.virkningsperiode)))
+        return this.copy(resultat = resultat.copy(barnetillegg = kommando.barnetillegg(this.virkningsperiode)))
     }
 
     override fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Søknadsbehandling {
@@ -195,7 +195,7 @@ data class Søknadsbehandling(
                 sendtTilDatadeling = null,
                 sistEndret = opprettet,
                 avbrutt = null,
-                utfall = null,
+                resultat = null,
                 virkningsperiode = null,
                 begrunnelseVilkårsvurdering = null,
             ).right()

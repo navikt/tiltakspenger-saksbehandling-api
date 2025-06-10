@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingUtfallDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toAvslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
@@ -95,7 +95,7 @@ private data class SøknadsbehandlingTilBeslutningBody(
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
     val antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
-    val utfall: BehandlingUtfallDTO,
+    val utfall: BehandlingResultatDTO,
 ) {
     fun toDomain(
         sakId: SakId,
@@ -119,12 +119,12 @@ private data class SøknadsbehandlingTilBeslutningBody(
             },
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             avslagsgrunner = avslagsgrunner?.toAvslagsgrunnlag(),
-            utfall = when (utfall) {
-                BehandlingUtfallDTO.INNVILGELSE -> SøknadsbehandlingType.INNVILGELSE
-                BehandlingUtfallDTO.AVSLAG -> SøknadsbehandlingType.AVSLAG
-                BehandlingUtfallDTO.STANS,
-                BehandlingUtfallDTO.REVURDERING_INNVILGELSE,
-                -> throw IllegalArgumentException("Ugyldig utfall for søknadsbehandling: $utfall")
+            resultat = when (utfall) {
+                BehandlingResultatDTO.INNVILGELSE -> SøknadsbehandlingType.INNVILGELSE
+                BehandlingResultatDTO.AVSLAG -> SøknadsbehandlingType.AVSLAG
+                BehandlingResultatDTO.STANS,
+                BehandlingResultatDTO.REVURDERING_INNVILGELSE,
+                -> throw IllegalArgumentException("Ugyldig resultat for søknadsbehandling: $utfall")
             },
         )
     }

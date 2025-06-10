@@ -96,22 +96,22 @@ class BehandlingTest {
     }
 
     @Nested
-    inner class BehandlingsutfallTest {
+    inner class BehandlingsresultatTest {
         @Test
-        fun `kaster exception dersom utfall er avslag uten avslagsgrunner`() {
+        fun `kaster exception dersom resultat er avslag uten avslagsgrunner`() {
             assertThrows<IllegalArgumentException> {
                 ObjectMother.nySøknadsbehandlingKlarTilBeslutning(
-                    utfall = SøknadsbehandlingType.AVSLAG,
+                    resultat = SøknadsbehandlingType.AVSLAG,
                     avslagsgrunner = null,
                 )
             }
         }
 
         @Test
-        fun `kaster exception dersom utfall er innvilgelse med avslagsgrunner`() {
+        fun `kaster exception dersom resultat er innvilgelse med avslagsgrunner`() {
             assertThrows<IllegalArgumentException> {
                 ObjectMother.nySøknadsbehandlingKlarTilBeslutning(
-                    utfall = SøknadsbehandlingType.INNVILGELSE,
+                    resultat = SøknadsbehandlingType.INNVILGELSE,
                     avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
                 )
             }

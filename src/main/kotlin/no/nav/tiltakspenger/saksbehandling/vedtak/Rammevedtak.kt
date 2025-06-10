@@ -102,15 +102,15 @@ fun Sak.opprettVedtak(
 fun Sak.utledVedtakstype(behandling: Behandling): Vedtakstype {
     return when (behandling) {
         is Søknadsbehandling -> {
-            when (behandling.utfall) {
+            when (behandling.resultat) {
                 is SøknadsbehandlingResultat.Avslag -> Vedtakstype.AVSLAG
                 is SøknadsbehandlingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
-                null -> throw IllegalArgumentException("Kan ikke lage et vedtak uten utfall. Behandlingen uten utfall er ${behandling.id}")
+                null -> throw IllegalArgumentException("Kan ikke lage et vedtak uten resultat. Behandlingen uten resultat er ${behandling.id}")
             }
         }
 
         is Revurdering -> {
-            when (behandling.utfall) {
+            when (behandling.resultat) {
                 is RevurderingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
                 is RevurderingResultat.Stans -> {
                     val revurderingTilOgmed = behandling.virkningsperiode!!.tilOgMed

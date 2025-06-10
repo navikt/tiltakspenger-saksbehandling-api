@@ -50,11 +50,11 @@ class ForhåndsvisVedtaksbrevService(
             -> behandling.virkningsperiode!!
         }
 
-        val utfall = kommando.utfall
+        val resultat = kommando.resultat
 
         return when (behandling) {
             is Søknadsbehandling -> {
-                when (utfall) {
+                when (resultat) {
                     SøknadsbehandlingType.INNVILGELSE -> genererInnvilgelsesbrevClient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
                         hentBrukersNavn = personService::hentNavn,
                         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -94,7 +94,7 @@ class ForhåndsvisVedtaksbrevService(
 
                     RevurderingType.INNVILGELSE,
                     RevurderingType.STANS,
-                    -> throw IllegalArgumentException("$utfall er ikke gyldig utfall for søknadsbehandling")
+                    -> throw IllegalArgumentException("$resultat er ikke gyldig resultat for søknadsbehandling")
                 }
             }
 

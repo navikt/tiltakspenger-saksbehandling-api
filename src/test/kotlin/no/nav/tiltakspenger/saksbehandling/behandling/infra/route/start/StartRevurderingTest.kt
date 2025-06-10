@@ -30,7 +30,7 @@ internal class StartRevurderingTest {
                 revurdering.shouldBeInstanceOf<Revurdering>()
                 revurdering.behandlingstype shouldBe Behandlingstype.REVURDERING
                 revurdering.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
-                revurdering.utfall.shouldBeInstanceOf<RevurderingResultat.Stans>()
+                revurdering.resultat.shouldBeInstanceOf<RevurderingResultat.Stans>()
                 revurdering.sakId shouldBe sak.id
                 revurdering.oppgaveId shouldBe null
                 revurdering.fritekstTilVedtaksbrev shouldBe null
@@ -57,7 +57,7 @@ internal class StartRevurderingTest {
                 revurdering.shouldBeInstanceOf<Revurdering>()
                 revurdering.behandlingstype shouldBe Behandlingstype.REVURDERING
                 revurdering.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
-                revurdering.utfall.shouldBeInstanceOf<RevurderingResultat.Innvilgelse>()
+                revurdering.resultat.shouldBeInstanceOf<RevurderingResultat.Innvilgelse>()
                 revurdering.sakId shouldBe sak.id
                 revurdering.oppgaveId shouldBe null
                 revurdering.fritekstTilVedtaksbrev shouldBe null
