@@ -21,7 +21,7 @@ class SakDtoTest {
             it.typeBehandling shouldBe BehandlingstypeDTO.SØKNAD
         }
         actual.behandlingsoversikt.last().let {
-            it.typeBehandling shouldBe BehandlingstypeDTO.FØRSTEGANGSBEHANDLING
+            it.typeBehandling shouldBe BehandlingstypeDTO.SØKNADSBEHANDLING
         }
     }
 }

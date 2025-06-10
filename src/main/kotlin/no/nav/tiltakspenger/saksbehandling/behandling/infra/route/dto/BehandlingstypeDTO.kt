@@ -4,11 +4,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 
 enum class BehandlingstypeDTO {
     SØKNAD,
-    FØRSTEGANGSBEHANDLING, // TODO: endre til SØKNADSBEHANDLING her og i frontend
+    SØKNADSBEHANDLING,
     REVURDERING,
 }
 
 fun Behandlingstype.tilBehandlingstypeDTO(): BehandlingstypeDTO = when (this) {
-    Behandlingstype.SØKNADSBEHANDLING -> BehandlingstypeDTO.FØRSTEGANGSBEHANDLING
+    Behandlingstype.SØKNADSBEHANDLING -> BehandlingstypeDTO.SØKNADSBEHANDLING
     Behandlingstype.REVURDERING -> BehandlingstypeDTO.REVURDERING
 }
