@@ -130,14 +130,6 @@ class LocalApplicationContext(
         }
     }
 
-    private val tiltaksdeltagelseFakeKlient =
-        TiltaksdeltagelseFakeKlient(søknadRepo = søknadContext.søknadRepo)
-
-    override val tiltakContext by lazy {
-        object : TiltaksdeltagelseContext(entraIdSystemtokenClient) {
-            override val tiltaksdeltagelseKlient = tiltaksdeltagelseFakeKlient
-        }
-    }
     override val profile by lazy { Profile.LOCAL }
 
     override val sakContext by lazy {
@@ -167,6 +159,16 @@ class LocalApplicationContext(
             simulerService = utbetalingContext.simulerService,
         ) {}
     }
+
+    private val tiltaksdeltagelseFakeKlient =
+        TiltaksdeltagelseFakeKlient(søknadRepo = søknadContext.søknadRepo)
+
+    override val tiltakContext by lazy {
+        object : TiltaksdeltagelseContext(entraIdSystemtokenClient) {
+            override val tiltaksdeltagelseKlient = tiltaksdeltagelseFakeKlient
+        }
+    }
+
     override val behandlingContext by lazy {
         object : BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
