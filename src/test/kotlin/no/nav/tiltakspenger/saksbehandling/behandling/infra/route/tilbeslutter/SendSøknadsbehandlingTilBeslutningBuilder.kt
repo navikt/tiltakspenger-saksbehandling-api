@@ -100,7 +100,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                         }
                     }
                 ],
-                "utfall": "INNVILGELSE",
+                "resultat": "INNVILGELSE",
                 "avslagsgrunner": null,
                 "antallDagerPerMeldeperiode": 10
             }
@@ -157,7 +157,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                     }
                 ],
                 "antallDagerPerMeldeperiode": 10,
-                "utfall": "INNVILGELSE",
+                "resultat": "INNVILGELSE",
                 "avslagsgrunner": null
             }
                 """.trimIndent(),

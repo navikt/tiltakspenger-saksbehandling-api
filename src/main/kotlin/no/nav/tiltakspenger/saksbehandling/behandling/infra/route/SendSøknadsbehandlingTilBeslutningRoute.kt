@@ -95,7 +95,7 @@ private data class SøknadsbehandlingTilBeslutningBody(
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
     val antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
-    val utfall: BehandlingResultatDTO,
+    val resultat: BehandlingResultatDTO,
 ) {
     fun toDomain(
         sakId: SakId,
@@ -119,12 +119,12 @@ private data class SøknadsbehandlingTilBeslutningBody(
             },
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             avslagsgrunner = avslagsgrunner?.toAvslagsgrunnlag(),
-            resultat = when (utfall) {
+            resultat = when (resultat) {
                 BehandlingResultatDTO.INNVILGELSE -> SøknadsbehandlingType.INNVILGELSE
                 BehandlingResultatDTO.AVSLAG -> SøknadsbehandlingType.AVSLAG
                 BehandlingResultatDTO.STANS,
                 BehandlingResultatDTO.REVURDERING_INNVILGELSE,
-                -> throw IllegalArgumentException("Ugyldig resultat for søknadsbehandling: $utfall")
+                -> throw IllegalArgumentException("Ugyldig resultat for søknadsbehandling: $resultat")
             },
         )
     }

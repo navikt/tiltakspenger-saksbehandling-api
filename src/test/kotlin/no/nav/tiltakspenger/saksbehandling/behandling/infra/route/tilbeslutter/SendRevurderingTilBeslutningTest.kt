@@ -201,7 +201,7 @@ class SendRevurderingTilBeslutningTest {
                 val behandlingDTO = objectMapper.readValue<BehandlingDTO>(jsonResponse)
 
                 behandlingDTO.status shouldBe BehandlingsstatusDTO.KLAR_TIL_BESLUTNING
-                behandlingDTO.utfall shouldBe BehandlingResultatDTO.REVURDERING_INNVILGELSE
+                behandlingDTO.resultat shouldBe BehandlingResultatDTO.REVURDERING_INNVILGELSE
 
                 val revurdering = tac.behandlingContext.behandlingRepo.hent(BehandlingId.fromString(behandlingDTO.id))
 

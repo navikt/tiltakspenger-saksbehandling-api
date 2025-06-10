@@ -37,7 +37,7 @@ private data class Body(
     val stansDato: LocalDate?,
     val valgteHjemler: List<ValgtHjemmelForStansDTO>?,
     val barnetillegg: List<BarnetilleggPeriodeDTO>?,
-    val utfall: BehandlingResultatDTO,
+    val resultat: BehandlingResultatDTO,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
 ) {
     fun toDomain(
@@ -58,7 +58,7 @@ private data class Body(
             valgteHjemler = (valgteHjemler ?: emptyList()).toDomain(),
             stansDato = stansDato,
             barnetillegg = barnetillegg?.tilPeriodisering(virkningsperiode),
-            resultat = utfall.toDomain(),
+            resultat = resultat.toDomain(),
             avslagsgrunner = this.avslagsgrunner?.toAvslagsgrunnlag(),
         )
     }
