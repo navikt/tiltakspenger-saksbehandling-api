@@ -16,12 +16,12 @@ private enum class RevurderingUtfallDb {
     REVURDERING_INNVILGELSE,
 }
 
-fun String.tilSøknadsbehandlingUtfallType(): SøknadsbehandlingType = when (SøknadsbehandlingUtfallDb.valueOf(this)) {
+fun String.tilSøknadsbehandlingResultatType(): SøknadsbehandlingType = when (SøknadsbehandlingUtfallDb.valueOf(this)) {
     SøknadsbehandlingUtfallDb.INNVILGELSE -> SøknadsbehandlingType.INNVILGELSE
     SøknadsbehandlingUtfallDb.AVSLAG -> SøknadsbehandlingType.AVSLAG
 }
 
-fun String.tilRevurderingUtfallType(): RevurderingType = when (RevurderingUtfallDb.valueOf(this)) {
+fun String.tilRevurderingResultatType(): RevurderingType = when (RevurderingUtfallDb.valueOf(this)) {
     RevurderingUtfallDb.STANS -> RevurderingType.STANS
     RevurderingUtfallDb.REVURDERING_INNVILGELSE -> RevurderingType.INNVILGELSE
 }

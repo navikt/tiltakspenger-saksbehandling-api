@@ -31,8 +31,8 @@ class BehandlingsresultatDbTest {
 
     @Test
     fun `mapper til domene type`() {
-        "INNVILGELSE".tilSøknadsbehandlingUtfallType() shouldBe SøknadsbehandlingType.INNVILGELSE
-        "AVSLAG".tilSøknadsbehandlingUtfallType() shouldBe SøknadsbehandlingType.AVSLAG
-        "STANS".tilRevurderingUtfallType() shouldBe RevurderingType.STANS
+        "INNVILGELSE".tilSøknadsbehandlingResultatType() shouldBe SøknadsbehandlingType.INNVILGELSE
+        "AVSLAG".tilSøknadsbehandlingResultatType() shouldBe SøknadsbehandlingType.AVSLAG
+        "STANS".tilRevurderingResultatType() shouldBe RevurderingType.STANS
     }
 }

@@ -355,7 +355,7 @@ class BehandlingPostgresRepo(
 
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
-                    val resultatType = stringOrNull("utfall")?.tilSøknadsbehandlingUtfallType()
+                    val resultatType = stringOrNull("resultat")?.tilSøknadsbehandlingResultatType()
 
                     val resultat = when (resultatType) {
                         SøknadsbehandlingType.INNVILGELSE -> SøknadsbehandlingResultat.Innvilgelse(
@@ -398,7 +398,7 @@ class BehandlingPostgresRepo(
                 }
 
                 Behandlingstype.REVURDERING -> {
-                    val resultatType = string("utfall").tilRevurderingUtfallType()
+                    val resultatType = string("resultat").tilRevurderingResultatType()
 
                     val resultat = when (resultatType) {
                         RevurderingType.STANS -> RevurderingResultat.Stans(
@@ -470,7 +470,7 @@ class BehandlingPostgresRepo(
                 avbrutt,
                 antall_dager_per_meldeperiode,
                 avslagsgrunner,
-                utfall
+                resultat
             ) values (
                 :id,
                 :sak_id,
@@ -498,7 +498,7 @@ class BehandlingPostgresRepo(
                 to_jsonb(:avbrutt::jsonb),
                 :antall_dager_per_meldeperiode,
                 to_jsonb(:avslagsgrunner::jsonb),
-                :utfall
+                :resultat
             )
             """.trimIndent()
 
@@ -528,7 +528,7 @@ class BehandlingPostgresRepo(
                 avbrutt = to_jsonb(:avbrutt::jsonb),
                 antall_dager_per_meldeperiode = :antall_dager_per_meldeperiode,
                 avslagsgrunner = to_jsonb(:avslagsgrunner::jsonb),
-                utfall = :utfall
+                resultat = :resultat
             where id = :id and sist_endret = :sist_endret_old
             """.trimIndent()
 
@@ -607,7 +607,7 @@ private fun Behandling.tilDbParams(): Map<String, Any?> = mapOf(
     "saksopplysningsperiode_fra_og_med" to this.saksopplysningsperiode.fraOgMed,
     "saksopplysningsperiode_til_og_med" to this.saksopplysningsperiode.tilOgMed,
     "avbrutt" to this.avbrutt?.toDbJson(),
-    "utfall" to this.resultat?.toDb(),
+    "resultat" to this.resultat?.toDb(),
     "opprettet" to this.opprettet,
     "sak_id" to this.sakId.toString(),
     "behandlingstype" to this.behandlingstype.toDbValue(),
