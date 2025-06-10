@@ -12,7 +12,7 @@ val poaoTilgangVersjon = "2025.06.06_07.18-71cefb1c2699"
 val iverksettVersjon = "1.0_20241213145703_7ff5f9c"
 val confluentVersion = "7.9.1"
 val avroVersion = "1.12.0"
-val prometeusVersion = "1.15.0"
+val prometeusVersion = "1.15.1"
 
 dependencies {
     // Align versions of all Kotlin components
