@@ -19,7 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.PoaoTilgangskontrollFake
-import no.nav.tiltakspenger.saksbehandling.fakes.clients.TiltaksdeltagelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.VeilarboppfolgingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
@@ -42,6 +41,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import java.time.Clock

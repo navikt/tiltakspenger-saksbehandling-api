@@ -1,6 +1,6 @@
 @file:Suppress("UnusedImport")
 
-package no.nav.tiltakspenger.saksbehandling.fakes.clients
+package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http
 
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.Tiltaksdeltag
 class TiltaksdeltagelseFakeKlient(private val søknadRepo: SøknadRepo) : TiltaksdeltagelseKlient {
     private val data = Atomic(mutableMapOf<Fnr, List<Tiltaksdeltagelse>>())
 
-    override suspend fun hentTiltaksdeltagelse(
+    override suspend fun hentTiltaksdeltagelser(
         fnr: Fnr,
         correlationId: CorrelationId,
     ): List<Tiltaksdeltagelse> {

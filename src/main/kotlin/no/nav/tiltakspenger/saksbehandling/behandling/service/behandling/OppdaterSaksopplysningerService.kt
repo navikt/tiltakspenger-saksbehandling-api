@@ -50,7 +50,7 @@ class OppdaterSaksopplysningerService(
     ): Saksopplysninger {
         val personopplysninger = personService.hentPersonopplysninger(fnr)
         val alleRelevanteTiltak = runBlocking {
-            tiltaksdeltagelseKlient.hentTiltaksdeltagelse(
+            tiltaksdeltagelseKlient.hentTiltaksdeltagelser(
                 fnr = fnr,
                 correlationId = correlationId,
             )

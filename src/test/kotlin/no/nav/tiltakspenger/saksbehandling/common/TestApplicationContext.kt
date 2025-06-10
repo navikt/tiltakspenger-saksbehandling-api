@@ -25,7 +25,6 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.PersonFakeKlient
-import no.nav.tiltakspenger.saksbehandling.fakes.clients.TiltaksdeltagelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.fakes.clients.VeilarboppfolgingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
@@ -54,6 +53,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingsvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext

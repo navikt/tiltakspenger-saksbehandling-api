@@ -5,5 +5,5 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 
 interface TiltaksdeltagelseKlient {
-    suspend fun hentTiltaksdeltagelse(fnr: Fnr, correlationId: CorrelationId): List<Tiltaksdeltagelse>
+    suspend fun hentTiltaksdeltagelser(fnr: Fnr, correlationId: CorrelationId): List<Tiltaksdeltagelse>
 }
