@@ -4,5 +4,5 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 
 data class Ytelse(
     val ytelsetype: Ytelsetype,
-    val periode: Periode,
+    val perioder: List<Periode>,
 )

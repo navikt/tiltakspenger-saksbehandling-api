@@ -37,7 +37,11 @@ class SokosUtbetaldataHttpClient(
 
     private val utbetalingsinformasjonUri = URI.create("$baseUrl/v2/hent-utbetalingsinformasjon/intern")
 
-    override suspend fun hentYtelserFraUtbetaldata(fnr: Fnr, periode: Periode, correlationId: CorrelationId): List<Ytelse> {
+    override suspend fun hentYtelserFraUtbetaldata(
+        fnr: Fnr,
+        periode: Periode,
+        correlationId: CorrelationId,
+    ): List<Ytelse> {
         val jsonPayload = serialize(
             HentUtbetalingsinformasjonRequest(
                 ident = fnr.verdi,
@@ -65,7 +69,18 @@ class SokosUtbetaldataHttpClient(
     private fun UtbetalingDto.tilYtelse(): List<Ytelse> {
         val ytelsestyper = Ytelsetype.entries.toTypedArray().map { it.name }
         val relevanteYtelser = ytelseListe.filter { it.ytelsestype == null || it.ytelsestype in ytelsestyper }
-        return relevanteYtelser.map { it.tilYtelse() }
+            .groupBy { it.ytelsestype }
+        return relevanteYtelser.map { ytelse ->
+            Ytelse(
+                ytelsetype = ytelse.key?.let { Ytelsetype.valueOf(it) } ?: Ytelsetype.UKJENT,
+                perioder = ytelse.value.map {
+                    Periode(
+                        fraOgMed = it.ytelsesperiode.fom,
+                        tilOgMed = it.ytelsesperiode.tom,
+                    )
+                },
+            )
+        }
     }
 
     private fun createPostRequest(
