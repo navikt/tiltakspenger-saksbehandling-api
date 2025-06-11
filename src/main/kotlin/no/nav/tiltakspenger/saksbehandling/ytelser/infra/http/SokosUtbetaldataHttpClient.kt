@@ -29,6 +29,8 @@ class SokosUtbetaldataHttpClient(
 ) : SokosUtbetaldataClient {
     private val log = KotlinLogging.logger {}
 
+    private val relevanteYtelsestyper = Ytelsetype.entries.toTypedArray().map { it.name }
+
     private val client = HttpClient
         .newBuilder()
         .connectTimeout(connectTimeout.toJavaDuration())
@@ -67,8 +69,7 @@ class SokosUtbetaldataHttpClient(
     }
 
     private fun UtbetalingDto.tilYtelse(): List<Ytelse> {
-        val ytelsestyper = Ytelsetype.entries.toTypedArray().map { it.name }
-        val relevanteYtelser = ytelseListe.filter { it.ytelsestype == null || it.ytelsestype in ytelsestyper }
+        val relevanteYtelser = ytelseListe.filter { it.ytelsestype == null || it.ytelsestype in relevanteYtelsestyper }
             .groupBy { it.ytelsestype }
         return relevanteYtelser.map { ytelse ->
             Ytelse(
