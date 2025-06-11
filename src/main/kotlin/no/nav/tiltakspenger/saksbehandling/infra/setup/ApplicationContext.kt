@@ -49,6 +49,8 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.jobb.En
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.komet.TiltaksdeltakerKometConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataHttpClient
 import java.time.Clock
 
 /**
@@ -100,6 +102,13 @@ open class ApplicationContext(
         OppgaveHttpClient(
             baseUrl = Configuration.oppgaveUrl,
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.oppgaveScope) },
+        )
+    }
+
+    open val sokosUtbetaldataClient: SokosUtbetaldataClient by lazy {
+        SokosUtbetaldataHttpClient(
+            baseUrl = Configuration.sokosUtbetaldataUrl,
+            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.sokosUtbetaldataScope) },
         )
     }
 

@@ -96,6 +96,8 @@ object Configuration {
                 "LEESAH_TOPIC" to "pdl.leesah",
                 "AKTOR_V2_TOPIC" to "pdl.aktor",
                 "IDENTHENDELSE_TOPIC" to "tpts.identhendelse",
+                "SOKOS_UTBETALDATA_SCOPE" to "localhost",
+                "SOKOS_UTBETALDATA_URL" to "http://host.docker.internal:8091",
             ),
         )
 
@@ -136,6 +138,8 @@ object Configuration {
                 "LEESAH_TOPIC" to "pdl.leesah-v1",
                 "AKTOR_V2_TOPIC" to "pdl.aktor-v2",
                 "IDENTHENDELSE_TOPIC" to "tpts.identhendelse-v1",
+                "SOKOS_UTBETALDATA_SCOPE" to "api://dev-fss.okonomi.sokos-utbetaldata/.default",
+                "SOKOS_UTBETALDATA_URL" to "https://sokos-utbetaldata.dev-fss-pub.nais.io",
             ),
         )
     private val prodProperties =
@@ -175,6 +179,8 @@ object Configuration {
                 "LEESAH_TOPIC" to "pdl.leesah-v1",
                 "AKTOR_V2_TOPIC" to "pdl.aktor-v2",
                 "IDENTHENDELSE_TOPIC" to "tpts.identhendelse-v1",
+                "SOKOS_UTBETALDATA_SCOPE" to "api://prod-fss.okonomi.sokos-utbetaldata/.default",
+                "SOKOS_UTBETALDATA_URL" to "https://sokos-utbetaldata.prod-fss-pub.nais.io",
             ),
         )
 
@@ -240,6 +246,7 @@ object Configuration {
     val meldekortApiScope: String by lazy { config()[Key("MELDEKORT_API_SCOPE", stringType)] }
     val veilarboppfolgingScope: String by lazy { config()[Key("VEILARBOPPFOLGING_SCOPE", stringType)] }
     val oppgaveScope: String by lazy { config()[Key("OPPGAVE_SCOPE", stringType)] }
+    val sokosUtbetaldataScope: String by lazy { config()[Key("SOKOS_UTBETALDATA_SCOPE", stringType)] }
 
     val pdlUrl by lazy { config()[Key("PDL_ENDPOINT_URL", stringType)] }
     val pdlPipUrl by lazy { config()[Key("PDL_PIP_ENDPOINT_URL", stringType)] }
@@ -255,6 +262,7 @@ object Configuration {
     val meldekortApiUrl: String by lazy { config()[Key("MELDEKORT_API_URL", stringType)] }
     val veilarboppfolgingUrl: String by lazy { config()[Key("VEILARBOPPFOLGING_URL", stringType)] }
     val oppgaveUrl: String by lazy { config()[Key("OPPGAVE_URL", stringType)] }
+    val sokosUtbetaldataUrl: String by lazy { config()[Key("SOKOS_UTBETALDATA_URL", stringType)] }
 
     val arenaTiltaksdeltakerTopic: String by lazy { config()[Key("ARENA_TILTAKSDELTAKER_TOPIC", stringType)] }
     val kometTiltaksdeltakerTopic: String by lazy { config()[Key("KOMET_TILTAKSDELTAKER_TOPIC", stringType)] }
