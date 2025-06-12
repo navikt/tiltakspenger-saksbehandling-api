@@ -37,7 +37,7 @@ class SokosUtbetaldataHttpClient(
         .followRedirects(HttpClient.Redirect.NEVER)
         .build()
 
-    private val utbetalingsinformasjonUri = URI.create("$baseUrl/v2/hent-utbetalingsinformasjon/intern")
+    private val utbetalingsinformasjonUri = URI.create("$baseUrl/utbetaldata/api/v2/hent-utbetalingsinformasjon/intern")
 
     override suspend fun hentYtelserFraUtbetaldata(
         fnr: Fnr,
