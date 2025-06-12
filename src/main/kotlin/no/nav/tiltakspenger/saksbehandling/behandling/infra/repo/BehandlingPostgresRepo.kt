@@ -541,7 +541,7 @@ class BehandlingPostgresRepo(
         @Language("SQL")
         private val sqlHentBehandlingForFnr =
             """
-            select b.*,s.fnr, s.saksnummer from behandling b
+            select b.*, s.fnr, s.saksnummer from behandling b
               join sak s on s.id = b.sak_id
               where s.fnr = :fnr
               order by b.opprettet 

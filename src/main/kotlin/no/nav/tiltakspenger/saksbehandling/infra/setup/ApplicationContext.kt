@@ -285,6 +285,7 @@ open class ApplicationContext(
             oppgaveKlient = oppgaveKlient,
             clock = clock,
             statistikkSakService = statistikkContext.statistikkSakService,
+            sokosUtbetaldataClient = sokosUtbetaldataClient,
         )
     }
     open val benkOversiktContext by lazy {
