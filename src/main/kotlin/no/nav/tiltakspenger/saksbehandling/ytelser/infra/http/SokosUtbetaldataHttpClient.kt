@@ -57,6 +57,7 @@ class SokosUtbetaldataHttpClient(
         val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
         val status = httpResponse.statusCode()
         val jsonResponse = httpResponse.body()
+        Sikkerlogg.info { "Kall mot utbetaldata: Request: $jsonPayload, response: $jsonResponse" }
         if (status != 200) {
             log.error { "Kunne ikke hente utbetalingsinformasjon, statuskode $status. CorrelationId: $correlationId" }
             Sikkerlogg.error { "Feil mot utbetaldata: Request: $jsonPayload, response: $jsonResponse" }
