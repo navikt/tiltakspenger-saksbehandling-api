@@ -57,20 +57,20 @@ class SokosUtbetaldataHttpClient(
         val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
         val status = httpResponse.statusCode()
         val jsonResponse = httpResponse.body()
-        Sikkerlogg.info { "Kall mot utbetaldata: Request: $jsonPayload, response: $jsonResponse" }
         if (status != 200) {
             log.error { "Kunne ikke hente utbetalingsinformasjon, statuskode $status. CorrelationId: $correlationId" }
             Sikkerlogg.error { "Feil mot utbetaldata: Request: $jsonPayload, response: $jsonResponse" }
             error("Kunne ikke hente utbetalingsinformasjon, statuskode $status")
         }
-        val utbetalingDto = objectMapper.readValue<UtbetalingDto>(jsonResponse)
-        val ytelser = utbetalingDto.tilYtelse()
-        log.info { "Fant ${ytelser.size} utbetalinger for correlationId $correlationId" }
+        val utbetalinger = objectMapper.readValue<List<UtbetalingDto>>(jsonResponse)
+        val ytelser = utbetalinger.tilYtelser()
+        log.info { "Fant ${ytelser.size} relevante ytelser for correlationId $correlationId" }
         return ytelser
     }
 
-    private fun UtbetalingDto.tilYtelse(): List<Ytelse> {
-        val relevanteYtelser = ytelseListe.filter { it.ytelsestype == null || it.ytelsestype in relevanteYtelsestyper }
+    private fun List<UtbetalingDto>.tilYtelser(): List<Ytelse> {
+        val utbetalinger = this.flatMap { it.ytelseListe }
+        val relevanteYtelser = utbetalinger.filter { it.ytelsestype == null || it.ytelsestype in relevanteYtelsestyper }
             .groupBy { it.ytelsestype }
         return relevanteYtelser.map { ytelse ->
             Ytelse(
