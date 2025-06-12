@@ -144,7 +144,7 @@ class SakService(
      * @throws IkkeFunnetException dersom vi ikke fant saken.
      * @throws TilgangException dersom saksbehandler ikke har tilgang til saken.
      * */
-    suspend fun hentForSakIdEllerKast(
+    suspend fun sjekkTilgangOgHentForSakId(
         sakId: SakId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,

@@ -26,7 +26,7 @@ class SendBehandlingTilBeslutningService(
     suspend fun sendSøknadsbehandlingTilBeslutning(
         kommando: SendSøknadsbehandlingTilBeslutningKommando,
     ): Either<KanIkkeSendeTilBeslutter, Behandling> {
-        val sak: Sak = sakService.hentForSakIdEllerKast(
+        val sak: Sak = sakService.sjekkTilgangOgHentForSakId(
             sakId = kommando.sakId,
             saksbehandler = kommando.saksbehandler,
             correlationId = kommando.correlationId,
@@ -43,7 +43,7 @@ class SendBehandlingTilBeslutningService(
 
     suspend fun sendRevurderingTilBeslutning(kommando: RevurderingTilBeslutningKommando): Either<KanIkkeSendeTilBeslutter, Behandling> {
         // Denne sjekker tilgang til person og rollene SAKSBEHANDLER eller BESLUTTER.
-        val sak: Sak = sakService.hentForSakIdEllerKast(
+        val sak: Sak = sakService.sjekkTilgangOgHentForSakId(
             sakId = kommando.sakId,
             saksbehandler = kommando.saksbehandler,
             correlationId = kommando.correlationId,

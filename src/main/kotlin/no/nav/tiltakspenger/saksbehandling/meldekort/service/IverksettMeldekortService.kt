@@ -46,7 +46,7 @@ class IverksettMeldekortService(
         val meldekortId = kommando.meldekortId
         val sakId = kommando.sakId
         // Denne sjekker at saksbehandler har tilgang til personen og at den har en av rollene SAKSBEHANDLER eller BESLUTTER
-        val sak = sakService.hentForSakIdEllerKast(sakId, kommando.beslutter, kommando.correlationId)
+        val sak = sakService.sjekkTilgangOgHentForSakId(sakId, kommando.beslutter, kommando.correlationId)
         val meldekortBehandling: MeldekortBehandling = sak.hentMeldekortBehandling(meldekortId)
             ?: throw IllegalArgumentException("Fant ikke meldekort med id $meldekortId i sak $sakId")
 
