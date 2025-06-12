@@ -58,6 +58,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeK
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingsvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFakeClient
 
 /**
  * Oppretter en tom ApplicationContext for bruk i tester.
@@ -88,6 +89,7 @@ class TestApplicationContext(
     private val utbetalingsvedtakFakeRepo = UtbetalingsvedtakFakeRepo()
     private val søknadFakeRepo = SøknadFakeRepo()
     private val tiltaksdeltagelseFakeKlient = TiltaksdeltagelseFakeKlient(søknadRepo = søknadFakeRepo)
+    private val sokosUtbetaldataFakeClient = SokosUtbetaldataFakeClient()
     private val behandlingFakeRepo = BehandlingFakeRepo()
     private val personFakeKlient = PersonFakeKlient(clock)
     private val tilgangsstyringFakeKlient = TilgangsstyringFakeKlient()
@@ -244,6 +246,7 @@ class TestApplicationContext(
             oppgaveKlient = oppgaveKlient,
             clock = clock,
             statistikkSakService = statistikkContext.statistikkSakService,
+            sokosUtbetaldataClient = sokosUtbetaldataFakeClient,
         ) {
             override val rammevedtakRepo = rammevedtakFakeRepo
             override val behandlingRepo = behandlingFakeRepo

@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
-import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -13,12 +12,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
 
 class OppdaterSaksopplysningerService(
     private val sakService: SakService,
     private val personService: PersonService,
     private val tiltaksdeltagelseKlient: TiltaksdeltagelseKlient,
     private val behandlingRepo: BehandlingRepo,
+    private val sokosUtbetaldataClient: SokosUtbetaldataClient,
 ) {
     suspend fun oppdaterSaksopplysninger(
         sakId: SakId,
@@ -49,18 +50,18 @@ class OppdaterSaksopplysningerService(
         saksopplysningsperiode: Periode,
     ): Saksopplysninger {
         val personopplysninger = personService.hentPersonopplysninger(fnr)
-        val alleRelevanteTiltak = runBlocking {
-            tiltaksdeltagelseKlient.hentTiltaksdeltagelser(
-                fnr = fnr,
-                correlationId = correlationId,
-            )
-            // Vi ønsker ikke filtrere bort tiltak som det ikke er søkt på, siden vi kun tillater de å søke på ett tiltak om gangen. I tillegg kan det ha dukket opp nye tiltak etter brukeren søkte.
-        }
+        val alleRelevanteTiltak = tiltaksdeltagelseKlient.hentTiltaksdeltagelser(
+            fnr = fnr,
+            correlationId = correlationId,
+        )
+        // Vi ønsker ikke filtrere bort tiltak som det ikke er søkt på, siden vi kun tillater de å søke på ett tiltak om gangen. I tillegg kan det ha dukket opp nye tiltak etter brukeren søkte.
         val overlappendeTiltak = alleRelevanteTiltak.filter { it.overlapperMedPeriode(saksopplysningsperiode) }
+        val ytelser = sokosUtbetaldataClient.hentYtelserFraUtbetaldata(fnr, saksopplysningsperiode, correlationId)
         return Saksopplysninger(
             fødselsdato = personopplysninger.fødselsdato,
             tiltaksdeltagelse = overlappendeTiltak,
             periode = saksopplysningsperiode,
+            ytelser = ytelser,
         )
     }
 }
