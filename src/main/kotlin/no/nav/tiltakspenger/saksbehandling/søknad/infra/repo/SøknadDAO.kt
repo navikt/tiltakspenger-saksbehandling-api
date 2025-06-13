@@ -4,7 +4,6 @@ import kotliquery.Row
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -15,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
-import org.intellij.lang.annotations.Language
 
 private const val KVP_FELT = "kvp"
 private const val INTRO_FELT = "intro"
@@ -35,7 +33,10 @@ internal object SøknadDAO {
         session: Session,
     ): SakId? =
         session.run(
-            queryOf(sqlHentSakIdForTiltaksdeltakelse, eksternId)
+            queryOf(
+                "select sak_id from søknad s join søknadstiltak st on st.søknad_id = s.id where st.ekstern_id = ?",
+                eksternId,
+            )
                 .map { row -> row.toSakId() }
                 .asList,
         ).firstOrNull()
@@ -45,18 +46,8 @@ internal object SøknadDAO {
         session: Session,
     ): SakId? =
         session.run(
-            queryOf(sqlHentFnr, søknadId.toString())
+            queryOf("select * from søknad s join sak on sak.id = s.sak_id where s.id = ?", søknadId.toString())
                 .map { row -> row.toSakId() }
-                .asSingle,
-        )
-
-    fun hentForBehandlingId(
-        behandlingId: BehandlingId,
-        session: Session,
-    ): Søknad? =
-        session.run(
-            queryOf(sqlHent, behandlingId.toString())
-                .map { row -> row.toSøknad(session) }
                 .asSingle,
         )
 
@@ -65,7 +56,15 @@ internal object SøknadDAO {
         session: Session,
     ): Søknad? =
         session.run(
-            queryOf(sqlHentFnr, søknadId.toString())
+            // language=SQL
+            queryOf(
+                """
+                select * 
+                from søknad s join sak on sak.id = s.sak_id 
+                where s.id = ?
+                """.trimIndent(),
+                søknadId.toString(),
+            )
                 .map { row -> row.toSøknad(session) }
                 .asSingle,
         )
@@ -77,7 +76,13 @@ internal object SøknadDAO {
         session
             .run(
                 queryOf(
-                    "select * from søknad s join sak on sak.id = s.sak_id where s.sak_id = :sak_id",
+                    // language=SQL
+                    """
+                        select * 
+                        from søknad s 
+                        join sak on sak.id = s.sak_id 
+                        where s.sak_id = :sak_id
+                    """.trimIndent(),
                     mapOf(
                         "sak_id" to sakId.toString(),
                     ),
@@ -94,8 +99,7 @@ internal object SøknadDAO {
             .run(
                 sqlQuery(
                     """
-                    select
-                        *
+                    select *
                     from søknad s
                     join sak on sak.id = s.sak_id where sak.fnr = :fnr
                     """.trimIndent(),
@@ -105,35 +109,16 @@ internal object SøknadDAO {
                 }.asList,
             )
 
-    /**
-     * Knytter en søknad til en behandling.
-     * @throws RuntimeException hvis søknaden allerede er knyttet til en behandling.
-     */
-    fun knyttSøknadTilBehandling(
-        behandlingId: BehandlingId,
-        søknadId: SøknadId,
-        session: Session,
-    ) {
-        val oppdaterteRader = session.run(
-            queryOf(
-                """update søknad set behandling_id = :behandling_id where id = :soknad_id and behandling_id is null""",
-                mapOf(
-                    "behandling_id" to behandlingId.toString(),
-                    "soknad_id" to søknadId.toString(),
-                ),
-            ).asUpdate,
-        )
-        if (oppdaterteRader == 0) {
-            throw RuntimeException("Kunne ikke knytte søknad til behandling. Det finnes allerede en knytning. behandlingId: $behandlingId, søknadId: $søknadId")
-        }
-    }
-
     private fun søknadFinnes(
         søknadId: SøknadId,
         session: Session,
     ): Boolean =
         session.run(
-            queryOf(sqlFinnes, søknadId.toString()).map { row -> row.boolean("exists") }.asSingle,
+            queryOf(
+                // language=SQL
+                "select exists(select 1 from søknad where id = ?)",
+                søknadId.toString(),
+            ).map { row -> row.boolean("exists") }.asSingle,
         ) ?: throw RuntimeException("Failed to check if søknad exists")
 
     /**
@@ -176,6 +161,7 @@ internal object SøknadDAO {
     ) {
         session.run(
             queryOf(
+                // language=SQL
                 """update søknad set fnr = :nytt_fnr where fnr = :gammelt_fnr""",
                 mapOf(
                     "nytt_fnr" to nyttFnr.verdi,
@@ -214,7 +200,114 @@ internal object SøknadDAO {
 
         session.run(
             queryOf(
-                sqlLagreSøknad,
+                // language=SQL
+                """
+                insert into søknad (
+                    id,
+                    versjon,
+                    sak_id,
+                    journalpost_id,
+                    fornavn, 
+                    etternavn, 
+                    fnr, 
+                    opprettet,
+                    tidsstempel_hos_oss,
+                    kvp_type,
+                    kvp_ja,
+                    kvp_fom,
+                    kvp_tom,
+                    intro_type,
+                    intro_ja,
+                    intro_fom,
+                    intro_tom,
+                    institusjon_type,
+                    institusjon_ja,
+                    institusjon_fom,
+                    institusjon_tom,
+                    sykepenger_type,
+                    sykepenger_ja,
+                    sykepenger_fom,
+                    sykepenger_tom,
+                    supplerende_alder_type,
+                    supplerende_alder_ja,
+                    supplerende_alder_fom,
+                    supplerende_alder_tom,
+                    supplerende_flyktning_type,
+                    supplerende_flyktning_ja,
+                    supplerende_flyktning_fom,
+                    supplerende_flyktning_tom,
+                    jobbsjansen_type,
+                    jobbsjansen_ja,
+                    jobbsjansen_fom,
+                    jobbsjansen_tom,
+                    gjenlevendepensjon_type,
+                    gjenlevendepensjon_ja,
+                    gjenlevendepensjon_fom,
+                    gjenlevendepensjon_tom,
+                    alderspensjon_type,
+                    alderspensjon_ja,
+                    alderspensjon_fom,
+                    trygd_og_pensjon_type,
+                    trygd_og_pensjon_ja,
+                    trygd_og_pensjon_fom,
+                    trygd_og_pensjon_tom,
+                    etterlonn_type,
+                    vedlegg,
+                    oppgave_id
+                ) values (
+                    :id,
+                    :versjon,
+                    :sak_id,
+                    :journalpost_id,
+                    :fornavn, 
+                    :etternavn,
+                    :fnr,
+                    :opprettet,
+                    :tidsstempel_hos_oss,
+                    :kvp_type,
+                    :kvp_ja,
+                    :kvp_fom,
+                    :kvp_tom,
+                    :intro_type,
+                    :intro_ja,
+                    :intro_fom,
+                    :intro_tom,
+                    :institusjon_type,
+                    :institusjon_ja,
+                    :institusjon_fom,
+                    :institusjon_tom,
+                    :sykepenger_type,
+                    :sykepenger_ja,
+                    :sykepenger_fom,
+                    :sykepenger_tom,
+                    :supplerende_alder_type,
+                    :supplerende_alder_ja,
+                    :supplerende_alder_fom,
+                    :supplerende_alder_tom,
+                    :supplerende_flyktning_type,
+                    :supplerende_flyktning_ja,
+                    :supplerende_flyktning_fom,
+                    :supplerende_flyktning_tom,
+                    :jobbsjansen_type,
+                    :jobbsjansen_ja,
+                    :jobbsjansen_fom,
+                    :jobbsjansen_tom,
+                    :gjenlevendepensjon_type,
+                    :gjenlevendepensjon_ja,
+                    :gjenlevendepensjon_fom,
+                    :gjenlevendepensjon_tom,
+                    :alderspensjon_type,
+                    :alderspensjon_ja,
+                    :alderspensjon_fom,
+                    :trygd_og_pensjon_type,
+                    :trygd_og_pensjon_ja,
+                    :trygd_og_pensjon_fom,
+                    :trygd_og_pensjon_tom,
+                    :etterlonn_type,
+                    :vedlegg,
+                    :oppgave_id
+                )
+                """.trimIndent(),
                 periodeSpmParamMap +
                     fraOgMedDatoSpmParamMap +
                     jaNeiSpmParamMap +
@@ -222,7 +315,6 @@ internal object SøknadDAO {
                         "id" to søknad.id.toString(),
                         "versjon" to søknad.versjon,
                         "sak_id" to søknad.sakId.toString(),
-                        "behandling_id" to null,
                         "fornavn" to søknad.personopplysninger.fornavn,
                         "etternavn" to søknad.personopplysninger.etternavn,
                         "fnr" to søknad.fnr.verdi,
@@ -297,128 +389,4 @@ internal object SøknadDAO {
             avbrutt = avbrutt,
         )
     }
-
-    @Language("SQL")
-    private val sqlLagreSøknad =
-        """
-        insert into søknad (
-            id,
-            versjon,
-            sak_id,
-            behandling_id,
-            journalpost_id,
-            fornavn, 
-            etternavn, 
-            fnr, 
-            opprettet,
-            tidsstempel_hos_oss,
-            kvp_type,
-            kvp_ja,
-            kvp_fom,
-            kvp_tom,
-            intro_type,
-            intro_ja,
-            intro_fom,
-            intro_tom,
-            institusjon_type,
-            institusjon_ja,
-            institusjon_fom,
-            institusjon_tom,
-            sykepenger_type,
-            sykepenger_ja,
-            sykepenger_fom,
-            sykepenger_tom,
-            supplerende_alder_type,
-            supplerende_alder_ja,
-            supplerende_alder_fom,
-            supplerende_alder_tom,
-            supplerende_flyktning_type,
-            supplerende_flyktning_ja,
-            supplerende_flyktning_fom,
-            supplerende_flyktning_tom,
-            jobbsjansen_type,
-            jobbsjansen_ja,
-            jobbsjansen_fom,
-            jobbsjansen_tom,
-            gjenlevendepensjon_type,
-            gjenlevendepensjon_ja,
-            gjenlevendepensjon_fom,
-            gjenlevendepensjon_tom,
-            alderspensjon_type,
-            alderspensjon_ja,
-            alderspensjon_fom,
-            trygd_og_pensjon_type,
-            trygd_og_pensjon_ja,
-            trygd_og_pensjon_fom,
-            trygd_og_pensjon_tom,
-            etterlonn_type,
-            vedlegg,
-            oppgave_id
-        ) values (
-            :id,
-            :versjon,
-            :sak_id,
-            :behandling_id,
-            :journalpost_id,
-            :fornavn, 
-            :etternavn,
-            :fnr,
-            :opprettet,
-            :tidsstempel_hos_oss,
-            :kvp_type,
-            :kvp_ja,
-            :kvp_fom,
-            :kvp_tom,
-            :intro_type,
-            :intro_ja,
-            :intro_fom,
-            :intro_tom,
-            :institusjon_type,
-            :institusjon_ja,
-            :institusjon_fom,
-            :institusjon_tom,
-            :sykepenger_type,
-            :sykepenger_ja,
-            :sykepenger_fom,
-            :sykepenger_tom,
-            :supplerende_alder_type,
-            :supplerende_alder_ja,
-            :supplerende_alder_fom,
-            :supplerende_alder_tom,
-            :supplerende_flyktning_type,
-            :supplerende_flyktning_ja,
-            :supplerende_flyktning_fom,
-            :supplerende_flyktning_tom,
-            :jobbsjansen_type,
-            :jobbsjansen_ja,
-            :jobbsjansen_fom,
-            :jobbsjansen_tom,
-            :gjenlevendepensjon_type,
-            :gjenlevendepensjon_ja,
-            :gjenlevendepensjon_fom,
-            :gjenlevendepensjon_tom,
-            :alderspensjon_type,
-            :alderspensjon_ja,
-            :alderspensjon_fom,
-            :trygd_og_pensjon_type,
-            :trygd_og_pensjon_ja,
-            :trygd_og_pensjon_fom,
-            :trygd_og_pensjon_tom,
-            :etterlonn_type,
-            :vedlegg,
-            :oppgave_id
-        )
-        """.trimIndent()
-
-    @Language("SQL")
-    private val sqlFinnes = "select exists(select 1 from søknad where id = ?)"
-
-    @Language("SQL")
-    private val sqlHent = "select * from søknad s join sak on sak.id = s.sak_id where s.behandling_id = ?"
-
-    @Language("SQL")
-    private val sqlHentFnr = "select * from søknad s join sak on sak.id = s.sak_id where s.id = ?"
-
-    @Language("SQL")
-    private val sqlHentSakIdForTiltaksdeltakelse = "select sak_id from søknad s join søknadstiltak st on st.søknad_id = s.id where st.ekstern_id = ?"
 }

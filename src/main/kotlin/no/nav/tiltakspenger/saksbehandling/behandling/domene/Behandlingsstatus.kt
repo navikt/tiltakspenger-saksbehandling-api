@@ -17,9 +17,9 @@ enum class Behandlingsstatus {
     /** En beslutter har tatt behandlingen. */
     UNDER_BESLUTNING,
 
-    /** En avsluttet, besluttet behandling. Brukes litt om hverandre med IVERKSATT. En alternativ avsluttet status vil være avbrutt og vil komme på et senere tidspunkt. */
+    /** En avsluttet, besluttet behandling. Brukes litt om hverandre med IVERKSATT. */
     VEDTATT,
 
-    /** En saskbehandler har valgt at behandlingen ikke skal behandles videre */
+    /** En saksbehandler har valgt at behandlingen ikke skal behandles videre */
     AVBRUTT,
 }

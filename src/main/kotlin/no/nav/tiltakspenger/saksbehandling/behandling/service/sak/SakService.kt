@@ -129,6 +129,16 @@ class SakService(
         return sak
     }
 
+    suspend fun hentForSakId(
+        sakId: SakId,
+        saksbehandler: Saksbehandler,
+        correlationId: CorrelationId,
+    ): Sak {
+        val sak = sakRepo.hentForSakId(sakId) ?: throw IkkeFunnetException("Fant ikke sak med sakId $sakId")
+        tilgangsstyringService.krevTilgangTilPerson(saksbehandler, sak.fnr, correlationId)
+        return sak
+    }
+
     /**
      * Sjekker tilgang til person og at saksbehandler har SAKSBEHANDLER eller BESLUTTER-rollen.
      * @throws IkkeFunnetException dersom vi ikke fant saken.
@@ -140,9 +150,7 @@ class SakService(
         correlationId: CorrelationId,
     ): Sak {
         krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
-        val sak = sakRepo.hentForSakId(sakId) ?: throw IkkeFunnetException("Fant ikke sak med sakId $sakId")
-        tilgangsstyringService.krevTilgangTilPerson(saksbehandler, sak.fnr, correlationId)
-        return sak
+        return hentForSakId(sakId, saksbehandler, correlationId)
     }
 
     /**
@@ -184,4 +192,10 @@ sealed interface KanIkkeStarteSøknadsbehandling {
     data class OppretteBehandling(
         val underliggende: KanIkkeOppretteBehandling,
     ) : KanIkkeStarteSøknadsbehandling
+}
+
+sealed interface KanIkkeBehandleSøknadPåNytt {
+    data class OppretteBehandling(
+        val underliggende: KanIkkeOppretteBehandling,
+    ) : KanIkkeBehandleSøknadPåNytt
 }

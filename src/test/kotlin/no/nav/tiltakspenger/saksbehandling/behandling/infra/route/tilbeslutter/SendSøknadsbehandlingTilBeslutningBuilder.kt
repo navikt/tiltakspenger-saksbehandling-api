@@ -23,6 +23,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBegrunnelseForBehandlingId
@@ -39,6 +41,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         fnr: Fnr = Fnr.random(),
         virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
         val (sak, søknad, behandling) = startSøknadsbehandling(tac, fnr, virkingsperiode, saksbehandler)
         val sakId = sak.id
@@ -56,6 +59,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                 saksbehandler,
                 innvilgelsesperiode = søknad.vurderingsperiode(),
                 eksternDeltagelseId = søknad.tiltak.id,
+                resultat = resultat,
             ),
         )
     }
@@ -70,7 +74,17 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         begrunnelseVilkårsvurdering: String = "begrunnelse",
         innvilgelsesperiode: Periode = Periode(1.januar(2023), 31.mars(2023)),
         eksternDeltagelseId: String,
+        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
     ): String {
+        val avslagsgrunner = if (resultat == SøknadsbehandlingType.AVSLAG) {
+            listOf(
+                Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak,
+                Avslagsgrunnlag.Alder,
+            ).joinToString(prefix = "[", postfix = "]") { "\"${it}\"" }
+        } else {
+            "null"
+        }
+
         defaultRequest(
             HttpMethod.Post,
             url {
@@ -100,8 +114,8 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                         }
                     }
                 ],
-                "resultat": "INNVILGELSE",
-                "avslagsgrunner": null,
+                "resultat": "${resultat.name}",
+                "avslagsgrunner": $avslagsgrunner,
                 "antallDagerPerMeldeperiode": 10
             }
                 """.trimIndent(),

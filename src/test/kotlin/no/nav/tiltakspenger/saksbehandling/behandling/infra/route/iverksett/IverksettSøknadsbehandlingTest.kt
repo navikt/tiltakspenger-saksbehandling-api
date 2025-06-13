@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.instanceOf
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.routing
@@ -9,6 +10,8 @@ import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
@@ -35,6 +38,26 @@ class IverksettSøknadsbehandlingTest {
                 val (_, _, behandling) = this.iverksettSøknadsbehandling(tac)
                 behandling.virkningsperiode.shouldNotBeNull()
                 behandling.status shouldBe Behandlingsstatus.VEDTATT
+            }
+        }
+    }
+
+    @Test
+    fun `iverksett - avslag på søknad`() = runTest {
+        with(TestApplicationContext()) {
+            val tac = this
+            testApplication {
+                application {
+                    jacksonSerialization()
+                    routing { routes(tac) }
+                }
+                val (_, _, behandling) = this.iverksettSøknadsbehandling(
+                    tac,
+                    resultat = SøknadsbehandlingType.AVSLAG,
+                )
+                behandling.virkningsperiode.shouldNotBeNull()
+                behandling.status shouldBe Behandlingsstatus.VEDTATT
+                behandling.resultat shouldBe instanceOf<SøknadsbehandlingResultat.Avslag>()
             }
         }
     }
@@ -67,10 +90,19 @@ class IverksettSøknadsbehandlingTest {
                 )
                 taBehanding(tac, sak.id, behandlingId, beslutter)
 
-                val response = iverksettForBehandlingIdReturnerRespons(tac, sak.id, behandlingId, ObjectMother.beslutter(navIdent = "B999999"))
+                val response = iverksettForBehandlingIdReturnerRespons(
+                    tac,
+                    sak.id,
+                    behandlingId,
+                    ObjectMother.beslutter(navIdent = "B999999"),
+                )
 
                 response.status shouldBe HttpStatusCode.BadRequest
-                response.bodyAsText() shouldBe objectMapper.writeValueAsString(Standardfeil.behandlingenEiesAvAnnenSaksbehandler(beslutter.navIdent))
+                response.bodyAsText() shouldBe objectMapper.writeValueAsString(
+                    Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
+                        beslutter.navIdent,
+                    ),
+                )
             }
         }
     }

@@ -69,19 +69,19 @@ class BehandlingPostgresRepo(
         }
     }
 
-    override fun hentForSøknadId(søknadId: SøknadId): Behandling? =
+    override fun hentForSøknadId(søknadId: SøknadId): List<Behandling> =
         sessionFactory.withSession { session ->
             session.run(
+                // TODO gå via soknad_id
                 sqlQuery(
                     """
                     select b.*, sak.saksnummer, sak.fnr
                     from behandling b
-                    join søknad s on b.id = s.behandling_id
                     join sak on sak.id = b.sak_id
-                    where s.id = :id
+                    where b.soknad_id = :id
                     """.trimIndent(),
                     "id" to søknadId.toString(),
-                ).map { it.toBehandling(session) }.asSingle,
+                ).map { it.toBehandling(session) }.asList,
             )
         }
 
@@ -94,9 +94,6 @@ class BehandlingPostgresRepo(
 
             if (sistEndret == null) {
                 opprettBehandling(behandling, tx)
-                if (behandling is Søknadsbehandling) {
-                    SøknadDAO.knyttSøknadTilBehandling(behandling.id, behandling.søknad.id, tx)
-                }
             } else {
                 oppdaterBehandling(sistEndret, behandling, tx)
             }
@@ -352,6 +349,7 @@ class BehandlingPostgresRepo(
 
             val virkningsperiode =
                 virkningsperiodeFraOgMed?.let { Periode(virkningsperiodeFraOgMed, virkningsperiodeTilOgMed!!) }
+            val søknadId = stringOrNull("soknad_id")?.let { SøknadId.fromString(it) }
 
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
@@ -384,7 +382,8 @@ class BehandlingPostgresRepo(
                         saksnummer = saksnummer,
                         fnr = fnr,
                         saksopplysninger = saksopplysninger,
-                        søknad = SøknadDAO.hentForBehandlingId(id, session)!!,
+                        søknad = søknadId?.let { SøknadDAO.hentForSøknadId(it, session) }
+                            ?: throw IllegalStateException("Fant ikke søknad for søknadsbehandling, behandlingsid $id"),
                         virkningsperiode = virkningsperiode,
                         saksbehandler = saksbehandler,
                         sendtTilBeslutning = sendtTilBeslutning,
@@ -470,7 +469,8 @@ class BehandlingPostgresRepo(
                 avbrutt,
                 antall_dager_per_meldeperiode,
                 avslagsgrunner,
-                resultat
+                resultat,
+                soknad_id
             ) values (
                 :id,
                 :sak_id,
@@ -498,7 +498,8 @@ class BehandlingPostgresRepo(
                 to_jsonb(:avbrutt::jsonb),
                 :antall_dager_per_meldeperiode,
                 to_jsonb(:avslagsgrunner::jsonb),
-                :resultat
+                :resultat,
+                :soknad_id
             )
             """.trimIndent()
 
@@ -528,7 +529,8 @@ class BehandlingPostgresRepo(
                 avbrutt = to_jsonb(:avbrutt::jsonb),
                 antall_dager_per_meldeperiode = :antall_dager_per_meldeperiode,
                 avslagsgrunner = to_jsonb(:avslagsgrunner::jsonb),
-                resultat = :resultat
+                resultat = :resultat,
+                soknad_id = :soknad_id
             where id = :id and sist_endret = :sist_endret_old
             """.trimIndent()
 
@@ -553,6 +555,7 @@ class BehandlingPostgresRepo(
         return sessionFactory.withSession { session ->
             session.run(
                 queryOf(
+                    // language=SQL
                     """
                     select b.*,sak.saksnummer,sak.fnr
                     from behandling b
@@ -588,31 +591,38 @@ class BehandlingPostgresRepo(
     }
 }
 
-private fun Behandling.tilDbParams(): Map<String, Any?> = mapOf(
-    "id" to this.id.toString(),
-    "status" to this.status.toDb(),
-    "sist_endret" to this.sistEndret,
-    "iverksatt_tidspunkt" to this.iverksattTidspunkt,
-    "sendt_til_datadeling" to this.sendtTilDatadeling,
-    "oppgave_id" to this.oppgaveId?.toString(),
-    "virkningsperiode_fra_og_med" to this.virkningsperiode?.fraOgMed,
-    "virkningsperiode_til_og_med" to this.virkningsperiode?.tilOgMed,
-    "saksbehandler" to this.saksbehandler,
-    "beslutter" to this.beslutter,
-    "attesteringer" to this.attesteringer.toDbJson(),
-    "sendt_til_beslutning" to this.sendtTilBeslutning,
-    "fritekst_vedtaksbrev" to this.fritekstTilVedtaksbrev?.verdi,
-    "begrunnelse_vilkarsvurdering" to this.begrunnelseVilkårsvurdering?.verdi,
-    "saksopplysninger" to this.saksopplysninger.toDbJson(),
-    "saksopplysningsperiode_fra_og_med" to this.saksopplysningsperiode.fraOgMed,
-    "saksopplysningsperiode_til_og_med" to this.saksopplysningsperiode.tilOgMed,
-    "avbrutt" to this.avbrutt?.toDbJson(),
-    "resultat" to this.resultat?.toDb(),
-    "opprettet" to this.opprettet,
-    "sak_id" to this.sakId.toString(),
-    "behandlingstype" to this.behandlingstype.toDbValue(),
-    *this.resultat.tilDbParams(),
-)
+private fun Behandling.tilDbParams(): Map<String, Any?> {
+    val søknadId = when (this) {
+        is Søknadsbehandling -> this.søknad.id
+        is Revurdering -> null
+    }
+    return mapOf(
+        "id" to this.id.toString(),
+        "status" to this.status.toDb(),
+        "sist_endret" to this.sistEndret,
+        "iverksatt_tidspunkt" to this.iverksattTidspunkt,
+        "sendt_til_datadeling" to this.sendtTilDatadeling,
+        "oppgave_id" to this.oppgaveId?.toString(),
+        "virkningsperiode_fra_og_med" to this.virkningsperiode?.fraOgMed,
+        "virkningsperiode_til_og_med" to this.virkningsperiode?.tilOgMed,
+        "saksbehandler" to this.saksbehandler,
+        "beslutter" to this.beslutter,
+        "attesteringer" to this.attesteringer.toDbJson(),
+        "sendt_til_beslutning" to this.sendtTilBeslutning,
+        "fritekst_vedtaksbrev" to this.fritekstTilVedtaksbrev?.verdi,
+        "begrunnelse_vilkarsvurdering" to this.begrunnelseVilkårsvurdering?.verdi,
+        "saksopplysninger" to this.saksopplysninger.toDbJson(),
+        "saksopplysningsperiode_fra_og_med" to this.saksopplysningsperiode.fraOgMed,
+        "saksopplysningsperiode_til_og_med" to this.saksopplysningsperiode.tilOgMed,
+        "avbrutt" to this.avbrutt?.toDbJson(),
+        "resultat" to this.resultat?.toDb(),
+        "opprettet" to this.opprettet,
+        "sak_id" to this.sakId.toString(),
+        "behandlingstype" to this.behandlingstype.toDbValue(),
+        *this.resultat.tilDbParams(),
+        "soknad_id" to søknadId?.toString(),
+    )
+}
 
 private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when (this) {
     is SøknadsbehandlingResultat.Avslag -> arrayOf(
