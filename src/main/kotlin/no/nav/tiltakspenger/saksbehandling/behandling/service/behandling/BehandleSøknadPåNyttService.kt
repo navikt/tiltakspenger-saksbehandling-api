@@ -44,7 +44,7 @@ class BehandleSøknadPåNyttService(
             .filter { it.vedtaksType == Vedtakstype.AVSLAG }
             .map { it.behandling }
             .filterIsInstance<Søknadsbehandling>()
-            .filter { it.søknad == søknadId }
+            .filter { it.søknad.id == søknadId }
 
         if (avslåtteSøknadsbehandlinger.isEmpty()) {
             throw IllegalStateException("Kan ikke behandle søknad på nytt fordi det finnes ikke vedtatte avslag på søknaden: $søknadId")

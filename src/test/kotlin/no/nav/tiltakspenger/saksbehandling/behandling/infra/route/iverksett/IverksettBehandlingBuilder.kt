@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
@@ -40,8 +41,14 @@ interface IverksettBehandlingBuilder {
         fnr: Fnr = Fnr.random(),
         virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
+        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
     ): Tuple4<Sak, Søknad, Søknadsbehandling, String> {
-        val (sak, søknad, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(tac, fnr, virkingsperiode)
+        val (sak, søknad, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(
+            tac = tac,
+            fnr = fnr,
+            virkingsperiode = virkingsperiode,
+            resultat = resultat,
+        )
         taBehanding(tac, sak.id, behandlingId, beslutter)
         val (oppdatertSak, oppdatertBehandling, jsonResponse) = iverksettForBehandlingId(
             tac,

@@ -27,7 +27,7 @@ fun Route.behandleSøknadPåNyttRoute(
 ) {
     val logger = KotlinLogging.logger {}
     post("/sak/{sakId}/soknad/{søknadId}/behandling/ny-behandling") {
-        logger.debug { "Mottatt post-request på '/sak/{sakId}/soknad/{søknadId}/ny-behandling' - Starter behandlingen og knytter til søknad og sak. Knytter også saksbehandleren til behandlingen." }
+        logger.debug { "Mottatt post-request på '/sak/{sakId}/soknad/{søknadId}/ny-behandling' - Starter behandling for søknad på nytt og knytter til søknad og sak. Knytter også saksbehandleren til behandlingen." }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             krevSaksbehandlerRolle(saksbehandler)
             call.withSakId { sakId ->
