@@ -76,7 +76,8 @@ class SokosUtbetaldataHttpClient(
             .groupBy { it.ytelsestype }
         return relevanteYtelser.map { ytelse ->
             Ytelse(
-                ytelsetype = ytelse.key?.let { Ytelsetype.valueOf(it) } ?: Ytelsetype.UKJENT,
+                ytelsetype = ytelse.key?.let { key -> Ytelsetype.entries.find { key == it.tekstverdi } }
+                    ?: Ytelsetype.UKJENT,
                 perioder = ytelse.value.map {
                     Periode(
                         fraOgMed = it.ytelsesperiode.fom,
