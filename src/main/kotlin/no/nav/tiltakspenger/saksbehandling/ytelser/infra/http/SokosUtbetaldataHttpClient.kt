@@ -16,6 +16,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.LocalDate
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
@@ -29,7 +30,8 @@ class SokosUtbetaldataHttpClient(
 ) : SokosUtbetaldataClient {
     private val log = KotlinLogging.logger {}
 
-    private val relevanteYtelsestyper = Ytelsetype.entries.toTypedArray().map { it.name }
+    // utbetaldata sender beskrivelsen, ikke kodeverdien
+    private val relevanteYtelsestyper = Ytelsetype.entries.toTypedArray().map { it.tekstverdi }
 
     private val client = HttpClient
         .newBuilder()
@@ -49,7 +51,7 @@ class SokosUtbetaldataHttpClient(
                 ident = fnr.verdi,
                 periode = UtbetalingDto.Periode(
                     fom = periode.fraOgMed,
-                    tom = periode.tilOgMed,
+                    tom = LocalDate.now(), // utbetaldata godtar ikke datoer frem i tid
                 ),
             ),
         )
