@@ -45,7 +45,7 @@ class AvbrytMeldekortBehandlingRouteTest {
                     saksnummer = sak.saksnummer,
                     fnr = sak.fnr,
                     saksbehandler = saksbehandlerIdent,
-                    status = MeldekortBehandlingStatus.UNDER_BEHANDLING,
+                    status = MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING,
                 )
 
                 tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling, null)

@@ -64,7 +64,7 @@ class TaMeldekortBehandlingRouteTest {
                     saksnummer = sak.saksnummer,
                     fnr = sak.fnr,
                     saksbehandler = null,
-                    status = MeldekortBehandlingStatus.UNDER_BEHANDLING,
+                    status = MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING,
                 )
 
                 tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling, null)
@@ -72,7 +72,7 @@ class TaMeldekortBehandlingRouteTest {
                 taMeldekortBehanding(tac, meldekortBehandling.sakId, meldekortBehandling.id, saksbehandler).also {
                     val oppdatertMeldekortbehandling = tac.meldekortContext.meldekortBehandlingRepo.hent(meldekortBehandling.id)
                     oppdatertMeldekortbehandling shouldNotBe null
-                    oppdatertMeldekortbehandling?.status shouldBe MeldekortBehandlingStatus.UNDER_BEHANDLING
+                    oppdatertMeldekortbehandling?.status shouldBe MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING
                     oppdatertMeldekortbehandling?.saksbehandler shouldBe saksbehandlerIdent
                 }
             }

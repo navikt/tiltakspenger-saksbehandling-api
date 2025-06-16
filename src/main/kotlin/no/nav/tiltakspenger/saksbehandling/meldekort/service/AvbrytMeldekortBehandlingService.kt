@@ -29,7 +29,7 @@ class AvbrytMeldekortBehandlingService(
             return meldekortBehandling.avbryt(command.saksbehandler, command.begrunnelse, LocalDateTime.now()).onRight {
                 when (it.status) {
                     MeldekortBehandlingStatus.AVBRUTT -> meldekortBehandlingRepo.oppdater(it)
-                    MeldekortBehandlingStatus.UNDER_BEHANDLING,
+                    MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING,
                     MeldekortBehandlingStatus.UNDER_BESLUTNING,
                     MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING,
                     MeldekortBehandlingStatus.GODKJENT,

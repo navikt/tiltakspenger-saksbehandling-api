@@ -19,8 +19,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -55,7 +55,7 @@ data class MeldekortUnderBehandling(
     override val avbrutt: Avbrutt? = null
     override val iverksattTidspunkt = null
 
-    override val status = UNDER_BEHANDLING
+    override val status = KLAR_TIL_BEHANDLING
 
     override val beslutter = null
 
@@ -161,7 +161,7 @@ data class MeldekortUnderBehandling(
         krevSaksbehandlerRolle(saksbehandler)
 
         require(saksbehandler.navIdent == this.saksbehandler)
-        if (this.status != UNDER_BEHANDLING) {
+        if (this.status != KLAR_TIL_BEHANDLING) {
             throw IllegalStateException("Status må være UNDER_BEHANDLING. Kan ikke oppdatere meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler.")
         }
         if (!erKlarTilUtfylling()) {
@@ -180,7 +180,7 @@ data class MeldekortUnderBehandling(
         saksbehandler: Saksbehandler,
     ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
         return when (this.status) {
-            UNDER_BEHANDLING -> {
+            KLAR_TIL_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
                 if (this.saksbehandler == null) {
                     return KunneIkkeOvertaMeldekortBehandling.BehandlingenErIkkeKnyttetTilEnSaksbehandlerForÅOverta.left()
@@ -202,7 +202,7 @@ data class MeldekortUnderBehandling(
 
     override fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
         return when (this.status) {
-            UNDER_BEHANDLING -> {
+            KLAR_TIL_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
                 require(this.saksbehandler == null) { "Meldekortbehandlingen har en eksisterende saksbehandler. For å overta meldekortbehandlingen, bruk overta() - meldekortId: ${this.id}" }
                 this.copy(
@@ -226,7 +226,7 @@ data class MeldekortUnderBehandling(
 
     override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
         return when (this.status) {
-            UNDER_BEHANDLING -> {
+            KLAR_TIL_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
                 require(this.saksbehandler == saksbehandler.navIdent)
                 this.copy(
@@ -254,7 +254,7 @@ data class MeldekortUnderBehandling(
         tidspunkt: LocalDateTime,
     ): Either<KanIkkeAvbryteMeldekortBehandling, MeldekortBehandling> {
         krevSaksbehandlerRolle(avbruttAv)
-        require(this.status == UNDER_BEHANDLING) {
+        require(this.status == KLAR_TIL_BEHANDLING) {
             return KanIkkeAvbryteMeldekortBehandling.MåVæreUnderBehandling.left()
         }
         require(this.saksbehandler == avbruttAv.navIdent) {

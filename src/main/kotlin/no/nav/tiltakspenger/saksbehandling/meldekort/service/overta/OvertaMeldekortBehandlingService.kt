@@ -17,7 +17,7 @@ class OvertaMeldekortBehandlingService(
 
         return meldekortBehandling.overta(command.saksbehandler).onRight {
             when (it.status) {
-                MeldekortBehandlingStatus.UNDER_BEHANDLING -> meldekortBehandlingRepo.overtaSaksbehandler(
+                MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> meldekortBehandlingRepo.overtaSaksbehandler(
                     it.id,
                     command.saksbehandler,
                     command.overtarFra,
