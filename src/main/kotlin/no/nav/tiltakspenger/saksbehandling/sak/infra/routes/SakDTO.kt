@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingerDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjederDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -41,5 +41,5 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     førsteLovligeStansdato = førsteLovligeStansdato(),
     sisteDagSomGirRett = sisteDagSomGirRett,
     søknader = soknader.toSøknadDTO(),
-    behandlinger = behandlinger.toDTO(),
+    behandlinger = behandlinger.tilBehandlingerDTO(),
 )

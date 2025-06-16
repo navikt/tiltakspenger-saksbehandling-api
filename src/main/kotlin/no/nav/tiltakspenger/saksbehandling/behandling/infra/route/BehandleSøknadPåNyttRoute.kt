@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.ktor.common.respond501NotImplemented
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppretteBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeBehandleSøknadPåNytt
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
@@ -59,7 +59,7 @@ fun Route.behandleSøknadPåNyttRoute(
                                 contextMessage = "Oppretter behandling fra søknad på nytt og starter behandlingen",
                                 correlationId = correlationId,
                             )
-                            call.respond(HttpStatusCode.OK, it.toDTO())
+                            call.respond(HttpStatusCode.OK, it.tilSøknadsbehandlingDTO())
                         },
                     )
                 }

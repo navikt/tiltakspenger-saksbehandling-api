@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeIverksetteBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettBehandlingService
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
@@ -52,7 +52,7 @@ fun Route.iverksettBehandlingRoute(
                                 sakId = sakId,
                             )
                             MetricRegister.IVERKSATT_BEHANDLING.inc()
-                            call.respond(message = it.toDTO(), status = HttpStatusCode.OK)
+                            call.respond(message = it.tilBehandlingDTO(), status = HttpStatusCode.OK)
                         },
                     )
                 }

@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeUnderkjenne
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.BEHANDLING_PATH
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
@@ -54,7 +54,7 @@ fun Route.underkjennBehandlingRoute(
                                 contextMessage = "Beslutter underkjenner behandling",
                                 correlationId = correlationId,
                             )
-                            call.respond(status = HttpStatusCode.OK, message = it.toDTO())
+                            call.respond(status = HttpStatusCode.OK, message = it.tilBehandlingDTO())
                         },
                     )
                 }

@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
@@ -34,7 +34,7 @@ fun Route.hentBehandlingRoute(
                         contextMessage = "Henter hele behandlingen",
                         correlationId = correlationId,
                     )
-                    call.respond(status = HttpStatusCode.OK, it.toDTO())
+                    call.respond(status = HttpStatusCode.OK, it.tilBehandlingDTO())
                 }
             }
         }

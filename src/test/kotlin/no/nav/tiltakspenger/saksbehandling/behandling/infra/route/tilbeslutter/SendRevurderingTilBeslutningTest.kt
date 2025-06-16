@@ -21,9 +21,9 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingsstatusDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
@@ -76,7 +76,7 @@ class SendRevurderingTilBeslutningTest {
                         "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
                     ) {
                         status shouldBe HttpStatusCode.OK
-                        val oppdatertRevurdering = objectMapper.readValue<BehandlingDTO>(bodyAsText)
+                        val oppdatertRevurdering = objectMapper.readValue<RevurderingDTO>(bodyAsText)
                         oppdatertRevurdering.status shouldBe BehandlingsstatusDTO.KLAR_TIL_BESLUTNING
                     }
                 }
@@ -198,7 +198,7 @@ class SendRevurderingTilBeslutningTest {
                     revurderingVirkningsperiode = revurderingInnvilgelsesperiode,
                 )
 
-                val behandlingDTO = objectMapper.readValue<BehandlingDTO>(jsonResponse)
+                val behandlingDTO = objectMapper.readValue<RevurderingDTO>(jsonResponse)
 
                 behandlingDTO.status shouldBe BehandlingsstatusDTO.KLAR_TIL_BESLUTNING
                 behandlingDTO.resultat shouldBe BehandlingResultatDTO.REVURDERING_INNVILGELSE

@@ -20,41 +20,81 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toTiltaksdeltakelsePeriodeDTO
 
-data class BehandlingDTO(
-    val id: String,
-    val type: BehandlingstypeDTO,
-    val status: BehandlingsstatusDTO,
-    val resultat: BehandlingResultatDTO?,
-    val sakId: String,
-    val saksnummer: String,
-    val saksbehandler: String?,
-    val beslutter: String?,
-    val saksopplysninger: SaksopplysningerDTO,
-    val attesteringer: List<AttesteringDTO>,
+sealed interface BehandlingDTO {
+    val id: String
+    val type: BehandlingstypeDTO
+    val status: BehandlingsstatusDTO
+    val resultat: BehandlingResultatDTO?
+    val sakId: String
+    val saksnummer: String
+    val saksbehandler: String?
+    val beslutter: String?
+    val saksopplysninger: SaksopplysningerDTO
+    val attesteringer: List<AttesteringDTO>
+    val virkningsperiode: PeriodeDTO?
+    val fritekstTilVedtaksbrev: String?
+    val begrunnelseVilkårsvurdering: String?
+    val avbrutt: AvbruttDTO?
+    val iverksattTidspunkt: String?
+}
+
+data class SøknadsbehandlingDTO(
+    override val id: String,
+    override val type: BehandlingstypeDTO,
+    override val status: BehandlingsstatusDTO,
+    override val resultat: BehandlingResultatDTO?,
+    override val sakId: String,
+    override val saksnummer: String,
+    override val saksbehandler: String?,
+    override val beslutter: String?,
+    override val saksopplysninger: SaksopplysningerDTO,
+    override val attesteringer: List<AttesteringDTO>,
+    override val virkningsperiode: PeriodeDTO?,
+    override val fritekstTilVedtaksbrev: String?,
+    override val begrunnelseVilkårsvurdering: String?,
+    override val avbrutt: AvbruttDTO?,
+    override val iverksattTidspunkt: String?,
     val søknad: SøknadDTO?,
-    val virkningsperiode: PeriodeDTO?,
-    val fritekstTilVedtaksbrev: String?,
-    val begrunnelseVilkårsvurdering: String?,
     val barnetillegg: BarnetilleggDTO?,
-    val avbrutt: AvbruttDTO?,
-    val iverksattTidspunkt: String?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
     val valgtHjemmelHarIkkeRettighet: List<String>?,
     val antallDagerPerMeldeperiode: Int?,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
-)
+) : BehandlingDTO
 
-fun Behandling.toDTO(): BehandlingDTO {
+data class RevurderingDTO(
+    override val id: String,
+    override val type: BehandlingstypeDTO,
+    override val status: BehandlingsstatusDTO,
+    override val resultat: BehandlingResultatDTO?,
+    override val sakId: String,
+    override val saksnummer: String,
+    override val saksbehandler: String?,
+    override val beslutter: String?,
+    override val saksopplysninger: SaksopplysningerDTO,
+    override val attesteringer: List<AttesteringDTO>,
+    override val virkningsperiode: PeriodeDTO?,
+    override val fritekstTilVedtaksbrev: String?,
+    override val begrunnelseVilkårsvurdering: String?,
+    override val avbrutt: AvbruttDTO?,
+    override val iverksattTidspunkt: String?,
+    val barnetillegg: BarnetilleggDTO?,
+    val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
+    val valgtHjemmelHarIkkeRettighet: List<String>?,
+    val antallDagerPerMeldeperiode: Int?,
+) : BehandlingDTO
+
+fun Behandling.tilBehandlingDTO(): BehandlingDTO {
     return when (this) {
-        is Revurdering -> this.toDTO()
-        is Søknadsbehandling -> this.toDTO()
+        is Revurdering -> this.tilRevurderingDTO()
+        is Søknadsbehandling -> this.tilSøknadsbehandlingDTO()
     }
 }
 
-fun Behandlinger.toDTO() = this.map { it.toDTO() }
+fun Behandlinger.tilBehandlingerDTO() = this.map { it.tilBehandlingDTO() }
 
-fun Søknadsbehandling.toDTO(): BehandlingDTO {
-    val utenUtfallDTO = BehandlingDTO(
+fun Søknadsbehandling.tilSøknadsbehandlingDTO(): SøknadsbehandlingDTO {
+    val utenUtfallDTO = SøknadsbehandlingDTO(
         id = this.id.toString(),
         type = this.behandlingstype.tilBehandlingstypeDTO(),
         status = this.status.toBehandlingsstatusDTO(),
@@ -94,8 +134,8 @@ fun Søknadsbehandling.toDTO(): BehandlingDTO {
     }
 }
 
-fun Revurdering.toDTO(): BehandlingDTO {
-    val utenUtfallDTO = BehandlingDTO(
+fun Revurdering.tilRevurderingDTO(): RevurderingDTO {
+    val utenUtfallDTO = RevurderingDTO(
         id = this.id.toString(),
         type = this.behandlingstype.tilBehandlingstypeDTO(),
         status = this.status.toBehandlingsstatusDTO(),
@@ -115,8 +155,6 @@ fun Revurdering.toDTO(): BehandlingDTO {
         valgteTiltaksdeltakelser = null,
         antallDagerPerMeldeperiode = null,
         barnetillegg = null,
-        avslagsgrunner = null,
-        søknad = null,
     )
 
     val resultat = this.resultat

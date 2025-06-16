@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
@@ -51,7 +51,7 @@ fun Route.oppdaterFritekstTilVedtaksbrevRoute(
                                 contextMessage = "Oppdaterer fritekst til vedtaksbrev",
                                 correlationId = correlationId,
                             )
-                            call.respond(status = HttpStatusCode.OK, it.toDTO())
+                            call.respond(status = HttpStatusCode.OK, it.tilBehandlingDTO())
                         }
                     }
                 }
