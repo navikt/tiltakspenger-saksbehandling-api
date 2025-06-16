@@ -3,15 +3,18 @@ package no.nav.tiltakspenger.saksbehandling.infra.repo
 import arrow.core.left
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.oppdaterMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettManuellMeldekortBehandling
@@ -23,6 +26,45 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.opprettUtbetalingsvedtak
 import java.time.Clock
+import java.time.LocalDateTime
+
+internal fun TestDataHelper.persisterBrukersMeldekort(
+    sak: Sak? = null,
+    meldeperiode: Meldeperiode? = null,
+    periode: Periode = Periode(
+        2.januar(2023),
+        15.januar(2023),
+    ),
+    clock: Clock = this.clock,
+    genererSak: (Sak?) -> Sak = { s ->
+        s ?: this.persisterIverksattSøknadsbehandling(
+            deltakelseFom = periode.fraOgMed,
+            deltakelseTom = periode.tilOgMed,
+            clock = clock,
+        ).first
+    },
+): Pair<Sak, BrukersMeldekort> {
+    val generertSak = genererSak(sak)
+
+    // TODO - single vil mest sannsynlig kunne feile hvis man gjenbruker sak
+    val valgtMeldeperiode = meldeperiode ?: generertSak.meldeperiodeKjeder.single().hentSisteMeldeperiode()
+
+    val brukersMeldekort = ObjectMother.brukersMeldekort(
+        id = MeldekortId.random(),
+        mottatt = LocalDateTime.now(clock),
+        sakId = generertSak.id,
+        meldeperiode = valgtMeldeperiode,
+        behandlesAutomatisk = false,
+        behandletAutomatiskStatus = null,
+    )
+
+    this.meldekortBrukerRepo.lagre(
+        brukersMeldekort = brukersMeldekort,
+        sessionContext = null,
+    )
+
+    return this.sakRepo.hentForSakId(generertSak.id)!! to brukersMeldekort
+}
 
 internal fun TestDataHelper.persisterOpprettetManuellMeldekortBehandling(
     sak: Sak? = null,

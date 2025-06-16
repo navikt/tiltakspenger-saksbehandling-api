@@ -86,17 +86,33 @@ class BenkOversiktPostgresRepo(
                                                                     join sak s on m.sak_id = s.id
                                                            where m.avbrutt is null
                                                              and m.status in ('KLAR_TIL_UTFYLLING', 'KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')),
-                     slåttSammen AS (select *
-                                     from åpneSøknaderUtenBehandling
-                                     union all
-                                     select *
-                                     from åpneSøknadsbehandlinger
-                                     union all
-                                     select *
-                                     from åpneRevurderinger
-                                     union all
-                                     select *
-                                     from åpneMeldekortBehandlinger)
+     åpneMeldekortTilBehandling as (select s.id                  as sakId,
+                                           s.fnr                 as fnr,
+                                           s.saksnummer          as saksnummer,
+                                           mbr.mottatt           as startet,
+                                           'MELDEKORTBEHANDLING' as behandlingstype,
+                                           'KLAR_TIL_BEHANDLING' as status,
+                                           null                  as saksbehandler,
+                                           null                  as beslutter
+                                    from meldekort_bruker mbr
+                                             left join meldekortbehandling mbh on mbr.id = mbh.brukers_meldekort_id
+                                             join sak s on mbr.sak_id = s.id
+                                    where mbh.brukers_meldekort_id is null
+                                      and behandles_automatisk = false),
+                 slåttSammen AS (select *
+                                 from åpneSøknaderUtenBehandling
+                                 union all
+                                 select *
+                                 from åpneSøknadsbehandlinger
+                                 union all
+                                 select *
+                                 from åpneRevurderinger
+                                 union all
+                                 select *
+                                 from åpneMeldekortBehandlinger
+                                 union all
+                                 select *
+                                 from åpneMeldekortTilBehandling)
                     select *,
                            count(*) over () as total_count
                     from slåttSammen

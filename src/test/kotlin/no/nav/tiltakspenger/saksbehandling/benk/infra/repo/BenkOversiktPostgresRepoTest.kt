@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.repo.TestDataHelper
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterBrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
@@ -205,18 +206,30 @@ class BenkOversiktPostgresRepoTest {
     @Test
     fun `henter åpne meldekortbehandlinger`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
+            val (sakMedInnsendtBrukersMeldekort, brukersMeldekort) = testDataHelper.persisterBrukersMeldekort()
             val (sakMedOpprettetMeldekortBehandling, opprettetMeldekortbehandling) = testDataHelper.persisterOpprettetManuellMeldekortBehandling()
             val (sakMedMeldekortbehandlingTilBeslutning, meldekortbehandlingTilBeslutning) = testDataHelper.persisterManuellMeldekortBehandlingTilBeslutning()
             testDataHelper.persisterIverksattMeldekortbehandling()
 
             val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
-            totalAntall shouldBe 2
-            actual.size shouldBe 2
+            totalAntall shouldBe 3
+            actual.size shouldBe 3
             testDataHelper.verifiserViHar3MeldekortBehandlinger()
 
             actual.let {
                 it.first() shouldBe Behandlingssammendrag(
+                    sakId = sakMedInnsendtBrukersMeldekort.id,
+                    fnr = sakMedInnsendtBrukersMeldekort.fnr,
+                    saksnummer = sakMedInnsendtBrukersMeldekort.saksnummer,
+                    startet = brukersMeldekort.mottatt,
+                    kravtidspunkt = null,
+                    behandlingstype = BehandlingssammendragType.MELDEKORTBEHANDLING,
+                    status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
+                    saksbehandler = null,
+                    beslutter = null,
+                )
+                it[1] shouldBe Behandlingssammendrag(
                     sakId = sakMedOpprettetMeldekortBehandling.id,
                     fnr = sakMedOpprettetMeldekortBehandling.fnr,
                     saksnummer = sakMedOpprettetMeldekortBehandling.saksnummer,
