@@ -9,7 +9,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
     ) : RevurderingResultat
 
     data class Innvilgelse(
-        override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser,
+        override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
         override val barnetillegg: Barnetillegg?,
         override val antallDagerPerMeldeperiode: Int?,
     ) : BehandlingResultat.Innvilgelse,

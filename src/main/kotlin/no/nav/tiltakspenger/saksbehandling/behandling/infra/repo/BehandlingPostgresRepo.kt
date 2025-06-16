@@ -406,10 +406,10 @@ class BehandlingPostgresRepo(
                         )
 
                         RevurderingType.INNVILGELSE -> RevurderingResultat.Innvilgelse(
-                            valgteTiltaksdeltakelser = string("valgte_tiltaksdeltakelser")
-                                .toValgteTiltaksdeltakelser(saksopplysninger),
+                            valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")
+                                ?.toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
-                            antallDagerPerMeldeperiode = int("antall_dager_per_meldeperiode"),
+                            antallDagerPerMeldeperiode = intOrNull("antall_dager_per_meldeperiode"),
                         )
                     }
 
@@ -593,7 +593,7 @@ class BehandlingPostgresRepo(
 
 private fun Behandling.tilDbParams(): Map<String, Any?> {
     val søknadId = when (this) {
-        is Søknadsbehandling -> this.søknad.id
+        is Søknadsbehandling -> this.søknad.id.toString()
         is Revurdering -> null
     }
     return mapOf(
@@ -619,8 +619,8 @@ private fun Behandling.tilDbParams(): Map<String, Any?> {
         "opprettet" to this.opprettet,
         "sak_id" to this.sakId.toString(),
         "behandlingstype" to this.behandlingstype.toDbValue(),
+        "soknad_id" to søknadId,
         *this.resultat.tilDbParams(),
-        "soknad_id" to søknadId?.toString(),
     )
 }
 
@@ -633,7 +633,7 @@ private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when 
     is RevurderingResultat.Innvilgelse,
     -> arrayOf(
         "barnetillegg" to this.barnetillegg?.toDbJson(),
-        "valgte_tiltaksdeltakelser" to this.valgteTiltaksdeltakelser.toDbJson(),
+        "valgte_tiltaksdeltakelser" to this.valgteTiltaksdeltakelser?.toDbJson(),
         "antall_dager_per_meldeperiode" to this.antallDagerPerMeldeperiode,
     )
 

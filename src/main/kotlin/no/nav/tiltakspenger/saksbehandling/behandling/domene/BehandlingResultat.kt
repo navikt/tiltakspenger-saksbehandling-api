@@ -9,12 +9,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
+import java.lang.IllegalStateException
 
 sealed interface BehandlingResultat {
 
     /* Denne benyttes både i søknadsbehandlinger og revurderinger */
     sealed interface Innvilgelse {
-        val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser
+        val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?
         val antallDagerPerMeldeperiode: Int?
         val barnetillegg: Barnetillegg?
 
@@ -28,9 +29,11 @@ sealed interface BehandlingResultat {
                         "Virkningsperiode må være satt for innvilget behandling med status $status"
                     }
 
-                    require(valgteTiltaksdeltakelser.periodisering.totalPeriode == virkningsperiode) {
-                        "Total periode for valgte tiltaksdeltakelser (${valgteTiltaksdeltakelser.periodisering.totalPeriode}) må stemme overens med virkningsperioden ($virkningsperiode)"
-                    }
+                    valgteTiltaksdeltakelser?.also {
+                        require(it.periodisering.totalPeriode == virkningsperiode) {
+                            "Total periode for valgte tiltaksdeltakelser (${it.periodisering.totalPeriode}) må stemme overens med virkningsperioden ($virkningsperiode)"
+                        }
+                    } ?: throw IllegalStateException("Valgte tiltaksdeltakelser må være satt for innvilget behandling med status $status")
 
                     barnetillegg?.also {
                         val barnetilleggsperiode = it.periodisering.totalPeriode

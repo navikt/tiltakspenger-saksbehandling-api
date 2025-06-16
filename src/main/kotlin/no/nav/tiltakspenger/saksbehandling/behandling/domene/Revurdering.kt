@@ -194,7 +194,7 @@ data class Revurdering(
                 saksopplysninger = saksopplysninger,
                 opprettet = nå(clock),
                 resultat = Innvilgelse(
-                    valgteTiltaksdeltakelser = forrigeUtfall.valgteTiltaksdeltakelser,
+                    valgteTiltaksdeltakelser = null,
                     barnetillegg = forrigeUtfall.barnetillegg,
                     antallDagerPerMeldeperiode = forrigeUtfall.antallDagerPerMeldeperiode,
                 ),

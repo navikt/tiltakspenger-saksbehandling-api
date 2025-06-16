@@ -129,7 +129,7 @@ fun Revurdering.toDTO(): BehandlingDTO {
         is RevurderingResultat.Innvilgelse -> utenUtfallDTO.copy(
             antallDagerPerMeldeperiode = resultat.antallDagerPerMeldeperiode,
             barnetillegg = resultat.barnetillegg?.toBarnetilleggDTO(),
-            valgteTiltaksdeltakelser = resultat.valgteTiltaksdeltakelser.tilDTO(),
+            valgteTiltaksdeltakelser = resultat.valgteTiltaksdeltakelser?.tilDTO(),
         )
     }
 }
