@@ -29,7 +29,7 @@ class TaMeldekortBehandlingService(
 
         return meldekortBehandling.taMeldekortBehandling(saksbehandler).also {
             when (it.status) {
-                MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> meldekortBehandlingRepo.taBehandlingSaksbehandler(
+                MeldekortBehandlingStatus.UNDER_BEHANDLING -> meldekortBehandlingRepo.taBehandlingSaksbehandler(
                     it.id,
                     saksbehandler,
                     it.status,

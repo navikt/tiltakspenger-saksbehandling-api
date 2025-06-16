@@ -481,7 +481,7 @@ class MeldekortBehandlingPostgresRepo(
                     )
                 }
 
-                MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> {
+                MeldekortBehandlingStatus.UNDER_BEHANDLING -> {
                     MeldekortUnderBehandling(
                         id = id,
                         sakId = sakId,

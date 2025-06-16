@@ -20,8 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -69,7 +69,7 @@ data class MeldekortBehandletManuelt(
             "Til og med dato for beregningsperioden må være nyere eller lik meldeperioden"
         }
         when (status) {
-            KLAR_TIL_BEHANDLING -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status UNDER_BEHANDLING")
+            UNDER_BEHANDLING -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status UNDER_BEHANDLING")
             KLAR_TIL_BESLUTNING -> {
                 require(iverksattTidspunkt == null)
                 // Kommentar jah: Når vi legger til underkjenn, bør vi også legge til et atteserings objekt som for Behandling. beslutter vil da flyttes dit.
@@ -185,7 +185,7 @@ data class MeldekortBehandletManuelt(
     ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
         return when (this.status) {
             AVBRUTT -> throw IllegalStateException("Et manuelt behandlet meldekort kan ikke ha status AVBRUTT")
-            KLAR_TIL_BEHANDLING -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status UNDER_BEHANDLING")
+            UNDER_BEHANDLING -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status UNDER_BEHANDLING")
             KLAR_TIL_BESLUTNING -> KunneIkkeOvertaMeldekortBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
             UNDER_BESLUTNING -> {
                 krevBeslutterRolle(saksbehandler)
@@ -220,7 +220,7 @@ data class MeldekortBehandletManuelt(
                 )
             }
 
-            KLAR_TIL_BEHANDLING,
+            UNDER_BEHANDLING,
             UNDER_BESLUTNING,
             GODKJENT,
             AUTOMATISK_BEHANDLET,
@@ -245,7 +245,7 @@ data class MeldekortBehandletManuelt(
                 )
             }
 
-            KLAR_TIL_BEHANDLING,
+            UNDER_BEHANDLING,
             KLAR_TIL_BESLUTNING,
             GODKJENT,
             AUTOMATISK_BEHANDLET,
