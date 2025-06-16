@@ -86,19 +86,30 @@ class BenkOversiktPostgresRepo(
                                                                     join sak s on m.sak_id = s.id
                                                            where m.avbrutt is null
                                                              and m.status in ('KLAR_TIL_BEHANDLING', 'KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')),
-     åpneMeldekortTilBehandling as (select s.id                  as sakId,
-                                           s.fnr                 as fnr,
-                                           s.saksnummer          as saksnummer,
-                                           mbr.mottatt           as startet,
-                                           'MELDEKORTBEHANDLING' as behandlingstype,
-                                           'KLAR_TIL_BEHANDLING' as status,
-                                           null                  as saksbehandler,
-                                           null                  as beslutter
-                                    from meldekort_bruker mbr
-                                             left join meldekortbehandling mbh on mbr.id = mbh.brukers_meldekort_id
-                                             join sak s on mbr.sak_id = s.id
-                                    where mbh.brukers_meldekort_id is null
-                                      and behandles_automatisk = false),
+     åpneMeldekortTilBehandling as (SELECT s.id                  as sakId,
+                   s.fnr                 as fnr,
+                   s.saksnummer          as saksnummer,
+                   mbr.mottatt           as startet,
+                   'MELDEKORTBEHANDLING' as behandlingstype,
+                   'KLAR_TIL_BEHANDLING' as status,
+                   null                  as saksbehandler,
+                   null                  as beslutter
+            FROM meldekort_bruker mbr
+                     JOIN sak s ON mbr.sak_id = s.id
+                     left join meldekortbehandling mbh1 on mbh1.sak_id = s.id and (mbh1.brukers_meldekort_id = mbr.id OR
+                                                                                   mbh1.meldeperiode_kjede_id =
+                                                                                 mbr.meldeperiode_kjede_id)
+            WHERE behandles_automatisk = false
+              and (
+                mbh1.id is null
+                    or
+                exists (SELECT 1
+                        FROM meldekortbehandling mbh
+                        WHERE mbh.sak_id = s.id
+                          AND mbh.avbrutt IS NULL
+                          AND (mbh.brukers_meldekort_id = mbr.id OR mbh.meldeperiode_kjede_id = mbr.meldeperiode_kjede_id)
+                          AND mbh.iverksatt_tidspunkt is not null
+                          AND mbr.mottatt > mbh.iverksatt_tidspunkt))),
                  slåttSammen AS (select *
                                  from åpneSøknaderUtenBehandling
                                  union all
