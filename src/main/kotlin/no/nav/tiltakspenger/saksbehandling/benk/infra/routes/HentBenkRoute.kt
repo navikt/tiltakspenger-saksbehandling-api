@@ -85,7 +85,6 @@ private fun BehandlingssammendragStatus.toBehandlingssammendragStatusDto(): Beha
         BehandlingssammendragStatus.UNDER_BEHANDLING -> BehandlingssammendragStatusDto.UNDER_BEHANDLING
         BehandlingssammendragStatus.KLAR_TIL_BESLUTNING -> BehandlingssammendragStatusDto.KLAR_TIL_BESLUTNING
         BehandlingssammendragStatus.UNDER_BESLUTNING -> BehandlingssammendragStatusDto.UNDER_BESLUTNING
-        BehandlingssammendragStatus.KLAR_TIL_UTFYLLING -> BehandlingssammendragStatusDto.KLAR_TIL_UTFYLLING
     }
 
 private fun BehandlingssammendragType.toDTO(): BehandlingssammendragTypeDTO = when (this) {

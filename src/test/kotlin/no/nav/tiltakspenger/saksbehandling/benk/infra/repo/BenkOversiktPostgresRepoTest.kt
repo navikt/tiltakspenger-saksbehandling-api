@@ -236,7 +236,7 @@ class BenkOversiktPostgresRepoTest {
                     startet = opprettetMeldekortbehandling.opprettet,
                     kravtidspunkt = null,
                     behandlingstype = BehandlingssammendragType.MELDEKORTBEHANDLING,
-                    status = BehandlingssammendragStatus.KLAR_TIL_UTFYLLING,
+                    status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
                 )
@@ -316,10 +316,6 @@ class BenkOversiktPostgresRepoTest {
                 newCommand(status = listOf(BehandlingssammendragStatus.KLAR_TIL_BEHANDLING)),
             )
 
-            val (actualKlarTilUtfylling, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
-                newCommand(status = listOf(BehandlingssammendragStatus.KLAR_TIL_UTFYLLING)),
-            )
-
             val (actualUnderBehandling, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(status = listOf(BehandlingssammendragStatus.UNDER_BEHANDLING)),
             )
@@ -332,11 +328,10 @@ class BenkOversiktPostgresRepoTest {
                 newCommand(status = listOf(BehandlingssammendragStatus.UNDER_BESLUTNING)),
             )
 
-            actualKlarTilBehandling.size shouldBe 1
+            actualKlarTilBehandling.size shouldBe 2
             actualUnderBehandling.size shouldBe 2
             actualKlarTilBeslutning.size shouldBe 3
             actualUnderBeslutning.size shouldBe 2
-            actualKlarTilUtfylling.size shouldBe 1
         }
     }
 

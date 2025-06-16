@@ -5,5 +5,4 @@ enum class BehandlingssammendragStatusDto {
     UNDER_BEHANDLING,
     KLAR_TIL_BESLUTNING,
     UNDER_BESLUTNING,
-    KLAR_TIL_UTFYLLING,
 }
