@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.SøknadsbehandlingResultatDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toAvslagsgrunnlag
@@ -95,7 +95,7 @@ private data class SøknadsbehandlingTilBeslutningBody(
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
     val antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
-    val resultat: SøknadsbehandlingResultatDTO,
+    val resultat: BehandlingResultatDTO,
 ) {
     fun toDomain(
         sakId: SakId,
@@ -120,8 +120,11 @@ private data class SøknadsbehandlingTilBeslutningBody(
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             avslagsgrunner = avslagsgrunner?.toAvslagsgrunnlag(),
             resultat = when (resultat) {
-                SøknadsbehandlingResultatDTO.INNVILGELSE -> SøknadsbehandlingType.INNVILGELSE
-                SøknadsbehandlingResultatDTO.AVSLAG -> SøknadsbehandlingType.AVSLAG
+                BehandlingResultatDTO.INNVILGELSE -> SøknadsbehandlingType.INNVILGELSE
+                BehandlingResultatDTO.AVSLAG -> SøknadsbehandlingType.AVSLAG
+                BehandlingResultatDTO.STANS,
+                BehandlingResultatDTO.REVURDERING_INNVILGELSE,
+                -> throw IllegalArgumentException("Ugyldig resultat for søknadsbehandling: $resultat")
             },
         )
     }

@@ -41,7 +41,7 @@ sealed interface BehandlingDTO {
 data class SøknadsbehandlingDTO(
     override val id: String,
     override val status: BehandlingsstatusDTO,
-    override val resultat: SøknadsbehandlingResultatDTO?,
+    override val resultat: BehandlingResultatDTO?,
     override val sakId: String,
     override val saksnummer: String,
     override val saksbehandler: String?,
@@ -65,7 +65,7 @@ data class SøknadsbehandlingDTO(
 data class RevurderingDTO(
     override val id: String,
     override val status: BehandlingsstatusDTO,
-    override val resultat: RevurderingResultatDTO,
+    override val resultat: BehandlingResultatDTO,
     override val sakId: String,
     override val saksnummer: String,
     override val saksbehandler: String?,
@@ -98,7 +98,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(): SøknadsbehandlingDTO {
     return SøknadsbehandlingDTO(
         id = this.id.toString(),
         status = this.status.toBehandlingsstatusDTO(),
-        resultat = this.resultat?.tilUtfallDTO(),
+        resultat = this.resultat?.tilBehandlingResultatDTO(),
         sakId = this.sakId.toString(),
         saksnummer = this.saksnummer.toString(),
         saksbehandler = this.saksbehandler,
@@ -146,7 +146,7 @@ fun Revurdering.tilRevurderingDTO(): RevurderingDTO {
         begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
         avbrutt = this.avbrutt?.toAvbruttDTO(),
         iverksattTidspunkt = this.iverksattTidspunkt?.toString(),
-        resultat = this.resultat.tilUtfallDTO(),
+        resultat = this.resultat.tilBehandlingResultatDTO(),
         valgtHjemmelHarIkkeRettighet = null,
         valgteTiltaksdeltakelser = null,
         antallDagerPerMeldeperiode = null,
