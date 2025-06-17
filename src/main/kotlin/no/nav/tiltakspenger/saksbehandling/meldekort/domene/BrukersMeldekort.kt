@@ -74,6 +74,10 @@ data class BrukersMeldekort(
     }
 }
 
+/**
+ * Dette er en spesialsering av [MeldekortDagStatus].
+ * Denne skal kun inneholde de statusene bruker kan fylle ut. Brukes i [BrukersMeldekort]
+ */
 enum class InnmeldtStatus {
     DELTATT_UTEN_LØNN_I_TILTAKET,
     DELTATT_MED_LØNN_I_TILTAKET,
@@ -90,8 +94,8 @@ enum class InnmeldtStatus {
         FRAVÆR_SYK -> MeldekortDagStatus.FRAVÆR_SYK
         FRAVÆR_SYKT_BARN -> MeldekortDagStatus.FRAVÆR_SYKT_BARN
         // TODO jah: Rydd opp i disse i neste PR
-        FRAVÆR_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-        FRAVÆR_ANNET -> MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
+        FRAVÆR_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV
+        FRAVÆR_ANNET -> MeldekortDagStatus.FRAVÆR_ANNET
         IKKE_BESVART -> MeldekortDagStatus.IKKE_DELTATT
     }
 }

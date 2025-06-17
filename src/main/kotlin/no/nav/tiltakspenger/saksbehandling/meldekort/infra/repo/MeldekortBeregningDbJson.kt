@@ -13,20 +13,12 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregnin
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Syk.SykBruker
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.VelferdGodkjentAvNav
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.VelferdIkkeGodkjentAvNav
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Sperret
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.StatusDb.DELTATT_MED_LØNN_I_TILTAKET
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.StatusDb.DELTATT_UTEN_LØNN_I_TILTAKET
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.StatusDb.FRAVÆR_SYK
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.StatusDb.FRAVÆR_SYKT_BARN
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.StatusDb.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.StatusDb.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.StatusDb.IKKE_DELTATT
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.StatusDb.SPERRET
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toTiltakstypeSomGirRett
 import java.time.LocalDate
@@ -37,20 +29,10 @@ import java.time.LocalDate
 private data class MeldeperiodeBeregningDagDbJson(
     val tiltakstype: String?,
     val dato: String,
-    val status: StatusDb,
+    val status: MeldekortstatusDb,
     val reduksjon: ReduksjonAvYtelsePåGrunnAvFraværDb?,
     val beregningsdag: BeregningsdagDbJson?,
 ) {
-    enum class StatusDb {
-        SPERRET,
-        DELTATT_UTEN_LØNN_I_TILTAKET,
-        DELTATT_MED_LØNN_I_TILTAKET,
-        IKKE_DELTATT,
-        FRAVÆR_SYK,
-        FRAVÆR_SYKT_BARN,
-        FRAVÆR_VELFERD_GODKJENT_AV_NAV,
-        FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV,
-    }
 
     enum class ReduksjonAvYtelsePåGrunnAvFraværDb {
         IngenReduksjon,
@@ -71,50 +53,57 @@ private data class MeldeperiodeBeregningDagDbJson(
         val parsedTiltakstype = tiltakstype?.toTiltakstypeSomGirRett()
         val parsedBeregningsdag = beregningsdag?.toBeregningsdag()
         return when (status) {
-            SPERRET -> Sperret(parsedDato)
-            DELTATT_UTEN_LØNN_I_TILTAKET -> DeltattUtenLønnITiltaket.fromDb(
+            MeldekortstatusDb.DELTATT_UTEN_LØNN_I_TILTAKET -> DeltattUtenLønnITiltaket.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
             )
 
-            DELTATT_MED_LØNN_I_TILTAKET -> DeltattMedLønnITiltaket.fromDb(
+            MeldekortstatusDb.DELTATT_MED_LØNN_I_TILTAKET -> DeltattMedLønnITiltaket.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
             )
 
-            IKKE_DELTATT -> IkkeDeltatt.fromDb(
-                parsedDato,
-                parsedTiltakstype!!,
-                parsedBeregningsdag!!,
-            )
-
-            FRAVÆR_SYK -> SykBruker.fromDb(
+            MeldekortstatusDb.FRAVÆR_SYK -> SykBruker.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
                 reduksjon!!.toDomain(),
                 parsedBeregningsdag!!,
             )
 
-            FRAVÆR_SYKT_BARN -> SyktBarn.fromDb(
+            MeldekortstatusDb.FRAVÆR_SYKT_BARN -> SyktBarn.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
                 reduksjon!!.toDomain(),
                 parsedBeregningsdag!!,
             )
 
-            FRAVÆR_VELFERD_GODKJENT_AV_NAV -> VelferdGodkjentAvNav.fromDb(
+            MeldekortstatusDb.FRAVÆR_GODKJENT_AV_NAV -> FraværGodkjentAvNav.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
             )
 
-            FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> VelferdIkkeGodkjentAvNav.fromDb(
+            MeldekortstatusDb.FRAVÆR_ANNET -> FraværAnnet.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
             )
+
+            MeldekortstatusDb.IKKE_BESVART -> MeldeperiodeBeregningDag.IkkeBesvart.fromDb(
+                parsedDato,
+                parsedTiltakstype!!,
+                parsedBeregningsdag!!,
+            )
+
+            MeldekortstatusDb.IKKE_DELTATT -> IkkeDeltatt.fromDb(
+                parsedDato,
+                parsedTiltakstype!!,
+                parsedBeregningsdag!!,
+            )
+
+            MeldekortstatusDb.SPERRET -> Sperret(parsedDato)
         }
     }
 }
@@ -143,14 +132,15 @@ private fun List<MeldeperiodeBeregningDag>.toDbJson() = this.map { meldekortdag 
         beregningsdag = meldekortdag.beregningsdag?.toDbJson(),
         status =
         when (meldekortdag) {
-            is DeltattMedLønnITiltaket -> DELTATT_MED_LØNN_I_TILTAKET
-            is DeltattUtenLønnITiltaket -> DELTATT_UTEN_LØNN_I_TILTAKET
-            is SykBruker -> FRAVÆR_SYK
-            is SyktBarn -> FRAVÆR_SYKT_BARN
-            is VelferdGodkjentAvNav -> FRAVÆR_VELFERD_GODKJENT_AV_NAV
-            is VelferdIkkeGodkjentAvNav -> FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-            is IkkeDeltatt -> IKKE_DELTATT
-            is Sperret -> SPERRET
+            is DeltattUtenLønnITiltaket -> MeldekortstatusDb.DELTATT_UTEN_LØNN_I_TILTAKET
+            is DeltattMedLønnITiltaket -> MeldekortstatusDb.DELTATT_MED_LØNN_I_TILTAKET
+            is SykBruker -> MeldekortstatusDb.FRAVÆR_SYK
+            is SyktBarn -> MeldekortstatusDb.FRAVÆR_SYKT_BARN
+            is FraværGodkjentAvNav -> MeldekortstatusDb.FRAVÆR_GODKJENT_AV_NAV
+            is FraværAnnet -> MeldekortstatusDb.FRAVÆR_ANNET
+            is MeldeperiodeBeregningDag.IkkeBesvart -> MeldekortstatusDb.IKKE_BESVART
+            is IkkeDeltatt -> MeldekortstatusDb.IKKE_DELTATT
+            is Sperret -> MeldekortstatusDb.SPERRET
         },
     )
 }

@@ -166,7 +166,7 @@ class MeldekortberegningFraBrukersMeldekort {
     fun `Skal beregne gyldig fravær likt`() {
         sammenlign(
             listOf(
-                List(5) { KommandoStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV },
+                List(5) { KommandoStatus.FRAVÆR_GODKJENT_AV_NAV },
                 List(2) { KommandoStatus.IKKE_DELTATT },
                 List(5) { KommandoStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
                 List(2) { KommandoStatus.IKKE_DELTATT },
@@ -187,7 +187,7 @@ class MeldekortberegningFraBrukersMeldekort {
     fun `Skal beregne ugyldig fravær likt`() {
         sammenlign(
             listOf(
-                List(5) { KommandoStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV },
+                List(5) { KommandoStatus.FRAVÆR_ANNET },
                 List(2) { KommandoStatus.IKKE_DELTATT },
                 List(5) { KommandoStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
                 List(2) { KommandoStatus.IKKE_DELTATT },
@@ -209,7 +209,7 @@ class MeldekortberegningFraBrukersMeldekort {
         sammenlign(
             listOf(
                 List(3) { KommandoStatus.SPERRET },
-                List(2) { KommandoStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV },
+                List(2) { KommandoStatus.FRAVÆR_ANNET },
                 List(2) { KommandoStatus.IKKE_DELTATT },
                 List(5) { KommandoStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
                 List(2) { KommandoStatus.IKKE_DELTATT },

@@ -11,9 +11,9 @@ enum class InnmeldtStatusDb {
     DELTATT_MED_LØNN_I_TILTAKET,
     FRAVÆR_SYK,
     FRAVÆR_SYKT_BARN,
-    FRAVÆR_VELFERD_GODKJENT_AV_NAV,
-    FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV,
-    IKKE_REGISTRERT,
+    FRAVÆR_GODKJENT_AV_NAV,
+    FRAVÆR_ANNET,
+    IKKE_BESVART,
 }
 
 data class BrukersMeldekortDagDbJson(
@@ -30,9 +30,9 @@ fun List<BrukersMeldekort.BrukersMeldekortDag>.toDbJson(): String {
                 InnmeldtStatus.DELTATT_MED_LØNN_I_TILTAKET -> InnmeldtStatusDb.DELTATT_MED_LØNN_I_TILTAKET
                 InnmeldtStatus.FRAVÆR_SYK -> InnmeldtStatusDb.FRAVÆR_SYK
                 InnmeldtStatus.FRAVÆR_SYKT_BARN -> InnmeldtStatusDb.FRAVÆR_SYKT_BARN
-                InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV -> InnmeldtStatusDb.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-                InnmeldtStatus.FRAVÆR_ANNET -> InnmeldtStatusDb.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-                InnmeldtStatus.IKKE_BESVART -> InnmeldtStatusDb.IKKE_REGISTRERT
+                InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV -> InnmeldtStatusDb.FRAVÆR_GODKJENT_AV_NAV
+                InnmeldtStatus.FRAVÆR_ANNET -> InnmeldtStatusDb.FRAVÆR_ANNET
+                InnmeldtStatus.IKKE_BESVART -> InnmeldtStatusDb.IKKE_BESVART
             },
         )
     }.let { serialize(it) }
@@ -47,9 +47,9 @@ fun String.toMeldekortDager(): List<BrukersMeldekort.BrukersMeldekortDag> {
                 InnmeldtStatusDb.DELTATT_MED_LØNN_I_TILTAKET -> InnmeldtStatus.DELTATT_MED_LØNN_I_TILTAKET
                 InnmeldtStatusDb.FRAVÆR_SYK -> InnmeldtStatus.FRAVÆR_SYK
                 InnmeldtStatusDb.FRAVÆR_SYKT_BARN -> InnmeldtStatus.FRAVÆR_SYKT_BARN
-                InnmeldtStatusDb.FRAVÆR_VELFERD_GODKJENT_AV_NAV -> InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV
-                InnmeldtStatusDb.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> InnmeldtStatus.FRAVÆR_ANNET
-                InnmeldtStatusDb.IKKE_REGISTRERT -> InnmeldtStatus.IKKE_BESVART
+                InnmeldtStatusDb.FRAVÆR_GODKJENT_AV_NAV -> InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV
+                InnmeldtStatusDb.FRAVÆR_ANNET -> InnmeldtStatus.FRAVÆR_ANNET
+                InnmeldtStatusDb.IKKE_BESVART -> InnmeldtStatus.IKKE_BESVART
             },
         )
     }

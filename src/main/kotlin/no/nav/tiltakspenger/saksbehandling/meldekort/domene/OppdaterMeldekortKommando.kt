@@ -40,29 +40,35 @@ class OppdaterMeldekortKommando(
             )
     }
 
+    /** En spesialisering av [MeldekortDagStatus].
+     * Skal kun brukes i kontrakten mot frontend.
+     * Dette er de verdiene saksbehandler kan velge. Se egen kommentar for SPERRET.
+     * Merk at vi ikke ønsker IKKE_BESVART i denne listen, da dette kun er et implisitt valg for bruker. Saksbehandler må ta stilling til alle dagene.
+     * */
     enum class Status {
-        /** Vi tar i mot SPERRET siden det er det saksbehandler ser/sender inn, men vi vil validere at dagen matcher med meldekortutkastet. */
-        SPERRET,
         DELTATT_UTEN_LØNN_I_TILTAKET,
         DELTATT_MED_LØNN_I_TILTAKET,
-        IKKE_DELTATT,
         FRAVÆR_SYK,
         FRAVÆR_SYKT_BARN,
-        FRAVÆR_VELFERD_GODKJENT_AV_NAV,
-        FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV,
+        FRAVÆR_GODKJENT_AV_NAV,
+        FRAVÆR_ANNET,
+        IKKE_DELTATT,
+
+        /** Vi tar i mot SPERRET siden det er det saksbehandler ser/sender inn, men vi vil validere at dagen matcher med meldekortutkastet. */
+        SPERRET,
         ;
 
         fun girRett() = SPERRET != this
 
         fun tilMeldekortDagStatus() = when (this) {
-            SPERRET -> MeldekortDagStatus.SPERRET
             DELTATT_UTEN_LØNN_I_TILTAKET -> MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET
             DELTATT_MED_LØNN_I_TILTAKET -> MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET
-            IKKE_DELTATT -> MeldekortDagStatus.IKKE_DELTATT
             FRAVÆR_SYK -> MeldekortDagStatus.FRAVÆR_SYK
             FRAVÆR_SYKT_BARN -> MeldekortDagStatus.FRAVÆR_SYKT_BARN
-            FRAVÆR_VELFERD_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-            FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
+            FRAVÆR_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV
+            FRAVÆR_ANNET -> MeldekortDagStatus.FRAVÆR_ANNET
+            IKKE_DELTATT -> MeldekortDagStatus.IKKE_DELTATT
+            SPERRET -> MeldekortDagStatus.SPERRET
         }
     }
 }

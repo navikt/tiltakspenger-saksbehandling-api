@@ -11,8 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregnin
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Syk.SykBruker
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.VelferdGodkjentAvNav
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.VelferdIkkeGodkjentAvNav
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Sperret
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
@@ -144,20 +144,20 @@ private data class BeregnMeldekort(
 
             MeldekortDagStatus.IKKE_DELTATT -> ikkeDeltatt(dato, tiltakstype, antallBarn)
             MeldekortDagStatus.FRAVÆR_SYK -> fraværSyk(dato, tiltakstype, antallBarn)
-            MeldekortDagStatus.FRAVÆR_SYKT_BARN -> fraværSykBarn(dato, tiltakstype, antallBarn)
-            MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV -> gyldigFravær(
+            MeldekortDagStatus.FRAVÆR_SYKT_BARN -> fraværSyktBarn(dato, tiltakstype, antallBarn)
+            MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> fraværGodkjentAvNav(
                 dato,
                 tiltakstype,
                 antallBarn,
             )
 
-            MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> ugyldigFravær(
+            MeldekortDagStatus.FRAVÆR_ANNET -> fraværAnnet(
                 dato,
                 tiltakstype,
                 antallBarn,
             )
             // TODO: Se trellokort: Bør kunne beregnes denne tilstanden (skal endres til IKKE_BESVART)
-            MeldekortDagStatus.IKKE_UTFYLT -> throw IllegalStateException("Alle dager på meldekortet må være utfylt - $dato var ikke utfylt på $meldekortId")
+            MeldekortDagStatus.IKKE_BESVART -> throw IllegalStateException("Alle dager på meldekortet må være utfylt - $dato var ikke utfylt på $meldekortId")
         }
     }
 
@@ -175,28 +175,42 @@ private data class BeregnMeldekort(
         )
     }
 
-    private fun gyldigFravær(
+    private fun fraværGodkjentAvNav(
         dag: LocalDate,
         tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,
-    ): VelferdGodkjentAvNav {
+    ): FraværGodkjentAvNav {
         sjekkSykKarantene(dag)
         sjekkSykBarnKarantene(dag)
-        return VelferdGodkjentAvNav.create(
+        return FraværGodkjentAvNav.create(
             dato = dag,
             tiltakstype = tiltakstype,
             antallBarn = antallBarn,
         )
     }
 
-    private fun ugyldigFravær(
+    private fun fraværAnnet(
         dag: LocalDate,
         tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,
-    ): VelferdIkkeGodkjentAvNav {
+    ): FraværAnnet {
         sjekkSykKarantene(dag)
         sjekkSykBarnKarantene(dag)
-        return VelferdIkkeGodkjentAvNav.create(
+        return FraværAnnet.create(
+            dato = dag,
+            tiltakstype = tiltakstype,
+            antallBarn = antallBarn,
+        )
+    }
+
+    private fun ikkeBesvart(
+        dag: LocalDate,
+        tiltakstype: TiltakstypeSomGirRett,
+        antallBarn: AntallBarn,
+    ): MeldeperiodeBeregningDag.IkkeBesvart {
+        sjekkSykKarantene(dag)
+        sjekkSykBarnKarantene(dag)
+        return MeldeperiodeBeregningDag.IkkeBesvart.create(
             dato = dag,
             tiltakstype = tiltakstype,
             antallBarn = antallBarn,
@@ -306,7 +320,7 @@ private data class BeregnMeldekort(
         }
     }
 
-    private fun fraværSykBarn(
+    private fun fraværSyktBarn(
         dag: LocalDate,
         tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,

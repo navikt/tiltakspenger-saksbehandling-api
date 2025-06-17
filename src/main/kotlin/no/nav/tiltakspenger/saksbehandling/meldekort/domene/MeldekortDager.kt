@@ -65,7 +65,7 @@ fun Meldeperiode.tilMeldekortDager(): MeldekortDager {
         this.girRett.entries.map { (dato, harRett) ->
             MeldekortDag(
                 dato = dato,
-                status = if (harRett) MeldekortDagStatus.IKKE_UTFYLT else MeldekortDagStatus.SPERRET,
+                status = if (harRett) MeldekortDagStatus.IKKE_BESVART else MeldekortDagStatus.SPERRET,
             )
         },
         this,

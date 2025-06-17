@@ -104,6 +104,29 @@ sealed interface MeldeperiodeBeregningDag {
         }
     }
 
+    data class IkkeBesvart private constructor(
+        override val dato: LocalDate,
+        override val tiltakstype: TiltakstypeSomGirRett,
+        override val beregningsdag: Beregningsdag,
+    ) : MeldeperiodeBeregningDag {
+        override val reduksjon = YtelsenFallerBort
+        override val harDeltattEllerFravær = false
+
+        companion object {
+            fun create(
+                dato: LocalDate,
+                tiltakstype: TiltakstypeSomGirRett,
+                antallBarn: AntallBarn,
+            ) = IkkeBesvart(dato, tiltakstype, beregnDag(dato, YtelsenFallerBort, antallBarn))
+
+            fun fromDb(
+                dato: LocalDate,
+                tiltakstype: TiltakstypeSomGirRett,
+                beregningsdag: Beregningsdag,
+            ) = IkkeBesvart(dato, tiltakstype, beregningsdag)
+        }
+    }
+
     sealed interface Fravær : MeldeperiodeBeregningDag {
         override val harDeltattEllerFravær get() = true
 
@@ -173,7 +196,7 @@ sealed interface MeldeperiodeBeregningDag {
         }
 
         sealed interface Velferd : Fravær {
-            data class VelferdGodkjentAvNav private constructor(
+            data class FraværGodkjentAvNav private constructor(
                 override val dato: LocalDate,
                 override val tiltakstype: TiltakstypeSomGirRett,
                 override val beregningsdag: Beregningsdag,
@@ -185,7 +208,7 @@ sealed interface MeldeperiodeBeregningDag {
                         dato: LocalDate,
                         tiltakstype: TiltakstypeSomGirRett,
                         antallBarn: AntallBarn,
-                    ) = VelferdGodkjentAvNav(
+                    ) = FraværGodkjentAvNav(
                         dato,
                         tiltakstype,
                         beregnDag(dato, IngenReduksjon, antallBarn),
@@ -195,11 +218,11 @@ sealed interface MeldeperiodeBeregningDag {
                         dato: LocalDate,
                         tiltakstype: TiltakstypeSomGirRett,
                         beregningsdag: Beregningsdag,
-                    ) = VelferdGodkjentAvNav(dato, tiltakstype, beregningsdag)
+                    ) = FraværGodkjentAvNav(dato, tiltakstype, beregningsdag)
                 }
             }
 
-            data class VelferdIkkeGodkjentAvNav private constructor(
+            data class FraværAnnet private constructor(
                 override val dato: LocalDate,
                 override val tiltakstype: TiltakstypeSomGirRett,
                 override val beregningsdag: Beregningsdag,
@@ -211,7 +234,7 @@ sealed interface MeldeperiodeBeregningDag {
                         dato: LocalDate,
                         tiltakstype: TiltakstypeSomGirRett,
                         antallBarn: AntallBarn,
-                    ) = VelferdIkkeGodkjentAvNav(
+                    ) = FraværAnnet(
                         dato,
                         tiltakstype,
                         beregnDag(dato, YtelsenFallerBort, antallBarn),
@@ -221,7 +244,7 @@ sealed interface MeldeperiodeBeregningDag {
                         dato: LocalDate,
                         tiltakstype: TiltakstypeSomGirRett,
                         beregningsdag: Beregningsdag,
-                    ) = VelferdIkkeGodkjentAvNav(dato, tiltakstype, beregningsdag)
+                    ) = FraværAnnet(dato, tiltakstype, beregningsdag)
                 }
             }
         }

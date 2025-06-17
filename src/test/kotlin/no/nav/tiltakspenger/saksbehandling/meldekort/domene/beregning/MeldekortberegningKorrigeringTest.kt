@@ -49,7 +49,7 @@ internal class MeldekortberegningKorrigeringTest {
                         førsteDag,
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
                         List(2) { Status.SPERRET },
-                        List(5) { Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV },
+                        List(5) { Status.FRAVÆR_ANNET },
                         List(2) { Status.SPERRET },
                     ),
                 ),
@@ -72,7 +72,7 @@ internal class MeldekortberegningKorrigeringTest {
 
                     periodeMedStatuser(
                         førsteDag,
-                        List(5) { Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV },
+                        List(5) { Status.FRAVÆR_ANNET },
                         List(2) { Status.SPERRET },
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
                         List(2) { Status.SPERRET },

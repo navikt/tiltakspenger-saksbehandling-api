@@ -4,8 +4,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregnin
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Syk.SykBruker
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.VelferdGodkjentAvNav
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.VelferdIkkeGodkjentAvNav
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeBesvart
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Sperret
 import java.time.LocalDate
@@ -14,44 +15,50 @@ data class MeldekortDag(
     val dato: LocalDate,
     val status: MeldekortDagStatus,
 ) {
+    /** Merk at denne gir true for [DeltattMedLønnITiltaket] og [FraværAnnet] som ikke gir rett til tiltakspenger */
     val harDeltattEllerFravær = when (status) {
         MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET,
         MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET,
         MeldekortDagStatus.FRAVÆR_SYK,
         MeldekortDagStatus.FRAVÆR_SYKT_BARN,
-        MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV,
-        MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV,
+        MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV,
+        MeldekortDagStatus.FRAVÆR_ANNET,
         -> true
 
-        MeldekortDagStatus.SPERRET,
-        MeldekortDagStatus.IKKE_UTFYLT,
+        MeldekortDagStatus.IKKE_BESVART,
         MeldekortDagStatus.IKKE_DELTATT,
+        MeldekortDagStatus.SPERRET,
         -> false
     }
 }
 
 enum class MeldekortDagStatus {
-    SPERRET,
-
-    // TODO John og Anders: Denne bør vel endres til IKKE_BESVART/IKKE_REGISTRERT (se trellokort). Bør slutte kaste exception når vi beregner den og.
-    IKKE_UTFYLT,
     DELTATT_UTEN_LØNN_I_TILTAKET,
     DELTATT_MED_LØNN_I_TILTAKET,
-    IKKE_DELTATT,
     FRAVÆR_SYK,
     FRAVÆR_SYKT_BARN,
-    FRAVÆR_VELFERD_GODKJENT_AV_NAV,
-    FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV,
+    FRAVÆR_GODKJENT_AV_NAV,
+    FRAVÆR_ANNET,
+
+    /** Kun et valg for bruker; ikke saksbehandler. Bruker har ikke tatt stilling til denne dagen. Het tidligere IKKE_REGISTRERT og IKKE_UFYLT. */
+    IKKE_BESVART,
+
+    /** Kun et valg for saksbehandler. Sammenfallende med 'ikke tiltaksdag' */
+    IKKE_DELTATT,
+
+    // TODO jah: Bør endre navn til IKKE_RETT_TIL_TILTAKSPENGER
+    SPERRET,
 }
 
 fun MeldeperiodeBeregningDag.tilMeldekortDagStatus(): MeldekortDagStatus =
     when (this) {
-        is DeltattMedLønnITiltaket -> MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET
         is DeltattUtenLønnITiltaket -> MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET
+        is DeltattMedLønnITiltaket -> MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET
         is SykBruker -> MeldekortDagStatus.FRAVÆR_SYK
         is SyktBarn -> MeldekortDagStatus.FRAVÆR_SYKT_BARN
-        is VelferdGodkjentAvNav -> MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-        is VelferdIkkeGodkjentAvNav -> MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
+        is FraværGodkjentAvNav -> MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV
+        is FraværAnnet -> MeldekortDagStatus.FRAVÆR_ANNET
+        is IkkeBesvart -> MeldekortDagStatus.IKKE_BESVART
         is IkkeDeltatt -> MeldekortDagStatus.IKKE_DELTATT
         is Sperret -> MeldekortDagStatus.SPERRET
     }

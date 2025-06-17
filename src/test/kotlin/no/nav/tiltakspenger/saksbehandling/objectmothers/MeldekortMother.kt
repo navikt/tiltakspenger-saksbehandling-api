@@ -726,9 +726,9 @@ fun MeldekortBehandling.tilOppdaterMeldekortKommando(
                 MeldekortDagStatus.IKKE_DELTATT -> OppdaterMeldekortKommando.Status.IKKE_DELTATT
                 MeldekortDagStatus.FRAVÆR_SYK -> OppdaterMeldekortKommando.Status.FRAVÆR_SYK
                 MeldekortDagStatus.FRAVÆR_SYKT_BARN -> OppdaterMeldekortKommando.Status.FRAVÆR_SYKT_BARN
-                MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV -> OppdaterMeldekortKommando.Status.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-                MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> OppdaterMeldekortKommando.Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-                MeldekortDagStatus.IKKE_UTFYLT -> if (dag.dato.erHelg()) {
+                MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> OppdaterMeldekortKommando.Status.FRAVÆR_GODKJENT_AV_NAV
+                MeldekortDagStatus.FRAVÆR_ANNET -> OppdaterMeldekortKommando.Status.FRAVÆR_ANNET
+                MeldekortDagStatus.IKKE_BESVART -> if (dag.dato.erHelg()) {
                     OppdaterMeldekortKommando.Status.IKKE_DELTATT
                 } else {
                     OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
@@ -758,9 +758,9 @@ fun MeldekortBehandling.tilSendMeldekortTilBeslutterKommando(
                 MeldekortDagStatus.IKKE_DELTATT -> OppdaterMeldekortKommando.Status.IKKE_DELTATT
                 MeldekortDagStatus.FRAVÆR_SYK -> OppdaterMeldekortKommando.Status.FRAVÆR_SYK
                 MeldekortDagStatus.FRAVÆR_SYKT_BARN -> OppdaterMeldekortKommando.Status.FRAVÆR_SYKT_BARN
-                MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV -> OppdaterMeldekortKommando.Status.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-                MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> OppdaterMeldekortKommando.Status.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-                MeldekortDagStatus.IKKE_UTFYLT -> if (dag.dato.erHelg()) {
+                MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> OppdaterMeldekortKommando.Status.FRAVÆR_GODKJENT_AV_NAV
+                MeldekortDagStatus.FRAVÆR_ANNET -> OppdaterMeldekortKommando.Status.FRAVÆR_ANNET
+                MeldekortDagStatus.IKKE_BESVART -> if (dag.dato.erHelg()) {
                     OppdaterMeldekortKommando.Status.IKKE_DELTATT
                 } else {
                     OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
@@ -788,11 +788,11 @@ private fun genererMeldekortdagerFraMeldeperiode(
     val dager = meldeperiode.girRett.entries.map { (dato, girRett) ->
         MeldekortDag(
             dato = dato,
-            status = if (girRett) MeldekortDagStatus.IKKE_UTFYLT else MeldekortDagStatus.SPERRET,
+            status = if (girRett) MeldekortDagStatus.IKKE_BESVART else MeldekortDagStatus.SPERRET,
         )
     }
 
-    return if (dager.any { it.status == MeldekortDagStatus.IKKE_UTFYLT }) {
+    return if (dager.any { it.status == MeldekortDagStatus.IKKE_BESVART }) {
         MeldekortDager(dager, meldeperiode)
     } else {
         throw IllegalStateException("Alle dagene i en meldekortperiode er SPERRET. Dette har vi ikke støtte for i MVP.")
