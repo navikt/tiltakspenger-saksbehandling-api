@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -56,7 +57,7 @@ data class SøknadsbehandlingDTO(
     val søknad: SøknadDTO?,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
-    val antallDagerPerMeldeperiode: Int?,
+    val antallDagerPerMeldeperiode: List<AntallDagerForMeldeperiode>?,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
 ) : BehandlingDTO {
     override val type = BehandlingstypeDTO.SØKNADSBEHANDLING

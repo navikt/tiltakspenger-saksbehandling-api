@@ -354,7 +354,8 @@ class BehandlingPostgresRepo(
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
                     val automatiskSaksbehandlet = boolean("automatisk_saksbehandlet")
-                    val manueltBehandlesGrunner = stringOrNull("manuelt_behandles_grunner")?.toManueltBehandlesGrunner() ?: emptyList()
+                    val manueltBehandlesGrunner =
+                        stringOrNull("manuelt_behandles_grunner")?.toManueltBehandlesGrunner() ?: emptyList()
                     val resultatType = stringOrNull("resultat")?.tilSøknadsbehandlingResultatType()
 
                     val resultat = when (resultatType) {
@@ -362,7 +363,7 @@ class BehandlingPostgresRepo(
                             valgteTiltaksdeltakelser = string("valgte_tiltaksdeltakelser")
                                 .toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
-                            antallDagerPerMeldeperiode = intOrNull("antall_dager_per_meldeperiode"),
+                            antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")?.toAntallDagerForMeldeperiode(),
                         )
 
                         SøknadsbehandlingType.AVSLAG -> SøknadsbehandlingResultat.Avslag(
@@ -413,7 +414,7 @@ class BehandlingPostgresRepo(
                             valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")
                                 ?.toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
-                            antallDagerPerMeldeperiode = intOrNull("antall_dager_per_meldeperiode"),
+                            antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")?.toAntallDagerForMeldeperiode(),
                         )
                     }
 
@@ -655,7 +656,7 @@ private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when 
     -> arrayOf(
         "barnetillegg" to this.barnetillegg?.toDbJson(),
         "valgte_tiltaksdeltakelser" to this.valgteTiltaksdeltakelser?.toDbJson(),
-        "antall_dager_per_meldeperiode" to this.antallDagerPerMeldeperiode,
+        "antall_dager_per_meldeperiode" to this.antallDagerPerMeldeperiode?.toDbJson(),
     )
 
     is RevurderingResultat.Stans -> arrayOf(

@@ -14,8 +14,11 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeSendeTilBeslutter
@@ -33,6 +36,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 
 fun Route.sendSøknadsbehandlingTilBeslutningRoute(
@@ -93,7 +97,12 @@ private data class SøknadsbehandlingTilBeslutningBody(
     val behandlingsperiode: PeriodeDTO,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
-    val antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO> = listOf(
+        AntallDagerPerMeldeperiodeDTO(
+            periode = behandlingsperiode,
+            antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+        ),
+    ),
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
     val resultat: BehandlingResultatDTO,
 ) {
@@ -117,14 +126,18 @@ private data class SøknadsbehandlingTilBeslutningBody(
             tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
                 Pair(it.periode.toDomain(), it.eksternDeltagelseId)
             },
-            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+            antallDagerPerMeldeperiode = Periodisering(
+                antallDagerPerMeldeperiode.map {
+                    PeriodeMedVerdi(AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode), it.periode.toDomain())
+                },
+            ),
             avslagsgrunner = avslagsgrunner?.toAvslagsgrunnlag(),
             resultat = when (resultat) {
                 BehandlingResultatDTO.INNVILGELSE -> SøknadsbehandlingType.INNVILGELSE
                 BehandlingResultatDTO.AVSLAG -> SøknadsbehandlingType.AVSLAG
                 BehandlingResultatDTO.STANS,
                 BehandlingResultatDTO.REVURDERING_INNVILGELSE,
-                -> throw IllegalArgumentException("Ugyldig resultat for søknadsbehandling: $resultat")
+                    -> throw IllegalArgumentException("Ugyldig resultat for søknadsbehandling: $resultat")
             },
         )
     }

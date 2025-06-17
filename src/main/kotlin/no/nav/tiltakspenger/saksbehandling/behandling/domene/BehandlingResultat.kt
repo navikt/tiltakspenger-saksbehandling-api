@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BEHANDLING
@@ -17,7 +18,7 @@ sealed interface BehandlingResultat {
     /* Denne benyttes både i søknadsbehandlinger og revurderinger */
     sealed interface Innvilgelse {
         val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?
-        val antallDagerPerMeldeperiode: Int?
+        val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode>?
         val barnetillegg: Barnetillegg?
 
         fun valider(status: Behandlingsstatus, virkningsperiode: Periode?) {

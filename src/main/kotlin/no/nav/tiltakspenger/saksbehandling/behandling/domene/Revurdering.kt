@@ -51,7 +51,7 @@ data class Revurdering(
         is Stans -> null
     }
 
-    override val antallDagerPerMeldeperiode: Int? = when (resultat) {
+    override val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode>? = when (resultat) {
         is Innvilgelse -> resultat.antallDagerPerMeldeperiode
         is Stans -> null
     }

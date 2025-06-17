@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 
@@ -20,7 +21,7 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
     val behandlingsperiode: Periode,
     val barnetillegg: Barnetillegg?,
     val tiltaksdeltakelser: List<Pair<Periode, String>>,
-    val antallDagerPerMeldeperiode: Int,
+    val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode>,
     val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
     val resultat: SøknadsbehandlingType,
 ) {

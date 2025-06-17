@@ -53,7 +53,7 @@ data class Søknadsbehandling(
     val manueltBehandlesGrunner: List<String>,
 ) : Behandling {
 
-    override val antallDagerPerMeldeperiode: Int?
+    override val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode>?
         get() = when (resultat) {
             is SøknadsbehandlingResultat.Avslag -> null
             is SøknadsbehandlingResultat.Innvilgelse -> resultat.antallDagerPerMeldeperiode
