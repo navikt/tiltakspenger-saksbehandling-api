@@ -85,7 +85,7 @@ internal object BarnetilleggDAO {
         val fornavn = stringOrNull("fornavn")
         val mellomnavn = stringOrNull("mellomnavn")
         val etternavn = stringOrNull("etternavn")
-        val oppholderSegIEØS = jaNeiSpm("opphold_i_eos_type")
+        val oppholderSegIEØS = jaNeiSpm("opphold_i_eos")
         return if (type == "PDL") {
             BarnetilleggFraSøknad.FraPdl(
                 oppholderSegIEØS = oppholderSegIEØS,
