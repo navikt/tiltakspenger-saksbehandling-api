@@ -115,7 +115,7 @@ data class Søknad(
         fun erJa(): Boolean =
             when (this) {
                 is Ja -> true
-                Nei -> false
+                is Nei -> false
             }
     }
 
