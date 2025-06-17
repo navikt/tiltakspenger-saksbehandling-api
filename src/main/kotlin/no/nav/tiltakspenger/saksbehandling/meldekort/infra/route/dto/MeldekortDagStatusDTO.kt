@@ -17,15 +17,9 @@ enum class MeldekortDagStatusDTO {
     DELTATT_MED_LØNN_I_TILTAKET,
     FRAVÆR_SYK,
     FRAVÆR_SYKT_BARN,
-
-    /** TODO jah: Rename til FRAVÆR_GODKJENT_AV_NAV samtidig med frontend */
-    FRAVÆR_VELFERD_GODKJENT_AV_NAV,
-
-    /** TODO jah: Rename til FRAVÆR_ANNET samtidig med frontend */
-    FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV,
-
-    /** TODO jah: Rename til IKKE_BESVART samtidig med frontend */
-    IKKE_UTFYLT,
+    FRAVÆR_GODKJENT_AV_NAV,
+    FRAVÆR_ANNET,
+    IKKE_BESVART,
     IKKE_DELTATT,
     SPERRET,
 }
@@ -36,9 +30,9 @@ fun MeldeperiodeBeregningDag.tilMeldekortDagStatusDTO(): MeldekortDagStatusDTO =
         is DeltattMedLønnITiltaket -> MeldekortDagStatusDTO.DELTATT_MED_LØNN_I_TILTAKET
         is SykBruker -> MeldekortDagStatusDTO.FRAVÆR_SYK
         is SyktBarn -> MeldekortDagStatusDTO.FRAVÆR_SYKT_BARN
-        is FraværGodkjentAvNav -> MeldekortDagStatusDTO.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-        is FraværAnnet -> MeldekortDagStatusDTO.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-        is IkkeBesvart -> MeldekortDagStatusDTO.IKKE_UTFYLT
+        is FraværGodkjentAvNav -> MeldekortDagStatusDTO.FRAVÆR_GODKJENT_AV_NAV
+        is FraværAnnet -> MeldekortDagStatusDTO.FRAVÆR_ANNET
+        is IkkeBesvart -> MeldekortDagStatusDTO.IKKE_BESVART
         is IkkeDeltatt -> MeldekortDagStatusDTO.IKKE_DELTATT
         is Sperret -> MeldekortDagStatusDTO.SPERRET
     }
@@ -49,9 +43,9 @@ fun MeldekortDagStatus.tilMeldekortDagStatusDTO(): MeldekortDagStatusDTO =
         MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> MeldekortDagStatusDTO.DELTATT_MED_LØNN_I_TILTAKET
         MeldekortDagStatus.FRAVÆR_SYK -> MeldekortDagStatusDTO.FRAVÆR_SYK
         MeldekortDagStatus.FRAVÆR_SYKT_BARN -> MeldekortDagStatusDTO.FRAVÆR_SYKT_BARN
-        MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> MeldekortDagStatusDTO.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-        MeldekortDagStatus.FRAVÆR_ANNET -> MeldekortDagStatusDTO.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-        MeldekortDagStatus.IKKE_BESVART -> MeldekortDagStatusDTO.IKKE_UTFYLT
+        MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> MeldekortDagStatusDTO.FRAVÆR_GODKJENT_AV_NAV
+        MeldekortDagStatus.FRAVÆR_ANNET -> MeldekortDagStatusDTO.FRAVÆR_ANNET
+        MeldekortDagStatus.IKKE_BESVART -> MeldekortDagStatusDTO.IKKE_BESVART
         MeldekortDagStatus.IKKE_DELTATT -> MeldekortDagStatusDTO.IKKE_DELTATT
         MeldekortDagStatus.SPERRET -> MeldekortDagStatusDTO.SPERRET
     }

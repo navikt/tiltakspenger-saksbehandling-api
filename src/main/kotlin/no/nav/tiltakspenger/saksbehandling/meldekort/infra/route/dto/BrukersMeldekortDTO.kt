@@ -11,15 +11,9 @@ private enum class InnmeldtStatusDTO {
     DELTATT_MED_LØNN_I_TILTAKET,
     FRAVÆR_SYK,
     FRAVÆR_SYKT_BARN,
-
-    /** TODO jah: Rename til FRAVÆR_GODKJENT_AV_NAV samtidig med frontend */
-    FRAVÆR_VELFERD_GODKJENT_AV_NAV,
-
-    /** TODO jah: Rename til FRAVÆR_ANNET samtidig med frontend */
-    FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV,
-
-    /** TODO jah: Rename til IKKE_BESVART samtidig med frontend */
-    IKKE_REGISTRERT,
+    FRAVÆR_GODKJENT_AV_NAV,
+    FRAVÆR_ANNET,
+    IKKE_BESVART,
 }
 
 enum class BrukersMeldekortBehandletAutomatiskStatusDTO {
@@ -88,7 +82,7 @@ private fun InnmeldtStatus.toInnmeldtStatusString(): String = when (this) {
     InnmeldtStatus.DELTATT_MED_LØNN_I_TILTAKET -> InnmeldtStatusDTO.DELTATT_MED_LØNN_I_TILTAKET
     InnmeldtStatus.FRAVÆR_SYK -> InnmeldtStatusDTO.FRAVÆR_SYK
     InnmeldtStatus.FRAVÆR_SYKT_BARN -> InnmeldtStatusDTO.FRAVÆR_SYKT_BARN
-    InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV -> InnmeldtStatusDTO.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-    InnmeldtStatus.FRAVÆR_ANNET -> InnmeldtStatusDTO.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-    InnmeldtStatus.IKKE_BESVART -> InnmeldtStatusDTO.IKKE_REGISTRERT
+    InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV -> InnmeldtStatusDTO.FRAVÆR_GODKJENT_AV_NAV
+    InnmeldtStatus.FRAVÆR_ANNET -> InnmeldtStatusDTO.FRAVÆR_ANNET
+    InnmeldtStatus.IKKE_BESVART -> InnmeldtStatusDTO.IKKE_BESVART
 }.toString()
