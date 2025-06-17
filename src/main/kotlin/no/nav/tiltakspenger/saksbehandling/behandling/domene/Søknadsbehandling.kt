@@ -48,6 +48,9 @@ data class Søknadsbehandling(
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     val søknad: Søknad,
+    val automatiskSaksbehandlet: Boolean,
+    // TODO: Denne listen skal inneholde enumverdier når vi lager funksjonalitet for automatisk saksbehandling
+    val manueltBehandlesGrunner: List<String>,
 ) : Behandling {
 
     override val antallDagerPerMeldeperiode: Int?
@@ -198,6 +201,8 @@ data class Søknadsbehandling(
                 resultat = null,
                 virkningsperiode = null,
                 begrunnelseVilkårsvurdering = null,
+                automatiskSaksbehandlet = false,
+                manueltBehandlesGrunner = emptyList(),
             ).right()
         }
     }
