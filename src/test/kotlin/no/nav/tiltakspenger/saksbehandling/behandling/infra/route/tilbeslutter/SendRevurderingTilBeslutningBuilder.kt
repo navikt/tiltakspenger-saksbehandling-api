@@ -162,7 +162,7 @@ interface SendRevurderingTilBeslutningBuilder {
                 //language=JSON
                 """
                 {
-                    "type": "INNVILGELSE",
+                    "type": "REVURDERING_INNVILGELSE",
                     "begrunnelse": "$begrunnelseVilkårsvurdering",
                     "innvilgelse": {
                         "innvilgelsesperiode": {

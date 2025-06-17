@@ -81,10 +81,10 @@ data class RevurderingTilBeslutningDTO(
 }
 
 fun BehandlingResultatDTO.tilRevurderingType(): RevurderingType = when (this) {
-    BehandlingResultatDTO.INNVILGELSE -> RevurderingType.INNVILGELSE
+    BehandlingResultatDTO.REVURDERING_INNVILGELSE -> RevurderingType.INNVILGELSE
     BehandlingResultatDTO.STANS -> RevurderingType.STANS
     BehandlingResultatDTO.AVSLAG,
-    BehandlingResultatDTO.REVURDERING_INNVILGELSE,
+    BehandlingResultatDTO.INNVILGELSE,
     -> throw IllegalStateException("Ugyldig type for revurdering $this")
 }
 
