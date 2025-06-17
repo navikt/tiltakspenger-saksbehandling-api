@@ -44,6 +44,7 @@ class OvertaMeldekortBehandlingRouteTest {
                     saksnummer = sak.saksnummer,
                     fnr = sak.fnr,
                     saksbehandler = saksbehandlerIdent,
+                    status = MeldekortBehandlingStatus.UNDER_BEHANDLING,
                 )
 
                 tac.meldekortContext.meldekortBehandlingRepo.lagre(meldekortBehandling, null)

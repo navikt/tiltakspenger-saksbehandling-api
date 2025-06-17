@@ -66,7 +66,7 @@ internal fun TestDataHelper.persisterBrukersMeldekort(
     return this.sakRepo.hentForSakId(generertSak.id)!! to brukersMeldekort
 }
 
-internal fun TestDataHelper.persisterOpprettetManuellMeldekortBehandling(
+internal fun TestDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling(
     sak: Sak? = null,
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     kjedeId: MeldeperiodeKjedeId? = null,
@@ -107,7 +107,7 @@ internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
     ),
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, MeldekortUnderBehandling> = { s ->
-        this.persisterOpprettetManuellMeldekortBehandling(
+        this.persisterKlarTilBehandlingManuellMeldekortBehandling(
             s,
             periode = periode,
             clock = clock,
@@ -125,7 +125,6 @@ internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
                 begrunnelse = MeldekortBehandlingBegrunnelse("TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning"),
                 correlationId = CorrelationId.generate(),
                 dager = saksbehandlerFyllerUtMeldeperiodeDager(opprettetMeldekortBehandling.meldeperiode),
-
             ),
             simuler = { KunneIkkeSimulere.Stengt.left() },
         ).getOrFail()

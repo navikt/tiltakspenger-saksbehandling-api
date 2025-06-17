@@ -4,7 +4,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 
 enum class MeldekortBehandlingStatusDTO {
-    KLAR_TIL_UTFYLLING,
+    KLAR_TIL_BEHANDLING,
+    UNDER_BEHANDLING,
     KLAR_TIL_BESLUTNING,
     UNDER_BESLUTNING,
     GODKJENT,
@@ -15,7 +16,8 @@ enum class MeldekortBehandlingStatusDTO {
 
 fun MeldekortBehandling.toStatusDTO(): MeldekortBehandlingStatusDTO {
     return when (this.status) {
-        MeldekortBehandlingStatus.UNDER_BEHANDLING -> MeldekortBehandlingStatusDTO.KLAR_TIL_UTFYLLING
+        MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> MeldekortBehandlingStatusDTO.UNDER_BEHANDLING
+        MeldekortBehandlingStatus.UNDER_BEHANDLING -> MeldekortBehandlingStatusDTO.UNDER_BEHANDLING
         MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldekortBehandlingStatusDTO.KLAR_TIL_BESLUTNING
         MeldekortBehandlingStatus.UNDER_BESLUTNING -> MeldekortBehandlingStatusDTO.UNDER_BESLUTNING
         MeldekortBehandlingStatus.GODKJENT -> MeldekortBehandlingStatusDTO.GODKJENT

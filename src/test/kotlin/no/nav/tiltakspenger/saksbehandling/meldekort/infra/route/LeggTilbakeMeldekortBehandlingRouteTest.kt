@@ -92,7 +92,7 @@ class LeggTilbakeMeldekortBehandlingRouteTest {
                 leggTilbakeMeldekortBehandling(tac, meldekortBehandling.sakId, meldekortBehandling.id, saksbehandler).also {
                     val oppdatertMeldekortbehandling = tac.meldekortContext.meldekortBehandlingRepo.hent(meldekortBehandling.id)
                     oppdatertMeldekortbehandling shouldNotBe null
-                    oppdatertMeldekortbehandling?.status shouldBe MeldekortBehandlingStatus.UNDER_BEHANDLING
+                    oppdatertMeldekortbehandling?.status shouldBe MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING
                     oppdatertMeldekortbehandling?.saksbehandler shouldBe null
                 }
             }

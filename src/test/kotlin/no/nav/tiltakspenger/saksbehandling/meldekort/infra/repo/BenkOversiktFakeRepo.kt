@@ -145,13 +145,14 @@ class BenkOversiktFakeRepo(
     }
 
     private fun BehandlingssammendragStatus.toMeldekortBehandlingStatus(): MeldekortBehandlingStatus = when (this) {
-        BehandlingssammendragStatus.KLAR_TIL_BEHANDLING -> throw IllegalArgumentException("Klar til behandling er ikke en gyldig meldekortbehandlingsstatus")
+        BehandlingssammendragStatus.KLAR_TIL_BEHANDLING -> MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING
         BehandlingssammendragStatus.UNDER_BEHANDLING -> MeldekortBehandlingStatus.UNDER_BEHANDLING
         BehandlingssammendragStatus.KLAR_TIL_BESLUTNING -> MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
         BehandlingssammendragStatus.UNDER_BESLUTNING -> MeldekortBehandlingStatus.UNDER_BESLUTNING
     }
 
     private fun MeldekortBehandlingStatus.toBehandlingssamendragStatus(): BehandlingssammendragStatus = when (this) {
+        MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> BehandlingssammendragStatus.KLAR_TIL_BEHANDLING
         MeldekortBehandlingStatus.UNDER_BEHANDLING -> BehandlingssammendragStatus.UNDER_BEHANDLING
         MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> BehandlingssammendragStatus.KLAR_TIL_BESLUTNING
         MeldekortBehandlingStatus.UNDER_BESLUTNING -> BehandlingssammendragStatus.UNDER_BESLUTNING

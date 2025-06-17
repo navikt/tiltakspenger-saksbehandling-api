@@ -109,6 +109,7 @@ interface MeldekortMother : MotherOfAllMothers {
             dager = dager,
             beregning = null,
             simulering = null,
+            status = status,
         )
     }
 
@@ -414,6 +415,7 @@ interface MeldekortMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         clock: Clock = TikkendeKlokke(),
         opprettet: LocalDateTime = nå(clock),
+        status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.UNDER_BEHANDLING,
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
         barnetilleggsPerioder: Periodisering<AntallBarn?> = Periodisering.empty(),
@@ -456,6 +458,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     sendtTilBeslutning = null,
                     dager = dager,
                     simulering = simulering,
+                    status = status,
                 ),
             ),
         )
@@ -498,6 +501,7 @@ interface MeldekortMother : MotherOfAllMothers {
         clock: Clock = TikkendeKlokke(),
         opprettet: LocalDateTime = nå(clock),
         barnetilleggsPerioder: Periodisering<AntallBarn?>,
+        status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.UNDER_BEHANDLING,
         tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?> = Periodisering(
             TiltakstypeSomGirRett.GRUPPE_AMO,
             vurderingsperiode,
@@ -540,6 +544,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 dager = dager,
                 beregning = null,
                 simulering = null,
+                status = status,
             ),
         ).sendTilBeslutter(
             kommando = kommando.tilSendMeldekortTilBeslutterKommando(),

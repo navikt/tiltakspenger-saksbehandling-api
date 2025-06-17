@@ -108,12 +108,13 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
         sessionContext: SessionContext?,
     ): Boolean {
         val meldekortBehandling = data.get()[meldekortId]
-        require(meldekortBehandling != null && meldekortBehandling.saksbehandler == null && meldekortBehandling.status == MeldekortBehandlingStatus.UNDER_BEHANDLING) {
-            "Meldekortbehandling med id $meldekortId finnes ikke eller har ikke status UNDER_BEHANDLING eller har allerede saksbehandler"
+        require(meldekortBehandling != null && meldekortBehandling.saksbehandler == null && meldekortBehandling.status == MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING) {
+            "Meldekortbehandling med id $meldekortId finnes ikke eller har ikke status KLAR_TIL_BEHANDLING eller har allerede saksbehandler"
         }
         if (meldekortBehandling is MeldekortUnderBehandling) {
             data.get()[meldekortId] = meldekortBehandling.copy(
                 saksbehandler = saksbehandler.navIdent,
+                status = MeldekortBehandlingStatus.UNDER_BEHANDLING,
             )
             return true
         } else {
@@ -155,6 +156,7 @@ class MeldekortBehandlingFakeRepo : MeldekortBehandlingRepo {
         if (meldekortBehandling is MeldekortUnderBehandling) {
             data.get()[meldekortId] = meldekortBehandling.copy(
                 saksbehandler = null,
+                status = MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING,
             )
             return true
         } else {

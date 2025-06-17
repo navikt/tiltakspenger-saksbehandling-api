@@ -85,7 +85,7 @@ class BenkOversiktPostgresRepo(
                                                            from meldekortbehandling m
                                                                     join sak s on m.sak_id = s.id
                                                            where m.avbrutt is null
-                                                             and m.status in ('KLAR_TIL_BEHANDLING', 'KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')),
+                                                             and m.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')),
      åpneMeldekortTilBehandling as (SELECT s.id                  as sakId,
                    s.fnr                 as fnr,
                    s.saksnummer          as saksnummer,

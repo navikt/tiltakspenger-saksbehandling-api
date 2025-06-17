@@ -29,6 +29,7 @@ class TaMeldekortBehandlingService(
 
         return meldekortBehandling.taMeldekortBehandling(saksbehandler).also {
             when (it.status) {
+                MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> throw IllegalArgumentException("Behandlingen er ikke fått en saksbehandler for å lagre behandlingen")
                 MeldekortBehandlingStatus.UNDER_BEHANDLING -> meldekortBehandlingRepo.taBehandlingSaksbehandler(
                     it.id,
                     saksbehandler,

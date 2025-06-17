@@ -69,6 +69,7 @@ data class MeldekortBehandletManuelt(
             "Til og med dato for beregningsperioden må være nyere eller lik meldeperioden"
         }
         when (status) {
+            MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status KLAR_TIL_BEHANDLING")
             UNDER_BEHANDLING -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status UNDER_BEHANDLING")
             KLAR_TIL_BESLUTNING -> {
                 require(iverksattTidspunkt == null)
@@ -177,6 +178,7 @@ data class MeldekortBehandletManuelt(
             simulering = simulering,
             sendtTilBeslutning = sendtTilBeslutning,
             dager = dager,
+            status = UNDER_BEHANDLING,
         ).right()
     }
 
@@ -184,6 +186,7 @@ data class MeldekortBehandletManuelt(
         saksbehandler: Saksbehandler,
     ): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
         return when (this.status) {
+            MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> throw IllegalStateException("Et manuelt behandlet meldekort kan ikke ha status KLAR_TIL_BEHANDLING")
             AVBRUTT -> throw IllegalStateException("Et manuelt behandlet meldekort kan ikke ha status AVBRUTT")
             UNDER_BEHANDLING -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status UNDER_BEHANDLING")
             KLAR_TIL_BESLUTNING -> KunneIkkeOvertaMeldekortBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
@@ -226,6 +229,7 @@ data class MeldekortBehandletManuelt(
             AUTOMATISK_BEHANDLET,
             IKKE_RETT_TIL_TILTAKSPENGER,
             AVBRUTT,
+            MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING,
             -> {
                 throw IllegalArgumentException(
                     "Kan ikke ta meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
@@ -251,6 +255,7 @@ data class MeldekortBehandletManuelt(
             AUTOMATISK_BEHANDLET,
             IKKE_RETT_TIL_TILTAKSPENGER,
             AVBRUTT,
+            MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING,
             -> {
                 throw IllegalArgumentException(
                     "Kan ikke legge tilbake meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
@@ -285,6 +290,7 @@ data class MeldekortBehandletManuelt(
             beregning = null,
             simulering = null,
             dager = meldeperiode.tilMeldekortDager(),
+            status = UNDER_BEHANDLING,
         )
     }
 

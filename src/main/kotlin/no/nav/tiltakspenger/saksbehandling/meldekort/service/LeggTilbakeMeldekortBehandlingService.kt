@@ -27,7 +27,7 @@ class LeggTilbakeMeldekortBehandlingService(
         tilgangsstyringService.krevTilgangTilPerson(saksbehandler, meldekortBehandling.fnr, correlationId)
         return meldekortBehandling.leggTilbakeMeldekortBehandling(saksbehandler).also {
             when (it.status) {
-                MeldekortBehandlingStatus.UNDER_BEHANDLING -> meldekortBehandlingRepo.leggTilbakeBehandlingSaksbehandler(
+                MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> meldekortBehandlingRepo.leggTilbakeBehandlingSaksbehandler(
                     it.id,
                     saksbehandler,
                     it.status,
@@ -39,6 +39,7 @@ class LeggTilbakeMeldekortBehandlingService(
                     it.status,
                 )
 
+                MeldekortBehandlingStatus.UNDER_BEHANDLING,
                 MeldekortBehandlingStatus.UNDER_BESLUTNING,
                 MeldekortBehandlingStatus.GODKJENT,
                 MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,

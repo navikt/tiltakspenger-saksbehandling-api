@@ -27,6 +27,7 @@ class OvertaMeldekortBehandlingService(
                     command.saksbehandler,
                     command.overtarFra,
                 )
+                MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING,
                 MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING,
                 MeldekortBehandlingStatus.GODKJENT,
                 MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,

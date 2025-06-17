@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingS
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.GODKJENT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.UNDER_BESLUTNING
@@ -51,11 +52,10 @@ data class MeldekortUnderBehandling(
     override val dager: MeldekortDager,
     override val beregning: MeldekortBeregning?,
     override val simulering: Simulering?,
+    override val status: MeldekortBehandlingStatus,
 ) : MeldekortBehandling {
     override val avbrutt: Avbrutt? = null
     override val iverksattTidspunkt = null
-
-    override val status = UNDER_BEHANDLING
 
     override val beslutter = null
 
@@ -196,20 +196,23 @@ data class MeldekortUnderBehandling(
             IKKE_RETT_TIL_TILTAKSPENGER,
             AUTOMATISK_BEHANDLET,
             AVBRUTT,
+            KLAR_TIL_BEHANDLING,
             -> throw IllegalStateException("Kan ikke overta meldekortbehandling med status ${this.status}")
         }
     }
 
     override fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
         return when (this.status) {
-            UNDER_BEHANDLING -> {
+            KLAR_TIL_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
                 require(this.saksbehandler == null) { "Meldekortbehandlingen har en eksisterende saksbehandler. For å overta meldekortbehandlingen, bruk overta() - meldekortId: ${this.id}" }
                 this.copy(
                     saksbehandler = saksbehandler.navIdent,
+                    status = UNDER_BEHANDLING,
                 )
             }
 
+            UNDER_BEHANDLING,
             KLAR_TIL_BESLUTNING,
             UNDER_BESLUTNING,
             GODKJENT,
@@ -231,9 +234,11 @@ data class MeldekortUnderBehandling(
                 require(this.saksbehandler == saksbehandler.navIdent)
                 this.copy(
                     saksbehandler = null,
+                    status = KLAR_TIL_BEHANDLING,
                 )
             }
 
+            KLAR_TIL_BEHANDLING,
             KLAR_TIL_BESLUTNING,
             UNDER_BESLUTNING,
             GODKJENT,
@@ -361,6 +366,7 @@ fun Sak.opprettManuellMeldekortBehandling(
         beregning = null,
         simulering = null,
         dager = meldeperiode.tilMeldekortDager(),
+        status = UNDER_BEHANDLING,
     ).let {
         this.leggTilMeldekortbehandling(it) to it
     }

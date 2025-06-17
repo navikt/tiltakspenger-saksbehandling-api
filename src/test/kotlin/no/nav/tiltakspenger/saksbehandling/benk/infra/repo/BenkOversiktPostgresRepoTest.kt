@@ -23,9 +23,9 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattMeldekor
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandlingAvslag
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBehandlingManuellMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBeslutningSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterManuellMeldekortBehandlingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetManuellMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingTilBeslutning
@@ -207,7 +207,7 @@ class BenkOversiktPostgresRepoTest {
     fun `henter åpne meldekortbehandlinger`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (sakMedInnsendtBrukersMeldekort, brukersMeldekort) = testDataHelper.persisterBrukersMeldekort()
-            val (sakMedOpprettetMeldekortBehandling, opprettetMeldekortbehandling) = testDataHelper.persisterOpprettetManuellMeldekortBehandling()
+            val (sakMedOpprettetMeldekortBehandling, opprettetMeldekortbehandling) = testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling()
             val (sakMedMeldekortbehandlingTilBeslutning, meldekortbehandlingTilBeslutning) = testDataHelper.persisterManuellMeldekortBehandlingTilBeslutning()
             testDataHelper.persisterIverksattMeldekortbehandling()
 
@@ -236,7 +236,7 @@ class BenkOversiktPostgresRepoTest {
                     startet = opprettetMeldekortbehandling.opprettet,
                     kravtidspunkt = null,
                     behandlingstype = BehandlingssammendragType.MELDEKORTBEHANDLING,
-                    status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
+                    status = BehandlingssammendragStatus.UNDER_BEHANDLING,
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
                 )
@@ -261,7 +261,7 @@ class BenkOversiktPostgresRepoTest {
             testDataHelper.persisterSakOgSøknad()
             testDataHelper.persisterOpprettetSøknadsbehandling()
             testDataHelper.persisterOpprettetRevurdering()
-            testDataHelper.persisterOpprettetManuellMeldekortBehandling()
+            testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling()
 
             val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
@@ -276,7 +276,7 @@ class BenkOversiktPostgresRepoTest {
             testDataHelper.persisterSakOgSøknad()
             testDataHelper.persisterOpprettetSøknadsbehandling()
             testDataHelper.persisterOpprettetRevurdering()
-            testDataHelper.persisterOpprettetManuellMeldekortBehandling()
+            testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling()
 
             val (actualSøknadsbehandlinger, totalAntallSøknadbehandlinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(behandlingstype = listOf(BehandlingssammendragType.SØKNADSBEHANDLING)),
@@ -309,7 +309,7 @@ class BenkOversiktPostgresRepoTest {
             testDataHelper.persisterRevurderingTilBeslutning()
             testDataHelper.persisterRevurderingUnderBeslutning()
 
-            testDataHelper.persisterOpprettetManuellMeldekortBehandling()
+            testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling()
             testDataHelper.persisterManuellMeldekortBehandlingTilBeslutning()
 
             val (actualKlarTilBehandling, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
@@ -328,8 +328,8 @@ class BenkOversiktPostgresRepoTest {
                 newCommand(status = listOf(BehandlingssammendragStatus.UNDER_BESLUTNING)),
             )
 
-            actualKlarTilBehandling.size shouldBe 2
-            actualUnderBehandling.size shouldBe 2
+            actualKlarTilBehandling.size shouldBe 1
+            actualUnderBehandling.size shouldBe 3
             actualKlarTilBeslutning.size shouldBe 3
             actualUnderBeslutning.size shouldBe 2
         }
