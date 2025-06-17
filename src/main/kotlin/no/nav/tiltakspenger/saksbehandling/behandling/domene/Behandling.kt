@@ -65,7 +65,7 @@ sealed interface Behandling {
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?
     val barnetillegg: Barnetillegg?
     val utfallsperioder: Periodisering<Utfallsperiode>?
-    val antallDagerPerMeldeperiode: Int?
+    val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode>?
 
     val behandlingstype: Behandlingstype
         get() = when (this) {
@@ -360,10 +360,6 @@ sealed interface Behandling {
     fun init() {
         if (beslutter != null && saksbehandler != null) {
             require(beslutter != saksbehandler) { "Saksbehandler og beslutter kan ikke være samme person" }
-        }
-
-        require(antallDagerPerMeldeperiode == null || antallDagerPerMeldeperiode in 1..14) {
-            "Antall dager per meldeperiode må være mellom 1 og 14, kan ikke være $antallDagerPerMeldeperiode på behandling $id"
         }
 
         when (status) {

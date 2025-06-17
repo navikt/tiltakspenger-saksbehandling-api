@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 
@@ -11,7 +12,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
     data class Innvilgelse(
         override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
         override val barnetillegg: Barnetillegg?,
-        override val antallDagerPerMeldeperiode: Int?,
+        override val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode>?,
     ) : BehandlingResultat.Innvilgelse,
         RevurderingResultat
 }
