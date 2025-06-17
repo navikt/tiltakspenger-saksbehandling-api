@@ -16,7 +16,7 @@ enum class MeldekortBehandlingStatusDTO {
 
 fun MeldekortBehandling.toStatusDTO(): MeldekortBehandlingStatusDTO {
     return when (this.status) {
-        MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> MeldekortBehandlingStatusDTO.UNDER_BEHANDLING
+        MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> MeldekortBehandlingStatusDTO.KLAR_TIL_BEHANDLING
         MeldekortBehandlingStatus.UNDER_BEHANDLING -> MeldekortBehandlingStatusDTO.UNDER_BEHANDLING
         MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldekortBehandlingStatusDTO.KLAR_TIL_BESLUTNING
         MeldekortBehandlingStatus.UNDER_BESLUTNING -> MeldekortBehandlingStatusDTO.UNDER_BESLUTNING
