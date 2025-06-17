@@ -56,7 +56,6 @@ data class SøknadsbehandlingDTO(
     val søknad: SøknadDTO?,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
-    val valgtHjemmelHarIkkeRettighet: List<String>?,
     val antallDagerPerMeldeperiode: Int?,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
 ) : BehandlingDTO {
@@ -78,9 +77,9 @@ data class RevurderingDTO(
     override val begrunnelseVilkårsvurdering: String?,
     override val avbrutt: AvbruttDTO?,
     override val iverksattTidspunkt: String?,
+    val valgtHjemmelHarIkkeRettighet: List<String>?,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
-    val valgtHjemmelHarIkkeRettighet: List<String>?,
     val antallDagerPerMeldeperiode: Int?,
 ) : BehandlingDTO {
     override val type = BehandlingstypeDTO.REVURDERING
@@ -115,7 +114,6 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(): SøknadsbehandlingDTO {
         antallDagerPerMeldeperiode = this.antallDagerPerMeldeperiode,
         barnetillegg = null,
         valgteTiltaksdeltakelser = null,
-        valgtHjemmelHarIkkeRettighet = null,
         avslagsgrunner = null,
     ).let {
         when (resultat) {
