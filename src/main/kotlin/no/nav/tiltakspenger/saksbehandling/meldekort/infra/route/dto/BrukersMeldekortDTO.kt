@@ -82,7 +82,7 @@ private fun InnmeldtStatus.toInnmeldtStatusString(): String = when (this) {
     InnmeldtStatus.DELTATT_MED_LØNN_I_TILTAKET -> InnmeldtStatusDTO.DELTATT_MED_LØNN_I_TILTAKET
     InnmeldtStatus.FRAVÆR_SYK -> InnmeldtStatusDTO.FRAVÆR_SYK
     InnmeldtStatus.FRAVÆR_SYKT_BARN -> InnmeldtStatusDTO.FRAVÆR_SYKT_BARN
-    InnmeldtStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV -> InnmeldtStatusDTO.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-    InnmeldtStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> InnmeldtStatusDTO.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-    InnmeldtStatus.IKKE_REGISTRERT -> InnmeldtStatusDTO.IKKE_REGISTRERT
+    InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV -> InnmeldtStatusDTO.FRAVÆR_VELFERD_GODKJENT_AV_NAV
+    InnmeldtStatus.FRAVÆR_ANNET -> InnmeldtStatusDTO.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
+    InnmeldtStatus.IKKE_BESVART -> InnmeldtStatusDTO.IKKE_REGISTRERT
 }.toString()

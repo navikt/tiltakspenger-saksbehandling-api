@@ -50,7 +50,7 @@ data class BrukersMeldekort(
         require(dager.last().dato == periode.tilOgMed) { "Siste dag i meldekortet må være lik siste dag i meldeperioden" }
         require(dager.size.toLong() == periode.antallDager) { "Antall dager i meldekortet må være lik antall dager i meldeperioden" }
         dager.zip(meldeperiode.girRett.values).forEach { (dag, harRett) ->
-            require(harRett || dag.status === InnmeldtStatus.IKKE_REGISTRERT) {
+            require(harRett || dag.status === InnmeldtStatus.IKKE_BESVART) {
                 "Brukers meldekort kan ikke ha registrering på dager uten rett - $id har registrering $dag"
             }
         }
@@ -79,9 +79,9 @@ enum class InnmeldtStatus {
     DELTATT_MED_LØNN_I_TILTAKET,
     FRAVÆR_SYK,
     FRAVÆR_SYKT_BARN,
-    FRAVÆR_VELFERD_GODKJENT_AV_NAV,
-    FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV,
-    IKKE_REGISTRERT,
+    FRAVÆR_GODKJENT_AV_NAV,
+    FRAVÆR_ANNET,
+    IKKE_BESVART,
     ;
 
     fun tilMeldekortDagStatus(): MeldekortDagStatus = when (this) {
@@ -89,12 +89,13 @@ enum class InnmeldtStatus {
         DELTATT_MED_LØNN_I_TILTAKET -> MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET
         FRAVÆR_SYK -> MeldekortDagStatus.FRAVÆR_SYK
         FRAVÆR_SYKT_BARN -> MeldekortDagStatus.FRAVÆR_SYKT_BARN
-        FRAVÆR_VELFERD_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV
-        FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
-        IKKE_REGISTRERT -> MeldekortDagStatus.IKKE_DELTATT
+        // TODO jah: Rydd opp i disse i neste PR
+        FRAVÆR_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_VELFERD_GODKJENT_AV_NAV
+        FRAVÆR_ANNET -> MeldekortDagStatus.FRAVÆR_VELFERD_IKKE_GODKJENT_AV_NAV
+        IKKE_BESVART -> MeldekortDagStatus.IKKE_DELTATT
     }
 }
 
 fun List<BrukersMeldekortDag>.antallDagerRegistrert(): Int {
-    return this.count { it.status != InnmeldtStatus.IKKE_REGISTRERT }
+    return this.count { it.status != InnmeldtStatus.IKKE_BESVART }
 }

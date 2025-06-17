@@ -110,7 +110,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
             dager = List(14) {
                 BrukersMeldekort.BrukersMeldekortDag(
                     dato = førsteDag.plusDays(it.toLong()),
-                    status = if (it < 11) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_REGISTRERT,
+                    status = if (it < 11) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_BESVART,
                 )
             },
         )

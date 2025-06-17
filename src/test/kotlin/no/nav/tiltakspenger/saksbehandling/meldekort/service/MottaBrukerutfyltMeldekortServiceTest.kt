@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.LagreBrukersMeldekortKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeLagreBrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -37,7 +36,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 journalpostId = JournalpostId("asdf"),
                 dager = meldeperiode.girRett.entries.map {
                     BrukersMeldekort.BrukersMeldekortDag(
-                        status = if (it.value) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_REGISTRERT,
+                        status = if (it.value) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_BESVART,
                         dato = it.key,
                     )
                 },
@@ -71,7 +70,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 journalpostId = JournalpostId("asdf"),
                 dager = meldeperiode.girRett.entries.map {
                     BrukersMeldekort.BrukersMeldekortDag(
-                        status = if (it.value) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_REGISTRERT,
+                        status = if (it.value) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_BESVART,
                         dato = it.key,
                     )
                 },
@@ -85,7 +84,7 @@ internal class MottaBrukerutfyltMeldekortServiceTest {
                 journalpostId = JournalpostId("asdf"),
                 dager = meldeperiode.girRett.entries.map {
                     BrukersMeldekort.BrukersMeldekortDag(
-                        status = if (it.value) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_REGISTRERT,
+                        status = if (it.value) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_BESVART,
                         dato = it.key,
                     )
                 },

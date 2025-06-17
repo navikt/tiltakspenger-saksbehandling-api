@@ -34,7 +34,7 @@ internal class MottaMeldekortRouteTest {
         mottatt = LocalDateTime.now(),
         journalpostId = "1234",
         dager = meldeperiode.girRett.entries.associate {
-            it.key to (if (it.value) BrukerutfyltMeldekortDTO.Status.DELTATT else BrukerutfyltMeldekortDTO.Status.IKKE_REGISTRERT)
+            it.key to (if (it.value) BrukerutfyltMeldekortDTO.Status.DELTATT_UTEN_LØNN_I_TILTAKET else BrukerutfyltMeldekortDTO.Status.IKKE_BESVART)
         },
     )
 
