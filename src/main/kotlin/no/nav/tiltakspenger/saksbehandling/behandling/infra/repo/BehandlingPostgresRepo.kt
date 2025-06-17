@@ -353,6 +353,8 @@ class BehandlingPostgresRepo(
 
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
+                    val automatiskSaksbehandlet = boolean("automatisk_saksbehandlet")
+                    val manueltBehandlesGrunner = stringOrNull("manuelt_behandles_grunner")?.toManueltBehandlesGrunner() ?: emptyList()
                     val resultatType = stringOrNull("resultat")?.tilSøknadsbehandlingResultatType()
 
                     val resultat = when (resultatType) {
@@ -393,6 +395,8 @@ class BehandlingPostgresRepo(
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avbrutt = avbrutt,
                         resultat = resultat,
+                        automatiskSaksbehandlet = automatiskSaksbehandlet,
+                        manueltBehandlesGrunner = manueltBehandlesGrunner,
                     )
                 }
 
@@ -470,7 +474,9 @@ class BehandlingPostgresRepo(
                 antall_dager_per_meldeperiode,
                 avslagsgrunner,
                 resultat,
-                soknad_id
+                soknad_id,
+                automatisk_saksbehandlet,
+                manuelt_behandles_grunner
             ) values (
                 :id,
                 :sak_id,
@@ -499,7 +505,9 @@ class BehandlingPostgresRepo(
                 :antall_dager_per_meldeperiode,
                 to_jsonb(:avslagsgrunner::jsonb),
                 :resultat,
-                :soknad_id
+                :soknad_id,
+                :automatisk_saksbehandlet,
+                to_jsonb(:manuelt_behandles_grunner::jsonb)
             )
             """.trimIndent()
 
@@ -530,7 +538,9 @@ class BehandlingPostgresRepo(
                 antall_dager_per_meldeperiode = :antall_dager_per_meldeperiode,
                 avslagsgrunner = to_jsonb(:avslagsgrunner::jsonb),
                 resultat = :resultat,
-                soknad_id = :soknad_id
+                soknad_id = :soknad_id,
+                automatisk_saksbehandlet = :automatisk_saksbehandlet,
+                manuelt_behandles_grunner = to_jsonb(:manuelt_behandles_grunner::jsonb)
             where id = :id and sist_endret = :sist_endret_old
             """.trimIndent()
 
@@ -596,6 +606,15 @@ private fun Behandling.tilDbParams(): Map<String, Any?> {
         is Søknadsbehandling -> this.søknad.id.toString()
         is Revurdering -> null
     }
+    val automatiskSaksbehandlet = when (this) {
+        is Søknadsbehandling -> this.automatiskSaksbehandlet
+        is Revurdering -> false
+    }
+
+    val manueltBehandlesGrunner = when (this) {
+        is Søknadsbehandling -> this.manueltBehandlesGrunner
+        is Revurdering -> null
+    }
     return mapOf(
         "id" to this.id.toString(),
         "status" to this.status.toDb(),
@@ -620,6 +639,8 @@ private fun Behandling.tilDbParams(): Map<String, Any?> {
         "sak_id" to this.sakId.toString(),
         "behandlingstype" to this.behandlingstype.toDbValue(),
         "soknad_id" to søknadId,
+        "automatisk_saksbehandlet" to automatiskSaksbehandlet,
+        "manuelt_behandles_grunner" to manueltBehandlesGrunner?.toDbJson(),
         *this.resultat.tilDbParams(),
     )
 }
