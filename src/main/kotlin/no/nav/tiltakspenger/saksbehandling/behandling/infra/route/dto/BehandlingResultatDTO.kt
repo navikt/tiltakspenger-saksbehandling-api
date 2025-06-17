@@ -6,27 +6,32 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 
-enum class BehandlingResultatDTO {
-    INNVILGELSE,
-    AVSLAG,
-    STANS,
-    REVURDERING_INNVILGELSE,
-    ;
+sealed interface BehandlingResultatDTO {
 
     fun toDomain(): BehandlingResultatType = when (this) {
-        INNVILGELSE -> SøknadsbehandlingType.INNVILGELSE
-        AVSLAG -> SøknadsbehandlingType.AVSLAG
-        STANS -> RevurderingType.STANS
-        REVURDERING_INNVILGELSE -> RevurderingType.INNVILGELSE
+        RevurderingResultatDTO.STANS -> RevurderingType.STANS
+        RevurderingResultatDTO.INNVILGELSE -> RevurderingType.INNVILGELSE
+        SøknadsbehandlingResultatDTO.INNVILGELSE -> SøknadsbehandlingType.INNVILGELSE
+        SøknadsbehandlingResultatDTO.AVSLAG -> SøknadsbehandlingType.AVSLAG
     }
 }
 
-fun SøknadsbehandlingResultat.tilUtfallDTO(): BehandlingResultatDTO = when (this) {
-    is SøknadsbehandlingResultat.Avslag -> BehandlingResultatDTO.AVSLAG
-    is SøknadsbehandlingResultat.Innvilgelse -> BehandlingResultatDTO.INNVILGELSE
+enum class SøknadsbehandlingResultatDTO : BehandlingResultatDTO {
+    INNVILGELSE,
+    AVSLAG,
 }
 
-fun RevurderingResultat.tilUtfallDTO(): BehandlingResultatDTO = when (this) {
-    is RevurderingResultat.Stans -> BehandlingResultatDTO.STANS
-    is RevurderingResultat.Innvilgelse -> BehandlingResultatDTO.REVURDERING_INNVILGELSE
+enum class RevurderingResultatDTO : BehandlingResultatDTO {
+    INNVILGELSE,
+    STANS,
+}
+
+fun SøknadsbehandlingResultat.tilUtfallDTO(): SøknadsbehandlingResultatDTO = when (this) {
+    is SøknadsbehandlingResultat.Avslag -> SøknadsbehandlingResultatDTO.AVSLAG
+    is SøknadsbehandlingResultat.Innvilgelse -> SøknadsbehandlingResultatDTO.INNVILGELSE
+}
+
+fun RevurderingResultat.tilUtfallDTO(): RevurderingResultatDTO = when (this) {
+    is RevurderingResultat.Stans -> RevurderingResultatDTO.STANS
+    is RevurderingResultat.Innvilgelse -> RevurderingResultatDTO.INNVILGELSE
 }
