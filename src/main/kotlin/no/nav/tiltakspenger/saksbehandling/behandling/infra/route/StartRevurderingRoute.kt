@@ -13,8 +13,9 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RevurderingTypeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
@@ -60,7 +61,7 @@ fun Route.startRevurderingRoute(
 }
 
 private data class StartRevurderingBody(
-    val revurderingType: RevurderingTypeDTO,
+    val revurderingType: BehandlingResultatDTO,
 ) {
     fun tilKommando(
         sakId: SakId,

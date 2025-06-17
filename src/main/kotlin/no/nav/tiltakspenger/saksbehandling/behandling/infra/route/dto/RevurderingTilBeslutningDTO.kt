@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.Tiltaks
 import java.time.LocalDate
 
 data class RevurderingTilBeslutningDTO(
-    val type: RevurderingTypeDTO,
+    val type: BehandlingResultatDTO,
     val begrunnelse: String,
     val fritekstTilVedtaksbrev: String?,
     val stans: Stans?,
@@ -40,7 +40,7 @@ data class RevurderingTilBeslutningDTO(
         correlationId: CorrelationId,
     ): RevurderingTilBeslutningKommando {
         return when (type) {
-            RevurderingTypeDTO.STANS -> {
+            BehandlingResultatDTO.STANS -> {
                 requireNotNull(stans)
 
                 RevurderingStansTilBeslutningKommando(
@@ -56,7 +56,7 @@ data class RevurderingTilBeslutningDTO(
                 )
             }
 
-            RevurderingTypeDTO.INNVILGELSE -> {
+            BehandlingResultatDTO.REVURDERING_INNVILGELSE -> {
                 requireNotNull(innvilgelse)
 
                 RevurderingInnvilgelseTilBeslutningKommando(
@@ -72,22 +72,23 @@ data class RevurderingTilBeslutningDTO(
                     },
                 )
             }
+
+            BehandlingResultatDTO.INNVILGELSE,
+            BehandlingResultatDTO.AVSLAG,
+            -> throw IllegalStateException("Ugyldig type for revurdering $this")
         }
     }
 }
 
-enum class RevurderingTypeDTO {
-    STANS,
-    INNVILGELSE,
-    ;
-
-    fun tilRevurderingType(): RevurderingType = when (this) {
-        STANS -> RevurderingType.STANS
-        INNVILGELSE -> RevurderingType.INNVILGELSE
-    }
+fun BehandlingResultatDTO.tilRevurderingType(): RevurderingType = when (this) {
+    BehandlingResultatDTO.INNVILGELSE -> RevurderingType.INNVILGELSE
+    BehandlingResultatDTO.STANS -> RevurderingType.STANS
+    BehandlingResultatDTO.AVSLAG,
+    BehandlingResultatDTO.REVURDERING_INNVILGELSE,
+    -> throw IllegalStateException("Ugyldig type for revurdering $this")
 }
 
-fun RevurderingType.tilDTO() = when (this) {
-    RevurderingType.STANS -> RevurderingTypeDTO.STANS
-    RevurderingType.INNVILGELSE -> RevurderingTypeDTO.INNVILGELSE
+fun RevurderingType.tilDTO(): BehandlingResultatDTO = when (this) {
+    RevurderingType.STANS -> BehandlingResultatDTO.STANS
+    RevurderingType.INNVILGELSE -> BehandlingResultatDTO.REVURDERING_INNVILGELSE
 }
