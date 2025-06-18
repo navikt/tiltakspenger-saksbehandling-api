@@ -5,6 +5,9 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
  * Det kan hende den passer for Revurdering også, men vurderer det når vi kommer dit.
  */
 enum class Behandlingsstatus {
+    /** Behandlingen er opprettet og blir forsøkt behandlet automatisk */
+    UNDER_AUTOMATISK_BEHANDLING,
+
     /** Det står ikke en saksbehandler på behandlingen */
     KLAR_TIL_BEHANDLING,
 

@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 
 enum class BehandlingsstatusDTO {
+    UNDER_AUTOMATISK_BEHANDLING,
     KLAR_TIL_BEHANDLING,
     UNDER_BEHANDLING,
     KLAR_TIL_BESLUTNING,
@@ -13,6 +14,7 @@ enum class BehandlingsstatusDTO {
 
 fun Behandlingsstatus.toBehandlingsstatusDTO(): BehandlingsstatusDTO {
     return when (this) {
+        Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> BehandlingsstatusDTO.UNDER_AUTOMATISK_BEHANDLING
         Behandlingsstatus.KLAR_TIL_BEHANDLING -> BehandlingsstatusDTO.KLAR_TIL_BEHANDLING
         Behandlingsstatus.UNDER_BEHANDLING -> BehandlingsstatusDTO.UNDER_BEHANDLING
         Behandlingsstatus.KLAR_TIL_BESLUTNING -> BehandlingsstatusDTO.KLAR_TIL_BESLUTNING

@@ -1,8 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingsstatusDb.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingsstatusDb.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingsstatusDb.KLAR_TIL_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingsstatusDb.UNDER_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingsstatusDb.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingsstatusDb.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingsstatusDb.VEDTATT
@@ -12,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus a
  * @see BehandlingsstatusDomain
  */
 private enum class BehandlingsstatusDb {
+    UNDER_AUTOMATISK_BEHANDLING,
     KLAR_TIL_BEHANDLING,
     UNDER_BEHANDLING,
     KLAR_TIL_BESLUTNING,
@@ -28,6 +31,7 @@ fun String.toBehandlingsstatus(): BehandlingsstatusDomain =
         UNDER_BESLUTNING -> BehandlingsstatusDomain.UNDER_BESLUTNING
         VEDTATT -> BehandlingsstatusDomain.VEDTATT
         AVBRUTT -> BehandlingsstatusDomain.AVBRUTT
+        UNDER_AUTOMATISK_BEHANDLING -> Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
     }
 
 fun BehandlingsstatusDomain.toDb(): String =
@@ -38,4 +42,5 @@ fun BehandlingsstatusDomain.toDb(): String =
         BehandlingsstatusDomain.UNDER_BESLUTNING -> UNDER_BESLUTNING
         BehandlingsstatusDomain.VEDTATT -> VEDTATT
         BehandlingsstatusDomain.AVBRUTT -> AVBRUTT
+        Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> UNDER_AUTOMATISK_BEHANDLING
     }.toString()

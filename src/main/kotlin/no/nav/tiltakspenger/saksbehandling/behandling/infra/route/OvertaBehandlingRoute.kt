@@ -73,8 +73,13 @@ fun Route.overtaBehandlingRoute(
 internal fun KunneIkkeOvertaBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
         KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreVedtattEllerAvbrutt -> HttpStatusCode.BadRequest to ErrorJson(
-            "Behandlingne kan ikke være vedtatt eller avbrutt",
+            "Behandlingen kan ikke være vedtatt eller avbrutt",
             "behandlingen_kan_ikke_være_vedtatt_eller_avbrutt",
+        )
+
+        KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling -> HttpStatusCode.BadRequest to ErrorJson(
+            "Behandlingen kan ikke være under automatisk behandling",
+            "behandlingen_kan_ikke_være_under_automatisk_behandling",
         )
 
         KunneIkkeOvertaBehandling.BehandlingenErIkkeKnyttetTilEnSaksbehandlerForÅOverta -> HttpStatusCode.BadRequest to ErrorJson(

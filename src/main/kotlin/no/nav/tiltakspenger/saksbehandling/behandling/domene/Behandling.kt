@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
@@ -24,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
@@ -118,7 +120,7 @@ sealed interface Behandling {
 
             KLAR_TIL_BESLUTNING -> throw IllegalStateException("Kan ikke legge tilbake behandling som er klar til beslutning")
             KLAR_TIL_BEHANDLING -> throw IllegalStateException("Kan ikke legge tilbake behandling som ikke er påbegynt")
-            VEDTATT, AVBRUTT -> {
+            VEDTATT, AVBRUTT, UNDER_AUTOMATISK_BEHANDLING -> {
                 throw IllegalArgumentException(
                     "Kan ikke legge tilbake behandling når behandlingen er ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
                 )
@@ -156,7 +158,7 @@ sealed interface Behandling {
 
             UNDER_BEHANDLING -> throw IllegalStateException("Skal kun kunne ta behandlingen dersom det er registrert en saksbehandler fra før. For å overta behandlingen, skal andre operasjoner bli brukt")
             UNDER_BESLUTNING -> throw IllegalStateException("Skal kun kunne ta behandlingen dersom det er registrert en beslutter fra før. For å overta behandlingen, skal andre operasjoner bli brukt")
-            VEDTATT, AVBRUTT -> {
+            VEDTATT, AVBRUTT, UNDER_AUTOMATISK_BEHANDLING -> {
                 throw IllegalArgumentException(
                     "Kan ikke ta behandling når behandlingen har status $status. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
                 )
@@ -216,6 +218,7 @@ sealed interface Behandling {
 
             KLAR_TIL_BEHANDLING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBehandlingForÅOverta.left()
             KLAR_TIL_BESLUTNING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
+            UNDER_AUTOMATISK_BEHANDLING -> KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()
 
             VEDTATT,
             AVBRUTT,
@@ -256,7 +259,13 @@ sealed interface Behandling {
                 }
             }
 
-            KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, VEDTATT, AVBRUTT -> throw IllegalStateException(
+            KLAR_TIL_BEHANDLING,
+            UNDER_BEHANDLING,
+            KLAR_TIL_BESLUTNING,
+            VEDTATT,
+            AVBRUTT,
+            UNDER_AUTOMATISK_BEHANDLING,
+            -> throw IllegalStateException(
                 "Må ha status UNDER_BESLUTNING for å iverksette. Behandlingsstatus: $status",
             )
         }
@@ -294,7 +303,7 @@ sealed interface Behandling {
                 }
             }
 
-            KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, VEDTATT, AVBRUTT -> throw IllegalStateException(
+            KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, VEDTATT, AVBRUTT, UNDER_AUTOMATISK_BEHANDLING -> throw IllegalStateException(
                 "Må ha status UNDER_BESLUTNING for å sende tilbake. Behandlingsstatus: $status",
             )
         }
@@ -358,6 +367,13 @@ sealed interface Behandling {
         }
 
         when (status) {
+            UNDER_AUTOMATISK_BEHANDLING -> {
+                require(saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID) {
+                    "Behandlingen må være tildelt $AUTOMATISK_SAKSBEHANDLER_ID når statusen er UNDER_AUTOMATISK_BEHANDLING"
+                }
+                require(iverksattTidspunkt == null)
+                require(beslutter == null)
+            }
             KLAR_TIL_BEHANDLING -> {
                 require(saksbehandler == null) {
                     "Behandlingen kan ikke være tilknyttet en saksbehandler når statusen er KLAR_TIL_BEHANDLING"

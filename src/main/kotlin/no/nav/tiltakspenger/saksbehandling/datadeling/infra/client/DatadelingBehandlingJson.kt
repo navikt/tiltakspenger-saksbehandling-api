@@ -26,6 +26,7 @@ fun Søknadsbehandling.toBehandlingJson(): String {
 
 fun Behandlingsstatus.toDatadelingDTO(): DatadelingBehandlingDTO.Behandlingsstatus =
     when (this) {
+        Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> DatadelingBehandlingDTO.Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
         Behandlingsstatus.KLAR_TIL_BEHANDLING -> DatadelingBehandlingDTO.Behandlingsstatus.KLAR_TIL_BEHANDLING
         Behandlingsstatus.UNDER_BEHANDLING -> DatadelingBehandlingDTO.Behandlingsstatus.UNDER_BEHANDLING
         Behandlingsstatus.KLAR_TIL_BESLUTNING -> DatadelingBehandlingDTO.Behandlingsstatus.KLAR_TIL_BESLUTNING
