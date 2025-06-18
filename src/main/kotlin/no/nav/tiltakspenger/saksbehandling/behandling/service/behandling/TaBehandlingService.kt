@@ -65,6 +65,7 @@ class TaBehandlingService(
                 Behandlingsstatus.KLAR_TIL_BEHANDLING,
                 Behandlingsstatus.VEDTATT,
                 Behandlingsstatus.AVBRUTT,
+                Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
                 -> throw IllegalStateException("Behandlingen er i en ugyldig status for å kunne overta")
             }
         }

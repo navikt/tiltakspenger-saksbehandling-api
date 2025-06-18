@@ -54,6 +54,7 @@ class BenkOversiktFakeRepo(
         Behandlingsstatus.UNDER_BEHANDLING -> BehandlingssammendragStatus.UNDER_BEHANDLING
         Behandlingsstatus.KLAR_TIL_BESLUTNING -> BehandlingssammendragStatus.KLAR_TIL_BESLUTNING
         Behandlingsstatus.UNDER_BESLUTNING -> BehandlingssammendragStatus.UNDER_BESLUTNING
+        Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING -> throw IllegalStateException("Behandlinger som behandles automatisk skal ikke være åpne")
         Behandlingsstatus.VEDTATT -> throw IllegalStateException("Vedtatte behandlinger skal ikke være åpne")
         Behandlingsstatus.AVBRUTT -> throw IllegalStateException("Avbrutte behandlinger skal ikke være åpne")
     }
