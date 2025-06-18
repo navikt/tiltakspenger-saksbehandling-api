@@ -97,7 +97,7 @@ private data class SøknadsbehandlingTilBeslutningBody(
     val behandlingsperiode: PeriodeDTO,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
-    val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO> = listOf(
+    val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO> = listOf(
         AntallDagerPerMeldeperiodeDTO(
             periode = behandlingsperiode,
             antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
@@ -127,7 +127,7 @@ private data class SøknadsbehandlingTilBeslutningBody(
                 Pair(it.periode.toDomain(), it.eksternDeltagelseId)
             },
             antallDagerPerMeldeperiode = Periodisering(
-                antallDagerPerMeldeperiode.map {
+                antallDagerPerMeldeperiodeForPerioder.map {
                     PeriodeMedVerdi(AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode), it.periode.toDomain())
                 },
             ),
