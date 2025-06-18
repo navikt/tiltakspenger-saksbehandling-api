@@ -116,7 +116,15 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                 ],
                 "resultat": "${resultat.name}",
                 "avslagsgrunner": $avslagsgrunner,
-                "antallDagerPerMeldeperiode": 10
+                "antallDagerPerMeldeperiodeForPerioder": [
+                  {
+                    "antallDagerPerMeldeperiode": 10,
+                    "periode": {
+                      "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
+                      "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
+                    }
+                  }
+                ] 
             }
                 """.trimIndent(),
             )

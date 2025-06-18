@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnAntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -309,6 +310,15 @@ sealed interface Behandling {
         }
     }
 
+    /**
+     * @param periode må være en 14 dagers meldeperiode fra mandag til søndag.
+     * @throws NullPointerException dersom [antallDagerPerMeldeperiode] er null
+     * @return den høyeste verdien som overlapper perioden eller null dersom ingen overlapper
+     */
+    fun finnAntallDagerForMeldeperiode(periode: Periode): AntallDagerForMeldeperiode? {
+        return antallDagerPerMeldeperiode!!.finnAntallDagerForMeldeperiode(periode)
+    }
+
     fun oppdaterBegrunnelseVilkårsvurdering(
         saksbehandler: Saksbehandler,
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering,
@@ -360,6 +370,9 @@ sealed interface Behandling {
     fun init() {
         if (beslutter != null && saksbehandler != null) {
             require(beslutter != saksbehandler) { "Saksbehandler og beslutter kan ikke være samme person" }
+        }
+        if (antallDagerPerMeldeperiode != null) {
+            require(antallDagerPerMeldeperiode!!.totalPeriode == virkningsperiode!!)
         }
 
         when (status) {
