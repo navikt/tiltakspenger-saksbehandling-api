@@ -137,7 +137,7 @@ private data class SøknadsbehandlingTilBeslutningBody(
                 BehandlingResultatDTO.AVSLAG -> SøknadsbehandlingType.AVSLAG
                 BehandlingResultatDTO.STANS,
                 BehandlingResultatDTO.REVURDERING_INNVILGELSE,
-                    -> throw IllegalArgumentException("Ugyldig resultat for søknadsbehandling: $resultat")
+                -> throw IllegalArgumentException("Ugyldig resultat for søknadsbehandling: $resultat")
             },
         )
     }

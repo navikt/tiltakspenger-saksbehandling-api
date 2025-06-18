@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -57,7 +56,7 @@ data class SøknadsbehandlingDTO(
     val søknad: SøknadDTO?,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
-    val antallDagerPerMeldeperiode: List<AntallDagerForMeldeperiode>?,
+    val antallDagerPerMeldeperiode: List<AntallDagerForMeldeperiodeDTO>?,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
 ) : BehandlingDTO {
     override val type = BehandlingstypeDTO.SØKNADSBEHANDLING
@@ -81,7 +80,7 @@ data class RevurderingDTO(
     val valgtHjemmelHarIkkeRettighet: List<String>?,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
-    val antallDagerPerMeldeperiode: Int?,
+    val antallDagerPerMeldeperiode: List<AntallDagerForMeldeperiodeDTO>?,
 ) : BehandlingDTO {
     override val type = BehandlingstypeDTO.REVURDERING
 }
@@ -112,7 +111,9 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(): SøknadsbehandlingDTO {
         fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
         begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
         virkningsperiode = this.virkningsperiode?.toDTO(),
-        antallDagerPerMeldeperiode = this.antallDagerPerMeldeperiode,
+        antallDagerPerMeldeperiode = this.antallDagerPerMeldeperiode?.perioderMedVerdi?.map {
+            AntallDagerForMeldeperiodeDTO(dager = it.verdi.value, periode = it.periode.toDTO())
+        },
         barnetillegg = null,
         valgteTiltaksdeltakelser = null,
         avslagsgrunner = null,
@@ -159,7 +160,9 @@ fun Revurdering.tilRevurderingDTO(): RevurderingDTO {
             )
 
             is RevurderingResultat.Innvilgelse -> it.copy(
-                antallDagerPerMeldeperiode = resultat.antallDagerPerMeldeperiode,
+                antallDagerPerMeldeperiode = resultat.antallDagerPerMeldeperiode?.perioderMedVerdi?.map {
+                    AntallDagerForMeldeperiodeDTO(dager = it.verdi.value, periode = it.periode.toDTO())
+                },
                 barnetillegg = resultat.barnetillegg?.toBarnetilleggDTO(),
                 valgteTiltaksdeltakelser = resultat.valgteTiltaksdeltakelser?.tilDTO(),
             )

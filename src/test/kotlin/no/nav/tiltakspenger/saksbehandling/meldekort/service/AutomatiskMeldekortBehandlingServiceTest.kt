@@ -5,9 +5,12 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandlingIverksattMedMeldeperioder
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
@@ -96,7 +99,7 @@ class AutomatiskMeldekortBehandlingServiceTest {
             tac.søknadsbehandlingIverksattMedMeldeperioder(
                 periode = virkningsperiode,
                 clock = clock,
-                antallDagerPerMeldeperiode = 10,
+                antallDagerPerMeldeperiode = Periodisering(PeriodeMedVerdi(AntallDagerForMeldeperiode(10), virkningsperiode)),
             )
         }
 
