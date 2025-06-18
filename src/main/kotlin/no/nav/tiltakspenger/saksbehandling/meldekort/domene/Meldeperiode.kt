@@ -31,7 +31,7 @@ data class Meldeperiode(
     val antallDagerSomGirRett = girRett.values.count { it }
     val ingenDagerGirRett = antallDagerSomGirRett == 0
 
-    fun helePeriodenErSperret(): Boolean {
+    fun girIngenDagerRett(): Boolean {
         return girRett.values.toList().all { !it }
     }
 

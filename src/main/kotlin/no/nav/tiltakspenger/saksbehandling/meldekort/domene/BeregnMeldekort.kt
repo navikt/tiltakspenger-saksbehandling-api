@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregnin
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeDeltatt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Sperret
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort
@@ -129,7 +129,7 @@ private data class BeregnMeldekort(
         }
 
         return when (status) {
-            MeldekortDagStatus.SPERRET -> sperret(dato)
+            MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> ikkeRettTilTiltakspenger(dato)
             MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> deltattUtenLønn(
                 dato,
                 tiltakstype,
@@ -216,12 +216,12 @@ private data class BeregnMeldekort(
         )
     }
 
-    private fun sperret(
+    private fun ikkeRettTilTiltakspenger(
         dag: LocalDate,
-    ): Sperret {
+    ): IkkeRettTilTiltakspenger {
         sjekkSykKarantene(dag)
         sjekkSykBarnKarantene(dag)
-        return Sperret(dato = dag)
+        return IkkeRettTilTiltakspenger(dato = dag)
     }
 
     private fun ikkeTiltaksdag(

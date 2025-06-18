@@ -720,7 +720,7 @@ fun MeldekortBehandling.tilOppdaterMeldekortKommando(
         Dager.Dag(
             dag = dag.dato,
             status = when (dag.status) {
-                MeldekortDagStatus.SPERRET -> OppdaterMeldekortKommando.Status.SPERRET
+                MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> OppdaterMeldekortKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
                 MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
                 MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> OppdaterMeldekortKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
                 MeldekortDagStatus.IKKE_TILTAKSDAG -> OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
@@ -752,7 +752,7 @@ fun MeldekortBehandling.tilSendMeldekortTilBeslutterKommando(
         Dager.Dag(
             dag = dag.dato,
             status = when (dag.status) {
-                MeldekortDagStatus.SPERRET -> OppdaterMeldekortKommando.Status.SPERRET
+                MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> OppdaterMeldekortKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
                 MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
                 MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> OppdaterMeldekortKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
                 MeldekortDagStatus.IKKE_TILTAKSDAG -> OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
@@ -780,7 +780,7 @@ fun MeldekortBehandling.tilSendMeldekortTilBeslutterKommando(
 /**
  * @param meldeperiode Perioden meldekortet skal gjelde for. Må være 14 dager, starte på en mandag og slutte på en søndag.
  * @return Meldekortdager for meldeperioden
- * @throws IllegalStateException Dersom alle dagene i en meldekortperiode er SPERRET er den per definisjon utfylt. Dette har vi ikke støtte for i MVP.
+ * @throws IllegalStateException Dersom alle dagene i en meldekortperiode er IKKE_RETT_TIL_TILTAKSPENGER er den per definisjon utfylt. Dette har vi ikke støtte for i MVP.
  */
 private fun genererMeldekortdagerFraMeldeperiode(
     meldeperiode: Meldeperiode,
@@ -788,14 +788,14 @@ private fun genererMeldekortdagerFraMeldeperiode(
     val dager = meldeperiode.girRett.entries.map { (dato, girRett) ->
         MeldekortDag(
             dato = dato,
-            status = if (girRett) MeldekortDagStatus.IKKE_BESVART else MeldekortDagStatus.SPERRET,
+            status = if (girRett) MeldekortDagStatus.IKKE_BESVART else MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER,
         )
     }
 
     return if (dager.any { it.status == MeldekortDagStatus.IKKE_BESVART }) {
         MeldekortDager(dager, meldeperiode)
     } else {
-        throw IllegalStateException("Alle dagene i en meldekortperiode er SPERRET. Dette har vi ikke støtte for i MVP.")
+        throw IllegalStateException("Alle dagene i en meldekortperiode er IKKE_RETT_TIL_TILTAKSPENGER. Dette har vi ikke støtte for i MVP.")
     }
 }
 

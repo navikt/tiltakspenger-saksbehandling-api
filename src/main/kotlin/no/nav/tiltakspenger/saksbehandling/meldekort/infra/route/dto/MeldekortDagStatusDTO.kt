@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregnin
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeBesvart
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeDeltatt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Sperret
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
 
 enum class MeldekortDagStatusDTO {
     DELTATT_UTEN_LØNN_I_TILTAKET,
@@ -21,7 +21,7 @@ enum class MeldekortDagStatusDTO {
     FRAVÆR_ANNET,
     IKKE_BESVART,
     IKKE_TILTAKSDAG,
-    SPERRET,
+    IKKE_RETT_TIL_TILTAKSPENGER,
 }
 
 fun MeldeperiodeBeregningDag.tilMeldekortDagStatusDTO(): MeldekortDagStatusDTO =
@@ -34,7 +34,7 @@ fun MeldeperiodeBeregningDag.tilMeldekortDagStatusDTO(): MeldekortDagStatusDTO =
         is FraværAnnet -> MeldekortDagStatusDTO.FRAVÆR_ANNET
         is IkkeBesvart -> MeldekortDagStatusDTO.IKKE_BESVART
         is IkkeDeltatt -> MeldekortDagStatusDTO.IKKE_TILTAKSDAG
-        is Sperret -> MeldekortDagStatusDTO.SPERRET
+        is IkkeRettTilTiltakspenger -> MeldekortDagStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
     }
 
 fun MeldekortDagStatus.tilMeldekortDagStatusDTO(): MeldekortDagStatusDTO =
@@ -47,5 +47,5 @@ fun MeldekortDagStatus.tilMeldekortDagStatusDTO(): MeldekortDagStatusDTO =
         MeldekortDagStatus.FRAVÆR_ANNET -> MeldekortDagStatusDTO.FRAVÆR_ANNET
         MeldekortDagStatus.IKKE_BESVART -> MeldekortDagStatusDTO.IKKE_BESVART
         MeldekortDagStatus.IKKE_TILTAKSDAG -> MeldekortDagStatusDTO.IKKE_TILTAKSDAG
-        MeldekortDagStatus.SPERRET -> MeldekortDagStatusDTO.SPERRET
+        MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortDagStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
     }

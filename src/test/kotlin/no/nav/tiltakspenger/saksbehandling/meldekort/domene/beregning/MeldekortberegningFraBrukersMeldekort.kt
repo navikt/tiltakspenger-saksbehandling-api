@@ -208,7 +208,7 @@ class MeldekortberegningFraBrukersMeldekort {
     fun `Skal beregne med dager uten rett likt`() {
         sammenlign(
             listOf(
-                List(3) { KommandoStatus.SPERRET },
+                List(3) { KommandoStatus.IKKE_RETT_TIL_TILTAKSPENGER },
                 List(2) { KommandoStatus.FRAVÆR_ANNET },
                 List(2) { KommandoStatus.IKKE_TILTAKSDAG },
                 List(5) { KommandoStatus.DELTATT_UTEN_LØNN_I_TILTAKET },

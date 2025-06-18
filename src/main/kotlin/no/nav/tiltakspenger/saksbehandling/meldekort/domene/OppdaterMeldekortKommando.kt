@@ -42,7 +42,7 @@ class OppdaterMeldekortKommando(
 
     /** En spesialisering av [MeldekortDagStatus].
      * Skal kun brukes i kontrakten mot frontend.
-     * Dette er de verdiene saksbehandler kan velge. Se egen kommentar for SPERRET.
+     * Dette er de verdiene saksbehandler kan velge. Se egen kommentar for [IKKE_RETT_TIL_TILTAKSPENGER].
      * Merk at vi ikke ønsker IKKE_BESVART i denne listen, da dette kun er et implisitt valg for bruker. Saksbehandler må ta stilling til alle dagene.
      * */
     enum class Status {
@@ -54,11 +54,11 @@ class OppdaterMeldekortKommando(
         FRAVÆR_ANNET,
         IKKE_TILTAKSDAG,
 
-        /** Vi tar i mot SPERRET siden det er det saksbehandler ser/sender inn, men vi vil validere at dagen matcher med meldekortutkastet. */
-        SPERRET,
+        /** Vi tar i mot [IKKE_RETT_TIL_TILTAKSPENGER] siden det er det saksbehandler ser/sender inn, men vi vil validere at dagen matcher med meldekortutkastet. */
+        IKKE_RETT_TIL_TILTAKSPENGER,
         ;
 
-        fun girRett() = SPERRET != this
+        fun girRett() = IKKE_RETT_TIL_TILTAKSPENGER != this
 
         fun tilMeldekortDagStatus() = when (this) {
             DELTATT_UTEN_LØNN_I_TILTAKET -> MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET
@@ -68,7 +68,7 @@ class OppdaterMeldekortKommando(
             FRAVÆR_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV
             FRAVÆR_ANNET -> MeldekortDagStatus.FRAVÆR_ANNET
             IKKE_TILTAKSDAG -> MeldekortDagStatus.IKKE_TILTAKSDAG
-            SPERRET -> MeldekortDagStatus.SPERRET
+            IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
         }
     }
 }

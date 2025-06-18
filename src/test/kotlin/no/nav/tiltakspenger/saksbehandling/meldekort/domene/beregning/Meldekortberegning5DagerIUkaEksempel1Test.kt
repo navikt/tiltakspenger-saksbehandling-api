@@ -8,8 +8,8 @@ import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.FRAVÆR_SYK
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.SPERRET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort
@@ -21,9 +21,9 @@ import org.junit.jupiter.api.Test
  */
 internal class Meldekortberegning5DagerIUkaEksempel1Test {
     private val meldekort1 = nonEmptyListOf(
-        DagMedForventning(29.januar(2024), SPERRET, YtelsenFallerBort),
-        DagMedForventning(30.januar(2024), SPERRET, YtelsenFallerBort),
-        DagMedForventning(31.januar(2024), SPERRET, YtelsenFallerBort),
+        DagMedForventning(29.januar(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
+        DagMedForventning(30.januar(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
+        DagMedForventning(31.januar(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
         DagMedForventning(1.februar(2024), FRAVÆR_SYK, IngenReduksjon),
         DagMedForventning(2.februar(2024), FRAVÆR_SYK, IngenReduksjon),
         DagMedForventning(3.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
@@ -56,20 +56,20 @@ internal class Meldekortberegning5DagerIUkaEksempel1Test {
     )
     private val meldekort3 = nonEmptyListOf(
         DagMedForventning(26.februar(2024), FRAVÆR_SYK, Reduksjon),
-        DagMedForventning(27.februar(2024), SPERRET, YtelsenFallerBort),
-        DagMedForventning(28.februar(2024), SPERRET, YtelsenFallerBort),
-        DagMedForventning(29.februar(2024), SPERRET, YtelsenFallerBort),
-        DagMedForventning(1.mars(2024), SPERRET, YtelsenFallerBort),
-        DagMedForventning(2.mars(2024), SPERRET, YtelsenFallerBort),
-        DagMedForventning(3.mars(2024), SPERRET, YtelsenFallerBort),
+        DagMedForventning(27.februar(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
+        DagMedForventning(28.februar(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
+        DagMedForventning(29.februar(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
+        DagMedForventning(1.mars(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
+        DagMedForventning(2.mars(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
+        DagMedForventning(3.mars(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
 
-        DagMedForventning(4.mars(2024), SPERRET, YtelsenFallerBort),
-        DagMedForventning(5.mars(2024), SPERRET, YtelsenFallerBort),
-        DagMedForventning(6.mars(2024), SPERRET, YtelsenFallerBort),
-        DagMedForventning(7.mars(2024), SPERRET, YtelsenFallerBort),
-        DagMedForventning(8.mars(2024), SPERRET, YtelsenFallerBort),
-        DagMedForventning(9.mars(2024), SPERRET, YtelsenFallerBort),
-        DagMedForventning(10.mars(2024), SPERRET, YtelsenFallerBort),
+        DagMedForventning(4.mars(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
+        DagMedForventning(5.mars(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
+        DagMedForventning(6.mars(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
+        DagMedForventning(7.mars(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
+        DagMedForventning(8.mars(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
+        DagMedForventning(9.mars(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
+        DagMedForventning(10.mars(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
     )
 
     @Test

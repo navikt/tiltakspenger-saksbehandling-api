@@ -66,7 +66,7 @@ data class BrukersMeldekort(
                     if (meldeperiode.girRett[it.dato] == true) {
                         it.status.tilMeldekortDagStatus()
                     } else {
-                        MeldekortDagStatus.SPERRET
+                        MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
                     },
                 )
             },
