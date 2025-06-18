@@ -142,7 +142,7 @@ private data class BeregnMeldekort(
                 antallBarn,
             )
 
-            MeldekortDagStatus.IKKE_DELTATT -> ikkeDeltatt(dato, tiltakstype, antallBarn)
+            MeldekortDagStatus.IKKE_TILTAKSDAG -> ikkeTiltaksdag(dato, tiltakstype, antallBarn)
             MeldekortDagStatus.FRAVÆR_SYK -> fraværSyk(dato, tiltakstype, antallBarn)
             MeldekortDagStatus.FRAVÆR_SYKT_BARN -> fraværSyktBarn(dato, tiltakstype, antallBarn)
             MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> fraværGodkjentAvNav(
@@ -156,8 +156,7 @@ private data class BeregnMeldekort(
                 tiltakstype,
                 antallBarn,
             )
-            // TODO: Se trellokort: Bør kunne beregnes denne tilstanden (skal endres til IKKE_BESVART)
-            MeldekortDagStatus.IKKE_BESVART -> throw IllegalStateException("Alle dager på meldekortet må være utfylt - $dato var ikke utfylt på $meldekortId")
+            MeldekortDagStatus.IKKE_BESVART -> ikkeBesvart(dato, tiltakstype, antallBarn)
         }
     }
 
@@ -225,7 +224,7 @@ private data class BeregnMeldekort(
         return Sperret(dato = dag)
     }
 
-    private fun ikkeDeltatt(
+    private fun ikkeTiltaksdag(
         dag: LocalDate,
         tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,

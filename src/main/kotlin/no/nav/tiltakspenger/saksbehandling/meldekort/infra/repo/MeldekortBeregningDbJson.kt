@@ -97,7 +97,7 @@ private data class MeldeperiodeBeregningDagDbJson(
                 parsedBeregningsdag!!,
             )
 
-            MeldekortstatusDb.IKKE_DELTATT -> IkkeDeltatt.fromDb(
+            MeldekortstatusDb.IKKE_TILTAKSDAG -> IkkeDeltatt.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
@@ -139,7 +139,7 @@ private fun List<MeldeperiodeBeregningDag>.toDbJson() = this.map { meldekortdag 
             is FraværGodkjentAvNav -> MeldekortstatusDb.FRAVÆR_GODKJENT_AV_NAV
             is FraværAnnet -> MeldekortstatusDb.FRAVÆR_ANNET
             is MeldeperiodeBeregningDag.IkkeBesvart -> MeldekortstatusDb.IKKE_BESVART
-            is IkkeDeltatt -> MeldekortstatusDb.IKKE_DELTATT
+            is IkkeDeltatt -> MeldekortstatusDb.IKKE_TILTAKSDAG
             is Sperret -> MeldekortstatusDb.SPERRET
         },
     )

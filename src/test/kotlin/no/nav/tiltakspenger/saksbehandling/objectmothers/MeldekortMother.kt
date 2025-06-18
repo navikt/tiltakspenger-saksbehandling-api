@@ -723,13 +723,13 @@ fun MeldekortBehandling.tilOppdaterMeldekortKommando(
                 MeldekortDagStatus.SPERRET -> OppdaterMeldekortKommando.Status.SPERRET
                 MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
                 MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> OppdaterMeldekortKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
-                MeldekortDagStatus.IKKE_DELTATT -> OppdaterMeldekortKommando.Status.IKKE_DELTATT
+                MeldekortDagStatus.IKKE_TILTAKSDAG -> OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
                 MeldekortDagStatus.FRAVÆR_SYK -> OppdaterMeldekortKommando.Status.FRAVÆR_SYK
                 MeldekortDagStatus.FRAVÆR_SYKT_BARN -> OppdaterMeldekortKommando.Status.FRAVÆR_SYKT_BARN
                 MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> OppdaterMeldekortKommando.Status.FRAVÆR_GODKJENT_AV_NAV
                 MeldekortDagStatus.FRAVÆR_ANNET -> OppdaterMeldekortKommando.Status.FRAVÆR_ANNET
                 MeldekortDagStatus.IKKE_BESVART -> if (dag.dato.erHelg()) {
-                    OppdaterMeldekortKommando.Status.IKKE_DELTATT
+                    OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
                 } else {
                     OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
                 }
@@ -755,13 +755,13 @@ fun MeldekortBehandling.tilSendMeldekortTilBeslutterKommando(
                 MeldekortDagStatus.SPERRET -> OppdaterMeldekortKommando.Status.SPERRET
                 MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
                 MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> OppdaterMeldekortKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
-                MeldekortDagStatus.IKKE_DELTATT -> OppdaterMeldekortKommando.Status.IKKE_DELTATT
+                MeldekortDagStatus.IKKE_TILTAKSDAG -> OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
                 MeldekortDagStatus.FRAVÆR_SYK -> OppdaterMeldekortKommando.Status.FRAVÆR_SYK
                 MeldekortDagStatus.FRAVÆR_SYKT_BARN -> OppdaterMeldekortKommando.Status.FRAVÆR_SYKT_BARN
                 MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> OppdaterMeldekortKommando.Status.FRAVÆR_GODKJENT_AV_NAV
                 MeldekortDagStatus.FRAVÆR_ANNET -> OppdaterMeldekortKommando.Status.FRAVÆR_ANNET
                 MeldekortDagStatus.IKKE_BESVART -> if (dag.dato.erHelg()) {
-                    OppdaterMeldekortKommando.Status.IKKE_DELTATT
+                    OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
                 } else {
                     OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
                 }
@@ -819,12 +819,12 @@ fun saksbehandlerFyllerUtMeldeperiodeDager(meldeperiode: Meldeperiode): Dager {
                 dagerFraPeriode.take(5)
                     .map { Dager.Dag(it, OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET) },
             )
-            addAll(dagerFraPeriode.subList(5, 7).map { Dager.Dag(it, OppdaterMeldekortKommando.Status.IKKE_DELTATT) })
+            addAll(dagerFraPeriode.subList(5, 7).map { Dager.Dag(it, OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG) })
             addAll(
                 dagerFraPeriode.subList(7, 12)
                     .map { Dager.Dag(it, OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET) },
             )
-            addAll(dagerFraPeriode.subList(12, 14).map { Dager.Dag(it, OppdaterMeldekortKommando.Status.IKKE_DELTATT) })
+            addAll(dagerFraPeriode.subList(12, 14).map { Dager.Dag(it, OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG) })
         }.toNonEmptyListOrNull()!!,
     )
 }

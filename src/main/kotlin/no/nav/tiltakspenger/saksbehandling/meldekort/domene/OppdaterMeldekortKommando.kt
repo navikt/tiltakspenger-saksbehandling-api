@@ -52,7 +52,7 @@ class OppdaterMeldekortKommando(
         FRAVÆR_SYKT_BARN,
         FRAVÆR_GODKJENT_AV_NAV,
         FRAVÆR_ANNET,
-        IKKE_DELTATT,
+        IKKE_TILTAKSDAG,
 
         /** Vi tar i mot SPERRET siden det er det saksbehandler ser/sender inn, men vi vil validere at dagen matcher med meldekortutkastet. */
         SPERRET,
@@ -67,7 +67,7 @@ class OppdaterMeldekortKommando(
             FRAVÆR_SYKT_BARN -> MeldekortDagStatus.FRAVÆR_SYKT_BARN
             FRAVÆR_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV
             FRAVÆR_ANNET -> MeldekortDagStatus.FRAVÆR_ANNET
-            IKKE_DELTATT -> MeldekortDagStatus.IKKE_DELTATT
+            IKKE_TILTAKSDAG -> MeldekortDagStatus.IKKE_TILTAKSDAG
             SPERRET -> MeldekortDagStatus.SPERRET
         }
     }

@@ -20,7 +20,7 @@ enum class MeldekortDagStatusDTO {
     FRAVÆR_GODKJENT_AV_NAV,
     FRAVÆR_ANNET,
     IKKE_BESVART,
-    IKKE_DELTATT,
+    IKKE_TILTAKSDAG,
     SPERRET,
 }
 
@@ -33,7 +33,7 @@ fun MeldeperiodeBeregningDag.tilMeldekortDagStatusDTO(): MeldekortDagStatusDTO =
         is FraværGodkjentAvNav -> MeldekortDagStatusDTO.FRAVÆR_GODKJENT_AV_NAV
         is FraværAnnet -> MeldekortDagStatusDTO.FRAVÆR_ANNET
         is IkkeBesvart -> MeldekortDagStatusDTO.IKKE_BESVART
-        is IkkeDeltatt -> MeldekortDagStatusDTO.IKKE_DELTATT
+        is IkkeDeltatt -> MeldekortDagStatusDTO.IKKE_TILTAKSDAG
         is Sperret -> MeldekortDagStatusDTO.SPERRET
     }
 
@@ -46,6 +46,6 @@ fun MeldekortDagStatus.tilMeldekortDagStatusDTO(): MeldekortDagStatusDTO =
         MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> MeldekortDagStatusDTO.FRAVÆR_GODKJENT_AV_NAV
         MeldekortDagStatus.FRAVÆR_ANNET -> MeldekortDagStatusDTO.FRAVÆR_ANNET
         MeldekortDagStatus.IKKE_BESVART -> MeldekortDagStatusDTO.IKKE_BESVART
-        MeldekortDagStatus.IKKE_DELTATT -> MeldekortDagStatusDTO.IKKE_DELTATT
+        MeldekortDagStatus.IKKE_TILTAKSDAG -> MeldekortDagStatusDTO.IKKE_TILTAKSDAG
         MeldekortDagStatus.SPERRET -> MeldekortDagStatusDTO.SPERRET
     }

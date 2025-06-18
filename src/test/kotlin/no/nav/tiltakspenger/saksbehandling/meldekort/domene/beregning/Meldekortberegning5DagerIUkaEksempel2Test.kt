@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.FRAVÆR_SYK
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_DELTATT
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.SPERRET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort
@@ -25,16 +25,16 @@ internal class Meldekortberegning5DagerIUkaEksempel2Test {
         DagMedForventning(31.januar(2024), SPERRET, YtelsenFallerBort),
         DagMedForventning(1.februar(2024), FRAVÆR_SYK, IngenReduksjon),
         DagMedForventning(2.februar(2024), FRAVÆR_SYK, IngenReduksjon),
-        DagMedForventning(3.februar(2024), IKKE_DELTATT, YtelsenFallerBort),
-        DagMedForventning(4.februar(2024), IKKE_DELTATT, YtelsenFallerBort),
+        DagMedForventning(3.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
+        DagMedForventning(4.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
 
         DagMedForventning(5.februar(2024), FRAVÆR_SYK, IngenReduksjon),
         DagMedForventning(6.februar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
         DagMedForventning(7.februar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
         DagMedForventning(8.februar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
         DagMedForventning(9.februar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
-        DagMedForventning(10.februar(2024), IKKE_DELTATT, YtelsenFallerBort),
-        DagMedForventning(11.februar(2024), IKKE_DELTATT, YtelsenFallerBort),
+        DagMedForventning(10.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
+        DagMedForventning(11.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
     )
     private val meldekort2 = nonEmptyListOf(
         DagMedForventning(12.februar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
@@ -42,16 +42,16 @@ internal class Meldekortberegning5DagerIUkaEksempel2Test {
         DagMedForventning(14.februar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
         DagMedForventning(15.februar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
         DagMedForventning(16.februar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
-        DagMedForventning(17.februar(2024), IKKE_DELTATT, YtelsenFallerBort),
-        DagMedForventning(18.februar(2024), IKKE_DELTATT, YtelsenFallerBort),
+        DagMedForventning(17.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
+        DagMedForventning(18.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
 
         DagMedForventning(19.februar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
         DagMedForventning(20.februar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
         DagMedForventning(21.februar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),
         DagMedForventning(22.februar(2024), FRAVÆR_SYK, IngenReduksjon),
         DagMedForventning(23.februar(2024), FRAVÆR_SYK, IngenReduksjon),
-        DagMedForventning(24.februar(2024), IKKE_DELTATT, YtelsenFallerBort),
-        DagMedForventning(25.februar(2024), IKKE_DELTATT, YtelsenFallerBort),
+        DagMedForventning(24.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
+        DagMedForventning(25.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
     )
     private val meldekort3 = nonEmptyListOf(
         DagMedForventning(26.februar(2024), FRAVÆR_SYK, IngenReduksjon),

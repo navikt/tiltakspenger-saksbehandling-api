@@ -26,7 +26,7 @@ data class MeldekortDag(
         -> true
 
         MeldekortDagStatus.IKKE_BESVART,
-        MeldekortDagStatus.IKKE_DELTATT,
+        MeldekortDagStatus.IKKE_TILTAKSDAG,
         MeldekortDagStatus.SPERRET,
         -> false
     }
@@ -40,11 +40,11 @@ enum class MeldekortDagStatus {
     FRAVÆR_GODKJENT_AV_NAV,
     FRAVÆR_ANNET,
 
-    /** Kun et valg for bruker; ikke saksbehandler. Bruker har ikke tatt stilling til denne dagen. Het tidligere IKKE_REGISTRERT og IKKE_UFYLT. */
+    /** Kun et "valg" for bruker; ikke saksbehandler. Bruker har ikke tatt stilling til denne dagen. Het tidligere IKKE_REGISTRERT og IKKE_UFYLT. */
     IKKE_BESVART,
 
-    /** Kun et valg for saksbehandler. Sammenfallende med 'ikke tiltaksdag' */
-    IKKE_DELTATT,
+    /** Kun et valg for saksbehandler. Het tidligere IKKE_DELTATT */
+    IKKE_TILTAKSDAG,
 
     // TODO jah: Bør endre navn til IKKE_RETT_TIL_TILTAKSPENGER
     SPERRET,
@@ -59,6 +59,6 @@ fun MeldeperiodeBeregningDag.tilMeldekortDagStatus(): MeldekortDagStatus =
         is FraværGodkjentAvNav -> MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV
         is FraværAnnet -> MeldekortDagStatus.FRAVÆR_ANNET
         is IkkeBesvart -> MeldekortDagStatus.IKKE_BESVART
-        is IkkeDeltatt -> MeldekortDagStatus.IKKE_DELTATT
+        is IkkeDeltatt -> MeldekortDagStatus.IKKE_TILTAKSDAG
         is Sperret -> MeldekortDagStatus.SPERRET
     }

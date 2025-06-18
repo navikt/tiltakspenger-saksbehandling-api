@@ -14,7 +14,7 @@ enum class MeldekortstatusDb {
     IKKE_BESVART,
 
     /** Brukes kun av saksbehandler. Sammensvarer med 'ikke tiltaksdag'*/
-    IKKE_DELTATT,
+    IKKE_TILTAKSDAG,
 
     // TODO jah: Bør endres til IKKE_RETT_TIL_TILTAKSPENGER (dvs. vedtaket gir ikke rett til denne dagen.) enten fordi meldekortet startet før eller slutter etter innvilgelsesperioden eller pga. stans
     SPERRET,
@@ -29,7 +29,7 @@ fun MeldekortDagStatus.toDb(): MeldekortstatusDb {
         MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> MeldekortstatusDb.FRAVÆR_GODKJENT_AV_NAV
         MeldekortDagStatus.FRAVÆR_ANNET -> MeldekortstatusDb.FRAVÆR_ANNET
         MeldekortDagStatus.IKKE_BESVART -> MeldekortstatusDb.IKKE_BESVART
-        MeldekortDagStatus.IKKE_DELTATT -> MeldekortstatusDb.IKKE_DELTATT
+        MeldekortDagStatus.IKKE_TILTAKSDAG -> MeldekortstatusDb.IKKE_TILTAKSDAG
         MeldekortDagStatus.SPERRET -> MeldekortstatusDb.SPERRET
     }
 }
@@ -43,7 +43,7 @@ fun MeldekortstatusDb.toMeldekortDagStatus(): MeldekortDagStatus {
         MeldekortstatusDb.FRAVÆR_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV
         MeldekortstatusDb.FRAVÆR_ANNET -> MeldekortDagStatus.FRAVÆR_ANNET
         MeldekortstatusDb.IKKE_BESVART -> MeldekortDagStatus.IKKE_BESVART
-        MeldekortstatusDb.IKKE_DELTATT -> MeldekortDagStatus.IKKE_DELTATT
+        MeldekortstatusDb.IKKE_TILTAKSDAG -> MeldekortDagStatus.IKKE_TILTAKSDAG
         MeldekortstatusDb.SPERRET -> MeldekortDagStatus.SPERRET
     }
 }

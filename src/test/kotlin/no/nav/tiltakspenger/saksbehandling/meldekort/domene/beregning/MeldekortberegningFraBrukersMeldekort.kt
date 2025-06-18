@@ -104,9 +104,9 @@ class MeldekortberegningFraBrukersMeldekort {
         sammenlign(
             listOf(
                 List(5) { KommandoStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
-                List(2) { KommandoStatus.IKKE_DELTATT },
+                List(2) { KommandoStatus.IKKE_TILTAKSDAG },
                 List(5) { KommandoStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
-                List(2) { KommandoStatus.IKKE_DELTATT },
+                List(2) { KommandoStatus.IKKE_TILTAKSDAG },
             ).flatten(),
 
             listOf(
@@ -125,9 +125,9 @@ class MeldekortberegningFraBrukersMeldekort {
         sammenlign(
             listOf(
                 List(5) { KommandoStatus.FRAVÆR_SYK },
-                List(2) { KommandoStatus.IKKE_DELTATT },
+                List(2) { KommandoStatus.IKKE_TILTAKSDAG },
                 List(5) { KommandoStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
-                List(2) { KommandoStatus.IKKE_DELTATT },
+                List(2) { KommandoStatus.IKKE_TILTAKSDAG },
             ).flatten(),
 
             listOf(
@@ -146,9 +146,9 @@ class MeldekortberegningFraBrukersMeldekort {
         sammenlign(
             listOf(
                 List(5) { KommandoStatus.FRAVÆR_SYKT_BARN },
-                List(2) { KommandoStatus.IKKE_DELTATT },
+                List(2) { KommandoStatus.IKKE_TILTAKSDAG },
                 List(5) { KommandoStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
-                List(2) { KommandoStatus.IKKE_DELTATT },
+                List(2) { KommandoStatus.IKKE_TILTAKSDAG },
             ).flatten(),
 
             listOf(
@@ -167,9 +167,9 @@ class MeldekortberegningFraBrukersMeldekort {
         sammenlign(
             listOf(
                 List(5) { KommandoStatus.FRAVÆR_GODKJENT_AV_NAV },
-                List(2) { KommandoStatus.IKKE_DELTATT },
+                List(2) { KommandoStatus.IKKE_TILTAKSDAG },
                 List(5) { KommandoStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
-                List(2) { KommandoStatus.IKKE_DELTATT },
+                List(2) { KommandoStatus.IKKE_TILTAKSDAG },
             ).flatten(),
 
             listOf(
@@ -188,9 +188,9 @@ class MeldekortberegningFraBrukersMeldekort {
         sammenlign(
             listOf(
                 List(5) { KommandoStatus.FRAVÆR_ANNET },
-                List(2) { KommandoStatus.IKKE_DELTATT },
+                List(2) { KommandoStatus.IKKE_TILTAKSDAG },
                 List(5) { KommandoStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
-                List(2) { KommandoStatus.IKKE_DELTATT },
+                List(2) { KommandoStatus.IKKE_TILTAKSDAG },
             ).flatten(),
 
             listOf(
@@ -210,9 +210,9 @@ class MeldekortberegningFraBrukersMeldekort {
             listOf(
                 List(3) { KommandoStatus.SPERRET },
                 List(2) { KommandoStatus.FRAVÆR_ANNET },
-                List(2) { KommandoStatus.IKKE_DELTATT },
+                List(2) { KommandoStatus.IKKE_TILTAKSDAG },
                 List(5) { KommandoStatus.DELTATT_UTEN_LØNN_I_TILTAKET },
-                List(2) { KommandoStatus.IKKE_DELTATT },
+                List(2) { KommandoStatus.IKKE_TILTAKSDAG },
             ).flatten(),
 
             listOf(

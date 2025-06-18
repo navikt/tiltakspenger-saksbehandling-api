@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager.Dag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_DELTATT
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.SPERRET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -78,14 +78,14 @@ internal class SendMeldekortTilBeslutterServiceTest {
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
-                        IKKE_DELTATT,
-                        IKKE_DELTATT,
+                        IKKE_TILTAKSDAG,
+                        IKKE_TILTAKSDAG,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
-                        IKKE_DELTATT,
+                        IKKE_TILTAKSDAG,
                     ),
                 )
                 shouldThrow<IllegalArgumentException> {
@@ -124,15 +124,15 @@ internal class SendMeldekortTilBeslutterServiceTest {
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
-                        IKKE_DELTATT,
-                        IKKE_DELTATT,
+                        IKKE_TILTAKSDAG,
+                        IKKE_TILTAKSDAG,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
-                        IKKE_DELTATT,
-                        IKKE_DELTATT,
+                        IKKE_TILTAKSDAG,
+                        IKKE_TILTAKSDAG,
                         SPERRET,
                     ),
                 )
@@ -225,10 +225,10 @@ internal class SendMeldekortTilBeslutterServiceTest {
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
-                        IKKE_DELTATT,
-                        IKKE_DELTATT,
-                        IKKE_DELTATT,
-                        IKKE_DELTATT,
+                        IKKE_TILTAKSDAG,
+                        IKKE_TILTAKSDAG,
+                        IKKE_TILTAKSDAG,
+                        IKKE_TILTAKSDAG,
                     ),
                 )
                 shouldThrow<IllegalArgumentException> {
@@ -273,15 +273,15 @@ internal class SendMeldekortTilBeslutterServiceTest {
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
-                                IKKE_DELTATT,
-                                IKKE_DELTATT,
+                                IKKE_TILTAKSDAG,
+                                IKKE_TILTAKSDAG,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
-                                IKKE_DELTATT,
-                                IKKE_DELTATT,
+                                IKKE_TILTAKSDAG,
+                                IKKE_TILTAKSDAG,
                             ),
                         ),
                         begrunnelse = null,
