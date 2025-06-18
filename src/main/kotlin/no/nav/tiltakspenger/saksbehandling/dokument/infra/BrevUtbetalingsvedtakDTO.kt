@@ -168,7 +168,7 @@ private fun MeldeperiodeBeregningDag.toStatus(): String {
         is MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav -> "Godkjent fravær - Velferd"
         is MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet -> "Ikke godkjent fravær - Velferd"
         is MeldeperiodeBeregningDag.IkkeBesvart -> "Ikke besvart"
-        is MeldeperiodeBeregningDag.IkkeDeltatt -> "Ikke tiltak denne dagen"
-        is MeldeperiodeBeregningDag.Sperret -> "Ikke rett på tiltakspenger"
+        is MeldeperiodeBeregningDag.IkkeDeltatt -> "Ikke tiltaksdag"
+        is MeldeperiodeBeregningDag.Sperret -> "Ikke rett til tiltakspenger"
     }
 }
