@@ -161,12 +161,12 @@ private suspend fun tilSaksbehandlerDto(
 
 private fun MeldeperiodeBeregningDag.toStatus(): String {
     return when (this) {
-        is MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket -> "Deltatt med lønn i tiltaket"
-        is MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket -> "Deltatt uten lønn i tiltaket"
-        is MeldeperiodeBeregningDag.Fravær.Syk.SykBruker -> "Fravær - Syk"
-        is MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn -> "Fravær - Sykt barn"
-        is MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav -> "Godkjent fravær - Velferd"
-        is MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet -> "Ikke godkjent fravær - Velferd"
+        is MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket -> "Deltatt med lønn"
+        is MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket -> "Deltatt"
+        is MeldeperiodeBeregningDag.Fravær.Syk.SykBruker -> "Syk"
+        is MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn -> "Sykt barn eller syk barnepasser"
+        is MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav -> "Fravær godkjent av Nav"
+        is MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet -> "Annet fravær"
         is MeldeperiodeBeregningDag.IkkeBesvart -> "Ikke besvart"
         is MeldeperiodeBeregningDag.IkkeDeltatt -> "Ikke tiltaksdag"
         is MeldeperiodeBeregningDag.Sperret -> "Ikke rett til tiltakspenger"
