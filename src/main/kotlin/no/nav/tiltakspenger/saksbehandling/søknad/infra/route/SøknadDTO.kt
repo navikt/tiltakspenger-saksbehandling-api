@@ -44,7 +44,7 @@ data class SøknadDTO(
     )
 
     data class BarnetilleggFraSøknadDTO(
-        val oppholderSegIEØS: JaNeiSpm,
+        val oppholderSegIEØS: Boolean,
         val fornavn: String?,
         val mellomnavn: String?,
         val etternavn: String?,
@@ -121,7 +121,10 @@ fun Søknadstiltak.toDTO(): SøknadDTO.TiltaksdeltagelseFraSøknadDTO {
 
 fun List<BarnetilleggFraSøknad>.toDTO(): List<SøknadDTO.BarnetilleggFraSøknadDTO> = this.map {
     SøknadDTO.BarnetilleggFraSøknadDTO(
-        oppholderSegIEØS = it.oppholderSegIEØS,
+        oppholderSegIEØS = when (it.oppholderSegIEØS) {
+            JaNeiSpm.Ja -> true
+            JaNeiSpm.Nei -> false
+        },
         fornavn = it.fornavn,
         mellomnavn = it.mellomnavn,
         etternavn = it.etternavn,
