@@ -73,7 +73,6 @@ data class Søknad(
         return Periode(fraOgMed, tilOgMed)
     }
 
-    @Suppress("unused")
     fun harLivsoppholdYtelser(): Boolean =
         sykepenger.erJa() ||
             etterlønn.erJa() ||
@@ -84,6 +83,18 @@ data class Søknad(
             alderspensjon.erJa() ||
             jobbsjansen.erJa() ||
             trygdOgPensjon.erJa()
+
+    fun harLagtTilBarnManuelt(): Boolean =
+        barnetillegg.any { it is BarnetilleggFraSøknad.Manuell }
+
+    fun harBarnUtenforEOS(): Boolean =
+        barnetillegg.any { it.oppholderSegIEØS == JaNeiSpm.Nei }
+
+    fun harBarnSomFyller16FørDato(dato: LocalDate): Boolean =
+        barnetillegg.any { !it.under16ForDato(dato) }
+
+    fun harSoktMerEnn3ManederEtterOppstart(): Boolean =
+        kravdato.minusMonths(3).isAfter(tiltak.deltakelseFom)
 
     data class Personopplysninger(
         val fnr: Fnr,

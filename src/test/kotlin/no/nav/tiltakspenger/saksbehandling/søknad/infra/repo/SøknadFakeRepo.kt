@@ -5,10 +5,12 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 
-class SøknadFakeRepo : SøknadRepo {
+class SøknadFakeRepo(private val behandlingRepo: BehandlingFakeRepo) : SøknadRepo {
     private val data = Atomic(mutableMapOf<SøknadId, Søknad>())
 
     val alle get() = data.get().values.toList()
@@ -43,6 +45,18 @@ class SøknadFakeRepo : SøknadRepo {
                 ),
             )
         }
+    }
+
+    override fun hentAlleUbehandledeSoknader(limit: Int): List<Søknad> {
+        val soknaderUtenBehandling = mutableListOf<Søknad>()
+        val alleBehandlinger = behandlingRepo.alle.filterIsInstance<Søknadsbehandling>()
+        val alleSoknader = data.get().values.toList()
+        alleSoknader.forEach { soknad ->
+            if (!soknad.erAvbrutt && alleBehandlinger.find { it.søknad.id == soknad.id } == null) {
+                soknaderUtenBehandling.add(soknad)
+            }
+        }
+        return soknaderUtenBehandling
     }
 
     fun hentForSakId(sakId: SakId): List<Søknad> {

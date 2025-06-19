@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.begrunnelse
 
-import arrow.core.Tuple4
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
@@ -19,32 +18,13 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import org.json.JSONObject
 
 /**
  * Gjelder for både søknadsbehandling og revurdering.
  */
 interface OppdaterBegrunnelseBuilder {
-
-    /** Oppretter ny sak, søknad og behandling. */
-    suspend fun ApplicationTestBuilder.oppdaterBegrunnelse(
-        tac: TestApplicationContext,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        fritekstTilVedtaksbrev: String = "some_tekst",
-    ): Tuple4<Sak, Søknad, Behandling, String> {
-        val (sak, søknad, behandling) = startSøknadsbehandling(tac)
-        val sakId = sak.id
-        val (oppdatertSak, oppdatertBehandling, response) = oppdaterBegrunnelseForBehandlingId(tac, sakId, behandling.id, saksbehandler, fritekstTilVedtaksbrev)
-        return Tuple4(
-            oppdatertSak,
-            søknad,
-            oppdatertBehandling,
-            response,
-        )
-    }
 
     /** Forventer at det allerede finnes en sak, søknad og behandling med status `UNDER_BEHANDLING` */
     suspend fun ApplicationTestBuilder.oppdaterBegrunnelseForBehandlingId(
