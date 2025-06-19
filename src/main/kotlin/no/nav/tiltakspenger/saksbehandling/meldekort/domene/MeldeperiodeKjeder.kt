@@ -165,7 +165,7 @@ data class MeldeperiodeKjeder(
 
             @Suppress("unused", "UnusedVariable")
             val antallDagerForMeldeperiodeFraBehandling =
-                vedtaksliste.antallDagerForMeldeperiode(nærmesteMeldeperiode)!!
+                vedtaksliste.antallDagerForMeldeperiode(nærmesteMeldeperiode) ?: 0
             val antallDagerSomGirRettForMeldePeriode =
                 min(utfallsperiodeCount, MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)
 
