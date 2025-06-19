@@ -9,6 +9,8 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.april
+import no.nav.tiltakspenger.libs.periodisering.juli
+import no.nav.tiltakspenger.libs.periodisering.juni
 import no.nav.tiltakspenger.libs.periodisering.mai
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
@@ -193,6 +195,49 @@ class GenererMeldeperioderSakIT {
                         27.april(2025) to false,
                     )
                     sisteMeldeperiode.antallDagerSomGirRett shouldBe 5
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `skal generere meldeperioder for to innvilgede søknader med hull mellom, uten meldeperioder i hullet`() {
+        val clock = TikkendeKlokke(fixedClockAt(22.april(2025)))
+        with(TestApplicationContext(clock = clock)) {
+            val tac = this
+            testApplication {
+                application {
+                    jacksonSerialization()
+                    routing { routes(tac) }
+                }
+
+                val fnr = Fnr.random()
+                val (sak) = this.iverksettSøknadsbehandling(
+                    tac = tac,
+                    fnr = fnr,
+                    // To meldeperioder i denne perioden
+                    virkingsperiode = Periode(7.april(2025), 21.april(2025)),
+                    beslutter = ObjectMother.beslutter(),
+                )
+
+                sak.meldeperiodeKjeder.let {
+                    it.size shouldBe 2
+                    it.alleMeldeperioder.size shouldBe 2
+                    it.alleMeldeperioder.forEach { mp -> mp.versjon shouldBe HendelseVersjon(1) }
+                }
+
+                val (oppdatertSak) = this.iverksettSøknadsbehandling(
+                    tac = tac,
+                    fnr = fnr,
+                    // 4 meldeperioder i denne perioden (første fra 19.mai - 1.juni)
+                    virkingsperiode = Periode(1.juni(2025), 1.juli(2025)),
+                    beslutter = ObjectMother.beslutter(),
+                )
+
+                oppdatertSak.meldeperiodeKjeder.let {
+                    it.size shouldBe 6
+                    it.alleMeldeperioder.size shouldBe 6
+                    it.alleMeldeperioder.forEach { mp -> mp.versjon shouldBe HendelseVersjon(1) }
                 }
             }
         }
