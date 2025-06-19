@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregnin
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeBesvart
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeDeltatt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Sperret
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
 
 enum class MeldekortDagStatusDTO {
     DELTATT_UTEN_LØNN_I_TILTAKET,
@@ -20,8 +20,8 @@ enum class MeldekortDagStatusDTO {
     FRAVÆR_GODKJENT_AV_NAV,
     FRAVÆR_ANNET,
     IKKE_BESVART,
-    IKKE_DELTATT,
-    SPERRET,
+    IKKE_TILTAKSDAG,
+    IKKE_RETT_TIL_TILTAKSPENGER,
 }
 
 fun MeldeperiodeBeregningDag.tilMeldekortDagStatusDTO(): MeldekortDagStatusDTO =
@@ -33,8 +33,8 @@ fun MeldeperiodeBeregningDag.tilMeldekortDagStatusDTO(): MeldekortDagStatusDTO =
         is FraværGodkjentAvNav -> MeldekortDagStatusDTO.FRAVÆR_GODKJENT_AV_NAV
         is FraværAnnet -> MeldekortDagStatusDTO.FRAVÆR_ANNET
         is IkkeBesvart -> MeldekortDagStatusDTO.IKKE_BESVART
-        is IkkeDeltatt -> MeldekortDagStatusDTO.IKKE_DELTATT
-        is Sperret -> MeldekortDagStatusDTO.SPERRET
+        is IkkeDeltatt -> MeldekortDagStatusDTO.IKKE_TILTAKSDAG
+        is IkkeRettTilTiltakspenger -> MeldekortDagStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
     }
 
 fun MeldekortDagStatus.tilMeldekortDagStatusDTO(): MeldekortDagStatusDTO =
@@ -46,6 +46,6 @@ fun MeldekortDagStatus.tilMeldekortDagStatusDTO(): MeldekortDagStatusDTO =
         MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> MeldekortDagStatusDTO.FRAVÆR_GODKJENT_AV_NAV
         MeldekortDagStatus.FRAVÆR_ANNET -> MeldekortDagStatusDTO.FRAVÆR_ANNET
         MeldekortDagStatus.IKKE_BESVART -> MeldekortDagStatusDTO.IKKE_BESVART
-        MeldekortDagStatus.IKKE_DELTATT -> MeldekortDagStatusDTO.IKKE_DELTATT
-        MeldekortDagStatus.SPERRET -> MeldekortDagStatusDTO.SPERRET
+        MeldekortDagStatus.IKKE_TILTAKSDAG -> MeldekortDagStatusDTO.IKKE_TILTAKSDAG
+        MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortDagStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
     }

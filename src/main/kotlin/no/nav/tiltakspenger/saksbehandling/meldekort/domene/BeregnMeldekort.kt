@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregnin
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeDeltatt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Sperret
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort
@@ -129,7 +129,7 @@ private data class BeregnMeldekort(
         }
 
         return when (status) {
-            MeldekortDagStatus.SPERRET -> sperret(dato)
+            MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> ikkeRettTilTiltakspenger(dato)
             MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> deltattUtenLønn(
                 dato,
                 tiltakstype,
@@ -142,7 +142,7 @@ private data class BeregnMeldekort(
                 antallBarn,
             )
 
-            MeldekortDagStatus.IKKE_DELTATT -> ikkeDeltatt(dato, tiltakstype, antallBarn)
+            MeldekortDagStatus.IKKE_TILTAKSDAG -> ikkeTiltaksdag(dato, tiltakstype, antallBarn)
             MeldekortDagStatus.FRAVÆR_SYK -> fraværSyk(dato, tiltakstype, antallBarn)
             MeldekortDagStatus.FRAVÆR_SYKT_BARN -> fraværSyktBarn(dato, tiltakstype, antallBarn)
             MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> fraværGodkjentAvNav(
@@ -156,8 +156,7 @@ private data class BeregnMeldekort(
                 tiltakstype,
                 antallBarn,
             )
-            // TODO: Se trellokort: Bør kunne beregnes denne tilstanden (skal endres til IKKE_BESVART)
-            MeldekortDagStatus.IKKE_BESVART -> throw IllegalStateException("Alle dager på meldekortet må være utfylt - $dato var ikke utfylt på $meldekortId")
+            MeldekortDagStatus.IKKE_BESVART -> ikkeBesvart(dato, tiltakstype, antallBarn)
         }
     }
 
@@ -217,15 +216,15 @@ private data class BeregnMeldekort(
         )
     }
 
-    private fun sperret(
+    private fun ikkeRettTilTiltakspenger(
         dag: LocalDate,
-    ): Sperret {
+    ): IkkeRettTilTiltakspenger {
         sjekkSykKarantene(dag)
         sjekkSykBarnKarantene(dag)
-        return Sperret(dato = dag)
+        return IkkeRettTilTiltakspenger(dato = dag)
     }
 
-    private fun ikkeDeltatt(
+    private fun ikkeTiltaksdag(
         dag: LocalDate,
         tiltakstype: TiltakstypeSomGirRett,
         antallBarn: AntallBarn,

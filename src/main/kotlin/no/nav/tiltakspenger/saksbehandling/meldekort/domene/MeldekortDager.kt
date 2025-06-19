@@ -50,11 +50,11 @@ data class MeldekortDager(
             require(dato == dag.dato) {
                 "Meldeperiodedatoene må stemme overens med dagene."
             }
-            if (harRett && dag.status == MeldekortDagStatus.SPERRET) {
-                throw IllegalArgumentException("Kan ikke endre dag til sperret. Meldeperiode (id ${meldeperiode.id}): ${meldeperiode.girRett}. Innsendte dager: $verdi")
+            if (harRett && dag.status == MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER) {
+                throw IllegalArgumentException("Kan ikke endre dag til IKKE_RETT_TIL_TILTAKSPENGER. Meldeperiode (id ${meldeperiode.id}): ${meldeperiode.girRett}. Innsendte dager: $verdi")
             }
-            if (!harRett && dag.status != MeldekortDagStatus.SPERRET) {
-                throw IllegalArgumentException("Kan ikke endre dag fra sperret. Meldeperiode (id ${meldeperiode.id}): ${meldeperiode.girRett}. Innsendte dager: $verdi")
+            if (!harRett && dag.status != MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER) {
+                throw IllegalArgumentException("Kan ikke endre dag fra IKKE_RETT_TIL_TILTAKSPENGER. Meldeperiode (id ${meldeperiode.id}): ${meldeperiode.girRett}. Innsendte dager: $verdi")
             }
         }
     }
@@ -65,7 +65,7 @@ fun Meldeperiode.tilMeldekortDager(): MeldekortDager {
         this.girRett.entries.map { (dato, harRett) ->
             MeldekortDag(
                 dato = dato,
-                status = if (harRett) MeldekortDagStatus.IKKE_BESVART else MeldekortDagStatus.SPERRET,
+                status = if (harRett) MeldekortDagStatus.IKKE_BESVART else MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER,
             )
         },
         this,

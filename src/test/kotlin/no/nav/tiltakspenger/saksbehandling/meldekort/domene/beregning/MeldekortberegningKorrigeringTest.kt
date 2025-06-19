@@ -29,9 +29,9 @@ internal class MeldekortberegningKorrigeringTest {
     private fun periodeMedFullDeltagelse(fraDato: LocalDate) = periodeMedStatuser(
         fraDato,
         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-        List(2) { Status.SPERRET },
+        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-        List(2) { Status.SPERRET },
+        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
     )
 
     private fun sumAv(full: Int = 0, redusert: Int = 0, barn: Int = 0, satser: Satsdag = Satser.sats(førsteDag)) =
@@ -48,9 +48,9 @@ internal class MeldekortberegningKorrigeringTest {
                     periodeMedStatuser(
                         førsteDag,
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(5) { Status.FRAVÆR_ANNET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
                 ),
             )
@@ -73,9 +73,9 @@ internal class MeldekortberegningKorrigeringTest {
                     periodeMedStatuser(
                         førsteDag,
                         List(5) { Status.FRAVÆR_ANNET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
                 ),
             )
@@ -98,17 +98,17 @@ internal class MeldekortberegningKorrigeringTest {
                         førsteDag.plusWeeks(2),
                         List(3) { Status.FRAVÆR_SYK },
                         List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
                     periodeMedStatuser(
                         førsteDag,
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(5) { Status.FRAVÆR_SYK },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
                 ),
             )
@@ -128,35 +128,35 @@ internal class MeldekortberegningKorrigeringTest {
                 meldeperioder = nonEmptyListOf(
                     periodeMedStatuser(
                         førsteDag,
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(3) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(5) { Status.FRAVÆR_SYK },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
                     periodeMedStatuser(
                         førsteDag.plusWeeks(2),
                         List(5) { Status.FRAVÆR_SYK },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(5) { Status.FRAVÆR_SYK },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
                     periodeMedStatuser(
                         førsteDag.plusWeeks(4),
                         List(1) { Status.FRAVÆR_SYK },
-                        List(13) { Status.SPERRET },
+                        List(13) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
                     periodeMedStatuser(
                         førsteDag,
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
                         List(1) { Status.FRAVÆR_SYK },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(5) { Status.FRAVÆR_SYK },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
                 ),
             )
@@ -183,17 +183,17 @@ internal class MeldekortberegningKorrigeringTest {
                         førsteDag.plusWeeks(2),
                         List(3) { Status.FRAVÆR_SYK },
                         List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
                     periodeMedStatuser(
                         førsteDag,
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(5) { Status.FRAVÆR_SYK },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
                 ),
             )
@@ -215,28 +215,28 @@ internal class MeldekortberegningKorrigeringTest {
                     periodeMedStatuser(
                         førsteDag,
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(2) { Status.FRAVÆR_SYK },
                         List(3) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
                     periodeMedStatuser(
                         førsteDag.plusWeeks(2),
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
                         List(1) { Status.FRAVÆR_SYK },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
                     periodeMedStatuser(
                         førsteDag,
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(3) { Status.FRAVÆR_SYK },
                         List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
                 ),
             )
@@ -257,27 +257,27 @@ internal class MeldekortberegningKorrigeringTest {
                     periodeMedStatuser(
                         førsteDag,
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(2) { Status.FRAVÆR_SYK },
                         List(3) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
                     periodeMedStatuser(
                         førsteDag.plusWeeks(2),
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
                     periodeMedStatuser(
                         førsteDag,
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
                         List(1) { Status.FRAVÆR_SYK },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
                 ),
             )
@@ -302,17 +302,17 @@ internal class MeldekortberegningKorrigeringTest {
                         førsteDag.plusWeeks(2),
                         List(3) { Status.FRAVÆR_SYK },
                         List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
                     periodeMedStatuser(
                         førsteDag,
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(5) { Status.FRAVÆR_SYK },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
                 ),
             )
@@ -339,27 +339,27 @@ internal class MeldekortberegningKorrigeringTest {
                     periodeMedStatuser(
                         førsteDag.plusWeeks(2),
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(3) { Status.FRAVÆR_SYK },
                         List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
                     periodeMedStatuser(
                         førsteDag,
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(1) { Status.FRAVÆR_SYK },
                         List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
                     periodeMedStatuser(
                         førsteDag,
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(5) { Status.FRAVÆR_SYK },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
                 ),
             )
@@ -383,26 +383,26 @@ internal class MeldekortberegningKorrigeringTest {
                     periodeMedStatuser(
                         førsteDag,
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
                         List(1) { Status.FRAVÆR_SYKT_BARN },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
                     periodeMedStatuser(
                         førsteDag.plusWeeks(2),
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(5) { Status.FRAVÆR_SYKT_BARN },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
                     periodeMedStatuser(
                         førsteDag,
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(5) { Status.FRAVÆR_SYKT_BARN },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
                 ),
             )
@@ -425,19 +425,19 @@ internal class MeldekortberegningKorrigeringTest {
                     periodeMedStatuser(
                         førsteDag.plusWeeks(2),
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(2) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
                         List(3) { Status.FRAVÆR_SYKT_BARN },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
                     periodeMedStatuser(
                         førsteDag,
                         List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                         List(4) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
                         List(1) { Status.FRAVÆR_SYKT_BARN },
-                        List(2) { Status.SPERRET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
                     ),
 
                     periodeMedFullDeltagelse(førsteDag),
