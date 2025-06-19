@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
@@ -28,29 +29,16 @@ import org.junit.jupiter.api.Test
 class IverksettSøknadsbehandlingTest {
     @Test
     fun `send til beslutter endrer status på behandlingen`() = runTest {
-        with(TestApplicationContext()) {
-            val tac = this
-            testApplication {
-                application {
-                    jacksonSerialization()
-                    routing { routes(tac) }
-                }
-                val (_, _, behandling) = this.iverksettSøknadsbehandling(tac)
-                behandling.virkningsperiode.shouldNotBeNull()
-                behandling.status shouldBe Behandlingsstatus.VEDTATT
-            }
+        withTestApplicationContext { tac ->
+            val (_, _, behandling) = this.iverksettSøknadsbehandling(tac)
+            behandling.virkningsperiode.shouldNotBeNull()
+            behandling.status shouldBe Behandlingsstatus.VEDTATT
         }
     }
 
     @Test
     fun `iverksett - avslag på søknad`() = runTest {
-        with(TestApplicationContext()) {
-            val tac = this
-            testApplication {
-                application {
-                    jacksonSerialization()
-                    routing { routes(tac) }
-                }
+        withTestApplicationContext { tac ->
                 val (_, _, behandling) = this.iverksettSøknadsbehandling(
                     tac,
                     resultat = SøknadsbehandlingType.AVSLAG,
@@ -59,20 +47,13 @@ class IverksettSøknadsbehandlingTest {
                 behandling.status shouldBe Behandlingsstatus.VEDTATT
                 behandling.resultat shouldBe instanceOf<SøknadsbehandlingResultat.Avslag>()
             }
-        }
     }
 
     @Test
     fun `iverksett - feilmelding hvis behandlingen ikke er tildelt beslutter`() = runTest {
-        with(TestApplicationContext()) {
-            val saksbehandler = saksbehandler()
-            val beslutter = ObjectMother.beslutter()
-            val tac = this
-            testApplication {
-                application {
-                    jacksonSerialization()
-                    routing { routes(tac) }
-                }
+        withTestApplicationContext { tac ->
+                val saksbehandler = saksbehandler()
+                val beslutter = ObjectMother.beslutter()
                 val (sak, søknad, behandling) = this.startSøknadsbehandling(tac, saksbehandler = saksbehandler)
                 val behandlingId = behandling.id
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
@@ -104,6 +85,5 @@ class IverksettSøknadsbehandlingTest {
                     ),
                 )
             }
-        }
     }
 }

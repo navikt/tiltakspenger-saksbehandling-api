@@ -111,7 +111,8 @@ internal suspend inline fun <reified T> ApplicationCall.withBody(
     crossinline ifRight: suspend (T) -> Unit,
 ) {
     Either.catch {
-        no.nav.tiltakspenger.libs.json.deserialize<T>(this.receiveText())
+        val body = this.receiveText()
+        no.nav.tiltakspenger.libs.json.deserialize<T>(body)
     }.onLeft {
         logger.debug(RuntimeException("Trigger stacktrace for enklere debug")) { "Feil ved deserialisering av request. Se sikkerlogg for mer kontekst." }
         Sikkerlogg.error(it) { "Feil ved deserialisering av request" }

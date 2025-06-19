@@ -277,6 +277,12 @@ interface BehandlingMother : MotherOfAllMothers {
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelse.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
+        antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
+            PeriodeMedVerdi(
+                AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+                virkningsperiode,
+            ),
+        ),
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         clock: Clock = fixedClock,
@@ -297,6 +303,7 @@ interface BehandlingMother : MotherOfAllMothers {
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
             oppgaveId = oppgaveId,
             resultat = resultat,
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         ).taBehandling(beslutter) as Søknadsbehandling
     }
 

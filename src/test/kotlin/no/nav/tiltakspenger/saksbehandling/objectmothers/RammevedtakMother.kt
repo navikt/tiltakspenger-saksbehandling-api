@@ -17,7 +17,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 interface RammevedtakMother : MotherOfAllMothers {
-    fun nyRammevedtak(
+    fun nyttRammevedtak(
         id: VedtakId = VedtakId.random(),
         opprettet: LocalDateTime = nå(clock),
         sakId: SakId = SakId.random(),
@@ -71,7 +71,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         distribusjonstidspunkt: LocalDateTime? = null,
         sendtTilDatadeling: LocalDateTime? = null,
         brevJson: String? = null,
-    ): Rammevedtak = nyRammevedtak(
+    ): Rammevedtak = nyttRammevedtak(
         id = id,
         opprettet = opprettet,
         sakId = sakId,
@@ -108,7 +108,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         distribusjonstidspunkt: LocalDateTime? = null,
         sendtTilDatadeling: LocalDateTime? = null,
         brevJson: String? = null,
-    ): Rammevedtak = nyRammevedtak(
+    ): Rammevedtak = nyttRammevedtak(
         id = id,
         opprettet = opprettet,
         sakId = sakId,
