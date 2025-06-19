@@ -196,6 +196,28 @@ interface BehandlingMother : MotherOfAllMothers {
         }
     }
 
+    fun nyOpprettetAutomatiskSøknadsbehandling(
+        id: BehandlingId = BehandlingId.random(),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        fnr: Fnr = Fnr.random(),
+        søknad: Søknad = nySøknad(),
+        hentSaksopplysninger: (Periode) -> Saksopplysninger = {
+            saksopplysninger(
+                fom = it.fraOgMed,
+                tom = it.tilOgMed,
+            )
+        },
+    ): Søknadsbehandling {
+        return runBlocking {
+            Søknadsbehandling.opprettAutomatiskBehandling(
+                søknad = søknad,
+                hentSaksopplysninger = hentSaksopplysninger,
+                clock = clock,
+            )
+        }
+    }
+
     fun nySøknadsbehandlingKlarTilBeslutning(
         id: BehandlingId = BehandlingId.random(),
         sakId: SakId = SakId.random(),
