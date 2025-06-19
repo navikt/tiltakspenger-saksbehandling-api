@@ -371,10 +371,6 @@ sealed interface Behandling {
         if (beslutter != null && saksbehandler != null) {
             require(beslutter != saksbehandler) { "Saksbehandler og beslutter kan ikke være samme person" }
         }
-        if (antallDagerPerMeldeperiode != null) {
-            require(antallDagerPerMeldeperiode!!.totalPeriode == virkningsperiode!!)
-        }
-
         when (status) {
             UNDER_AUTOMATISK_BEHANDLING -> {
                 require(saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID) {

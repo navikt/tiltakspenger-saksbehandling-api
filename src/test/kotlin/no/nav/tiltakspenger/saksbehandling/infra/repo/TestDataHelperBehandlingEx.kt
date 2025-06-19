@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo
 
+import arrow.core.Nel
 import arrow.core.NonEmptySet
+import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -615,7 +617,7 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
-    valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+    valgteHjemler: Nel<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,

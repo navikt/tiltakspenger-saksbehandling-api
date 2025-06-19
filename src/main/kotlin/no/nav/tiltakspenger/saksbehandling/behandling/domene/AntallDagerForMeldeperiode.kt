@@ -15,6 +15,10 @@ value class AntallDagerForMeldeperiode(val value: Int) : Comparable<AntallDagerF
         // TODO: Dersom du ønsker å bruke denne for stans eller tidslinje, så kan du endre den til >= 0
         require(value > 0 && value <= 14)
     }
+
+    companion object {
+        val default: AntallDagerForMeldeperiode = AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)
+    }
 }
 
 /**

@@ -77,7 +77,7 @@ data class Revurdering(
 
         when (resultat) {
             is Innvilgelse -> resultat.valider(status, virkningsperiode)
-            is Stans -> Unit
+            is Stans -> resultat.valider(status, virkningsperiode)
         }
     }
 
@@ -192,6 +192,7 @@ data class Revurdering(
                 resultat = Innvilgelse(
                     valgteTiltaksdeltakelser = null,
                     barnetillegg = null,
+                    // TODO John + Anders: Siden vi ikke har en virkningsperiode på dette tidspunktet, gir det ikke noen mening og sette antallDagerPerMeldeperiode
                     antallDagerPerMeldeperiode = null,
                 ),
             )
