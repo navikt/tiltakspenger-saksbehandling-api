@@ -43,7 +43,9 @@ sealed interface BehandlingResultat {
                             "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)"
                         }
                     }
-                    require(antallDagerPerMeldeperiode!!.totalPeriode == virkningsperiode)
+                    require(antallDagerPerMeldeperiode?.totalPeriode == virkningsperiode) {
+                        "Innvilgelsesperioden ($virkningsperiode) må være lik som antallDagerPerMeldeperiode sin totale periode($antallDagerPerMeldeperiode)"
+                    }
                 }
                 UNDER_AUTOMATISK_BEHANDLING,
                 KLAR_TIL_BEHANDLING,

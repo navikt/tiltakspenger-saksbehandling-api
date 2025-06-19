@@ -1,10 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import java.time.LocalDate
 
 sealed interface RevurderingTilBeslutningKommando {
@@ -23,7 +25,7 @@ data class RevurderingStansTilBeslutningKommando(
     override val correlationId: CorrelationId,
     override val begrunnelse: BegrunnelseVilkårsvurdering,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-    val valgteHjemler: List<ValgtHjemmelForStans>,
+    val valgteHjemler: NonEmptyList<ValgtHjemmelForStans>,
     val stansFraOgMed: LocalDate,
     // Bestemmes av tidligere vedtak på saken, må settes når behandlingen sendes til beslutning
     val sisteDagSomGirRett: LocalDate?,
@@ -38,4 +40,5 @@ data class RevurderingInnvilgelseTilBeslutningKommando(
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val innvilgelsesperiode: Periode,
     val tiltaksdeltakelser: List<Pair<Periode, String>>,
+    val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode>,
 ) : RevurderingTilBeslutningKommando

@@ -1,19 +1,26 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
+import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingInnvilgelseTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import java.time.LocalDate
+import kotlin.collections.List
 
 data class RevurderingTilBeslutningDTO(
     val type: BehandlingResultatDTO,
@@ -31,6 +38,12 @@ data class RevurderingTilBeslutningDTO(
     data class Innvilgelse(
         val innvilgelsesperiode: PeriodeDTO,
         val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
+        val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO> = listOf(
+            AntallDagerPerMeldeperiodeDTO(
+                periode = innvilgelsesperiode,
+                antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+            ),
+        ),
     )
 
     fun tilKommando(
@@ -51,7 +64,7 @@ data class RevurderingTilBeslutningDTO(
                     begrunnelse = BegrunnelseVilkårsvurdering(saniter(begrunnelse)),
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
                     stansFraOgMed = stans.stansFraOgMed,
-                    valgteHjemler = stans.valgteHjemler.toDomain(),
+                    valgteHjemler = stans.valgteHjemler.toDomain().toNonEmptyListOrThrow(),
                     sisteDagSomGirRett = null,
                 )
             }
@@ -70,6 +83,11 @@ data class RevurderingTilBeslutningDTO(
                     tiltaksdeltakelser = innvilgelse.valgteTiltaksdeltakelser.map {
                         Pair(it.periode.toDomain(), it.eksternDeltagelseId)
                     },
+                    antallDagerPerMeldeperiode = Periodisering(
+                        innvilgelse.antallDagerPerMeldeperiodeForPerioder.map {
+                            PeriodeMedVerdi(AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode), it.periode.toDomain())
+                        },
+                    ),
                 )
             }
 

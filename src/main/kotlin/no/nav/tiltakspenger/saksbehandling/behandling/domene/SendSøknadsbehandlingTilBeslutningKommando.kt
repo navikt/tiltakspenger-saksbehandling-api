@@ -21,7 +21,7 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
     val behandlingsperiode: Periode,
     val barnetillegg: Barnetillegg?,
     val tiltaksdeltakelser: List<Pair<Periode, String>>,
-    val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode>,
+    val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode>?,
     val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
     val resultat: SøknadsbehandlingType,
 ) {

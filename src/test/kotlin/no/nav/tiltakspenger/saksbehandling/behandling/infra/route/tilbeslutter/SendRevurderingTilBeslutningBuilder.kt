@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter
 
+import arrow.core.Nel
 import arrow.core.Tuple4
+import arrow.core.nonEmptyListOf
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
@@ -17,7 +19,9 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.april
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -54,7 +58,7 @@ interface SendRevurderingTilBeslutningBuilder {
                 behandlingId,
                 saksbehandler,
                 stansperiode = søknad.vurderingsperiode(),
-                valgteHjemler = listOf("Alder"),
+                valgteHjemler = nonEmptyListOf("Alder"),
             ),
         )
     }
@@ -96,7 +100,7 @@ interface SendRevurderingTilBeslutningBuilder {
         fritekstTilVedtaksbrev: String = "fritekst",
         begrunnelseVilkårsvurdering: String = "begrunnelse",
         stansperiode: Periode,
-        valgteHjemler: List<String>,
+        valgteHjemler: Nel<String>,
     ): String {
         defaultRequest(
             HttpMethod.Companion.Post,
@@ -147,6 +151,10 @@ interface SendRevurderingTilBeslutningBuilder {
         begrunnelseVilkårsvurdering: String = "begrunnelse",
         eksternDeltagelseId: String = "TA12345",
         innvilgelsesperiode: Periode,
+        antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
+            AntallDagerForMeldeperiode.default,
+            innvilgelsesperiode,
+        ),
     ): String {
         defaultRequest(
             HttpMethod.Companion.Post,
@@ -177,6 +185,15 @@ interface SendRevurderingTilBeslutningBuilder {
                                     "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
                                 }
                             }
+                        ],
+                        "antallDagerPerMeldeperiodeForPerioder": [
+                          {
+                            "antallDagerPerMeldeperiode": 10,
+                            "periode": {
+                              "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
+                              "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
+                            }
+                          }
                         ]
                     }
                 }

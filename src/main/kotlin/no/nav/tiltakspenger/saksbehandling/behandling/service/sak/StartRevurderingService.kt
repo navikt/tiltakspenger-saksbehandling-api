@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.sak
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
@@ -25,24 +25,24 @@ class StartRevurderingService(
 
     suspend fun startRevurdering(
         kommando: StartRevurderingKommando,
-    ): Pair<Sak, Behandling> {
+    ): Pair<Sak, Revurdering> {
         val (sakId, correlationId, saksbehandler) = kommando
 
         // Denne sjekker tilgang til person og at saksbehandler har rollen SAKSBEHANDLER eller BESLUTTER.
         val sak = sakService.sjekkTilgangOgHentForSakId(sakId, saksbehandler, correlationId)
 
-        val (oppdatertSak, behandling) = sak.startRevurdering(
+        val (oppdatertSak, revurdering) = sak.startRevurdering(
             kommando = kommando,
             clock = clock,
             hentSaksopplysninger = saksopplysningerService::hentSaksopplysningerFraRegistre,
         )
 
-        val statistikk = statistikkSakService.genererStatistikkForRevurdering(behandling)
+        val statistikk = statistikkSakService.genererStatistikkForRevurdering(revurdering)
 
         sessionFactory.withTransactionContext { tx ->
-            behandlingRepo.lagre(behandling, tx)
+            behandlingRepo.lagre(revurdering, tx)
             statistikkSakRepo.lagre(statistikk, tx)
         }
-        return Pair(oppdatertSak, behandling)
+        return Pair(oppdatertSak, revurdering)
     }
 }

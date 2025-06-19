@@ -1,6 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.Nel
+import arrow.core.NonEmptyList
 import arrow.core.NonEmptySet
+import arrow.core.nonEmptyListOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -101,7 +104,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         stansDato: LocalDate,
         sisteDagSomGirRett: LocalDate,
         kommando: RevurderingStansTilBeslutningKommando = RevurderingStansTilBeslutningKommando(
@@ -145,7 +148,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: Nel<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         attestering: Attestering = godkjentAttestering(beslutter),
         stansDato: LocalDate,
         sisteDagSomGirRett: LocalDate,
