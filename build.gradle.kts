@@ -78,7 +78,7 @@ dependencies {
     api("com.auth0:jwks-rsa:0.22.1")
 
     // DB
-    implementation("org.flywaydb:flyway-database-postgresql:11.9.1")
+    implementation("org.flywaydb:flyway-database-postgresql:11.9.2")
     implementation("com.zaxxer:HikariCP:6.3.0")
     implementation("org.postgresql:postgresql:42.7.7")
     implementation("com.github.seratch:kotliquery:1.9.1")
