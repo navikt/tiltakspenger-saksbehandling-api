@@ -14,7 +14,7 @@ data class AntallDagerDbJson(
 )
 
 fun Periodisering<AntallDagerForMeldeperiode>.toDbJson(): String {
-    return this.map {
+    return this.perioderMedVerdi.map {
         AntallDagerDbJson(
             antallDagerPerMeldeperiode = it.verdi.value,
             periode = it.periode.toDbJson(),
