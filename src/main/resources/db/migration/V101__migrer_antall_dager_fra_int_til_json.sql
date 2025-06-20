@@ -6,8 +6,8 @@ SET antall_dager_per_meldeperiode_json =
                 jsonb_build_object(
                         'antallDagerPerMeldeperiode', antall_dager_per_meldeperiode::int,
                         'periode', jsonb_build_object(
-                                'fra_og_med', virkningsperiode_fra_og_med,
-                                'til_og_med', virkningsperiode_til_og_med
+                                'fraOgMed', virkningsperiode_fra_og_med,
+                                'tilOgMed', virkningsperiode_til_og_med
                                    )
                 )
         )
