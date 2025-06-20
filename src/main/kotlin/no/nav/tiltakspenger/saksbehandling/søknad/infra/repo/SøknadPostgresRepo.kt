@@ -59,4 +59,13 @@ internal class SøknadPostgresRepo(
             )
         }
     }
+
+    override fun hentAlleUbehandledeSoknader(limit: Int): List<Søknad> {
+        return sessionFactory.withTransaction {
+            SøknadDAO.hentAlleUbehandledeSoknader(
+                limit = limit,
+                session = it,
+            )
+        }
+    }
 }

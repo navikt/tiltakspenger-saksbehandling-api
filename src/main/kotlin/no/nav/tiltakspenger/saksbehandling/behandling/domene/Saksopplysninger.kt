@@ -18,4 +18,13 @@ data class Saksopplysninger(
 ) {
     fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? =
         tiltaksdeltagelse.find { it.eksternDeltagelseId == eksternDeltagelseId }
+
+    fun harOverlappendeTiltaksdeltakelse(eksternDeltakelseId: String, tiltaksperiode: Periode): Boolean =
+        tiltaksdeltagelse.any {
+            it.eksternDeltagelseId != eksternDeltakelseId &&
+                it.overlapperMedPeriode(tiltaksperiode)
+        }
+
+    fun harAndreYtelser(): Boolean =
+        ytelser.isNotEmpty()
 }

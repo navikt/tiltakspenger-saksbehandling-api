@@ -1,25 +1,17 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
-import arrow.core.Either
-import arrow.core.getOrElse
-import arrow.core.left
-import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeStarteSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import java.time.Clock
 
 class StartSøknadsbehandlingService(
@@ -34,49 +26,39 @@ class StartSøknadsbehandlingService(
 
     val logger = KotlinLogging.logger {}
 
-    suspend fun startSøknadsbehandling(
-        søknadId: SøknadId,
-        sakId: SakId,
-        saksbehandler: Saksbehandler,
+    suspend fun opprettAutomatiskSoknadsbehandling(
+        soknad: Søknad,
         correlationId: CorrelationId,
-    ): Either<KanIkkeStarteSøknadsbehandling, Søknadsbehandling> {
-        krevSaksbehandlerRolle(saksbehandler)
-        // Denne sjekker tilgang til person og rollene SAKSBEHANDLER eller BESLUTTER.
-        val sak = sakService.sjekkTilgangOgHentForSakId(sakId, saksbehandler, correlationId)
-
+    ): Søknadsbehandling {
         val hentSaksopplysninger: suspend (Periode) -> Saksopplysninger = { saksopplysningsperiode: Periode ->
             oppdaterSaksopplysningerService.hentSaksopplysningerFraRegistre(
-                fnr = sak.fnr,
+                fnr = soknad.fnr,
                 correlationId = correlationId,
                 saksopplysningsperiode = saksopplysningsperiode,
             )
         }
-        val behandling = Søknadsbehandling.opprett(
-            sakId = sakId,
-            saksnummer = sak.saksnummer,
-            fnr = sak.fnr,
-            søknad = sak.soknader.single { it.id == søknadId },
-            saksbehandler = saksbehandler,
+        val behandling = Søknadsbehandling.opprettAutomatiskBehandling(
+            søknad = soknad,
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,
-        ).getOrElse { return KanIkkeStarteSøknadsbehandling.OppretteBehandling(it).left() }
+        )
 
         val statistikk = statistikkSakService.genererStatistikkForSøknadsbehandling(
             behandling = behandling,
-            søknadId = søknadId,
+            søknadId = soknad.id,
         )
 
         sessionFactory.withTransactionContext { tx ->
             behandlingRepo.lagre(behandling, tx)
             statistikkSakRepo.lagre(statistikk, tx)
             sakService.oppdaterSkalSendesTilMeldekortApi(
-                sakId = sakId,
+                sakId = soknad.sakId,
                 skalSendesTilMeldekortApi = true,
                 sessionContext = tx,
             )
         }
 
         MetricRegister.STARTET_BEHANDLING.inc()
-        return behandling.right()
+        return behandling
     }
 }

@@ -2,18 +2,20 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 
-// TODO: Bruk ny enumtype for grunnene
 data class ManueltBehandlesGrunnerDbJson(
     val manueltBehandlesGrunner: List<String>,
 )
 
-fun String.toManueltBehandlesGrunner(): List<String> =
-    deserialize<ManueltBehandlesGrunnerDbJson>(this).manueltBehandlesGrunner
+fun String.toManueltBehandlesGrunner(): List<ManueltBehandlesGrunn> =
+    deserialize<ManueltBehandlesGrunnerDbJson>(this)
+        .manueltBehandlesGrunner
+        .map { ManueltBehandlesGrunn.valueOf(it) }
 
-fun List<String>.toDbJson(): String =
+fun List<ManueltBehandlesGrunn>.toDbJson(): String =
     serialize(
         ManueltBehandlesGrunnerDbJson(
-            manueltBehandlesGrunner = this,
+            manueltBehandlesGrunner = this.map { it.name },
         ),
     )

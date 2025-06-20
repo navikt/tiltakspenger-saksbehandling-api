@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartS�
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.distribuering.DistribuerVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.journalføring.JournalførRammevedtakService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -90,6 +91,15 @@ open class BehandlingOgVedtakContext(
             oppdaterSaksopplysningerService = oppdaterSaksopplysningerService,
             clock = clock,
             statistikkSakService = statistikkSakService,
+        )
+    }
+    val delautomatiskBehandlingService: DelautomatiskBehandlingService by lazy {
+        DelautomatiskBehandlingService(
+            behandlingRepo = behandlingRepo,
+            statistikkSakService = statistikkSakService,
+            statistikkSakRepo = statistikkSakRepo,
+            sessionFactory = sessionFactory,
+            clock = clock,
         )
     }
     val behandleSøknadPåNyttService: BehandleSøknadPåNyttService by lazy {

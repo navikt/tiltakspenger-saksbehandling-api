@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.AvbrytSøknadOgBehandlingContext
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskSoknadsbehandlingJobb
 import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkOversiktContext
 import no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient
@@ -214,6 +215,14 @@ open class ApplicationContext(
         )
     }
 
+    open val delautomatiskSoknadsbehandlingJobb by lazy {
+        DelautomatiskSoknadsbehandlingJobb(
+            søknadRepo = søknadContext.søknadRepo,
+            startSøknadsbehandlingService = behandlingContext.startSøknadsbehandlingService,
+            delautomatiskBehandlingService = behandlingContext.delautomatiskBehandlingService,
+        )
+    }
+
     open val personContext by lazy { PersonContext(sessionFactory, entraIdSystemtokenClient) }
     open val dokumentContext by lazy { DokumentContext(entraIdSystemtokenClient) }
     open val statistikkContext by lazy {
@@ -224,7 +233,7 @@ open class ApplicationContext(
             clock,
         )
     }
-    open val søknadContext by lazy { SøknadContext(sessionFactory, oppgaveKlient, sakContext.sakService) }
+    open val søknadContext by lazy { SøknadContext(sessionFactory, sakContext.sakService) }
     open val tiltakContext by lazy { TiltaksdeltagelseContext(entraIdSystemtokenClient) }
     open val profile by lazy { Configuration.applicationProfile() }
     open val sakContext by lazy {

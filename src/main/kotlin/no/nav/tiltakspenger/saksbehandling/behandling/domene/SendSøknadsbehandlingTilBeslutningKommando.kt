@@ -23,6 +23,7 @@ data class SendSøknadsbehandlingTilBeslutningKommando(
     val antallDagerPerMeldeperiode: Int,
     val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
     val resultat: SøknadsbehandlingType,
+    val automatiskSaksbehandlet: Boolean = false,
 ) {
     fun valgteTiltaksdeltakelser(behandling: Behandling): ValgteTiltaksdeltakelser {
         return ValgteTiltaksdeltakelser.periodiser(

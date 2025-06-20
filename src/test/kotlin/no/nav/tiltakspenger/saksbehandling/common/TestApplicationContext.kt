@@ -87,10 +87,10 @@ class TestApplicationContext(
     private val meldeperiodeFakeRepo = MeldeperiodeFakeRepo()
     private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
     private val utbetalingsvedtakFakeRepo = UtbetalingsvedtakFakeRepo()
-    private val søknadFakeRepo = SøknadFakeRepo()
+    private val behandlingFakeRepo = BehandlingFakeRepo()
+    private val søknadFakeRepo = SøknadFakeRepo(behandlingFakeRepo)
     private val tiltaksdeltagelseFakeKlient = TiltaksdeltagelseFakeKlient(søknadRepo = søknadFakeRepo)
     private val sokosUtbetaldataFakeClient = SokosUtbetaldataFakeClient()
-    private val behandlingFakeRepo = BehandlingFakeRepo()
     private val personFakeKlient = PersonFakeKlient(clock)
     private val tilgangsstyringFakeKlient = TilgangsstyringFakeKlient()
     private val genererFakeVedtaksbrevForUtbetalingKlient = GenererFakeVedtaksbrevForUtbetalingKlient()
@@ -178,7 +178,7 @@ class TestApplicationContext(
     }
 
     override val søknadContext by lazy {
-        object : SøknadContext(sessionFactory, oppgaveKlient, sakContext.sakService) {
+        object : SøknadContext(sessionFactory, sakContext.sakService) {
             override val søknadRepo = søknadFakeRepo
         }
     }

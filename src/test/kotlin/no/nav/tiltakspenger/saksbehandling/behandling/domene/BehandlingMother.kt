@@ -196,6 +196,28 @@ interface BehandlingMother : MotherOfAllMothers {
         }
     }
 
+    fun nyOpprettetAutomatiskSøknadsbehandling(
+        id: BehandlingId = BehandlingId.random(),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        fnr: Fnr = Fnr.random(),
+        søknad: Søknad = nySøknad(),
+        hentSaksopplysninger: (Periode) -> Saksopplysninger = {
+            saksopplysninger(
+                fom = it.fraOgMed,
+                tom = it.tilOgMed,
+            )
+        },
+    ): Søknadsbehandling {
+        return runBlocking {
+            Søknadsbehandling.opprettAutomatiskBehandling(
+                søknad = søknad,
+                hentSaksopplysninger = hentSaksopplysninger,
+                clock = clock,
+            )
+        }
+    }
+
     fun nySøknadsbehandlingKlarTilBeslutning(
         id: BehandlingId = BehandlingId.random(),
         sakId: SakId = SakId.random(),
@@ -427,7 +449,7 @@ interface BehandlingMother : MotherOfAllMothers {
     }
 }
 
-suspend fun TestApplicationContext.nySøknad(
+fun TestApplicationContext.nySøknad(
     periode: Periode = ObjectMother.virkningsperiode(),
     fnr: Fnr = Fnr.random(),
     fornavn: String = "Fornavn",
@@ -519,14 +541,19 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
         tiltaksdeltagelse = tiltaksdeltagelse,
         sak = sak,
     )
+    val behandling = this.behandlingContext.startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(
+        søknad,
+        correlationId = correlationId,
+    )
+    val behandlingUnderBehandling = behandling.copy(
+        status = Behandlingsstatus.UNDER_BEHANDLING,
+        saksbehandler = saksbehandler.navIdent,
+    ).also {
+        this.behandlingContext.behandlingRepo.lagre(it)
+    }
     return sak.copy(
         behandlinger = Behandlinger(
-            sak.behandlinger.behandlinger + this.behandlingContext.startSøknadsbehandlingService.startSøknadsbehandling(
-                søknad.id,
-                sak.id,
-                saksbehandler,
-                correlationId = correlationId,
-            ).getOrFail(),
+            sak.behandlinger.behandlinger + behandlingUnderBehandling,
         ),
     )
 }
@@ -545,13 +572,12 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     val sakMedSøknadsbehandling = startSøknadsbehandling(
         periode = periode,
         fnr = fnr,
-        saksbehandler = saksbehandler,
     )
-
+    val behandling = sakMedSøknadsbehandling.behandlinger.singleOrNullOrThrow()!! as Søknadsbehandling
     this.behandlingContext.sendBehandlingTilBeslutningService.sendSøknadsbehandlingTilBeslutning(
         SendSøknadsbehandlingTilBeslutningKommando(
             sakId = sakMedSøknadsbehandling.id,
-            behandlingId = sakMedSøknadsbehandling.behandlinger.singleOrNullOrThrow()!!.id,
+            behandlingId = behandling.id,
             saksbehandler = saksbehandler,
             correlationId = correlationId,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
@@ -561,7 +587,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
             tiltaksdeltakelser = listOf(
                 Pair(
                     periode,
-                    sakMedSøknadsbehandling.behandlinger.singleOrNullOrThrow()!!.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
+                    behandling.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
                 ),
             ),
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
