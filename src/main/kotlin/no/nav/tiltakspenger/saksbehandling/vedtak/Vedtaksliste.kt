@@ -35,6 +35,10 @@ data class Vedtaksliste(
         }.toTidslinjeMedHull()
     }
 
+    val harHull: Boolean by lazy {
+        !tidslinje.none { it.verdi == null }
+    }
+
     val innvilgelsesperiode: Periode? by lazy {
         innvilgelsesperioder.ifEmpty { null }
             ?.let { perioder ->
@@ -53,8 +57,6 @@ data class Vedtaksliste(
     val innvilgetTidslinje: Periodisering<Rammevedtak?> by lazy {
         tidslinje.filter { verdi, _ -> verdi?.vedtaksType == Vedtakstype.INNVILGELSE }
     }
-
-    val antallInnvilgelsesperioder: Int by lazy { innvilgelsesperioder.size }
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
     val førsteDagSomGirRett: LocalDate? by lazy {

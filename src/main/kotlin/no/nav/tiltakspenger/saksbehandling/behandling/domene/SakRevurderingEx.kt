@@ -47,8 +47,8 @@ private suspend fun Sak.startStans(
     clock: Clock,
 ): Revurdering {
     // TODO abn: hva (om noe) må vi fikse for å kunne fjerne denne restriksjonen?
-    require(this.vedtaksliste.antallInnvilgelsesperioder == 1) {
-        "Kan kun opprette en stans-revurdering dersom vi har en sammenhengende innvilgelsesperiode. sakId=${this.id}"
+    require(!this.vedtaksliste.harHull) {
+        "Kan ikke opprette stans-revurdering dersom vi har hull i vedtaksperiodene. sakId=${this.id}"
     }
 
     val saksopplysningsperiode = this.vedtaksliste.innvilgelsesperiode!!
