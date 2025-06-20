@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.ports
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saker
@@ -32,8 +31,6 @@ interface SakRepo {
         sakId: SakId,
         sessionContext: SessionContext? = null,
     ): Fnr?
-
-    fun hentForSøknadId(søknadId: SøknadId): Sak?
 
     fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr)
 
