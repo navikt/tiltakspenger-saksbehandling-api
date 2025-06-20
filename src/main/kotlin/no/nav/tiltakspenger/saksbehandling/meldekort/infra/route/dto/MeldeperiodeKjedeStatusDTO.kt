@@ -48,7 +48,7 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock)
         meldeperiode.erKlarTilUtfylling(clock) && (forrigeKjede == null || forrigeBehandling?.erAvsluttet == true)
 
     return when {
-        meldeperiode.helePeriodenErSperret() -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
+        meldeperiode.girIngenDagerRett() -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
         kanBehandles -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
         else -> MeldeperiodeKjedeStatusDTO.IKKE_KLAR_TIL_BEHANDLING
     }

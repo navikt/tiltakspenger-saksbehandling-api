@@ -7,11 +7,13 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePå
 import java.time.LocalDate
 
 /**
- * Når en bruker er på tiltak kan hen være 1-14 av 14 dager på tiltak. Dvs. minst 2 dager per uke må være Sperret eller IkkeDeltatt.
+ * Beregning av en enkelt dag i en meldeperiode.
+ * Merk at en dag i meldeperiode kan være på utsiden av et innvilgelsesvedtak, eller dagen kan ha vært innvilget og senere stanset.
+ * Da bruker vi statusen IKKE_RETT_TIL_TILTAKSPENGER
  *
- * Vi vet at det på et tidspunkt kommer til å være mulig å fylle ut en meldekortdag for flere enn ett tiltak. Da vil man kunne rename Meldekortdag til MeldekortdagForTiltak og wrappe den i en Meldekortdag(List<MeldekortdagForTiltak>)
+ * Vi vet at det på et tidspunkt kommer til å være mulig å fylle ut en meldekortdag for flere enn ett tiltak.
+ * Da vil man kunne rename Meldekortdag til MeldekortdagForTiltak og wrappe den i en Meldekortdag(List<MeldekortdagForTiltak>)
  */
-
 sealed interface MeldeperiodeBeregningDag {
     val dato: LocalDate
     val reduksjon: ReduksjonAvYtelsePåGrunnAvFravær
@@ -22,7 +24,7 @@ sealed interface MeldeperiodeBeregningDag {
     val beløpBarnetillegg: Int get() = beregningsdag?.beløpBarnetillegg ?: 0
     val prosent: Int get() = beregningsdag?.prosent ?: 0
 
-    /** Begrenses av maksDagerMedTiltakspengerForPeriode (1-14) per meldeperiode og SPERRET. */
+    /** Begrenses av maksDagerMedTiltakspengerForPeriode (1-14) per meldeperiode og IKKE_RETT_TIL_TILTAKSPENGER. */
     val harDeltattEllerFravær: Boolean
 
     sealed interface Deltatt : MeldeperiodeBeregningDag {
@@ -257,7 +259,7 @@ sealed interface MeldeperiodeBeregningDag {
      * 1. Siste del av siste meldekort i en sak.
      * 1. Andre dager bruker ikke får melde pga. vilkårsvurderingen. Delvis innvilget. Dette vil ikke gjelde MVP.
      */
-    data class Sperret(override val dato: LocalDate) : MeldeperiodeBeregningDag {
+    data class IkkeRettTilTiltakspenger(override val dato: LocalDate) : MeldeperiodeBeregningDag {
         override val tiltakstype = null
         override val reduksjon = YtelsenFallerBort
         override val harDeltattEllerFravær = false

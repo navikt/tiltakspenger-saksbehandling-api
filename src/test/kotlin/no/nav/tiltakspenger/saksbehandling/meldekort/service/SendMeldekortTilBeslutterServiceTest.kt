@@ -16,8 +16,8 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager.Dag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_DELTATT
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.SPERRET
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
@@ -37,7 +37,7 @@ internal class SendMeldekortTilBeslutterServiceTest {
                     dager = nonEmptyListOf(
                         Dag(
                             dag = ikkeUtfyltMeldekort.fraOgMed,
-                            status = SPERRET,
+                            status = IKKE_RETT_TIL_TILTAKSPENGER,
                         ),
                     ),
                 )
@@ -72,20 +72,20 @@ internal class SendMeldekortTilBeslutterServiceTest {
                 val dager = OppdaterMeldekortKommando.Dager(
                     dager = dager(
                         førsteDag,
-                        SPERRET,
-                        SPERRET,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
-                        IKKE_DELTATT,
-                        IKKE_DELTATT,
+                        IKKE_TILTAKSDAG,
+                        IKKE_TILTAKSDAG,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
-                        IKKE_DELTATT,
+                        IKKE_TILTAKSDAG,
                     ),
                 )
                 shouldThrow<IllegalArgumentException> {
@@ -119,21 +119,21 @@ internal class SendMeldekortTilBeslutterServiceTest {
                 val dager = OppdaterMeldekortKommando.Dager(
                     dager = dager(
                         førsteDag,
-                        SPERRET,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
-                        IKKE_DELTATT,
-                        IKKE_DELTATT,
+                        IKKE_TILTAKSDAG,
+                        IKKE_TILTAKSDAG,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
-                        IKKE_DELTATT,
-                        IKKE_DELTATT,
-                        SPERRET,
+                        IKKE_TILTAKSDAG,
+                        IKKE_TILTAKSDAG,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
                     ),
                 )
                 shouldThrow<IllegalArgumentException> {
@@ -153,7 +153,7 @@ internal class SendMeldekortTilBeslutterServiceTest {
     }
 
     @Test
-    fun `Kan ikke sende sperret på en ikke-sperret dag`() {
+    fun `Kan ikke sende IKKE_RETT_TIL_TILTAKSPENGER på en innvilget dag`() {
         val correlationId = CorrelationId.generate()
         runTest {
             with(TestApplicationContext()) {
@@ -167,20 +167,20 @@ internal class SendMeldekortTilBeslutterServiceTest {
                 val dager = OppdaterMeldekortKommando.Dager(
                     dager = dager(
                         førsteDag,
-                        SPERRET,
-                        SPERRET,
-                        SPERRET,
-                        SPERRET,
-                        SPERRET,
-                        SPERRET,
-                        SPERRET,
-                        SPERRET,
-                        SPERRET,
-                        SPERRET,
-                        SPERRET,
-                        SPERRET,
-                        SPERRET,
-                        SPERRET,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
+                        IKKE_RETT_TIL_TILTAKSPENGER,
                     ),
                 )
                 shouldThrow<IllegalArgumentException> {
@@ -194,13 +194,13 @@ internal class SendMeldekortTilBeslutterServiceTest {
                             begrunnelse = null,
                         ),
                     )
-                }.message shouldContain "Kan ikke endre dag til sperret"
+                }.message shouldContain "Kan ikke endre dag til IKKE_RETT_TIL_TILTAKSPENGER"
             }
         }
     }
 
     @Test
-    fun `Må sende sperret på en sperret dag`() {
+    fun `Må sende IKKE_RETT_TIL_TILTAKSPENGER på en ikke-innvilget dag`() {
         val correlationId = CorrelationId.generate()
         runTest {
             with(TestApplicationContext()) {
@@ -225,10 +225,10 @@ internal class SendMeldekortTilBeslutterServiceTest {
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         DELTATT_UTEN_LØNN_I_TILTAKET,
-                        IKKE_DELTATT,
-                        IKKE_DELTATT,
-                        IKKE_DELTATT,
-                        IKKE_DELTATT,
+                        IKKE_TILTAKSDAG,
+                        IKKE_TILTAKSDAG,
+                        IKKE_TILTAKSDAG,
+                        IKKE_TILTAKSDAG,
                     ),
                 )
                 shouldThrow<IllegalArgumentException> {
@@ -242,13 +242,13 @@ internal class SendMeldekortTilBeslutterServiceTest {
                             begrunnelse = null,
                         ),
                     )
-                }.message.shouldContain("Kan ikke endre dag fra sperret.")
+                }.message.shouldContain("Kan ikke endre dag fra IKKE_RETT_TIL_TILTAKSPENGER.")
             }
         }
     }
 
     @Test
-    fun `Sperret matcher 1 - 1`() {
+    fun `IKKE_RETT_TIL_TILTAKSPENGER matcher 1 - 1`() {
         val correlationId = CorrelationId.generate()
         runTest {
             with(TestApplicationContext()) {
@@ -268,20 +268,20 @@ internal class SendMeldekortTilBeslutterServiceTest {
                         dager = OppdaterMeldekortKommando.Dager(
                             dager = dager(
                                 førsteDag,
-                                SPERRET,
+                                IKKE_RETT_TIL_TILTAKSPENGER,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
-                                IKKE_DELTATT,
-                                IKKE_DELTATT,
+                                IKKE_TILTAKSDAG,
+                                IKKE_TILTAKSDAG,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
                                 DELTATT_UTEN_LØNN_I_TILTAKET,
-                                IKKE_DELTATT,
-                                IKKE_DELTATT,
+                                IKKE_TILTAKSDAG,
+                                IKKE_TILTAKSDAG,
                             ),
                         ),
                         begrunnelse = null,

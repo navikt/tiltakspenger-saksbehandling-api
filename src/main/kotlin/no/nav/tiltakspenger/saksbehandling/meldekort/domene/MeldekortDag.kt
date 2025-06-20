@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregnin
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeBesvart
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeDeltatt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Sperret
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
 import java.time.LocalDate
 
 data class MeldekortDag(
@@ -26,8 +26,8 @@ data class MeldekortDag(
         -> true
 
         MeldekortDagStatus.IKKE_BESVART,
-        MeldekortDagStatus.IKKE_DELTATT,
-        MeldekortDagStatus.SPERRET,
+        MeldekortDagStatus.IKKE_TILTAKSDAG,
+        MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER,
         -> false
     }
 }
@@ -40,14 +40,14 @@ enum class MeldekortDagStatus {
     FRAVÆR_GODKJENT_AV_NAV,
     FRAVÆR_ANNET,
 
-    /** Kun et valg for bruker; ikke saksbehandler. Bruker har ikke tatt stilling til denne dagen. Het tidligere IKKE_REGISTRERT og IKKE_UFYLT. */
+    /** Kun et "valg" for bruker; ikke saksbehandler. Bruker har ikke tatt stilling til denne dagen. Het tidligere IKKE_REGISTRERT og IKKE_UFYLT. */
     IKKE_BESVART,
 
-    /** Kun et valg for saksbehandler. Sammenfallende med 'ikke tiltaksdag' */
-    IKKE_DELTATT,
+    /** Kun et valg for saksbehandler. Het tidligere IKKE_DELTATT */
+    IKKE_TILTAKSDAG,
 
-    // TODO jah: Bør endre navn til IKKE_RETT_TIL_TILTAKSPENGER
-    SPERRET,
+    /** Enten har bruker aldri fått innvilget denne dagen, eller så har den senere blitt stanset. */
+    IKKE_RETT_TIL_TILTAKSPENGER,
 }
 
 fun MeldeperiodeBeregningDag.tilMeldekortDagStatus(): MeldekortDagStatus =
@@ -59,6 +59,6 @@ fun MeldeperiodeBeregningDag.tilMeldekortDagStatus(): MeldekortDagStatus =
         is FraværGodkjentAvNav -> MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV
         is FraværAnnet -> MeldekortDagStatus.FRAVÆR_ANNET
         is IkkeBesvart -> MeldekortDagStatus.IKKE_BESVART
-        is IkkeDeltatt -> MeldekortDagStatus.IKKE_DELTATT
-        is Sperret -> MeldekortDagStatus.SPERRET
+        is IkkeDeltatt -> MeldekortDagStatus.IKKE_TILTAKSDAG
+        is IkkeRettTilTiltakspenger -> MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
     }

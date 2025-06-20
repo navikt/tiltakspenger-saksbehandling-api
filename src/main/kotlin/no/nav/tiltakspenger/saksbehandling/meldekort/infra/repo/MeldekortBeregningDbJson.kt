@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregnin
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeDeltatt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Sperret
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toDb
@@ -97,13 +97,13 @@ private data class MeldeperiodeBeregningDagDbJson(
                 parsedBeregningsdag!!,
             )
 
-            MeldekortstatusDb.IKKE_DELTATT -> IkkeDeltatt.fromDb(
+            MeldekortstatusDb.IKKE_TILTAKSDAG -> IkkeDeltatt.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
             )
 
-            MeldekortstatusDb.SPERRET -> Sperret(parsedDato)
+            MeldekortstatusDb.IKKE_RETT_TIL_TILTAKSPENGER -> IkkeRettTilTiltakspenger(parsedDato)
         }
     }
 }
@@ -139,8 +139,8 @@ private fun List<MeldeperiodeBeregningDag>.toDbJson() = this.map { meldekortdag 
             is FraværGodkjentAvNav -> MeldekortstatusDb.FRAVÆR_GODKJENT_AV_NAV
             is FraværAnnet -> MeldekortstatusDb.FRAVÆR_ANNET
             is MeldeperiodeBeregningDag.IkkeBesvart -> MeldekortstatusDb.IKKE_BESVART
-            is IkkeDeltatt -> MeldekortstatusDb.IKKE_DELTATT
-            is Sperret -> MeldekortstatusDb.SPERRET
+            is IkkeDeltatt -> MeldekortstatusDb.IKKE_TILTAKSDAG
+            is IkkeRettTilTiltakspenger -> MeldekortstatusDb.IKKE_RETT_TIL_TILTAKSPENGER
         },
     )
 }

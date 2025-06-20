@@ -93,38 +93,59 @@ class ForhåndsvisVedtaksbrevService(
                         ifRight = { it.pdf },
                     )
 
-                    RevurderingType.INNVILGELSE,
-                    RevurderingType.STANS,
-                    -> throw IllegalArgumentException("$resultat er ikke gyldig resultat for søknadsbehandling")
+                    is RevurderingType -> throw IllegalArgumentException("$resultat er ikke gyldig resultat for søknadsbehandling")
                 }
             }
 
             is Revurdering -> {
-                sak.validerStansDato(kommando.stansDato)
-                val stansePeriode = kommando.stansDato?.let { stansDato ->
-                    sak.vedtaksliste.sisteDagSomGirRett?.let { sisteDagSomGirRett ->
-                        Periode(stansDato, sisteDagSomGirRett)
-                    }
-                }
+                when (resultat) {
+                    RevurderingType.STANS -> {
+                        sak.validerStansDato(kommando.stansDato)
+                        val stansePeriode = kommando.stansDato?.let { stansDato ->
+                            sak.vedtaksliste.sisteDagSomGirRett?.let { sisteDagSomGirRett ->
+                                Periode(stansDato, sisteDagSomGirRett)
+                            }
+                        }
 
-                genererStansbrevClient.genererStansvedtak(
-                    hentBrukersNavn = personService::hentNavn,
-                    hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-                    vedtaksdato = LocalDate.now(),
-                    fnr = sak.fnr,
-                    saksbehandlerNavIdent = behandling.saksbehandler!!,
-                    beslutterNavIdent = behandling.beslutter,
-                    virkningsperiode = stansePeriode!!,
-                    saksnummer = sak.saksnummer,
-                    sakId = sak.id,
-                    forhåndsvisning = true,
-                    barnetillegg = behandling.barnetillegg != null,
-                    valgtHjemmelHarIkkeRettighet = kommando.valgteHjemler,
-                    tilleggstekst = kommando.fritekstTilVedtaksbrev,
-                ).fold(
-                    ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
-                    ifRight = { it.pdf },
-                )
+                        genererStansbrevClient.genererStansvedtak(
+                            hentBrukersNavn = personService::hentNavn,
+                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                            vedtaksdato = LocalDate.now(),
+                            fnr = sak.fnr,
+                            saksbehandlerNavIdent = behandling.saksbehandler!!,
+                            beslutterNavIdent = behandling.beslutter,
+                            virkningsperiode = stansePeriode!!,
+                            saksnummer = sak.saksnummer,
+                            sakId = sak.id,
+                            forhåndsvisning = true,
+                            barnetillegg = behandling.barnetillegg != null,
+                            valgtHjemmelHarIkkeRettighet = kommando.valgteHjemler,
+                            tilleggstekst = kommando.fritekstTilVedtaksbrev,
+                        ).fold(
+                            ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
+                            ifRight = { it.pdf },
+                        )
+                    }
+
+                    RevurderingType.INNVILGELSE -> {
+                        genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrev(
+                            hentBrukersNavn = personService::hentNavn,
+                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                            fnr = sak.fnr,
+                            saksbehandlerNavIdent = behandling.saksbehandler!!,
+                            beslutterNavIdent = behandling.beslutter,
+                            vurderingsperiode = virkingsperiode!!,
+                            saksnummer = sak.saksnummer,
+                            sakId = sak.id,
+                            forhåndsvisning = true,
+                        ).fold(
+                            ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
+                            ifRight = { it.pdf },
+                        )
+                    }
+
+                    is SøknadsbehandlingType -> throw IllegalArgumentException("$resultat er ikke gyldig resultat for revurdering")
+                }
             }
         }
     }

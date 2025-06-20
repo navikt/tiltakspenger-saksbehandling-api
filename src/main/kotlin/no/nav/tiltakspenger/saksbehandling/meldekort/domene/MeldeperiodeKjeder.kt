@@ -107,7 +107,7 @@ data class MeldeperiodeKjeder(
         val kjede = hentMeldeperiodeKjedeForPeriode(meldeperiode.periode)
             ?: return run {
                 if (meldeperiode.ingenDagerGirRett) {
-                    // Det finnes ikke noen kjeder fra får, og meldeperioden gir heller ikke noen rett på de dagene. Så vi legger ikke til noe
+                    // Det finnes ikke noen kjeder fra får, og meldeperioden gir heller ikke noen rett til de dagene. Så vi legger ikke til noe
                     this to null
                 } else {
                     MeldeperiodeKjeder(

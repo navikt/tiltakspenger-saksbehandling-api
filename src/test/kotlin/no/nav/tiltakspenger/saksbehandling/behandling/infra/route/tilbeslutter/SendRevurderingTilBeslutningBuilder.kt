@@ -17,12 +17,15 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.april
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBegrunnelseForBehandlingId
@@ -150,6 +153,7 @@ interface SendRevurderingTilBeslutningBuilder {
         fritekstTilVedtaksbrev: String = "fritekst",
         begrunnelseVilkårsvurdering: String = "begrunnelse",
         eksternDeltagelseId: String = "TA12345",
+        barnetillegg: Barnetillegg? = null,
         innvilgelsesperiode: Periode,
         antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
             AntallDagerForMeldeperiode.default,
@@ -186,6 +190,7 @@ interface SendRevurderingTilBeslutningBuilder {
                                 }
                             }
                         ],
+                        "barnetillegg": ${if (barnetillegg == null) null else serialize(barnetillegg.toBarnetilleggDTO())},
                         "antallDagerPerMeldeperiodeForPerioder": [
                           {
                             "antallDagerPerMeldeperiode": 10,
