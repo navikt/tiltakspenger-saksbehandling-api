@@ -180,13 +180,8 @@ data class Revurdering(
             fnr: Fnr,
             saksbehandler: Saksbehandler,
             saksopplysninger: Saksopplysninger,
-            forrigeBehandling: Behandling,
             clock: Clock,
         ): Revurdering {
-            val forrigeUtfall = forrigeBehandling.resultat
-
-            require(forrigeUtfall is BehandlingResultat.Innvilgelse)
-
             return opprett(
                 sakId = sakId,
                 saksnummer = saksnummer,
