@@ -1,11 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 
 enum class MeldeperiodeKjedeStatusDTO {
+    AVVENTER_MELDEKORT,
     KLAR_TIL_BEHANDLING,
     UNDER_BEHANDLING,
     KLAR_TIL_BESLUTNING,
@@ -17,7 +19,7 @@ enum class MeldeperiodeKjedeStatusDTO {
     AVBRUTT,
 }
 
-fun Sak.toMeldeperiodeKjedeStatusDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeStatusDTO {
+fun Sak.toMeldeperiodeKjedeStatusDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock, brukersmeldekort: BrukersMeldekort?): MeldeperiodeKjedeStatusDTO {
     this.hentSisteMeldekortBehandlingForKjede(kjedeId)?.also {
         return when (it.status) {
             MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
@@ -49,7 +51,8 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock)
 
     return when {
         meldeperiode.girIngenDagerRett() -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
-        kanBehandles -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
+        brukersmeldekort != null -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
+        kanBehandles -> MeldeperiodeKjedeStatusDTO.AVVENTER_MELDEKORT
         else -> MeldeperiodeKjedeStatusDTO.IKKE_KLAR_TIL_BEHANDLING
     }
 }
