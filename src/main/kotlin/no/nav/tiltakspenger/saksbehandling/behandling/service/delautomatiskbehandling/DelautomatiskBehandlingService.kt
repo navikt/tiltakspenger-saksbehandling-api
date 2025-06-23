@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
@@ -209,14 +210,20 @@ class DelautomatiskBehandlingService(
 
     private fun utledAntallDagerPerMeldeperiode(
         behandling: Søknadsbehandling,
-    ): Int {
+    ): Periodisering<AntallDagerForMeldeperiode> {
         val soknadstiltakFraSaksopplysning =
             behandling.saksopplysninger.getTiltaksdeltagelse(behandling.søknad.tiltak.id)
                 ?: throw IllegalStateException("Må ha tiltaksdeltakelse for å kunne behandle automatisk")
         return if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) {
-            (soknadstiltakFraSaksopplysning.antallDagerPerUke * 2).toInt()
+            Periodisering(
+                AntallDagerForMeldeperiode((soknadstiltakFraSaksopplysning.antallDagerPerUke * 2).toInt()),
+                behandling.søknad.vurderingsperiode(),
+            )
         } else {
-            10
+            Periodisering(
+                AntallDagerForMeldeperiode(10),
+                behandling.søknad.vurderingsperiode(),
+            )
         }
     }
 }

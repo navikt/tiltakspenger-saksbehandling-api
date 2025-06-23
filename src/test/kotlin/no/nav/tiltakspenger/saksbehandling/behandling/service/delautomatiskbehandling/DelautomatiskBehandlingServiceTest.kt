@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
@@ -52,7 +53,7 @@ class DelautomatiskBehandlingServiceTest {
                 oppdatertBehandling.automatiskSaksbehandlet shouldBe true
                 oppdatertBehandling.manueltBehandlesGrunner shouldBe emptyList()
 
-                oppdatertBehandling.antallDagerPerMeldeperiode shouldBe 10
+                oppdatertBehandling.antallDagerPerMeldeperiode shouldBe Periodisering(AntallDagerForMeldeperiode(10), soknad.vurderingsperiode())
                 oppdatertBehandling.resultat!!.instanceOf(BehandlingResultat.Innvilgelse::class) shouldBe true
                 oppdatertBehandling.virkningsperiode shouldBe soknad.vurderingsperiode()
                 oppdatertBehandling.barnetillegg shouldBe null
