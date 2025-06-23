@@ -4,4 +4,5 @@ enum class BehandlingssammendragType {
     SØKNADSBEHANDLING,
     REVURDERING,
     MELDEKORTBEHANDLING,
+    INNSENDT_MELDEKORT,
 }

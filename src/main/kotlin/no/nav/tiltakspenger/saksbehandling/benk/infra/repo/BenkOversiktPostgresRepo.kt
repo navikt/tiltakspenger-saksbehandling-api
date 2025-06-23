@@ -90,7 +90,7 @@ class BenkOversiktPostgresRepo(
                    s.fnr                 as fnr,
                    s.saksnummer          as saksnummer,
                    mbr.mottatt           as startet,
-                   'MELDEKORTBEHANDLING' as behandlingstype,
+                   'INNSENDT_MELDEKORT' as behandlingstype,
                    'KLAR_TIL_BEHANDLING' as status,
                    null                  as saksbehandler,
                    null                  as beslutter
@@ -136,7 +136,7 @@ class BenkOversiktPostgresRepo(
                     mapOf(
                         "limit" to 500,
                         "behandlingstype" to if (command.åpneBehandlingerFiltrering.behandlingstype == null) {
-                            arrayOf("SØKNADSBEHANDLING", "REVURDERING", "MELDEKORTBEHANDLING")
+                            arrayOf("INNSENDT_MELDEKORT", "SØKNADSBEHANDLING", "REVURDERING", "MELDEKORTBEHANDLING")
                         } else {
                             command.åpneBehandlingerFiltrering.behandlingstype.map { it.toString() }.toTypedArray()
                         },
@@ -193,12 +193,14 @@ private enum class BehandlingssammendragTypeDb {
     SØKNADSBEHANDLING,
     REVURDERING,
     MELDEKORTBEHANDLING,
+    INNSENDT_MELDEKORT,
     ;
 
     fun toDomain(): BehandlingssammendragType = when (this) {
         SØKNADSBEHANDLING -> BehandlingssammendragType.SØKNADSBEHANDLING
         REVURDERING -> BehandlingssammendragType.REVURDERING
         MELDEKORTBEHANDLING -> BehandlingssammendragType.MELDEKORTBEHANDLING
+        INNSENDT_MELDEKORT -> BehandlingssammendragType.INNSENDT_MELDEKORT
     }
 }
 

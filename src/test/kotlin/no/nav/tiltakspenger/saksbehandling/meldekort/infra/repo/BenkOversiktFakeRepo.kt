@@ -35,6 +35,7 @@ class BenkOversiktFakeRepo(
         BehandlingssammendragType.SØKNADSBEHANDLING -> Behandlingstype.SØKNADSBEHANDLING
         BehandlingssammendragType.REVURDERING -> Behandlingstype.REVURDERING
         BehandlingssammendragType.MELDEKORTBEHANDLING -> throw IllegalArgumentException("Meldekortbehanding er ikke en behandlingstype")
+        BehandlingssammendragType.INNSENDT_MELDEKORT -> throw IllegalArgumentException("Innsendt meldekort er ikke en behandlingstype")
     }
 
     private fun BehandlingssammendragStatus.toBehandlingsstatus(): Behandlingsstatus = when (this) {

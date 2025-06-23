@@ -224,7 +224,7 @@ class BenkOversiktPostgresRepoTest {
                     saksnummer = sakMedInnsendtBrukersMeldekort.saksnummer,
                     startet = brukersMeldekort.mottatt,
                     kravtidspunkt = null,
-                    behandlingstype = BehandlingssammendragType.MELDEKORTBEHANDLING,
+                    behandlingstype = BehandlingssammendragType.INNSENDT_MELDEKORT,
                     status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
                     saksbehandler = null,
                     beslutter = null,
