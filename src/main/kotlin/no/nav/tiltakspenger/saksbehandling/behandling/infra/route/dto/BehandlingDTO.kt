@@ -118,7 +118,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(): SøknadsbehandlingDTO {
         valgteTiltaksdeltakelser = null,
         avslagsgrunner = null,
         automatiskSaksbehandlet = this.automatiskSaksbehandlet,
-        manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.visningsnavn },
+        manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
     ).let {
         when (resultat) {
             is SøknadsbehandlingResultat.Innvilgelse -> it.copy(

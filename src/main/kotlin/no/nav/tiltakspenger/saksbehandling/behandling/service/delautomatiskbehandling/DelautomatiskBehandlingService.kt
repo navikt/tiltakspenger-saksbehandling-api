@@ -137,12 +137,16 @@ class DelautomatiskBehandlingService(
         if (behandlinger.any { !it.erAvsluttet && it.id != behandling.id }) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING)
         }
-        if (behandlingOverlapperMedAnnenBehandling(behandling, behandlinger)) {
-            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_BEHANDLING_FOR_SAMME_PERIODE)
+        if (behandlingOverlapperMedAnnetVedtak(behandling, behandlinger)) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_VEDTAK_FOR_SAMME_PERIODE)
         }
 
         if (behandling.søknad.harSoktMerEnn3ManederEtterOppstart()) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_HAR_SOKT_FOR_SENT)
+        }
+
+        if (behandling.søknad.erUnder18ISoknadsperioden(behandling.saksopplysninger.fødselsdato)) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_ER_UNDER_18_I_SOKNADSPERIODEN)
         }
 
         return manueltBehandlesGrunner
@@ -155,7 +159,7 @@ class DelautomatiskBehandlingService(
         tiltakFraSaksopplysning.deltagelseFraOgMed != tiltakFraSoknad.deltakelseFom ||
             tiltakFraSaksopplysning.deltagelseTilOgMed != tiltakFraSoknad.deltakelseTom
 
-    private fun behandlingOverlapperMedAnnenBehandling(
+    private fun behandlingOverlapperMedAnnetVedtak(
         behandling: Søknadsbehandling,
         behandlinger: List<Behandling>,
     ): Boolean {

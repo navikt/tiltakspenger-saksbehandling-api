@@ -273,6 +273,8 @@ sealed interface Behandling {
 
     /**
      * Sjekker om [utøvendeBeslutter] har BESLUTTER-rollen og at det er beslutteren som har saken.
+     * Hvis saken har blitt behandlet automatisk fjernes automatisk saksbehandler og flagget som sier at
+     * den har blitt behandlet automatisk ved underkjenning.
      */
     fun sendTilbakeTilBehandling(
         utøvendeBeslutter: Saksbehandler,
@@ -299,6 +301,7 @@ sealed interface Behandling {
                         } else {
                             saksbehandler
                         },
+                        automatiskSaksbehandlet = false,
                     )
 
                     is Revurdering -> this.copy(

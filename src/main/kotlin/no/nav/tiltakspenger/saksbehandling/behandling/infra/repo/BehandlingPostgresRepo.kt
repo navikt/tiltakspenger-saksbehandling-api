@@ -599,6 +599,30 @@ class BehandlingPostgresRepo(
             )
         }
     }
+
+    override fun hentAlleAutomatiskeSoknadsbehandlinger(limit: Int): List<Søknadsbehandling> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                queryOf(
+                    """
+                    select b.*,
+                    sak.saksnummer,
+                    sak.fnr
+                    from behandling b
+                    join sak on sak.id = b.sak_id
+                    where
+                      b.behandlingstype = 'SØKNADSBEHANDLING' and
+                      b.status = 'UNDER_AUTOMATISK_BEHANDLING'
+                    order by b.opprettet
+                    limit :limit
+                    """.trimIndent(),
+                    mapOf(
+                        "limit" to limit,
+                    ),
+                ).map { it.toBehandling(session) }.asList,
+            )
+        }.filterIsInstance<Søknadsbehandling>()
+    }
 }
 
 private fun Behandling.tilDbParams(): Map<String, Any?> {

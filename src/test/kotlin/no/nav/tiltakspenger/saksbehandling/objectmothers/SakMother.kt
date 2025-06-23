@@ -149,6 +149,58 @@ interface SakMother {
         ) to søknadsbehandling
     }
 
+    fun sakMedOpprettetAutomatiskBehandling(
+        sakId: SakId = SakId.random(),
+        fnr: Fnr = Fnr.random(),
+        iDag: LocalDate = LocalDate.of(2023, 1, 1),
+        løpenummer: Int = 1001,
+        saksnummer: Saksnummer = Saksnummer(
+            iDag,
+            løpenummer,
+        ),
+        virkningsperiode: Periode = Periode(fraOgMed = 1.januar(2023), tilOgMed = 31.januar(2023)),
+        fødselsdato: LocalDate = ObjectMother.fødselsdato(),
+        søknad: Søknad =
+            nySøknad(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                søknadstiltak =
+                søknadstiltak(
+                    deltakelseFom = virkningsperiode.fraOgMed,
+                    deltakelseTom = virkningsperiode.tilOgMed,
+                ),
+            ),
+        registrerteTiltak: List<Tiltaksdeltagelse> = listOf(søknad.tiltak.toTiltak()),
+        saksopplysninger: Saksopplysninger = Saksopplysninger(
+            fødselsdato = fødselsdato,
+            tiltaksdeltagelse = registrerteTiltak,
+            periode = søknad.saksopplysningsperiode(),
+            ytelser = emptyList(),
+        ),
+        clock: Clock = fixedClock,
+    ): Pair<Sak, Søknadsbehandling> {
+        val søknadsbehandling =
+            runBlocking {
+                Søknadsbehandling.opprettAutomatiskBehandling(
+                    søknad = søknad,
+                    hentSaksopplysninger = { saksopplysninger },
+                    clock = clock,
+                )
+            }
+        return Sak(
+            id = sakId,
+            fnr = fnr,
+            saksnummer = saksnummer,
+            behandlinger = Behandlinger(søknadsbehandling),
+            vedtaksliste = Vedtaksliste.empty(),
+            meldekortBehandlinger = MeldekortBehandlinger.empty(),
+            utbetalinger = Utbetalinger(emptyList()),
+            meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
+            brukersMeldekort = emptyList(),
+            soknader = listOf(søknad),
+        ) to søknadsbehandling
+    }
+
     fun nySakMedVedtak(
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),

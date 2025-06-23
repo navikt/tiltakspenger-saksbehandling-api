@@ -57,6 +57,12 @@ class BehandlingFakeRepo : BehandlingRepo {
         }
     }
 
+    override fun hentAlleAutomatiskeSoknadsbehandlinger(limit: Int): List<Søknadsbehandling> {
+        return data.get().values.filter {
+            it.status == Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+        }.filterIsInstance<Søknadsbehandling>()
+    }
+
     override fun taBehandlingSaksbehandler(
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
