@@ -22,11 +22,6 @@ suspend fun Sak.startRevurdering(
     val saksbehandler = kommando.saksbehandler
     krevSaksbehandlerRolle(saksbehandler)
 
-    // TODO abn: beholder denne for nå, men bør støtte dette asap
-    require(this.vedtaksliste.antallInnvilgelsesperioder == 1) {
-        "Kan kun opprette en revurdering dersom vi har en sammenhengende innvilgelsesperiode. sakId=${this.id}"
-    }
-
     val hentSaksopplysninger: HentSaksopplysninger = { periode: Periode ->
         hentSaksopplysninger(
             this.fnr,
@@ -51,6 +46,11 @@ private suspend fun Sak.startStans(
     hentSaksopplysninger: HentSaksopplysninger,
     clock: Clock,
 ): Revurdering {
+    // TODO abn: hva (om noe) må vi fikse for å kunne fjerne denne restriksjonen?
+    require(!this.vedtaksliste.harHull) {
+        "Kan ikke opprette stans-revurdering dersom vi har hull i vedtaksperiodene. sakId=${this.id}"
+    }
+
     val saksopplysningsperiode = this.vedtaksliste.innvilgelsesperiode!!
 
     return Revurdering.opprettStans(
@@ -71,7 +71,7 @@ private suspend fun Sak.startInnvilgelse(
     val sisteBehandling = hentSisteInnvilgetBehandling()
 
     requireNotNull(sisteBehandling) {
-        "Må ha en tidligere vedtatt behandling for å kunne revurdere innvilgelse"
+        "Må ha en tidligere vedtatt innvilgelse for å kunne revurdere innvilgelse"
     }
 
     return Revurdering.opprettInnvilgelse(
@@ -80,7 +80,6 @@ private suspend fun Sak.startInnvilgelse(
         fnr = this.fnr,
         saksbehandler = saksbehandler,
         saksopplysninger = hentSaksopplysninger(sisteBehandling.saksopplysningsperiode),
-        forrigeBehandling = sisteBehandling,
         clock = clock,
     )
 }

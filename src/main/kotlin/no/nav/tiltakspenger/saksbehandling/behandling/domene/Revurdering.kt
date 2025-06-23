@@ -81,7 +81,6 @@ data class Revurdering(
         }
     }
 
-    // TODO abn: separat håndtering av stans vil kanskje fjernes på sikt
     fun stansTilBeslutning(
         kommando: RevurderingStansTilBeslutningKommando,
         clock: Clock,
@@ -125,6 +124,8 @@ data class Revurdering(
                     tiltaksdeltakelser = kommando.tiltaksdeltakelser,
                     behandling = this,
                 ),
+                barnetillegg = kommando.barnetillegg,
+                antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
             ),
         )
     }
@@ -179,13 +180,8 @@ data class Revurdering(
             fnr: Fnr,
             saksbehandler: Saksbehandler,
             saksopplysninger: Saksopplysninger,
-            forrigeBehandling: Behandling,
             clock: Clock,
         ): Revurdering {
-            val forrigeUtfall = forrigeBehandling.resultat
-
-            require(forrigeUtfall is BehandlingResultat.Innvilgelse)
-
             return opprett(
                 sakId = sakId,
                 saksnummer = saksnummer,
@@ -195,8 +191,8 @@ data class Revurdering(
                 opprettet = nå(clock),
                 resultat = Innvilgelse(
                     valgteTiltaksdeltakelser = null,
-                    barnetillegg = forrigeUtfall.barnetillegg,
-                    antallDagerPerMeldeperiode = forrigeUtfall.antallDagerPerMeldeperiode,
+                    barnetillegg = null,
+                    antallDagerPerMeldeperiode = null,
                 ),
             )
         }

@@ -78,7 +78,7 @@ dependencies {
     api("com.auth0:jwks-rsa:0.22.1")
 
     // DB
-    implementation("org.flywaydb:flyway-database-postgresql:11.9.1")
+    implementation("org.flywaydb:flyway-database-postgresql:11.9.2")
     implementation("com.zaxxer:HikariCP:6.3.0")
     implementation("org.postgresql:postgresql:42.7.7")
     implementation("com.github.seratch:kotliquery:1.9.1")
@@ -117,7 +117,7 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
     // need quarkus-junit-4-mock because of https://github.com/testcontainers/testcontainers-java/issues/970
-    testImplementation("io.quarkus:quarkus-junit4-mock:3.23.3")
+    testImplementation("io.quarkus:quarkus-junit4-mock:3.24.0")
     testImplementation("io.github.serpro69:kotlin-faker:1.16.0")
     testApi("com.github.navikt.tiltakspenger-libs:ktor-test-common:$felleslibVersion")
     testApi("com.github.navikt.tiltakspenger-libs:auth-test-core:$felleslibVersion")

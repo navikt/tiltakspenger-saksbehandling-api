@@ -6,7 +6,6 @@ import kotliquery.Session
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
@@ -171,25 +170,6 @@ class SakPostgresRepo(
             )
         } ?: saksnummerGenerator.generer(dato = iDag)
     }
-
-    override fun hentForSøknadId(søknadId: SøknadId): Sak? =
-        sessionFactory.withSessionContext { sessionContext ->
-            sessionContext.withSession { session ->
-                session.run(
-                    queryOf(
-                        """
-                        select s.* from søknad sø
-                        join behandling b on b.id = sø.behandling_id
-                        join sak s on s.id = b.sak_id
-                        where sø.id = :soknad_id
-                        """.trimIndent(),
-                        mapOf("soknad_id" to søknadId.toString()),
-                    ).map { row ->
-                        row.toSak(sessionContext)
-                    }.asSingle,
-                )
-            }
-        }
 
     override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
         sessionFactory.withSessionContext { sessionContext ->

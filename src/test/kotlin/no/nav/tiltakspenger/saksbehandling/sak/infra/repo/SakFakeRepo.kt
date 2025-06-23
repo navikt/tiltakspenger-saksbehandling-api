@@ -3,9 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.repo
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
@@ -80,13 +78,6 @@ class SakFakeRepo(
         sessionContext: SessionContext?,
     ): Fnr? {
         return data.get()[sakId]?.fnr
-    }
-
-    override fun hentForSøknadId(søknadId: SøknadId): Sak? {
-        val sakId = data.get().values.find {
-            it.behandlinger.any { behandling -> behandling is Søknadsbehandling && behandling.søknad.id == søknadId }
-        }?.id ?: return null
-        return hentSak(sakId)
     }
 
     override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {

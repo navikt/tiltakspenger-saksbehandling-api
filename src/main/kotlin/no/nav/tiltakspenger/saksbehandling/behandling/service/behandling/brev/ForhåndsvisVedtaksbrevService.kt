@@ -127,7 +127,22 @@ class ForhåndsvisVedtaksbrevService(
                         )
                     }
 
-                    RevurderingType.INNVILGELSE -> throw NotImplementedError("Brev for revurdering innvilgelse er ikke implementert ennå")
+                    RevurderingType.INNVILGELSE -> {
+                        genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrev(
+                            hentBrukersNavn = personService::hentNavn,
+                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                            fnr = sak.fnr,
+                            saksbehandlerNavIdent = behandling.saksbehandler!!,
+                            beslutterNavIdent = behandling.beslutter,
+                            vurderingsperiode = virkingsperiode!!,
+                            saksnummer = sak.saksnummer,
+                            sakId = sak.id,
+                            forhåndsvisning = true,
+                        ).fold(
+                            ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
+                            ifRight = { it.pdf },
+                        )
+                    }
 
                     is SøknadsbehandlingType -> throw IllegalArgumentException("$resultat er ikke gyldig resultat for revurdering")
                 }

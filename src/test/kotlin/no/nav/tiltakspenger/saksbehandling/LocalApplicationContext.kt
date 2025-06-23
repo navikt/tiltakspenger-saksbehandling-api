@@ -44,6 +44,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.Tiltaksdeltag
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
+import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFakeClient
 import java.time.Clock
 
 /**
@@ -139,6 +140,11 @@ class LocalApplicationContext(
             override val tiltaksdeltagelseKlient = tiltaksdeltagelseFakeKlient
         }
     }
+
+    override val sokosUtbetaldataClient by lazy {
+        SokosUtbetaldataFakeClient()
+    }
+
     override val profile by lazy { Profile.LOCAL }
 
     override val sakContext by lazy {

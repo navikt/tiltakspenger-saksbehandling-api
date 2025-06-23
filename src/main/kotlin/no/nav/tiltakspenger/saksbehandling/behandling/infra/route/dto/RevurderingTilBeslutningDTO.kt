@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingInnvilge
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import java.time.LocalDate
 
@@ -31,6 +32,8 @@ data class RevurderingTilBeslutningDTO(
     data class Innvilgelse(
         val innvilgelsesperiode: PeriodeDTO,
         val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
+        val barnetillegg: BarnetilleggDTO?,
+        val antallDagerPerMeldeperiode: Int,
     )
 
     fun tilKommando(
@@ -59,6 +62,8 @@ data class RevurderingTilBeslutningDTO(
             BehandlingResultatDTO.REVURDERING_INNVILGELSE -> {
                 requireNotNull(innvilgelse)
 
+                val innvilgelsesperiode = innvilgelse.innvilgelsesperiode.toDomain()
+
                 RevurderingInnvilgelseTilBeslutningKommando(
                     sakId = sakId,
                     behandlingId = behandlingId,
@@ -66,10 +71,12 @@ data class RevurderingTilBeslutningDTO(
                     correlationId = correlationId,
                     begrunnelse = BegrunnelseVilkårsvurdering(saniter(begrunnelse)),
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
-                    innvilgelsesperiode = innvilgelse.innvilgelsesperiode.toDomain(),
+                    innvilgelsesperiode = innvilgelsesperiode,
                     tiltaksdeltakelser = innvilgelse.valgteTiltaksdeltakelser.map {
                         Pair(it.periode.toDomain(), it.eksternDeltagelseId)
                     },
+                    barnetillegg = innvilgelse.barnetillegg?.tilBarnetillegg(innvilgelsesperiode),
+                    antallDagerPerMeldeperiode = innvilgelse.antallDagerPerMeldeperiode,
                 )
             }
 
