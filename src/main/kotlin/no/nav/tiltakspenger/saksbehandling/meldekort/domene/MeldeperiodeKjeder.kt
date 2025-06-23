@@ -161,6 +161,11 @@ data class MeldeperiodeKjeder(
             val utfallsperiodeCount = nærmesteMeldeperiode.tilDager().count {
                 (utfallsperioder.hentVerdiForDag(it) == Utfallsperiode.RETT_TIL_TILTAKSPENGER)
             }
+            // TODO jah: Begynn å bruk denne istedenfor når vi støtter revurdering av antall dager
+
+            @Suppress("unused", "UnusedVariable")
+            val antallDagerForMeldeperiodeFraBehandling =
+                vedtaksliste.antallDagerForMeldeperiode(nærmesteMeldeperiode) ?: 0
             val antallDagerSomGirRettForMeldePeriode =
                 min(utfallsperiodeCount, MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)
 

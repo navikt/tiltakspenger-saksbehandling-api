@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo
 
+import arrow.core.Nel
 import arrow.core.NonEmptySet
+import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -11,9 +13,12 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
@@ -143,7 +148,12 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
      * Brukt for å styre meldeperiode generering
      */
     clock: Clock = this.clock,
-    antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
+        PeriodeMedVerdi(
+            AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
+            Periode(deltakelseFom, deltakelseTom),
+        ),
+    ),
 ): Pair<Sak, Behandling> {
     val (sak, søknadsbehandling) = persisterOpprettetSøknadsbehandling(
         sakId = sak.id,
@@ -607,7 +617,7 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
-    valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+    valgteHjemler: Nel<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,

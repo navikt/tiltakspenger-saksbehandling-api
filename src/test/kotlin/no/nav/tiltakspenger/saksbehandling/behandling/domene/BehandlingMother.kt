@@ -1,6 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.Nel
+import arrow.core.NonEmptyList
 import arrow.core.NonEmptySet
+import arrow.core.nonEmptyListOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -13,6 +16,8 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
@@ -99,7 +104,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         stansDato: LocalDate,
         sisteDagSomGirRett: LocalDate,
         kommando: RevurderingStansTilBeslutningKommando = RevurderingStansTilBeslutningKommando(
@@ -143,7 +148,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+        valgteHjemler: Nel<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         attestering: Attestering = godkjentAttestering(beslutter),
         stansDato: LocalDate,
         sisteDagSomGirRett: LocalDate,
@@ -216,7 +221,12 @@ interface BehandlingMother : MotherOfAllMothers {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
-        antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+        antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
+            PeriodeMedVerdi(
+                AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+                virkningsperiode,
+            ),
+        ),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
     ): Søknadsbehandling {
@@ -267,6 +277,12 @@ interface BehandlingMother : MotherOfAllMothers {
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelse.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
+        antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
+            PeriodeMedVerdi(
+                AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+                virkningsperiode,
+            ),
+        ),
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         clock: Clock = fixedClock,
@@ -287,6 +303,7 @@ interface BehandlingMother : MotherOfAllMothers {
             valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
             oppgaveId = oppgaveId,
             resultat = resultat,
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         ).taBehandling(beslutter) as Søknadsbehandling
     }
 
@@ -538,7 +555,12 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     correlationId: CorrelationId = CorrelationId.generate(),
     fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("Fritekst"),
     begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("Begrunnelse"),
-    antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
+        PeriodeMedVerdi(
+            AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
+            periode,
+        ),
+    ),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
     resultat: SøknadsbehandlingType,
 ): Sak {
@@ -583,7 +605,12 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
     beslutter: Saksbehandler = beslutter(),
     correlationId: CorrelationId = CorrelationId.generate(),
     resultat: SøknadsbehandlingType,
-    antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
+        PeriodeMedVerdi(
+            AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
+            periode,
+        ),
+    ),
 ): Sak {
     val vilkårsvurdert = søknadsbehandlingTilBeslutter(
         periode = periode,
@@ -611,7 +638,12 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
     beslutter: Saksbehandler = beslutter(),
     correlationId: CorrelationId = CorrelationId.generate(),
     resultat: SøknadsbehandlingType,
-    antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
+        PeriodeMedVerdi(
+            AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
+            periode,
+        ),
+    ),
 ): Sak {
     val tac = this
     val underBeslutning = søknadsbehandlingUnderBeslutning(
@@ -646,7 +678,12 @@ suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
     clock: Clock = fixedClock,
     correlationId: CorrelationId = CorrelationId.generate(),
     resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
-    antallDagerPerMeldeperiode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+    antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
+        PeriodeMedVerdi(
+            AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
+            periode,
+        ),
+    ),
 ): Sak {
     val (sak, meldeperioder) = søknadssbehandlingIverksatt(
         periode = periode,

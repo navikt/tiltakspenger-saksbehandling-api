@@ -354,7 +354,8 @@ class BehandlingPostgresRepo(
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
                     val automatiskSaksbehandlet = boolean("automatisk_saksbehandlet")
-                    val manueltBehandlesGrunner = stringOrNull("manuelt_behandles_grunner")?.toManueltBehandlesGrunner() ?: emptyList()
+                    val manueltBehandlesGrunner =
+                        stringOrNull("manuelt_behandles_grunner")?.toManueltBehandlesGrunner() ?: emptyList()
                     val resultatType = stringOrNull("resultat")?.tilSøknadsbehandlingResultatType()
 
                     val resultat = when (resultatType) {
@@ -362,7 +363,7 @@ class BehandlingPostgresRepo(
                             valgteTiltaksdeltakelser = string("valgte_tiltaksdeltakelser")
                                 .toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
-                            antallDagerPerMeldeperiode = intOrNull("antall_dager_per_meldeperiode"),
+                            antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")?.toAntallDagerForMeldeperiode(),
                         )
 
                         SøknadsbehandlingType.AVSLAG -> SøknadsbehandlingResultat.Avslag(
@@ -413,7 +414,7 @@ class BehandlingPostgresRepo(
                             valgteTiltaksdeltakelser = stringOrNull("valgte_tiltaksdeltakelser")
                                 ?.toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
-                            antallDagerPerMeldeperiode = intOrNull("antall_dager_per_meldeperiode"),
+                            antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")?.toAntallDagerForMeldeperiode(),
                         )
                     }
 
@@ -502,7 +503,7 @@ class BehandlingPostgresRepo(
                 to_jsonb(:barnetillegg::jsonb),
                 to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
                 to_jsonb(:avbrutt::jsonb),
-                :antall_dager_per_meldeperiode,
+                to_jsonb(:antall_dager_per_meldeperiode::jsonb),
                 to_jsonb(:avslagsgrunner::jsonb),
                 :resultat,
                 :soknad_id,
@@ -535,7 +536,7 @@ class BehandlingPostgresRepo(
                 barneTillegg = to_jsonb(:barnetillegg::jsonb),
                 valgte_tiltaksdeltakelser = to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
                 avbrutt = to_jsonb(:avbrutt::jsonb),
-                antall_dager_per_meldeperiode = :antall_dager_per_meldeperiode,
+                antall_dager_per_meldeperiode = to_jsonb(:antall_dager_per_meldeperiode::jsonb),
                 avslagsgrunner = to_jsonb(:avslagsgrunner::jsonb),
                 resultat = :resultat,
                 soknad_id = :soknad_id,
@@ -655,7 +656,7 @@ private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when 
     -> arrayOf(
         "barnetillegg" to this.barnetillegg?.toDbJson(),
         "valgte_tiltaksdeltakelser" to this.valgteTiltaksdeltakelser?.toDbJson(),
-        "antall_dager_per_meldeperiode" to this.antallDagerPerMeldeperiode,
+        "antall_dager_per_meldeperiode" to this.antallDagerPerMeldeperiode?.toDbJson(),
     )
 
     is RevurderingResultat.Stans -> arrayOf(
