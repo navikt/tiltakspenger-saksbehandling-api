@@ -18,12 +18,17 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.april
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -32,6 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettBehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
 
 interface SendSøknadsbehandlingTilBeslutningBuilder {
 
@@ -42,6 +48,12 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
+            PeriodeMedVerdi(
+                AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+                virkingsperiode,
+            ),
+        ),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
         val (sak, søknad, behandling) = opprettBehandlingUnderBehandling(tac, fnr, virkingsperiode, saksbehandler)
         val sakId = sak.id
@@ -53,13 +65,14 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
             søknad,
             behandlingId,
             sendSøknadsbehandlingTilBeslutningForBehandlingId(
-                tac,
-                sakId,
-                behandlingId,
-                saksbehandler,
+                tac = tac,
+                sakId = sakId,
+                behandlingId = behandlingId,
+                saksbehandler = saksbehandler,
                 innvilgelsesperiode = søknad.vurderingsperiode(),
                 eksternDeltagelseId = søknad.tiltak.id,
                 resultat = resultat,
+                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             ),
         )
     }
@@ -75,6 +88,12 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         innvilgelsesperiode: Periode = Periode(1.januar(2023), 31.mars(2023)),
         eksternDeltagelseId: String,
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
+            PeriodeMedVerdi(
+                AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+                innvilgelsesperiode,
+            ),
+        ),
     ): String {
         val avslagsgrunner = if (resultat == SøknadsbehandlingType.AVSLAG) {
             listOf(
@@ -116,7 +135,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                 ],
                 "resultat": "${resultat.name}",
                 "avslagsgrunner": $avslagsgrunner,
-                "antallDagerPerMeldeperiode": 10
+                "antallDagerPerMeldeperiodeForPerioder": ${serialize(antallDagerPerMeldeperiode.toDTO())}
             }
                 """.trimIndent(),
             )

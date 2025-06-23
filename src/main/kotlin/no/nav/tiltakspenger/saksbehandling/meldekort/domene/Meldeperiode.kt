@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -97,4 +98,10 @@ data class Meldeperiode(
             return meldeperiode
         }
     }
+}
+
+fun Periode.validerMeldeperiode() {
+    require(this.antallDager == 14L) { "En meldeperiode må være 14 dager, men var ${this.antallDager}" }
+    require(this.fraOgMed.dayOfWeek == DayOfWeek.MONDAY) { "Meldeperioden må starte på en mandag" }
+    require(this.tilOgMed.dayOfWeek == DayOfWeek.SUNDAY) { "Meldeperioden må slutte på en søndag" }
 }

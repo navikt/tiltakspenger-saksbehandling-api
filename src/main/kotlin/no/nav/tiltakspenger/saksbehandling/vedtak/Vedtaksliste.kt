@@ -7,7 +7,9 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinjeMedHull
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnAntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
@@ -85,6 +87,23 @@ data class Vedtaksliste(
 
     fun utfallForPeriode(periode: Periode): Periodisering<Utfallsperiode?> {
         return utfallsperioder.overlapperMed(periode).utvid(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, periode)
+    }
+
+    val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode?> by lazy {
+        innvilgetTidslinje.flatMap {
+            val verdier: List<PeriodeMedVerdi<AntallDagerForMeldeperiode>>? =
+                it.verdi?.behandling?.antallDagerPerMeldeperiode?.krymp(it.periode)?.perioderMedVerdi
+            verdier?.map { PeriodeMedVerdi(it.verdi as AntallDagerForMeldeperiode?, it.periode) } ?: listOf(
+                PeriodeMedVerdi(null as AntallDagerForMeldeperiode?, it.periode),
+            )
+        }
+    }
+
+    fun antallDagerForMeldeperiode(periode: Periode): AntallDagerForMeldeperiode? {
+        return innvilgetTidslinje
+            .overlapperMed(periode)
+            .mapNotNull { it.verdi?.behandling?.antallDagerPerMeldeperiode?.finnAntallDagerForMeldeperiode(periode) }
+            .maxOfOrNull { it }
     }
 
     fun vedtakForPeriode(periode: Periode): Periodisering<VedtakId?> = tidslinje

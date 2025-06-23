@@ -5,7 +5,7 @@ val jvmVersion = JvmTarget.JVM_21
 val kotlinxCoroutinesVersion = "1.10.2"
 val kotestVersion = "5.9.1"
 val felleslibVersion = "0.0.494"
-val mockkVersion = "1.14.2"
+val mockkVersion = "1.14.4"
 val ktorVersion = "3.2.0"
 val testContainersVersion = "1.21.2"
 val poaoTilgangVersjon = "2025.06.06_07.18-71cefb1c2699"
@@ -75,7 +75,7 @@ dependencies {
 
     // Auth
     api("com.auth0:java-jwt:4.5.0")
-    api("com.auth0:jwks-rsa:0.22.1")
+    api("com.auth0:jwks-rsa:0.22.2")
 
     // DB
     implementation("org.flywaydb:flyway-database-postgresql:11.9.2")

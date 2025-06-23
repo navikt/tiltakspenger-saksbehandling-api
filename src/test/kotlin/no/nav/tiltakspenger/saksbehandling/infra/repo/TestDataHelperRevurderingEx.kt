@@ -1,5 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo
 
+import arrow.core.Nel
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -68,7 +71,7 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("TestDataHelper.persisterRevurderingTilBeslutning"),
     stansDato: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
-    valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+    valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, Behandling> = { s -> this.persisterOpprettetRevurdering(s) },
 ): Pair<Sak, Behandling> {
@@ -101,7 +104,7 @@ internal fun TestDataHelper.persisterRevurderingUnderBeslutning(
     beslutterAv: Saksbehandler = ObjectMother.beslutter(),
     begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("TestDataHelper.persisterRevurderingUnderBeslutning"),
     stansDato: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
-    valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+    valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, Behandling> = { s ->
         this.persisterRevurderingTilBeslutning(
@@ -134,7 +137,7 @@ internal fun TestDataHelper.persisterIverksattRevurdering(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("TestDataHelper.persisterRevurderingTilBeslutning"),
     stansDato: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
-    valgteHjemler: List<ValgtHjemmelForStans> = listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+    valgteHjemler: Nel<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, Behandling> = { s ->
         this.persisterRevurderingUnderBeslutning(

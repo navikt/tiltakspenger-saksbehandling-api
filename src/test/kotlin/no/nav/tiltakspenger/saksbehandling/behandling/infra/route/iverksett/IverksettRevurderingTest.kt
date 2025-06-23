@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 
+import arrow.core.nonEmptyListOf
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -32,7 +33,7 @@ internal class IverksettRevurderingTest {
                     sak.id,
                     revurdering.id,
                     stansperiode = søknadsbehandling.virkningsperiode!!,
-                    valgteHjemler = listOf("Alder"),
+                    valgteHjemler = nonEmptyListOf("Alder"),
                 )
                 taBehanding(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
                 iverksettForBehandlingId(tac, sak.id, revurdering.id)
