@@ -102,6 +102,15 @@ class DelautomatiskBehandlingService(
         if (behandling.søknad.harBarnSomFyller16FørDato(behandling.søknad.vurderingsperiode().tilOgMed)) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_BARN_FYLLER_16_I_SOKNADSPERIODEN)
         }
+        if (behandling.søknad.harKvp()) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_HAR_KVP)
+        }
+        if (behandling.søknad.harIntro()) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_INTRO)
+        }
+        if (behandling.søknad.harInstitusjonsopphold()) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_INSTITUSJONSOPPHOLD)
+        }
 
         val soknadstiltakFraSaksopplysning =
             behandling.saksopplysninger.getTiltaksdeltagelse(behandling.søknad.tiltak.id)

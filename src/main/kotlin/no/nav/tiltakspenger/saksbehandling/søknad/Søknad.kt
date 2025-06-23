@@ -84,6 +84,15 @@ data class Søknad(
             jobbsjansen.erJa() ||
             trygdOgPensjon.erJa()
 
+    fun harKvp(): Boolean =
+        kvp.erJa()
+
+    fun harIntro(): Boolean =
+        intro.erJa()
+
+    fun harInstitusjonsopphold(): Boolean =
+        institusjon.erJa()
+
     fun harLagtTilBarnManuelt(): Boolean =
         barnetillegg.any { it is BarnetilleggFraSøknad.Manuell }
 
