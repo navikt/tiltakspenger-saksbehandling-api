@@ -12,3 +12,9 @@ SET antall_dager_per_meldeperiode_json =
                 )
         )
 WHERE antall_dager_per_meldeperiode IS NOT NULL AND virkningsperiode_fra_og_med is not null and virkningsperiode_til_og_med is not null;
+
+ALTER TABLE behandling
+    DROP COLUMN antall_dager_per_meldeperiode;
+
+ALTER TABLE behandling
+    RENAME COLUMN antall_dager_per_meldeperiode_json TO antall_dager_per_meldeperiode;
