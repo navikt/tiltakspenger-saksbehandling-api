@@ -163,7 +163,7 @@ internal class MeldekortberegningKorrigeringTest {
 
             val sisteKjedeId = meldekortbehandlinger.last().kjedeId
 
-            meldekortbehandlinger.meldeperiodeBeregninger.sisteBeregningForKjede[sisteKjedeId]!!.beregnTotaltBeløp() shouldBe 0
+            meldekortbehandlinger.meldeperiodeBeregninger.sisteBeregningPerKjede[sisteKjedeId]!!.beregnTotaltBeløp() shouldBe 0
         }
     }
 

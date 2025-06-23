@@ -78,7 +78,7 @@ data class MeldekortBehandlinger(
 
     /** Vil kun returnere hele meldekortperioder som er utfylt og godkjent */
     val utfylteDager: List<MeldeperiodeBeregningDag> by lazy {
-        meldeperiodeBeregninger.sisteBeregningForKjede.values.flatMap { it.dager }
+        meldeperiodeBeregninger.sisteBeregningPerKjede.values.flatMap { it.dager }
     }
 
     /** Meldekort som er under behandling eller venter på beslutning */

@@ -75,7 +75,7 @@ private data class BeregnMeldekort(
                         val kjedeId = meldekort.kjedeId
 
                         val beregnedeDager = beregnEksisterendeMeldekort(meldekort)
-                        val forrigeBeregning = meldeperiodeBeregninger.sisteBeregningForKjede[kjedeId]
+                        val forrigeBeregning = meldeperiodeBeregninger.sisteBeregningPerKjede[kjedeId]
 
                         if (beregnedeDager == forrigeBeregning?.dager) {
                             return@mapNotNull null

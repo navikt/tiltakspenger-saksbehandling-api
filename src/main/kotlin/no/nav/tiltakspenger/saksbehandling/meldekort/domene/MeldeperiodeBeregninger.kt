@@ -13,16 +13,16 @@ data class MeldeperiodeBeregninger(
         godkjenteMeldekort.flatMap { it.beregning.beregninger }
     }
 
-    val beregningerForKjede: Map<MeldeperiodeKjedeId, List<MeldeperiodeBeregning>> by lazy {
+    val beregningerPerKjede: Map<MeldeperiodeKjedeId, List<MeldeperiodeBeregning>> by lazy {
         meldeperiodeBeregninger.groupBy { it.kjedeId }
     }
 
-    val sisteBeregningForKjede: Map<MeldeperiodeKjedeId, MeldeperiodeBeregning> by lazy {
-        beregningerForKjede.entries.associate { it.key to it.value.last() }
+    val sisteBeregningPerKjede: Map<MeldeperiodeKjedeId, MeldeperiodeBeregning> by lazy {
+        beregningerPerKjede.entries.associate { it.key to it.value.last() }
     }
 
     fun sisteBeregningFør(meldekortId: MeldekortId, kjedeId: MeldeperiodeKjedeId): MeldeperiodeBeregning? {
-        return beregningerForKjede[kjedeId]?.takeWhile { it.beregningMeldekortId != meldekortId }?.lastOrNull()
+        return beregningerPerKjede[kjedeId]?.takeWhile { it.beregningMeldekortId != meldekortId }?.lastOrNull()
     }
 
     init {

@@ -23,11 +23,12 @@ data class MeldeperiodeKjedeDTO(
     val brukersMeldekort: BrukersMeldekortDTO?,
     val korrigeringFraTidligerePeriode: MeldeperiodeKorrigeringDTO?,
     val avbrutteMeldekortBehandlinger: List<MeldekortBehandlingDTO>,
+    val sisteBeregning: MeldeperiodeBeregningDTO?,
 )
 
 fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeDTO {
     val meldeperiodeKjede = this.meldeperiodeKjeder.single { it.kjedeId == kjedeId }
-    val korrigering = meldeperiodeBeregninger.sisteBeregningForKjede[kjedeId]?.let {
+    val korrigering = meldeperiodeBeregninger.sisteBeregningPerKjede[kjedeId]?.let {
         val forrigeBehandling = meldekortBehandlinger.hentMeldekortBehandling(it.beregningMeldekortId)
         if (forrigeBehandling !is MeldekortBehandletManuelt) {
             return@let null
@@ -70,6 +71,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
                     UtbetalingsstatusDTO.AVBRUTT,
                 )
             },
+        sisteBeregning = meldeperiodeBeregninger.sisteBeregningPerKjede[kjedeId]?.tilMeldeperiodeBeregningDTO(),
     )
 }
 
