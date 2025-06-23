@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbeha
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
@@ -102,6 +103,9 @@ class DelautomatiskBehandlingService(
         if (behandling.søknad.harBarnSomFyller16FørDato(behandling.søknad.vurderingsperiode().tilOgMed)) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_BARN_FYLLER_16_I_SOKNADSPERIODEN)
         }
+        if (behandling.søknad.harBarnSomBleFødtEtterDato(behandling.søknad.vurderingsperiode().fraOgMed)) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_BARN_FODT_I_SOKNADSPERIODEN)
+        }
         if (behandling.søknad.harKvp()) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_HAR_KVP)
         }
@@ -179,10 +183,13 @@ class DelautomatiskBehandlingService(
     private fun utledBarnetillegg(behandling: Søknadsbehandling): Barnetillegg? {
         return if (behandling.søknad.barnetillegg.isNotEmpty()) {
             val periode = behandling.søknad.vurderingsperiode()
-            Barnetillegg.periodiserOgFyllUtHullMed0(
+            val antallBarnFraSøknad = behandling.søknad.barnetillegg.size
+            Barnetillegg(
+                periodisering = Periodisering(
+                    AntallBarn(antallBarnFraSøknad),
+                    periode,
+                ),
                 begrunnelse = null,
-                perioder = listOf(Pair(periode, AntallBarn(behandling.søknad.barnetillegg.size))),
-                virkningsperiode = periode,
             )
         } else {
             null

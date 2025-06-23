@@ -102,6 +102,9 @@ data class Søknad(
     fun harBarnSomFyller16FørDato(dato: LocalDate): Boolean =
         barnetillegg.any { !it.under16ForDato(dato) }
 
+    fun harBarnSomBleFødtEtterDato(dato: LocalDate): Boolean =
+        barnetillegg.any { it.fødselsdato.isAfter(dato) }
+
     fun harSoktMerEnn3ManederEtterOppstart(): Boolean =
         kravdato.withDayOfMonth(1).isAfter(tiltak.deltakelseFom)
 
