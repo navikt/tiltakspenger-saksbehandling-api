@@ -23,6 +23,7 @@ data class SakDTO(
     val sisteDagSomGirRett: LocalDate?,
     val søknader: List<SøknadDTO>,
     val behandlinger: List<BehandlingDTO>,
+    val tidslinje: List<RammevedtakDTO>,
 )
 
 fun Sak.toSakDTO(clock: Clock) = SakDTO(
@@ -42,4 +43,5 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     sisteDagSomGirRett = sisteDagSomGirRett,
     søknader = soknader.toSøknadDTO(),
     behandlinger = behandlinger.tilBehandlingerDTO(),
+    tidslinje = vedtaksliste.tidslinje.verdier.mapNotNull { it?.tilRammevedtakDTO() },
 )
