@@ -79,6 +79,8 @@ internal fun start(
         initialDelay = if (isNais) 1.minutes else 1.seconds,
         runCheckFactory = runCheckFactory,
         tasks = listOf<suspend () -> Any>(
+            { applicationContext.delautomatiskSoknadsbehandlingJobb.opprettBehandlingForNyeSoknader() },
+            { applicationContext.delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk() },
             { applicationContext.utbetalingContext.sendUtbetalingerService.send() },
             { applicationContext.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus() },
             { applicationContext.utbetalingContext.journalførUtbetalingsvedtakService.journalfør() },

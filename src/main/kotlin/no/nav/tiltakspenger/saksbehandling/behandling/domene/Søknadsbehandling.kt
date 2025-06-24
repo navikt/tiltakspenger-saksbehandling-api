@@ -12,13 +12,16 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
@@ -49,8 +52,7 @@ data class Søknadsbehandling(
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     val søknad: Søknad,
     val automatiskSaksbehandlet: Boolean,
-    // TODO: Denne listen skal inneholde enumverdier når vi lager funksjonalitet for automatisk saksbehandling
-    val manueltBehandlesGrunner: List<String>,
+    val manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
 ) : Behandling {
 
     override val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode>?
@@ -92,7 +94,7 @@ data class Søknadsbehandling(
         kommando: SendSøknadsbehandlingTilBeslutningKommando,
         clock: Clock,
     ): Søknadsbehandling {
-        check(status == UNDER_BEHANDLING) {
+        check(status == UNDER_BEHANDLING || status == UNDER_AUTOMATISK_BEHANDLING) {
             "Behandlingen må være under behandling, det innebærer også at en saksbehandler må ta saken før den kan sendes til beslutter. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}"
         }
         check(kommando.saksbehandler.navIdent == this.saksbehandler) { "Det er ikke lov å sende en annen sin behandling til beslutter" }
@@ -131,6 +133,22 @@ data class Søknadsbehandling(
             virkningsperiode = virkningsperiode,
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             resultat = resultat,
+            automatiskSaksbehandlet = kommando.automatiskSaksbehandlet,
+        )
+    }
+
+    fun tilManuellBehandling(
+        manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
+        clock: Clock,
+    ): Søknadsbehandling {
+        check(status == UNDER_AUTOMATISK_BEHANDLING) {
+            "Behandlingen må være under automatisk behandling. Behandlingsstatus: ${this.status}."
+        }
+        return this.copy(
+            status = KLAR_TIL_BEHANDLING,
+            sistEndret = nå(clock),
+            saksbehandler = null,
+            manueltBehandlesGrunner = manueltBehandlesGrunner,
         )
     }
 
@@ -204,6 +222,42 @@ data class Søknadsbehandling(
                 automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),
             ).right()
+        }
+
+        suspend fun opprettAutomatiskBehandling(
+            søknad: Søknad,
+            hentSaksopplysninger: suspend (saksopplysningsperiode: Periode) -> Saksopplysninger,
+            clock: Clock,
+        ): Søknadsbehandling {
+            val opprettet = nå(clock)
+            val saksopplysningsperiode: Periode = søknad.saksopplysningsperiode()
+            val saksopplysninger = hentSaksopplysninger(saksopplysningsperiode)
+
+            return Søknadsbehandling(
+                id = BehandlingId.random(),
+                saksnummer = søknad.saksnummer,
+                sakId = søknad.sakId,
+                fnr = søknad.fnr,
+                søknad = søknad,
+                oppgaveId = null,
+                saksopplysninger = saksopplysninger,
+                fritekstTilVedtaksbrev = null,
+                saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID,
+                sendtTilBeslutning = null,
+                beslutter = null,
+                status = UNDER_AUTOMATISK_BEHANDLING,
+                attesteringer = emptyList(),
+                opprettet = opprettet,
+                iverksattTidspunkt = null,
+                sendtTilDatadeling = null,
+                sistEndret = opprettet,
+                avbrutt = null,
+                resultat = null,
+                virkningsperiode = null,
+                begrunnelseVilkårsvurdering = null,
+                automatiskSaksbehandlet = false,
+                manueltBehandlesGrunner = emptyList(),
+            )
         }
     }
 }

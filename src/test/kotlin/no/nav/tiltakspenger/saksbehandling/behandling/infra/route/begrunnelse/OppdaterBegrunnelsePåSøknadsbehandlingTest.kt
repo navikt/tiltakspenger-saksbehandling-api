@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBegrunnelseForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettBehandlingUnderBehandling
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
@@ -21,7 +21,7 @@ internal class OppdaterBegrunnelsePåSøknadsbehandlingTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, _, behandling) = startSøknadsbehandling(tac)
+                val (sak, _, behandling) = opprettBehandlingUnderBehandling(tac)
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
                     it.begrunnelseVilkårsvurdering?.verdi shouldBe null
                 }

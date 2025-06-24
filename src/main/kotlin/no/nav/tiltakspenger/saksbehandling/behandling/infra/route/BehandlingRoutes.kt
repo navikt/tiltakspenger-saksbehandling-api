@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Oppdate
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaBehandlingService
@@ -30,7 +29,6 @@ fun Route.behandlingRoutes(
     behandlingService: BehandlingService,
     tokenService: TokenService,
     auditService: AuditService,
-    startSøknadsbehandlingService: StartSøknadsbehandlingService,
     behandleSøknadPåNyttService: BehandleSøknadPåNyttService,
     oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
     oppdaterBegrunnelseVilkårsvurderingService: OppdaterBegrunnelseVilkårsvurderingService,
@@ -45,7 +43,6 @@ fun Route.behandlingRoutes(
     leggTilbakeBehandlingService: LeggTilbakeBehandlingService,
 ) {
     hentBehandlingRoute(tokenService, behandlingService, auditService)
-    startSøknadsbehandlingRoute(tokenService, startSøknadsbehandlingService, auditService)
     behandleSøknadPåNyttRoute(tokenService, behandleSøknadPåNyttService, auditService)
     oppdaterSaksopplysningerRoute(tokenService, auditService, oppdaterSaksopplysningerService)
     oppdaterBegrunnelseVilkårsvurderingRoute(tokenService, auditService, oppdaterBegrunnelseVilkårsvurderingService)

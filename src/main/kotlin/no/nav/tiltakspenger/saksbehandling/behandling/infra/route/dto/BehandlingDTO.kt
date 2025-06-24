@@ -60,6 +60,8 @@ data class SøknadsbehandlingDTO(
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
     val antallDagerPerMeldeperiode: List<AntallDagerPerMeldeperiodeDTO>?,
     val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
+    val automatiskSaksbehandlet: Boolean,
+    val manueltBehandlesGrunner: List<String>,
 ) : BehandlingDTO {
     override val type = BehandlingstypeDTO.SØKNADSBEHANDLING
 }
@@ -117,6 +119,8 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(): SøknadsbehandlingDTO {
         barnetillegg = null,
         valgteTiltaksdeltakelser = null,
         avslagsgrunner = null,
+        automatiskSaksbehandlet = this.automatiskSaksbehandlet,
+        manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
     ).let {
         when (resultat) {
             is SøknadsbehandlingResultat.Innvilgelse -> it.copy(

@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import java.time.LocalDateTime
 
 interface BehandlingRepo {
@@ -70,4 +71,6 @@ interface BehandlingRepo {
         behandlingsstatus: Behandlingsstatus,
         sessionContext: SessionContext? = null,
     ): Boolean
+
+    fun hentAlleAutomatiskeSoknadsbehandlinger(limit: Int): List<Søknadsbehandling>
 }

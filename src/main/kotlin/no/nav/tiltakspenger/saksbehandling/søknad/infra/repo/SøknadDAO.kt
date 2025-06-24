@@ -109,6 +109,25 @@ internal object SøknadDAO {
                 }.asList,
             )
 
+    fun hentAlleUbehandledeSoknader(limit: Int, session: Session): List<Søknad> =
+        session.run(
+            sqlQuery(
+                """
+                    select *
+                    from søknad soknad
+                             join sak on soknad.sak_id = sak.id
+                             left join behandling b on soknad.id = b.soknad_id
+                    where b.id is null
+                      and soknad.avbrutt is null
+                      order by soknad.opprettet
+                      limit :limit
+                """.trimIndent(),
+                "limit" to limit,
+            ).map { row: Row ->
+                row.toSøknad(session)
+            }.asList,
+        )
+
     private fun søknadFinnes(
         søknadId: SøknadId,
         session: Session,

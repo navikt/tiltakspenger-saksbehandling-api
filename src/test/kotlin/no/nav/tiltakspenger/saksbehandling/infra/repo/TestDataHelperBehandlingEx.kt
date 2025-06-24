@@ -108,6 +108,63 @@ internal fun TestDataHelper.persisterOpprettetSøknadsbehandling(
     )
 }
 
+internal fun TestDataHelper.persisterOpprettetAutomatiskSøknadsbehandling(
+    sakId: SakId = SakId.random(),
+    saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
+    fnr: Fnr = Fnr.random(),
+    deltakelseFom: LocalDate = 1.januar(2023),
+    deltakelseTom: LocalDate = 31.mars(2023),
+    journalpostId: String = Random.nextInt().toString(),
+    tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
+    id: SøknadId = Søknad.randomId(),
+    sak: Sak = ObjectMother.nySak(
+        sakId = sakId,
+        fnr = fnr,
+        saksnummer = saksnummer,
+    ),
+    søknad: Søknad =
+        ObjectMother.nySøknad(
+            periode = tiltaksOgVurderingsperiode,
+            journalpostId = journalpostId,
+            personopplysninger =
+            ObjectMother.personSøknad(
+                fnr = fnr,
+            ),
+            id = id,
+            søknadstiltak =
+            ObjectMother.søknadstiltak(
+                deltakelseFom = deltakelseFom,
+                deltakelseTom = deltakelseTom,
+            ),
+            barnetillegg = listOf(),
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+        ),
+    clock: Clock = this.clock,
+): Triple<Sak, Søknadsbehandling, Søknad> {
+    this.persisterSakOgSøknad(
+        fnr = sak.fnr,
+        søknad = søknad,
+        sak = sak,
+    )
+    val (sakMedBehandling) =
+        ObjectMother.sakMedOpprettetAutomatiskBehandling(
+            søknad = søknad,
+            fnr = sak.fnr,
+            virkningsperiode = tiltaksOgVurderingsperiode,
+            saksnummer = sak.saksnummer,
+            sakId = sak.id,
+            clock = clock,
+        )
+    behandlingRepo.lagre(sakMedBehandling.behandlinger.singleOrNullOrThrow()!!)
+
+    return Triple(
+        sakRepo.hentForSakId(sakId)!!,
+        sakMedBehandling.behandlinger.singleOrNullOrThrow()!! as Søknadsbehandling,
+        søknadRepo.hentForSøknadId(søknad.id)!!,
+    )
+}
+
 internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
