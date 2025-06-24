@@ -4,7 +4,9 @@ import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.jobber.RunCheckFactory
 import no.nav.tiltakspenger.libs.jobber.StoppableJob
 import no.nav.tiltakspenger.libs.jobber.startStoppableJob
@@ -42,15 +44,17 @@ internal class TaskExecutor(
                     // Denne kjører så ofte at vi ønsker ikke bli spammet av logging.
                     enableDebuggingLogging = false,
                     job = { correlationId ->
-                        tasks.forEach {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                // Vi ønsker ikke at en task skal spenne ben for andre tasks.
-                                Either.catch {
-                                    it()
-                                }.mapLeft {
-                                    logger.error(it) { "Feil ved kjøring av task. correlationId: $correlationId" }
+                        runBlocking {
+                            tasks.map {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    // Vi ønsker ikke at en task skal spenne ben for andre tasks.
+                                    Either.catch {
+                                        it()
+                                    }.mapLeft {
+                                        logger.error(it) { "Feil ved kjøring av task. correlationId: $correlationId" }
+                                    }
                                 }
-                            }
+                            }.joinAll()
                         }
                     },
                 ),
