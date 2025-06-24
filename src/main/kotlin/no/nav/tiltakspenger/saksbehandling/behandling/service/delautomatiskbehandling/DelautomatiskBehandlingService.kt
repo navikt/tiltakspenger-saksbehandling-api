@@ -36,12 +36,12 @@ class DelautomatiskBehandlingService(
         val manueltBehandlesGrunner = kanBehandleAutomatisk(behandling)
 
         if (manueltBehandlesGrunner.isEmpty()) {
-            log.info { "Kan behandle behandling med id ${behandling.id} automatisk, sender til beslutning" }
+            log.info { "Kan behandle behandling med id ${behandling.id} automatisk, sender til beslutning, correlationId $correlationId" }
             sendTilBeslutning(behandling, correlationId)
             SOKNAD_BEHANDLET_DELVIS_AUTOMATISK.inc()
         } else {
-            log.info { "Kan ikke behandle behandling med id ${behandling.id} automatisk, sender til manuell behandling" }
-            sendTilManuellBehandling(behandling, manueltBehandlesGrunner)
+            log.info { "Kan ikke behandle behandling med id ${behandling.id} automatisk, sender til manuell behandling, correlationId $correlationId" }
+            sendTilManuellBehandling(behandling, manueltBehandlesGrunner, correlationId)
             SOKNAD_IKKE_BEHANDLET_AUTOMATISK.inc()
         }
     }
@@ -69,12 +69,13 @@ class DelautomatiskBehandlingService(
                 statistikkSakRepo.lagre(statistikk, tx)
             }
         }
-        log.info { "Behandling med id ${behandling.id} er sendt til beslutning" }
+        log.info { "Behandling med id ${behandling.id} er sendt til beslutning, correlationId $correlationId" }
     }
 
     private suspend fun sendTilManuellBehandling(
         behandling: Søknadsbehandling,
         manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
+        correlationId: CorrelationId,
     ) {
         behandling.tilManuellBehandling(manueltBehandlesGrunner, clock).also {
             val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
@@ -86,7 +87,7 @@ class DelautomatiskBehandlingService(
         manueltBehandlesGrunner.forEach {
             SOKNAD_BEHANDLES_MANUELT_GRUNN.labelValues(it.name).inc()
         }
-        log.info { "Behandling med id ${behandling.id} er gjort klar til manuell behandling" }
+        log.info { "Behandling med id ${behandling.id} er gjort klar til manuell behandling, correlationId $correlationId" }
     }
 
     private fun kanBehandleAutomatisk(behandling: Søknadsbehandling): List<ManueltBehandlesGrunn> {
