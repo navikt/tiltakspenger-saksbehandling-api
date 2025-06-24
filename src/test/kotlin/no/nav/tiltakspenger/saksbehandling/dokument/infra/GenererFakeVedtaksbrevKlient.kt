@@ -73,6 +73,8 @@ class GenererFakeVedtaksbrevKlient :
         sakId: SakId,
         forhåndsvisning: Boolean,
         vurderingsperiode: Periode,
+        saksbehandlersVurdering: FritekstTilVedtaksbrev,
+        barnetillegg: Periodisering<AntallBarn>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> = response
 
     override suspend fun genererStansvedtak(

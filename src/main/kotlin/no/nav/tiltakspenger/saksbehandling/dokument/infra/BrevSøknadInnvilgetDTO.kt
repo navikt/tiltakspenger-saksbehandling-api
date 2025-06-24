@@ -112,7 +112,6 @@ internal suspend fun genererInnvilgetSøknadsbrev(
         saksnummer = saksnummer.verdi,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
-        // TODO post-mvp: legg inn NORG integrasjon for å hente saksbehandlers kontor.
         kontor = "Nav Tiltakspenger",
         // Dette er vår dato, det brukes typisk når bruker klager på vedtaksbrev på dato ...
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
@@ -135,28 +134,4 @@ internal suspend fun genererInnvilgetSøknadsbrev(
             else -> null
         },
     ).let { serialize(it) }
-}
-
-/**
- * https://sprakradet.no/godt-og-korrekt-sprak/rettskriving-og-grammatikk/tall-tid-dato/
- */
-private fun AntallBarn.toTekst(): String {
-    return when (this.value) {
-        1 -> "ett"
-        2 -> "to"
-        3 -> "tre"
-        4 -> "fire"
-        5 -> "fem"
-        6 -> "seks"
-        7 -> "syv"
-        8 -> "åtte"
-        9 -> "ni"
-        10 -> "ti"
-        11 -> "elleve"
-        12 -> "tolv"
-        13 -> "tretten"
-        14 -> "fjorten"
-        15 -> "femten"
-        else -> this.value.toString()
-    }
 }

@@ -134,10 +134,12 @@ class ForhåndsvisVedtaksbrevService(
                             fnr = sak.fnr,
                             saksbehandlerNavIdent = behandling.saksbehandler!!,
                             beslutterNavIdent = behandling.beslutter,
-                            vurderingsperiode = virkingsperiode!!,
                             saksnummer = sak.saksnummer,
                             sakId = sak.id,
                             forhåndsvisning = true,
+                            vurderingsperiode = virkingsperiode!!,
+                            saksbehandlersVurdering = kommando.fritekstTilVedtaksbrev,
+                            barnetillegg = kommando.barnetillegg,
                         ).fold(
                             ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
                             ifRight = { it.pdf },

@@ -66,7 +66,7 @@ internal class PdfgenHttpClient(
     private val vedtakAvslagUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakAvslag")
     private val utbetalingsvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/utbetalingsvedtak")
     private val stansvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/stansvedtak")
-    private val revurderingsvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingsvedtak")
+    private val revurderingInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
 
     override suspend fun genererInnvilgelsesvedtaksbrev(
         vedtak: Rammevedtak,
@@ -149,6 +149,8 @@ internal class PdfgenHttpClient(
         sakId: SakId,
         forhåndsvisning: Boolean,
         vurderingsperiode: Periode,
+        saksbehandlersVurdering: FritekstTilVedtaksbrev,
+        barnetillegg: Periodisering<AntallBarn>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -161,10 +163,12 @@ internal class PdfgenHttpClient(
                     saksnummer = saksnummer,
                     forhåndsvisning = forhåndsvisning,
                     vurderingsperiode = vurderingsperiode,
+                    saksbehandlersVurdering = saksbehandlersVurdering,
+                    barnetillegg = barnetillegg,
                 )
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",
-            uri = revurderingsvedtakUri,
+            uri = revurderingInnvilgelseUri,
         )
     }
 
