@@ -4,7 +4,9 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingstypeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingstypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toBehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
@@ -24,6 +26,7 @@ data class SaksoversiktDTO(
     val kravtidspunkt: LocalDateTime?,
     val underkjent: Boolean?,
     val typeBehandling: BehandlingstypeDTO,
+    val resultat: BehandlingResultatDTO?,
     val fnr: String,
     val id: String,
     val saksnummer: String,
@@ -46,6 +49,7 @@ fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
     kravtidspunkt = if (this is Søknadsbehandling) kravtidspunkt else null,
     underkjent = attesteringer.any { attestering -> attestering.isUnderkjent() },
     typeBehandling = behandlingstype.tilBehandlingstypeDTO(),
+    resultat = this.tilBehandlingResultatDTO(),
     fnr = fnr.verdi,
     id = id.toString(),
     saksnummer = saksnummer.toString(),
@@ -61,6 +65,7 @@ fun Søknad.toSaksoversiktDTO() = SaksoversiktDTO(
     kravtidspunkt = tidsstempelHosOss,
     underkjent = null,
     typeBehandling = BehandlingstypeDTO.SØKNAD,
+    resultat = null,
     fnr = fnr.verdi,
     id = id.toString(),
     saksnummer = saksnummer.toString(),

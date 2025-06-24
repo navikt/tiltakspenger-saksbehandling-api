@@ -1,8 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultatType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 
@@ -29,4 +32,9 @@ fun SøknadsbehandlingResultat.tilBehandlingResultatDTO(): BehandlingResultatDTO
 fun RevurderingResultat.tilBehandlingResultatDTO(): BehandlingResultatDTO = when (this) {
     is RevurderingResultat.Stans -> BehandlingResultatDTO.STANS
     is RevurderingResultat.Innvilgelse -> BehandlingResultatDTO.REVURDERING_INNVILGELSE
+}
+
+fun Behandling.tilBehandlingResultatDTO(): BehandlingResultatDTO? = when (this) {
+    is Revurdering -> resultat.tilBehandlingResultatDTO()
+    is Søknadsbehandling -> resultat?.tilBehandlingResultatDTO()
 }
