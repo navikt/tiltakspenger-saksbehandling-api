@@ -13,6 +13,7 @@ import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import java.net.URI
@@ -64,12 +65,16 @@ class MicrosoftGraphApiClient(
      * Denne returnerer navnet til saksbehandler eller kaster runtimeException om noe feiler
      */
     override suspend fun hentNavnForNavIdent(navIdent: String): String {
-        return hentBrukerinformasjonForNavIdent(navIdent).let { brukerInfo ->
-            val saksbehandlersNavn = brukerInfo.displayName.trim()
-            if (saksbehandlersNavn.isBlank()) {
-                throw RuntimeException("Fant ikke saksbehandlerens navn i microsoftGraphApi $navIdent. Responsen var blank.")
+        return if (navIdent == AUTOMATISK_SAKSBEHANDLER_ID) {
+            "Automatisk saksbehandlet"
+        } else {
+            hentBrukerinformasjonForNavIdent(navIdent).let { brukerInfo ->
+                val saksbehandlersNavn = brukerInfo.displayName.trim()
+                if (saksbehandlersNavn.isBlank()) {
+                    throw RuntimeException("Fant ikke saksbehandlerens navn i microsoftGraphApi $navIdent. Responsen var blank.")
+                }
+                saksbehandlersNavn
             }
-            saksbehandlersNavn
         }
     }
 
