@@ -295,7 +295,11 @@ sealed interface Behandling {
 
                 when (this) {
                     is Søknadsbehandling -> this.copy(
-                        status = UNDER_BEHANDLING,
+                        status = if (automatiskSaksbehandlet) {
+                            KLAR_TIL_BEHANDLING
+                        } else {
+                            UNDER_BEHANDLING
+                        },
                         attesteringer = attesteringer,
                         saksbehandler = if (automatiskSaksbehandlet) {
                             null
