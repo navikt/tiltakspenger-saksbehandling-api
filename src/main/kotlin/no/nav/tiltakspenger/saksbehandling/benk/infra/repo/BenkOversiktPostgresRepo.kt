@@ -33,103 +33,112 @@ class BenkOversiktPostgresRepo(
                     //language="sql"
                     """
                         with åpneSøknaderUtenBehandling AS (select sa.id                 as sakId,
-                                                                   sø.fnr                as fnr,
-                                                                   sa.saksnummer         as saksnummer,
-                                                                   sø.opprettet          as startet,
-                                                                   'SØKNADSBEHANDLING'   AS behandlingstype,
-                                                                   'KLAR_TIL_BEHANDLING' AS status,
-                                                                   null                  AS saksbehandler,
-                                                                   null                  AS beslutter
-                                                            from søknad sø
-                                                                     join sak sa on sø.sak_id = sa.id
-                                                                     left join behandling b on sø.id = b.soknad_id
-                                                            where b.id is null
-                                                              and sø.avbrutt is null),
-                             åpneSøknadsbehandlinger AS (select sa.id               as sakId,
-                                                                sa.fnr              as fnr,
-                                                                sa.saksnummer       as saksnummer,
-                                                                b.opprettet         as startet,
-                                                                'SØKNADSBEHANDLING' as behandlingstype,
-                                                                b.status            as status,
-                                                                b.saksbehandler     as saksbehandler,
-                                                                b.beslutter         as beslutter
-                                                         from behandling b
-                                                                  join søknad s on s.id = b.soknad_id
-                                                                  join sak sa on b.sak_id = sa.id
-                                                         where b.avbrutt is null
-                                                           and b.behandlingstype = 'SØKNADSBEHANDLING'
-                                                           and b.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING',
-                                                                            'UNDER_BESLUTNING')),
-                             åpneRevurderinger AS (select sa.id           as sakId,
-                                                          sa.fnr          as fnr,
-                                                          sa.saksnummer   as saksnummer,
-                                                          b.opprettet     as startet,
-                                                          'REVURDERING'   as behandlingstype,
-                                                          b.status        as status,
-                                                          b.saksbehandler as saksbehandler,
-                                                          b.beslutter     as beslutter
-                                                   from behandling b
-                                                            join sak sa on b.sak_id = sa.id
-                                                   where b.behandlingstype = 'REVURDERING'
-                                                     and b.avbrutt is null
-                                                     and b.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING',
-                                                                      'UNDER_BESLUTNING')),
-                             åpneMeldekortBehandlinger AS (select s.id                  as sakId,
-                                                                  s.fnr                 as fnr,
-                                                                  s.saksnummer          as saksnummer,
-                                                                  m.opprettet           as startet,
-                                                                  'MELDEKORTBEHANDLING' as behandlingstype,
-                                                                  m.status              as status,
-                                                                  m.saksbehandler       as saksbehandler,
-                                                                  m.beslutter           as beslutter
-                                                           from meldekortbehandling m
-                                                                    join sak s on m.sak_id = s.id
-                                                           where m.avbrutt is null
-                                                             and m.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')),
+                                           sø.fnr                as fnr,
+                                           sa.saksnummer         as saksnummer,
+                                           sø.opprettet          as startet,
+                                           'SØKNADSBEHANDLING'   AS behandlingstype,
+                                           'KLAR_TIL_BEHANDLING' AS status,
+                                           null                  AS saksbehandler,
+                                           null                  AS beslutter
+                                    from søknad sø
+                                             join sak sa on sø.sak_id = sa.id
+                                             left join behandling b on sø.id = b.soknad_id
+                                    where b.id is null
+                                      and sø.avbrutt is null),
+     åpneSøknadsbehandlinger AS (select sa.id               as sakId,
+                                        sa.fnr              as fnr,
+                                        sa.saksnummer       as saksnummer,
+                                        b.opprettet         as startet,
+                                        'SØKNADSBEHANDLING' as behandlingstype,
+                                        b.status            as status,
+                                        b.saksbehandler     as saksbehandler,
+                                        b.beslutter         as beslutter
+                                 from behandling b
+                                          join søknad s on s.id = b.soknad_id
+                                          join sak sa on b.sak_id = sa.id
+                                 where b.avbrutt is null
+                                   and b.behandlingstype = 'SØKNADSBEHANDLING'
+                                   and b.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING',
+                                                    'UNDER_BESLUTNING')),
+     åpneRevurderinger AS (select sa.id           as sakId,
+                                  sa.fnr          as fnr,
+                                  sa.saksnummer   as saksnummer,
+                                  b.opprettet     as startet,
+                                  'REVURDERING'   as behandlingstype,
+                                  b.status        as status,
+                                  b.saksbehandler as saksbehandler,
+                                  b.beslutter     as beslutter
+                           from behandling b
+                                    join sak sa on b.sak_id = sa.id
+                           where b.behandlingstype = 'REVURDERING'
+                             and b.avbrutt is null
+                             and b.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING',
+                                              'UNDER_BESLUTNING')),
+     åpneMeldekortBehandlinger AS (select s.id                  as sakId,
+                                          s.fnr                 as fnr,
+                                          s.saksnummer          as saksnummer,
+                                          m.opprettet           as startet,
+                                          'MELDEKORTBEHANDLING' as behandlingstype,
+                                          m.status              as status,
+                                          m.saksbehandler       as saksbehandler,
+                                          m.beslutter           as beslutter
+                                   from meldekortbehandling m
+                                            join sak s on m.sak_id = s.id
+                                   where m.avbrutt is null
+                                     and m.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING',
+                                                      'UNDER_BESLUTNING')),
      åpneMeldekortTilBehandling as (SELECT s.id                  as sakId,
-                   s.fnr                 as fnr,
-                   s.saksnummer          as saksnummer,
-                   mbr.mottatt           as startet,
-                   'INNSENDT_MELDEKORT' as behandlingstype,
-                   'KLAR_TIL_BEHANDLING' as status,
-                   null                  as saksbehandler,
-                   null                  as beslutter
-            FROM meldekort_bruker mbr
-                     JOIN sak s ON mbr.sak_id = s.id
-                     left join meldekortbehandling mbh1 on mbh1.sak_id = s.id and (mbh1.brukers_meldekort_id = mbr.id OR
-                                                                                   mbh1.meldeperiode_kjede_id =
-                                                                                 mbr.meldeperiode_kjede_id)
-            WHERE behandles_automatisk = false
-              and (
-                mbh1.id is null
-                    or
-                exists (SELECT 1
-                        FROM meldekortbehandling mbh
-                        WHERE mbh.sak_id = s.id
-                          AND mbh.avbrutt IS NULL
-                          AND (mbh.brukers_meldekort_id = mbr.id OR mbh.meldeperiode_kjede_id = mbr.meldeperiode_kjede_id)
-                          AND mbh.iverksatt_tidspunkt is not null
-                          AND mbr.mottatt > mbh.iverksatt_tidspunkt))),
-                 slåttSammen AS (select *
-                                 from åpneSøknaderUtenBehandling
-                                 union all
-                                 select *
-                                 from åpneSøknadsbehandlinger
-                                 union all
-                                 select *
-                                 from åpneRevurderinger
-                                 union all
-                                 select *
-                                 from åpneMeldekortBehandlinger
-                                 union all
-                                 select *
-                                 from åpneMeldekortTilBehandling)
-                    select *,
-                           count(*) over () as total_count
-                    from slåttSammen
-                    where behandlingstype = any (:behandlingstype)
-                        and status = any (:status)
-                        and ((cardinality(:identer::text[]) is null OR saksbehandler = ANY (:identer)) OR (cardinality(:identer::text[]) is null OR beslutter = ANY (:identer)))
+                                           s.fnr                 as fnr,
+                                           s.saksnummer          as saksnummer,
+                                           mbr.mottatt           as startet,
+                                           'INNSENDT_MELDEKORT'  as behandlingstype,
+                                           'KLAR_TIL_BEHANDLING' as status,
+                                           null                  as saksbehandler,
+                                           null                  as beslutter
+                                    FROM meldekort_bruker mbr
+                                             JOIN sak s ON mbr.sak_id = s.id
+                                             left join meldekortbehandling mbh1
+                                                       on mbh1.sak_id = s.id and (mbh1.brukers_meldekort_id = mbr.id OR
+                                                                                  mbh1.meldeperiode_kjede_id =
+                                                                                  mbr.meldeperiode_kjede_id)
+                                    WHERE behandles_automatisk = false
+                                      and (
+                                        mbh1.id is null
+                                            or
+                                        exists (SELECT 1
+                                                FROM meldekortbehandling mbh
+                                                WHERE mbh.sak_id = s.id
+                                                  AND mbh.avbrutt IS NULL
+                                                  AND (mbh.brukers_meldekort_id = mbr.id OR
+                                                       mbh.meldeperiode_kjede_id = mbr.meldeperiode_kjede_id)
+                                                  AND mbh.iverksatt_tidspunkt is not null
+                                                  AND mbr.mottatt > mbh.iverksatt_tidspunkt))),
+     slåttSammen AS (select *
+                     from åpneSøknaderUtenBehandling
+                     union all
+                     select *
+                     from åpneSøknadsbehandlinger
+                     union all
+                     select *
+                     from åpneRevurderinger
+                     union all
+                     select *
+                     from åpneMeldekortBehandlinger
+                     union all
+                     select *
+                     from åpneMeldekortTilBehandling)
+select *,
+       count(*) over () as total_count
+from slåttSammen
+where behandlingstype = any (:behandlingstype)
+  and status = any (:status)
+  and (
+    case
+      when :identer::text[] is null then true
+      when :identer::text[] = array['IKKE_TILDELT']::text[] then (saksbehandler is null or beslutter is null)
+      else (saksbehandler = any(:identer::text[]) or beslutter = any(:identer::text[]))
+    end
+  )
                     order by startet ${command.sortering}
                     limit :limit;
                     """.trimIndent(),

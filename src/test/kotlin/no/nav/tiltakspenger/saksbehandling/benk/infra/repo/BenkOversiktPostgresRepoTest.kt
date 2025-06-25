@@ -369,6 +369,40 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    fun `henter behandlinger som har saksbehandler eller beslutter ikke tildelt`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            @Suppress("UNCHECKED_CAST")
+            val saksbehandler = Saksbehandler(
+                navIdent = "ocurreret",
+                brukernavn = "dissentiunt",
+                epost = "hac",
+                roller = Saksbehandlerroller(setOf(Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.BESLUTTER)),
+                scopes = Systembrukerroller(emptySet()) as GenerellSystembrukerroller<GenerellSystembrukerrolle>,
+                klientId = "persius",
+                klientnavn = "possim",
+            )
+
+            testDataHelper.persisterOpprettetSøknadsbehandling(saksbehandler = saksbehandler)
+            testDataHelper.persisterKlarTilBeslutningSøknadsbehandling()
+            testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = saksbehandler)
+
+            val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(saksbehandlere = listOf("IKKE_TILDELT")),
+            )
+
+            totalAntall shouldBe 2
+            behandlingssamendrag.size shouldBe 2
+            behandlingssamendrag.let {
+                it.first().saksbehandler shouldBe saksbehandler.navIdent
+                it.first().beslutter shouldBe null
+
+                it.last().saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
+                it.last().beslutter shouldBe null
+            }
+        }
+    }
+
+    @Test
     fun `kan sortere asc og desc`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val søknad = testDataHelper.persisterSakOgSøknad()
