@@ -97,9 +97,6 @@ sealed interface Behandling {
                 require(this.saksbehandler == saksbehandler.navIdent) {
                     "Kan bare legge tilbake behandling dersom saksbehandler selv er på behandlingen"
                 }
-                require(this.beslutter == null) {
-                    "Beslutter skal ikke kunne være satt på behandlingen dersom den er UNDER_BEHANDLING"
-                }
 
                 when (this) {
                     is Søknadsbehandling -> this.copy(saksbehandler = null, status = KLAR_TIL_BEHANDLING)
@@ -136,7 +133,6 @@ sealed interface Behandling {
                 krevSaksbehandlerRolle(saksbehandler)
 
                 require(this.saksbehandler == null) { "Saksbehandler skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
-                require(this.beslutter == null) { "Beslutter skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
 
                 when (this) {
                     is Søknadsbehandling -> this.copy(saksbehandler = saksbehandler.navIdent, status = UNDER_BEHANDLING)
@@ -395,9 +391,11 @@ sealed interface Behandling {
                 require(saksbehandler == null) {
                     "Behandlingen kan ikke være tilknyttet en saksbehandler når statusen er KLAR_TIL_BEHANDLING"
                 }
-                // Selvom beslutter har underkjent, må vi kunne ta hen av behandlingen.
                 require(iverksattTidspunkt == null)
-                require(beslutter == null)
+
+                if (this is Revurdering || (this is Søknadsbehandling && attesteringer.isEmpty())) {
+                    require(beslutter == null) { "Beslutter kan ikke være tilknyttet behandlingen dersom det ikke er en underkjent automatisk behandlet søknadsbehandling" }
+                }
             }
 
             UNDER_BEHANDLING -> {
