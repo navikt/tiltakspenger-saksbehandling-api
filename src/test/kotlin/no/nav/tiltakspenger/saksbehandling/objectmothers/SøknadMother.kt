@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.juni
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
@@ -94,7 +93,6 @@ interface SøknadMother {
         jobbsjansen: Søknad.PeriodeSpm = periodeNei(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
-        oppgaveId: OppgaveId? = ObjectMother.oppgaveId(),
         avbrutt: Avbrutt? = null,
     ): Søknad =
         Søknad(
@@ -120,7 +118,6 @@ interface SøknadMother {
             trygdOgPensjon = trygdOgPensjon,
             sakId = sakId,
             saksnummer = saksnummer,
-            oppgaveId = oppgaveId,
             avbrutt = avbrutt,
         )
 

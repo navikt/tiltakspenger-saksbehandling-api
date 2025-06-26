@@ -243,7 +243,6 @@ class TestApplicationContext(
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
             tiltaksdeltagelseKlient = tiltaksdeltagelseFakeKlient,
-            oppgaveKlient = oppgaveKlient,
             clock = clock,
             statistikkSakService = statistikkContext.statistikkSakService,
             sokosUtbetaldataClient = sokosUtbetaldataFakeClient,

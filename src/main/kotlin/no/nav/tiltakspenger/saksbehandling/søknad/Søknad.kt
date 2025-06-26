@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
-import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -37,7 +36,6 @@ data class Søknad(
     val vedlegg: Int,
     val sakId: SakId,
     val saksnummer: Saksnummer,
-    val oppgaveId: OppgaveId?,
     val avbrutt: Avbrutt?,
 ) {
     val kravdato: LocalDate = tidsstempelHosOss.toLocalDate()

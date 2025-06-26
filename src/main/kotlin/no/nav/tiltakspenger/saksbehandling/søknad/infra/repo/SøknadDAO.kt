@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
-import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 
@@ -341,7 +340,7 @@ internal object SøknadDAO {
                         "vedlegg" to søknad.vedlegg,
                         "opprettet" to søknad.opprettet,
                         "tidsstempel_hos_oss" to søknad.tidsstempelHosOss,
-                        "oppgave_id" to søknad.oppgaveId?.toString(),
+                        "oppgave_id" to null,
                     ),
             ).asUpdate,
         )
@@ -363,7 +362,6 @@ internal object SøknadDAO {
         val vedlegg = int("vedlegg")
         val sakId = SakId.fromString(string("sak_id"))
         val saksnummer = Saksnummer(string("saksnummer"))
-        val oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) }
         val kvp = periodeSpm(KVP_FELT)
         val intro = periodeSpm(INTRO_FELT)
         val institusjon = periodeSpm(INSTITUSJON_FELT)
@@ -404,7 +402,6 @@ internal object SøknadDAO {
             trygdOgPensjon = trygdOgPensjon,
             sakId = sakId,
             saksnummer = saksnummer,
-            oppgaveId = oppgaveId,
             avbrutt = avbrutt,
         )
     }

@@ -22,17 +22,6 @@ data class OpprettOppgaveRequest(
     val prioritet: PrioritetType = PrioritetType.NORM,
 ) {
     companion object {
-        fun opprettOppgaveRequestForSoknad(
-            fnr: Fnr,
-            journalpostId: JournalpostId,
-        ) = OpprettOppgaveRequest(
-            personident = fnr.verdi,
-            journalpostId = journalpostId.toString(),
-            beskrivelse = "Ny søknad om tiltakspenger. Behandles i ny løsning.",
-            behandlesAvApplikasjon = BEHANDLES_AV_APPLIKASJON,
-            oppgavetype = OppgaveType.OPPGAVETYPE_BEHANDLE_SAK.value,
-        )
-
         fun opprettOppgaveRequestForEndretTiltaksdeltaker(
             fnr: Fnr,
         ) = OpprettOppgaveRequest(

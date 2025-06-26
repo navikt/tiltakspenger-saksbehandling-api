@@ -42,13 +42,6 @@ class OppgaveHttpClient(
         oppgavebehov: Oppgavebehov,
     ): OppgaveId {
         val opprettOppgaveRequest = when (oppgavebehov) {
-            Oppgavebehov.NY_SOKNAD -> {
-                OpprettOppgaveRequest.opprettOppgaveRequestForSoknad(
-                    fnr = fnr,
-                    journalpostId = journalpostId,
-                )
-            }
-
             Oppgavebehov.NYTT_MELDEKORT -> {
                 OpprettOppgaveRequest.opprettOppgaveRequestForMeldekort(
                     fnr = fnr,

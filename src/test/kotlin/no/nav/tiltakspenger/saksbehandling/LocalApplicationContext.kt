@@ -191,7 +191,6 @@ class LocalApplicationContext(
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
             tiltaksdeltagelseKlient = tiltaksdeltagelseFakeKlient,
-            oppgaveKlient = oppgaveKlient,
             clock = clock,
             statistikkSakService = statistikkContext.statistikkSakService,
             sokosUtbetaldataClient = sokosUtbetaldataClient,
@@ -224,7 +223,6 @@ class LocalApplicationContext(
             søknadstiltak = søknadstiltak,
             sakId = sak.id,
             saksnummer = sak.saksnummer,
-            oppgaveId = ObjectMother.oppgaveId(),
         ).also { søknadContext.søknadRepo.lagre(it) }
         require(søknadstiltak == søknad.tiltak) {
             "Diff mellom søknadstiltak i lokal database og statiske tiltaksdata i LocalApplicationContext. Mulig løsning: Tøm lokal db."

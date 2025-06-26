@@ -203,7 +203,7 @@ data class Søknadsbehandling(
                 sakId = sakId,
                 fnr = fnr,
                 søknad = søknad,
-                oppgaveId = søknad.oppgaveId,
+                oppgaveId = null,
                 saksopplysninger = saksopplysninger,
                 fritekstTilVedtaksbrev = null,
                 saksbehandler = saksbehandler.navIdent,
