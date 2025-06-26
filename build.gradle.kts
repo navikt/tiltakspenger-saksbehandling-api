@@ -162,6 +162,7 @@ tasks {
         compilerOptions {
             jvmTarget.set(jvmVersion)
             freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
+            freeCompilerArgs.add("-Xwarning-level=IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE:disabled")
         }
     }
 

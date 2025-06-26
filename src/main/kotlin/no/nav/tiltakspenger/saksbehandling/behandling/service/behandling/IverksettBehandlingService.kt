@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeIverksetteBe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
@@ -43,7 +42,6 @@ class IverksettBehandlingService(
     private val statistikkSakRepo: StatistikkSakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
     private val sakService: SakService,
-    private val oppgaveKlient: OppgaveKlient,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
 ) {
@@ -96,15 +94,6 @@ class IverksettBehandlingService(
                 sakStatistikk = sakStatistikk,
                 stønadStatistikk = stønadStatistikk,
             )
-        }
-
-        Either.catch {
-            behandling.oppgaveId?.let { id ->
-                logger.info { "Ferdigstiller oppgave med id $id for behandling med behandlingsId $behandlingId" }
-                oppgaveKlient.ferdigstillOppgave(id)
-            }
-        }.onLeft {
-            return KanIkkeIverksetteBehandling.KunneIkkeOppretteOppgave.left()
         }
 
         return iverksattBehandling.right()

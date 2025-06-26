@@ -292,7 +292,6 @@ open class ApplicationContext(
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
             tiltaksdeltagelseKlient = tiltakContext.tiltaksdeltagelseKlient,
-            oppgaveKlient = oppgaveKlient,
             clock = clock,
             statistikkSakService = statistikkContext.statistikkSakService,
             sokosUtbetaldataClient = sokosUtbetaldataClient,

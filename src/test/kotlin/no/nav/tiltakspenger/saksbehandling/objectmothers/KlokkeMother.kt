@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.common
+package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClock

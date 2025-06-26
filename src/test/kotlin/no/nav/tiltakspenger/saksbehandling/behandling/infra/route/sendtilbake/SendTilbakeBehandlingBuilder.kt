@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -39,6 +40,16 @@ interface SendTilbakeBehandlingBuilder {
         val (sak, søknad, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
         taBehanding(tac, sak.id, behandlingId, beslutter)
         return Tuple4(sak, søknad, behandlingId, sendTilbakeForBehandlingId(tac, behandlingId, begrunnelse, beslutter))
+    }
+
+    suspend fun ApplicationTestBuilder.sendTilbakeAutomatiskSaksbehandletBehandling(
+        tac: TestApplicationContext,
+        begrunnelse: String = "send_tilbake_begrunnelse",
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
+    ): Tuple4<Sak, Søknad, BehandlingId, String> {
+        val (sak, søknad, behandling) = opprettAutomatiskBehandlingKlarTilBeslutning(tac)
+        taBehanding(tac, sak.id, behandling.id, beslutter)
+        return Tuple4(sak, søknad, behandling.id, sendTilbakeForBehandlingId(tac, behandling.id, begrunnelse, beslutter))
     }
 
     /** Forventer at det allerede finnes en behandling med status `UNDER_BESLUTNING` */

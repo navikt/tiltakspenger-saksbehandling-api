@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -65,6 +66,40 @@ interface IverksettBehandlingBuilder {
             tac,
             sak.id,
             behandlingId,
+            beslutter,
+        )
+        return Tuple4(
+            oppdatertSak,
+            søknad,
+            oppdatertBehandling as Søknadsbehandling,
+            jsonResponse,
+        )
+    }
+
+    /** Oppretter ny sak, søknad og behandling. */
+    suspend fun ApplicationTestBuilder.iverksettAutomatiskBehandletSøknadsbehandling(
+        tac: TestApplicationContext,
+        fnr: Fnr = Fnr.random(),
+        virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        beslutter: Saksbehandler = ObjectMother.beslutter(),
+        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
+            PeriodeMedVerdi(
+                AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+                virkingsperiode,
+            ),
+        ),
+    ): Tuple4<Sak, Søknad, Søknadsbehandling, String> {
+        val (sak, søknad, behandling, _) = opprettAutomatiskBehandlingKlarTilBeslutning(
+            tac = tac,
+            fnr = fnr,
+            virkingsperiode = virkingsperiode,
+        )
+        taBehanding(tac, sak.id, behandling.id, beslutter)
+        val (oppdatertSak, oppdatertBehandling, jsonResponse) = iverksettForBehandlingId(
+            tac,
+            sak.id,
+            behandling.id,
             beslutter,
         )
         return Tuple4(

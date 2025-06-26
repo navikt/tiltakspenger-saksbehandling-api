@@ -113,7 +113,6 @@ class OlderMottaSøknadTest {
                     trygdOgPensjon = Søknad.PeriodeSpm.Nei,
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
-                    oppgaveId = null,
                     avbrutt = null,
                 )
 

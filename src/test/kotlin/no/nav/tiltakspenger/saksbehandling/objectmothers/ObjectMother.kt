@@ -2,8 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggMother
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingMother
-import no.nav.tiltakspenger.saksbehandling.common.KlokkeMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.KlokkeMother
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.person.Navn

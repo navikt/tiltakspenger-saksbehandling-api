@@ -8,7 +8,6 @@ import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
-import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeIverksetteBehandling
@@ -35,10 +34,6 @@ fun Route.iverksettBehandlingRoute(
                     iverksettBehandlingService.iverksett(behandlingId, saksbehandler, correlationId, sakId).fold(
                         {
                             when (it) {
-                                KanIkkeIverksetteBehandling.KunneIkkeOppretteOppgave -> call.respond500InternalServerError(
-                                    melding = "Feil under oppretting av oppgave for behandlingen",
-                                    kode = "",
-                                )
                                 is KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter -> call.respond400BadRequest(behandlingenEiesAvAnnenSaksbehandler(it.eiesAvBeslutter))
                             }
                         },

@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevFo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførRammevedtaksbrevKlient
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
@@ -61,7 +60,6 @@ open class BehandlingOgVedtakContext(
     navIdentClient: NavIdentClient,
     sakService: SakService,
     tiltaksdeltagelseKlient: TiltaksdeltagelseKlient,
-    oppgaveKlient: OppgaveKlient,
     statistikkSakService: StatistikkSakService,
     clock: Clock,
     sokosUtbetaldataClient: SokosUtbetaldataClient,
@@ -145,7 +143,6 @@ open class BehandlingOgVedtakContext(
             statistikkSakRepo = statistikkSakRepo,
             statistikkStønadRepo = statistikkStønadRepo,
             sakService = sakService,
-            oppgaveKlient = oppgaveKlient,
             clock = clock,
             statistikkSakService = statistikkSakService,
         )

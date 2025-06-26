@@ -32,7 +32,6 @@ internal class StartRevurderingTest {
                 revurdering.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
                 revurdering.resultat.shouldBeInstanceOf<RevurderingResultat.Stans>()
                 revurdering.sakId shouldBe sak.id
-                revurdering.oppgaveId shouldBe null
                 revurdering.fritekstTilVedtaksbrev shouldBe null
                 revurdering.begrunnelseVilkårsvurdering shouldBe null
                 revurdering.saksbehandler shouldBe "Z12345"
@@ -59,7 +58,6 @@ internal class StartRevurderingTest {
                 revurdering.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
                 revurdering.resultat.shouldBeInstanceOf<RevurderingResultat.Innvilgelse>()
                 revurdering.sakId shouldBe sak.id
-                revurdering.oppgaveId shouldBe null
                 revurdering.fritekstTilVedtaksbrev shouldBe null
                 revurdering.begrunnelseVilkårsvurdering shouldBe null
                 revurdering.saksbehandler shouldBe "Z12345"

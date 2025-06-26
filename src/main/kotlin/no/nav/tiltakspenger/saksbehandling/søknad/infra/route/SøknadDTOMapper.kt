@@ -56,7 +56,6 @@ object SøknadDTOMapper {
             trygdOgPensjon = mapPeriodeSpm(dto.trygdOgPensjon),
             sakId = sak.id,
             saksnummer = sak.saksnummer,
-            oppgaveId = null,
             avbrutt = null,
         )
 
