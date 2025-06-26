@@ -24,8 +24,6 @@ import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.Dokumentdistribusj
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
-import no.nav.tiltakspenger.saksbehandling.fakes.clients.PersonFakeKlient
-import no.nav.tiltakspenger.saksbehandling.fakes.clients.VeilarboppfolgingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
@@ -39,8 +37,10 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandl
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
+import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.TilgangsstyringFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonFakeRepo
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext

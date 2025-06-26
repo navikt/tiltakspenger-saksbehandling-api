@@ -1,3 +1,5 @@
+@file:Suppress("UnusedImport")
+
 package no.nav.tiltakspenger.saksbehandling.statistikk.behandling
 
 import arrow.atomic.Atomic
@@ -5,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDTO
 
 class StatistikkSakFakeRepo : StatistikkSakRepo {
     private val data = Atomic(mutableMapOf<SakId, StatistikkSakDTO>())

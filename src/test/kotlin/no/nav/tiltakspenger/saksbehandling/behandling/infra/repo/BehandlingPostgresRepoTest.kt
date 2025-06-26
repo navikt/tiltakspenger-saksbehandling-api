@@ -24,18 +24,6 @@ import org.junit.jupiter.api.Test
 internal class BehandlingPostgresRepoTest {
 
     @Test
-    fun `lagre og hente en gammel flyt behandling`() {
-        withMigratedDb { testDataHelper ->
-            val behandlingRepo = testDataHelper.behandlingRepo
-            val sakRepo = testDataHelper.sakRepo
-
-            val (sak, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
-            sakRepo.hentForSakId(sak.id) shouldBe sak
-            behandlingRepo.hent(sak.behandlinger.singleOrNullOrThrow()!!.id) shouldBe sak.behandlinger.singleOrNullOrThrow()
-        }
-    }
-
-    @Test
     fun `lagre og hente en behandling`() {
         withMigratedDb { testDataHelper ->
             val behandlingRepo = testDataHelper.behandlingRepo

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.domene
+package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import arrow.core.Nel
 import arrow.core.NonEmptyList
@@ -21,6 +21,22 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.januar
 import no.nav.tiltakspenger.libs.periodisering.mars
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -29,16 +45,11 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
-import no.nav.tiltakspenger.saksbehandling.objectmothers.MotherOfAllMothers
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySøknad
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.personSøknad
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.objectmothers.tilSendMeldekortTilBeslutterKommando
-import no.nav.tiltakspenger.saksbehandling.objectmothers.toSøknadstiltak
-import no.nav.tiltakspenger.saksbehandling.objectmothers.toTiltak
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -218,6 +229,33 @@ interface BehandlingMother : MotherOfAllMothers {
             Søknadsbehandling.opprettAutomatiskBehandling(
                 søknad = søknad,
                 hentSaksopplysninger = hentSaksopplysninger,
+                clock = clock,
+            )
+        }
+    }
+
+    fun nyAutomatiskSøknadsbehandlingManuellBehandling(
+        id: BehandlingId = BehandlingId.random(),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        fnr: Fnr = Fnr.random(),
+        søknad: Søknad = nySøknad(),
+        hentSaksopplysninger: (Periode) -> Saksopplysninger = {
+            saksopplysninger(
+                fom = it.fraOgMed,
+                tom = it.tilOgMed,
+            )
+        },
+        manueltBehandlesGrunner: List<ManueltBehandlesGrunn> = listOf(ManueltBehandlesGrunn.SOKNAD_HAR_KVP),
+    ): Søknadsbehandling {
+        return runBlocking {
+            val behandling = Søknadsbehandling.opprettAutomatiskBehandling(
+                søknad = søknad,
+                hentSaksopplysninger = hentSaksopplysninger,
+                clock = clock,
+            )
+            return@runBlocking behandling.tilManuellBehandling(
+                manueltBehandlesGrunner = manueltBehandlesGrunner,
                 clock = clock,
             )
         }

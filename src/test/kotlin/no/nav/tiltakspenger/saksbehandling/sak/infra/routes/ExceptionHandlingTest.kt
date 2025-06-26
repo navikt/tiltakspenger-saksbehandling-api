@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
+package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import arrow.core.right
 import io.kotest.matchers.shouldBe
@@ -24,8 +24,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SAK_PATH
-import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.hentSakForFnrRoute
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
@@ -41,7 +39,7 @@ class ExceptionHandlingTest {
             coEvery { tokenServiceMock.validerOgHentBruker(any()) } returns ObjectMother.beslutter().right()
             coEvery { sakService.hentForFnr(any(), any(), any()) } throws IllegalStateException("Wuzza")
 
-            val exceptedStatusCode = HttpStatusCode.InternalServerError
+            val exceptedStatusCode = HttpStatusCode.Companion.InternalServerError
             val expectedBody =
                 """
             {
@@ -64,16 +62,16 @@ class ExceptionHandlingTest {
                     }
                 }
                 defaultRequest(
-                    HttpMethod.Post,
+                    HttpMethod.Companion.Post,
                     url {
-                        protocol = URLProtocol.HTTPS
+                        protocol = URLProtocol.Companion.HTTPS
                         path(SAK_PATH)
                     },
                 ) {
                     setBody("""{"fnr": "12345678901"}""")
                 }.apply {
                     status shouldBe exceptedStatusCode
-                    contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                    contentType() shouldBe ContentType.Companion.parse("application/json; charset=UTF-8")
                     JSONAssert.assertEquals(
                         expectedBody,
                         bodyAsText(),

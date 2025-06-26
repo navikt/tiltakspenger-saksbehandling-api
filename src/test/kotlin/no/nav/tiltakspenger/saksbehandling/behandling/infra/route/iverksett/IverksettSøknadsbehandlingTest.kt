@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettAutomatiskBehandletSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingIdReturnerRespons
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettBehandlingUnderBehandling
@@ -23,9 +24,18 @@ import org.junit.jupiter.api.Test
 
 class IverksettSøknadsbehandlingTest {
     @Test
-    fun `send til beslutter endrer status på behandlingen`() = runTest {
+    fun `iverksett endrer status på behandlingen`() = runTest {
         withTestApplicationContext { tac ->
             val (_, _, behandling) = this.iverksettSøknadsbehandling(tac)
+            behandling.virkningsperiode.shouldNotBeNull()
+            behandling.status shouldBe Behandlingsstatus.VEDTATT
+        }
+    }
+
+    @Test
+    fun `iverksett - kan iverksette en automatisk behandlet behandling`() = runTest {
+        withTestApplicationContext { tac ->
+            val (_, _, behandling) = this.iverksettAutomatiskBehandletSøknadsbehandling(tac)
             behandling.virkningsperiode.shouldNotBeNull()
             behandling.status shouldBe Behandlingsstatus.VEDTATT
         }

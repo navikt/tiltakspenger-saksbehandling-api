@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.fakes.clients
+package no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother

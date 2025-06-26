@@ -1,6 +1,6 @@
 @file:Suppress("UnusedImport")
 
-package no.nav.tiltakspenger.saksbehandling.fakes.clients
+package no.nav.tiltakspenger.saksbehandling.person.infra.http
 
 import arrow.atomic.Atomic
 import io.github.serpro69.kfaker.faker

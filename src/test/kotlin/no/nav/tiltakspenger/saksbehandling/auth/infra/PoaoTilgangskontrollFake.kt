@@ -1,6 +1,6 @@
 @file:Suppress("UnusedImport")
 
-package no.nav.tiltakspenger.saksbehandling.fakes.clients
+package no.nav.tiltakspenger.saksbehandling.auth.infra
 
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -19,6 +19,6 @@ class PoaoTilgangskontrollFake : PoaoTilgangKlient {
     }
 
     override suspend fun erSkjermet(fnr: Fnr, correlationId: CorrelationId): Boolean {
-        return data.get()[fnr] ?: false
+        return data.get()[fnr] == true
     }
 }

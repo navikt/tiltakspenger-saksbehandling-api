@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.person
 
-import no.nav.tiltakspenger.saksbehandling.person.Navn
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
 

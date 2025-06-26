@@ -1,3 +1,5 @@
+@file:Suppress("UnusedImport")
+
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
 import arrow.atomic.Atomic
