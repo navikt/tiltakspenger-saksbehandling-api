@@ -253,7 +253,7 @@ class StatistikkStønadPostgresRepo(
         :vedtak_id,
         :opprettet,
         :sist_endret,
-        bruker_id
+        :bruker_id
         )
         """.trimIndent()
 
