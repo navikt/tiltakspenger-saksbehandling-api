@@ -21,7 +21,7 @@ class StatistikkStønadFakeRepo : StatistikkStønadRepo {
         utbetalingsdata.get()[dto.id] = dto
     }
 
-    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
+    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?) {
         val statistikkStønadDTO = stønadsdata.get().values.find { it.brukerId == gammeltFnr.verdi }
         statistikkStønadDTO?.let {
             stønadsdata.get()[it.sakId] = it.copy(

@@ -22,7 +22,7 @@ interface SøknadRepo {
 
     fun lagreAvbruttSøknad(søknad: Søknad, txContext: TransactionContext? = null)
 
-    fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr)
+    fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext? = null)
 
     fun hentAlleUbehandledeSoknader(limit: Int = 10): List<Søknad>
 }

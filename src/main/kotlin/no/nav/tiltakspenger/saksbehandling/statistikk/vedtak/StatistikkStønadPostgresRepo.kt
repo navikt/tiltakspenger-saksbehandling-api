@@ -95,25 +95,57 @@ class StatistikkStønadPostgresRepo(
                     "vedtak_id" to toPGObject(dto.vedtakId),
                     "opprettet" to dto.opprettet,
                     "sist_endret" to dto.sistEndret,
+                    "bruker_id" to dto.brukerId,
                 ),
             ).asUpdate,
         )
     }
 
-    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
-        sessionFactory.withSession {
-            it.run(
-                queryOf(
-                    """
-                        update statistikk_stonad set bruker_id = :nytt_fnr where bruker_id = :gammelt_fnr
-                    """.trimIndent(),
-                    mapOf(
-                        "nytt_fnr" to nyttFnr.verdi,
-                        "gammelt_fnr" to gammeltFnr.verdi,
-                    ),
-                ).asUpdate,
-            )
+    override fun oppdaterFnr(
+        gammeltFnr: Fnr,
+        nyttFnr: Fnr,
+        context: TransactionContext?,
+    ) {
+        sessionFactory.withTransaction(context) { tx ->
+            oppdaterFnrForStonad(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx = tx)
+            oppdaterFnrForUtbetaling(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx = tx)
         }
+    }
+
+    private fun oppdaterFnrForStonad(
+        gammeltFnr: Fnr,
+        nyttFnr: Fnr,
+        tx: TransactionalSession,
+    ) {
+        tx.run(
+            queryOf(
+                """
+                        update statistikk_stonad set bruker_id = :nytt_fnr where bruker_id = :gammelt_fnr
+                """.trimIndent(),
+                mapOf(
+                    "nytt_fnr" to nyttFnr.verdi,
+                    "gammelt_fnr" to gammeltFnr.verdi,
+                ),
+            ).asUpdate,
+        )
+    }
+
+    private fun oppdaterFnrForUtbetaling(
+        gammeltFnr: Fnr,
+        nyttFnr: Fnr,
+        tx: TransactionalSession,
+    ) {
+        tx.run(
+            queryOf(
+                """
+                    update statistikk_utbetaling set bruker_id = :nytt_fnr where bruker_id = :gammelt_fnr
+                """.trimIndent(),
+                mapOf(
+                    "nytt_fnr" to nyttFnr.verdi,
+                    "gammelt_fnr" to gammeltFnr.verdi,
+                ),
+            ).asUpdate,
+        )
     }
 
     // Denne brukes kun for tester
@@ -205,7 +237,8 @@ class StatistikkStønadPostgresRepo(
         utbetaling_id,
         vedtak_id,
         opprettet,
-        sist_endret
+        sist_endret,
+        bruker_id
         ) values (
         :id,
         :sakId,
@@ -219,7 +252,8 @@ class StatistikkStønadPostgresRepo(
         :utbetaling_id,
         :vedtak_id,
         :opprettet,
-        :sist_endret
+        :sist_endret,
+        bruker_id
         )
         """.trimIndent()
 

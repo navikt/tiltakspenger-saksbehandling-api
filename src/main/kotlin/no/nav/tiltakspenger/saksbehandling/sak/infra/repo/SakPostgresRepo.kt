@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
@@ -171,19 +172,17 @@ class SakPostgresRepo(
         } ?: saksnummerGenerator.generer(dato = iDag)
     }
 
-    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
-        sessionFactory.withSessionContext { sessionContext ->
-            sessionContext.withSession { session ->
-                session.run(
-                    queryOf(
-                        """update sak set fnr = :nytt_fnr where fnr = :gammelt_fnr""",
-                        mapOf(
-                            "nytt_fnr" to nyttFnr.verdi,
-                            "gammelt_fnr" to gammeltFnr.verdi,
-                        ),
-                    ).asUpdate,
-                )
-            }
+    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?) {
+        sessionFactory.withTransaction(context) { tx ->
+            tx.run(
+                queryOf(
+                    """update sak set fnr = :nytt_fnr where fnr = :gammelt_fnr""",
+                    mapOf(
+                        "nytt_fnr" to nyttFnr.verdi,
+                        "gammelt_fnr" to gammeltFnr.verdi,
+                    ),
+                ).asUpdate,
+            )
         }
     }
 

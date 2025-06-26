@@ -9,6 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkUtbetalin
 interface StatistikkStønadRepo {
     fun lagre(dto: StatistikkStønadDTO, context: TransactionContext? = null)
     fun lagre(dto: StatistikkUtbetalingDTO, context: TransactionContext? = null)
-    fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr)
+    fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext? = null)
     fun hent(sakId: SakId): List<StatistikkStønadDTO>
 }

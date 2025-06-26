@@ -20,4 +20,5 @@ data class StatistikkUtbetalingDTO(
     val vedtakId: List<String>?,
     val opprettet: LocalDateTime?,
     val sistEndret: LocalDateTime?,
+    val brukerId: String,
 )
