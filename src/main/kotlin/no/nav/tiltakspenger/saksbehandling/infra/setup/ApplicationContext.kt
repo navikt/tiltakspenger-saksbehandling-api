@@ -212,6 +212,7 @@ open class ApplicationContext(
             søknadRepo = søknadContext.søknadRepo,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
+            sessionFactory = sessionFactory,
         )
     }
 

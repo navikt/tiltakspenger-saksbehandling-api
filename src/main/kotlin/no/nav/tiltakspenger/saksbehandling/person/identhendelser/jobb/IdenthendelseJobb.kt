@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.person.identhendelser.jobb
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
@@ -18,6 +19,7 @@ class IdenthendelseJobb(
     private val søknadRepo: SøknadRepo,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
+    private val sessionFactory: SessionFactory,
 
 ) {
     private val log = KotlinLogging.logger {}
@@ -48,10 +50,12 @@ class IdenthendelseJobb(
     }
 
     private fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
-        sakRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr)
-        søknadRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr)
-        statistikkSakRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr)
-        statistikkStønadRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr)
+        sessionFactory.withTransactionContext { tx ->
+            sakRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
+            søknadRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
+            statistikkSakRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
+            statistikkStønadRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
+        }
     }
 
     private fun IdenthendelseDb.toIdenthendelseDto() =

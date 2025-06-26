@@ -64,6 +64,7 @@ class IdenthendelseJobbTest {
                     søknadRepo = søknadRepo,
                     statistikkSakRepo = statistikkSakRepo,
                     statistikkStønadRepo = statistikkStønadRepo,
+                    sessionFactory = testDataHelper.sessionFactory,
                 )
                 val gammeltFnr = Fnr.random()
                 val nyttFnr = Fnr.random()
@@ -153,6 +154,7 @@ class IdenthendelseJobbTest {
                     søknadRepo = søknadRepo,
                     statistikkSakRepo = statistikkSakRepo,
                     statistikkStønadRepo = statistikkStønadRepo,
+                    sessionFactory = testDataHelper.sessionFactory,
                 )
                 val gammeltFnr = Fnr.random()
                 val nyttFnr = Fnr.random()
@@ -237,6 +239,7 @@ class IdenthendelseJobbTest {
                     søknadRepo = søknadRepo,
                     statistikkSakRepo = statistikkSakRepo,
                     statistikkStønadRepo = statistikkStønadRepo,
+                    sessionFactory = testDataHelper.sessionFactory,
                 )
                 val gammeltFnr = Fnr.random()
                 val nyttFnr = Fnr.random()

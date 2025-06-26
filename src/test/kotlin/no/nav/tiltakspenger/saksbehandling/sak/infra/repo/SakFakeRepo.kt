@@ -6,6 +6,7 @@ import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
@@ -82,7 +83,7 @@ class SakFakeRepo(
         return data.get()[sakId]?.fnr
     }
 
-    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
+    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?) {
         val sak = data.get().values.find { it.fnr == gammeltFnr }
         sak?.let {
             data.get()[it.id] = it.copy(

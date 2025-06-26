@@ -88,4 +88,5 @@ fun Utbetalingsvedtak.tilStatistikk(): StatistikkUtbetalingDTO =
         vedtakId = meldeperiode.rammevedtak?.perioderMedVerdi?.mapNotNull { it.verdi?.toString() }?.distinct(),
         opprettet = LocalDateTime.now(),
         sistEndret = LocalDateTime.now(),
+        brukerId = this.fnr.verdi,
     )

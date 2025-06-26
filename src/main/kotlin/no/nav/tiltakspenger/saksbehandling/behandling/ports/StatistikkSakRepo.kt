@@ -9,5 +9,5 @@ interface StatistikkSakRepo {
     fun lagre(dto: StatistikkSakDTO, context: TransactionContext? = null)
     fun oppdaterAdressebeskyttelse(sakId: SakId)
     fun hent(sakId: SakId): List<StatistikkSakDTO>
-    fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr)
+    fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext? = null)
 }

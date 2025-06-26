@@ -60,9 +60,9 @@ internal class StatistikkSakPostgresRepo(
         )
     }
 
-    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
-        sessionFactory.withSession {
-            it.run(
+    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?) {
+        sessionFactory.withTransaction(context) { tx ->
+            tx.run(
                 queryOf(
                     """
                         update statistikk_sak set fnr = :nytt_fnr where fnr = :gammelt_fnr

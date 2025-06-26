@@ -46,12 +46,12 @@ internal class SøknadPostgresRepo(
             throw IllegalArgumentException("Kan ikke lagre en søknad som ikke er avbrutt")
         }
         sessionFactory.withTransaction(txContext) {
-            SøknadDAO.lagreAvbruttSøknad(søknad.id, søknad.avbrutt!!, it)
+            SøknadDAO.lagreAvbruttSøknad(søknad.id, søknad.avbrutt, it)
         }
     }
 
-    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr) {
-        sessionFactory.withSession {
+    override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?) {
+        sessionFactory.withTransaction(context) {
             SøknadDAO.oppdaterFnr(
                 gammeltFnr = gammeltFnr,
                 nyttFnr = nyttFnr,
