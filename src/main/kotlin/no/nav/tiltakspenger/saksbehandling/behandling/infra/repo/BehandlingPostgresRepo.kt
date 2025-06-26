@@ -32,7 +32,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.t
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
-import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
 import org.intellij.lang.annotations.Language
@@ -323,7 +322,6 @@ class BehandlingPostgresRepo(
             val opprettet = localDateTime("opprettet")
             val iverksattTidspunkt = localDateTimeOrNull("iverksatt_tidspunkt")
             val sistEndret = localDateTime("sist_endret")
-            val oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) }
             val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
             val sendtTilDatadeling = localDateTimeOrNull("sendt_til_datadeling")
             val fritekstTilVedtaksbrev = stringOrNull("fritekst_vedtaksbrev")?.let { FritekstTilVedtaksbrev(it) }
@@ -381,7 +379,6 @@ class BehandlingPostgresRepo(
                         iverksattTidspunkt = iverksattTidspunkt,
                         sendtTilDatadeling = sendtTilDatadeling,
                         sakId = sakId,
-                        oppgaveId = oppgaveId,
                         saksnummer = saksnummer,
                         fnr = fnr,
                         saksopplysninger = saksopplysninger,
@@ -426,7 +423,6 @@ class BehandlingPostgresRepo(
                         iverksattTidspunkt = iverksattTidspunkt,
                         sendtTilDatadeling = sendtTilDatadeling,
                         sakId = sakId,
-                        oppgaveId = oppgaveId,
                         saksnummer = saksnummer,
                         fnr = fnr,
                         saksopplysninger = saksopplysninger,
@@ -646,7 +642,7 @@ private fun Behandling.tilDbParams(): Map<String, Any?> {
         "sist_endret" to this.sistEndret,
         "iverksatt_tidspunkt" to this.iverksattTidspunkt,
         "sendt_til_datadeling" to this.sendtTilDatadeling,
-        "oppgave_id" to this.oppgaveId?.toString(),
+        "oppgave_id" to null,
         "virkningsperiode_fra_og_med" to this.virkningsperiode?.fraOgMed,
         "virkningsperiode_til_og_med" to this.virkningsperiode?.tilOgMed,
         "saksbehandler" to this.saksbehandler,

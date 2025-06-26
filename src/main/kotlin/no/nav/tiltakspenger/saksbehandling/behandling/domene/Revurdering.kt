@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
-import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import java.time.Clock
@@ -31,7 +30,6 @@ data class Revurdering(
     override val iverksattTidspunkt: LocalDateTime?,
     override val sendtTilDatadeling: LocalDateTime?,
     override val sakId: SakId,
-    override val oppgaveId: OppgaveId?,
     override val saksnummer: Saksnummer,
     override val fnr: Fnr,
     override val saksopplysninger: Saksopplysninger,
@@ -225,7 +223,6 @@ data class Revurdering(
                 fritekstTilVedtaksbrev = null,
                 iverksattTidspunkt = null,
                 sendtTilDatadeling = null,
-                oppgaveId = null,
                 avbrutt = null,
                 begrunnelseVilkårsvurdering = null,
             )

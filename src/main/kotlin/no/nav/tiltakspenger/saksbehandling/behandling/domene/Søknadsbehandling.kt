@@ -22,7 +22,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
-import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
@@ -37,7 +36,6 @@ data class Søknadsbehandling(
     override val iverksattTidspunkt: LocalDateTime?,
     override val sendtTilDatadeling: LocalDateTime?,
     override val sakId: SakId,
-    override val oppgaveId: OppgaveId?,
     override val saksnummer: Saksnummer,
     override val fnr: Fnr,
     override val saksopplysninger: Saksopplysninger,
@@ -203,7 +201,6 @@ data class Søknadsbehandling(
                 sakId = sakId,
                 fnr = fnr,
                 søknad = søknad,
-                oppgaveId = null,
                 saksopplysninger = saksopplysninger,
                 fritekstTilVedtaksbrev = null,
                 saksbehandler = saksbehandler.navIdent,
@@ -239,7 +236,6 @@ data class Søknadsbehandling(
                 sakId = søknad.sakId,
                 fnr = søknad.fnr,
                 søknad = søknad,
-                oppgaveId = null,
                 saksopplysninger = saksopplysninger,
                 fritekstTilVedtaksbrev = null,
                 saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID,
