@@ -271,7 +271,7 @@ object Configuration {
     val aktorV2Topic: String by lazy { config()[Key("AKTOR_V2_TOPIC", stringType)] }
     val identhendelseTopic: String by lazy { config()[Key("IDENTHENDELSE_TOPIC", stringType)] }
 
-    val brukFakeMeldekortApiLokalt: Boolean by lazy { config()[Key("BRUK_FAKE_MELDEKORT_API", stringType)].toBoolean() }
+    val brukFakeMeldekortApiLokalt: Boolean = config().getOrNull(Key("BRUK_FAKE_MELDEKORT_API", stringType))?.toBooleanStrictOrNull() ?: false
 
     fun httpPort() = config()[Key("application.httpPort", intType)]
 
