@@ -17,7 +17,7 @@
     <logger name="no.nav.tiltakspenger.saksbehandling.clients" level="WARN"/>
 
     <logger name="team-logs-logger" level="DEBUG" additivity="false">
-        <appender-ref ref="team-logs"/>
+        <appender-ref ref="STDOUT"/>
     </logger>
 
     <root level="INFO">

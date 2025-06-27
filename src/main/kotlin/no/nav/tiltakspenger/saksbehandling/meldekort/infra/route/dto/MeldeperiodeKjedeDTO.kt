@@ -52,7 +52,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
         periodeMedÅpenBehandling = this.meldekortBehandlinger.åpenMeldekortBehandling?.periode?.toDTO(),
         tiltaksnavn = this.vedtaksliste
             .valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode)
-            .perioderMedVerdi.mapNotNull { it.verdi?.typeNavn },
+            .perioderMedVerdi.toList().map { it.verdi.typeNavn },
         meldeperioder = meldeperiodeKjede.map { it.toMeldeperiodeDTO() },
         meldekortBehandlinger = this.meldekortBehandlinger
             .hentMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)

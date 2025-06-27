@@ -15,11 +15,11 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.april
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
@@ -212,7 +212,7 @@ class SendRevurderingTilBeslutningTest {
                 revurdering.resultat shouldBe RevurderingResultat.Innvilgelse(
                     valgteTiltaksdeltakelser = revurdering.valgteTiltaksdeltakelser!!,
                     barnetillegg = søknadsbehandling.barnetillegg,
-                    antallDagerPerMeldeperiode = Periodisering(AntallDagerForMeldeperiode.default, revurderingInnvilgelsesperiode),
+                    antallDagerPerMeldeperiode = SammenhengendePeriodisering(AntallDagerForMeldeperiode.default, revurderingInnvilgelsesperiode),
                 )
 
                 revurdering.virkningsperiode shouldBe revurderingInnvilgelsesperiode

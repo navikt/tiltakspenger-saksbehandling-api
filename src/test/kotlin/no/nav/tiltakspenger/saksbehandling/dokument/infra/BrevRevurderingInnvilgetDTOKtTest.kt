@@ -4,13 +4,14 @@ import io.kotest.assertions.json.shouldEqualJson
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.august
+import no.nav.tiltakspenger.libs.dato.desember
+import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.august
-import no.nav.tiltakspenger.libs.periodisering.desember
-import no.nav.tiltakspenger.libs.periodisering.januar
-import no.nav.tiltakspenger.libs.periodisering.juni
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.person.Navn
@@ -126,7 +127,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                 beslutterNavIdent = "Z654321",
                 saksnummer = saksnummer,
                 vurderingsperiode = Periode(1.juni(2025), 31.august(2025)),
-                barnetillegg = Periodisering(PeriodeMedVerdi(AntallBarn(2), Periode(1.juni(2025), 31.august(2025)))),
+                barnetillegg = SammenhengendePeriodisering(AntallBarn(2), 1.juni(2025) til 31.august(2025)),
                 forhåndsvisning = true,
             )
 
@@ -170,7 +171,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                 beslutterNavIdent = "Z654321",
                 saksnummer = saksnummer,
                 vurderingsperiode = Periode(1.desember(2024), 31.januar(2025)),
-                barnetillegg = Periodisering(
+                barnetillegg = SammenhengendePeriodisering(
                     PeriodeMedVerdi(AntallBarn(2), Periode(1.desember(2024), 31.desember(2024))),
                     PeriodeMedVerdi(AntallBarn(3), Periode(1.januar(2025), 31.januar(2025))),
                 ),

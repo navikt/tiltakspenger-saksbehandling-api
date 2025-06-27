@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
+import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
@@ -31,6 +32,13 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import java.time.LocalDate
 
+/**
+ * @param avslagsgrunner Brukes kun ved søknadsbehandling avslag
+ * @param valgteHjemler Brukes kun ved revurdering til stans
+ * @param stansDato Brukes kun ved revurdering til stans
+ * @param barnetillegg Brukes ved innvilgelse (søknadsbehandling+revurdering). Kan inneholde hull. Må valideres basert på innsendt virkningsperiode eller virkningsperioden på behandlingen.
+ * @param virkningsperiode Brukes ved avslag og innvilgelse (søknadsbehandling+revurdering). Brukes kun hvis den ikke er satt på behandlingen.
+ */
 private data class Body(
     val fritekst: String,
     val virkningsperiode: PeriodeDTO?,
@@ -54,16 +62,19 @@ private data class Body(
             behandlingId = behandlingId,
             correlationId = correlationId,
             saksbehandler = saksbehandler,
-            virkingsperiode = virkningsperiode,
+            virkningsperiode = virkningsperiode,
             valgteHjemler = (valgteHjemler ?: emptyList()).toDomain(),
             stansDato = stansDato,
-            barnetillegg = barnetillegg?.tilPeriodisering(virkningsperiode),
+            barnetillegg = barnetillegg?.tilPeriodisering() as IkkeTomPeriodisering,
             resultat = resultat.toDomain(),
             avslagsgrunner = this.avslagsgrunner?.toAvslagsgrunnlag(),
         )
     }
 }
 
+/**
+ * Brukes for søknadsbehandling (innvilgelse+avslag) + revurdering (innvilgelse+stans).
+ */
 fun Route.forhåndsvisVedtaksbrevRoute(
     tokenService: TokenService,
     auditService: AuditService,

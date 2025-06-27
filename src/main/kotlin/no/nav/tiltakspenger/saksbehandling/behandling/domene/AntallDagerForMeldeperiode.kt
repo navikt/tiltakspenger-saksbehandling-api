@@ -27,5 +27,5 @@ value class AntallDagerForMeldeperiode(val value: Int) : Comparable<AntallDagerF
  */
 fun Periodisering<AntallDagerForMeldeperiode>.finnAntallDagerForMeldeperiode(periode: Periode): AntallDagerForMeldeperiode? {
     periode.validerMeldeperiode()
-    return this.overlapperMed(periode).perioderMedVerdi.map { it.verdi }.maxOfOrNull { it }
+    return this.overlappendePeriode(periode).perioderMedVerdi.map { it.verdi }.maxOfOrNull { it }
 }

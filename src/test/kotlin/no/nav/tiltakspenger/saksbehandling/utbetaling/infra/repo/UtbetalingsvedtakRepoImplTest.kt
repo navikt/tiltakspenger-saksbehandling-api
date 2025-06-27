@@ -4,8 +4,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.plus
-import no.nav.tiltakspenger.libs.periodisering.april
-import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakMedBehandletMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb

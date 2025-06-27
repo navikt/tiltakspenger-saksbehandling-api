@@ -175,5 +175,5 @@ fun Revurdering.tilRevurderingDTO(): RevurderingDTO {
 }
 
 private fun ValgteTiltaksdeltakelser.tilDTO(): List<TiltaksdeltakelsePeriodeDTO> {
-    return periodisering.perioderMedVerdi.map { it.toTiltaksdeltakelsePeriodeDTO() }
+    return periodisering.perioderMedVerdi.toList().map { it.toTiltaksdeltakelsePeriodeDTO() }
 }

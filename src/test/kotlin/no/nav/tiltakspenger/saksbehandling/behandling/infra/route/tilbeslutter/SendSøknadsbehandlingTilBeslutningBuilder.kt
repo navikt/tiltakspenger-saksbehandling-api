@@ -18,14 +18,13 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.april
-import no.nav.tiltakspenger.libs.periodisering.januar
-import no.nav.tiltakspenger.libs.periodisering.mars
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
@@ -48,11 +47,9 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
-        antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
-            PeriodeMedVerdi(
-                AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-                virkingsperiode,
-            ),
+        antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
+            AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+            virkingsperiode,
         ),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
         val (sak, søknad, behandling) = opprettBehandlingUnderBehandling(tac, fnr, virkingsperiode, saksbehandler)
@@ -88,11 +85,9 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         innvilgelsesperiode: Periode = Periode(1.januar(2023), 31.mars(2023)),
         eksternDeltagelseId: String,
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
-        antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
-            PeriodeMedVerdi(
-                AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-                innvilgelsesperiode,
-            ),
+        antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
+            AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+            innvilgelsesperiode,
         ),
     ): String {
         val avslagsgrunner = if (resultat == SøknadsbehandlingType.AVSLAG) {

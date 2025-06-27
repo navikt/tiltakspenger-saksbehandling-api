@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
@@ -88,11 +88,14 @@ data class RevurderingTilBeslutningDTO(
                         Pair(it.periode.toDomain(), it.eksternDeltagelseId)
                     },
                     barnetillegg = innvilgelse.barnetillegg?.tilBarnetillegg(innvilgelsesperiode),
-                    antallDagerPerMeldeperiode = Periodisering(
-                        innvilgelse.antallDagerPerMeldeperiodeForPerioder.map {
-                            PeriodeMedVerdi(AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode), it.periode.toDomain())
-                        },
-                    ),
+                    antallDagerPerMeldeperiode =
+                    innvilgelse.antallDagerPerMeldeperiodeForPerioder.map {
+                        PeriodeMedVerdi(
+                            AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
+                            it.periode.toDomain(),
+                        )
+                    }.tilSammenhengendePeriodisering(),
+
                 )
             }
 

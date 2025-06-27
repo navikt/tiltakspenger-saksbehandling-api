@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
@@ -116,7 +116,7 @@ internal class PdfgenHttpClient(
         saksnummer: Saksnummer,
         sakId: SakId,
         forhåndsvisning: Boolean,
-        barnetilleggsPerioder: Periodisering<AntallBarn>?,
+        barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -150,7 +150,7 @@ internal class PdfgenHttpClient(
         forhåndsvisning: Boolean,
         vurderingsperiode: Periode,
         saksbehandlersVurdering: FritekstTilVedtaksbrev,
-        barnetillegg: Periodisering<AntallBarn>?,
+        barnetillegg: SammenhengendePeriodisering<AntallBarn>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {

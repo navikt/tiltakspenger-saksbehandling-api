@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSakso
 import io.kotest.matchers.shouldBe
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
-import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes

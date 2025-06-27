@@ -61,7 +61,7 @@ fun Rammevedtak.toDatadelingJson(): String {
 
 private fun Barnetillegg.toDatadelingBarnetillegg() =
     DatadelingVedtakJson.Barnetillegg(
-        perioder = this.periodisering.perioderMedVerdi.map {
+        perioder = this.periodisering.perioderMedVerdi.toList().map {
             DatadelingVedtakJson.BarnetilleggPeriode(
                 antallBarn = it.verdi.value,
                 periode = DatadelingVedtakJson.BarnetilleggPeriode.Periode(

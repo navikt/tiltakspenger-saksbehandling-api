@@ -83,10 +83,13 @@ sealed interface MeldekortBehandling {
     /** Merk at statusen [IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den brukes ifm stans. */
     fun erÅpen(): Boolean = !erAvsluttet
 
-    /** Oppdaterer meldeperioden til [meldeperiode] dersom den har samme kjede id, den er nyere enn den eksisterende og dette ikke er avsluttet meldekortbehandling. */
+    /**
+     * Oppdaterer meldeperioden til [meldeperiode] dersom den har samme kjede id, den er nyere enn den eksisterende og dette ikke er avsluttet meldekortbehandling.
+     * @param tiltakstypePerioder kan være tom eller inneholde hull.
+     */
     fun oppdaterMeldeperiode(
         meldeperiode: Meldeperiode,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
         clock: Clock,
     ): MeldekortBehandling? {
         require(meldeperiode.kjedeId == kjedeId) {

@@ -7,11 +7,11 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.dato.juli
+import no.nav.tiltakspenger.libs.dato.juni
+import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.april
-import no.nav.tiltakspenger.libs.periodisering.juli
-import no.nav.tiltakspenger.libs.periodisering.juni
-import no.nav.tiltakspenger.libs.periodisering.mai
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes

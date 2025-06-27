@@ -27,7 +27,7 @@ data class Meldeperiode(
     val fnr: Fnr,
     val maksAntallDagerForMeldeperiode: Int,
     val girRett: Map<LocalDate, Boolean>,
-    val rammevedtak: Periodisering<VedtakId?>?,
+    val rammevedtak: Periodisering<VedtakId>?,
 ) : Comparable<Meldeperiode> {
     val antallDagerSomGirRett = girRett.values.count { it }
     val ingenDagerGirRett = antallDagerSomGirRett == 0
@@ -70,13 +70,13 @@ data class Meldeperiode(
     companion object {
         fun opprettMeldeperiode(
             periode: Periode,
-            utfallsperioder: Periodisering<Utfallsperiode?>,
+            utfallsperioder: Periodisering<Utfallsperiode>,
             fnr: Fnr,
             saksnummer: Saksnummer,
             sakId: SakId,
             antallDagerForPeriode: Int,
             versjon: HendelseVersjon = HendelseVersjon.ny(),
-            rammevedtak: Periodisering<VedtakId?>,
+            rammevedtak: Periodisering<VedtakId>,
             clock: Clock,
         ): Meldeperiode {
             val meldeperiode = Meldeperiode(

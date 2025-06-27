@@ -4,12 +4,12 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.dato.desember
+import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.dato.november
+import no.nav.tiltakspenger.libs.dato.oktober
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.desember
-import no.nav.tiltakspenger.libs.periodisering.mai
-import no.nav.tiltakspenger.libs.periodisering.november
-import no.nav.tiltakspenger.libs.periodisering.oktober
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjede
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder

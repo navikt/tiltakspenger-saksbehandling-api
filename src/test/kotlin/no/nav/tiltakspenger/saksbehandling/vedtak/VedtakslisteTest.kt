@@ -1,12 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.dato.desember
+import no.nav.tiltakspenger.libs.dato.februar
+import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.desember
-import no.nav.tiltakspenger.libs.periodisering.februar
-import no.nav.tiltakspenger.libs.periodisering.januar
-import no.nav.tiltakspenger.libs.periodisering.september
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
@@ -41,7 +42,7 @@ internal class VedtakslisteTest {
         withTestApplicationContext { tac ->
             // 2 hele meldeperioder
             val innvilgelsesperiode = 1 til 28.september(2025)
-            val antallDagerPerMeldeperiode = Periodisering(
+            val antallDagerPerMeldeperiode = SammenhengendePeriodisering(
                 PeriodeMedVerdi(AntallDagerForMeldeperiode(9), 1 til 14.september(2025)),
                 PeriodeMedVerdi(AntallDagerForMeldeperiode(8), 15 til 28.september(2025)),
             )
@@ -62,7 +63,7 @@ internal class VedtakslisteTest {
         withTestApplicationContext { tac ->
             // 2 hele meldeperioder
             val innvilgelsesperiode = 1 til 28.september(2025)
-            val antallDagerPerMeldeperiode = Periodisering(
+            val antallDagerPerMeldeperiode = SammenhengendePeriodisering(
                 PeriodeMedVerdi(AntallDagerForMeldeperiode(9), 1 til 21.september(2025)),
                 PeriodeMedVerdi(AntallDagerForMeldeperiode(8), 22 til 28.september(2025)),
             )
@@ -83,7 +84,7 @@ internal class VedtakslisteTest {
         withTestApplicationContext { tac ->
             // 2 hele meldeperioder
             val innvilgelsesperiode = 1 til 28.september(2025)
-            val antallDagerPerMeldeperiode = Periodisering(
+            val antallDagerPerMeldeperiode = SammenhengendePeriodisering(
                 PeriodeMedVerdi(AntallDagerForMeldeperiode(9), 1 til 15.september(2025)),
                 PeriodeMedVerdi(AntallDagerForMeldeperiode(8), 16 til 28.september(2025)),
             )

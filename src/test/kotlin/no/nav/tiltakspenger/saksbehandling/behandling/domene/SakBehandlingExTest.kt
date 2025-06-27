@@ -8,8 +8,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
@@ -40,7 +39,7 @@ class SakBehandlingExTest {
                     saksopplysninger.tiltaksdeltagelse[0].eksternDeltagelseId,
                 ),
             ),
-            antallDagerPerMeldeperiode = Periodisering(PeriodeMedVerdi(AntallDagerForMeldeperiode(10), virkningsperiode)),
+            antallDagerPerMeldeperiode = SammenhengendePeriodisering(AntallDagerForMeldeperiode(10), virkningsperiode),
             avslagsgrunner = null,
             resultat = SøknadsbehandlingType.INNVILGELSE,
         )
@@ -106,7 +105,7 @@ class SakBehandlingExTest {
                     saksopplysninger.tiltaksdeltagelse[0].eksternDeltagelseId,
                 ),
             ),
-            antallDagerPerMeldeperiode = Periodisering(PeriodeMedVerdi(AntallDagerForMeldeperiode(10), virkningsperiode)),
+            antallDagerPerMeldeperiode = SammenhengendePeriodisering(AntallDagerForMeldeperiode(10), virkningsperiode),
             avslagsgrunner = null,
             resultat = SøknadsbehandlingType.INNVILGELSE,
         )

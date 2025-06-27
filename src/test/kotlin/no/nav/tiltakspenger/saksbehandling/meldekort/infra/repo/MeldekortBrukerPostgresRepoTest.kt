@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.periodisering.april
-import no.nav.tiltakspenger.libs.periodisering.januar
-import no.nav.tiltakspenger.libs.periodisering.juni
-import no.nav.tiltakspenger.libs.periodisering.mars
+import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.juni
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort

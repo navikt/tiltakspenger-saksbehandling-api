@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.barnetillegg
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 
@@ -10,7 +10,7 @@ interface BarnetilleggMother {
         begrunnelse: BegrunnelseVilkårsvurdering? = null,
         periode: Periode = ObjectMother.virkningsperiode(),
         antallBarn: AntallBarn = AntallBarn(1),
-        periodiseringAntallBarn: Periodisering<AntallBarn> = barnetilleggsPerioder(
+        periodiseringAntallBarn: SammenhengendePeriodisering<AntallBarn> = barnetilleggsPerioder(
             periode = periode,
             antallBarn = antallBarn,
         ),
@@ -24,11 +24,11 @@ interface BarnetilleggMother {
     fun barnetilleggsPerioder(
         periode: Periode = ObjectMother.virkningsperiode(),
         antallBarn: AntallBarn = AntallBarn(1),
-        periodiseringAntallBarn: Periodisering<AntallBarn> = Periodisering(
+        periodiseringAntallBarn: SammenhengendePeriodisering<AntallBarn> = SammenhengendePeriodisering(
             antallBarn,
             periode,
         ),
-    ): Periodisering<AntallBarn> {
+    ): SammenhengendePeriodisering<AntallBarn> {
         return periodiseringAntallBarn
     }
 }

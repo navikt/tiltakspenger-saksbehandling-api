@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.periodisering.mai
+import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Test

@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BEHANDLING
@@ -62,8 +62,8 @@ sealed interface Behandling {
 
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?
     val barnetillegg: Barnetillegg?
-    val utfallsperioder: Periodisering<Utfallsperiode>?
-    val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode>?
+    val utfallsperioder: SammenhengendePeriodisering<Utfallsperiode>?
+    val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
 
     val behandlingstype: Behandlingstype
         get() = when (this) {

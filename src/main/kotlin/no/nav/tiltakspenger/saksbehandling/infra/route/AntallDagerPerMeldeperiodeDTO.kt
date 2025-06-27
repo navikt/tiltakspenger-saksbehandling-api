@@ -10,7 +10,7 @@ data class AntallDagerPerMeldeperiodeDTO(
     val antallDagerPerMeldeperiode: Int,
 )
 fun Periodisering<AntallDagerForMeldeperiode>.toDTO(): List<AntallDagerPerMeldeperiodeDTO> {
-    return this.perioderMedVerdi.map {
+    return this.perioderMedVerdi.toList().map {
         AntallDagerPerMeldeperiodeDTO(antallDagerPerMeldeperiode = it.verdi.value, periode = it.periode.toDTO())
     }
 }

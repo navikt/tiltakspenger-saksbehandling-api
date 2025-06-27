@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
@@ -21,20 +21,19 @@ private data class TiltaksdeltakelsePeriodeMedVerdi(
 fun String.toValgteTiltaksdeltakelser(saksopplysninger: Saksopplysninger): ValgteTiltaksdeltakelser {
     val valgteTiltaksdeltakelserDbJson = deserialize<ValgteTiltaksdeltakelserDbJson>(this)
     return ValgteTiltaksdeltakelser(
-        periodisering = Periodisering(
-            valgteTiltaksdeltakelserDbJson.value.map {
-                PeriodeMedVerdi(
-                    periode = it.periode.toDomain(),
-                    verdi = saksopplysninger.getTiltaksdeltagelse(it.eksternDeltagelseId)
-                        ?: throw IllegalStateException("Fant ikke tiltaksdeltakelse med id ${it.eksternDeltagelseId} fra saksopplysninger"),
-                )
-            },
-        ),
+        periodisering =
+        valgteTiltaksdeltakelserDbJson.value.map {
+            PeriodeMedVerdi(
+                periode = it.periode.toDomain(),
+                verdi = saksopplysninger.getTiltaksdeltagelse(it.eksternDeltagelseId)
+                    ?: throw IllegalStateException("Fant ikke tiltaksdeltakelse med id ${it.eksternDeltagelseId} fra saksopplysninger"),
+            )
+        }.tilSammenhengendePeriodisering(),
     )
 }
 
 fun ValgteTiltaksdeltakelser.toDbJson(): String = ValgteTiltaksdeltakelserDbJson(
-    value = this.periodisering.perioderMedVerdi.map {
+    value = this.periodisering.perioderMedVerdi.toList().map {
         TiltaksdeltakelsePeriodeMedVerdi(
             periode = it.periode.toDbJson(),
             eksternDeltagelseId = it.verdi.eksternDeltagelseId,

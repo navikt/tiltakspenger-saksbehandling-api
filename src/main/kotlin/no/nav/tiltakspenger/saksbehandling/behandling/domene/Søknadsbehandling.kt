@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BEHANDLING
@@ -53,7 +53,7 @@ data class Søknadsbehandling(
     val manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
 ) : Behandling {
 
-    override val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode>?
+    override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
         get() = when (resultat) {
             is SøknadsbehandlingResultat.Avslag -> null
             is SøknadsbehandlingResultat.Innvilgelse -> resultat.antallDagerPerMeldeperiode
@@ -67,8 +67,8 @@ data class Søknadsbehandling(
             null -> null
         }
 
-    override val utfallsperioder: Periodisering<Utfallsperiode>? =
-        virkningsperiode?.let { Periodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, it) }
+    override val utfallsperioder: SammenhengendePeriodisering<Utfallsperiode>? =
+        virkningsperiode?.let { SammenhengendePeriodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, it) }
 
     override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (resultat) {
         is SøknadsbehandlingResultat.Avslag -> null
@@ -150,11 +150,14 @@ data class Søknadsbehandling(
         )
     }
 
+    /**
+     * Krever at [virkningsperiode] er satt før vi kan oppdatere barnetillegg.
+     */
     fun oppdaterBarnetillegg(kommando: OppdaterBarnetilleggKommando): Søknadsbehandling {
         require(this.resultat is SøknadsbehandlingResultat.Innvilgelse)
         validerKanOppdatere(kommando.saksbehandler, "Kunne ikke oppdatere barnetillegg")
 
-        return this.copy(resultat = resultat.copy(barnetillegg = kommando.barnetillegg(this.virkningsperiode)))
+        return this.copy(resultat = resultat.copy(barnetillegg = kommando.barnetillegg(this.virkningsperiode!!)))
     }
 
     override fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Søknadsbehandling {
