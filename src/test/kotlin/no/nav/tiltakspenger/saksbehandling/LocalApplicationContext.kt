@@ -19,12 +19,16 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiFakeKlient
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiHttpClient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toSøknadstiltak
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
@@ -127,7 +131,8 @@ class LocalApplicationContext(
             override val journalførMeldekortKlient = journalførFakeMeldekortKlient
             override val journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient
             override val genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient
-            override val genererVedtaksbrevForInnvilgelseKlient = this@LocalApplicationContext.genererFakeVedtaksbrevForInnvilgelseKlient
+            override val genererVedtaksbrevForInnvilgelseKlient =
+                this@LocalApplicationContext.genererFakeVedtaksbrevForInnvilgelseKlient
         }
     }
 
@@ -172,7 +177,17 @@ class LocalApplicationContext(
             sakRepo = sakContext.sakRepo,
             clock = clock,
             simulerService = utbetalingContext.simulerService,
-        ) {}
+        ) {
+            override val meldekortApiHttpClient: MeldekortApiKlient
+                get() = if (Configuration.brukFakeMeldekortApiLokalt) {
+                    MeldekortApiFakeKlient()
+                } else {
+                    MeldekortApiHttpClient(
+                        baseUrl = Configuration.meldekortApiUrl,
+                        getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.meldekortApiScope) },
+                    )
+                }
+        }
     }
     override val behandlingContext by lazy {
         object : BehandlingOgVedtakContext(

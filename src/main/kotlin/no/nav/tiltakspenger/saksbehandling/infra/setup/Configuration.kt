@@ -98,6 +98,7 @@ object Configuration {
                 "IDENTHENDELSE_TOPIC" to "tpts.identhendelse",
                 "SOKOS_UTBETALDATA_SCOPE" to "localhost",
                 "SOKOS_UTBETALDATA_URL" to "http://host.docker.internal:8091",
+                "BRUK_FAKE_MELDEKORT_API" to "true",
             ),
         )
 
@@ -269,6 +270,8 @@ object Configuration {
     val leesahTopic: String by lazy { config()[Key("LEESAH_TOPIC", stringType)] }
     val aktorV2Topic: String by lazy { config()[Key("AKTOR_V2_TOPIC", stringType)] }
     val identhendelseTopic: String by lazy { config()[Key("IDENTHENDELSE_TOPIC", stringType)] }
+
+    val brukFakeMeldekortApiLokalt: Boolean by lazy { config()[Key("BRUK_FAKE_MELDEKORT_API", stringType)].toBoolean() }
 
     fun httpPort() = config()[Key("application.httpPort", intType)]
 
