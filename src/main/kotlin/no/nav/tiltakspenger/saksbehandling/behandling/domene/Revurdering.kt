@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
@@ -49,7 +49,7 @@ data class Revurdering(
         is Stans -> null
     }
 
-    override val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode>? = when (resultat) {
+    override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>? = when (resultat) {
         is Innvilgelse -> resultat.antallDagerPerMeldeperiode
         is Stans -> null
     }
@@ -59,14 +59,14 @@ data class Revurdering(
         is Stans -> null
     }
 
-    override val utfallsperioder: Periodisering<Utfallsperiode>? by lazy {
+    override val utfallsperioder: SammenhengendePeriodisering<Utfallsperiode>? by lazy {
         if (virkningsperiode == null) {
             return@lazy null
         }
 
         when (resultat) {
-            is Innvilgelse -> Periodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, virkningsperiode)
-            is Stans -> Periodisering(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, virkningsperiode)
+            is Innvilgelse -> SammenhengendePeriodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, virkningsperiode)
+            is Stans -> SammenhengendePeriodisering(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, virkningsperiode)
         }
     }
 

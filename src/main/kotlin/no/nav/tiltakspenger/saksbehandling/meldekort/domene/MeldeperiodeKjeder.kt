@@ -154,6 +154,7 @@ data class MeldeperiodeKjeder(
         while (!nærmesteMeldeperiode.starterEtter(sisteTilOgMed)) {
             if (vedtaksperioder.overlapperIkke(nærmesteMeldeperiode) && !this.harMeldeperiode(nærmesteMeldeperiode)) {
                 // hvis perioden ikke overlapper, og den ikke finnes fra før, så skal ikke vi oppdatere noe
+                nærmesteMeldeperiode = nærmesteMeldeperiode.nesteMeldeperiode()
                 continue
             }
 

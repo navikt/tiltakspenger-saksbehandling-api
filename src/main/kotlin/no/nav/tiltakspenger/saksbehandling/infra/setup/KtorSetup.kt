@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.infra.setup
 
+import arrow.integrations.jackson.module.NonEmptyCollectionsModule
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -67,6 +68,7 @@ fun Application.jacksonSerialization() {
         jackson {
             configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
             registerModule(JavaTimeModule())
+            registerModule(NonEmptyCollectionsModule())
             registerModule(KotlinModule.Builder().build())
         }
     }

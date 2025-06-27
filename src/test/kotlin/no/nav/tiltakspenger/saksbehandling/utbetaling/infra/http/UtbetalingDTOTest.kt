@@ -5,10 +5,10 @@ import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -277,16 +277,14 @@ internal class UtbetalingDTOTest {
             id = id,
             saksnummer = saksnummer,
             opprettet = opprettet,
-            barnetilleggsPerioder = Periodisering(
-                listOf(
-                    PeriodeMedVerdi(
-                        AntallBarn(1),
-                        Periode(2.januar(2023), 8.januar(2023)),
-                    ),
-                    PeriodeMedVerdi(
-                        AntallBarn(2),
-                        Periode(9.januar(2023), 15.januar(2023)),
-                    ),
+            barnetilleggsPerioder = SammenhengendePeriodisering(
+                PeriodeMedVerdi(
+                    AntallBarn(1),
+                    Periode(2.januar(2023), 8.januar(2023)),
+                ),
+                PeriodeMedVerdi(
+                    AntallBarn(2),
+                    Periode(9.januar(2023), 15.januar(2023)),
                 ),
             ),
         )
@@ -374,20 +372,18 @@ internal class UtbetalingDTOTest {
             id = id,
             saksnummer = saksnummer,
             opprettet = opprettet,
-            barnetilleggsPerioder = Periodisering(
-                listOf(
-                    PeriodeMedVerdi(
-                        AntallBarn(0),
-                        Periode(2.januar(2023), 2.januar(2023)),
-                    ),
-                    PeriodeMedVerdi(
-                        AntallBarn(1),
-                        Periode(3.januar(2023), 12.januar(2023)),
-                    ),
-                    PeriodeMedVerdi(
-                        AntallBarn(0),
-                        Periode(13.januar(2023), 15.januar(2023)),
-                    ),
+            barnetilleggsPerioder = SammenhengendePeriodisering(
+                PeriodeMedVerdi(
+                    AntallBarn(0),
+                    Periode(2.januar(2023), 2.januar(2023)),
+                ),
+                PeriodeMedVerdi(
+                    AntallBarn(1),
+                    Periode(3.januar(2023), 12.januar(2023)),
+                ),
+                PeriodeMedVerdi(
+                    AntallBarn(0),
+                    Periode(13.januar(2023), 15.januar(2023)),
                 ),
             ),
         )
@@ -475,24 +471,22 @@ internal class UtbetalingDTOTest {
             id = id,
             saksnummer = saksnummer,
             opprettet = opprettet,
-            barnetilleggsPerioder = Periodisering(
-                listOf(
-                    PeriodeMedVerdi(
-                        AntallBarn(1),
-                        Periode(2.januar(2023), 3.januar(2023)),
-                    ),
-                    PeriodeMedVerdi(
-                        AntallBarn(0),
-                        Periode(4.januar(2023), 4.januar(2023)),
-                    ),
-                    PeriodeMedVerdi(
-                        AntallBarn(1),
-                        Periode(5.januar(2023), 6.januar(2023)),
-                    ),
-                    PeriodeMedVerdi(
-                        AntallBarn(1),
-                        Periode(7.januar(2023), 15.januar(2023)),
-                    ),
+            barnetilleggsPerioder = SammenhengendePeriodisering(
+                PeriodeMedVerdi(
+                    AntallBarn(1),
+                    Periode(2.januar(2023), 3.januar(2023)),
+                ),
+                PeriodeMedVerdi(
+                    AntallBarn(0),
+                    Periode(4.januar(2023), 4.januar(2023)),
+                ),
+                PeriodeMedVerdi(
+                    AntallBarn(1),
+                    Periode(5.januar(2023), 6.januar(2023)),
+                ),
+                PeriodeMedVerdi(
+                    AntallBarn(1),
+                    Periode(7.januar(2023), 15.januar(2023)),
                 ),
             ),
         )

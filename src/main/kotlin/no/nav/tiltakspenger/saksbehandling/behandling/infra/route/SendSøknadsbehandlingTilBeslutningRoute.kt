@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -126,11 +126,10 @@ private data class SøknadsbehandlingTilBeslutningBody(
             tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
                 Pair(it.periode.toDomain(), it.eksternDeltagelseId)
             },
-            antallDagerPerMeldeperiode = Periodisering(
-                antallDagerPerMeldeperiodeForPerioder.map {
-                    PeriodeMedVerdi(AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode), it.periode.toDomain())
-                },
-            ),
+            antallDagerPerMeldeperiode =
+            antallDagerPerMeldeperiodeForPerioder.map {
+                PeriodeMedVerdi(AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode), it.periode.toDomain())
+            }.tilSammenhengendePeriodisering(),
             avslagsgrunner = avslagsgrunner?.toAvslagsgrunnlag(),
             resultat = when (resultat) {
                 BehandlingResultatDTO.INNVILGELSE -> SøknadsbehandlingType.INNVILGELSE

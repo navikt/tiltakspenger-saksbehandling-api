@@ -3,11 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.januar
-import no.nav.tiltakspenger.libs.periodisering.mars
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
@@ -35,8 +34,9 @@ internal class BehandlingPostgresRepoTest {
                 deltakelseFom = deltakelseFom,
                 deltakelseTom = deltakelseTom,
                 barnetillegg = Barnetillegg(
-                    periodisering = Periodisering(
-                        PeriodeMedVerdi(AntallBarn(1), Periode(deltakelseFom, deltakelseTom)),
+                    periodisering = SammenhengendePeriodisering(
+                        AntallBarn(1),
+                        Periode(deltakelseFom, deltakelseTom),
                     ),
                     begrunnelse = BegrunnelseVilkårsvurdering("Begrunnelse"),
                 ),

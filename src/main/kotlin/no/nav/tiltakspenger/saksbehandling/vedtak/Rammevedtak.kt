@@ -49,10 +49,12 @@ data class Rammevedtak(
     val saksnummer: Saksnummer = behandling.saksnummer
     val saksbehandlerNavIdent: String = behandling.saksbehandler!!
     val beslutterNavIdent: String = behandling.beslutter!!
-    val utfallsperioder: Periodisering<Utfallsperiode>? by lazy { behandling.utfallsperioder }
+    val utfallsperioder: Periodisering<Utfallsperiode> by lazy { behandling.utfallsperioder!! }
 
-    /** Vil være null dersom ingen barn. */
+    /** Vil være null dersom bruker ikke har rett på barnetillegg  */
     val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
+
+    /** TODO jah: Endre til behandling.antallDagerPerMeldeperiode - merk at den ikke er satt for Avslag eller Stans. */
     override val antallDagerPerMeldeperiode: Int = behandling.maksDagerMedTiltakspengerForPeriode
 
     override fun erStansvedtak(): Boolean {
@@ -94,7 +96,7 @@ fun Sak.opprettVedtak(
         brevJson = null,
     )
 
-    val oppdatertSak = this.copy(vedtaksliste = this.vedtaksliste.leggTilFørstegangsVedtak(vedtak))
+    val oppdatertSak = this.copy(vedtaksliste = this.vedtaksliste.leggTilVedtak(vedtak))
 
     return oppdatertSak to vedtak
 }

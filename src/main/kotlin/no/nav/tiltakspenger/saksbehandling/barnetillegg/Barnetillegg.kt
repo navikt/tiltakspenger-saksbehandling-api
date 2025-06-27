@@ -1,8 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.barnetillegg
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.inneholderOverlapp
+import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import java.time.LocalDate
 
@@ -10,7 +11,7 @@ import java.time.LocalDate
  * Representerer en periodisering av barnetillegg.
  */
 data class Barnetillegg(
-    val periodisering: Periodisering<AntallBarn>,
+    val periodisering: SammenhengendePeriodisering<AntallBarn>,
     val begrunnelse: BegrunnelseVilkårsvurdering?,
 ) {
     init {
@@ -27,7 +28,7 @@ data class Barnetillegg(
      */
     fun utvidPeriode(utvidTil: Periode, antallBarn: AntallBarn): Barnetillegg {
         return Barnetillegg(
-            periodisering = periodisering.utvid(antallBarn, utvidTil),
+            periodisering = periodisering.utvid(antallBarn, utvidTil) as SammenhengendePeriodisering,
             begrunnelse = begrunnelse,
         )
     }
@@ -36,7 +37,7 @@ data class Barnetillegg(
         fun periodiserOgFyllUtHullMed0(
             perioder: BarnetilleggPerioder,
             begrunnelse: BegrunnelseVilkårsvurdering?,
-            virkningsperiode: Periode?,
+            virkningsperiode: Periode,
         ) = Barnetillegg(
             periodisering = perioder.periodiserOgFyllUtHullMed0(virkningsperiode),
             begrunnelse = begrunnelse,
@@ -50,23 +51,9 @@ typealias BarnetilleggPerioder = List<Pair<Periode, AntallBarn>>
  * Periodiserer og fyller ut hull med 0.
  * @throws IllegalArgumentException Dersom periodene er utenfor virkningsperioden eller overlapper.
  */
-internal fun BarnetilleggPerioder.periodiserOgFyllUtHullMed0(virkningsperiode: Periode?): Periodisering<AntallBarn> {
+internal fun BarnetilleggPerioder.periodiserOgFyllUtHullMed0(virkningsperiode: Periode): SammenhengendePeriodisering<AntallBarn> {
     if (this.map { it.first }.inneholderOverlapp()) {
         throw IllegalArgumentException("Periodene kan ikke overlappe")
     }
-
-    return this.fold(
-        Periodisering(
-            AntallBarn.ZERO,
-            virkningsperiode ?: this.map { it.first }
-                .let { perioder ->
-                    Periode(
-                        perioder.minOf { it.fraOgMed },
-                        perioder.maxOf { it.tilOgMed },
-                    )
-                },
-        ),
-    ) { periodisering, (periode, antallBarn) ->
-        periodisering.setVerdiForDelPeriode(antallBarn, periode)
-    }
+    return this.tilPeriodisering().utvid(AntallBarn.ZERO, virkningsperiode) as SammenhengendePeriodisering
 }

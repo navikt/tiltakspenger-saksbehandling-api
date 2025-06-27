@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 
 /**
@@ -10,22 +10,18 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
  * f.eks. ved overlappende tiltaksdeltakelser
  */
 data class ValgteTiltaksdeltakelser(
-    val periodisering: Periodisering<Tiltaksdeltagelse>,
+    val periodisering: SammenhengendePeriodisering<Tiltaksdeltagelse>,
 ) {
     companion object {
         fun periodiser(
             tiltaksdeltakelser: List<Pair<Periode, String>>,
             behandling: Behandling,
         ): ValgteTiltaksdeltakelser {
-            val tiltaksdeltagelseMap = tiltaksdeltakelser.associate {
-                it.second to (
-                    behandling.getTiltaksdeltagelse(it.second)
-                        ?: throw IllegalArgumentException("Kan ikke velge tiltaksdeltakelse med id ${it.second}")
-                    )
-            }
-            val perioderMedVerdi = tiltaksdeltakelser.map { PeriodeMedVerdi(verdi = tiltaksdeltagelseMap[it.second]!!, periode = it.first) }
             return ValgteTiltaksdeltakelser(
-                periodisering = Periodisering(perioderMedVerdi),
+                (tiltaksdeltakelser.tilPeriodisering() as SammenhengendePeriodisering).mapVerdi { verdi, periode ->
+                    behandling.getTiltaksdeltagelse(verdi)
+                        ?: throw IllegalArgumentException("Fant ikke tiltaksdeltagelse med eksternDeltagelseId $verdi i saksopplysningene.")
+                },
             )
         }
     }
@@ -43,6 +39,6 @@ data class ValgteTiltaksdeltakelser(
     }
 
     fun getTiltaksdeltakelser(): List<Tiltaksdeltagelse> {
-        return this.periodisering.perioderMedVerdi.map { it.verdi }.distinctBy { it.eksternDeltagelseId }
+        return this.periodisering.perioderMedVerdi.toList().map { it.verdi }.distinctBy { it.eksternDeltagelseId }
     }
 }

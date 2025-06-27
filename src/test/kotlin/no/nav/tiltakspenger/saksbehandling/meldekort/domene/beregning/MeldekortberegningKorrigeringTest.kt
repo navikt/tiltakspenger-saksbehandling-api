@@ -5,7 +5,7 @@ import arrow.core.toNonEmptyListOrNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Satsdag
@@ -172,7 +172,7 @@ internal class MeldekortberegningKorrigeringTest {
         runTest {
             val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
                 vurderingsperiode = vurderingsperiode,
-                barnetilleggsPerioder = Periodisering(
+                barnetilleggsPerioder = SammenhengendePeriodisering(
                     AntallBarn(2),
                     vurderingsperiode,
                 ),

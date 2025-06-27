@@ -59,9 +59,9 @@ data class Sak(
         meldekortBehandlinger.sisteGodkjenteMeldekort?.navkontor
     }
 
-    val barnetilleggsperioder: Periodisering<AntallBarn?> by lazy { vedtaksliste.barnetilleggsperioder }
+    val barnetilleggsperioder: Periodisering<AntallBarn> by lazy { vedtaksliste.barnetilleggsperioder }
 
-    val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett?> by lazy { vedtaksliste.tiltakstypeperioder }
+    val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy { vedtaksliste.tiltakstypeperioder }
 
     fun hentSisteInnvilgetBehandling(): Behandling? {
         return this.vedtaksliste.tidslinje.findLast { it.verdi?.behandling?.resultat is BehandlingResultat.Innvilgelse }?.verdi?.behandling

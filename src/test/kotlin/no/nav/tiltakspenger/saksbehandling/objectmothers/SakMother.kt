@@ -10,10 +10,9 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
@@ -102,11 +101,9 @@ interface SakMother {
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         clock: Clock = fixedClock,
-        antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
-            PeriodeMedVerdi(
-                AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
-                virkningsperiode,
-            ),
+        antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
+            AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
+            virkningsperiode,
         ),
     ): Pair<Sak, Søknadsbehandling> {
         val søknadsbehandling =
@@ -239,7 +236,7 @@ interface SakMother {
                 tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltagelse.map {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
-                antallDagerPerMeldeperiode = Periodisering(PeriodeMedVerdi(AntallDagerForMeldeperiode(10), virkningsperiode)),
+                antallDagerPerMeldeperiode = SammenhengendePeriodisering(AntallDagerForMeldeperiode(10), virkningsperiode),
                 avslagsgrunner = null,
                 resultat = SøknadsbehandlingType.INNVILGELSE,
             ),
@@ -289,7 +286,7 @@ interface SakMother {
                 }.toList(),
                 avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
                 resultat = SøknadsbehandlingType.AVSLAG,
-                antallDagerPerMeldeperiode = Periodisering(PeriodeMedVerdi(AntallDagerForMeldeperiode(10), virkningsperiode)),
+                antallDagerPerMeldeperiode = SammenhengendePeriodisering(AntallDagerForMeldeperiode(10), virkningsperiode),
             ),
             clock = clock,
         ).taBehandling(beslutter)

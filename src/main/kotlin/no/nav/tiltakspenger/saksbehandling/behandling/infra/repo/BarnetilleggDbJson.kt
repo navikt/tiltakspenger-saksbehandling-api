@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
@@ -23,20 +23,18 @@ private data class BarnetilleggPeriodeMedVerdi(
 fun String.toBarnetillegg(): Barnetillegg {
     val barnetilleggDbJson = deserialize<BarnetilleggDbJson>(this)
     return Barnetillegg(
-        periodisering = Periodisering(
-            barnetilleggDbJson.value.map {
-                PeriodeMedVerdi(
-                    periode = it.periode.toDomain(),
-                    verdi = AntallBarn(it.verdi),
-                )
-            },
-        ),
+        periodisering = barnetilleggDbJson.value.map {
+            PeriodeMedVerdi(
+                periode = it.periode.toDomain(),
+                verdi = AntallBarn(it.verdi),
+            )
+        }.tilSammenhengendePeriodisering(),
         begrunnelse = barnetilleggDbJson.begrunnelse?.let { BegrunnelseVilkårsvurdering(it) },
     )
 }
 
 fun Barnetillegg.toDbJson(): String = BarnetilleggDbJson(
-    value = this.periodisering.perioderMedVerdi.map {
+    value = this.periodisering.perioderMedVerdi.toList().map {
         BarnetilleggPeriodeMedVerdi(
             periode = it.periode.toDbJson(),
             verdi = it.verdi.value,

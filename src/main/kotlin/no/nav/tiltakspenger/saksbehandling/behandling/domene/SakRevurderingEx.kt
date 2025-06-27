@@ -47,11 +47,13 @@ private suspend fun Sak.startStans(
     clock: Clock,
 ): Revurdering {
     // TODO abn: hva (om noe) må vi fikse for å kunne fjerne denne restriksjonen?
-    require(!this.vedtaksliste.harHull) {
+    //  Svar jah: Vi bør heller sjekke at man ikke kan stanse over hull. Dvs. man kan kunne stanse siste sammenhengende innvilgelsesperiode som ikke er utbetalt. For det første gjetter jeg på vi ikke kommer i den situasjonen og for det andre støtter ikke brevet vårt et slikt scenarie.
+    require(this.vedtaksliste.erInnvilgelseSammenhengende) {
         "Kan ikke opprette stans-revurdering dersom vi har hull i vedtaksperiodene. sakId=${this.id}"
     }
 
-    val saksopplysningsperiode = this.vedtaksliste.innvilgelsesperiode!!
+    // TODO jah: Denne må endres sammen med sjekken over.
+    val saksopplysningsperiode = this.vedtaksliste.innvilgetTidslinje.totalPeriode
 
     return Revurdering.opprettStans(
         sakId = this.id,

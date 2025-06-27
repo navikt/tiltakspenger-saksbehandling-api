@@ -5,6 +5,7 @@ import arrow.core.Tuple4
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
@@ -17,11 +18,11 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.april
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -155,7 +156,7 @@ interface SendRevurderingTilBeslutningBuilder {
         eksternDeltagelseId: String = "TA12345",
         barnetillegg: Barnetillegg? = null,
         innvilgelsesperiode: Periode,
-        antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> = Periodisering(
+        antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode.default,
             innvilgelsesperiode,
         ),
@@ -215,6 +216,7 @@ interface SendRevurderingTilBeslutningBuilder {
                 """.trimMargin(),
             ) {
                 status shouldBe HttpStatusCode.Companion.OK
+                bodyAsText shouldContain "id"
             }
             return bodyAsText
         }
