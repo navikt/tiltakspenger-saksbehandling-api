@@ -15,7 +15,11 @@ class OppgaveFakeKlient : OppgaveKlient {
     override suspend fun ferdigstillOppgave(oppgaveId: OppgaveId) {
     }
 
-    override suspend fun opprettOppgaveUtenDuplikatkontroll(fnr: Fnr, oppgavebehov: Oppgavebehov): OppgaveId {
+    override suspend fun opprettOppgaveUtenDuplikatkontroll(
+        fnr: Fnr,
+        oppgavebehov: Oppgavebehov,
+        tilleggstekst: String?,
+    ): OppgaveId {
         return ObjectMother.oppgaveId()
     }
 

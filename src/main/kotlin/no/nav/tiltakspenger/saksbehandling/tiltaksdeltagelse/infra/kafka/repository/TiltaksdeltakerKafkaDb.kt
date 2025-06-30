@@ -39,17 +39,17 @@ data class TiltaksdeltakerKafkaDb(
             return emptyList()
         }
 
+        if (erAvbruttDeltakelse(sammeStatus = sammeStatus, sammeTom = sammeTom, tiltaksdeltakelseFraBehandling)) {
+            endringer.add(TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE)
+            return endringer
+        }
+
         if (!sammeDeltakelsesprosent || !sammeAntallDagerPerUke) {
             endringer.add(TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE)
         }
 
         if (erForlengelse(sammeFom, tiltaksdeltakelseFraBehandling)) {
             endringer.add(TiltaksdeltakerEndring.FORLENGELSE)
-            return endringer
-        }
-
-        if (erAvbruttDeltakelse(sammeStatus = sammeStatus, sammeTom = sammeTom, tiltaksdeltakelseFraBehandling)) {
-            endringer.add(TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE)
             return endringer
         }
 

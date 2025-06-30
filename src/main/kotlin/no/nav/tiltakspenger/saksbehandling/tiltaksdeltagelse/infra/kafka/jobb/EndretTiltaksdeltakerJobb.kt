@@ -43,6 +43,7 @@ class EndretTiltaksdeltakerJobb(
                             oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                                 sak.fnr,
                                 Oppgavebehov.ENDRET_TILTAKDELTAKER,
+                                endringer.getOppgaveTilleggstekst(),
                             )
                         tiltaksdeltakerKafkaRepository.lagreOppgaveId(deltagelseId, oppgaveId)
                         log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse $deltagelseId" }
