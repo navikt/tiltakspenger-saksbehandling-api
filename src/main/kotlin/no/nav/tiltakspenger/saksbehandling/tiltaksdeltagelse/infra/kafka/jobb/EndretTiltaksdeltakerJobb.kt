@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
+import java.time.LocalDateTime
 
 class EndretTiltaksdeltakerJobb(
     private val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository,
@@ -18,7 +19,9 @@ class EndretTiltaksdeltakerJobb(
 
     suspend fun opprettOppgaveForEndredeDeltakere() {
         Either.catch {
-            val endredeDeltakere = tiltaksdeltakerKafkaRepository.hentAlleUtenOppgave()
+            val endredeDeltakere = tiltaksdeltakerKafkaRepository.hentAlleUtenOppgave(
+                sistOppdatertTidligereEnn = LocalDateTime.now().minusMinutes(15),
+            )
 
             endredeDeltakere.forEach { deltaker ->
                 val deltagelseId = deltaker.id

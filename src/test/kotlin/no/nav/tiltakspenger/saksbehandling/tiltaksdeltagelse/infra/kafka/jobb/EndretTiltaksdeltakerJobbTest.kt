@@ -71,7 +71,7 @@ class EndretTiltaksdeltakerJobbTest {
                     ),
                 )
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id)
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -106,7 +106,7 @@ class EndretTiltaksdeltakerJobbTest {
                     ),
                 )
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id)
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -155,7 +155,7 @@ class EndretTiltaksdeltakerJobbTest {
                         dagerPerUke = 5F,
                         deltakelsesprosent = 100F,
                     )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -201,7 +201,7 @@ class EndretTiltaksdeltakerJobbTest {
                     fom = deltakelseFom,
                     tom = deltakelsesTom.plusMonths(1),
                 )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -257,7 +257,7 @@ class EndretTiltaksdeltakerJobbTest {
                     tom = deltakelsesTom.minusDays(2),
                     deltakerstatus = TiltakDeltakerstatus.Avbrutt,
                 )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -347,7 +347,7 @@ class EndretTiltaksdeltakerJobbTest {
                         deltakerstatus = TiltakDeltakerstatus.Avbrutt,
                     )
 
-                    tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                    tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
                     endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
                     val oppdatertTiltaksdeltakerKafkaDb =
@@ -385,8 +385,8 @@ class EndretTiltaksdeltakerJobbTest {
                         søknad = andreSøknad,
                     )
 
-                    tiltaksdeltakerKafkaRepository.lagre(førsteTiltaksdeltakerKafkaDb, "melding")
-                    tiltaksdeltakerKafkaRepository.lagre(andreTiltaksdeltakerKafkaDb, "melding")
+                    tiltaksdeltakerKafkaRepository.lagre(førsteTiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
+                    tiltaksdeltakerKafkaRepository.lagre(andreTiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                     endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -430,8 +430,8 @@ class EndretTiltaksdeltakerJobbTest {
                         søknad = andreSøknad,
                     )
 
-                    tiltaksdeltakerKafkaRepository.lagre(førsteTiltaksdeltakerKafkaDb, "melding")
-                    tiltaksdeltakerKafkaRepository.lagre(andreTiltaksdeltakerKafkaDb, "melding")
+                    tiltaksdeltakerKafkaRepository.lagre(førsteTiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
+                    tiltaksdeltakerKafkaRepository.lagre(andreTiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                     endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -489,7 +489,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveId = oppgaveId,
                     oppgaveSistSjekket = null,
                 )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                 endretTiltaksdeltakerJobb.opprydning()
 
@@ -543,7 +543,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveId = oppgaveId,
                     oppgaveSistSjekket = LocalDateTime.now().minusHours(2),
                 )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                 endretTiltaksdeltakerJobb.opprydning()
 
