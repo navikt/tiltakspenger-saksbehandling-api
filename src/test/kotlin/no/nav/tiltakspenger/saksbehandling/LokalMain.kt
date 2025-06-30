@@ -18,7 +18,7 @@ fun main() {
     val log = KotlinLogging.logger {}
     log.info { "Starter lokal server. Bruker default postgres i docker og in-memory fakes." }
     val clock = Clock.system(zoneIdOslo)
-    val localApplicationContext = LocalApplicationContext(usePdfGen = true, clock)
+    val localApplicationContext = LocalApplicationContext(usePdfGen = true, brukFakeMeldekortApi = true, clock)
     start(
         log = log,
         isNais = false,
