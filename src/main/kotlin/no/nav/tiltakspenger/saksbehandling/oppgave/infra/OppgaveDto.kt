@@ -9,6 +9,8 @@ const val TEMA_TILTAKSPENGER: String = "IND"
 
 const val BEHANDLES_AV_APPLIKASJON = "TILTAKSPENGER"
 
+const val ENDRET_TILTAKSDELTAKELSE_BESKRIVELSE = "Det har skjedd en endring i tiltaksdeltakelsen som kan påvirke tiltakspengeytelsen"
+
 data class OpprettOppgaveRequest(
     val personident: String,
     val opprettetAvEnhetsnr: String = "9999",
@@ -24,10 +26,11 @@ data class OpprettOppgaveRequest(
     companion object {
         fun opprettOppgaveRequestForEndretTiltaksdeltaker(
             fnr: Fnr,
+            tilleggstekst: String?,
         ) = OpprettOppgaveRequest(
             personident = fnr.verdi,
             journalpostId = null,
-            beskrivelse = "Det har skjedd en endring i tiltaksdeltakelsen som kan påvirke tiltakspengeytelsen.",
+            beskrivelse = tilleggstekst?.let { "$ENDRET_TILTAKSDELTAKELSE_BESKRIVELSE: $it" } ?: "$ENDRET_TILTAKSDELTAKELSE_BESKRIVELSE.",
             behandlesAvApplikasjon = null,
             oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE.value,
         )

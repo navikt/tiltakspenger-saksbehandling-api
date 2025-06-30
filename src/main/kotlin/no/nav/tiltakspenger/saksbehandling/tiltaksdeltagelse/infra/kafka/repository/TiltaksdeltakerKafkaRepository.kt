@@ -20,9 +20,9 @@ class TiltaksdeltakerKafkaRepository(
         )
     }
 
-    fun hentAlleUtenOppgave(): List<TiltaksdeltakerKafkaDb> = sessionFactory.withSession {
+    fun hentAlleUtenOppgave(sistOppdatertTidligereEnn: LocalDateTime): List<TiltaksdeltakerKafkaDb> = sessionFactory.withSession {
         it.run(
-            queryOf(sqlHentAlleUtenOppgave)
+            queryOf(sqlHentAlleUtenOppgave, sistOppdatertTidligereEnn)
                 .map { row -> row.toTiltaksdeltakerKafkaDb() }
                 .asList,
         )
@@ -47,7 +47,11 @@ class TiltaksdeltakerKafkaRepository(
         )
     }
 
-    fun lagre(tiltaksdeltakerKafkaDb: TiltaksdeltakerKafkaDb, melding: String) {
+    fun lagre(
+        tiltaksdeltakerKafkaDb: TiltaksdeltakerKafkaDb,
+        melding: String,
+        sistOppdatert: LocalDateTime = LocalDateTime.now(),
+    ) {
         sessionFactory.withSession { session ->
             session.run(
                 queryOf(
@@ -61,7 +65,7 @@ class TiltaksdeltakerKafkaRepository(
                         "deltakerstatus" to tiltaksdeltakerKafkaDb.deltakerstatus.name,
                         "sak_id" to tiltaksdeltakerKafkaDb.sakId.toString(),
                         "oppgave_id" to tiltaksdeltakerKafkaDb.oppgaveId?.toString(),
-                        "sist_oppdatert" to LocalDateTime.now(),
+                        "sist_oppdatert" to sistOppdatert,
                         "melding" to melding,
                         "oppgave_sist_sjekket" to tiltaksdeltakerKafkaDb.oppgaveSistSjekket,
                     ),
@@ -164,7 +168,7 @@ class TiltaksdeltakerKafkaRepository(
     private val sqlHentForId = "select * from tiltaksdeltaker_kafka where id = ?"
 
     @Language("SQL")
-    private val sqlHentAlleUtenOppgave = "select * from tiltaksdeltaker_kafka where oppgave_id is null"
+    private val sqlHentAlleUtenOppgave = "select * from tiltaksdeltaker_kafka where oppgave_id is null and sist_oppdatert < ?"
 
     @Language("SQL")
     private val sqlSlettForId = "delete from tiltaksdeltaker_kafka where id = ?"

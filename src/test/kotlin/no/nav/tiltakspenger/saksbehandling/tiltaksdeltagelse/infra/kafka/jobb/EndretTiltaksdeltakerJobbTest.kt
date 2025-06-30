@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.jobb
+package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.jobb
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -21,11 +21,10 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknads
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakAvslag
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
-import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.repository.getTiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.jobb.EndretTiltaksdeltakerJobb
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.getTiltaksdeltakerKafkaDb
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -45,6 +44,7 @@ class EndretTiltaksdeltakerJobbTest {
             oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                 any(),
                 Oppgavebehov.ENDRET_TILTAKDELTAKER,
+                any(),
             )
         } returns oppgaveId
     }
@@ -71,13 +71,13 @@ class EndretTiltaksdeltakerJobbTest {
                     ),
                 )
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id)
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
 
-                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
             }
         }
     }
@@ -106,12 +106,12 @@ class EndretTiltaksdeltakerJobbTest {
                     ),
                 )
                 val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(id = id, sakId = sak.id)
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
-                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
             }
         }
     }
@@ -155,18 +155,18 @@ class EndretTiltaksdeltakerJobbTest {
                         dagerPerUke = 5F,
                         deltakelsesprosent = 100F,
                     )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
-                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
             }
         }
     }
 
     @Test
-    fun `opprettOppgaveForEndredeDeltakere - iverksatt behandling, forlengelse - oppretter oppgave`() {
+    fun `opprettOppgaveForEndredeDeltakere - iverksatt behandling, forlengelse, deltakelsesmengde - oppretter oppgave`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
@@ -201,14 +201,21 @@ class EndretTiltaksdeltakerJobbTest {
                     fom = deltakelseFom,
                     tom = deltakelsesTom.plusMonths(1),
                 )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
                 val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
                 oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                 oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
-                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 1) {
+                    oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
+                        any(),
+                        any(),
+                        "- Endret deltakelsesmengde\n" +
+                            "- Deltakelsen har blitt forlenget",
+                    )
+                }
             }
         }
     }
@@ -247,17 +254,17 @@ class EndretTiltaksdeltakerJobbTest {
                     id = id,
                     sakId = sak.id,
                     fom = deltakelseFom,
-                    tom = LocalDate.now(),
+                    tom = deltakelsesTom.minusDays(2),
                     deltakerstatus = TiltakDeltakerstatus.Avbrutt,
                 )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
                 val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
                 oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                 oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
-                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
             }
         }
     }
@@ -340,13 +347,13 @@ class EndretTiltaksdeltakerJobbTest {
                         deltakerstatus = TiltakDeltakerstatus.Avbrutt,
                     )
 
-                    tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                    tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
                     endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
                     val oppdatertTiltaksdeltakerKafkaDb =
                         tiltaksdeltakerKafkaRepository.hent(førsteSøknad.id.toString())
                     oppdatertTiltaksdeltakerKafkaDb shouldBe null
-                    coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                    coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
                 }
             }
         }
@@ -378,8 +385,8 @@ class EndretTiltaksdeltakerJobbTest {
                         søknad = andreSøknad,
                     )
 
-                    tiltaksdeltakerKafkaRepository.lagre(førsteTiltaksdeltakerKafkaDb, "melding")
-                    tiltaksdeltakerKafkaRepository.lagre(andreTiltaksdeltakerKafkaDb, "melding")
+                    tiltaksdeltakerKafkaRepository.lagre(førsteTiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
+                    tiltaksdeltakerKafkaRepository.lagre(andreTiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                     endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -391,7 +398,7 @@ class EndretTiltaksdeltakerJobbTest {
                     val andreOppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(andreSøknadstiltakId)
                     andreOppdatertTiltaksdeltakerKafkaDb shouldBe null
 
-                    coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                    coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
                 }
             }
         }
@@ -423,8 +430,8 @@ class EndretTiltaksdeltakerJobbTest {
                         søknad = andreSøknad,
                     )
 
-                    tiltaksdeltakerKafkaRepository.lagre(førsteTiltaksdeltakerKafkaDb, "melding")
-                    tiltaksdeltakerKafkaRepository.lagre(andreTiltaksdeltakerKafkaDb, "melding")
+                    tiltaksdeltakerKafkaRepository.lagre(førsteTiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
+                    tiltaksdeltakerKafkaRepository.lagre(andreTiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                     endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
@@ -436,7 +443,7 @@ class EndretTiltaksdeltakerJobbTest {
                     andreOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                     andreOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
 
-                    coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                    coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
                 }
             }
         }
@@ -482,7 +489,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveId = oppgaveId,
                     oppgaveSistSjekket = null,
                 )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                 endretTiltaksdeltakerJobb.opprydning()
 
@@ -536,7 +543,7 @@ class EndretTiltaksdeltakerJobbTest {
                     oppgaveId = oppgaveId,
                     oppgaveSistSjekket = LocalDateTime.now().minusHours(2),
                 )
-                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
+                tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding", LocalDateTime.now().minusMinutes(20))
 
                 endretTiltaksdeltakerJobb.opprydning()
 

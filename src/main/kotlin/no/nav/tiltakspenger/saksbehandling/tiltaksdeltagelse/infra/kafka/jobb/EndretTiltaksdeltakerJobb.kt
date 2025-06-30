@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
+import java.time.LocalDateTime
 
 class EndretTiltaksdeltakerJobb(
     private val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository,
@@ -18,7 +19,9 @@ class EndretTiltaksdeltakerJobb(
 
     suspend fun opprettOppgaveForEndredeDeltakere() {
         Either.catch {
-            val endredeDeltakere = tiltaksdeltakerKafkaRepository.hentAlleUtenOppgave()
+            val endredeDeltakere = tiltaksdeltakerKafkaRepository.hentAlleUtenOppgave(
+                sistOppdatertTidligereEnn = LocalDateTime.now().minusMinutes(15),
+            )
 
             endredeDeltakere.forEach { deltaker ->
                 val deltagelseId = deltaker.id
@@ -36,12 +39,14 @@ class EndretTiltaksdeltakerJobb(
 
                     val tiltaksdeltakelseFraBehandling = nyesteIverksatteBehandling.getTiltaksdeltagelse(deltagelseId)
                         ?: throw IllegalStateException("Fant ikke deltaker med id $deltagelseId på behandling ${nyesteIverksatteBehandling.id}, skal ikke kunne skje")
-                    if (deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling)) {
+                    val endringer = deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling)
+                    if (endringer.isNotEmpty()) {
                         log.info { "Tiltaksdeltakelse $deltagelseId er endret, oppretter oppgave" }
                         val oppgaveId =
                             oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                                 sak.fnr,
                                 Oppgavebehov.ENDRET_TILTAKDELTAKER,
+                                endringer.getOppgaveTilleggstekst(),
                             )
                         tiltaksdeltakerKafkaRepository.lagreOppgaveId(deltagelseId, oppgaveId)
                         log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse $deltagelseId" }
