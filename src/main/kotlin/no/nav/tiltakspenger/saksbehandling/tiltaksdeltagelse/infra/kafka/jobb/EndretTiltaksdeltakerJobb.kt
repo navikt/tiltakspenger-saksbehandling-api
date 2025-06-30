@@ -36,12 +36,14 @@ class EndretTiltaksdeltakerJobb(
 
                     val tiltaksdeltakelseFraBehandling = nyesteIverksatteBehandling.getTiltaksdeltagelse(deltagelseId)
                         ?: throw IllegalStateException("Fant ikke deltaker med id $deltagelseId på behandling ${nyesteIverksatteBehandling.id}, skal ikke kunne skje")
-                    if (deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling)) {
+                    val endringer = deltaker.tiltaksdeltakelseErEndret(tiltaksdeltakelseFraBehandling)
+                    if (endringer.isNotEmpty()) {
                         log.info { "Tiltaksdeltakelse $deltagelseId er endret, oppretter oppgave" }
                         val oppgaveId =
                             oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                                 sak.fnr,
                                 Oppgavebehov.ENDRET_TILTAKDELTAKER,
+                                endringer.getOppgaveTilleggstekst(),
                             )
                         tiltaksdeltakerKafkaRepository.lagreOppgaveId(deltagelseId, oppgaveId)
                         log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse $deltagelseId" }

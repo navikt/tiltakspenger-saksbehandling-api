@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.jobb.TiltaksdeltakerEndring
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -20,7 +21,8 @@ data class TiltaksdeltakerKafkaDb(
 ) {
     fun tiltaksdeltakelseErEndret(
         tiltaksdeltakelseFraBehandling: Tiltaksdeltagelse,
-    ): Boolean {
+    ): List<TiltaksdeltakerEndring> {
+        val endringer = mutableListOf<TiltaksdeltakerEndring>()
         val sammeFom = deltakelseFraOgMed == tiltaksdeltakelseFraBehandling.deltagelseFraOgMed
         val sammeTom = deltakelseTilOgMed == tiltaksdeltakelseFraBehandling.deltagelseTilOgMed
 
@@ -28,11 +30,61 @@ data class TiltaksdeltakerKafkaDb(
         val sammeDeltakelsesprosent = floatIsEqual(deltakelsesprosent, tiltaksdeltakelseFraBehandling.deltakelseProsent)
         val sammeStatus = deltakerstatus == tiltaksdeltakelseFraBehandling.deltakelseStatus
 
-        return if (sammeFom && sammeTom && sammeAntallDagerPerUke && sammeDeltakelsesprosent) {
-            !(sammeStatus || deltakelsenErAvsluttetSomForventet())
-        } else {
-            true
+        if (sammeFom &&
+            sammeTom &&
+            sammeAntallDagerPerUke &&
+            sammeDeltakelsesprosent &&
+            (sammeStatus || deltakelsenErAvsluttetSomForventet())
+        ) {
+            return emptyList()
         }
+
+        if (erAvbruttDeltakelse(sammeStatus = sammeStatus, sammeTom = sammeTom, tiltaksdeltakelseFraBehandling)) {
+            endringer.add(TiltaksdeltakerEndring.AVBRUTT_DELTAKELSE)
+            return endringer
+        }
+
+        if (!sammeDeltakelsesprosent || !sammeAntallDagerPerUke) {
+            endringer.add(TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE)
+        }
+
+        if (erForlengelse(sammeFom, tiltaksdeltakelseFraBehandling)) {
+            endringer.add(TiltaksdeltakerEndring.FORLENGELSE)
+            return endringer
+        }
+
+        if (!sammeFom) {
+            endringer.add(TiltaksdeltakerEndring.ENDRET_STARTDATO)
+        }
+        if (!sammeTom) {
+            endringer.add(TiltaksdeltakerEndring.ENDRET_SLUTTDATO)
+        }
+        if (!sammeStatus) {
+            endringer.add(TiltaksdeltakerEndring.ENDRET_STATUS)
+        }
+
+        return endringer
+    }
+
+    private fun erForlengelse(sammeFom: Boolean, tiltaksdeltakelseFraBehandling: Tiltaksdeltagelse): Boolean =
+        sammeFom && deltakelseTilOgMed?.isAfter(tiltaksdeltakelseFraBehandling.deltagelseTilOgMed) == true
+
+    private fun erAvbruttDeltakelse(
+        sammeStatus: Boolean,
+        sammeTom: Boolean,
+        tiltaksdeltakelseFraBehandling: Tiltaksdeltagelse,
+    ): Boolean {
+        if (!sammeStatus && deltakerstatus == TiltakDeltakerstatus.Avbrutt) {
+            return true
+        }
+        if (!sammeTom &&
+            deltakelseTilOgMed != null &&
+            deltakelseTilOgMed.isBefore(tiltaksdeltakelseFraBehandling.deltagelseTilOgMed) &&
+            !deltakelseTilOgMed.isAfter(LocalDate.now())
+        ) {
+            return true
+        }
+        return false
     }
 
     private fun deltakelsenErAvsluttetSomForventet(): Boolean {

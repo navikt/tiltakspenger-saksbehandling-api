@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelser
+package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.TiltaksdeltakerService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.komet.DeltakerV1Dto
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
@@ -47,7 +46,7 @@ class TiltaksdeltakerServiceTest {
                 TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper)
             val deltakerId = "123456789"
             val id = "TA$deltakerId"
-            val fnr = Fnr.random()
+            val fnr = Fnr.Companion.random()
             val sak = ObjectMother.nySak(fnr = fnr)
             testDataHelper.persisterSakOgSøknad(
                 fnr = fnr,
@@ -83,7 +82,7 @@ class TiltaksdeltakerServiceTest {
                 TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper)
             val deltakerId = "123456789"
             val id = "TA$deltakerId"
-            val fnr = Fnr.random()
+            val fnr = Fnr.Companion.random()
             val sak = ObjectMother.nySak(fnr = fnr)
             testDataHelper.persisterSakOgSøknad(
                 fnr = fnr,
@@ -120,7 +119,9 @@ class TiltaksdeltakerServiceTest {
             tiltaksdeltakerKafkaDb?.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
             tiltaksdeltakerKafkaDb?.oppgaveId shouldBe opprinneligTiltaksdeltakerKafkaDb.oppgaveId
-            tiltaksdeltakerKafkaDb?.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe oppgaveSistSjekket.truncatedTo(ChronoUnit.MINUTES)
+            tiltaksdeltakerKafkaDb?.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe oppgaveSistSjekket.truncatedTo(
+                ChronoUnit.MINUTES,
+            )
         }
     }
 
@@ -134,7 +135,10 @@ class TiltaksdeltakerServiceTest {
             val kometDeltaker = getKometDeltaker()
             val deltakerId = kometDeltaker.id
 
-            tiltaksdeltakerService.behandleMottattKometdeltaker(deltakerId, objectMapper.writeValueAsString(kometDeltaker))
+            tiltaksdeltakerService.behandleMottattKometdeltaker(
+                deltakerId,
+                objectMapper.writeValueAsString(kometDeltaker),
+            )
 
             tiltaksdeltakerKafkaRepository.hent(deltakerId.toString()) shouldBe null
         }
@@ -149,7 +153,7 @@ class TiltaksdeltakerServiceTest {
                 TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper)
             val kometDeltaker = getKometDeltaker()
             val deltakerId = kometDeltaker.id
-            val fnr = Fnr.random()
+            val fnr = Fnr.Companion.random()
             val sak = ObjectMother.nySak(fnr = fnr)
             testDataHelper.persisterSakOgSøknad(
                 fnr = fnr,
@@ -162,7 +166,10 @@ class TiltaksdeltakerServiceTest {
                 ),
             )
 
-            tiltaksdeltakerService.behandleMottattKometdeltaker(deltakerId, objectMapper.writeValueAsString(kometDeltaker))
+            tiltaksdeltakerService.behandleMottattKometdeltaker(
+                deltakerId,
+                objectMapper.writeValueAsString(kometDeltaker),
+            )
 
             val tiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(deltakerId.toString())
             tiltaksdeltakerKafkaDb shouldNotBe null
@@ -185,7 +192,7 @@ class TiltaksdeltakerServiceTest {
                 TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper)
             val kometDeltaker = getKometDeltaker()
             val deltakerId = kometDeltaker.id
-            val fnr = Fnr.random()
+            val fnr = Fnr.Companion.random()
             val sak = ObjectMother.nySak(fnr = fnr)
             testDataHelper.persisterSakOgSøknad(
                 fnr = fnr,
@@ -211,7 +218,10 @@ class TiltaksdeltakerServiceTest {
             )
             tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerKafkaDb, "melding")
 
-            tiltaksdeltakerService.behandleMottattKometdeltaker(deltakerId, objectMapper.writeValueAsString(kometDeltaker))
+            tiltaksdeltakerService.behandleMottattKometdeltaker(
+                deltakerId,
+                objectMapper.writeValueAsString(kometDeltaker),
+            )
 
             val tiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(deltakerId.toString())
             tiltaksdeltakerKafkaDb shouldNotBe null
@@ -222,7 +232,9 @@ class TiltaksdeltakerServiceTest {
             tiltaksdeltakerKafkaDb?.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
             tiltaksdeltakerKafkaDb?.oppgaveId shouldBe opprinneligTiltaksdeltakerKafkaDb.oppgaveId
-            tiltaksdeltakerKafkaDb?.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe oppgaveSistSjekket.truncatedTo(ChronoUnit.MINUTES)
+            tiltaksdeltakerKafkaDb?.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe oppgaveSistSjekket.truncatedTo(
+                ChronoUnit.MINUTES,
+            )
         }
     }
 

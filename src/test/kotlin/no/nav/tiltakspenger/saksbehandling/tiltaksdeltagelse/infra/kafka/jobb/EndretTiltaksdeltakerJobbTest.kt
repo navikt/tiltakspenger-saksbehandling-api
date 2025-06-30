@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.jobb
+package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.jobb
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -21,11 +21,10 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknads
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakAvslag
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
-import no.nav.tiltakspenger.saksbehandling.kafka.tiltaksdeltakelser.repository.getTiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.jobb.EndretTiltaksdeltakerJobb
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.getTiltaksdeltakerKafkaDb
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -45,6 +44,7 @@ class EndretTiltaksdeltakerJobbTest {
             oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                 any(),
                 Oppgavebehov.ENDRET_TILTAKDELTAKER,
+                any(),
             )
         } returns oppgaveId
     }
@@ -77,7 +77,7 @@ class EndretTiltaksdeltakerJobbTest {
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
 
-                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
             }
         }
     }
@@ -111,7 +111,7 @@ class EndretTiltaksdeltakerJobbTest {
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
-                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
             }
         }
     }
@@ -160,13 +160,13 @@ class EndretTiltaksdeltakerJobbTest {
                 endretTiltaksdeltakerJobb.opprettOppgaveForEndredeDeltakere()
 
                 tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
-                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), any()) }
             }
         }
     }
 
     @Test
-    fun `opprettOppgaveForEndredeDeltakere - iverksatt behandling, forlengelse - oppretter oppgave`() {
+    fun `opprettOppgaveForEndredeDeltakere - iverksatt behandling, forlengelse, deltakelsesmengde - oppretter oppgave`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
@@ -208,7 +208,14 @@ class EndretTiltaksdeltakerJobbTest {
                 val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
                 oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                 oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
-                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 1) {
+                    oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
+                        any(),
+                        any(),
+                        "- Endret deltakelsesmengde\n" +
+                            "- Deltakelsen har blitt forlenget",
+                    )
+                }
             }
         }
     }
@@ -247,7 +254,7 @@ class EndretTiltaksdeltakerJobbTest {
                     id = id,
                     sakId = sak.id,
                     fom = deltakelseFom,
-                    tom = LocalDate.now(),
+                    tom = deltakelsesTom.minusDays(2),
                     deltakerstatus = TiltakDeltakerstatus.Avbrutt,
                 )
                 tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, "melding")
@@ -257,7 +264,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val oppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
                 oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                 oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
-                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
             }
         }
     }
@@ -346,7 +353,7 @@ class EndretTiltaksdeltakerJobbTest {
                     val oppdatertTiltaksdeltakerKafkaDb =
                         tiltaksdeltakerKafkaRepository.hent(førsteSøknad.id.toString())
                     oppdatertTiltaksdeltakerKafkaDb shouldBe null
-                    coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                    coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
                 }
             }
         }
@@ -391,7 +398,7 @@ class EndretTiltaksdeltakerJobbTest {
                     val andreOppdatertTiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(andreSøknadstiltakId)
                     andreOppdatertTiltaksdeltakerKafkaDb shouldBe null
 
-                    coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                    coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
                 }
             }
         }
@@ -436,7 +443,7 @@ class EndretTiltaksdeltakerJobbTest {
                     andreOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
                     andreOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe oppgaveId
 
-                    coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+                    coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any(), "Deltakelsen er avbrutt.") }
                 }
             }
         }
