@@ -16,11 +16,12 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
@@ -131,7 +132,7 @@ interface MeldekortMother : MotherOfAllMothers {
             opprettet = opprettet,
             antallDagerForPeriode = antallDagerForPeriode,
         ),
-        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
+        barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>? = null,
         meldekortperiodeBeregning: MeldekortBeregning =
             meldekortBeregning(
                 meldekortId = id,
@@ -186,7 +187,7 @@ interface MeldekortMother : MotherOfAllMothers {
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
         opprettet: LocalDateTime = nå(clock),
         antallDagerForPeriode: Int = 10,
-        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
+        barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>? = null,
         navkontor: Navkontor = ObjectMother.navkontor(),
         meldeperiode: Meldeperiode = meldeperiode(
             periode = periode,
@@ -244,7 +245,7 @@ interface MeldekortMother : MotherOfAllMothers {
         meldekortId: MeldekortId = MeldekortId.random(),
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         maksDagerMedTiltakspengerForPeriode: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
+        barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>? = null,
         beregningDager: NonEmptyList<MeldeperiodeBeregningDag> = maksAntallDeltattTiltaksdagerIMeldekortperiode(
             startDato,
             meldekortId,
@@ -268,7 +269,7 @@ interface MeldekortMother : MotherOfAllMothers {
         startDato: LocalDate,
         meldekortId: MeldekortId,
         tiltakstype: TiltakstypeSomGirRett,
-        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
+        barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>? = null,
     ): NonEmptyList<MeldeperiodeBeregningDag> {
         return (
             tiltaksdager(
@@ -293,7 +294,7 @@ interface MeldekortMother : MotherOfAllMothers {
         meldekortId: MeldekortId,
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         antallDager: Int = 5,
-        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
+        barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>? = null,
     ): NonEmptyList<MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket> {
         require(antallDager in 1..5) {
             "Antall sammenhengende dager vil aldri være mer mindre enn 1 eller mer enn 5, men var $antallDager"
@@ -303,7 +304,7 @@ interface MeldekortMother : MotherOfAllMothers {
             MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket.create(
                 dato = dato,
                 tiltakstype = tiltakstype,
-                antallBarn = barnetilleggsPerioder.hentVerdiForDag(dato) ?: AntallBarn.ZERO,
+                antallBarn = barnetilleggsPerioder?.hentVerdiForDag(dato) ?: AntallBarn.ZERO,
             )
         }.toNonEmptyListOrNull()!!
     }
@@ -361,7 +362,7 @@ interface MeldekortMother : MotherOfAllMothers {
             totalPeriode = vurderingsperiode,
         ),
         navkontor: Navkontor = ObjectMother.navkontor(),
-        barnetilleggsPerioder: Periodisering<AntallBarn?> = Periodisering.empty(),
+        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
         begrunnelse: MeldekortBehandlingBegrunnelse? = null,
     ): MeldekortBehandlinger {
         val kommandoer = meldeperioder.map { meldeperiode ->
@@ -405,7 +406,7 @@ interface MeldekortMother : MotherOfAllMothers {
     suspend fun førsteBeregnetMeldekort(
         kommando: OppdaterMeldekortKommando,
         vurderingsperiode: Periode,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?> = Periodisering(
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett> = SammenhengendePeriodisering(
             TiltakstypeSomGirRett.GRUPPE_AMO,
             vurderingsperiode,
         ),
@@ -418,7 +419,7 @@ interface MeldekortMother : MotherOfAllMothers {
         status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.UNDER_BEHANDLING,
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
-        barnetilleggsPerioder: Periodisering<AntallBarn?> = Periodisering.empty(),
+        barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
         girRett: Map<LocalDate, Boolean> = kommando.dager.dager.map { it.dag to it.status.girRett() }.toMap(),
         antallDagerForPeriode: Int = girRett.count { it.value },
         begrunnelse: MeldekortBehandlingBegrunnelse? = null,
@@ -500,9 +501,9 @@ interface MeldekortMother : MotherOfAllMothers {
         navkontor: Navkontor = ObjectMother.navkontor(),
         clock: Clock = TikkendeKlokke(),
         opprettet: LocalDateTime = nå(clock),
-        barnetilleggsPerioder: Periodisering<AntallBarn?>,
+        barnetilleggsPerioder: Periodisering<AntallBarn>,
         status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.UNDER_BEHANDLING,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?> = Periodisering(
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett> = SammenhengendePeriodisering(
             TiltakstypeSomGirRett.GRUPPE_AMO,
             vurderingsperiode,
         ),
@@ -595,7 +596,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 put(periode.fraOgMed.plusDays(day.toLong()), false)
             }
         },
-        rammevedtak: Periodisering<VedtakId?> = Periodisering(VedtakId.random(), periode),
+        rammevedtak: Periodisering<VedtakId> = SammenhengendePeriodisering(VedtakId.random(), periode),
     ): Meldeperiode = Meldeperiode(
         kjedeId = kjedeId,
         id = id,

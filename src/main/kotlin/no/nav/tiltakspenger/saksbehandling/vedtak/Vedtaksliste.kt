@@ -2,13 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.vedtak
 
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.toTidslinjeMedHull
+import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnAntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
@@ -25,7 +23,14 @@ data class Vedtaksliste(
     val sakId = value.distinctBy { it.sakId }.map { it.sakId }.singleOrNullOrThrow()
     val saksnummer = value.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
 
-    val tidslinje: Periodisering<Rammevedtak?> by lazy {
+    /**
+     * Tar med [Vedtakstype.INNVILGELSE] og [Vedtakstype.STANS], men ignorerer [Vedtakstype.AVSLAG]
+     *
+     * Vil være [no.nav.tiltakspenger.libs.periodisering.TomPeriodisering] før vi har noen vedtak.
+     * [no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering] ved etter første innvilgelse.
+     * Og [no.nav.tiltakspenger.libs.periodisering.IkkesammenhengendePeriodisering] dersom vi får en ny innvilgelse som ikke overlapper med den første.
+     */
+    val tidslinje: Periodisering<Rammevedtak> by lazy {
         value.filter {
             when (it.vedtaksType) {
                 Vedtakstype.INNVILGELSE,
@@ -34,30 +39,21 @@ data class Vedtaksliste(
 
                 Vedtakstype.AVSLAG -> false
             }
-        }.toTidslinjeMedHull()
+        }.toTidslinje()
     }
 
-    val harHull: Boolean by lazy {
-        !tidslinje.none { it.verdi == null }
-    }
-
-    val innvilgelsesperiode: Periode? by lazy {
-        innvilgelsesperioder.ifEmpty { null }
-            ?.let { perioder ->
-                Periode(perioder.minOf { it.fraOgMed }, perioder.maxOf { it.tilOgMed })
-            }
-    }
+    val erInnvilgelseSammenhengende by lazy { innvilgetTidslinje.erSammenhengende }
 
     /** Nåtilstand. Sakens totale vedtaksperioder. Vil kunne ha hull dersom det f.eks. er opphold mellom 2 tiltaksdeltagelsesperioder. Avslag og delvis avslag vil ikke være med her. */
     val vedtaksperioder: List<Periode> by lazy { tidslinje.perioder }
 
-    /** Nåtilstand. De periodene som gir rett til tiltakspenger. Vil kunne være hull. */
+    /** Nåtilstand. De periodene som gir rett til tiltakspenger. Kan ha hull. */
     val innvilgelsesperioder: List<Periode> by lazy {
-        tidslinje.filter { it.verdi?.vedtaksType == Vedtakstype.INNVILGELSE }.map { it.periode }
+        innvilgetTidslinje.perioder
     }
 
-    val innvilgetTidslinje: Periodisering<Rammevedtak?> by lazy {
-        tidslinje.filter { verdi, _ -> verdi?.vedtaksType == Vedtakstype.INNVILGELSE }
+    val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
+        tidslinje.filter { it.verdi.vedtaksType == Vedtakstype.INNVILGELSE }
     }
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
@@ -77,54 +73,39 @@ data class Vedtaksliste(
      * Utfallsperioder: 01.01.2021 - 02.01.2021 Oppfylt (fra vedtak 1)
      *                  03.01.2021 - 04.01.2021 Ikke Oppfylt (fra vedtak 2)
      */
-    @Suppress("UNCHECKED_CAST")
-    val utfallsperioder: Periodisering<Utfallsperiode?> by lazy {
-        tidslinje.flatMap {
-            it.verdi?.utfallsperioder?.krymp(it.periode)?.perioderMedVerdi as? List<PeriodeMedVerdi<Utfallsperiode?>>
-                ?: listOf(PeriodeMedVerdi(null, it.periode))
-        }
+    val utfallsperioder: Periodisering<Utfallsperiode> by lazy {
+        tidslinje.flatMapPeriodisering { it.verdi.utfallsperioder }
     }
 
-    fun utfallForPeriode(periode: Periode): Periodisering<Utfallsperiode?> {
-        return utfallsperioder.overlapperMed(periode).utvid(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, periode)
+    /** Dersom vi ikke har en verdi for deler av [periode], fyller vi den ut med [Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER] */
+    fun utfallForPeriode(periode: Periode): Periodisering<Utfallsperiode> {
+        return utfallsperioder.overlappendePeriode(periode).utvid(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, periode)
     }
 
-    val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode?> by lazy {
-        innvilgetTidslinje.flatMap {
-            val verdier: List<PeriodeMedVerdi<AntallDagerForMeldeperiode>>? =
-                it.verdi?.behandling?.antallDagerPerMeldeperiode?.krymp(it.periode)?.perioderMedVerdi
-            verdier?.map { PeriodeMedVerdi(it.verdi as AntallDagerForMeldeperiode?, it.periode) } ?: listOf(
-                PeriodeMedVerdi(null as AntallDagerForMeldeperiode?, it.periode),
-            )
-        }
+    /**
+     * Tar utgangspunkt i [innvilgetTidslinje]
+     */
+    val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> by lazy {
+        innvilgetTidslinje.flatMapPeriodisering { it.verdi.behandling.antallDagerPerMeldeperiode!! }
     }
 
     fun antallDagerForMeldeperiode(periode: Periode): AntallDagerForMeldeperiode? {
         return innvilgetTidslinje
-            .overlapperMed(periode)
-            .mapNotNull { it.verdi?.behandling?.antallDagerPerMeldeperiode?.finnAntallDagerForMeldeperiode(periode) }
+            .overlappendePeriode(periode)
+            .mapNotNull { it.verdi.behandling.antallDagerPerMeldeperiode?.finnAntallDagerForMeldeperiode(periode) }
             .maxOfOrNull { it }
     }
 
-    fun vedtakForPeriode(periode: Periode): Periodisering<VedtakId?> = tidslinje
-        .map { verdi, _ -> verdi?.id }
-        .nyPeriode(periode, null)
-
-    // Denne fungerer bare for førstegangsvedtak der man har valgte tiltaksdeltakelser
-    @Suppress("UNCHECKED_CAST")
-    val valgteTiltaksdeltakelser: Periodisering<Tiltaksdeltagelse?> by lazy {
-        innvilgetTidslinje.flatMap { (verdi, periode) ->
-            if (verdi == null) {
-                listOf(PeriodeMedVerdi(null, periode))
-            } else {
-                require(verdi.behandling.resultat is BehandlingResultat.Innvilgelse)
-                verdi.behandling.valgteTiltaksdeltakelser!!.periodisering.krymp(periode).perioderMedVerdi as List<PeriodeMedVerdi<Tiltaksdeltagelse?>>
-            }
-        }
+    fun vedtakForPeriode(periode: Periode): Periodisering<VedtakId> {
+        return tidslinje.map { verdi, _ -> verdi.id }.krymp(periode)
     }
 
-    fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<Tiltaksdeltagelse?> {
-        return valgteTiltaksdeltakelser.overlapperMed(periode)
+    val valgteTiltaksdeltakelser: Periodisering<Tiltaksdeltagelse> by lazy {
+        innvilgetTidslinje.flatMapPeriodisering { it.verdi.behandling.valgteTiltaksdeltakelser!!.periodisering }
+    }
+
+    fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<Tiltaksdeltagelse> {
+        return valgteTiltaksdeltakelser.overlappendePeriode(periode)
     }
 
     fun harInnvilgetTiltakspengerPaDato(dato: LocalDate): Boolean {
@@ -135,23 +116,26 @@ data class Vedtaksliste(
         return innvilgelsesperioder.any { it.starterEtter(dato) }
     }
 
-    /** Tidslinje for antall barn. Første og siste periode vil være 1 eller flere. Kan inneholde hull med 0 barn. */
-    @Suppress("UNCHECKED_CAST")
-    val barnetilleggsperioder: Periodisering<AntallBarn?> by lazy {
-        tidslinje.flatMap {
-            it.verdi?.barnetillegg?.periodisering?.krymp(it.periode)?.perioderMedVerdi?.let {
-                it as List<PeriodeMedVerdi<AntallBarn?>>
-            } ?: listOf(PeriodeMedVerdi(null, it.periode))
+    /**
+     * Tidslinje for antall barn. Første og siste periode vil være 1 eller flere. Kan inneholde hull med 0 barn.
+     * Tar utgangspunkt i [innvilgetTidslinje]
+     */
+    val barnetilleggsperioder: Periodisering<AntallBarn> by lazy {
+        innvilgetTidslinje.flatMapPeriodisering {
+            it.verdi.barnetillegg?.periodisering ?: Periodisering(
+                AntallBarn(0),
+                it.periode,
+            )
         }
     }
 
-    val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett?> by lazy {
-        valgteTiltaksdeltakelser.mapVerdi { verdi, _ -> verdi?.typeKode }
+    val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy {
+        valgteTiltaksdeltakelser.mapVerdi { verdi, _ -> verdi.typeKode }
     }
 
-    fun leggTilFørstegangsVedtak(vedtak: Rammevedtak): Vedtaksliste = copy(value = this.value.plus(vedtak))
+    fun leggTilVedtak(vedtak: Rammevedtak): Vedtaksliste = copy(value = this.value.plus(vedtak))
 
-    fun hentTiltaksdataForPeriode(periode: Periode): List<Tiltaksdeltagelse?> {
+    fun hentTiltaksdataForPeriode(periode: Periode): List<Tiltaksdeltagelse> {
         return valgteTiltaksdeltakelserForPeriode(periode).verdier
     }
 

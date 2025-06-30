@@ -131,10 +131,11 @@ data class MeldekortBehandlinger(
 
     /**
      * Løper igjennom alle ikke-avsluttede meldekortbehandlinger (også de som er sendt til beslutter), setter tilstanden til under behandling, oppdaterer meldeperioden og resetter utfyllinga.
+     * @param tiltakstypePerioder kan være tom eller inneholde hull.
      */
     fun oppdaterMedNyeKjeder(
         oppdaterteKjeder: MeldeperiodeKjeder,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett?>,
+        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
         clock: Clock,
     ): Pair<MeldekortBehandlinger, List<MeldekortBehandling>> {
         return verdi.filter { it.erÅpen() }

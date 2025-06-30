@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
@@ -43,7 +45,7 @@ class ForhåndsvisVedtaksbrevService(
             // gir det mening at man har lyst til å se innvilgelsesbrevet hvis behandlingen er avbrutt eller til automatisk behandling?
             Behandlingsstatus.AVBRUTT,
             Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
-            -> kommando.virkingsperiode ?: behandling.virkningsperiode
+            -> kommando.virkningsperiode ?: behandling.virkningsperiode
 
             Behandlingsstatus.KLAR_TIL_BESLUTNING,
             Behandlingsstatus.UNDER_BESLUTNING,
@@ -68,7 +70,9 @@ class ForhåndsvisVedtaksbrevService(
                         saksnummer = sak.saksnummer,
                         sakId = sak.id,
                         forhåndsvisning = true,
-                        barnetilleggsPerioder = kommando.barnetillegg?.let { if (it.isEmpty()) null else it },
+                        barnetilleggsPerioder = kommando.barnetillegg?.let {
+                            it.utvid(AntallBarn(0), virkingsperiode) as SammenhengendePeriodisering
+                        },
                     ).fold(
                         ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
                         ifRight = { it.pdf },
@@ -139,7 +143,9 @@ class ForhåndsvisVedtaksbrevService(
                             forhåndsvisning = true,
                             vurderingsperiode = virkingsperiode!!,
                             saksbehandlersVurdering = kommando.fritekstTilVedtaksbrev,
-                            barnetillegg = kommando.barnetillegg,
+                            barnetillegg = kommando.barnetillegg?.let {
+                                it.utvid(AntallBarn(0), virkingsperiode) as SammenhengendePeriodisering
+                            },
                         ).fold(
                             ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
                             ifRight = { it.pdf },

@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbeha
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
@@ -187,7 +187,7 @@ class DelautomatiskBehandlingService(
             val periode = behandling.søknad.vurderingsperiode()
             val antallBarnFraSøknad = behandling.søknad.barnetillegg.size
             Barnetillegg(
-                periodisering = Periodisering(
+                periodisering = SammenhengendePeriodisering(
                     AntallBarn(antallBarnFraSøknad),
                     periode,
                 ),
@@ -211,17 +211,17 @@ class DelautomatiskBehandlingService(
 
     private fun utledAntallDagerPerMeldeperiode(
         behandling: Søknadsbehandling,
-    ): Periodisering<AntallDagerForMeldeperiode> {
+    ): SammenhengendePeriodisering<AntallDagerForMeldeperiode> {
         val soknadstiltakFraSaksopplysning =
             behandling.saksopplysninger.getTiltaksdeltagelse(behandling.søknad.tiltak.id)
                 ?: throw IllegalStateException("Må ha tiltaksdeltakelse for å kunne behandle automatisk")
         return if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) {
-            Periodisering(
+            SammenhengendePeriodisering(
                 AntallDagerForMeldeperiode((soknadstiltakFraSaksopplysning.antallDagerPerUke * 2).toInt()),
                 behandling.søknad.vurderingsperiode(),
             )
         } else {
-            Periodisering(
+            SammenhengendePeriodisering(
                 AntallDagerForMeldeperiode(10),
                 behandling.søknad.vurderingsperiode(),
             )

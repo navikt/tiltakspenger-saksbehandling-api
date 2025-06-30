@@ -8,10 +8,10 @@ import io.ktor.util.reflect.instanceOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.januar
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
@@ -58,8 +58,9 @@ class DelautomatiskBehandlingServiceTest {
                 oppdatertBehandling.virkningsperiode shouldBe soknad.vurderingsperiode()
                 oppdatertBehandling.barnetillegg shouldBe null
                 oppdatertBehandling.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser(
-                    Periodisering(
-                        PeriodeMedVerdi(tiltaksdeltakelse, soknad.vurderingsperiode()),
+                    SammenhengendePeriodisering(
+                        tiltaksdeltakelse,
+                        soknad.vurderingsperiode(),
                     ),
                 )
             }

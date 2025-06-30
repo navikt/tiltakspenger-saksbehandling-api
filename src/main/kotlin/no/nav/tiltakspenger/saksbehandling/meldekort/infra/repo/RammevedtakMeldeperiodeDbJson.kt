@@ -17,23 +17,25 @@ data class PeriodeTilVedtakId(
     val vedtakId: String?,
 )
 
-fun String.toPeriodiserteVedtakId(): Periodisering<VedtakId?> {
+fun String.toPeriodiserteVedtakId(): Periodisering<VedtakId> {
     val rammevedtakMeldeperiodeDbJson = deserialize<RammevedtakMeldeperiodeDbJson>(this)
     return Periodisering(
-        rammevedtakMeldeperiodeDbJson.perioderTilVedtakId.map {
-            PeriodeMedVerdi(
-                periode = it.periode.toDomain(),
-                verdi = it.vedtakId?.let { v -> VedtakId.fromString(v) },
-            )
+        rammevedtakMeldeperiodeDbJson.perioderTilVedtakId.mapNotNull { periodeTilVedtakId ->
+            periodeTilVedtakId.vedtakId?.let { vedtakId ->
+                PeriodeMedVerdi(
+                    periode = periodeTilVedtakId.periode.toDomain(),
+                    verdi = VedtakId.fromString(vedtakId),
+                )
+            }
         },
     )
 }
 
-fun Periodisering<VedtakId?>.toDbJson() = RammevedtakMeldeperiodeDbJson(
-    perioderTilVedtakId = this.perioderMedVerdi.map {
+fun Periodisering<VedtakId>.toDbJson() = RammevedtakMeldeperiodeDbJson(
+    perioderTilVedtakId = this.perioderMedVerdi.toList().map {
         PeriodeTilVedtakId(
             periode = it.periode.toDbJson(),
-            vedtakId = it.verdi?.toString(),
+            vedtakId = it.verdi.toString(),
         )
     },
 ).let { serialize(it) }
