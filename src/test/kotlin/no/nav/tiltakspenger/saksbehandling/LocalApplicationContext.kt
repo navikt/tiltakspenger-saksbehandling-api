@@ -58,6 +58,7 @@ import java.time.Clock
  */
 class LocalApplicationContext(
     usePdfGen: Boolean,
+    brukFakeMeldekortApi: Boolean?,
     clock: Clock,
 ) : ApplicationContext(gitHash = "fake-git-hash", clock = clock) {
 
@@ -179,13 +180,26 @@ class LocalApplicationContext(
             simulerService = utbetalingContext.simulerService,
         ) {
             override val meldekortApiHttpClient: MeldekortApiKlient
-                get() = if (Configuration.brukFakeMeldekortApiLokalt) {
-                    MeldekortApiFakeKlient()
+                // ved kjøring direkte lokalt kan vi styre kjøring av fake eller ekte API
+                get() = if (brukFakeMeldekortApi != null) {
+                    if (brukFakeMeldekortApi) {
+                        MeldekortApiFakeKlient()
+                    } else {
+                        MeldekortApiHttpClient(
+                            baseUrl = Configuration.meldekortApiUrl,
+                            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.meldekortApiScope) },
+                        )
+                    }
                 } else {
-                    MeldekortApiHttpClient(
-                        baseUrl = Configuration.meldekortApiUrl,
-                        getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.meldekortApiScope) },
-                    )
+                    // ved bruk av docker-compose vil konfigurasjon avgjøre om vi skal bruke fake eller ekte API
+                    if (Configuration.brukFakeMeldekortApiLokalt) {
+                        MeldekortApiFakeKlient()
+                    } else {
+                        MeldekortApiHttpClient(
+                            baseUrl = Configuration.meldekortApiUrl,
+                            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.meldekortApiScope) },
+                        )
+                    }
                 }
         }
     }
