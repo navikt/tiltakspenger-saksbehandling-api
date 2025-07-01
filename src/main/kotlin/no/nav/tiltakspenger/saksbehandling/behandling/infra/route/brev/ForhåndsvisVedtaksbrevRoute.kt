@@ -65,7 +65,7 @@ private data class Body(
             virkningsperiode = virkningsperiode,
             valgteHjemler = (valgteHjemler ?: emptyList()).toDomain(),
             stansDato = stansDato,
-            barnetillegg = barnetillegg?.tilPeriodisering() as IkkeTomPeriodisering,
+            barnetillegg = barnetillegg?.let { it.tilPeriodisering() as IkkeTomPeriodisering },
             resultat = resultat.toDomain(),
             avslagsgrunner = this.avslagsgrunner?.toAvslagsgrunnlag(),
         )
