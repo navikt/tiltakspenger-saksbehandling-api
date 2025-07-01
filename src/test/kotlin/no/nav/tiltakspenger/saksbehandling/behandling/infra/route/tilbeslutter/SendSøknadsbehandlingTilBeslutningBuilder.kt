@@ -33,7 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBegrunnelseForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterFritekstForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettBehandlingUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
@@ -52,7 +52,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
             virkingsperiode,
         ),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
-        val (sak, søknad, behandling) = opprettBehandlingUnderBehandling(tac, fnr, virkingsperiode, saksbehandler)
+        val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderBehandling(tac, fnr, virkingsperiode, saksbehandler)
         val sakId = sak.id
         val behandlingId = behandling.id
         oppdaterFritekstForBehandlingId(tac, sakId, behandlingId, saksbehandler)

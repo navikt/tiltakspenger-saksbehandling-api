@@ -105,7 +105,7 @@ class ForhåndsvisVedtaksbrevService(
                 when (resultat) {
                     RevurderingType.STANS -> {
                         sak.validerStansDato(kommando.stansDato)
-                        val stansePeriode = kommando.stansDato?.let { stansDato ->
+                        val stansperiode = kommando.stansDato?.let { stansDato ->
                             sak.vedtaksliste.sisteDagSomGirRett?.let { sisteDagSomGirRett ->
                                 Periode(stansDato, sisteDagSomGirRett)
                             }
@@ -118,12 +118,12 @@ class ForhåndsvisVedtaksbrevService(
                             fnr = sak.fnr,
                             saksbehandlerNavIdent = behandling.saksbehandler!!,
                             beslutterNavIdent = behandling.beslutter,
-                            virkningsperiode = stansePeriode!!,
+                            virkningsperiode = stansperiode!!,
                             saksnummer = sak.saksnummer,
                             sakId = sak.id,
                             forhåndsvisning = true,
                             barnetillegg = behandling.barnetillegg != null,
-                            valgtHjemmelHarIkkeRettighet = kommando.valgteHjemler,
+                            valgtHjemmelHarIkkeRettighet = kommando.valgteHjemler!!,
                             tilleggstekst = kommando.fritekstTilVedtaksbrev,
                         ).fold(
                             ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },

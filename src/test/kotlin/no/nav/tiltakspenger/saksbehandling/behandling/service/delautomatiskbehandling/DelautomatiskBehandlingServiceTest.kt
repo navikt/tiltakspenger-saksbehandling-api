@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettBehandlingKlarTilBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettBehandlingUnderAutomatiskBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import org.junit.jupiter.api.Test
@@ -38,7 +38,7 @@ class DelautomatiskBehandlingServiceTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (_, soknad, behandling) = opprettBehandlingUnderAutomatiskBehandling(tac)
+                val (_, soknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac)
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
                     it.status shouldBe Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                     it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
@@ -128,7 +128,7 @@ class DelautomatiskBehandlingServiceTest {
                 val fnr = Fnr.random()
                 opprettBehandlingKlarTilBehandling(tac, fnr)
 
-                val (_, _, behandling) = opprettBehandlingUnderAutomatiskBehandling(tac, fnr)
+                val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac, fnr)
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
                     it.status shouldBe Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                     it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID

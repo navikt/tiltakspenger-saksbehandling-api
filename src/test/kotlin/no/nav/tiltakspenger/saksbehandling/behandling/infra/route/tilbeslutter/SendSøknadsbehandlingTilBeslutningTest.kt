@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettBehandlingUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningReturnerRespons
 import org.junit.jupiter.api.Test
@@ -32,7 +32,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, søknad, behandling) = this.opprettBehandlingUnderBehandling(tac, saksbehandler = saksbehandler)
+                val (sak, søknad, behandling) = this.opprettSøknadsbehandlingUnderBehandling(tac, saksbehandler = saksbehandler)
                 val behandlingId = behandling.id
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
@@ -70,7 +70,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, søknad, behandling) = this.opprettBehandlingUnderBehandling(tac, saksbehandler = saksbehandler)
+                val (sak, søknad, behandling) = this.opprettSøknadsbehandlingUnderBehandling(tac, saksbehandler = saksbehandler)
                 val behandlingId = behandling.id
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
@@ -104,7 +104,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, søknad, behandling) = this.opprettBehandlingUnderBehandling(tac, saksbehandler = saksbehandler)
+                val (sak, søknad, behandling) = this.opprettSøknadsbehandlingUnderBehandling(tac, saksbehandler = saksbehandler)
                 val behandlingId = behandling.id
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING

@@ -63,7 +63,7 @@ private data class Body(
             correlationId = correlationId,
             saksbehandler = saksbehandler,
             virkningsperiode = virkningsperiode,
-            valgteHjemler = (valgteHjemler ?: emptyList()).toDomain(),
+            valgteHjemler = valgteHjemler?.toDomain(),
             stansDato = stansDato,
             barnetillegg = barnetillegg?.let { it.tilPeriodisering() as IkkeTomPeriodisering },
             resultat = resultat.toDomain(),

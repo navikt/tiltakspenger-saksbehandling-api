@@ -24,7 +24,7 @@ interface BehandlingBuilder {
         fnr: Fnr = Fnr.random(),
         virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
     ): Tuple4<Sak, Søknad, Behandling, String> {
-        val (sak, søknad, behandling, _) = opprettBehandlingUnderAutomatiskBehandling(
+        val (sak, søknad, behandling, _) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
             tac = tac,
             fnr = fnr,
             virkingsperiode = virkingsperiode,
@@ -39,13 +39,13 @@ interface BehandlingBuilder {
     }
 
     // oppretter sak, søknad og behandling som er under manuell behandling
-    suspend fun ApplicationTestBuilder.opprettBehandlingUnderBehandling(
+    suspend fun ApplicationTestBuilder.opprettSøknadsbehandlingUnderBehandling(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
         virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, Behandling, String> {
-        val (sak, søknad, behandling, _) = opprettBehandlingUnderAutomatiskBehandling(
+        val (sak, søknad, behandling, _) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
             tac = tac,
             fnr = fnr,
             virkingsperiode = virkingsperiode,
@@ -72,7 +72,7 @@ interface BehandlingBuilder {
     }
 
     // oppretter sak, søknad og behandling som er under automatisk behandling
-    suspend fun ApplicationTestBuilder.opprettBehandlingUnderAutomatiskBehandling(
+    suspend fun ApplicationTestBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
         virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),

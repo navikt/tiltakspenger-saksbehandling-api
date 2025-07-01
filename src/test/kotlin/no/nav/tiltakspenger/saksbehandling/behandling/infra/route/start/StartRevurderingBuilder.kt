@@ -36,8 +36,9 @@ interface StartRevurderingBuilder {
     suspend fun ApplicationTestBuilder.startRevurderingStans(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
     ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering> {
-        val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(tac)
+        val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(tac, virkingsperiode = virkingsperiode)
         val revurdering = startRevurderingForSakId(tac, sak.id, RevurderingType.STANS)
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
         return Tuple4(

@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettBehandlingUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
@@ -26,7 +26,7 @@ internal class OppdaterSaksopplysningerTest {
                     jacksonSerialization()
                     routing { routes(tac) }
                 }
-                val (sak, _, behandling, _) = opprettBehandlingUnderBehandling(tac)
+                val (sak, _, behandling, _) = opprettSøknadsbehandlingUnderBehandling(tac)
                 behandling.saksopplysninger.fødselsdato shouldBe 1.januar(2001)
                 val personopplysningerForBrukerFraPdl = ObjectMother.personopplysningKjedeligFyr(
                     fnr = sak.fnr,

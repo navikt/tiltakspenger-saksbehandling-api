@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehand
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettAutomatiskBehandletSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingIdReturnerRespons
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettBehandlingUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
 import org.junit.jupiter.api.Test
@@ -59,7 +59,7 @@ class IverksettSøknadsbehandlingTest {
         withTestApplicationContext { tac ->
             val saksbehandler = saksbehandler()
             val beslutter = ObjectMother.beslutter()
-            val (sak, søknad, behandling) = this.opprettBehandlingUnderBehandling(tac, saksbehandler = saksbehandler)
+            val (sak, søknad, behandling) = this.opprettSøknadsbehandlingUnderBehandling(tac, saksbehandler = saksbehandler)
             val behandlingId = behandling.id
             tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING

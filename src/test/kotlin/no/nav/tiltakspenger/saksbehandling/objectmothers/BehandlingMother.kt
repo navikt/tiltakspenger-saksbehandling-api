@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.periodisering.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
@@ -62,8 +63,8 @@ import java.time.LocalDateTime
 
 interface BehandlingMother : MotherOfAllMothers {
     /** Felles default vurderingsperiode for testdatatypene */
-    fun virkningsperiode() = Periode(1.januar(2023), 31.mars(2023))
-    fun revurderingsperiode() = Periode(2.januar(2023), 31.mars(2023))
+    fun virkningsperiode() = 1.januar(2023) til 31.mars(2023)
+    fun revurderingsperiode() = 2.januar(2023) til 31.mars(2023)
 
     fun godkjentAttestering(beslutter: Saksbehandler = beslutter()): Attestering =
         Attestering(

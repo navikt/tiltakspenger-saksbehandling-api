@@ -1,19 +1,23 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.fritekst
+package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev
 
 import io.kotest.matchers.shouldBe
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
+import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterFritekstForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.forhåndsvisVedtaksbrevForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
-import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
-internal class OppdaterFritekstTest {
+internal class ForhåndsvisAvslagVedtaksbrevTest {
     @Test
-    fun `kan oppdatere fritekst`() {
+    fun `kan forhåndsvise vedtaksbrev for avslått søknadsbehandling`() {
         with(TestApplicationContext()) {
             val tac = this
             testApplication {
@@ -23,18 +27,20 @@ internal class OppdaterFritekstTest {
                 }
                 val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
                 val behandlingId = behandling.id
-                tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
-                    it.fritekstTilVedtaksbrev?.verdi shouldBe null
-                }
                 val fritekstTilVedtaksbrev = "some_tekst"
-                val (oppdatertSak, oppdatertBehandling, responseJson) = oppdaterFritekstForBehandlingId(
+                val (_, _, responseJson) = forhåndsvisVedtaksbrevForBehandlingId(
                     tac = tac,
                     sakId = sak.id,
                     behandlingId = behandlingId,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                    virkningsperiode = 1.januar(2025) til 31.mars(2025),
+                    stansDato = null,
+                    valgteHjemler = null,
+                    barnetillegg = null,
+                    resultat = BehandlingResultatDTO.AVSLAG,
+                    avslagsgrunner = listOf(ValgtHjemmelForAvslagDTO.FremmetForSent),
                 )
-                JSONObject(responseJson).getString("fritekstTilVedtaksbrev") shouldBe fritekstTilVedtaksbrev
-                oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe fritekstTilVedtaksbrev
+                responseJson shouldBe "pdf"
             }
         }
     }

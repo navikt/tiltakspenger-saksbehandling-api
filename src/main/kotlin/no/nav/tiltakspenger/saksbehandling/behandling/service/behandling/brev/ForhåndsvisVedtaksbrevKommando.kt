@@ -31,27 +31,36 @@ data class ForhåndsvisVedtaksbrevKommando(
     val correlationId: CorrelationId,
     val saksbehandler: Saksbehandler,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev,
-    val valgteHjemler: List<ValgtHjemmelHarIkkeRettighet>,
+    val resultat: BehandlingResultatType,
+    val valgteHjemler: List<ValgtHjemmelHarIkkeRettighet>?,
     val virkningsperiode: Periode?,
     val barnetillegg: IkkeTomPeriodisering<AntallBarn>?,
     val stansDato: LocalDate?,
-    val resultat: BehandlingResultatType,
     val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
 ) {
     init {
-        if (resultat == SøknadsbehandlingType.AVSLAG || avslagsgrunner != null) {
-            require(resultat == SøknadsbehandlingType.AVSLAG) { "Behandlingsresultat må være AVSLAG når det er valgt avslagsgrunner" }
-            require(avslagsgrunner != null) { "Det må være valgt avslagsgrunner når behandlingsresultat er AVSLAG" }
-        }
-        if (virkningsperiode != null && barnetillegg != null) {
-            require(virkningsperiode.inneholderHele(barnetillegg.totalPeriode)) { "Når man sender inn virkningsperiode og barnetillegg, kan ikke barnetilleggsperioden være på utsiden av virkningsperioden" }
-        }
-        if (resultat == RevurderingType.STANS || stansDato != null) {
-            require(resultat == RevurderingType.STANS) { "Behandlingsresultat må være STANS når det er valgt stansDato" }
-            require(stansDato != null) { "Det må være valgst stansDato når behandlingsresultatet er STANS" }
-        }
-        if (barnetillegg != null) {
-            require(barnetillegg.isNotEmpty()) { "Man kan ikke sende en tom barnetilleggs liste. Enten må man sende null eller minst ett element." }
+        when (resultat) {
+            RevurderingType.STANS -> {
+                requireNotNull(stansDato)
+                requireNotNull(valgteHjemler)
+                require(virkningsperiode == null) { "Kan ikke sende inn virkningsperiode ved stans" }
+                require(avslagsgrunner == null) { "Kan ikke sende inn avslagsgrunner ved stans" }
+                require(barnetillegg == null) { "Kan ikke sende inn barnetillegg ved stans" }
+            }
+            RevurderingType.INNVILGELSE, SøknadsbehandlingType.INNVILGELSE -> {
+                requireNotNull(virkningsperiode)
+                require(avslagsgrunner == null) { "Kan ikke sende inn avslagsgrunner ved innvilgelse" }
+                require(stansDato == null) { "Kan ikke sende inn stansDato ved innvilgelse" }
+                require(valgteHjemler == null) { "Kan ikke sende inn valgteHjemler ved innvilgelse" }
+                // Barnetillegg er null hvis det ikke innvilges barn (uavhengig om de har søkt)
+            }
+            SøknadsbehandlingType.AVSLAG -> {
+                requireNotNull(avslagsgrunner)
+                requireNotNull(virkningsperiode)
+                require(valgteHjemler == null) { "Kan ikke sende inn valgteHjemler ved avslag" }
+                require(barnetillegg == null) { "Kan ikke sende inn barnetillegg ved avslag" }
+                require(stansDato == null) { "Kan ikke sende inn stansDato ved avslag" }
+            }
         }
     }
 }
