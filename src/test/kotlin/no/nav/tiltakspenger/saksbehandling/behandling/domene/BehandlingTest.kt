@@ -3,9 +3,11 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 import arrow.core.nonEmptySetOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -139,6 +141,32 @@ class BehandlingTest {
                     avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
                 )
             }
+        }
+    }
+
+    @Nested
+    inner class ValiderKanOppdatereTest {
+        @Test
+        fun `kaster tilgangsexception dersom saksbehandler ikke er saksbehandler`() {
+            assertThrows<TilgangException> {
+                val saksbehandler = ObjectMother.saksbehandler(roller = Saksbehandlerroller(emptyList()))
+                val behandling = ObjectMother.nyOpprettetSøknadsbehandling()
+                behandling.validerKanOppdatere(saksbehandler, "en error msg")
+            }
+        }
+
+        @Test
+        fun `returnerer left dersom utdøvende saksbehandler ikke eier behandlingen`() {
+            val søknadsbehandling = ObjectMother.nyOpprettetSøknadsbehandling()
+            val ikkeUtdøvendeSaksbehandler = ObjectMother.saksbehandler(navIdent = "ikkeUtdøvendeSaksbehandler")
+
+            søknadsbehandling.validerKanOppdatere(ikkeUtdøvendeSaksbehandler, "en error msg").isLeft() shouldBe true
+        }
+
+        @Test
+        fun `returnerer left dersom behandlingen er ikke under behandling`() {
+            val søknadsbehandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
+            søknadsbehandling.validerKanOppdatere(ObjectMother.saksbehandler(), "en error msg").isLeft() shouldBe true
         }
     }
 }

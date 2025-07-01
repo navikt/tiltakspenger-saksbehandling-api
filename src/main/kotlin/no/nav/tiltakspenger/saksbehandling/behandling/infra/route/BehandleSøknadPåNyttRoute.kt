@@ -15,10 +15,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknad
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeBehandleSøknadPåNytt
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
-import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSøknadId
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 
 fun Route.behandleSøknadPåNyttRoute(
     tokenService: TokenService,

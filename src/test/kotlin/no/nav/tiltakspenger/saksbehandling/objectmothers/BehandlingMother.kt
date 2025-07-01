@@ -141,7 +141,7 @@ interface BehandlingMother : MotherOfAllMothers {
         ).stansTilBeslutning(
             kommando = kommando,
             clock = clock,
-        )
+        ).getOrFail()
     }
 
     fun nyVedtattRevurdering(
@@ -312,7 +312,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 resultat = resultat,
             ),
             clock = fixedClock,
-        )
+        ).getOrFail()
     }
 
     fun nySøknadsbehandlingUnderBeslutning(

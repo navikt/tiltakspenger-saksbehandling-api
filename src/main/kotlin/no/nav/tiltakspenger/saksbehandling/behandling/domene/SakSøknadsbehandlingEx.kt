@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
 import arrow.core.left
-import arrow.core.right
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
@@ -20,9 +20,16 @@ fun Sak.sendSøknadsbehandlingTilBeslutning(
         return KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(eiesAvSaksbehandler = behandling.saksbehandler)
             .left()
     }
-    if (kommando.resultat == SøknadsbehandlingType.INNVILGELSE && this.utbetalinger.hentUtbetalingerFraPeriode(kommando.behandlingsperiode).isNotEmpty()) {
+    if (kommando.resultat == SøknadsbehandlingType.INNVILGELSE &&
+        this.utbetalinger.hentUtbetalingerFraPeriode(kommando.behandlingsperiode)
+            .isNotEmpty()
+    ) {
         return KanIkkeSendeTilBeslutter.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode.left()
     }
-    val oppdatertBehandling = behandling.tilBeslutning(kommando, clock)
-    return (this.copy(behandlinger = this.behandlinger.oppdaterBehandling(oppdatertBehandling)) to oppdatertBehandling).right()
+
+    return behandling.tilBeslutning(kommando, clock).mapLeft {
+        it
+    }.map {
+        (this.copy(behandlinger = this.behandlinger.oppdaterBehandling(it)) to it)
+    }
 }

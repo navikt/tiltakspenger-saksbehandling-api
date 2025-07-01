@@ -1,5 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
@@ -14,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Stans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
@@ -49,10 +53,11 @@ data class Revurdering(
         is Stans -> null
     }
 
-    override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>? = when (resultat) {
-        is Innvilgelse -> resultat.antallDagerPerMeldeperiode
-        is Stans -> null
-    }
+    override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>? =
+        when (resultat) {
+            is Innvilgelse -> resultat.antallDagerPerMeldeperiode
+            is Stans -> null
+        }
 
     override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (resultat) {
         is Innvilgelse -> resultat.valgteTiltaksdeltakelser
@@ -82,50 +87,53 @@ data class Revurdering(
     fun stansTilBeslutning(
         kommando: RevurderingStansTilBeslutningKommando,
         clock: Clock,
-    ): Revurdering {
-        validerSendTilBeslutning(kommando.saksbehandler)
+    ): Either<KanIkkeSendeTilBeslutter, Revurdering> {
+        return validerSendTilBeslutning(kommando.saksbehandler).mapLeft {
+            it
+        }.map {
+            requireNotNull(kommando.sisteDagSomGirRett) {
+                "Siste dag som gir rett må være bestemt før stans kan sendes til beslutning"
+            }
 
-        requireNotNull(kommando.sisteDagSomGirRett) {
-            "Siste dag som gir rett må være bestemt før stans kan sendes til beslutning"
+            require(resultat is Stans)
+
+            return this.copy(
+                status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
+                sendtTilBeslutning = nå(clock),
+                begrunnelseVilkårsvurdering = kommando.begrunnelse,
+                fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
+                virkningsperiode = Periode(kommando.stansFraOgMed, kommando.sisteDagSomGirRett),
+                resultat = Stans(
+                    valgtHjemmel = kommando.valgteHjemler,
+                ),
+            ).right()
         }
-
-        require(resultat is Stans)
-
-        return this.copy(
-            status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
-            sendtTilBeslutning = nå(clock),
-            begrunnelseVilkårsvurdering = kommando.begrunnelse,
-            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            virkningsperiode = Periode(kommando.stansFraOgMed, kommando.sisteDagSomGirRett),
-            resultat = Stans(
-                valgtHjemmel = kommando.valgteHjemler,
-            ),
-        )
     }
 
     fun tilBeslutning(
         kommando: RevurderingInnvilgelseTilBeslutningKommando,
         clock: Clock,
-    ): Revurdering {
-        validerSendTilBeslutning(kommando.saksbehandler)
-
-        require(this.resultat is Innvilgelse)
-
-        return this.copy(
-            status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
-            sendtTilBeslutning = nå(clock),
-            begrunnelseVilkårsvurdering = kommando.begrunnelse,
-            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            virkningsperiode = kommando.innvilgelsesperiode,
-            resultat = this.resultat.copy(
-                valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
-                    tiltaksdeltakelser = kommando.tiltaksdeltakelser,
-                    behandling = this,
+    ): Either<KanIkkeSendeTilBeslutter, Revurdering> {
+        return validerSendTilBeslutning(kommando.saksbehandler).mapLeft {
+            it
+        }.map {
+            require(this.resultat is Innvilgelse)
+            this.copy(
+                status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
+                sendtTilBeslutning = nå(clock),
+                begrunnelseVilkårsvurdering = kommando.begrunnelse,
+                fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
+                virkningsperiode = kommando.innvilgelsesperiode,
+                resultat = this.resultat.copy(
+                    valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
+                        tiltaksdeltakelser = kommando.tiltaksdeltakelser,
+                        behandling = this,
+                    ),
+                    barnetillegg = kommando.barnetillegg,
+                    antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
                 ),
-                barnetillegg = kommando.barnetillegg,
-                antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
-            ),
-        )
+            )
+        }
     }
 
     override fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Revurdering {
@@ -143,11 +151,14 @@ data class Revurdering(
         )
     }
 
-    private fun validerSendTilBeslutning(saksbehandler: Saksbehandler) {
-        check(status == UNDER_BEHANDLING) {
-            "Behandlingen må være under behandling, det innebærer også at en saksbehandler må ta saken før den kan sendes til beslutter. Behandlingsstatus: ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}"
+    private fun validerSendTilBeslutning(saksbehandler: Saksbehandler): Either<KanIkkeSendeTilBeslutter, Unit> {
+        if (status != UNDER_BEHANDLING) {
+            return KanIkkeSendeTilBeslutter.MåVæreUnderBehandlingEllerAutomatisk.left()
         }
-        check(saksbehandler.navIdent == this.saksbehandler) { "Det er ikke lov å sende en annen sin behandling til beslutter" }
+        if (saksbehandler.navIdent != this.saksbehandler) {
+            return KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(this.saksbehandler).left()
+        }
+        return Unit.right()
     }
 
     companion object {

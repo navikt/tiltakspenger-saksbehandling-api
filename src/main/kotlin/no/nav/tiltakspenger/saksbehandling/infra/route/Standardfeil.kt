@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.infra.repo
+package no.nav.tiltakspenger.saksbehandling.infra.route
 
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 

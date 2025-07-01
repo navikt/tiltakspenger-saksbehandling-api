@@ -137,7 +137,7 @@ interface SakMother {
                             resultat = resultat,
                         ),
                         clock = clock,
-                    )
+                    ).getOrFail()
                 }
             }
         return Sak(
@@ -241,7 +241,7 @@ interface SakMother {
                 resultat = SøknadsbehandlingType.INNVILGELSE,
             ),
             clock = clock,
-        ).taBehandling(beslutter)
+        ).getOrFail().taBehandling(beslutter)
             .iverksett(
                 utøvendeBeslutter = beslutter,
                 attestering = ObjectMother.godkjentAttestering(beslutter),
@@ -289,7 +289,7 @@ interface SakMother {
                 antallDagerPerMeldeperiode = SammenhengendePeriodisering(AntallDagerForMeldeperiode(10), virkningsperiode),
             ),
             clock = clock,
-        ).taBehandling(beslutter)
+        ).getOrFail().taBehandling(beslutter)
             .iverksett(
                 utøvendeBeslutter = beslutter,
                 attestering = ObjectMother.godkjentAttestering(beslutter),

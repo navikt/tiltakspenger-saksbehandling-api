@@ -10,10 +10,10 @@ import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
 import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
-import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil.ikkeFunnet
-import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil.ikkeTilgang
-import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil.serverfeil
-import no.nav.tiltakspenger.saksbehandling.infra.repo.Standardfeil.ugyldigRequest
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.ikkeFunnet
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.ikkeTilgang
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.serverfeil
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.ugyldigRequest
 
 object ExceptionHandler {
     private val logger = KotlinLogging.logger {}

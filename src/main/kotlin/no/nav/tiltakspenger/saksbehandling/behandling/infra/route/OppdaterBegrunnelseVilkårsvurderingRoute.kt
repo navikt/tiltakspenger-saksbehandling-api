@@ -8,9 +8,11 @@ import io.ktor.server.routing.patch
 import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereBegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -43,19 +45,30 @@ fun Route.oppdaterBegrunnelseVilkårsvurderingRoute(
                             saksbehandler = saksbehandler,
                             correlationId = correlationId,
                             begrunnelseVilkårsvurdering = body.toDomain(),
-                        ).also {
-                            auditService.logMedBehandlingId(
-                                behandlingId = behandlingId,
-                                navIdent = saksbehandler.navIdent,
-                                action = AuditLogEvent.Action.UPDATE,
-                                contextMessage = "Oppdaterer begrunnelse/vilkårsvurdering",
-                                correlationId = correlationId,
-                            )
-                            call.respond(status = HttpStatusCode.OK, it.tilBehandlingDTO())
-                        }
+                        ).fold(
+                            ifLeft = {
+                                val (status, errorJson) = it.tilStatusOgErrorJson()
+                                call.respond(status = status, errorJson)
+                            },
+                            ifRight = {
+                                auditService.logMedBehandlingId(
+                                    behandlingId = behandlingId,
+                                    navIdent = saksbehandler.navIdent,
+                                    action = AuditLogEvent.Action.UPDATE,
+                                    contextMessage = "Oppdaterer begrunnelse/vilkårsvurdering",
+                                    correlationId = correlationId,
+                                )
+                                call.respond(status = HttpStatusCode.OK, it.tilBehandlingDTO())
+                            },
+                        )
                     }
                 }
             }
         }
     }
 }
+
+internal fun KunneIkkeOppdatereBegrunnelseVilkårsvurdering.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> =
+    when (this) {
+        is KunneIkkeOppdatereBegrunnelseVilkårsvurdering.KunneIkkeOppdatereBehandling -> this.valideringsfeil.tilStatusOgErrorJson()
+    }

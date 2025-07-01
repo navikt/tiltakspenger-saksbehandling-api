@@ -62,7 +62,9 @@ class DelautomatiskBehandlingService(
             resultat = SøknadsbehandlingType.INNVILGELSE,
             automatiskSaksbehandlet = true,
         )
-        behandling.tilBeslutning(kommando, clock).also {
+        behandling.tilBeslutning(kommando, clock).mapLeft {
+            throw IllegalStateException("Kunne ikke sende behandling med id ${behandling.id} til beslutning fordi: ${it::class.simpleName}")
+        }.map {
             val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
             sessionFactory.withTransactionContext { tx ->
                 behandlingRepo.lagre(it, tx)

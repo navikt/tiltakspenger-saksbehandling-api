@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
+import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -7,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -26,7 +28,7 @@ class OppdaterSaksopplysningerService(
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Behandling {
+    ): Either<KunneIkkeOppdatereSaksopplysninger, Behandling> {
         // Denne sjekker tilgang til person og rollene SAKSBEHANDLER eller BESLUTTER.
         val sak = sakService.sjekkTilgangOgHentForSakId(sakId, saksbehandler, correlationId)
         val behandling = sak.hentBehandling(behandlingId)!!
@@ -36,7 +38,9 @@ class OppdaterSaksopplysningerService(
             saksopplysningsperiode = behandling.saksopplysningsperiode,
         )
         // Denne validerer saksbehandler
-        return behandling.oppdaterSaksopplysninger(saksbehandler, oppdaterteSaksopplysninger).also {
+        return behandling.oppdaterSaksopplysninger(saksbehandler, oppdaterteSaksopplysninger).mapLeft {
+            it
+        }.onRight {
             behandlingRepo.lagre(it)
         }
     }

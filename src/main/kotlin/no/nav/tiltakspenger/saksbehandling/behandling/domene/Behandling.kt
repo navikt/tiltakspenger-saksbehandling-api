@@ -327,49 +327,60 @@ sealed interface Behandling {
     fun oppdaterBegrunnelseVilkårsvurdering(
         saksbehandler: Saksbehandler,
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering,
-    ): Behandling {
-        validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere begrunnelse/vilkårsvurdering")
-
-        return when (this) {
-            is Søknadsbehandling -> this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering)
-            is Revurdering -> this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering)
+    ): Either<KunneIkkeOppdatereBegrunnelseVilkårsvurdering, Behandling> {
+        return validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere begrunnelse/vilkårsvurdering").mapLeft {
+            KunneIkkeOppdatereBegrunnelseVilkårsvurdering.KunneIkkeOppdatereBehandling(it)
+        }.map {
+            when (this) {
+                is Søknadsbehandling -> this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering)
+                is Revurdering -> this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering)
+            }
         }
     }
 
     fun oppdaterSaksopplysninger(
         saksbehandler: Saksbehandler,
         oppdaterteSaksopplysninger: Saksopplysninger,
-    ): Behandling {
-        validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere saksopplysinger")
-
-        return when (this) {
-            is Søknadsbehandling -> this.copy(saksopplysninger = oppdaterteSaksopplysninger)
-            is Revurdering -> this.copy(saksopplysninger = oppdaterteSaksopplysninger)
+    ): Either<KunneIkkeOppdatereSaksopplysninger, Behandling> {
+        return validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere saksopplysinger").mapLeft {
+            KunneIkkeOppdatereSaksopplysninger.KunneIkkeOppdatereBehandling(it)
+        }.map {
+            when (this) {
+                is Søknadsbehandling -> this.copy(saksopplysninger = oppdaterteSaksopplysninger)
+                is Revurdering -> this.copy(saksopplysninger = oppdaterteSaksopplysninger)
+            }
         }
     }
 
     fun oppdaterFritekstTilVedtaksbrev(
         saksbehandler: Saksbehandler,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev,
-    ): Behandling {
-        validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere fritekst til vedtaksbrev")
-
-        return when (this) {
-            is Søknadsbehandling -> this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev)
-            is Revurdering -> this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev)
+    ): Either<KunneIkkeOppdatereFritekstTilVedtaksbrev, Behandling> {
+        return validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere fritekst til vedtaksbrev").mapLeft {
+            KunneIkkeOppdatereFritekstTilVedtaksbrev.KunneIkkeOppdatereBehandling(it)
+        }.map {
+            when (this) {
+                is Søknadsbehandling -> this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev)
+                is Revurdering -> this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev)
+            }
         }
     }
 
-    fun validerKanOppdatere(saksbehandler: Saksbehandler, errorMsg: String) {
+    fun validerKanOppdatere(
+        saksbehandler: Saksbehandler,
+        errorMsg: String,
+    ): Either<Valideringsfeil, Unit> {
         if (!saksbehandler.erSaksbehandler()) {
             throw TilgangException("$errorMsg - Saksbehandler ${saksbehandler.navIdent} mangler rollen SAKSBEHANDLER - sakId=$sakId, behandlingId=$id")
         }
-        if (this.saksbehandler != saksbehandler.navIdent) {
-            throw IllegalArgumentException("$errorMsg - Saksbehandler ${saksbehandler.navIdent} er ikke satt på behandlingen - sakId=$sakId, behandlingId=$id")
+        if (this.saksbehandler != null && this.saksbehandler != saksbehandler.navIdent) {
+            return Valideringsfeil.UtdøvendeSaksbehandlerErIkkePåBehandlingen(this.saksbehandler!!).left()
         }
         if (!this.erUnderBehandling) {
-            throw IllegalStateException("$errorMsg - Behandlingen er ikke under behandling - sakId=$sakId, behandlingId=$id, status=$status")
+            return Valideringsfeil.BehandlingenErIkkeUnderBehandling.left()
         }
+
+        return Unit.right()
     }
 
     fun init() {
@@ -384,6 +395,7 @@ sealed interface Behandling {
                 require(iverksattTidspunkt == null)
                 require(beslutter == null)
             }
+
             KLAR_TIL_BEHANDLING -> {
                 require(saksbehandler == null) {
                     "Behandlingen kan ikke være tilknyttet en saksbehandler når statusen er KLAR_TIL_BEHANDLING"

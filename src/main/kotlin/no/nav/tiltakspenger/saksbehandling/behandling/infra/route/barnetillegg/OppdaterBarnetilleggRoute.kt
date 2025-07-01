@@ -12,12 +12,15 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBarnetilleggKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KunneIkkeOppdatereBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilStatusOgErrorJson
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBarnetilleggService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
@@ -61,19 +64,29 @@ fun Route.oppdaterBarnetilleggRoute(
                                 saksbehandler = saksbehandler,
                                 correlationId = correlationId,
                             ),
-                        ).also {
-                            auditService.logMedBehandlingId(
-                                behandlingId = behandlingId,
-                                navIdent = saksbehandler.navIdent,
-                                action = AuditLogEvent.Action.UPDATE,
-                                contextMessage = "Oppdaterer barnetillegg",
-                                correlationId = correlationId,
-                            )
-                            call.respond(status = HttpStatusCode.OK, it.tilBehandlingDTO())
-                        }
+                        ).fold(
+                            ifLeft = {
+                                val (status, errorJson) = it.tilStatusOgErrorJson()
+                                call.respond(status = status, errorJson)
+                            },
+                            ifRight = {
+                                auditService.logMedBehandlingId(
+                                    behandlingId = behandlingId,
+                                    navIdent = saksbehandler.navIdent,
+                                    action = AuditLogEvent.Action.UPDATE,
+                                    contextMessage = "Oppdaterer barnetillegg",
+                                    correlationId = correlationId,
+                                )
+                                call.respond(status = HttpStatusCode.OK, it.tilBehandlingDTO())
+                            },
+                        )
                     }
                 }
             }
         }
     }
+}
+
+internal fun KunneIkkeOppdatereBarnetillegg.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
+    is KunneIkkeOppdatereBarnetillegg.KunneIkkeOppdatereBehandling -> this.valideringsfeil.tilStatusOgErrorJson()
 }

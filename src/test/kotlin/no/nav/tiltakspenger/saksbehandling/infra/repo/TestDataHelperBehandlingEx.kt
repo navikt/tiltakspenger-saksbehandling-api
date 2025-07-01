@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.førsteNovember24
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
@@ -244,7 +245,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
                     resultat = resultat,
                 ),
                 clock = clock,
-            )
+            ).getOrFail()
 
     behandlingRepo.lagre(oppdatertSøknadsbehandling)
     val oppdatertSak = sakRepo.hentForSakId(sakId)!!
