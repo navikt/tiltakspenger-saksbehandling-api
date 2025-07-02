@@ -124,6 +124,7 @@ open class BehandlingOgVedtakContext(
         OppdaterBegrunnelseVilkårsvurderingService(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
+            clock = clock,
         )
     }
 
@@ -131,6 +132,7 @@ open class BehandlingOgVedtakContext(
         OppdaterFritekstTilVedtaksbrevService(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
+            clock = clock,
         )
     }
     val iverksettBehandlingService by lazy {

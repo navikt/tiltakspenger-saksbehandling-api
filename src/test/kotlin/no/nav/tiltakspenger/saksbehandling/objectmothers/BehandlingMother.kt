@@ -198,6 +198,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 tom = it.tilOgMed,
             )
         },
+        clock: Clock = this.clock,
     ): Søknadsbehandling {
         return runBlocking {
             Søknadsbehandling.opprett(

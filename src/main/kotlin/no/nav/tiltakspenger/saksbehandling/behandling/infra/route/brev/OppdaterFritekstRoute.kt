@@ -27,14 +27,16 @@ private data class FritekstBody(
     fun toDomain() = FritekstTilVedtaksbrev(saniter(fritekst))
 }
 
+private const val FRITEKST_ROUTE = "/sak/{sakId}/behandling/{behandlingId}/fritekst"
+
 fun Route.oppdaterFritekstTilVedtaksbrevRoute(
     tokenService: TokenService,
     auditService: AuditService,
     oppdaterFritekstTilVedtaksbrevService: OppdaterFritekstTilVedtaksbrevService,
 ) {
     val logger = KotlinLogging.logger {}
-    patch("/sak/{sakId}/behandling/{behandlingId}/fritekst") {
-        logger.debug { "Mottatt get-request på '/sak/{sakId}/behandling/{behandlingId}/fritekst' - oppdaterer fritekst til vedtaksbrev" }
+    patch(FRITEKST_ROUTE) {
+        logger.debug { "Mottatt get-request på '$FRITEKST_ROUTE' - oppdaterer fritekst til vedtaksbrev" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->

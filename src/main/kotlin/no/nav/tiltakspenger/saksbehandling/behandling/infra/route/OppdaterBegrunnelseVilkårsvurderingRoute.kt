@@ -26,14 +26,16 @@ private data class BegrunnelseBody(
     fun toDomain() = BegrunnelseVilkårsvurdering(saniter(begrunnelse))
 }
 
+private const val BEGRUNNELSE_ROUTE = "/sak/{sakId}/behandling/{behandlingId}/begrunnelse"
+
 fun Route.oppdaterBegrunnelseVilkårsvurderingRoute(
     tokenService: TokenService,
     auditService: AuditService,
     oppdaterBegrunnelseVilkårsvurderingService: OppdaterBegrunnelseVilkårsvurderingService,
 ) {
     val logger = KotlinLogging.logger {}
-    patch("/sak/{sakId}/behandling/{behandlingId}/begrunnelse") {
-        logger.debug { "Mottatt get-request på '/sak/{sakId}/behandling/{behandlingId}/begrunnelse' - oppdaterer begrunnelse/vilkårsvurdering" }
+    patch(BEGRUNNELSE_ROUTE) {
+        logger.debug { "Mottatt get-request på '$BEGRUNNELSE_ROUTE' - oppdaterer begrunnelse/vilkårsvurdering" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->

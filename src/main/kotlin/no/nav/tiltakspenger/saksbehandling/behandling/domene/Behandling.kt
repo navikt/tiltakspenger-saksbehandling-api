@@ -123,7 +123,7 @@ sealed interface Behandling {
         }
     }
 
-    /** Saksbehandler/beslutter tar eller overtar behandlingen. */
+    /** Saksbehandler/beslutter tar behandlingen. */
     fun taBehandling(saksbehandler: Saksbehandler): Behandling {
         return when (status) {
             KLAR_TIL_BEHANDLING -> {
@@ -160,8 +160,16 @@ sealed interface Behandling {
         }
     }
 
+    /** Saksbehandler/beslutter overtar behandlingen. */
     fun overta(saksbehandler: Saksbehandler, clock: Clock): Either<KunneIkkeOvertaBehandling, Behandling> {
-        val sistEndret = LocalDateTime.now(clock)
+        val nåTidMinus1Time = LocalDateTime.now(clock).minusHours(1)
+        val erSistEndretMindreEnn1TimeSiden = this.sistEndret.isAfter(nåTidMinus1Time)
+
+        if (erSistEndretMindreEnn1TimeSiden) {
+            return KunneIkkeOvertaBehandling.BehandlingenErUnderAktivBehandling.left()
+        }
+
+        val oppdatertSistEndret = LocalDateTime.now(clock)
 
         return when (status) {
             UNDER_BEHANDLING -> {
@@ -177,13 +185,13 @@ sealed interface Behandling {
                     is Søknadsbehandling -> this.copy(
                         saksbehandler = saksbehandler.navIdent,
                         beslutter = beslutter,
-                        sistEndret = sistEndret,
+                        sistEndret = oppdatertSistEndret,
                     )
 
                     is Revurdering -> this.copy(
                         saksbehandler = saksbehandler.navIdent,
                         beslutter = beslutter,
-                        sistEndret = sistEndret,
+                        sistEndret = oppdatertSistEndret,
                     )
                 }.right()
             }
@@ -200,12 +208,12 @@ sealed interface Behandling {
                 when (this) {
                     is Søknadsbehandling -> this.copy(
                         beslutter = saksbehandler.navIdent,
-                        sistEndret = sistEndret,
+                        sistEndret = oppdatertSistEndret,
                     )
 
                     is Revurdering -> this.copy(
                         beslutter = saksbehandler.navIdent,
-                        sistEndret = sistEndret,
+                        sistEndret = oppdatertSistEndret,
                     )
                 }.right()
             }
@@ -327,13 +335,14 @@ sealed interface Behandling {
     fun oppdaterBegrunnelseVilkårsvurdering(
         saksbehandler: Saksbehandler,
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering,
+        clock: Clock,
     ): Either<KunneIkkeOppdatereBegrunnelseVilkårsvurdering, Behandling> {
         return validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere begrunnelse/vilkårsvurdering").mapLeft {
             KunneIkkeOppdatereBegrunnelseVilkårsvurdering.KunneIkkeOppdatereBehandling(it)
         }.map {
             when (this) {
-                is Søknadsbehandling -> this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering)
-                is Revurdering -> this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering)
+                is Søknadsbehandling -> this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering, sistEndret = nå(clock))
+                is Revurdering -> this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering, sistEndret = nå(clock))
             }
         }
     }
@@ -355,13 +364,14 @@ sealed interface Behandling {
     fun oppdaterFritekstTilVedtaksbrev(
         saksbehandler: Saksbehandler,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev,
+        clock: Clock,
     ): Either<KunneIkkeOppdatereFritekstTilVedtaksbrev, Behandling> {
         return validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere fritekst til vedtaksbrev").mapLeft {
             KunneIkkeOppdatereFritekstTilVedtaksbrev.KunneIkkeOppdatereBehandling(it)
         }.map {
             when (this) {
-                is Søknadsbehandling -> this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev)
-                is Revurdering -> this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev)
+                is Søknadsbehandling -> this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev, sistEndret = nå(clock))
+                is Revurdering -> this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev, sistEndret = nå(clock))
             }
         }
     }

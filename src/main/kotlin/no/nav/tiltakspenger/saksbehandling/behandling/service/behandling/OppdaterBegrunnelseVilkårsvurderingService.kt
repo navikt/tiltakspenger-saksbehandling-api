@@ -10,10 +10,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereBegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import java.time.Clock
 
 class OppdaterBegrunnelseVilkårsvurderingService(
     private val sakService: SakService,
     private val behandlingRepo: BehandlingRepo,
+    private val clock: Clock,
 ) {
     suspend fun oppdaterBegrunnelseVilkårsvurdering(
         sakId: SakId,
@@ -27,7 +29,7 @@ class OppdaterBegrunnelseVilkårsvurderingService(
         val behandling = sak.hentBehandling(behandlingId)!!
 
         // Denne validerer saksbehandler
-        return behandling.oppdaterBegrunnelseVilkårsvurdering(saksbehandler, begrunnelseVilkårsvurdering).mapLeft {
+        return behandling.oppdaterBegrunnelseVilkårsvurdering(saksbehandler, begrunnelseVilkårsvurdering, clock).mapLeft {
             it
         }.onRight {
             behandlingRepo.lagre(it)

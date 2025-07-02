@@ -10,10 +10,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereFritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import java.time.Clock
 
 class OppdaterFritekstTilVedtaksbrevService(
     private val sakService: SakService,
     private val behandlingRepo: BehandlingRepo,
+    private val clock: Clock,
 ) {
     suspend fun oppdaterFritekstTilVedtaksbrev(
         sakId: SakId,
@@ -26,7 +28,7 @@ class OppdaterFritekstTilVedtaksbrevService(
         val sak = sakService.sjekkTilgangOgHentForSakId(sakId, saksbehandler, correlationId)
         val behandling = sak.hentBehandling(behandlingId)!!
         // Denne validerer saksbehandler
-        return behandling.oppdaterFritekstTilVedtaksbrev(saksbehandler, fritekstTilVedtaksbrev).mapLeft {
+        return behandling.oppdaterFritekstTilVedtaksbrev(saksbehandler, fritekstTilVedtaksbrev, clock).mapLeft {
             it
         }.onRight {
             behandlingRepo.lagre(it)

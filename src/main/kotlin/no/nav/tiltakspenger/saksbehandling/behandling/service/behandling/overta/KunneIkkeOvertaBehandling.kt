@@ -8,4 +8,5 @@ sealed interface KunneIkkeOvertaBehandling {
     data object BehandlingenMåVæreUnderBeslutningForÅOverta : KunneIkkeOvertaBehandling
     data object BehandlingenErIkkeKnyttetTilEnBeslutterForÅOverta : KunneIkkeOvertaBehandling
     data object SaksbehandlerOgBeslutterKanIkkeVæreDenSamme : KunneIkkeOvertaBehandling
+    data object BehandlingenErUnderAktivBehandling : KunneIkkeOvertaBehandling
 }

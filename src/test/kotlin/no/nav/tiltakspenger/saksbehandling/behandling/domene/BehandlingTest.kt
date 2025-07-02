@@ -1,17 +1,22 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.left
 import arrow.core.nonEmptySetOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
-import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
+import no.nav.tiltakspenger.saksbehandling.enUkeEtterFixedClock
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 
 class BehandlingTest {
 
@@ -104,7 +109,7 @@ class BehandlingTest {
         fun `en saksbehandler kan overta behandlingen`() {
             val behandling = ObjectMother.nyOpprettetSøknadsbehandling()
             val nySaksbehandler = ObjectMother.saksbehandler("nyNavIdent")
-            val overtaBehandling = behandling.overta(saksbehandler = nySaksbehandler, clock = fixedClock)
+            val overtaBehandling = behandling.overta(saksbehandler = nySaksbehandler, clock = enUkeEtterFixedClock)
 
             behandling.saksbehandler.shouldNotBe(nySaksbehandler.navIdent)
             overtaBehandling.getOrFail().saksbehandler shouldBe nySaksbehandler.navIdent
@@ -114,10 +119,37 @@ class BehandlingTest {
         fun `en beslutter kan overta behandlingen`() {
             val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
             val nyBeslutter = ObjectMother.beslutter("nyNavIdent")
-            val overtaBehandling = behandling.overta(saksbehandler = nyBeslutter, clock = fixedClock)
+            val overtaBehandling = behandling.overta(saksbehandler = nyBeslutter, clock = enUkeEtterFixedClock)
 
             behandling.beslutter.shouldNotBe(nyBeslutter.navIdent)
             overtaBehandling.getOrFail().beslutter shouldBe nyBeslutter.navIdent
+        }
+
+        @Test
+        fun `kan ikke overta dersom det er mindre enn 1 time siden noe er blitt gjort`() {
+            val clock = Clock.fixed(Instant.parse("2025-07-01T12:00:00Z"), ZoneOffset.UTC)
+            val behandling = ObjectMother.nyOpprettetSøknadsbehandling(clock = clock)
+            val annenSaksbehandler = ObjectMother.saksbehandler(navIdent = "annenSaksbehandler")
+
+            // 30 etter opprettelse av behandling
+            val overtaClock = Clock.fixed(Instant.parse("2025-07-01T12:30:00Z"), ZoneOffset.UTC)
+
+            behandling.overta(
+                annenSaksbehandler,
+                overtaClock,
+            ) shouldBe KunneIkkeOvertaBehandling.BehandlingenErUnderAktivBehandling.left()
+        }
+
+        @Test
+        fun `kan overta behandlingen dersom det er over 1 time siden noe er blitt gjort`() {
+            val clock = Clock.fixed(Instant.parse("2025-07-01T12:00:00Z"), ZoneOffset.UTC)
+            val behandling = ObjectMother.nyOpprettetSøknadsbehandling(clock = clock)
+            val annenSaksbehandler = ObjectMother.saksbehandler(navIdent = "annenSaksbehandler")
+
+            // 1:30 etter opprettelse av behandling
+            val overtaClock = Clock.fixed(Instant.parse("2025-07-01T13:30:00Z"), ZoneOffset.UTC)
+
+            behandling.overta(annenSaksbehandler, overtaClock).isRight() shouldBe true
         }
     }
 

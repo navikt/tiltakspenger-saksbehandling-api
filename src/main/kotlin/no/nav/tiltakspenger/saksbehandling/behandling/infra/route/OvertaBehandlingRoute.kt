@@ -106,5 +106,10 @@ internal fun KunneIkkeOvertaBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCo
             "Saksbehandler og beslutter kan ikke være den samme på samme behandling",
             "saksbehandler_og_beslutter_kan_ikke_vær_den_samme",
         )
+
+        KunneIkkeOvertaBehandling.BehandlingenErUnderAktivBehandling -> HttpStatusCode.BadRequest to ErrorJson(
+            "Behandlingen er under aktiv behandling og kan ikke overtas. Prøv igjen innen 1 time",
+            "behandlingen_er_under_aktiv_behandling",
+        )
     }
 }
