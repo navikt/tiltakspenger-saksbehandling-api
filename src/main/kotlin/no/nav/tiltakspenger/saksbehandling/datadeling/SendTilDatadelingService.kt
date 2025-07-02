@@ -32,7 +32,7 @@ class SendTilDatadelingService(
                         rammevedtakRepo.markerSendtTilDatadeling(rammevedtak.id, nå(clock))
                         logger.info { "Vedtak markert som sendt til datadeling. VedtakId: ${rammevedtak.id}" }
                     }.onLeft {
-                        logger.error { "Vedtak kunne ikke sendes til datadeling. Saksnummer: ${rammevedtak.saksnummer}, sakId: ${rammevedtak.sakId}, vedtakId: ${rammevedtak.id}" }
+                        // Disse logges av klienten, trenger ikke duplikat logglinje.
                     }
                 }.onLeft {
                     logger.error(it) { "Ukjent feil skjedde under sending av vedtak til datadeling. Saksnummer: ${rammevedtak.saksnummer}, sakId: ${rammevedtak.sakId}, vedtakId: ${rammevedtak.id}" }
