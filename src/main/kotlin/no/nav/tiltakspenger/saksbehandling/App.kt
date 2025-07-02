@@ -5,6 +5,8 @@ import arrow.core.right
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopPreparing
+import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.Route
@@ -116,11 +118,27 @@ internal fun start(
         )
         consumers.forEach { it.run() }
     }
+    server.application.monitor.subscribe(ApplicationStopPreparing) {
+        // Denne er unødvendig ved SIGINT/SIGTERM o.l. men ville stoppe jobbene tidligere dersom ktor selv stanser
+        log.info { "Ktor ApplicationStopPreparing event  - stopper jobbene" }
+        jobber.stop()
+        server.application.monitor.unsubscribe(ApplicationStopping) {}
+        server.application.monitor.unsubscribe(ApplicationStopPreparing) {}
+    }
+    server.application.monitor.subscribe(ApplicationStopping) {
+        // Denne er unødvendig ved SIGINT/SIGTERM o.l. men ville stoppe jobbene tidligere dersom ktor selv stanser
+        log.info { "Ktor ApplicationStopping event  - stopper jobbene" }
+        jobber.stop()
+        server.application.monitor.unsubscribe(ApplicationStopping) {}
+        server.application.monitor.unsubscribe(ApplicationStopPreparing) {}
+    }
 
     Runtime.getRuntime().addShutdownHook(
         Thread {
+            log.info { "JVM shutdown event - stopper jobbene, setter isReadyKey til false og stanser ktor med 5 sekunder grace periodene og 30 sekunders timeout." }
             server.application.attributes.put(isReadyKey, false)
             jobber.stop()
+            // Denne trigger en ApplicationStopPreparing event
             server.stop(gracePeriodMillis = 5_000, timeoutMillis = 30_000)
         },
     )
