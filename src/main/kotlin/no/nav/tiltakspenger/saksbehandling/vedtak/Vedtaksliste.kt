@@ -32,7 +32,7 @@ data class Vedtaksliste(
      */
     val tidslinje: Periodisering<Rammevedtak> by lazy {
         value.filter {
-            when (it.vedtaksType) {
+            when (it.vedtakstype) {
                 Vedtakstype.INNVILGELSE,
                 Vedtakstype.STANS,
                 -> true
@@ -53,7 +53,7 @@ data class Vedtaksliste(
     }
 
     val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
-        tidslinje.filter { it.verdi.vedtaksType == Vedtakstype.INNVILGELSE }
+        tidslinje.filter { it.verdi.vedtakstype == Vedtakstype.INNVILGELSE }
     }
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */

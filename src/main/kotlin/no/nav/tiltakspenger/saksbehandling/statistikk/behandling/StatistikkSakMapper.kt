@@ -41,7 +41,7 @@ fun genererSaksstatistikkForRammevedtak(
         behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.FØRSTEGANGSBEHANDLING else StatistikkBehandlingType.REVURDERING,
         // TODO jah: I følge confluence-dokken så finner jeg ikke dette feltet. Burde det heller vært AVSLUTTET?
         behandlingStatus = StatistikkBehandlingStatus.FERDIG_BEHANDLET,
-        behandlingResultat = when (vedtak.vedtaksType) {
+        behandlingResultat = when (vedtak.vedtakstype) {
             Vedtakstype.INNVILGELSE -> StatistikkBehandlingResultat.INNVILGET
             Vedtakstype.STANS -> StatistikkBehandlingResultat.STANS
             Vedtakstype.AVSLAG -> StatistikkBehandlingResultat.AVSLAG

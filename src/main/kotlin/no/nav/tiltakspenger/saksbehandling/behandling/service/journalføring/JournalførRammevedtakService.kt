@@ -33,10 +33,10 @@ class JournalførRammevedtakService(
         Either.catch {
             rammevedtakRepo.hentRammevedtakSomSkalJournalføres().forEach { vedtak ->
                 val correlationId = CorrelationId.generate()
-                log.info { "Journalfører vedtaksbrev for vedtak ${vedtak.id}, type: ${vedtak.vedtaksType}" }
+                log.info { "Journalfører vedtaksbrev for vedtak ${vedtak.id}, type: ${vedtak.vedtakstype}" }
                 Either.catch {
                     val vedtaksdato = LocalDate.now()
-                    val pdfOgJson = when (vedtak.vedtaksType) {
+                    val pdfOgJson = when (vedtak.vedtakstype) {
                         Vedtakstype.INNVILGELSE -> genererVedtaksbrevForInnvilgelseKlient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
                             vedtaksdato = vedtaksdato,
                             vedtak = vedtak,

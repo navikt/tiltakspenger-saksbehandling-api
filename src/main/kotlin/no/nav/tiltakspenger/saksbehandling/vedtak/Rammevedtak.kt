@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
@@ -26,7 +26,8 @@ import java.time.LocalDateTime
 
 /**
  * @param opprettet Tidspunktet vi instansierte og persisterte dette utbetalingsvedtaket første gangen. Dette har ingenting med vedtaksbrevet å gjøre.
- * @periode Stansperiode eller innvilgelsesperiode (ikke nødvendigvis det samme som vurderingsperiode.)
+ * @param periode Stansperiode eller innvilgelsesperiode (ikke nødvendigvis det samme som vurderingsperiode.)
+ * @param vedtaksdato Datoen vi bruker i brevet. Lagres samtidig som vi genererer og journalfører brevet. Vil være null fram til dette.
  */
 data class Rammevedtak(
     override val id: VedtakId = VedtakId.random(),
@@ -34,7 +35,7 @@ data class Rammevedtak(
     val sakId: SakId,
     val behandling: Behandling,
     val vedtaksdato: LocalDate?,
-    val vedtaksType: Vedtakstype,
+    val vedtakstype: Vedtakstype,
     override val periode: Periode,
     val journalpostId: JournalpostId?,
     val journalføringstidspunkt: LocalDateTime?,
@@ -49,7 +50,7 @@ data class Rammevedtak(
     val saksnummer: Saksnummer = behandling.saksnummer
     val saksbehandlerNavIdent: String = behandling.saksbehandler!!
     val beslutterNavIdent: String = behandling.beslutter!!
-    val utfallsperioder: Periodisering<Utfallsperiode> by lazy { behandling.utfallsperioder!! }
+    val utfallsperioder: SammenhengendePeriodisering<Utfallsperiode> by lazy { behandling.utfallsperioder!! }
 
     /** Vil være null dersom bruker ikke har rett på barnetillegg  */
     val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
@@ -58,7 +59,7 @@ data class Rammevedtak(
     override val antallDagerPerMeldeperiode: Int = behandling.maksDagerMedTiltakspengerForPeriode
 
     override fun erStansvedtak(): Boolean {
-        return vedtaksType == Vedtakstype.STANS
+        return vedtakstype == Vedtakstype.STANS
     }
 
     init {
@@ -86,7 +87,7 @@ fun Sak.opprettVedtak(
         sakId = this.id,
         behandling = behandling,
         vedtaksdato = null,
-        vedtaksType = this.utledVedtakstype(behandling),
+        vedtakstype = this.utledVedtakstype(behandling),
         periode = behandling.virkningsperiode!!,
         journalpostId = null,
         journalføringstidspunkt = null,

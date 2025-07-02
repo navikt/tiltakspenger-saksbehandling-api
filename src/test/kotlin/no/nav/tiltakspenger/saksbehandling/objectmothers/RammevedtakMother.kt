@@ -42,7 +42,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId = sakId,
         behandling = behandling,
         vedtaksdato = vedtaksdato,
-        vedtaksType = vedtaksType,
+        vedtakstype = vedtaksType,
         periode = periode,
         journalpostId = journalpostId,
         journalføringstidspunkt = journalføringstidspunkt,

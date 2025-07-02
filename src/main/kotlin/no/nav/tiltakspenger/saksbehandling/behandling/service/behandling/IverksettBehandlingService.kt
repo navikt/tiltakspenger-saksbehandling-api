@@ -104,7 +104,7 @@ class IverksettBehandlingService(
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
-        return when (vedtak.vedtaksType) {
+        return when (vedtak.vedtakstype) {
             Vedtakstype.INNVILGELSE -> iverksett(vedtak, sakStatistikk, stønadStatistikk)
 
             Vedtakstype.AVSLAG -> {
@@ -132,7 +132,7 @@ class IverksettBehandlingService(
         sakStatistikk: StatistikkSakDTO,
         stønadStatistikk: StatistikkStønadDTO,
     ): Sak {
-        require(vedtak.vedtaksType == Vedtakstype.INNVILGELSE || vedtak.vedtaksType == Vedtakstype.STANS) {
+        require(vedtak.vedtakstype == Vedtakstype.INNVILGELSE || vedtak.vedtakstype == Vedtakstype.STANS) {
             "Kan kun iverksette innvilgelse eller stans"
         }
 

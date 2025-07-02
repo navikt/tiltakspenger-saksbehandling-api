@@ -41,7 +41,7 @@ fun Rammevedtak.toDatadelingJson(): String {
         fom = periode.fraOgMed,
         tom = periode.tilOgMed,
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
-        rettighet = when (this.vedtaksType) {
+        rettighet = when (this.vedtakstype) {
             Vedtakstype.INNVILGELSE -> {
                 if (barnetillegg != null) {
                     "TILTAKSPENGER_OG_BARNETILLEGG"

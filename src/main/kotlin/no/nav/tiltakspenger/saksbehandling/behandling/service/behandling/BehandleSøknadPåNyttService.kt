@@ -41,7 +41,7 @@ class BehandleSøknadPåNyttService(
     ): Either<KanIkkeBehandleSøknadPåNytt, Søknadsbehandling> {
         val sak = sakService.hentForSakId(sakId, saksbehandler, correlationId)
         val avslåtteSøknadsbehandlinger = sak.vedtaksliste.value
-            .filter { it.vedtaksType == Vedtakstype.AVSLAG }
+            .filter { it.vedtakstype == Vedtakstype.AVSLAG }
             .map { it.behandling }
             .filterIsInstance<Søknadsbehandling>()
             .filter { it.søknad.id == søknadId }

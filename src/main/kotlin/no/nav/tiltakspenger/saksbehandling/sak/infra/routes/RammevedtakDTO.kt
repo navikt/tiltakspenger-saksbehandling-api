@@ -9,16 +9,19 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+/**
+ * @param vedtaksdato Datoen vi bruker i brevet. Lagres samtidig som vi genererer og journalfører brevet. Vil være null fram til dette.
+ */
 data class RammevedtakDTO(
     val id: String,
     val behandlingId: String,
     val opprettet: LocalDateTime,
-    val vedtaksdato: LocalDate,
+    val vedtaksdato: LocalDate?,
     val vedtaksType: VedtakstypeDTO,
     val periode: PeriodeDTO,
     val saksbehandler: String,
     val beslutter: String,
-    val antallDagerPerMeldeperiode: Int?,
+    val antallDagerPerMeldeperiode: Int,
     val barnetillegg: BarnetilleggDTO?,
 )
 
@@ -29,14 +32,12 @@ enum class VedtakstypeDTO {
 }
 
 fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
-    requireNotNull(vedtaksdato)
-
     return RammevedtakDTO(
         id = id.toString(),
         behandlingId = behandling.id.toString(),
         opprettet = opprettet,
         vedtaksdato = vedtaksdato,
-        vedtaksType = when (vedtaksType) {
+        vedtaksType = when (vedtakstype) {
             Vedtakstype.INNVILGELSE -> VedtakstypeDTO.INNVILGELSE
             Vedtakstype.AVSLAG -> VedtakstypeDTO.AVSLAG
             Vedtakstype.STANS -> VedtakstypeDTO.STANS
