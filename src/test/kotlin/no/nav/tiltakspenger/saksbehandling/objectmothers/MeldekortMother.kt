@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BeregningId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
@@ -47,8 +48,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningFraMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
@@ -255,11 +256,13 @@ interface MeldekortMother : MotherOfAllMothers {
     ): MeldekortBeregning {
         return MeldekortBeregning(
             nonEmptyListOf(
-                MeldeperiodeBeregning(
+                MeldeperiodeBeregningFraMeldekort(
+                    id = BeregningId.fromString("beregning_01JY4KWSP0BYGX3420TWWYYABE"),
                     kjedeId = kjedeId,
-                    beregningMeldekortId = meldekortId,
-                    dagerMeldekortId = meldekortId,
+                    meldekortId = meldekortId,
+                    beregnetMeldekortId = meldekortId,
                     dager = beregningDager,
+                    iverksattTidspunkt = null,
                 ),
             ),
         )

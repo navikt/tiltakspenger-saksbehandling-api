@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
-import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 
 data class MeldeperiodeBeregninger(
@@ -21,8 +20,8 @@ data class MeldeperiodeBeregninger(
         beregningerPerKjede.entries.associate { it.key to it.value.last() }
     }
 
-    fun sisteBeregningFør(meldekortId: MeldekortId, kjedeId: MeldeperiodeKjedeId): MeldeperiodeBeregning? {
-        return beregningerPerKjede[kjedeId]?.takeWhile { it.beregningMeldekortId != meldekortId }?.lastOrNull()
+    fun sisteBeregningFør(beregningId: BeregningId, kjedeId: MeldeperiodeKjedeId): MeldeperiodeBeregning? {
+        return beregningerPerKjede[kjedeId]?.takeWhile { it.id != beregningId }?.lastOrNull()
     }
 
     init {

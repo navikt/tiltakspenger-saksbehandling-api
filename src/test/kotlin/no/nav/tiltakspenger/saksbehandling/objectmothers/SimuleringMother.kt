@@ -85,7 +85,7 @@ fun Sak.genererSimuleringFraBeregning(
 ): SimuleringMedMetadata {
     val simuleringForMeldeperioder = behandling.beregning!!.beregninger.map { beregningEtter ->
         val beregningFør = this.meldeperiodeBeregninger.sisteBeregningFør(
-            beregningEtter.beregningMeldekortId,
+            beregningEtter.id,
             beregningEtter.kjedeId,
         )
         val sammenligning = sammenlign(

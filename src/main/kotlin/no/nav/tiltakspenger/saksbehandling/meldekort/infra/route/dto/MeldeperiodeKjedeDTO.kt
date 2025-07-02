@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningFraMeldekort
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDate
@@ -28,8 +29,14 @@ data class MeldeperiodeKjedeDTO(
 
 fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeDTO {
     val meldeperiodeKjede = this.meldeperiodeKjeder.single { it.kjedeId == kjedeId }
+
+    // TODO: denne bør skrives om litt, bør ikke gå via beregningene her
     val korrigering = meldeperiodeBeregninger.sisteBeregningPerKjede[kjedeId]?.let {
-        val forrigeBehandling = meldekortBehandlinger.hentMeldekortBehandling(it.beregningMeldekortId)
+        if (it !is MeldeperiodeBeregningFraMeldekort) {
+            return@let null
+        }
+
+        val forrigeBehandling = meldekortBehandlinger.hentMeldekortBehandling(it.beregnetMeldekortId)
         if (forrigeBehandling !is MeldekortBehandletManuelt) {
             return@let null
         }

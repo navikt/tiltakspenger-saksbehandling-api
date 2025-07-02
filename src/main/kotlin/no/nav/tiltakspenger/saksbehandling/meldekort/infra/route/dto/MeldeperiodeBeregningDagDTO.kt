@@ -10,7 +10,7 @@ data class MeldeperiodeBeregningDagDTO(
     val beregningsdag: BeregningsdagDTO?,
 )
 
-fun MeldeperiodeBeregning.tilMeldeperiodeBeregningDagerDTO() = this.map {
+fun MeldeperiodeBeregning.tilMeldeperiodeBeregningDagerDTO(): List<MeldeperiodeBeregningDagDTO> = this.dager.map {
     MeldeperiodeBeregningDagDTO(
         dato = it.dato,
         status = it.tilMeldekortDagStatusDTO(),

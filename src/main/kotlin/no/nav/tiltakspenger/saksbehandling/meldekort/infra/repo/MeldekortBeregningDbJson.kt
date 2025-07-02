@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BeregningId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
@@ -17,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregnin
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningFraMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toDb
@@ -118,7 +120,7 @@ fun MeldekortBeregning.tilBeregningerDbJson(): String {
     return this.map {
         MeldeperiodeBeregningDbJson(
             kjedeId = it.kjedeId.toString(),
-            meldekortId = it.dagerMeldekortId.toString(),
+            meldekortId = it.meldekortId.toString(),
             dager = it.dager.toDbJson(),
         )
     }.let { serialize(it) }
@@ -153,11 +155,13 @@ private fun ReduksjonAvYtelsePåGrunnAvFravær.toDb(): ReduksjonAvYtelsePåGrunn
     }
 
 private fun MeldeperiodeBeregningDbJson.tilMeldeperiodeBeregning(meldekortId: MeldekortId): MeldeperiodeBeregning {
-    return MeldeperiodeBeregning(
+    return MeldeperiodeBeregningFraMeldekort(
         kjedeId = MeldeperiodeKjedeId(this.kjedeId),
-        beregningMeldekortId = meldekortId,
-        dagerMeldekortId = MeldekortId.fromString(this.meldekortId),
+        beregnetMeldekortId = meldekortId,
+        meldekortId = MeldekortId.fromString(this.meldekortId),
         dager = this.dager.map { it.tilMeldeperiodeBeregningDag() }.toNonEmptyListOrNull()!!,
+        iverksattTidspunkt = null,
+        id = BeregningId.fromString("beregning_01JY4KWSP0BYGX3420TWWYYABE"),
     )
 }
 
