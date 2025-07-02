@@ -257,12 +257,11 @@ interface MeldekortMother : MotherOfAllMothers {
         return MeldekortBeregning(
             nonEmptyListOf(
                 MeldeperiodeBeregningFraMeldekort(
-                    id = BeregningId.fromString("beregning_01JY4KWSP0BYGX3420TWWYYABE"),
+                    id = BeregningId.random(),
                     kjedeId = kjedeId,
                     meldekortId = meldekortId,
                     beregnetMeldekortId = meldekortId,
                     dager = beregningDager,
-                    iverksattTidspunkt = null,
                 ),
             ),
         )

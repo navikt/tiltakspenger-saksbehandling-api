@@ -421,10 +421,8 @@ class MeldekortBehandlingPostgresRepo(
             val saksbehandler = row.stringOrNull("saksbehandler")
 
             val dager = row.string("meldekortdager").tilMeldekortDager(meldeperiode)
-            val beregning = row.stringOrNull("beregninger")?.tilBeregninger(id)?.let {
-                MeldekortBeregning(it)
-            }
-            val simulering = row.stringOrNull("simulering")?.toSimuleringFraDbJson(MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(sakId, session))
+            val simulering = row.stringOrNull("simulering")
+                ?.toSimuleringFraDbJson(MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(sakId, session))
 
             val brukersMeldekort = row.stringOrNull("brukers_meldekort_id")?.let {
                 BrukersMeldekortPostgresRepo.hentForMeldekortId(
@@ -432,6 +430,12 @@ class MeldekortBehandlingPostgresRepo(
                     session,
                 )
             }
+
+            val iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt")
+
+            val beregning = row.stringOrNull("beregninger")
+                ?.tilMeldeperiodeBeregningerFraMeldekort(id)
+                ?.let { MeldekortBeregning(it) }
 
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> {
@@ -474,7 +478,7 @@ class MeldekortBehandlingPostgresRepo(
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
                         beslutter = row.stringOrNull("beslutter"),
                         status = status,
-                        iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
+                        iverksattTidspunkt = iverksattTidspunkt,
                         beregning = beregning!!,
                         simulering = simulering,
                         dager = dager,

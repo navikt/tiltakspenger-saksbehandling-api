@@ -3,28 +3,18 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.Ulid
-import no.nav.tiltakspenger.libs.common.UlidBase
-import no.nav.tiltakspenger.libs.common.uuidToUlid
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import ulid.ULID
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
-data class BeregningId private constructor(private val ulid: UlidBase) : Ulid by ulid {
+@JvmInline
+value class BeregningId(val value: String) {
+    override fun toString() = value
+
     companion object {
-        private const val PREFIX = "beregning"
-        fun random() = BeregningId(ulid = UlidBase("${PREFIX}_${ULID.randomULID()}"))
-
-        fun fromString(stringValue: String): BeregningId {
-            require(stringValue.startsWith(PREFIX)) { "Prefix må starte med $PREFIX. Dette er nok ikke en BeregningId ($stringValue)" }
-            return BeregningId(ulid = UlidBase(stringValue))
-        }
-
-        fun fromString(uuid: UUID) = BeregningId(ulid = UlidBase("${PREFIX}_${uuidToUlid(uuid)}"))
+        fun random(): BeregningId = BeregningId(UUID.randomUUID().toString())
     }
 }
 
@@ -36,7 +26,6 @@ sealed interface MeldeperiodeBeregning {
     val meldekortId: MeldekortId
     val kjedeId: MeldeperiodeKjedeId
     val dager: NonEmptyList<MeldeperiodeBeregningDag>
-    val iverksattTidspunkt: LocalDateTime?
 
     val fraOgMed: LocalDate get() = dager.first().dato
     val tilOgMed: LocalDate get() = dager.last().dato
@@ -67,7 +56,6 @@ data class MeldeperiodeBeregningFraMeldekort(
     override val kjedeId: MeldeperiodeKjedeId,
     override val meldekortId: MeldekortId,
     override val dager: NonEmptyList<MeldeperiodeBeregningDag>,
-    override val iverksattTidspunkt: LocalDateTime?,
     val beregnetMeldekortId: MeldekortId,
 ) : MeldeperiodeBeregning {
 
@@ -76,13 +64,11 @@ data class MeldeperiodeBeregningFraMeldekort(
     }
 }
 
-@Suppress("unused")
 data class MeldeperiodeBeregningFraBehandling(
     override val id: BeregningId,
     override val kjedeId: MeldeperiodeKjedeId,
     override val meldekortId: MeldekortId,
     override val dager: NonEmptyList<MeldeperiodeBeregningDag>,
-    override val iverksattTidspunkt: LocalDateTime?,
     val beregnetBehandlingId: BehandlingId,
 ) : MeldeperiodeBeregning {
 

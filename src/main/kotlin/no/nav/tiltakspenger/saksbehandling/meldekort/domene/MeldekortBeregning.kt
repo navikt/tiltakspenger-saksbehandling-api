@@ -6,8 +6,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import java.time.LocalDate
 
 data class MeldekortBeregning(
-    val beregninger: NonEmptyList<MeldeperiodeBeregning>,
-) : List<MeldeperiodeBeregning> by beregninger {
+    val beregninger: NonEmptyList<MeldeperiodeBeregningFraMeldekort>,
+) : List<MeldeperiodeBeregningFraMeldekort> by beregninger {
     val fraOgMed: LocalDate get() = this.first().fraOgMed
     val tilOgMed: LocalDate get() = this.last().tilOgMed
     val periode = Periode(fraOgMed, tilOgMed)

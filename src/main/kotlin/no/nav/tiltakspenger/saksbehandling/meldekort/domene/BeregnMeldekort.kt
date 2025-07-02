@@ -62,12 +62,11 @@ private data class BeregnMeldekort(
 
                 nonEmptyListOf(
                     MeldeperiodeBeregningFraMeldekort(
-                        id = BeregningId.fromString("beregning_01JY4KWSP0BYGX3420TWWYYABE"),
+                        id = BeregningId.random(),
                         kjedeId = meldeperiodeSomBeregnes.meldeperiode.kjedeId,
                         beregnetMeldekortId = meldekortIdSomBeregnes,
                         meldekortId = meldekortIdSomBeregnes,
                         dager = beregnMeldeperiodeSomBeregnes(),
-                        iverksattTidspunkt = null,
                     ),
                 ).plus(
                     /** Dersom meldekort-behandlingen er en korrigering tilbake i tid, kan utbetalinger for påfølgende meldekort potensielt
@@ -84,12 +83,11 @@ private data class BeregnMeldekort(
                         }
 
                         MeldeperiodeBeregningFraMeldekort(
-                            id = BeregningId.fromString("beregning_01JY4KWSP0BYGX3420TWWYYABE"),
+                            id = BeregningId.random(),
                             kjedeId = kjedeId,
                             beregnetMeldekortId = meldekortIdSomBeregnes,
                             meldekortId = meldekort.id,
                             dager = beregnedeDager,
-                            iverksattTidspunkt = null,
                         )
                     },
                 )

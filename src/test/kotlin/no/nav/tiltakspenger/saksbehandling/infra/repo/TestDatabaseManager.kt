@@ -94,7 +94,6 @@ internal class TestDatabaseManager {
                   meldekort_bruker,
                   meldekortbehandling,
                   meldeperiode,
-                  meldeperiode_beregning,
                   rammevedtak,
                   behandling,
                   sak,

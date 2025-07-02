@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.beregning
 
 import arrow.core.toNonEmptyListOrNull
-import io.kotest.matchers.shouldBe
+import io.kotest.matchers.equals.shouldBeEqual
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.dato.april
@@ -83,20 +83,23 @@ class MeldekortberegningFraBrukersMeldekort {
             ),
         )
 
-        beregn(
-            meldekortIdSomBeregnes = brukersMeldekort.id,
+        val dagerBeregnetFraBruker = beregn(
+            meldekortIdSomBeregnes = meldekortBehandlingId,
             meldeperiodeSomBeregnes = brukersMeldekort.tilMeldekortDager(),
             barnetilleggsPerioder = sakMedÅpenMeldekortbehandling.barnetilleggsperioder,
             tiltakstypePerioder = sakMedÅpenMeldekortbehandling.tiltakstypeperioder,
             meldekortBehandlinger = sakMedÅpenMeldekortbehandling.meldekortBehandlinger,
+        ).map { it.dager }
 
-        ) shouldBe beregn(
-            meldekortIdSomBeregnes = saksbehandlerBehandling.id,
+        val dagerBeregnetFraSaksbehandler = beregn(
+            meldekortIdSomBeregnes = meldekortBehandlingId,
             meldeperiodeSomBeregnes = dager.tilMeldekortDager(meldeperiode),
             barnetilleggsPerioder = sakMedÅpenMeldekortbehandling.barnetilleggsperioder,
             tiltakstypePerioder = sakMedÅpenMeldekortbehandling.tiltakstypeperioder,
             meldekortBehandlinger = sakMedÅpenMeldekortbehandling.meldekortBehandlinger,
-        )
+        ).map { it.dager }
+
+        dagerBeregnetFraBruker shouldBeEqual dagerBeregnetFraSaksbehandler
     }
 
     @Test
