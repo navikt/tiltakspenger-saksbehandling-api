@@ -1,7 +1,8 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
+package no.nav.tiltakspenger.saksbehandling.beregning.infra.repo
 
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
@@ -19,7 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fr
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortstatusDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toTiltakstypeSomGirRett
 import java.time.LocalDate
@@ -137,11 +138,11 @@ private fun List<MeldeperiodeBeregningDag>.toDbJson() = this.map { meldekortdag 
     )
 }
 
-private fun ReduksjonAvYtelsePåGrunnAvFravær.toDb(): ReduksjonAvYtelsePåGrunnAvFraværDb =
+private fun ReduksjonAvYtelsePåGrunnAvFravær.toDb(): MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb =
     when (this) {
-        ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon -> ReduksjonAvYtelsePåGrunnAvFraværDb.IngenReduksjon
-        ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon -> ReduksjonAvYtelsePåGrunnAvFraværDb.DelvisReduksjon
-        ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort -> ReduksjonAvYtelsePåGrunnAvFraværDb.YtelsenFallerBort
+        ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon -> MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb.IngenReduksjon
+        ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon -> MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb.DelvisReduksjon
+        ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort -> MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb.YtelsenFallerBort
     }
 
 fun List<MeldeperiodeBeregning>.tilBeregningerDbJson(): String {
@@ -162,6 +163,17 @@ fun String.tilMeldeperiodeBeregningerFraMeldekort(meldekortId: MeldekortId): Non
             kjedeId = MeldeperiodeKjedeId(it.kjedeId),
             meldekortId = MeldekortId.fromString(it.meldekortId),
             beregningKilde = BeregningKilde.Meldekort(meldekortId),
+            dager = it.dager.map { dag -> dag.tilMeldeperiodeBeregningDag() }.toNonEmptyListOrNull()!!,
+        )
+    }.toNonEmptyListOrNull()!!
+
+fun String.tilMeldeperiodeBeregningerFraBehandling(behandlingId: BehandlingId): NonEmptyList<MeldeperiodeBeregning> =
+    deserializeList<MeldeperiodeBeregningDbJson>(this).map {
+        MeldeperiodeBeregning(
+            id = BeregningId(it.beregningId),
+            kjedeId = MeldeperiodeKjedeId(it.kjedeId),
+            meldekortId = MeldekortId.fromString(it.meldekortId),
+            beregningKilde = BeregningKilde.Behandling(behandlingId),
             dager = it.dager.map { dag -> dag.tilMeldeperiodeBeregningDag() }.toNonEmptyListOrNull()!!,
         )
     }.toNonEmptyListOrNull()!!

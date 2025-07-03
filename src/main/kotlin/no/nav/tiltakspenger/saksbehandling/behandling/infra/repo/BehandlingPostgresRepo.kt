@@ -30,6 +30,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingT
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJson
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeBeregningerFraBehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -349,6 +352,10 @@ class BehandlingPostgresRepo(
                 virkningsperiodeFraOgMed?.let { Periode(virkningsperiodeFraOgMed, virkningsperiodeTilOgMed!!) }
             val søknadId = stringOrNull("soknad_id")?.let { SøknadId.fromString(it) }
 
+            val beregning = stringOrNull("beregning")?.let {
+                BehandlingBeregning(it.tilMeldeperiodeBeregningerFraBehandling(id))
+            }
+
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
                     val automatiskSaksbehandlet = boolean("automatisk_saksbehandlet")
@@ -435,7 +442,7 @@ class BehandlingPostgresRepo(
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avbrutt = avbrutt,
                         resultat = resultat,
-                        beregning = null,
+                        beregning = beregning,
                     )
                 }
             }
@@ -474,7 +481,8 @@ class BehandlingPostgresRepo(
                 resultat,
                 soknad_id,
                 automatisk_saksbehandlet,
-                manuelt_behandles_grunner
+                manuelt_behandles_grunner,
+                beregning
             ) values (
                 :id,
                 :sak_id,
@@ -505,7 +513,8 @@ class BehandlingPostgresRepo(
                 :resultat,
                 :soknad_id,
                 :automatisk_saksbehandlet,
-                to_jsonb(:manuelt_behandles_grunner::jsonb)
+                to_jsonb(:manuelt_behandles_grunner::jsonb),
+                to_jsonb(:beregning::jsonb)
             )
             """.trimIndent()
 
@@ -538,7 +547,8 @@ class BehandlingPostgresRepo(
                 resultat = :resultat,
                 soknad_id = :soknad_id,
                 automatisk_saksbehandlet = :automatisk_saksbehandlet,
-                manuelt_behandles_grunner = to_jsonb(:manuelt_behandles_grunner::jsonb)
+                manuelt_behandles_grunner = to_jsonb(:manuelt_behandles_grunner::jsonb),
+                beregning = to_jsonb(:beregning::jsonb)
             where id = :id and sist_endret = :sist_endret_old
             """.trimIndent()
 
@@ -663,6 +673,7 @@ private fun Behandling.tilDbParams(): Map<String, Any?> {
         "soknad_id" to søknadId,
         "automatisk_saksbehandlet" to automatiskSaksbehandlet,
         "manuelt_behandles_grunner" to manueltBehandlesGrunner?.toDbJson(),
+        "beregning" to this.beregning?.tilBeregningerDbJson(),
         *this.resultat.tilDbParams(),
     )
 }
