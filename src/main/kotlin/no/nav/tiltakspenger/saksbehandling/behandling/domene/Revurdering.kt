@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
-import no.nav.tiltakspenger.saksbehandling.beregning.RevurderingBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
@@ -47,7 +47,7 @@ data class Revurdering(
     override val resultat: RevurderingResultat,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
-    val beregninger: RevurderingBeregning?,
+    val beregning: BehandlingBeregning?,
 ) : Behandling {
 
     override val barnetillegg: Barnetillegg? = when (resultat) {
@@ -114,6 +114,7 @@ data class Revurdering(
 
     fun tilBeslutning(
         kommando: RevurderingInnvilgelseTilBeslutningKommando,
+        beregning: BehandlingBeregning?,
         clock: Clock,
     ): Either<KanIkkeSendeTilBeslutter, Revurdering> {
         return validerSendTilBeslutning(kommando.saksbehandler).mapLeft {
@@ -127,6 +128,7 @@ data class Revurdering(
                 begrunnelseVilkårsvurdering = kommando.begrunnelse,
                 fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
                 virkningsperiode = kommando.innvilgelsesperiode,
+                beregning = beregning,
                 resultat = this.resultat.copy(
                     valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
                         tiltaksdeltakelser = kommando.tiltaksdeltakelser,
@@ -239,7 +241,7 @@ data class Revurdering(
                 sendtTilDatadeling = null,
                 avbrutt = null,
                 begrunnelseVilkårsvurdering = null,
-                beregninger = null,
+                beregning = null,
             )
         }
     }

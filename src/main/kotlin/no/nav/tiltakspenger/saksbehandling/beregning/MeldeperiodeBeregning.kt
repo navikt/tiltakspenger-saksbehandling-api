@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.collections.sumOf
 
 @JvmInline
 value class BeregningId(val value: String) {
@@ -46,3 +47,7 @@ data class MeldeperiodeBeregning(
         }
     }
 }
+
+fun List<MeldeperiodeBeregning>.beregnOrdinærBeløp(): Int = this.sumOf { it.ordinærBeløp }
+fun List<MeldeperiodeBeregning>.beregnBarnetilleggBeløp(): Int = this.sumOf { it.barnetilleggBeløp }
+fun List<MeldeperiodeBeregning>.beregnTotalBeløp(): Int = this.sumOf { it.totalBeløp }

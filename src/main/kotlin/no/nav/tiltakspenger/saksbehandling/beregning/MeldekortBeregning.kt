@@ -5,7 +5,7 @@ import kotlin.collections.first
 
 data class MeldekortBeregning(
     override val beregninger: NonEmptyList<MeldeperiodeBeregning>,
-) : Utbetalingsberegning,
+) : UtbetalingBeregning,
     List<MeldeperiodeBeregning> by beregninger {
 
     val beregningForMeldekortetsPeriode by lazy { beregninger.first() }

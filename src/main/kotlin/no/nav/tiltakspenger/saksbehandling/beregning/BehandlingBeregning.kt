@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.beregning
 
 import arrow.core.NonEmptyList
 
-data class RevurderingBeregning(
+data class BehandlingBeregning(
     override val beregninger: NonEmptyList<MeldeperiodeBeregning>,
-) : Utbetalingsberegning,
+) : UtbetalingBeregning,
     List<MeldeperiodeBeregning> by beregninger {
 
     init {

@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import java.time.LocalDate
 import kotlin.collections.zipWithNext
 
-sealed interface Utbetalingsberegning {
+sealed interface UtbetalingBeregning {
     val beregninger: NonEmptyList<MeldeperiodeBeregning>
 
     val fraOgMed: LocalDate get() = beregninger.first().fraOgMed
@@ -21,17 +21,17 @@ sealed interface Utbetalingsberegning {
     /**
      * Ordinær stønad, ikke med barnetillegg
      */
-    val ordinærBeløp: Int get() = beregninger.sumOf { it.ordinærBeløp }
+    val ordinærBeløp: Int get() = beregninger.beregnOrdinærBeløp()
 
     /**
      * Barnetillegg uten ordinær stønad
      */
-    val barnetilleggBeløp: Int get() = beregninger.sumOf { it.barnetilleggBeløp }
+    val barnetilleggBeløp: Int get() = beregninger.beregnBarnetilleggBeløp()
 
     /**
      * Ordinær stønad + barnetillegg
      */
-    val totalBeløp: Int get() = ordinærBeløp + barnetilleggBeløp
+    val totalBeløp: Int get() = beregninger.beregnTotalBeløp()
 
     fun init() {
         require(beregninger.zipWithNext().all { (a, b) -> a.tilOgMed < b.fraOgMed }) {

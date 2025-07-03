@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
-import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingsberegning
+import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
@@ -31,7 +31,7 @@ data class Utbetalingsvedtak(
     val journalpostId: JournalpostId?,
     val journalføringstidspunkt: LocalDateTime?,
     val status: Utbetalingsstatus?,
-    val beregning: Utbetalingsberegning,
+    val beregning: UtbetalingBeregning,
     val saksbehandler: String,
     val beslutter: String,
     val brukerNavkontor: Navkontor,
