@@ -20,10 +20,10 @@ fun Sak.sendSøknadsbehandlingTilBeslutning(
         return KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(eiesAvSaksbehandler = behandling.saksbehandler)
             .left()
     }
-    if (kommando.resultat == SøknadsbehandlingType.INNVILGELSE &&
-        this.utbetalinger.hentUtbetalingerFraPeriode(kommando.behandlingsperiode)
-            .isNotEmpty()
-    ) {
+
+    kommando.asInnvilgelseOrNull()?.takeIf {
+        this.utbetalinger.hentUtbetalingerFraPeriode(it.behandlingsperiode).isNotEmpty()
+    }?.let {
         return KanIkkeSendeTilBeslutter.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode.left()
     }
 

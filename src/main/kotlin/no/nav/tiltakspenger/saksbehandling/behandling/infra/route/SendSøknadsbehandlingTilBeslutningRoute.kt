@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
@@ -23,10 +25,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårs
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toAvslagsgrunnlag
@@ -96,53 +96,91 @@ internal fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJ
     )
 }
 
-private data class SøknadsbehandlingTilBeslutningBody(
-    val fritekstTilVedtaksbrev: String?,
-    val begrunnelseVilkårsvurdering: String?,
-    val behandlingsperiode: PeriodeDTO,
-    val barnetillegg: BarnetilleggDTO?,
-    val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
-    val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>? = listOf(
-        AntallDagerPerMeldeperiodeDTO(
-            periode = behandlingsperiode,
-            antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-        ),
-    ),
-    val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>?,
-    val resultat: BehandlingResultatDTO,
-) {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "resultat")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = SøknadsbehandlingTilBeslutningBody.InnvilgelseBody::class, name = "INNVILGELSE"),
+    JsonSubTypes.Type(value = SøknadsbehandlingTilBeslutningBody.AvslagBody::class, name = "AVSLAG"),
+)
+sealed interface SøknadsbehandlingTilBeslutningBody {
+    val fritekstTilVedtaksbrev: String?
+    val begrunnelseVilkårsvurdering: String?
+    val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>
+
     fun toDomain(
         sakId: SakId,
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): SendSøknadsbehandlingTilBeslutningKommando {
-        val behandlingsperiode = behandlingsperiode.toDomain()
+    ): SendSøknadsbehandlingTilBeslutningKommando
 
-        return SendSøknadsbehandlingTilBeslutningKommando(
-            sakId = sakId,
-            behandlingId = behandlingId,
-            saksbehandler = saksbehandler,
-            correlationId = correlationId,
-            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
-            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { BegrunnelseVilkårsvurdering(saniter(it)) },
-            behandlingsperiode = behandlingsperiode,
-            barnetillegg = barnetillegg?.tilBarnetillegg(behandlingsperiode),
-            tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
-                Pair(it.periode.toDomain(), it.eksternDeltagelseId)
-            },
-            antallDagerPerMeldeperiode =
-            antallDagerPerMeldeperiodeForPerioder?.map {
-                PeriodeMedVerdi(AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode), it.periode.toDomain())
-            }?.tilSammenhengendePeriodisering(),
-            avslagsgrunner = avslagsgrunner?.toAvslagsgrunnlag(),
-            resultat = when (resultat) {
-                BehandlingResultatDTO.INNVILGELSE -> SøknadsbehandlingType.INNVILGELSE
-                BehandlingResultatDTO.AVSLAG -> SøknadsbehandlingType.AVSLAG
-                BehandlingResultatDTO.STANS,
-                BehandlingResultatDTO.REVURDERING_INNVILGELSE,
-                -> throw IllegalArgumentException("Ugyldig resultat for søknadsbehandling: $resultat")
-            },
-        )
+    data class InnvilgelseBody(
+        override val fritekstTilVedtaksbrev: String?,
+        override val begrunnelseVilkårsvurdering: String?,
+        override val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
+        val behandlingsperiode: PeriodeDTO,
+        val barnetillegg: BarnetilleggDTO?,
+        val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>? = listOf(
+            AntallDagerPerMeldeperiodeDTO(
+                periode = behandlingsperiode,
+                antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
+            ),
+        ),
+    ) : SøknadsbehandlingTilBeslutningBody {
+        override fun toDomain(
+            sakId: SakId,
+            behandlingId: BehandlingId,
+            saksbehandler: Saksbehandler,
+            correlationId: CorrelationId,
+        ): SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse {
+            val behandlingsperiode = behandlingsperiode.toDomain()
+
+            return SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
+                sakId = sakId,
+                behandlingId = behandlingId,
+                saksbehandler = saksbehandler,
+                correlationId = correlationId,
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { BegrunnelseVilkårsvurdering(saniter(it)) },
+                behandlingsperiode = behandlingsperiode,
+                barnetillegg = barnetillegg?.tilBarnetillegg(behandlingsperiode),
+                tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
+                    Pair(it.periode.toDomain(), it.eksternDeltagelseId)
+                },
+                antallDagerPerMeldeperiode =
+                antallDagerPerMeldeperiodeForPerioder?.map {
+                    PeriodeMedVerdi(
+                        AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
+                        it.periode.toDomain(),
+                    )
+                }?.tilSammenhengendePeriodisering(),
+            )
+        }
+    }
+
+    data class AvslagBody(
+        override val fritekstTilVedtaksbrev: String?,
+        override val begrunnelseVilkårsvurdering: String?,
+        override val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
+        val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>,
+    ) : SøknadsbehandlingTilBeslutningBody {
+        override fun toDomain(
+            sakId: SakId,
+            behandlingId: BehandlingId,
+            saksbehandler: Saksbehandler,
+            correlationId: CorrelationId,
+        ): SendSøknadsbehandlingTilBeslutningKommando {
+            return SendSøknadsbehandlingTilBeslutningKommando.Avslag(
+                sakId = sakId,
+                behandlingId = behandlingId,
+                saksbehandler = saksbehandler,
+                correlationId = correlationId,
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { BegrunnelseVilkårsvurdering(saniter(it)) },
+                tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
+                    Pair(it.periode.toDomain(), it.eksternDeltagelseId)
+                },
+                avslagsgrunner = avslagsgrunner.toAvslagsgrunnlag(),
+            )
+        }
     }
 }
