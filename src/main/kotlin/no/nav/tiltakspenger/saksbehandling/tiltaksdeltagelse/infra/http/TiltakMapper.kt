@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.VENTE
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO.VURDERES
 import no.nav.tiltakspenger.libs.tiltak.TiltakTilSaksbehandlingDTO
 import no.nav.tiltakspenger.libs.tiltak.toTiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus.Deltar
@@ -34,8 +35,8 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
 
 internal fun mapTiltak(
     tiltakDTOListe: List<TiltakTilSaksbehandlingDTO>,
-): List<Tiltaksdeltagelse> =
-    tiltakDTOListe
+): Tiltaksdeltagelser {
+    return tiltakDTOListe
         .map { tiltakDto ->
             Tiltaksdeltagelse(
                 eksternDeltagelseId = tiltakDto.id,
@@ -65,7 +66,8 @@ internal fun mapTiltak(
                     )
                 },
             )
-        }
+        }.let { Tiltaksdeltagelser(it) }
+}
 
 fun DeltakerStatusDTO.toDomain(): TiltakDeltakerstatus {
     return when (this) {

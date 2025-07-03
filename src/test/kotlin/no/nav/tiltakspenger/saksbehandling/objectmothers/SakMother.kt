@@ -21,9 +21,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySøknad
@@ -33,7 +33,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.virkningsp
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
@@ -84,7 +83,7 @@ interface SakMother {
                     deltakelseTom = virkningsperiode.tilOgMed,
                 ),
             ),
-        registrerteTiltak: List<Tiltaksdeltagelse> = listOf(søknad.tiltak.toTiltak()),
+        registrerteTiltak: Tiltaksdeltagelser = listOf(søknad.tiltak.toTiltak()),
         saksopplysninger: Saksopplysninger = Saksopplysninger(
             fødselsdato = fødselsdato,
             tiltaksdeltagelse = registrerteTiltak,
@@ -186,7 +185,7 @@ interface SakMother {
                     deltakelseTom = virkningsperiode.tilOgMed,
                 ),
             ),
-        registrerteTiltak: List<Tiltaksdeltagelse> = listOf(søknad.tiltak.toTiltak()),
+        registrerteTiltak: Tiltaksdeltagelser = listOf(søknad.tiltak.toTiltak()),
         saksopplysninger: Saksopplysninger = Saksopplysninger(
             fødselsdato = fødselsdato,
             tiltaksdeltagelse = registrerteTiltak,

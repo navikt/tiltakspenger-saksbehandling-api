@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.felles.min
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 import java.net.URI
@@ -51,7 +52,7 @@ class SokosUtbetaldataHttpClient(
                 ident = fnr.verdi,
                 periode = UtbetalingDto.Periode(
                     fom = periode.fraOgMed,
-                    tom = LocalDate.now(), // utbetaldata godtar ikke datoer frem i tid
+                    tom = min(periode.tilOgMed, LocalDate.now()), // utbetaldata godtar ikke datoer frem i tid
                 ),
             ),
         )
