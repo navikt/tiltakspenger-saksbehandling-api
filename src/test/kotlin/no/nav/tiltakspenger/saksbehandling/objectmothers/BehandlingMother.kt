@@ -298,20 +298,31 @@ interface BehandlingMother : MotherOfAllMothers {
             søknad = søknad,
             hentSaksopplysninger = { saksopplysninger },
         ).tilBeslutning(
-            kommando = SendSøknadsbehandlingTilBeslutningKommando(
-                sakId = sakId,
-                behandlingId = id,
-                saksbehandler = saksbehandler,
-                correlationId = CorrelationId.generate(),
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                behandlingsperiode = virkningsperiode,
-                barnetillegg = barnetillegg,
-                tiltaksdeltakelser = valgteTiltaksdeltakelser,
-                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
-                avslagsgrunner = avslagsgrunner,
-                resultat = resultat,
-            ),
+            when (resultat) {
+                SøknadsbehandlingType.INNVILGELSE -> SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
+                    sakId = sakId,
+                    saksbehandler = saksbehandler,
+                    behandlingId = id,
+                    correlationId = CorrelationId.generate(),
+                    fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                    begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+                    behandlingsperiode = virkningsperiode,
+                    barnetillegg = null,
+                    tiltaksdeltakelser = valgteTiltaksdeltakelser,
+                    antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                )
+
+                SøknadsbehandlingType.AVSLAG -> SendSøknadsbehandlingTilBeslutningKommando.Avslag(
+                    sakId = sakId,
+                    saksbehandler = saksbehandler,
+                    behandlingId = id,
+                    correlationId = CorrelationId.generate(),
+                    fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                    begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+                    tiltaksdeltakelser = valgteTiltaksdeltakelser,
+                    avslagsgrunner = avslagsgrunner!!,
+                )
+            },
             clock = fixedClock,
         ).getOrFail()
     }
@@ -629,26 +640,38 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
         fnr = fnr,
     )
     val behandling = sakMedSøknadsbehandling.behandlinger.singleOrNullOrThrow()!! as Søknadsbehandling
-    this.behandlingContext.sendBehandlingTilBeslutningService.sendSøknadsbehandlingTilBeslutning(
-        SendSøknadsbehandlingTilBeslutningKommando(
-            sakId = sakMedSøknadsbehandling.id,
-            behandlingId = behandling.id,
-            saksbehandler = saksbehandler,
-            correlationId = correlationId,
-            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-            behandlingsperiode = periode,
-            barnetillegg = null,
-            tiltaksdeltakelser = listOf(
-                Pair(
-                    periode,
-                    behandling.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
-                ),
-            ),
-            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
-            avslagsgrunner = avslagsgrunner,
-            resultat = resultat,
+    val tiltaksdeltakelser = listOf(
+        Pair(
+            periode,
+            behandling.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
         ),
+    )
+
+    this.behandlingContext.sendBehandlingTilBeslutningService.sendSøknadsbehandlingTilBeslutning(
+        when (resultat) {
+            SøknadsbehandlingType.INNVILGELSE -> SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
+                sakId = sakMedSøknadsbehandling.id,
+                behandlingId = behandling.id,
+                saksbehandler = saksbehandler,
+                correlationId = correlationId,
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+                behandlingsperiode = periode,
+                barnetillegg = null,
+                tiltaksdeltakelser = tiltaksdeltakelser,
+                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+            )
+            SøknadsbehandlingType.AVSLAG -> SendSøknadsbehandlingTilBeslutningKommando.Avslag(
+                sakId = sakMedSøknadsbehandling.id,
+                behandlingId = behandling.id,
+                saksbehandler = saksbehandler,
+                correlationId = correlationId,
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+                tiltaksdeltakelser = tiltaksdeltakelser,
+                avslagsgrunner = avslagsgrunner!!,
+            )
+        },
     ).getOrFail()
     return this.sakContext.sakService.sjekkTilgangOgHentForSakId(
         sakMedSøknadsbehandling.id,

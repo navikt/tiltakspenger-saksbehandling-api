@@ -102,28 +102,21 @@ data class Søknadsbehandling(
         }
 
         val status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING
-        val virkningsperiode = kommando.behandlingsperiode
 
-        val resultat: SøknadsbehandlingResultat = when (kommando.resultat) {
-            SøknadsbehandlingType.INNVILGELSE -> {
-                require(kommando.avslagsgrunner == null) {
-                    "Avslagsgrunner kan ikke være satt dersom behandlingen har resultatet INNVILGELSE"
-                }
+        val virkningsperiode = when (kommando) {
+            is SendSøknadsbehandlingTilBeslutningKommando.Avslag -> this.søknad.vurderingsperiode()
+            is SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse -> kommando.behandlingsperiode
+        }
 
+        val resultat: SøknadsbehandlingResultat = when (kommando) {
+            is SendSøknadsbehandlingTilBeslutningKommando.Avslag -> {
+                SøknadsbehandlingResultat.Avslag(avslagsgrunner = kommando.avslagsgrunner)
+            }
+            is SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse -> {
                 SøknadsbehandlingResultat.Innvilgelse(
                     valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
                     barnetillegg = kommando.barnetillegg,
                     antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
-                )
-            }
-
-            SøknadsbehandlingType.AVSLAG -> {
-                requireNotNull(kommando.avslagsgrunner) {
-                    "Avslagsgrunner må være satt dersom behandlingen har resultatet AVSLAG"
-                }
-
-                SøknadsbehandlingResultat.Avslag(
-                    avslagsgrunner = kommando.avslagsgrunner,
                 )
             }
         }

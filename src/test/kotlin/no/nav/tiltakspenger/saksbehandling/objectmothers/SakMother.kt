@@ -122,20 +122,31 @@ interface SakMother {
                     behandling
                 } else {
                     behandling.tilBeslutning(
-                        SendSøknadsbehandlingTilBeslutningKommando(
-                            sakId = sakId,
-                            behandlingId = behandling.id,
-                            correlationId = CorrelationId.generate(),
-                            saksbehandler = saksbehandler,
-                            barnetillegg = barnetillegg,
-                            fritekstTilVedtaksbrev = null,
-                            begrunnelseVilkårsvurdering = null,
-                            behandlingsperiode = virkningsperiode,
-                            tiltaksdeltakelser = valgteTiltaksdeltakelser,
-                            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
-                            avslagsgrunner = avslagsgrunner,
-                            resultat = resultat,
-                        ),
+                        when (resultat) {
+                            SøknadsbehandlingType.INNVILGELSE -> SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
+                                sakId = sakId,
+                                behandlingId = behandling.id,
+                                correlationId = CorrelationId.generate(),
+                                saksbehandler = saksbehandler,
+                                barnetillegg = barnetillegg,
+                                fritekstTilVedtaksbrev = null,
+                                begrunnelseVilkårsvurdering = null,
+                                behandlingsperiode = virkningsperiode,
+                                tiltaksdeltakelser = valgteTiltaksdeltakelser,
+                                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                            )
+
+                            SøknadsbehandlingType.AVSLAG -> SendSøknadsbehandlingTilBeslutningKommando.Avslag(
+                                sakId = sakId,
+                                behandlingId = behandling.id,
+                                correlationId = CorrelationId.generate(),
+                                saksbehandler = saksbehandler,
+                                fritekstTilVedtaksbrev = null,
+                                begrunnelseVilkårsvurdering = null,
+                                tiltaksdeltakelser = valgteTiltaksdeltakelser,
+                                avslagsgrunner = avslagsgrunner!!,
+                            )
+                        },
                         clock = clock,
                     ).getOrFail()
                 }
@@ -224,7 +235,7 @@ interface SakMother {
         )
 
         val iverksattBehandling = søknadsbehandling.tilBeslutning(
-            SendSøknadsbehandlingTilBeslutningKommando(
+            SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
                 sakId = sakId,
                 behandlingId = søknadsbehandling.id,
                 correlationId = CorrelationId.generate(),
@@ -236,9 +247,10 @@ interface SakMother {
                 tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltagelse.map {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
-                antallDagerPerMeldeperiode = SammenhengendePeriodisering(AntallDagerForMeldeperiode(10), virkningsperiode),
-                avslagsgrunner = null,
-                resultat = SøknadsbehandlingType.INNVILGELSE,
+                antallDagerPerMeldeperiode = SammenhengendePeriodisering(
+                    AntallDagerForMeldeperiode(10),
+                    virkningsperiode,
+                ),
             ),
             clock = clock,
         ).getOrFail().taBehandling(beslutter)
@@ -272,21 +284,17 @@ interface SakMother {
         )
 
         val iverksattBehandling = søknadsbehandling.tilBeslutning(
-            SendSøknadsbehandlingTilBeslutningKommando(
+            SendSøknadsbehandlingTilBeslutningKommando.Avslag(
                 sakId = sakId,
                 behandlingId = søknadsbehandling.id,
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
-                barnetillegg = null,
                 fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nySakMedAvslagsvedtak"),
                 begrunnelseVilkårsvurdering = null,
-                behandlingsperiode = virkningsperiode,
                 tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltagelse.map {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
                 avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
-                resultat = SøknadsbehandlingType.AVSLAG,
-                antallDagerPerMeldeperiode = SammenhengendePeriodisering(AntallDagerForMeldeperiode(10), virkningsperiode),
             ),
             clock = clock,
         ).getOrFail().taBehandling(beslutter)

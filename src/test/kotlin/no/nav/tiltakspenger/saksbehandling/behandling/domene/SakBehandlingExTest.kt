@@ -24,7 +24,7 @@ class SakBehandlingExTest {
         )
         val sak = ObjectMother.nySak(behandlinger = Behandlinger(søknadsbehandling))
         val virkningsperiode = ObjectMother.virkningsperiode()
-        val kommando = SendSøknadsbehandlingTilBeslutningKommando(
+        val kommando = SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
             sakId = sak.id,
             behandlingId = søknadsbehandling.id,
             saksbehandler = saksbehandler,
@@ -40,8 +40,6 @@ class SakBehandlingExTest {
                 ),
             ),
             antallDagerPerMeldeperiode = SammenhengendePeriodisering(AntallDagerForMeldeperiode(10), virkningsperiode),
-            avslagsgrunner = null,
-            resultat = SøknadsbehandlingType.INNVILGELSE,
         )
 
         søknadsbehandling.status shouldNotBe Behandlingsstatus.KLAR_TIL_BESLUTNING
@@ -87,7 +85,7 @@ class SakBehandlingExTest {
                 ),
             ),
         )
-        val kommando = SendSøknadsbehandlingTilBeslutningKommando(
+        val kommando = SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
             sakId = sak.id,
             behandlingId = søknadsbehandling.id,
             saksbehandler = saksbehandler,
@@ -106,8 +104,6 @@ class SakBehandlingExTest {
                 ),
             ),
             antallDagerPerMeldeperiode = SammenhengendePeriodisering(AntallDagerForMeldeperiode(10), virkningsperiode),
-            avslagsgrunner = null,
-            resultat = SøknadsbehandlingType.INNVILGELSE,
         )
 
         val resultat = sak.sendSøknadsbehandlingTilBeslutning(kommando, clock)

@@ -222,28 +222,42 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
         søknad = søknad,
         sak = sak,
     )
+
+    val tiltaksdeltakelser = listOf(
+        Pair(
+            tiltaksOgVurderingsperiode,
+            søknadsbehandling.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
+        ),
+    )
+
     val oppdatertSøknadsbehandling =
         søknadsbehandling
             .tilBeslutning(
-                SendSøknadsbehandlingTilBeslutningKommando(
-                    sakId = sak.id,
-                    saksbehandler = saksbehandler,
-                    behandlingId = søknadsbehandling.id,
-                    correlationId = correlationId,
-                    fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                    begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                    behandlingsperiode = tiltaksOgVurderingsperiode,
-                    barnetillegg = null,
-                    tiltaksdeltakelser = listOf(
-                        Pair(
-                            tiltaksOgVurderingsperiode,
-                            søknadsbehandling.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
-                        ),
-                    ),
-                    antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
-                    avslagsgrunner = avslagsgrunner,
-                    resultat = resultat,
-                ),
+                when (resultat) {
+                    SøknadsbehandlingType.INNVILGELSE -> SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
+                        sakId = sak.id,
+                        saksbehandler = saksbehandler,
+                        behandlingId = søknadsbehandling.id,
+                        correlationId = correlationId,
+                        fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                        begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+                        behandlingsperiode = tiltaksOgVurderingsperiode,
+                        barnetillegg = null,
+                        tiltaksdeltakelser = tiltaksdeltakelser,
+                        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                    )
+
+                    SøknadsbehandlingType.AVSLAG -> SendSøknadsbehandlingTilBeslutningKommando.Avslag(
+                        sakId = sak.id,
+                        saksbehandler = saksbehandler,
+                        behandlingId = søknadsbehandling.id,
+                        correlationId = correlationId,
+                        fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                        begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+                        tiltaksdeltakelser = tiltaksdeltakelser,
+                        avslagsgrunner = avslagsgrunner!!,
+                    )
+                },
                 clock = clock,
             ).getOrFail()
 

@@ -24,23 +24,11 @@ data class Vedtaksliste(
     val saksnummer = value.distinctBy { it.saksnummer }.map { it.saksnummer }.singleOrNullOrThrow()
 
     /**
-     * Tar med [Vedtakstype.INNVILGELSE] og [Vedtakstype.STANS], men ignorerer [Vedtakstype.AVSLAG]
-     *
      * Vil være [no.nav.tiltakspenger.libs.periodisering.TomPeriodisering] før vi har noen vedtak.
      * [no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering] ved etter første innvilgelse.
      * Og [no.nav.tiltakspenger.libs.periodisering.IkkesammenhengendePeriodisering] dersom vi får en ny innvilgelse som ikke overlapper med den første.
      */
-    val tidslinje: Periodisering<Rammevedtak> by lazy {
-        value.filter {
-            when (it.vedtakstype) {
-                Vedtakstype.INNVILGELSE,
-                Vedtakstype.STANS,
-                -> true
-
-                Vedtakstype.AVSLAG -> false
-            }
-        }.toTidslinje()
-    }
+    val tidslinje: Periodisering<Rammevedtak> by lazy { value.toTidslinje() }
 
     val erInnvilgelseSammenhengende by lazy { innvilgetTidslinje.erSammenhengende }
 

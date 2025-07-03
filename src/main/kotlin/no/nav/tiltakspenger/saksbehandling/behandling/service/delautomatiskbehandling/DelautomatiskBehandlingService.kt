@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD_BEHANDLES_MANUELT_GRUNN
@@ -47,7 +46,7 @@ class DelautomatiskBehandlingService(
     }
 
     private suspend fun sendTilBeslutning(behandling: Søknadsbehandling, correlationId: CorrelationId) {
-        val kommando = SendSøknadsbehandlingTilBeslutningKommando(
+        val kommando = SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
             sakId = behandling.sakId,
             behandlingId = behandling.id,
             saksbehandler = AUTOMATISK_SAKSBEHANDLER,
@@ -58,8 +57,6 @@ class DelautomatiskBehandlingService(
             barnetillegg = utledBarnetillegg(behandling),
             tiltaksdeltakelser = utledTiltaksdeltakelser(behandling),
             antallDagerPerMeldeperiode = utledAntallDagerPerMeldeperiode(behandling),
-            avslagsgrunner = null,
-            resultat = SøknadsbehandlingType.INNVILGELSE,
             automatiskSaksbehandlet = true,
         )
         behandling.tilBeslutning(kommando, clock).mapLeft {

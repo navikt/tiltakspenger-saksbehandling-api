@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.left
-import arrow.core.nonEmptySetOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
@@ -150,29 +149,6 @@ class BehandlingTest {
             val overtaClock = Clock.fixed(Instant.parse("2025-07-01T13:30:00Z"), ZoneOffset.UTC)
 
             behandling.overta(annenSaksbehandler, overtaClock).isRight() shouldBe true
-        }
-    }
-
-    @Nested
-    inner class BehandlingsresultatTest {
-        @Test
-        fun `kaster exception dersom resultat er avslag uten avslagsgrunner`() {
-            assertThrows<IllegalArgumentException> {
-                ObjectMother.nySøknadsbehandlingKlarTilBeslutning(
-                    resultat = SøknadsbehandlingType.AVSLAG,
-                    avslagsgrunner = null,
-                )
-            }
-        }
-
-        @Test
-        fun `kaster exception dersom resultat er innvilgelse med avslagsgrunner`() {
-            assertThrows<IllegalArgumentException> {
-                ObjectMother.nySøknadsbehandlingKlarTilBeslutning(
-                    resultat = SøknadsbehandlingType.INNVILGELSE,
-                    avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
-                )
-            }
         }
     }
 

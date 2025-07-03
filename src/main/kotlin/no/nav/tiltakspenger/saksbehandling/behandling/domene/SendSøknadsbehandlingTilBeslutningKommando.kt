@@ -10,26 +10,49 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 
-// TODO: split innvilgelse og avslag
-data class SendSøknadsbehandlingTilBeslutningKommando(
-    val sakId: SakId,
-    val behandlingId: BehandlingId,
-    val saksbehandler: Saksbehandler,
-    val correlationId: CorrelationId,
-    val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-    val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
-    val behandlingsperiode: Periode,
-    val barnetillegg: Barnetillegg?,
-    val tiltaksdeltakelser: List<Pair<Periode, String>>,
-    val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
-    val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>?,
-    val resultat: SøknadsbehandlingType,
-    val automatiskSaksbehandlet: Boolean = false,
-) {
+sealed interface SendSøknadsbehandlingTilBeslutningKommando {
+    val sakId: SakId
+    val behandlingId: BehandlingId
+    val saksbehandler: Saksbehandler
+    val correlationId: CorrelationId
+    val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
+    val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
+    val tiltaksdeltakelser: List<Pair<Periode, String>>
+    val automatiskSaksbehandlet: Boolean
+
     fun valgteTiltaksdeltakelser(behandling: Behandling): ValgteTiltaksdeltakelser {
         return ValgteTiltaksdeltakelser.periodiser(
             tiltaksdeltakelser = tiltaksdeltakelser,
             behandling = behandling,
         )
     }
+
+    fun asInnvilgelseOrNull(): Innvilgelse? = this as? Innvilgelse
+    fun asAvslagOrNull(): Avslag? = this as? Avslag
+
+    data class Innvilgelse(
+        override val sakId: SakId,
+        override val behandlingId: BehandlingId,
+        override val saksbehandler: Saksbehandler,
+        override val correlationId: CorrelationId,
+        override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+        override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
+        override val automatiskSaksbehandlet: Boolean = false,
+        override val tiltaksdeltakelser: List<Pair<Periode, String>>,
+        val behandlingsperiode: Periode,
+        val barnetillegg: Barnetillegg?,
+        val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
+    ) : SendSøknadsbehandlingTilBeslutningKommando
+
+    data class Avslag(
+        override val sakId: SakId,
+        override val behandlingId: BehandlingId,
+        override val saksbehandler: Saksbehandler,
+        override val correlationId: CorrelationId,
+        override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+        override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
+        override val automatiskSaksbehandlet: Boolean = false,
+        override val tiltaksdeltakelser: List<Pair<Periode, String>>,
+        val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
+    ) : SendSøknadsbehandlingTilBeslutningKommando
 }
