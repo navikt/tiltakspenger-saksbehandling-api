@@ -131,7 +131,7 @@ interface SakMother {
                                 barnetillegg = barnetillegg,
                                 fritekstTilVedtaksbrev = null,
                                 begrunnelseVilkårsvurdering = null,
-                                behandlingsperiode = virkningsperiode,
+                                innvilgelsesperiode = virkningsperiode,
                                 tiltaksdeltakelser = valgteTiltaksdeltakelser,
                                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                             )
@@ -243,7 +243,7 @@ interface SakMother {
                 barnetillegg = null,
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
-                behandlingsperiode = virkningsperiode,
+                innvilgelsesperiode = virkningsperiode,
                 tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltagelse.map {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),

@@ -105,7 +105,7 @@ data class Søknadsbehandling(
 
         val virkningsperiode = when (kommando) {
             is SendSøknadsbehandlingTilBeslutningKommando.Avslag -> this.søknad.vurderingsperiode()
-            is SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse -> kommando.behandlingsperiode
+            is SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse -> kommando.innvilgelsesperiode
         }
 
         val resultat: SøknadsbehandlingResultat = when (kommando) {

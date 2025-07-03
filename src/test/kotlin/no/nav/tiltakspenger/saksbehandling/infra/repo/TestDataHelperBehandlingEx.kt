@@ -241,7 +241,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
                         correlationId = correlationId,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                        behandlingsperiode = tiltaksOgVurderingsperiode,
+                        innvilgelsesperiode = tiltaksOgVurderingsperiode,
                         barnetillegg = null,
                         tiltaksdeltakelser = tiltaksdeltakelser,
                         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,

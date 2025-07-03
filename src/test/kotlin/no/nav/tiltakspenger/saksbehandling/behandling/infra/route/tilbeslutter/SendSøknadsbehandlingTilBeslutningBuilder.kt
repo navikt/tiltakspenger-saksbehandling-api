@@ -115,7 +115,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
             {
                 "fritekstTilVedtaksbrev": "$fritekstTilVedtaksbrev",
                 "begrunnelseVilkårsvurdering": "$begrunnelseVilkårsvurdering",
-                "behandlingsperiode": {
+                "innvilgelsesperiode": {
                     "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
                     "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
                 },
@@ -171,7 +171,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
             {
                 "fritekstTilVedtaksbrev": "$fritekstTilVedtaksbrev",
                 "begrunnelseVilkårsvurdering": "$begrunnelseVilkårsvurdering",
-                "behandlingsperiode": {
+                "innvilgelsesperiode": {
                     "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
                     "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
                 },
@@ -185,8 +185,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                     }
                 ],
                 "antallDagerPerMeldeperiode": 10,
-                "resultat": "INNVILGELSE",
-                "avslagsgrunner": null
+                "resultat": "INNVILGELSE"
             }
                 """.trimIndent(),
             )

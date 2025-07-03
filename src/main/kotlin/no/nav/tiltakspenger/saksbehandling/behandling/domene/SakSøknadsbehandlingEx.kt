@@ -22,7 +22,7 @@ fun Sak.sendSøknadsbehandlingTilBeslutning(
     }
 
     kommando.asInnvilgelseOrNull()?.takeIf {
-        this.utbetalinger.hentUtbetalingerFraPeriode(it.behandlingsperiode).isNotEmpty()
+        this.utbetalinger.hentUtbetalingerFraPeriode(it.innvilgelsesperiode).isNotEmpty()
     }?.let {
         return KanIkkeSendeTilBeslutter.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode.left()
     }

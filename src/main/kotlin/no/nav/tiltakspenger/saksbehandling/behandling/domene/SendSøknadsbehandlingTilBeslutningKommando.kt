@@ -37,9 +37,9 @@ sealed interface SendSøknadsbehandlingTilBeslutningKommando {
         override val correlationId: CorrelationId,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
-        override val automatiskSaksbehandlet: Boolean = false,
         override val tiltaksdeltakelser: List<Pair<Periode, String>>,
-        val behandlingsperiode: Periode,
+        override val automatiskSaksbehandlet: Boolean = false,
+        val innvilgelsesperiode: Periode,
         val barnetillegg: Barnetillegg?,
         val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
     ) : SendSøknadsbehandlingTilBeslutningKommando
@@ -51,8 +51,8 @@ sealed interface SendSøknadsbehandlingTilBeslutningKommando {
         override val correlationId: CorrelationId,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
-        override val automatiskSaksbehandlet: Boolean = false,
         override val tiltaksdeltakelser: List<Pair<Periode, String>>,
+        override val automatiskSaksbehandlet: Boolean = false,
         val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
     ) : SendSøknadsbehandlingTilBeslutningKommando
 }

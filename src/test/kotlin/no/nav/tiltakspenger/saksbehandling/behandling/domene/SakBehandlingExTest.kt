@@ -31,7 +31,7 @@ class SakBehandlingExTest {
             correlationId = CorrelationId("test-correlation-id"),
             fritekstTilVedtaksbrev = null,
             begrunnelseVilkårsvurdering = null,
-            behandlingsperiode = virkningsperiode,
+            innvilgelsesperiode = virkningsperiode,
             barnetillegg = null,
             tiltaksdeltakelser = listOf(
                 Pair(
@@ -92,7 +92,7 @@ class SakBehandlingExTest {
             correlationId = CorrelationId("test-correlation-id"),
             fritekstTilVedtaksbrev = null,
             begrunnelseVilkårsvurdering = null,
-            behandlingsperiode = Periode(
+            innvilgelsesperiode = Periode(
                 fraOgMed = virkningsperiode.fraOgMed,
                 tilOgMed = virkningsperiode.tilOgMed,
             ),

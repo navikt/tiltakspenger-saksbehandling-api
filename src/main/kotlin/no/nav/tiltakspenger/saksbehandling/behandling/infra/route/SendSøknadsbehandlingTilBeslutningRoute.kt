@@ -117,11 +117,11 @@ sealed interface SøknadsbehandlingTilBeslutningBody {
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
         override val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
-        val behandlingsperiode: PeriodeDTO,
+        val innvilgelsesperiode: PeriodeDTO,
         val barnetillegg: BarnetilleggDTO?,
         val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>? = listOf(
             AntallDagerPerMeldeperiodeDTO(
-                periode = behandlingsperiode,
+                periode = innvilgelsesperiode,
                 antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
             ),
         ),
@@ -132,7 +132,7 @@ sealed interface SøknadsbehandlingTilBeslutningBody {
             saksbehandler: Saksbehandler,
             correlationId: CorrelationId,
         ): SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse {
-            val behandlingsperiode = behandlingsperiode.toDomain()
+            val innvilgelsesperiode = this@InnvilgelseBody.innvilgelsesperiode.toDomain()
 
             return SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
                 sakId = sakId,
@@ -141,8 +141,8 @@ sealed interface SøknadsbehandlingTilBeslutningBody {
                 correlationId = correlationId,
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { BegrunnelseVilkårsvurdering(saniter(it)) },
-                behandlingsperiode = behandlingsperiode,
-                barnetillegg = barnetillegg?.tilBarnetillegg(behandlingsperiode),
+                innvilgelsesperiode = innvilgelsesperiode,
+                barnetillegg = barnetillegg?.tilBarnetillegg(innvilgelsesperiode),
                 tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
                     Pair(it.periode.toDomain(), it.eksternDeltagelseId)
                 },

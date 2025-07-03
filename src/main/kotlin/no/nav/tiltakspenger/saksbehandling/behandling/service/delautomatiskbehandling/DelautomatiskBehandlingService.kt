@@ -53,7 +53,7 @@ class DelautomatiskBehandlingService(
             correlationId = correlationId,
             fritekstTilVedtaksbrev = null,
             begrunnelseVilkårsvurdering = null,
-            behandlingsperiode = behandling.søknad.vurderingsperiode(),
+            innvilgelsesperiode = behandling.søknad.vurderingsperiode(),
             barnetillegg = utledBarnetillegg(behandling),
             tiltaksdeltakelser = utledTiltaksdeltakelser(behandling),
             antallDagerPerMeldeperiode = utledAntallDagerPerMeldeperiode(behandling),
