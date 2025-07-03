@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import java.time.LocalDateTime
 
 data class MeldekortBeregningDTO(
@@ -52,9 +52,9 @@ fun MeldeperiodeBeregning.tilMeldeperiodeBeregningDTO(): MeldeperiodeBeregningDT
         kjedeId = this.kjedeId.toString(),
         periode = this.periode.toDTO(),
         beløp = BeløpDTO(
-            totalt = beregnTotaltBeløp(),
-            ordinært = beregnTotalOrdinærBeløp(),
-            barnetillegg = beregnTotalBarnetillegg(),
+            totalt = totalBeløp,
+            ordinært = ordinærBeløp,
+            barnetillegg = barnetilleggBeløp,
         ),
         dager = this.tilMeldeperiodeBeregningDagerDTO(),
     )

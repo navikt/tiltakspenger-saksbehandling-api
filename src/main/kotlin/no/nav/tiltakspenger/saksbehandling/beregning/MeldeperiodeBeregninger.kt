@@ -1,6 +1,7 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.domene
+package no.nav.tiltakspenger.saksbehandling.beregning
 
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 
 data class MeldeperiodeBeregninger(
     val meldekortBehandlinger: MeldekortBehandlinger,

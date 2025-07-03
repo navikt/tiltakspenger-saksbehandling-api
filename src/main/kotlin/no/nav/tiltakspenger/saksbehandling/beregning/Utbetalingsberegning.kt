@@ -1,28 +1,10 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.domene
+package no.nav.tiltakspenger.saksbehandling.beregning
 
 import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import java.time.LocalDate
-import kotlin.collections.first
-import kotlin.collections.last
-
-data class MeldekortBeregning(
-    override val beregninger: NonEmptyList<MeldeperiodeBeregning>,
-) : Utbetalingsberegning,
-    List<MeldeperiodeBeregning> by beregninger {
-
-    val beregningForMeldekortetsPeriode by lazy { beregninger.first() }
-    val beregningerForPåfølgendePerioder by lazy { beregninger.drop(1) }
-
-    val dagerFraMeldekortet by lazy { beregningForMeldekortetsPeriode.dager }
-
-    init {
-        require(beregninger.all { it.beregningKilde is MeldeperiodeBeregning.FraMeldekort })
-
-        super.init()
-    }
-}
+import kotlin.collections.zipWithNext
 
 sealed interface Utbetalingsberegning {
     val beregninger: NonEmptyList<MeldeperiodeBeregning>
@@ -34,17 +16,17 @@ sealed interface Utbetalingsberegning {
 
     val dager: NonEmptyList<MeldeperiodeBeregningDag> get() = beregninger.flatMap { it.dager }
 
-    val beregningKilde: MeldeperiodeBeregning.BeregningKilde get() = beregninger.first().beregningKilde
+    val beregningKilde: BeregningKilde get() = beregninger.first().beregningKilde
 
     /**
      * Ordinær stønad, ikke med barnetillegg
      */
-    val ordinærBeløp: Int get() = beregninger.sumOf { it.beregnTotalOrdinærBeløp() }
+    val ordinærBeløp: Int get() = beregninger.sumOf { it.ordinærBeløp }
 
     /**
      * Barnetillegg uten ordinær stønad
      */
-    val barnetilleggBeløp: Int get() = beregninger.sumOf { it.beregnTotalBarnetillegg() }
+    val barnetilleggBeløp: Int get() = beregninger.sumOf { it.barnetilleggBeløp }
 
     /**
      * Ordinær stønad + barnetillegg

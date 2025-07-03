@@ -4,9 +4,10 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periodisering.norskTidspunktFormatter
 import no.nav.tiltakspenger.libs.periodisering.norskUkedagOgDatoUtenÅrFormatter
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SammenligningAvBeregninger
+import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
+import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 
@@ -79,8 +80,8 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
         saksbehandler = tilSaksbehandlerDto(saksbehandler, hentSaksbehandlersNavn),
         beslutter = tilSaksbehandlerDto(beslutter, hentSaksbehandlersNavn),
         meldekortId = when (beregningKilde) {
-            is MeldeperiodeBeregning.FraBehandling -> TODO()
-            is MeldeperiodeBeregning.FraMeldekort -> beregningKilde.id.toString()
+            is BeregningKilde.Behandling -> TODO()
+            is BeregningKilde.Meldekort -> beregningKilde.id.toString()
         },
         saksnummer = saksnummer.toString(),
         meldekortPeriode = UtbetalingsvedtakDTO.PeriodeDTO(

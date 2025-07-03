@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Satsdag
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Satsdag
 import java.time.LocalDate
 
 data class SatsdagDbJson(

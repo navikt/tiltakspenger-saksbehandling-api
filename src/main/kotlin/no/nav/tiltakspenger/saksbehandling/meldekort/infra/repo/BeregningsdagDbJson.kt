@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Beregningsdag
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregningsdag
 import java.time.LocalDate
 
 data class BeregningsdagDbJson(

@@ -1,19 +1,29 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 
 data class Utbetalinger(
     val verdi: List<Utbetalingsvedtak>,
 ) : List<Utbetalingsvedtak> by verdi {
 
-    fun hentUtbetalingForBehandlingId(id: MeldekortId): Utbetalingsvedtak? {
+    fun hentUtbetalingForMeldekort(id: MeldekortId): Utbetalingsvedtak? {
         return verdi.singleOrNullOrThrow {
             when (it.beregningKilde) {
-                is MeldeperiodeBeregning.FraBehandling -> false
-                is MeldeperiodeBeregning.FraMeldekort -> it.beregningKilde.id == id
+                is BeregningKilde.Behandling -> false
+                is BeregningKilde.Meldekort -> it.beregningKilde.id == id
+            }
+        }
+    }
+
+    fun hentUtbetalingForBehandling(id: BehandlingId): Utbetalingsvedtak? {
+        return verdi.singleOrNullOrThrow {
+            when (it.beregningKilde) {
+                is BeregningKilde.Behandling -> it.beregningKilde.id == id
+                is BeregningKilde.Meldekort -> false
             }
         }
     }

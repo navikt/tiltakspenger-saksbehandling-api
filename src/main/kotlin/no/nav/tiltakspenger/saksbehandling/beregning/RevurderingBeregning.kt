@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.domene
+package no.nav.tiltakspenger.saksbehandling.beregning
 
 import arrow.core.NonEmptyList
 
@@ -8,7 +8,7 @@ data class RevurderingBeregning(
     List<MeldeperiodeBeregning> by beregninger {
 
     init {
-        require(beregninger.all { it.beregningKilde is MeldeperiodeBeregning.FraBehandling })
+        require(beregninger.all { it.beregningKilde is BeregningKilde.Behandling })
 
         super.init()
     }

@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDate
@@ -32,7 +32,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
 
     // TODO: denne bør skrives om litt, bør ikke gå via beregningene her
     val korrigering = meldeperiodeBeregninger.sisteBeregningPerKjede[kjedeId]?.let {
-        if (it.beregningKilde !is MeldeperiodeBeregning.FraMeldekort) {
+        if (it.beregningKilde !is BeregningKilde.Meldekort) {
             return@let null
         }
 
@@ -64,7 +64,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
         meldekortBehandlinger = this.meldekortBehandlinger
             .hentMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)
             .map {
-                it.tilMeldekortBehandlingDTO(this.utbetalinger.hentUtbetalingForBehandlingId(it.id))
+                it.tilMeldekortBehandlingDTO(this.utbetalinger.hentUtbetalingForMeldekort(it.id))
             },
         brukersMeldekort = brukersMeldekort?.toBrukersMeldekortDTO(),
         korrigeringFraTidligerePeriode = korrigering,

@@ -9,13 +9,13 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toForsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
@@ -57,8 +57,8 @@ internal class UtbetalingsvedtakPostgresRepo(
                         "opprettet" to vedtak.opprettet,
                         "forrige_vedtak_id" to vedtak.forrigeUtbetalingsvedtakId?.toString(),
                         when (vedtak.beregningKilde) {
-                            is MeldeperiodeBeregning.FraBehandling -> "behandling_id" to vedtak.beregningKilde.id.toString()
-                            is MeldeperiodeBeregning.FraMeldekort -> "meldekort_id" to vedtak.beregningKilde.id.toString()
+                            is BeregningKilde.Behandling -> "behandling_id" to vedtak.beregningKilde.id.toString()
+                            is BeregningKilde.Meldekort -> "meldekort_id" to vedtak.beregningKilde.id.toString()
                         },
                     ),
                 ).asUpdate,

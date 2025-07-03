@@ -1,7 +1,6 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.domene
+package no.nav.tiltakspenger.saksbehandling.beregning
 
 import arrow.core.NonEmptyList
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -32,6 +31,10 @@ data class MeldeperiodeBeregning(
     val tilOgMed: LocalDate get() = dager.last().dato
     val periode: Periode get() = Periode(fraOgMed, tilOgMed)
 
+    val ordinærBeløp: Int get() = dager.sumOf { it.beregningsdag?.beløp ?: 0 }
+    val barnetilleggBeløp: Int get() = dager.sumOf { it.beregningsdag?.beløpBarnetillegg ?: 0 }
+    val totalBeløp: Int get() = ordinærBeløp + barnetilleggBeløp
+
     init {
         require(dager.size == 14) { "En meldeperiode må være 14 dager, men var ${dager.size}" }
         require(dager.first().dato.dayOfWeek == DayOfWeek.MONDAY) { "Meldeperioden må starte på en mandag" }
@@ -42,20 +45,4 @@ data class MeldeperiodeBeregning(
             }
         }
     }
-
-    fun beregnTotalOrdinærBeløp(): Int = dager.sumOf { it.beregningsdag?.beløp ?: 0 }
-
-    fun beregnTotalBarnetillegg(): Int = dager.sumOf { it.beregningsdag?.beløpBarnetillegg ?: 0 }
-
-    fun beregnTotaltBeløp(): Int = beregnTotalOrdinærBeløp() + beregnTotalBarnetillegg()
-
-    sealed interface BeregningKilde
-
-    /** @param id Id for meldekort-behandlingen som utløste denne beregningen. Denne kan være ulik [meldekortId] for beregninger som er et resultat av en korrigering som påvirket en påfølgende meldeperiode.
-     * */
-    data class FraMeldekort(val id: MeldekortId) : BeregningKilde
-
-    /** @param id Id for behandlingen/revurderingen som utløste denne beregningen.
-     * */
-    data class FraBehandling(val id: BehandlingId) : BeregningKilde
 }

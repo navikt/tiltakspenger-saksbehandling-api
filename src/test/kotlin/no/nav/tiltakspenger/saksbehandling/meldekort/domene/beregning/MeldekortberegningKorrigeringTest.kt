@@ -8,8 +8,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Satsdag
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Satsdag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Satser
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -163,7 +163,7 @@ internal class MeldekortberegningKorrigeringTest {
 
             val sisteKjedeId = meldekortbehandlinger.last().kjedeId
 
-            meldekortbehandlinger.meldeperiodeBeregninger.sisteBeregningPerKjede[sisteKjedeId]!!.beregnTotaltBeløp() shouldBe 0
+            meldekortbehandlinger.meldeperiodeBeregninger.sisteBeregningPerKjede[sisteKjedeId]!!.totalBeløp shouldBe 0
         }
     }
 
