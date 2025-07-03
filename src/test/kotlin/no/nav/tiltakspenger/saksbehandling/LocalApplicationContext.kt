@@ -223,6 +223,8 @@ class LocalApplicationContext(
             clock = clock,
             statistikkSakService = statistikkContext.statistikkSakService,
             sokosUtbetaldataClient = sokosUtbetaldataClient,
+            navkontorService = navkontorService,
+            utbetalingsvedtakRepo = utbetalingContext.utbetalingsvedtakRepo,
         ) {}
     }
     override val utbetalingContext by lazy {

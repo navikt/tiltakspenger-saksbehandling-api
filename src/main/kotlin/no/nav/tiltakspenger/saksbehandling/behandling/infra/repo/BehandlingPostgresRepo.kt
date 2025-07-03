@@ -35,6 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDb
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeBeregningerFraBehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
 import org.intellij.lang.annotations.Language
@@ -356,6 +357,13 @@ class BehandlingPostgresRepo(
                 BehandlingBeregning(it.tilMeldeperiodeBeregningerFraBehandling(id))
             }
 
+            val navkontor = stringOrNull("navkontor")?.let {
+                Navkontor(
+                    kontornummer = it,
+                    kontornavn = stringOrNull("navkontor_navn"),
+                )
+            }
+
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
                     val automatiskSaksbehandlet = boolean("automatisk_saksbehandlet")
@@ -402,6 +410,7 @@ class BehandlingPostgresRepo(
                         resultat = resultat,
                         automatiskSaksbehandlet = automatiskSaksbehandlet,
                         manueltBehandlesGrunner = manueltBehandlesGrunner,
+                        navkontor = navkontor,
                     )
                 }
 
@@ -443,6 +452,7 @@ class BehandlingPostgresRepo(
                         avbrutt = avbrutt,
                         resultat = resultat,
                         beregning = beregning,
+                        navkontor = navkontor,
                     )
                 }
             }
@@ -482,7 +492,9 @@ class BehandlingPostgresRepo(
                 soknad_id,
                 automatisk_saksbehandlet,
                 manuelt_behandles_grunner,
-                beregning
+                beregning,
+                navkontor,
+                navkontor_navn
             ) values (
                 :id,
                 :sak_id,
@@ -514,7 +526,9 @@ class BehandlingPostgresRepo(
                 :soknad_id,
                 :automatisk_saksbehandlet,
                 to_jsonb(:manuelt_behandles_grunner::jsonb),
-                to_jsonb(:beregning::jsonb)
+                to_jsonb(:beregning::jsonb),
+                :navkontor,
+                :navkontor_navn
             )
             """.trimIndent()
 
@@ -548,7 +562,9 @@ class BehandlingPostgresRepo(
                 soknad_id = :soknad_id,
                 automatisk_saksbehandlet = :automatisk_saksbehandlet,
                 manuelt_behandles_grunner = to_jsonb(:manuelt_behandles_grunner::jsonb),
-                beregning = to_jsonb(:beregning::jsonb)
+                beregning = to_jsonb(:beregning::jsonb),
+                navkontor = :navkontor,
+                navkontor_navn = :navkontor_navn                
             where id = :id and sist_endret = :sist_endret_old
             """.trimIndent()
 
@@ -674,6 +690,8 @@ private fun Behandling.tilDbParams(): Map<String, Any?> {
         "automatisk_saksbehandlet" to automatiskSaksbehandlet,
         "manuelt_behandles_grunner" to manueltBehandlesGrunner?.toDbJson(),
         "beregning" to this.beregning?.tilBeregningerDbJson(),
+        "navkontor" to this.navkontor?.kontornummer,
+        "navkontor_navn" to this.navkontor?.kontornavn,
         *this.resultat.tilDbParams(),
     )
 }

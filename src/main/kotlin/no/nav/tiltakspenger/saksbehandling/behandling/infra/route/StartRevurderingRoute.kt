@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKom
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRevurderingType
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.StartRevurderingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId

@@ -246,6 +246,8 @@ class TestApplicationContext(
             clock = clock,
             statistikkSakService = statistikkContext.statistikkSakService,
             sokosUtbetaldataClient = sokosUtbetaldataFakeClient,
+            navkontorService = navkontorService,
+            utbetalingsvedtakRepo = utbetalingContext.utbetalingsvedtakRepo,
         ) {
             override val rammevedtakRepo = rammevedtakFakeRepo
             override val behandlingRepo = behandlingFakeRepo

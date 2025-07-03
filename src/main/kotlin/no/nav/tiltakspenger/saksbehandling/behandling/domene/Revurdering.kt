@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import java.time.Clock
@@ -48,6 +49,7 @@ data class Revurdering(
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     override val beregning: BehandlingBeregning?,
+    override val navkontor: Navkontor?,
 ) : Behandling {
 
     override val barnetillegg: Barnetillegg? = when (resultat) {
@@ -185,6 +187,7 @@ data class Revurdering(
                 resultat = Stans(
                     valgtHjemmel = emptyList(),
                 ),
+                navkontor = null,
             )
         }
 
@@ -195,6 +198,7 @@ data class Revurdering(
             saksbehandler: Saksbehandler,
             saksopplysninger: Saksopplysninger,
             clock: Clock,
+            navkontor: Navkontor,
         ): Revurdering {
             return opprett(
                 sakId = sakId,
@@ -209,6 +213,7 @@ data class Revurdering(
                     // TODO John + Anders: Siden vi ikke har en virkningsperiode på dette tidspunktet, gir det ikke noen mening og sette antallDagerPerMeldeperiode
                     antallDagerPerMeldeperiode = null,
                 ),
+                navkontor = navkontor,
             )
         }
 
@@ -220,6 +225,7 @@ data class Revurdering(
             saksopplysninger: Saksopplysninger,
             opprettet: LocalDateTime,
             resultat: RevurderingResultat,
+            navkontor: Navkontor?,
         ): Revurdering {
             return Revurdering(
                 id = BehandlingId.random(),
@@ -233,6 +239,7 @@ data class Revurdering(
                 sistEndret = opprettet,
                 resultat = resultat,
                 attesteringer = emptyList(),
+                navkontor = navkontor,
                 virkningsperiode = null,
                 sendtTilBeslutning = null,
                 beslutter = null,

@@ -13,6 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkUtbetalingDTO
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import java.lang.IllegalStateException
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -73,6 +75,38 @@ fun MeldekortBehandling.Behandlet.opprettUtbetalingsvedtak(
         rammevedtak = this.rammevedtak!!,
         automatiskBehandlet = this is MeldekortBehandletAutomatisk,
     )
+
+fun Rammevedtak.opprettUtbetalingsvedtak(
+    forrigeUtbetalingsvedtak: Utbetalingsvedtak?,
+    clock: Clock,
+): Utbetalingsvedtak {
+    val beregning = this.beregning ?: throw IllegalStateException(
+        "Rammevedtak $id med behandling ${behandling.id} mangler utbetalingsberegning, kan ikke opprette utbetalingsvedtak",
+    )
+
+    val navkontor = this.behandling.navkontor ?: throw IllegalStateException(
+        "Rammevedtak $id med behandling ${behandling.id} mangler brukers Nav-kontor, kan ikke opprette utbetalingsvedtak",
+    )
+
+    return Utbetalingsvedtak(
+        id = VedtakId.random(),
+        opprettet = nå(clock),
+        sakId = this.sakId,
+        saksnummer = this.saksnummer,
+        fnr = this.fnr,
+        forrigeUtbetalingsvedtakId = forrigeUtbetalingsvedtak?.id,
+        sendtTilUtbetaling = null,
+        journalpostId = null,
+        journalføringstidspunkt = null,
+        status = null,
+        beregning = beregning,
+        saksbehandler = this.saksbehandlerNavIdent,
+        beslutter = this.beslutterNavIdent,
+        brukerNavkontor = navkontor,
+        rammevedtak = listOf(this.id),
+        automatiskBehandlet = false,
+    )
+}
 
 fun Utbetalingsvedtak.tilStatistikk(): StatistikkUtbetalingDTO =
     StatistikkUtbetalingDTO(

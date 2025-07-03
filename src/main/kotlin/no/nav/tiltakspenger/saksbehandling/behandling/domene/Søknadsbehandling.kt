@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
@@ -51,6 +52,7 @@ data class Søknadsbehandling(
     override val resultat: SøknadsbehandlingResultat?,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
+    override val navkontor: Navkontor?,
     val søknad: Søknad,
     val automatiskSaksbehandlet: Boolean,
     val manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
@@ -222,6 +224,7 @@ data class Søknadsbehandling(
                 begrunnelseVilkårsvurdering = null,
                 automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),
+                navkontor = null,
             ).right()
         }
 
@@ -257,6 +260,7 @@ data class Søknadsbehandling(
                 begrunnelseVilkårsvurdering = null,
                 automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),
+                navkontor = null,
             )
         }
     }

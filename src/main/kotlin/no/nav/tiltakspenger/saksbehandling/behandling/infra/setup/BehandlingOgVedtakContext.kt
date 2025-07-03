@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Oppdate
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
@@ -30,13 +31,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.distribuering.Dist
 import no.nav.tiltakspenger.saksbehandling.behandling.service.journalføring.JournalførRammevedtakService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
 import java.time.Clock
@@ -63,6 +65,8 @@ open class BehandlingOgVedtakContext(
     statistikkSakService: StatistikkSakService,
     clock: Clock,
     sokosUtbetaldataClient: SokosUtbetaldataClient,
+    navkontorService: NavkontorService,
+    utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
 ) {
     open val rammevedtakRepo: RammevedtakRepo by lazy { RammevedtakPostgresRepo(sessionFactory as PostgresSessionFactory) }
     open val behandlingRepo: BehandlingRepo by lazy {
@@ -144,6 +148,7 @@ open class BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
             statistikkSakRepo = statistikkSakRepo,
             statistikkStønadRepo = statistikkStønadRepo,
+            utbetalingsvedtakRepo = utbetalingsvedtakRepo,
             sakService = sakService,
             clock = clock,
             statistikkSakService = statistikkSakService,
@@ -165,6 +170,7 @@ open class BehandlingOgVedtakContext(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
             saksopplysningerService = oppdaterSaksopplysningerService,
+            navkontorService = navkontorService,
             clock = clock,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,

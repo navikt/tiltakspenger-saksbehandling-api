@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
@@ -60,6 +61,15 @@ sealed interface Behandling {
     val resultat: BehandlingResultat?
     val virkningsperiode: Periode?
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
+
+    /** navkontor og beregning er påkrevd for å kunne opprette et utbetalingsvedtak
+     *
+     *  TODO abn: burde vi alltid sette navkontor på behandling?
+     *
+     *  Vi burde kanskje uansett endre flyten litt slik at saksbehandler må lagre og se resultatet av behandlingen
+     *  før den sendes til beslutning. Da kan vi hente navkontor kun dersom det vil skje en utbetaling.
+     * */
+    val navkontor: Navkontor?
     val beregning: BehandlingBeregning?
 
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?
