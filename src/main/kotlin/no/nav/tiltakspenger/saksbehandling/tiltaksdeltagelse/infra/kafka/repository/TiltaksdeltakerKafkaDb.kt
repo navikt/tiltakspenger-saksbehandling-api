@@ -44,6 +44,11 @@ data class TiltaksdeltakerKafkaDb(
             return endringer
         }
 
+        if (erIkkeAktuellDeltakelse(sammeStatus)) {
+            endringer.add(TiltaksdeltakerEndring.IKKE_AKTUELL_DELTAKELSE)
+            return endringer
+        }
+
         if (!sammeDeltakelsesprosent || !sammeAntallDagerPerUke) {
             endringer.add(TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE)
         }
@@ -85,6 +90,12 @@ data class TiltaksdeltakerKafkaDb(
             return true
         }
         return false
+    }
+
+    private fun erIkkeAktuellDeltakelse(
+        sammeStatus: Boolean,
+    ): Boolean {
+        return !sammeStatus && deltakerstatus == TiltakDeltakerstatus.IkkeAktuell
     }
 
     private fun deltakelsenErAvsluttetSomForventet(): Boolean {

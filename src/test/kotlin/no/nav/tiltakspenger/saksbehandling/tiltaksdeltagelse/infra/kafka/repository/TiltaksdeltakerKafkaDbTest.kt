@@ -171,6 +171,22 @@ class TiltaksdeltakerKafkaDbTest {
         endringer.first() shouldBe TiltaksdeltakerEndring.FORLENGELSE
         endringer[1] shouldBe TiltaksdeltakerEndring.ENDRET_DELTAKELSESMENGDE
     }
+
+    @Test
+    fun `tiltaksdeltakelseErEndret - blir ikke aktuell - returnerer IKKE_AKTUELL_DELTAKELSE`() {
+        val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(
+            deltagelseFraOgMed = LocalDate.now().plusWeeks(1),
+            deltagelseTilOgMed = LocalDate.now().plusMonths(4),
+            deltakelseStatus = TiltakDeltakerstatus.VenterPåOppstart,
+        )
+        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+            fom = null,
+            tom = null,
+            deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
+        )
+
+        tiltaksdeltakerKafkaDb.tiltaksdeltakelseErEndret(tiltaksdeltakelse) shouldBe listOf(TiltaksdeltakerEndring.IKKE_AKTUELL_DELTAKELSE)
+    }
 }
 
 fun getTiltaksdeltakerKafkaDb(
