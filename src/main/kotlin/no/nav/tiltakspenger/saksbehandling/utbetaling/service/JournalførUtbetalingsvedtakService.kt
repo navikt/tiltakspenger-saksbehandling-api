@@ -31,6 +31,10 @@ class JournalførUtbetalingsvedtakService(
     suspend fun journalfør() {
         Either.catch {
             utbetalingsvedtakRepo.hentDeSomSkalJournalføres().forEach { utbetalingsvedtak ->
+                require(utbetalingsvedtak.beregningKilde is MeldeperiodeBeregning.FraMeldekort) {
+                    "Støtter ikke journalføring av utbetalingsvedtak fra revurdering ennå!"
+                }
+
                 val correlationId = CorrelationId.generate()
                 log.info { "Journalfører utbetalingsvedtak. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
                 Either.catch {
@@ -65,7 +69,7 @@ class JournalførUtbetalingsvedtakService(
                         ).getOrElse { return@forEach }
                     log.info { "Pdf generert for utbetalingsvedtak. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
                     val journalpostId = journalførMeldekortKlient.journalførMeldekortBehandling(
-                        meldekortBehandling = utbetalingsvedtak.meldekortbehandling,
+                        meldekortBehandling = sak.hentMeldekortBehandling(utbetalingsvedtak.beregningKilde.id)!!,
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
                     )

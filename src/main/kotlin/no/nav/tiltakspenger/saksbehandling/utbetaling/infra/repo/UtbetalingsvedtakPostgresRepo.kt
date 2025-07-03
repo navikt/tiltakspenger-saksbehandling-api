@@ -13,7 +13,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toForsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
@@ -54,7 +56,10 @@ internal class UtbetalingsvedtakPostgresRepo(
                         "sak_id" to vedtak.sakId.toString(),
                         "opprettet" to vedtak.opprettet,
                         "forrige_vedtak_id" to vedtak.forrigeUtbetalingsvedtakId?.toString(),
-                        "meldekort_id" to vedtak.meldekortId.toString(),
+                        when (vedtak.beregningKilde) {
+                            is MeldeperiodeBeregning.FraBehandling -> "behandling_id" to vedtak.beregningKilde.id.toString()
+                            is MeldeperiodeBeregning.FraMeldekort -> "meldekort_id" to vedtak.beregningKilde.id.toString()
+                        },
                     ),
                 ).asUpdate,
             )
@@ -271,23 +276,35 @@ internal class UtbetalingsvedtakPostgresRepo(
 
         private fun Row.toVedtak(session: Session): Utbetalingsvedtak {
             val vedtakId = VedtakId.fromString(string("id"))
+            val meldekortId = MeldekortId.fromString(string("meldekort_id"))
+
+            val meldekortbehandling = MeldekortBehandlingPostgresRepo
+                .hentForMeldekortId(
+                    meldekortId,
+                    session,
+                )
+
+            require(meldekortbehandling is MeldekortBehandling.Behandlet) {
+                "Fant ikke et behandlet meldekort med id $meldekortId"
+            }
+
             return Utbetalingsvedtak(
                 id = vedtakId,
                 sakId = SakId.fromString(string("sak_id")),
                 saksnummer = Saksnummer(string("saksnummer")),
                 fnr = Fnr.fromString(string("fnr")),
                 forrigeUtbetalingsvedtakId = stringOrNull("forrige_vedtak_id")?.let { VedtakId.fromString(it) },
-                meldekortbehandling =
-                MeldekortBehandlingPostgresRepo
-                    .hentForMeldekortId(
-                        MeldekortId.fromString(string("meldekort_id")),
-                        session,
-                    ) as MeldekortBehandling.Behandlet,
                 sendtTilUtbetaling = localDateTimeOrNull("sendt_til_utbetaling_tidspunkt"),
                 journalpostId = stringOrNull("journalpost_id")?.let { JournalpostId(it) },
                 journalføringstidspunkt = localDateTimeOrNull("journalføringstidspunkt"),
                 opprettet = localDateTime("opprettet"),
                 status = stringOrNull("status").toUtbetalingsstatus(),
+                beregning = meldekortbehandling.beregning,
+                saksbehandler = meldekortbehandling.saksbehandler!!,
+                beslutter = meldekortbehandling.beslutter!!,
+                brukerNavkontor = meldekortbehandling.navkontor,
+                rammevedtak = meldekortbehandling.rammevedtak!!,
+                automatiskBehandlet = meldekortbehandling is MeldekortBehandletAutomatisk,
             )
         }
     }

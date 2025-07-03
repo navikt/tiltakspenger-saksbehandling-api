@@ -44,12 +44,17 @@ interface UtbetalingsvedtakMother : MotherOfAllMothers {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            meldekortbehandling = meldekortBehandling,
             forrigeUtbetalingsvedtakId = forrigeUtbetalingsvedtakId,
             sendtTilUtbetaling = sendtTilUtbetaling,
             journalpostId = journalpostId,
             journalføringstidspunkt = journalføringstidspunkt,
             status = null,
+            beregning = meldekortBehandling.beregning,
+            saksbehandler = meldekortBehandling.saksbehandler,
+            beslutter = meldekortBehandling.beslutter!!,
+            brukerNavkontor = meldekortBehandling.navkontor,
+            rammevedtak = meldekortBehandling.rammevedtak!!,
+            automatiskBehandlet = false,
         )
     }
 }

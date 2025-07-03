@@ -41,9 +41,9 @@ data class AvbruttMeldekortBehandling(
 
     override val beslutter = null
 
-    override val beløpTotal = beregning?.beregnTotaltBeløp()
-    override val ordinærBeløp = beregning?.beregnTotalOrdinærBeløp()
-    override val barnetilleggBeløp = beregning?.beregnTotalBarnetillegg()
+    override val beløpTotal = beregning?.totalBeløp
+    override val ordinærBeløp = beregning?.ordinærBeløp
+    override val barnetilleggBeløp = beregning?.barnetilleggBeløp
 
     override fun overta(saksbehandler: Saksbehandler): Either<KunneIkkeOvertaMeldekortBehandling, MeldekortBehandling> {
         throw IllegalStateException("Kan ikke overta avbrutt meldekortbehandling")

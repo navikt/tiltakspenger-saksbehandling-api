@@ -38,9 +38,9 @@ data class BeløpDTO(
 fun MeldekortBeregning.tilMeldekortBeregningDTO(): MeldekortBeregningDTO {
     return MeldekortBeregningDTO(
         totalBeløp = BeløpDTO(
-            totalt = beregnTotaltBeløp(),
-            ordinært = beregnTotalOrdinærBeløp(),
-            barnetillegg = beregnTotalBarnetillegg(),
+            totalt = totalBeløp,
+            ordinært = ordinærBeløp,
+            barnetillegg = barnetilleggBeløp,
         ),
         beregningForMeldekortetsPeriode = beregningForMeldekortetsPeriode.tilMeldeperiodeBeregningDTO(),
         beregningerForPåfølgendePerioder = beregningerForPåfølgendePerioder.map { it.tilMeldeperiodeBeregningDTO() },

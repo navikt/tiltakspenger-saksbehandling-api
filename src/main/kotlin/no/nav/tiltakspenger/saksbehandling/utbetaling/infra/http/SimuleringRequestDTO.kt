@@ -31,7 +31,7 @@ fun MeldekortBehandling.toSimuleringRequest(
         behandlingId = this.id.uuidPart(),
         personident = this.fnr.verdi,
         saksbehandlerId = this.saksbehandler!!,
-        utbetalinger = this.toUtbetalinger(
+        utbetalinger = this.beregning!!.tilUtbetalingerDTO(
             brukersNavkontor = brukersNavkontor,
             forrigeUtbetalingJson = forrigeUtbetalingJson,
         ),

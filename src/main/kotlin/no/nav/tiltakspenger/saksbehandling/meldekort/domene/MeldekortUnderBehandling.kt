@@ -60,9 +60,9 @@ data class MeldekortUnderBehandling(
     override val beslutter = null
 
     /** Totalsummen for meldeperioden */
-    override val beløpTotal = beregning?.beregnTotaltBeløp()
-    override val ordinærBeløp = beregning?.beregnTotalOrdinærBeløp()
-    override val barnetilleggBeløp = beregning?.beregnTotalBarnetillegg()
+    override val beløpTotal = beregning?.totalBeløp
+    override val ordinærBeløp = beregning?.ordinærBeløp
+    override val barnetilleggBeløp = beregning?.barnetilleggBeløp
 
     suspend fun oppdater(
         kommando: OppdaterMeldekortKommando,

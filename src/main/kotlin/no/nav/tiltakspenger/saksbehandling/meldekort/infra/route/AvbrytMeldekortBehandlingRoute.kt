@@ -20,8 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeAvbryteMeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.UtbetalingsstatusDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldekortBehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AvbrytMeldekortBehandlingService
 
 private const val AVBRYT_MELDEKORTBEHANDLING_PATH = "/sak/{sakId}/meldekort/{meldekortId}/avbryt"
@@ -68,7 +67,7 @@ fun Route.avbrytMeldekortBehandlingRoute(
 
                                 call.respond(
                                     status = HttpStatusCode.OK,
-                                    it.toMeldekortBehandlingDTO(UtbetalingsstatusDTO.AVBRUTT),
+                                    it.tilMeldekortBehandlingDTO(),
                                 )
                             },
                         )

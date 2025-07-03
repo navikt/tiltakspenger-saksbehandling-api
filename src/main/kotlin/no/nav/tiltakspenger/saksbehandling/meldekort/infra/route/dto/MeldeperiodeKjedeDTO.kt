@@ -64,20 +64,13 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
         meldekortBehandlinger = this.meldekortBehandlinger
             .hentMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)
             .map {
-                // Bruker vedtaket istedenfor behandlingen dersom det finnes ett.
-                this.utbetalinger.hentUtbetalingForBehandlingId(it.id)
-                    ?.toMeldekortBehandlingDTO()
-                    ?: it.toMeldekortBehandlingDTO(UtbetalingsstatusDTO.IKKE_GODKJENT)
+                it.tilMeldekortBehandlingDTO(this.utbetalinger.hentUtbetalingForBehandlingId(it.id))
             },
         brukersMeldekort = brukersMeldekort?.toBrukersMeldekortDTO(),
         korrigeringFraTidligerePeriode = korrigering,
         avbrutteMeldekortBehandlinger = this.meldekortBehandlinger
             .hentAvbrutteMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)
-            .map {
-                it.toMeldekortBehandlingDTO(
-                    UtbetalingsstatusDTO.AVBRUTT,
-                )
-            },
+            .map { it.tilMeldekortBehandlingDTO() },
         sisteBeregning = meldeperiodeBeregninger.sisteBeregningPerKjede[kjedeId]?.tilMeldeperiodeBeregningDTO(),
     )
 }
