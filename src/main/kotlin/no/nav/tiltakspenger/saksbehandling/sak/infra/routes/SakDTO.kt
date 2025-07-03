@@ -24,6 +24,7 @@ data class SakDTO(
     val søknader: List<SøknadDTO>,
     val behandlinger: List<BehandlingDTO>,
     val tidslinje: List<RammevedtakDTO>,
+    val vedtakshistorikk: List<RammevedtakDTO>,
 )
 
 fun Sak.toSakDTO(clock: Clock) = SakDTO(
@@ -44,4 +45,5 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     søknader = soknader.toSøknadDTO(),
     behandlinger = behandlinger.tilBehandlingerDTO(),
     tidslinje = vedtaksliste.tidslinje.verdier.mapNotNull { it?.tilRammevedtakDTO() },
+    vedtakshistorikk = vedtaksliste.vedtakshistorikk.verdier.mapNotNull { it?.tilRammevedtakDTO() },
 )
