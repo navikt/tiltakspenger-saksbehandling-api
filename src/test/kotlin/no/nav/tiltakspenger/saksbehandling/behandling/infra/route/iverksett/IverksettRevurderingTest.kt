@@ -68,7 +68,7 @@ internal class IverksettRevurderingTest {
                 revurderingVirkningsperiode = revurderingInnvilgelsesperiode,
             )
 
-            val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltagelse.first()
+            val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltagelser.single()
 
             val barnetillegg = barnetillegg(
                 begrunnelse = BegrunnelseVilkårsvurdering("barnetillegg begrunnelse"),
@@ -122,7 +122,7 @@ internal class IverksettRevurderingTest {
                 revurderingVirkningsperiode = revurderingInnvilgelsesperiode,
             )
 
-            val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltagelse.first()
+            val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltagelser.single()
 
             val barnetillegg = barnetillegg(
                 begrunnelse = BegrunnelseVilkårsvurdering("barnetillegg begrunnelse"),

@@ -49,30 +49,33 @@ interface TiltakMother {
         typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
         eksternTiltaksgjennomføringsId: String = UUID.randomUUID().toString(),
-        fom: LocalDate = 1.januar(2023),
-        tom: LocalDate = 31.mars(2023),
+        søknadFraOgMed: LocalDate = 1.januar(2023),
+        søknadTilOgMed: LocalDate = 31.mars(2023),
+        registerFraOgMed: LocalDate? = søknadFraOgMed,
+        registerTilOgMed: LocalDate? = søknadTilOgMed,
         status: TiltakDeltakerstatus = Deltar,
         dagerPrUke: Float? = 5F,
         prosent: Float? = 100F,
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
     ): Pair<Tiltaksdeltagelse, Søknadstiltak> {
-        return Tiltaksdeltagelse(
+        val tiltaksdeltagelse = Tiltaksdeltagelse(
             eksternDeltagelseId = eksternTiltaksdeltagelseId,
             gjennomføringId = eksternTiltaksgjennomføringsId,
             typeKode = typeKode,
             typeNavn = typeNavn,
             rettPåTiltakspenger = rettPåTiltakspenger,
-            deltagelseFraOgMed = fom,
-            deltagelseTilOgMed = tom,
+            deltagelseFraOgMed = registerFraOgMed,
+            deltagelseTilOgMed = registerTilOgMed,
             deltakelseStatus = status,
             deltakelseProsent = prosent,
             kilde = kilde,
             antallDagerPerUke = dagerPrUke,
-        ) to søknadstiltak(
+        )
+        return tiltaksdeltagelse to søknadstiltak(
             id = eksternTiltaksdeltagelseId,
-            deltakelseFom = fom,
-            deltakelseTom = tom,
+            deltakelseFom = søknadFraOgMed,
+            deltakelseTom = søknadTilOgMed,
             typeKode = typeKode.name,
             typeNavn = typeNavn,
         )

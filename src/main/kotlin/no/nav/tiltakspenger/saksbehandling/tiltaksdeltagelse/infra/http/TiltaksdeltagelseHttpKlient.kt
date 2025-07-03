@@ -18,8 +18,8 @@ import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.tiltak.TiltakTilSaksbehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.infra.http.httpClientGeneric
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
 
 class TiltaksdeltagelseHttpKlient(
@@ -34,7 +34,7 @@ class TiltaksdeltagelseHttpKlient(
         const val NAV_CALL_ID_HEADER = "Nav-Call-Id"
     }
 
-    override suspend fun hentTiltaksdeltagelser(fnr: Fnr, correlationId: CorrelationId): List<Tiltaksdeltagelse> {
+    override suspend fun hentTiltaksdeltagelser(fnr: Fnr, correlationId: CorrelationId): Tiltaksdeltagelser {
         val token = getToken()
         val httpResponse = httpClient.preparePost("$baseUrl/azure/tiltak") {
             header(NAV_CALL_ID_HEADER, correlationId.value)
@@ -47,7 +47,7 @@ class TiltaksdeltagelseHttpKlient(
             HttpStatusCode.OK -> httpResponse.call.response.body<List<TiltakTilSaksbehandlingDTO>>().let { dto ->
                 val relevanteTiltak = dto.filter { it.harFomOgTomEllerRelevantStatus() }
                     .filter { it.rettPaTiltakspenger() }
-                mapTiltak(relevanteTiltak)
+                Tiltaksdeltagelser(mapTiltak(relevanteTiltak))
             }
 
             else -> {

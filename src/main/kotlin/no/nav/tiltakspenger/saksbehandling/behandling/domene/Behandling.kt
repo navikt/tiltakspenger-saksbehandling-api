@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -80,10 +81,10 @@ sealed interface Behandling {
     val erAvsluttet: Boolean get() = erAvbrutt || erVedtatt
     val maksDagerMedTiltakspengerForPeriode: Int get() = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 
-    val saksopplysningsperiode: Periode get() = saksopplysninger.periode
+    val saksopplysningsperiode: Periode? get() = saksopplysninger.periode
 
     fun inneholderEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
-        saksopplysninger.tiltaksdeltagelse.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
+        saksopplysninger.tiltaksdeltagelser.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
 
     fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? =
         saksopplysninger.getTiltaksdeltagelse(eksternDeltagelseId)
@@ -449,6 +450,10 @@ sealed interface Behandling {
         return antallDagerPerMeldeperiode!!.finnAntallDagerForMeldeperiode(periode)
     }
 
+    /**
+     * Validerer saksbehandler og behandlingens tilstand.
+     * Validerer ikke om saksbehandler har tilgang til personen.
+     */
     fun oppdaterSaksopplysninger(
         saksbehandler: Saksbehandler,
         oppdaterteSaksopplysninger: Saksopplysninger,

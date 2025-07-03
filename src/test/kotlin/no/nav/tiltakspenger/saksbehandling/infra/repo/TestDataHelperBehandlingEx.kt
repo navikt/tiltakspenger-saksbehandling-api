@@ -217,7 +217,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     val tiltaksdeltakelser = listOf(
         Pair(
             tiltaksOgVurderingsperiode,
-            søknadsbehandling.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
+            søknadsbehandling.saksopplysninger.tiltaksdeltagelser.first().eksternDeltagelseId,
         ),
     )
 

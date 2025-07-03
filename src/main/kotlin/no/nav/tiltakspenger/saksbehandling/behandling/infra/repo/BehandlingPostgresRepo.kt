@@ -339,10 +339,16 @@ class BehandlingPostgresRepo(
                 )
             }
 
-            val saksopplysningsperiode = Periode(
-                localDate("saksopplysningsperiode_fra_og_med"),
-                localDate("saksopplysningsperiode_til_og_med"),
-            )
+            val fraOgMed = localDateOrNull("saksopplysningsperiode_fra_og_med")
+            val tilOgMed = localDateOrNull("saksopplysningsperiode_til_og_med")
+            val saksopplysningsperiode = if (fraOgMed != null && tilOgMed != null) {
+                Periode(
+                    fraOgMed,
+                    tilOgMed,
+                )
+            } else {
+                null
+            }
 
             val saksopplysninger = string("saksopplysninger").toSaksopplysninger(saksopplysningsperiode)
 
@@ -683,8 +689,8 @@ private fun Behandling.tilDbParams(): Map<String, Any?> {
         "fritekst_vedtaksbrev" to this.fritekstTilVedtaksbrev?.verdi,
         "begrunnelse_vilkarsvurdering" to this.begrunnelseVilkårsvurdering?.verdi,
         "saksopplysninger" to this.saksopplysninger.toDbJson(),
-        "saksopplysningsperiode_fra_og_med" to this.saksopplysningsperiode.fraOgMed,
-        "saksopplysningsperiode_til_og_med" to this.saksopplysningsperiode.tilOgMed,
+        "saksopplysningsperiode_fra_og_med" to this.saksopplysningsperiode?.fraOgMed,
+        "saksopplysningsperiode_til_og_med" to this.saksopplysningsperiode?.tilOgMed,
         "avbrutt" to this.avbrutt?.toDbJson(),
         "ventestatus" to this.ventestatus.toDbJson(),
         "resultat" to this.resultat?.toDb(),

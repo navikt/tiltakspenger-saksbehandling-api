@@ -16,6 +16,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Clock
 import java.time.LocalDate
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -27,6 +28,7 @@ class SokosUtbetaldataHttpClient(
     val getToken: suspend () -> AccessToken,
     connectTimeout: Duration = 1.seconds,
     private val timeout: Duration = 1.seconds,
+    private val clock: Clock,
 ) : SokosUtbetaldataClient {
     private val log = KotlinLogging.logger {}
 
@@ -46,12 +48,14 @@ class SokosUtbetaldataHttpClient(
         periode: Periode,
         correlationId: CorrelationId,
     ): List<Ytelse> {
+        // Siden domenet lagrer perioden vi har søkt på, må den ha kontroll på dette selv, den kan ikke bli hemmelig mutert av klienten.
+        if (periode.tilOgMed > LocalDate.now(clock)) throw IllegalStateException("Utbetaldata godtar ikke datoer frem i tid.")
         val jsonPayload = serialize(
             HentUtbetalingsinformasjonRequest(
                 ident = fnr.verdi,
                 periode = UtbetalingDto.Periode(
                     fom = periode.fraOgMed,
-                    tom = LocalDate.now(), // utbetaldata godtar ikke datoer frem i tid
+                    tom = periode.tilOgMed,
                 ),
             ),
         )

@@ -28,10 +28,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -76,23 +77,24 @@ interface BehandlingMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         søknad: Søknad = nySøknad(),
-        hentSaksopplysninger: (Periode) -> Saksopplysninger = {
+        hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ ->
             saksopplysninger(
-                fom = it.fraOgMed,
-                tom = it.tilOgMed,
+                fom = søknad.tiltak.deltakelseFom,
+                tom = søknad.tiltak.deltakelseTom,
             )
         },
         clock: Clock = this.clock,
+        sak: Sak = ObjectMother.nySak(sakId = sakId, saksnummer = saksnummer, fnr = fnr, søknader = listOf(søknad)),
+        correlationId: CorrelationId = CorrelationId.generate(),
     ): Søknadsbehandling {
         return runBlocking {
             Søknadsbehandling.opprett(
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
+                sak = sak,
                 søknad = søknad,
                 saksbehandler = saksbehandler,
                 hentSaksopplysninger = hentSaksopplysninger,
                 clock = clock,
+                correlationId = correlationId,
             ).getOrFail()
         }
     }
@@ -103,18 +105,22 @@ interface BehandlingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
         søknad: Søknad = nySøknad(),
-        hentSaksopplysninger: (Periode) -> Saksopplysninger = {
+        hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ ->
             saksopplysninger(
-                fom = it.fraOgMed,
-                tom = it.tilOgMed,
+                fom = søknad.tiltak.deltakelseFom,
+                tom = søknad.tiltak.deltakelseTom,
             )
         },
+        sak: Sak = ObjectMother.nySak(sakId = sakId, saksnummer = saksnummer, fnr = fnr, søknader = listOf(søknad)),
+        correlationId: CorrelationId = CorrelationId.generate(),
     ): Søknadsbehandling {
         return runBlocking {
             Søknadsbehandling.opprettAutomatiskBehandling(
                 søknad = søknad,
                 hentSaksopplysninger = hentSaksopplysninger,
                 clock = clock,
+                sak = sak,
+                correlationId = correlationId,
             )
         }
     }
@@ -125,19 +131,23 @@ interface BehandlingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
         søknad: Søknad = nySøknad(),
-        hentSaksopplysninger: (Periode) -> Saksopplysninger = {
+        hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ ->
             saksopplysninger(
-                fom = it.fraOgMed,
-                tom = it.tilOgMed,
+                fom = søknad.tiltak.deltakelseFom,
+                tom = søknad.tiltak.deltakelseTom,
             )
         },
         manueltBehandlesGrunner: List<ManueltBehandlesGrunn> = listOf(ManueltBehandlesGrunn.SOKNAD_HAR_KVP),
+        sak: Sak = ObjectMother.nySak(sakId = sakId, saksnummer = saksnummer, fnr = fnr, søknader = listOf(søknad)),
+        correlationId: CorrelationId = CorrelationId.generate(),
     ): Søknadsbehandling {
         return runBlocking {
             val behandling = Søknadsbehandling.opprettAutomatiskBehandling(
                 søknad = søknad,
                 hentSaksopplysninger = hentSaksopplysninger,
                 clock = clock,
+                sak = sak,
+                correlationId = correlationId,
             )
             return@runBlocking behandling.tilManuellBehandling(
                 manueltBehandlesGrunner = manueltBehandlesGrunner,
@@ -162,7 +172,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelse.map {
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelser.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
@@ -181,7 +191,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fnr = fnr,
             saksbehandler = saksbehandler,
             søknad = søknad,
-            hentSaksopplysninger = { saksopplysninger },
+            hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger },
             clock = clock,
         ).oppdater(
             when (resultat) {
@@ -229,7 +239,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelse.map {
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelser.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
@@ -283,7 +293,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelse.map {
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelser.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
@@ -333,7 +343,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelse.map {
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelser.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
@@ -388,7 +398,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
         ),
-        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelse.map {
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelser.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
@@ -448,7 +458,7 @@ interface BehandlingMother : MotherOfAllMothers {
             saksnummer = saksnummer,
             fnr = fnr,
             saksbehandler = saksbehandler,
-            hentSaksopplysninger = { saksopplysninger() },
+            hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger() },
             clock = clock,
         ).avbryt(
             avbruttAv = avbruttAv,
@@ -589,7 +599,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
     val tiltaksdeltakelser = listOf(
         Pair(
             periode,
-            behandling.saksopplysninger.tiltaksdeltagelse.first().eksternDeltagelseId,
+            behandling.saksopplysninger.tiltaksdeltagelser.first().eksternDeltagelseId,
         ),
     )
 
@@ -689,15 +699,12 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
         resultat = resultat,
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
     )
-    runBlocking {
-        tac.behandlingContext.iverksettBehandlingService.iverksett(
-            behandlingId = underBeslutning.behandlinger.singleOrNullOrThrow()!!.id,
-            beslutter = beslutter,
-            correlationId = correlationId,
-            sakId = underBeslutning.id,
-        )
-    }
-
+    tac.behandlingContext.iverksettBehandlingService.iverksett(
+        behandlingId = underBeslutning.behandlinger.singleOrNullOrThrow()!!.id,
+        beslutter = beslutter,
+        correlationId = correlationId,
+        sakId = underBeslutning.id,
+    )
     return this.sakContext.sakService.sjekkTilgangOgHentForSakId(
         underBeslutning.id,
         saksbehandler,

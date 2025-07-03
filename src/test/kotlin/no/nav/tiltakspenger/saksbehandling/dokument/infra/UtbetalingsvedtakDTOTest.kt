@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -15,7 +16,7 @@ class UtbetalingsvedtakDTOTest {
 
         utbetalingsvedtak.toJsonRequest(
             hentSaksbehandlersNavn = { "Saksbehandler Navn" },
-            tiltaksdeltagelser = tiltaksdeltagelser,
+            tiltaksdeltagelser = Tiltaksdeltagelser(tiltaksdeltagelser),
             sammenlign = { sammenlign(utbetalingsvedtak.beregning.beregninger.first()) },
         )
     }

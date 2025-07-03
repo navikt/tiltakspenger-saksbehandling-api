@@ -9,9 +9,10 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelseDetErSøktTiltakspengerFor
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
@@ -22,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinge
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
@@ -53,18 +53,19 @@ data class Sak(
 
     val revurderinger = behandlinger.revurderinger
 
-    /** Henter fra siste godkjente meldekort */
-    @Suppress("unused")
-    val sisteNavkontor: Navkontor? by lazy {
-        meldekortBehandlinger.sisteGodkjenteMeldekort?.navkontor
-    }
-
     val barnetilleggsperioder: Periodisering<AntallBarn> by lazy { vedtaksliste.barnetilleggsperioder }
 
     val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy { vedtaksliste.tiltakstypeperioder }
 
-    fun hentSisteInnvilgetBehandling(): Behandling? {
-        return this.vedtaksliste.tidslinje.findLast { it.verdi.behandling.resultat is BehandlingResultat.Innvilgelse }?.verdi?.behandling
+    /** Et førstegangsvedtak defineres som den første søknadsbehandlingen som førte til innvilgelse. */
+    val harFørstegangsvedtak: Boolean by lazy { this.vedtaksliste.harFørstegangsvedtak }
+
+    val tiltaksdeltagelserDetErSøktTiltakspengerFor by lazy {
+        TiltaksdeltagelserDetErSøktTiltakspengerFor(
+            this.soknader.map {
+                TiltaksdeltagelseDetErSøktTiltakspengerFor(it.tiltak, it.tidsstempelHosOss)
+            },
+        )
     }
 
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {

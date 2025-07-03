@@ -9,20 +9,19 @@ import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.oktober
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
 class TiltaksdeltagelseTest {
     @Test
-    fun `overlapperMedPeriode - begge datoene mangler - returnerer true`() {
+    fun `overlapperMedPeriode - begge datoene mangler - returnerer null`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltagelse = getTiltaksdeltagelse(null, null)
 
-        tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe null
+        tiltaksdeltagelse.overlapperMed(getTiltaksdeltagelse(periode)) shouldBe null
+        getTiltaksdeltagelse(periode).overlapperMed(tiltaksdeltagelse) shouldBe null
     }
 
     @Test
@@ -31,6 +30,8 @@ class TiltaksdeltagelseTest {
         val tiltaksdeltagelse = getTiltaksdeltagelse(null, 3.desember(2024))
 
         tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe false
+        tiltaksdeltagelse.overlapperMed(getTiltaksdeltagelse(periode)) shouldBe false
+        getTiltaksdeltagelse(periode).overlapperMed(tiltaksdeltagelse) shouldBe false
     }
 
     @Test
@@ -39,22 +40,28 @@ class TiltaksdeltagelseTest {
         val tiltaksdeltagelse = getTiltaksdeltagelse(null, 3.mai(2025))
 
         tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltagelse.overlapperMed(getTiltaksdeltagelse(periode)) shouldBe true
+        getTiltaksdeltagelse(periode).overlapperMed(tiltaksdeltagelse) shouldBe true
     }
 
     @Test
-    fun `overlapperMedPeriode - fom mangler, tom er etter perioden - returnerer true`() {
+    fun `overlapperMedPeriode - fom mangler, tom er etter perioden - returnerer null`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltagelse = getTiltaksdeltagelse(null, 3.mai(2026))
 
-        tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe null
+        tiltaksdeltagelse.overlapperMed(getTiltaksdeltagelse(periode)) shouldBe null
+        getTiltaksdeltagelse(periode).overlapperMed(tiltaksdeltagelse) shouldBe null
     }
 
     @Test
-    fun `overlapperMedPeriode - tom mangler, fom er før perioden - returnerer true`() {
+    fun `overlapperMedPeriode - tom mangler, fom er før perioden - returnerer null`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltagelse = getTiltaksdeltagelse(3.desember(2024), null)
 
-        tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe null
+        tiltaksdeltagelse.overlapperMed(getTiltaksdeltagelse(periode)) shouldBe null
+        getTiltaksdeltagelse(periode).overlapperMed(tiltaksdeltagelse) shouldBe null
     }
 
     @Test
@@ -63,6 +70,8 @@ class TiltaksdeltagelseTest {
         val tiltaksdeltagelse = getTiltaksdeltagelse(3.mai(2025), null)
 
         tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltagelse.overlapperMed(getTiltaksdeltagelse(periode)) shouldBe true
+        getTiltaksdeltagelse(periode).overlapperMed(tiltaksdeltagelse) shouldBe true
     }
 
     @Test
@@ -71,6 +80,8 @@ class TiltaksdeltagelseTest {
         val tiltaksdeltagelse = getTiltaksdeltagelse(3.mai(2026), null)
 
         tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe false
+        tiltaksdeltagelse.overlapperMed(getTiltaksdeltagelse(periode)) shouldBe false
+        getTiltaksdeltagelse(periode).overlapperMed(tiltaksdeltagelse) shouldBe false
     }
 
     @Test
@@ -79,6 +90,8 @@ class TiltaksdeltagelseTest {
         val tiltaksdeltagelse = getTiltaksdeltagelse(3.februar(2024), 1.juni(2024))
 
         tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe false
+        tiltaksdeltagelse.overlapperMed(getTiltaksdeltagelse(periode)) shouldBe false
+        getTiltaksdeltagelse(periode).overlapperMed(tiltaksdeltagelse) shouldBe false
     }
 
     @Test
@@ -87,6 +100,8 @@ class TiltaksdeltagelseTest {
         val tiltaksdeltagelse = getTiltaksdeltagelse(3.februar(2026), 1.juni(2026))
 
         tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe false
+        tiltaksdeltagelse.overlapperMed(getTiltaksdeltagelse(periode)) shouldBe false
+        getTiltaksdeltagelse(periode).overlapperMed(tiltaksdeltagelse) shouldBe false
     }
 
     @Test
@@ -95,6 +110,8 @@ class TiltaksdeltagelseTest {
         val tiltaksdeltagelse = getTiltaksdeltagelse(3.februar(2025), 1.juni(2025))
 
         tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltagelse.overlapperMed(getTiltaksdeltagelse(periode)) shouldBe true
+        getTiltaksdeltagelse(periode).overlapperMed(tiltaksdeltagelse) shouldBe true
     }
 
     @Test
@@ -103,6 +120,8 @@ class TiltaksdeltagelseTest {
         val tiltaksdeltagelse = getTiltaksdeltagelse(3.februar(2024), 1.juni(2025))
 
         tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltagelse.overlapperMed(getTiltaksdeltagelse(periode)) shouldBe true
+        getTiltaksdeltagelse(periode).overlapperMed(tiltaksdeltagelse) shouldBe true
     }
 
     @Test
@@ -111,6 +130,8 @@ class TiltaksdeltagelseTest {
         val tiltaksdeltagelse = getTiltaksdeltagelse(3.februar(2025), 1.juni(2026))
 
         tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltagelse.overlapperMed(getTiltaksdeltagelse(periode)) shouldBe true
+        getTiltaksdeltagelse(periode).overlapperMed(tiltaksdeltagelse) shouldBe true
     }
 
     @Test
@@ -119,10 +140,16 @@ class TiltaksdeltagelseTest {
         val tiltaksdeltagelse = getTiltaksdeltagelse(3.februar(2024), 1.juni(2026))
 
         tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltagelse.overlapperMed(getTiltaksdeltagelse(periode)) shouldBe true
+        getTiltaksdeltagelse(periode).overlapperMed(tiltaksdeltagelse) shouldBe true
     }
 
-    private fun getTiltaksdeltagelse(fom: LocalDate?, tom: LocalDate?) =
-        Tiltaksdeltagelse(
+    private fun getTiltaksdeltagelse(periode: Periode): Tiltaksdeltagelse {
+        return getTiltaksdeltagelse(periode.fraOgMed, periode.tilOgMed)
+    }
+
+    private fun getTiltaksdeltagelse(fom: LocalDate?, tom: LocalDate?): Tiltaksdeltagelse {
+        return Tiltaksdeltagelse(
             eksternDeltagelseId = UUID.randomUUID().toString(),
             gjennomføringId = UUID.randomUUID().toString(),
             typeNavn = "Avklaring",
@@ -135,4 +162,5 @@ class TiltaksdeltagelseTest {
             antallDagerPerUke = 2.0F,
             kilde = Tiltakskilde.Komet,
         )
+    }
 }

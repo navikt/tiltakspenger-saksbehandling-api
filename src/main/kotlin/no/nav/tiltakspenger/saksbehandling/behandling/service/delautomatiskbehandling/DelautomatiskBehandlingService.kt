@@ -55,7 +55,7 @@ class DelautomatiskBehandlingService(
             correlationId = correlationId,
             fritekstTilVedtaksbrev = null,
             begrunnelseVilkårsvurdering = null,
-            innvilgelsesperiode = behandling.søknad.vurderingsperiode(),
+            innvilgelsesperiode = behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
             barnetillegg = utledBarnetillegg(behandling),
             tiltaksdeltakelser = utledTiltaksdeltakelser(behandling),
             antallDagerPerMeldeperiode = utledAntallDagerPerMeldeperiode(behandling),
@@ -115,10 +115,10 @@ class DelautomatiskBehandlingService(
         if (behandling.søknad.harBarnUtenforEOS()) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_BARN_UTENFOR_EOS)
         }
-        if (behandling.søknad.harBarnSomFyller16FørDato(behandling.søknad.vurderingsperiode().tilOgMed)) {
+        if (behandling.søknad.harBarnSomFyller16FørDato(behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm().tilOgMed)) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_BARN_FYLLER_16_I_SOKNADSPERIODEN)
         }
-        if (behandling.søknad.harBarnSomBleFødtEtterDato(behandling.søknad.vurderingsperiode().fraOgMed)) {
+        if (behandling.søknad.harBarnSomBleFødtEtterDato(behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm().fraOgMed)) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_BARN_FODT_I_SOKNADSPERIODEN)
         }
         if (behandling.søknad.harKvp()) {
@@ -195,12 +195,13 @@ class DelautomatiskBehandlingService(
         behandlinger: List<Behandling>,
     ): Boolean {
         val vedtatteBehandlinger = behandlinger.filter { it.erVedtatt }
-        return vedtatteBehandlinger.any { it.virkningsperiode!!.overlapperMed(behandling.saksopplysningsperiode) }
+        // TODO jah: Denne kan smelle dersom tiltaksdeltagelsen det er søkt på mangler fom eller tom. I så fall legg det til som en [ManueltBehandlesGrunn]
+        return vedtatteBehandlinger.any { it.virkningsperiode!!.overlapperMed(behandling.saksopplysningsperiode!!) }
     }
 
     private fun utledBarnetillegg(behandling: Søknadsbehandling): Barnetillegg? {
         return if (behandling.søknad.barnetillegg.isNotEmpty()) {
-            val periode = behandling.søknad.vurderingsperiode()
+            val periode = behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm()
             val antallBarnFraSøknad = behandling.søknad.barnetillegg.size
             Barnetillegg(
                 periodisering = SammenhengendePeriodisering(
@@ -219,7 +220,7 @@ class DelautomatiskBehandlingService(
     ): List<Pair<Periode, String>> {
         return listOf(
             Pair(
-                behandling.søknad.vurderingsperiode(),
+                behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
                 behandling.søknad.tiltak.id,
             ),
         )
@@ -234,12 +235,12 @@ class DelautomatiskBehandlingService(
         return if (soknadstiltakFraSaksopplysning.antallDagerPerUke != null && soknadstiltakFraSaksopplysning.antallDagerPerUke > 0) {
             SammenhengendePeriodisering(
                 AntallDagerForMeldeperiode((soknadstiltakFraSaksopplysning.antallDagerPerUke * 2).toInt()),
-                behandling.søknad.vurderingsperiode(),
+                behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
             )
         } else {
             SammenhengendePeriodisering(
                 AntallDagerForMeldeperiode(10),
-                behandling.søknad.vurderingsperiode(),
+                behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
             )
         }
     }

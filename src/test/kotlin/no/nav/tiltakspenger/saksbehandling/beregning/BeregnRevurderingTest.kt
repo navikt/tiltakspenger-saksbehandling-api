@@ -73,7 +73,7 @@ class BeregnRevurderingTest {
             begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("lol"),
             fritekstTilVedtaksbrev = null,
             innvilgelsesperiode = virkningsperiodeRevurdering,
-            tiltaksdeltakelser = revurdering.saksopplysninger.tiltaksdeltagelse.map {
+            tiltaksdeltakelser = revurdering.saksopplysninger.tiltaksdeltagelser.map {
                 Pair(virkningsperiodeRevurdering, it.eksternDeltagelseId)
             },
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,

@@ -1,46 +1,47 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDate
 
-private typealias HentSaksopplysninger = suspend (Periode) -> Saksopplysninger
-
+/**
+ * Generell funksjon for å starte revurdering (både innvilgelse og stans)
+ */
 suspend fun Sak.startRevurdering(
     kommando: StartRevurderingKommando,
     clock: Clock,
-    hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger,
+    hentSaksopplysninger: HentSaksopplysninger,
 ): Pair<Sak, Revurdering> {
-    val saksbehandler = kommando.saksbehandler
-    krevSaksbehandlerRolle(saksbehandler)
+    krevSaksbehandlerRolle(kommando.saksbehandler)
+    val revurdering = when (kommando.revurderingType) {
+        RevurderingType.STANS -> startRevurderingStans(
+            saksbehandler = kommando.saksbehandler,
+            hentSaksopplysninger = hentSaksopplysninger,
+            correlationId = kommando.correlationId,
+            clock = clock,
+        )
 
-    val hentSaksopplysninger: HentSaksopplysninger = { periode: Periode ->
-        hentSaksopplysninger(
-            this.fnr,
-            kommando.correlationId,
-            periode,
+        RevurderingType.INNVILGELSE -> startRevurderingInnvilgelse(
+            saksbehandler = kommando.saksbehandler,
+            hentSaksopplysninger = hentSaksopplysninger,
+            correlationId = kommando.correlationId,
+            clock = clock,
         )
     }
-
-    val revurdering = when (kommando.revurderingType) {
-        RevurderingType.STANS -> startStans(saksbehandler, hentSaksopplysninger, clock)
-        RevurderingType.INNVILGELSE -> startInnvilgelse(saksbehandler, hentSaksopplysninger, clock)
-    }
-
     return Pair(
         copy(behandlinger = behandlinger.leggTilRevurdering(revurdering)),
         revurdering,
     )
 }
 
-private suspend fun Sak.startStans(
+private suspend fun Sak.startRevurderingStans(
     saksbehandler: Saksbehandler,
     hentSaksopplysninger: HentSaksopplysninger,
+    correlationId: CorrelationId,
     clock: Clock,
 ): Revurdering {
     // TODO abn: hva (om noe) må vi fikse for å kunne fjerne denne restriksjonen?
@@ -48,37 +49,47 @@ private suspend fun Sak.startStans(
     require(this.vedtaksliste.erInnvilgelseSammenhengende) {
         "Kan ikke opprette stans-revurdering dersom vi har hull i vedtaksperiodene. sakId=${this.id}"
     }
-
-    // TODO jah: Denne må endres sammen med sjekken over.
-    val saksopplysningsperiode = this.vedtaksliste.innvilgetTidslinje.totalPeriode
-
     return Revurdering.opprettStans(
         sakId = this.id,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
         saksbehandler = saksbehandler,
-        saksopplysninger = hentSaksopplysninger(saksopplysningsperiode),
+        saksopplysninger = hentSaksopplysninger(
+            fnr,
+            correlationId,
+            this.tiltaksdeltagelserDetErSøktTiltakspengerFor,
+            // TODO jah: På sikt er det mer presist at saksbehandler velger denne når hen starter en stans.
+            //  Vi kan begrense denne litt mer ved å fjerne de tiltaksdeltagelsene det ikke er innvilget for, men vi kan utsette det til etter satsingsperioden.
+            this.tiltaksdeltagelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }.distinct(),
+            false,
+        ),
         clock = clock,
     )
 }
 
-private suspend fun Sak.startInnvilgelse(
+private suspend fun Sak.startRevurderingInnvilgelse(
     saksbehandler: Saksbehandler,
     hentSaksopplysninger: HentSaksopplysninger,
+    correlationId: CorrelationId,
     clock: Clock,
 ): Revurdering {
-    val sisteBehandling = hentSisteInnvilgetBehandling()
-
-    requireNotNull(sisteBehandling) {
-        "Må ha en tidligere vedtatt innvilgelse for å kunne revurdere innvilgelse"
+    require(harFørstegangsvedtak) {
+        "Må ha en tidligere vedtatt innvilgelse for å kunne revurdere"
     }
-
     return Revurdering.opprettInnvilgelse(
         sakId = this.id,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
         saksbehandler = saksbehandler,
-        saksopplysninger = hentSaksopplysninger(sisteBehandling.saksopplysningsperiode),
+        saksopplysninger = hentSaksopplysninger(
+            fnr,
+            correlationId,
+            this.tiltaksdeltagelserDetErSøktTiltakspengerFor,
+            // TODO jah: På sikt er det mer presist at saksbehandler velger disse når hen starter en revurdering innvilgelse.
+            //  Det er vanskelig å begrense denne så lenge vi ikke vet på forhånd om dette er en revurdering av tidligere innvilget perioder, forlengelse eller en kombinasjon.
+            this.tiltaksdeltagelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.id }.distinct(),
+            false,
+        ),
         clock = clock,
     )
 }

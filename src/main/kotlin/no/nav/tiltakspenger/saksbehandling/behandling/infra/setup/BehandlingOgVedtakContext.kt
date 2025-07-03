@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRep
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBehandlingService
@@ -90,7 +91,7 @@ open class BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
             behandlingRepo = behandlingRepo,
             statistikkSakRepo = statistikkSakRepo,
-            oppdaterSaksopplysningerService = oppdaterSaksopplysningerService,
+            hentSaksopplysingerService = hentSaksopplysingerService,
             clock = clock,
             statistikkSakService = statistikkSakService,
         )
@@ -112,16 +113,22 @@ open class BehandlingOgVedtakContext(
             statistikkSakService = statistikkSakService,
             clock = clock,
             behandlingRepo = behandlingRepo,
-            oppdaterSaksopplysningerService = oppdaterSaksopplysningerService,
+            hentSaksopplysingerService = hentSaksopplysingerService,
+        )
+    }
+    val hentSaksopplysingerService: HentSaksopplysingerService by lazy {
+        HentSaksopplysingerService(
+            hentPersonopplysninger = personService::hentPersonopplysninger,
+            tiltaksdeltagelseKlient = tiltaksdeltagelseKlient,
+            sokosUtbetaldataClient = sokosUtbetaldataClient,
+            clock = clock,
         )
     }
     val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService by lazy {
         OppdaterSaksopplysningerService(
             sakService = sakService,
-            personService = personService,
-            tiltaksdeltagelseKlient = tiltaksdeltagelseKlient,
             behandlingRepo = behandlingRepo,
-            sokosUtbetaldataClient = sokosUtbetaldataClient,
+            hentSaksopplysingerService = hentSaksopplysingerService,
         )
     }
     val iverksettBehandlingService by lazy {
@@ -154,7 +161,7 @@ open class BehandlingOgVedtakContext(
         StartRevurderingService(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
-            saksopplysningerService = oppdaterSaksopplysningerService,
+            hentSaksopplysingerService = hentSaksopplysingerService,
             clock = clock,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
