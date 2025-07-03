@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periodisering.norskTidspunktFormatter
 import no.nav.tiltakspenger.libs.periodisering.norskUkedagOgDatoUtenÅrFormatter
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
@@ -72,7 +73,7 @@ private data class UtbetalingsvedtakDTO(
 // TODO: må tilpasses utbetalingsvedtak fra revurdering
 suspend fun Utbetalingsvedtak.toJsonRequest(
     hentSaksbehandlersNavn: suspend (String) -> String,
-    tiltaksdeltagelser: List<Tiltaksdeltagelse>,
+    tiltaksdeltagelser: Tiltaksdeltagelser,
     sammenlign: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
 ): String {
     require(beregningKilde is BeregningKilde.Meldekort) {

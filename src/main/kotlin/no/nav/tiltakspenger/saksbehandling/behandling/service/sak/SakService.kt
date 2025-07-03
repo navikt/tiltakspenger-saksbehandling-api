@@ -128,6 +128,13 @@ class SakService(
         return sak
     }
 
+    /** Skal kun brukes av systembruker. */
+    fun hentSakForIdAvSystembruker(
+        sakId: SakId,
+    ): Sak {
+        return sakRepo.hentForSakId(sakId) ?: throw IkkeFunnetException("Fant ikke sak med sakId $sakId")
+    }
+
     suspend fun hentForSakId(
         sakId: SakId,
         saksbehandler: Saksbehandler,

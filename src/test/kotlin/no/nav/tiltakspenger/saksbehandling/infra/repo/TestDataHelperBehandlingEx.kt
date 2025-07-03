@@ -27,11 +27,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
@@ -571,7 +571,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
         ),
-    hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
+    hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ -> ObjectMother.saksopplysninger() },
     clock: Clock = this.clock,
     revurderingType: RevurderingType = RevurderingType.STANS,
 ): Pair<Sak, Behandling> {

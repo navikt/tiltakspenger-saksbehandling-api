@@ -53,14 +53,14 @@ class DelautomatiskBehandlingServiceTest {
                 oppdatertBehandling.automatiskSaksbehandlet shouldBe true
                 oppdatertBehandling.manueltBehandlesGrunner shouldBe emptyList()
 
-                oppdatertBehandling.antallDagerPerMeldeperiode shouldBe Periodisering(AntallDagerForMeldeperiode(10), soknad.vurderingsperiode())
+                oppdatertBehandling.antallDagerPerMeldeperiode shouldBe Periodisering(AntallDagerForMeldeperiode(10), soknad.tiltaksdeltagelseperiodeDetErSøktOm())
                 oppdatertBehandling.resultat!!.instanceOf(BehandlingResultat.Innvilgelse::class) shouldBe true
-                oppdatertBehandling.virkningsperiode shouldBe soknad.vurderingsperiode()
+                oppdatertBehandling.virkningsperiode shouldBe soknad.tiltaksdeltagelseperiodeDetErSøktOm()
                 oppdatertBehandling.barnetillegg shouldBe null
                 oppdatertBehandling.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser(
                     SammenhengendePeriodisering(
                         tiltaksdeltakelse,
-                        soknad.vurderingsperiode(),
+                        soknad.tiltaksdeltagelseperiodeDetErSøktOm(),
                     ),
                 )
             }

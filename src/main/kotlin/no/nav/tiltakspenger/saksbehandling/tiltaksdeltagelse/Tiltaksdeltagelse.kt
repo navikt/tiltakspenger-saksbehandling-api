@@ -34,20 +34,40 @@ data class Tiltaksdeltagelse(
             null
         }
 
-    fun overlapperMedPeriode(periode: Periode): Boolean {
+    /**
+     * @return true hvis vi med sikkerhet kan si de overlapper, false dersom vi med sikkerhet vet at de ikke overlapper og null dersom de kan overlappe.
+     */
+    fun overlapperMedPeriode(periode: Periode): Boolean? {
         // Hvis begge datoene mangler kan vi ikke si noe om overlapp og må dermed anta at de kan overlappe
         if (deltagelseFraOgMed == null && deltagelseTilOgMed == null) {
-            return true
+            return null
         }
 
+        if (this.periode != null) return this.periode!!.overlapperMed(periode)
+
         if (deltagelseFraOgMed == null && deltagelseTilOgMed != null) {
-            return periode.inneholder(deltagelseTilOgMed) || periode.tilOgMed.isBefore(deltagelseTilOgMed)
+            if (periode.inneholder(deltagelseTilOgMed)) return true
+            if (deltagelseTilOgMed.isBefore(periode.fraOgMed)) return false
         }
 
         if (deltagelseFraOgMed != null && deltagelseTilOgMed == null) {
-            return periode.inneholder(deltagelseFraOgMed) || deltagelseFraOgMed.isBefore(periode.fraOgMed)
+            if (periode.inneholder(deltagelseFraOgMed)) return true
+            if (deltagelseFraOgMed.isAfter(periode.tilOgMed)) return false
         }
 
-        return Periode(deltagelseFraOgMed!!, deltagelseTilOgMed!!).overlapperMed(periode)
+        return null
+    }
+
+    fun overlapper(other: Tiltaksdeltagelse): Boolean? {
+        return when {
+            this.periode != null && other.periode != null -> this.overlapper(other)
+            this.periode != null && other.periode == null -> other.overlapperMedPeriode(this.periode!!)
+            this.periode == null && other.periode != null -> this.overlapperMedPeriode(other.periode!!)
+            this.deltagelseFraOgMed != null && other.deltagelseFraOgMed != null -> if (this.deltagelseFraOgMed == other.deltagelseFraOgMed) true else null
+            this.deltagelseTilOgMed != null && other.deltagelseTilOgMed != null -> if (this.deltagelseTilOgMed == other.deltagelseTilOgMed) true else null
+            this.deltagelseFraOgMed != null && other.deltagelseTilOgMed != null -> if (this.deltagelseFraOgMed == other.deltagelseTilOgMed) true else null
+            this.deltagelseTilOgMed != null && other.deltagelseFraOgMed != null -> if (this.deltagelseTilOgMed == other.deltagelseFraOgMed) true else null
+            else -> null
+        }
     }
 }

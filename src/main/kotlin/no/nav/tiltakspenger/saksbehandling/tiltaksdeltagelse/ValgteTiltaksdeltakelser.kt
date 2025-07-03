@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 
 /**
  * Saksbehandler skal kunne velge hvilke tiltaksdeltakelser man velger å innvilge tiltakspenger for i gitte perioder,
@@ -38,7 +39,10 @@ data class ValgteTiltaksdeltakelser(
         }
     }
 
-    fun getTiltaksdeltakelser(): List<Tiltaksdeltagelse> {
-        return this.periodisering.perioderMedVerdi.toList().map { it.verdi }.distinctBy { it.eksternDeltagelseId }
+    fun getTiltaksdeltakelser(): Tiltaksdeltagelser {
+        return this.periodisering.perioderMedVerdi.toList()
+            .map { it.verdi }
+            .distinctBy { it.eksternDeltagelseId }
+            .let { Tiltaksdeltagelser(it) }
     }
 }

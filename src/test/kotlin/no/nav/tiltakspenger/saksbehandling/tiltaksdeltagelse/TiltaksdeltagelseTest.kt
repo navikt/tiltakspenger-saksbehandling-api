@@ -18,11 +18,11 @@ import java.util.UUID
 
 class TiltaksdeltagelseTest {
     @Test
-    fun `overlapperMedPeriode - begge datoene mangler - returnerer true`() {
+    fun `overlapperMedPeriode - begge datoene mangler - returnerer null`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltagelse = getTiltaksdeltagelse(null, null)
 
-        tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe null
     }
 
     @Test
@@ -46,7 +46,7 @@ class TiltaksdeltagelseTest {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltagelse = getTiltaksdeltagelse(null, 3.mai(2026))
 
-        tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe null
     }
 
     @Test
@@ -54,7 +54,7 @@ class TiltaksdeltagelseTest {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltagelse = getTiltaksdeltagelse(3.desember(2024), null)
 
-        tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltagelse.overlapperMedPeriode(periode) shouldBe null
     }
 
     @Test

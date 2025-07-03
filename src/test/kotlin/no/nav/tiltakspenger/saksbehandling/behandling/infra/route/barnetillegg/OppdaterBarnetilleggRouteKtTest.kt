@@ -22,8 +22,8 @@ class OppdaterBarnetilleggRouteKtTest {
                 val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
                 //language=json
-                val innvilgelsesperiode =
-                    """{"fraOgMed": "${behandling.søknad.vurderingsperiode().fraOgMed}", "tilOgMed": "${behandling.søknad.vurderingsperiode().tilOgMed}"}"""
+                val tiltaksdeltagelseperiodeDetErSøktOm =
+                    """{"fraOgMed": "${behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm().fraOgMed}", "tilOgMed": "${behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm().tilOgMed}"}"""
 
                 // vi har en sjekk på funksjonen for at barnetillegg er satt i json
                 oppdaterBarnetillegg(
@@ -33,15 +33,15 @@ class OppdaterBarnetilleggRouteKtTest {
                     //language=json
                     valgteTiltaksdeltakelser = """
                     [
-                      {"eksternDeltagelseId": "${behandling.søknad.tiltak.id}","periode": $innvilgelsesperiode}
+                      {"eksternDeltagelseId": "${behandling.søknad.tiltak.id}","periode": $tiltaksdeltagelseperiodeDetErSøktOm}
                     ]
                     """.trimIndent(),
-                    innvilgelsesperiode = innvilgelsesperiode,
+                    innvilgelsesperiode = tiltaksdeltagelseperiodeDetErSøktOm,
                     //language=json
                     barnetilleggDTO = """
                       {
                         "perioder": [
-                          {"antallBarn": 1,"periode": $innvilgelsesperiode}
+                          {"antallBarn": 1,"periode": $tiltaksdeltagelseperiodeDetErSøktOm}
                          ],
                        "begrunnelse": "Dette er min begrunnelse for barnetillegg"
                      }

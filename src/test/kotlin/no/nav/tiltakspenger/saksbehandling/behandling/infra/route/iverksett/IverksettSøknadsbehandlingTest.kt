@@ -71,7 +71,7 @@ class IverksettSøknadsbehandlingTest {
                 sak.id,
                 behandlingId,
                 saksbehandler,
-                innvilgelsesperiode = søknad.vurderingsperiode(),
+                innvilgelsesperiode = søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
                 eksternDeltagelseId = søknad.tiltak.id,
             )
             taBehanding(tac, sak.id, behandlingId, beslutter)

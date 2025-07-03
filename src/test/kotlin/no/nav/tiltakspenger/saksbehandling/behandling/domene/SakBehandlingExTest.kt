@@ -20,7 +20,7 @@ class SakBehandlingExTest {
         val saksopplysninger = ObjectMother.saksopplysninger()
         val søknadsbehandling = ObjectMother.nyOpprettetSøknadsbehandling(
             saksbehandler = saksbehandler,
-            hentSaksopplysninger = { saksopplysninger },
+            hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger },
         )
         val sak = ObjectMother.nySak(behandlinger = Behandlinger(søknadsbehandling))
         val virkningsperiode = ObjectMother.virkningsperiode()
@@ -64,7 +64,7 @@ class SakBehandlingExTest {
         val søknadsbehandling = ObjectMother.nyOpprettetSøknadsbehandling(
             fnr = fnr,
             sakId = sakId,
-            hentSaksopplysninger = { saksopplysninger },
+            hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger },
         )
 
         val overlappendeAvslåttSøknad =

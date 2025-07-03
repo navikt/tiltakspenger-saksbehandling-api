@@ -110,6 +110,7 @@ open class ApplicationContext(
         SokosUtbetaldataHttpClient(
             baseUrl = Configuration.sokosUtbetaldataUrl,
             getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.sokosUtbetaldataScope) },
+            clock = clock,
         )
     }
 

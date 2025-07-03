@@ -8,9 +8,10 @@ data class Ytelse(
     val ytelsetype: Ytelsetype,
     val perioder: List<Periode>,
 ) {
-    fun toDTO() =
-        YtelseDTO(
+    fun toDTO(): YtelseDTO {
+        return YtelseDTO(
             ytelsetype = ytelsetype.tekstverdi,
             perioder = perioder.map { it.toDTO() },
         )
+    }
 }
