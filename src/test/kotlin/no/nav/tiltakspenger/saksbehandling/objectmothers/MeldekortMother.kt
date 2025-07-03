@@ -48,8 +48,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningFraMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
@@ -179,6 +179,7 @@ interface MeldekortMother : MotherOfAllMothers {
         )
     }
 
+    @Suppress("unused")
     fun meldekortBehandletAutomatisk(
         id: MeldekortId = MeldekortId.random(),
         sakId: SakId = SakId.random(),
@@ -256,11 +257,11 @@ interface MeldekortMother : MotherOfAllMothers {
     ): MeldekortBeregning {
         return MeldekortBeregning(
             nonEmptyListOf(
-                MeldeperiodeBeregningFraMeldekort(
+                MeldeperiodeBeregning(
                     id = BeregningId.random(),
                     kjedeId = kjedeId,
                     meldekortId = meldekortId,
-                    beregnetMeldekortId = meldekortId,
+                    beregningKilde = MeldeperiodeBeregning.FraMeldekort(meldekortId),
                     dager = beregningDager,
                 ),
             ),
@@ -822,12 +823,16 @@ fun saksbehandlerFyllerUtMeldeperiodeDager(meldeperiode: Meldeperiode): Dager {
                 dagerFraPeriode.take(5)
                     .map { Dager.Dag(it, OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET) },
             )
-            addAll(dagerFraPeriode.subList(5, 7).map { Dager.Dag(it, OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG) })
+            addAll(
+                dagerFraPeriode.subList(5, 7).map { Dager.Dag(it, OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG) },
+            )
             addAll(
                 dagerFraPeriode.subList(7, 12)
                     .map { Dager.Dag(it, OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET) },
             )
-            addAll(dagerFraPeriode.subList(12, 14).map { Dager.Dag(it, OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG) })
+            addAll(
+                dagerFraPeriode.subList(12, 14).map { Dager.Dag(it, OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG) },
+            )
         }.toNonEmptyListOrNull()!!,
     )
 }

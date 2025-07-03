@@ -86,7 +86,7 @@ data class MeldekortBehandlinger(
 
     suspend fun oppdaterMeldekort(
         kommando: OppdaterMeldekortKommando,
-        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregningFraMeldekort>,
+        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
         simuler: (suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
     ): Either<KanIkkeOppdatereMeldekort, Triple<MeldekortBehandlinger, MeldekortUnderBehandling, SimuleringMedMetadata?>> {
         val meldekort = hentMeldekortBehandling(kommando.meldekortId) as MeldekortUnderBehandling
@@ -99,7 +99,7 @@ data class MeldekortBehandlinger(
 
     suspend fun sendTilBeslutter(
         kommando: SendMeldekortTilBeslutterKommando,
-        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregningFraMeldekort>,
+        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
         simuler: (suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
         clock: Clock,
     ): Either<KanIkkeSendeMeldekortTilBeslutter, Triple<MeldekortBehandlinger, MeldekortBehandletManuelt, SimuleringMedMetadata?>> {

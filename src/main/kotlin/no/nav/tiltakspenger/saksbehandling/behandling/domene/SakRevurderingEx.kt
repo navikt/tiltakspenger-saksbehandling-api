@@ -101,7 +101,7 @@ fun Sak.sendRevurderingTilBeslutning(
 
     return when (kommando) {
         is RevurderingInnvilgelseTilBeslutningKommando -> {
-            validerInnvilgelsesperiode(kommando.innvilgelsesperiode).onLeft { return it.left() }
+//            validerInnvilgelsesperiode(kommando.innvilgelsesperiode).onLeft { return it.left() }
 
             behandling.tilBeslutning(
                 kommando = kommando,

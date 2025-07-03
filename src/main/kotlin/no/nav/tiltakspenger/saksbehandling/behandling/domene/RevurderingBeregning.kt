@@ -1,31 +1,27 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.domene
+package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
 import java.time.LocalDate
+import kotlin.collections.zipWithNext
 
-data class MeldekortBeregning(
+data class RevurderingBeregning(
     val beregninger: NonEmptyList<MeldeperiodeBeregning>,
 ) : List<MeldeperiodeBeregning> by beregninger {
     val fraOgMed: LocalDate get() = this.first().fraOgMed
     val tilOgMed: LocalDate get() = this.last().tilOgMed
     val periode = Periode(fraOgMed, tilOgMed)
 
-    val beregningForMeldekortetsPeriode by lazy { beregninger.first() }
-    val beregningerForPåfølgendePerioder by lazy { beregninger.drop(1) }
-
-    val dagerFraMeldekortet by lazy { beregningForMeldekortetsPeriode.dager }
-    val alleDager by lazy { beregninger.flatMap { it.dager } }
-
     init {
-        require(beregninger.all { it.beregningKilde is MeldeperiodeBeregning.FraMeldekort })
+        require(beregninger.all { it.beregningKilde is MeldeperiodeBeregning.FraBehandling })
         require(beregninger.zipWithNext().all { (a, b) -> a.tilOgMed < b.fraOgMed }) {
             "Beregnede meldeperioder må være sortert og ikke ha overlapp - $beregninger"
         }
         beregninger.nonDistinctBy { it.kjedeId }.also {
             require(it.isEmpty()) {
-                "Kan ikke ha mer enn en beregning for hver meldeperiodekjede på samme meldekort - $beregninger"
+                "Kan ikke ha mer enn en beregning for hver meldeperiodekjede på samme behandling - $beregninger"
             }
         }
     }

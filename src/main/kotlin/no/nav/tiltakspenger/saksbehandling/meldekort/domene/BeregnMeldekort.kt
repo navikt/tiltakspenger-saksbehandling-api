@@ -48,8 +48,9 @@ private data class BeregnMeldekort(
     private var sisteSyktBarnSykedag: LocalDate? = null
 
     /** Returnerer beregnede dager fra kommando, og evt nye beregninger for påfølgende meldeperioder på saken */
-    fun beregn(): NonEmptyList<MeldeperiodeBeregningFraMeldekort> {
+    fun beregn(): NonEmptyList<MeldeperiodeBeregning> {
         val meldeperiodeSomBeregnesFraOgMed = meldeperiodeSomBeregnes.first().dato
+        val kilde = MeldeperiodeBeregning.FraMeldekort(meldekortIdSomBeregnes)
 
         val meldeperiodeBeregninger = meldekortBehandlinger.meldeperiodeBeregninger
 
@@ -61,10 +62,10 @@ private data class BeregnMeldekort(
                 tidligereMeldekort.forEach { beregnEksisterendeMeldekort(it) }
 
                 nonEmptyListOf(
-                    MeldeperiodeBeregningFraMeldekort(
+                    MeldeperiodeBeregning(
                         id = BeregningId.random(),
                         kjedeId = meldeperiodeSomBeregnes.meldeperiode.kjedeId,
-                        beregnetMeldekortId = meldekortIdSomBeregnes,
+                        beregningKilde = kilde,
                         meldekortId = meldekortIdSomBeregnes,
                         dager = beregnMeldeperiodeSomBeregnes(),
                     ),
@@ -82,10 +83,10 @@ private data class BeregnMeldekort(
                             return@mapNotNull null
                         }
 
-                        MeldeperiodeBeregningFraMeldekort(
+                        MeldeperiodeBeregning(
                             id = BeregningId.random(),
                             kjedeId = kjedeId,
-                            beregnetMeldekortId = meldekortIdSomBeregnes,
+                            beregningKilde = kilde,
                             meldekortId = meldekort.id,
                             dager = beregnedeDager,
                         )
@@ -436,7 +437,7 @@ private enum class SykTilstand {
 fun Sak.beregn(
     meldekortIdSomBeregnes: MeldekortId,
     meldeperiodeSomBeregnes: MeldekortDager,
-): NonEmptyList<MeldeperiodeBeregningFraMeldekort> {
+): NonEmptyList<MeldeperiodeBeregning> {
     return beregn(
         meldekortIdSomBeregnes = meldekortIdSomBeregnes,
         meldeperiodeSomBeregnes = meldeperiodeSomBeregnes,
@@ -452,7 +453,7 @@ fun beregn(
     barnetilleggsPerioder: Periodisering<AntallBarn>,
     tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
     meldekortBehandlinger: MeldekortBehandlinger,
-): NonEmptyList<MeldeperiodeBeregningFraMeldekort> {
+): NonEmptyList<MeldeperiodeBeregning> {
     return BeregnMeldekort(
         meldekortIdSomBeregnes = meldekortIdSomBeregnes,
         meldeperiodeSomBeregnes = meldeperiodeSomBeregnes,

@@ -20,18 +20,19 @@ value class BeregningId(val value: String) {
 
 /** @param meldekortId Id for meldekort-behandlingen med utfylte dager for beregningen av denne perioden
  *  */
-sealed interface MeldeperiodeBeregning {
-    val id: BeregningId
-
-    val meldekortId: MeldekortId
-    val kjedeId: MeldeperiodeKjedeId
-    val dager: NonEmptyList<MeldeperiodeBeregningDag>
+data class MeldeperiodeBeregning(
+    val id: BeregningId,
+    val meldekortId: MeldekortId,
+    val kjedeId: MeldeperiodeKjedeId,
+    val dager: NonEmptyList<MeldeperiodeBeregningDag>,
+    val beregningKilde: BeregningKilde,
+) {
 
     val fraOgMed: LocalDate get() = dager.first().dato
     val tilOgMed: LocalDate get() = dager.last().dato
     val periode: Periode get() = Periode(fraOgMed, tilOgMed)
 
-    fun init() {
+    init {
         require(dager.size == 14) { "En meldeperiode må være 14 dager, men var ${dager.size}" }
         require(dager.first().dato.dayOfWeek == DayOfWeek.MONDAY) { "Meldeperioden må starte på en mandag" }
         require(dager.last().dato.dayOfWeek == DayOfWeek.SUNDAY) { "Meldeperioden må slutte på en søndag" }
@@ -47,32 +48,14 @@ sealed interface MeldeperiodeBeregning {
     fun beregnTotalBarnetillegg(): Int = dager.sumOf { it.beregningsdag?.beløpBarnetillegg ?: 0 }
 
     fun beregnTotaltBeløp(): Int = beregnTotalOrdinærBeløp() + beregnTotalBarnetillegg()
-}
 
-/** @param beregnetMeldekortId Id for meldekort-behandlingen som utløste denne beregningen. Denne kan være ulik [meldekortId] for beregninger som er et resultat av en korrigering som påvirket en påfølgende meldeperiode.
- * */
-data class MeldeperiodeBeregningFraMeldekort(
-    override val id: BeregningId,
-    override val kjedeId: MeldeperiodeKjedeId,
-    override val meldekortId: MeldekortId,
-    override val dager: NonEmptyList<MeldeperiodeBeregningDag>,
-    val beregnetMeldekortId: MeldekortId,
-) : MeldeperiodeBeregning {
+    sealed interface BeregningKilde
 
-    init {
-        super.init()
-    }
-}
+    /** @param id Id for meldekort-behandlingen som utløste denne beregningen. Denne kan være ulik [meldekortId] for beregninger som er et resultat av en korrigering som påvirket en påfølgende meldeperiode.
+     * */
+    data class FraMeldekort(val id: MeldekortId) : BeregningKilde
 
-data class MeldeperiodeBeregningFraBehandling(
-    override val id: BeregningId,
-    override val kjedeId: MeldeperiodeKjedeId,
-    override val meldekortId: MeldekortId,
-    override val dager: NonEmptyList<MeldeperiodeBeregningDag>,
-    val beregnetBehandlingId: BehandlingId,
-) : MeldeperiodeBeregning {
-
-    init {
-        super.init()
-    }
+    /** @param id Id for behandlingen/revurderingen som utløste denne beregningen.
+     * */
+    data class FraBehandling(val id: BehandlingId) : BeregningKilde
 }

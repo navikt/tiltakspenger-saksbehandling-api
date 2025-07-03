@@ -46,6 +46,7 @@ data class Revurdering(
     override val resultat: RevurderingResultat,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
+    val beregninger: RevurderingBeregning?,
 ) : Behandling {
 
     override val barnetillegg: Barnetillegg? = when (resultat) {
@@ -118,6 +119,7 @@ data class Revurdering(
             it
         }.map {
             require(this.resultat is Innvilgelse)
+
             this.copy(
                 status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
                 sendtTilBeslutning = nå(clock),
@@ -236,6 +238,7 @@ data class Revurdering(
                 sendtTilDatadeling = null,
                 avbrutt = null,
                 begrunnelseVilkårsvurdering = null,
+                beregninger = null,
             )
         }
     }

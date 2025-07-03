@@ -66,7 +66,7 @@ data class MeldekortUnderBehandling(
 
     suspend fun oppdater(
         kommando: OppdaterMeldekortKommando,
-        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregningFraMeldekort>,
+        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
         simuler: suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
     ): Either<KanIkkeOppdatereMeldekort, Pair<MeldekortUnderBehandling, SimuleringMedMetadata?>> {
         validerSaksbehandlerOgTilstand(kommando.saksbehandler).onLeft {
@@ -90,7 +90,7 @@ data class MeldekortUnderBehandling(
 
     suspend fun sendTilBeslutter(
         kommando: SendMeldekortTilBeslutterKommando,
-        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregningFraMeldekort>,
+        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
         simuler: suspend (MeldekortBehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
         clock: Clock,
     ): Either<KanIkkeSendeMeldekortTilBeslutter, Pair<MeldekortBehandletManuelt, SimuleringMedMetadata?>> {

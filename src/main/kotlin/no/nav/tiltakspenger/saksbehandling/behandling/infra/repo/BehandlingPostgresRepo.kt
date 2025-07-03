@@ -435,6 +435,7 @@ class BehandlingPostgresRepo(
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avbrutt = avbrutt,
                         resultat = resultat,
+                        beregninger = null,
                     )
                 }
             }
