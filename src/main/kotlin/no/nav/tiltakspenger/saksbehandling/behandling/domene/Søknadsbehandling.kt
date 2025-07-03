@@ -104,7 +104,7 @@ data class Søknadsbehandling(
         val status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING
 
         val virkningsperiode = when (kommando) {
-            is SendSøknadsbehandlingTilBeslutningKommando.Avslag -> this.søknad.vurderingsperiode()
+            is SendSøknadsbehandlingTilBeslutningKommando.Avslag -> this.søknad.tiltaksdeltagelseperiodeDetErSøktOm()
             is SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse -> kommando.innvilgelsesperiode
         }
 

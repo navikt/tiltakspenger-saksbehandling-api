@@ -44,7 +44,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                     sak.id,
                     behandlingId,
                     saksbehandler,
-                    innvilgelsesperiode = søknad.vurderingsperiode(),
+                    innvilgelsesperiode = søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
                     eksternDeltagelseId = søknad.tiltak.id,
                 )
                 tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
@@ -54,7 +54,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                     it.beslutter shouldBe null
                     it.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.size shouldBe 1
                     it.valgteTiltaksdeltakelser?.periodisering?.perioderMedVerdi?.firstOrNull()?.verdi?.eksternDeltagelseId shouldBe søknad.tiltak.id
-                    it.valgteTiltaksdeltakelser?.periodisering?.totalPeriode shouldBe søknad.vurderingsperiode()
+                    it.valgteTiltaksdeltakelser?.periodisering?.totalPeriode shouldBe søknad.tiltaksdeltagelseperiodeDetErSøktOm()
                 }
             }
         }
@@ -117,7 +117,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                     sak.id,
                     behandlingId,
                     saksbehandler(navIdent = "Z999999"),
-                    innvilgelsesperiode = søknad.vurderingsperiode(),
+                    innvilgelsesperiode = søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
                     eksternDeltagelseId = søknad.tiltak.id,
                 )
 
