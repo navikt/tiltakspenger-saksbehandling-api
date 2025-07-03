@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.jobb
 enum class TiltaksdeltakerEndring(val beskrivelse: String) {
     FORLENGELSE("Deltakelsen har blitt forlenget"),
     AVBRUTT_DELTAKELSE("Deltakelsen er avbrutt"),
+    IKKE_AKTUELL_DELTAKELSE("Deltakelsen er ikke aktuell"),
     ENDRET_SLUTTDATO("Endret sluttdato"),
     ENDRET_STARTDATO("Endret startdato"),
     ENDRET_DELTAKELSESMENGDE("Endret deltakelsesmengde"),
