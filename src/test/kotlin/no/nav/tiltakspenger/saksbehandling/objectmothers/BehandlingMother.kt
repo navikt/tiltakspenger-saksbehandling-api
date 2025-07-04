@@ -454,6 +454,10 @@ interface BehandlingMother : MotherOfAllMothers {
         oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         clock: Clock = fixedClock,
+        antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
+            AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+            virkningsperiode,
+        ),
     ): Behandling {
         return nySøknadsbehandlingUnderBeslutning(
             id = id,
@@ -473,6 +477,7 @@ interface BehandlingMother : MotherOfAllMothers {
             oppgaveId = oppgaveId,
             resultat = resultat,
             clock = clock,
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         ).iverksett(
             utøvendeBeslutter = beslutter,
             attestering = godkjentAttestering(beslutter),

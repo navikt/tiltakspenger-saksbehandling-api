@@ -15,7 +15,9 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
@@ -273,5 +275,43 @@ class MeldeperiodeKjederTest {
         kjeder.hentForegåendeMeldeperiodekjede(meldeperiode2.kjedeId) shouldBe MeldeperiodeKjede(meldeperiode1V1, meldeperiode1V2)
         kjeder.hentSisteMeldeperiodeForKjedeId(meldeperiode1V1.kjedeId) shouldBe meldeperiode1V2
         kjeder.hentSisteMeldeperiodeForKjedeId(meldeperiode2.kjedeId) shouldBe meldeperiode2
+    }
+
+    @Test
+    fun `genererer meldeperioder for et innvilgelsevedtak 5 dager pr meldeperiode`() {
+        val sakId = SakId.random()
+        val periode = Periode(2.januar(2023), 17.januar(2023))
+        val kjeder = MeldeperiodeKjeder(emptyList())
+        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(
+            sakId = sakId,
+            periode = periode,
+            antallDagerPerMeldeperiode = SammenhengendePeriodisering(
+                AntallDagerForMeldeperiode(5),
+                periode,
+            ),
+        )
+        val actual = kjeder.genererMeldeperioder(
+            Vedtaksliste(
+                innvilgelseVedtak,
+            ),
+            fixedClock,
+        )
+
+        val forventetFørstePeriode = Periode(2.januar(2023), 15.januar(2023))
+        val forventetSistePeriode = Periode(16.januar(2023), 29.januar(2023))
+
+        actual.let {
+            it.first.sisteMeldeperiodePerKjede.size shouldBe 2
+            it.first.sisteMeldeperiodePerKjede shouldBe it.second
+
+            it.first.first().periode shouldBe forventetFørstePeriode
+            it.first.last().periode shouldBe forventetSistePeriode
+
+            it.first.sisteMeldeperiodePerKjede.first().antallDagerSomGirRett shouldBe 14
+            it.first.sisteMeldeperiodePerKjede.first().maksAntallDagerForMeldeperiode shouldBe 5
+
+            it.first.sisteMeldeperiodePerKjede.last().antallDagerSomGirRett shouldBe 2
+            it.first.sisteMeldeperiodePerKjede.last().maksAntallDagerForMeldeperiode shouldBe 2
+        }
     }
 }
