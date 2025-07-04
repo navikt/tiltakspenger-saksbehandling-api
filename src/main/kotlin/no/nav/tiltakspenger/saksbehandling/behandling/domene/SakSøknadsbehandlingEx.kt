@@ -24,7 +24,7 @@ fun Sak.sendSøknadsbehandlingTilBeslutning(
     kommando.asInnvilgelseOrNull()?.takeIf {
         this.utbetalinger.hentUtbetalingerFraPeriode(it.innvilgelsesperiode).isNotEmpty()
     }?.let {
-        return KanIkkeSendeTilBeslutter.StøtterIkkeTilbakekreving.left()
+        return KanIkkeSendeTilBeslutter.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode.left()
     }
 
     return behandling.tilBeslutning(kommando, clock).mapLeft {

@@ -54,6 +54,7 @@ data class Søknadsbehandling(
     val automatiskSaksbehandlet: Boolean,
     val manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
 ) : Behandling {
+
     override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
         get() = when (resultat) {
             is SøknadsbehandlingResultat.Avslag -> null
