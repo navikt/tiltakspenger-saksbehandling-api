@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkUtbetalingDTO
@@ -20,8 +21,9 @@ import java.time.Clock
 import java.time.LocalDateTime
 
 /**
- * TODO abn: Split denne til "MeldekortBehandlingVedtak" og "Utbetaling". Utbetaling skal brukes både for utbetalinger
- * fra meldekort og fra revurdering
+ * TODO abn: Split denne til "MeldekortBehandlingVedtak" og "Utbetaling".
+ * MeldekortBehandlingVedtak vil da ha en Utbetaling, og Rammevedtak kan ha en Utbetaling ved revurdering som
+ * fører til endring på beregningen av allerede utbetalte meldekort
  * */
 
 /**
@@ -45,6 +47,8 @@ data class Utbetalingsvedtak(
     val brukerNavkontor: Navkontor,
     val rammevedtak: List<VedtakId>,
     val automatiskBehandlet: Boolean,
+    val erKorrigering: Boolean,
+    val begrunnelse: String?,
 ) {
     val periode: Periode = beregning.periode
     val ordinærBeløp: Int = beregning.ordinærBeløp
@@ -80,6 +84,8 @@ fun MeldekortBehandling.Behandlet.opprettUtbetalingsvedtak(
         brukerNavkontor = this.navkontor,
         rammevedtak = this.rammevedtak!!,
         automatiskBehandlet = this is MeldekortBehandletAutomatisk,
+        erKorrigering = this.type == MeldekortBehandlingType.KORRIGERING,
+        begrunnelse = this.begrunnelse?.verdi,
     )
 
 fun Rammevedtak.opprettUtbetalingsvedtak(
@@ -117,6 +123,8 @@ fun Rammevedtak.opprettUtbetalingsvedtak(
         brukerNavkontor = behandling.navkontor,
         rammevedtak = listOf(this.id),
         automatiskBehandlet = false,
+        erKorrigering = false,
+        begrunnelse = behandling.begrunnelseVilkårsvurdering?.verdi,
     )
 }
 

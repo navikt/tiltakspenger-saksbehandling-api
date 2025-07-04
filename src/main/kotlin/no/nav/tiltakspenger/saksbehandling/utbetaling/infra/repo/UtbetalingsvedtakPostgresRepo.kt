@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toForsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
@@ -328,6 +329,8 @@ internal class UtbetalingsvedtakPostgresRepo(
                         brukerNavkontor = meldekortbehandling.navkontor,
                         rammevedtak = meldekortbehandling.rammevedtak!!,
                         automatiskBehandlet = meldekortbehandling is MeldekortBehandletAutomatisk,
+                        erKorrigering = meldekortbehandling.type == MeldekortBehandlingType.KORRIGERING,
+                        begrunnelse = meldekortbehandling.begrunnelse?.verdi,
                     )
                 }
 
@@ -362,6 +365,8 @@ internal class UtbetalingsvedtakPostgresRepo(
                         brukerNavkontor = behandling.navkontor!!,
                         rammevedtak = listOf(rammevedtak.id),
                         automatiskBehandlet = false,
+                        erKorrigering = false,
+                        begrunnelse = behandling.begrunnelseVilkårsvurdering?.verdi,
                     )
                 }
             }

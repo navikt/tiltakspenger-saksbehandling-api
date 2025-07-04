@@ -75,14 +75,15 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
     tiltaksdeltagelser: List<Tiltaksdeltagelse>,
     sammenlign: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
 ): String {
+    require(beregningKilde is BeregningKilde.Meldekort) {
+        "Vi har ikke brev for utbetalingsvedtak fra revurdering ennå"
+    }
+
     return UtbetalingsvedtakDTO(
         fødselsnummer = fnr.verdi,
         saksbehandler = tilSaksbehandlerDto(saksbehandler, hentSaksbehandlersNavn),
         beslutter = tilSaksbehandlerDto(beslutter, hentSaksbehandlersNavn),
-        meldekortId = when (beregningKilde) {
-            is BeregningKilde.Behandling -> TODO()
-            is BeregningKilde.Meldekort -> beregningKilde.id.toString()
-        },
+        meldekortId = beregningKilde.id.toString(),
         saksnummer = saksnummer.toString(),
         meldekortPeriode = UtbetalingsvedtakDTO.PeriodeDTO(
             fom = periode.fraOgMed.format(norskDatoFormatter),
@@ -90,7 +91,7 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
         ),
         tiltak = tiltaksdeltagelser.map { it.toTiltakDTO() },
         iverksattTidspunkt = opprettet.format(norskTidspunktFormatter),
-        korrigering = false, // fix later! meldekortbehandling.type == MeldekortBehandlingType.KORRIGERING,
+        korrigering = erKorrigering,
         sammenligningAvBeregninger = toBeregningSammenligningDTO(sammenlign),
     ).let { serialize(it) }
 }
@@ -142,7 +143,7 @@ private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
             // Kommentar: Bug rundt serialisering av NonEmptyList gjør at vi konverterer til standard kotlin list
             UtbetalingsvedtakDTO.SammenligningAvBeregningerDTO(
                 meldeperioder = meldeperiodeSammenligninger.toList(),
-                begrunnelse = "", // this.meldekortbehandling.begrunnelse?.verdi,
+                begrunnelse = begrunnelse,
                 totalDifferanse = meldeperiodeSammenligninger.toList().sumOf { it.differanseFraForrige },
             )
         }
