@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando

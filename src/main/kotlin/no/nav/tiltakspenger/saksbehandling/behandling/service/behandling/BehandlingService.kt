@@ -20,8 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerEllerBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevTilgangTilPerson
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
+import no.nav.tiltakspenger.saksbehandling.felles.krevTilgangTilPerson
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 

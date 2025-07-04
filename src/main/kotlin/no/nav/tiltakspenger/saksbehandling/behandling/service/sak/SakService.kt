@@ -20,9 +20,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonServi
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevLageHendelserRollen
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerEllerBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevTilgangTilPerson
+import no.nav.tiltakspenger.saksbehandling.felles.krevHentEllerOpprettSakRollen
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
+import no.nav.tiltakspenger.saksbehandling.felles.krevTilgangTilPerson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPersonMedSkjerming
@@ -40,15 +40,15 @@ class SakService(
     val logger = KotlinLogging.logger { }
 
     /**
-     * Validerer at systembruker har rollen LAGE_HENDELSER.
-     * @throws TilgangException dersom systembruker mangler tilgangen LAGE_HENDELSER
+     * Validerer at systembruker har rollen HENT_ELLER_OPPRETT_SAK.
+     * @throws TilgangException dersom systembruker mangler tilgangen HENT_ELLER_OPPRETT_SAK
      */
     fun hentEllerOpprettSak(
         fnr: Fnr,
         systembruker: Systembruker,
         correlationId: CorrelationId,
     ): Sak {
-        krevLageHendelserRollen(systembruker)
+        krevHentEllerOpprettSakRollen(systembruker)
 
         val saker = sakRepo.hentForFnr(fnr)
         if (saker.size > 1) {
@@ -93,16 +93,15 @@ class SakService(
     }
 
     /**
-     * Validerer at systembruker har rollen LAGE_HENDELSER.
+     * Validerer at systembruker har rollen HENT_ELLER_OPPRETT_SAK.
      * @throws IkkeFunnetException dersom vi ikke fant saken.
-     * @throws TilgangException dersom systembruker mangler tilgangen LAGE_HENDELSER
+     * @throws TilgangException dersom systembruker mangler tilgangen HENT_ELLER_OPPRETT_SAK
      */
     fun hentForSaksnummer(
         saksnummer: Saksnummer,
         systembruker: Systembruker,
     ): Sak {
-        // TODO jah: Bør vi heller sjekke HENTE_DATA rollen her?
-        krevLageHendelserRollen(systembruker)
+        krevHentEllerOpprettSakRollen(systembruker)
 
         return sakRepo.hentForSaksnummer(saksnummer)
             ?: throw IkkeFunnetException("Fant ikke sak med saksnummer $saksnummer")

@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerEllerBeslutterRolle
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 
 class BenkOversiktService(
     private val tilgangsstyringService: TilgangsstyringService,

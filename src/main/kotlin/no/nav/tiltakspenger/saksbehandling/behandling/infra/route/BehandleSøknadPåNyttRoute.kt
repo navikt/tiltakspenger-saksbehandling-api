@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppretteBeha
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeBehandleSøknadPåNytt
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSøknadId

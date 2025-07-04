@@ -48,7 +48,7 @@ internal class MottaMeldekortRouteTest {
             path("/meldekort/motta")
         },
         jwt = tac.jwtGenerator.createJwtForSystembruker(
-            roles = listOf("lage_hendelser"),
+            roles = listOf("lagre_meldekort"),
         ),
     ) {
         setBody(serialize(dto))

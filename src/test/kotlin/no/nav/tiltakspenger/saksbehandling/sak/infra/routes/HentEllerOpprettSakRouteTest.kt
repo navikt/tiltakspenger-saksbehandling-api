@@ -42,7 +42,7 @@ class HentEllerOpprettSakRouteTest {
                         path(SAKSNUMMER_PATH)
                     },
                     jwt = tac.jwtGenerator.createJwtForSystembruker(
-                        roles = listOf("lage_hendelser"),
+                        roles = listOf("hent_eller_opprett_sak"),
                     ),
                 ) {
                     setBody(objectMapper.writeValueAsString(FnrDTO(ident.verdi)))
@@ -72,7 +72,7 @@ class HentEllerOpprettSakRouteTest {
                         path(SAKSNUMMER_PATH)
                     },
                     jwt = tac.jwtGenerator.createJwtForSystembruker(
-                        roles = listOf("lage_hendelser"),
+                        roles = listOf("hent_eller_opprett_sak"),
                     ),
                 ) {
                     setBody(objectMapper.writeValueAsString(FnrDTO(ident.verdi)))

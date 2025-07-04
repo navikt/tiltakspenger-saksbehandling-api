@@ -30,7 +30,7 @@ interface OpprettSakRouteBuilder {
                 path("/saksnummer")
             },
             jwt = tac.jwtGenerator.createJwtForSystembruker(
-                roles = listOf("lage_hendelser"),
+                roles = listOf("hent_eller_opprett_sak"),
             ),
         ) { setBody("""{"fnr":"${fnr.verdi}"}""") }.apply {
             val bodyAsText = this.bodyAsText()

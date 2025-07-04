@@ -51,7 +51,7 @@ class OlderMottaSøknadTest {
                         path(SØKNAD_PATH)
                     },
                     jwt = tac.jwtGenerator.createJwtForSystembruker(
-                        roles = listOf("lage_hendelser"),
+                        roles = listOf("hent_eller_opprett_sak", "lagre_soknad"),
                     ),
                 ) {
                     setBody(søknadBodyV3(søknadId, sak.saksnummer))

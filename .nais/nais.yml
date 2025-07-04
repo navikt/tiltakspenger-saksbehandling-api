@@ -91,11 +91,12 @@ spec:
         - application: tiltakspenger-meldekort-api
           permissions:
             roles:
-              - "lage_hendelser"
+              - "lagre_meldekort"
         - application: tiltakspenger-soknad-api
           permissions:
             roles:
-              - "lage_hendelser"
+              - "hent_eller_opprett_sak"
+              - "lagre_soknad"
   env:
   {{#each azure.groups}}
     - name: {{this.name}}

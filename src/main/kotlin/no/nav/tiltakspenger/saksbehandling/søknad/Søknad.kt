@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDate
 import java.time.LocalDateTime

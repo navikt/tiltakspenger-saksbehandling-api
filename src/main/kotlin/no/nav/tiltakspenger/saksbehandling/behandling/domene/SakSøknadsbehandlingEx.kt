@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 import arrow.core.Either
 import arrow.core.left
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 

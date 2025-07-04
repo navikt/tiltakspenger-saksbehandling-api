@@ -23,8 +23,8 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse

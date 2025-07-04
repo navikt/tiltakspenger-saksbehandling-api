@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevBeslutterRolle
+import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeIverksetteMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt

@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevTilgangTilPerson
+import no.nav.tiltakspenger.saksbehandling.felles.krevTilgangTilPerson
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 

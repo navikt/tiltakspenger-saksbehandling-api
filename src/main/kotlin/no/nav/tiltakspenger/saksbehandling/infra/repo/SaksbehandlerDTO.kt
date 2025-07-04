@@ -15,8 +15,9 @@ internal data class SaksbehandlerDTO(
         FORTROLIG_ADRESSE,
         STRENGT_FORTROLIG_ADRESSE,
         SKJERMING,
-        LAGE_HENDELSER,
-        HENTE_DATA,
+        HENT_ELLER_OPPRETT_SAK,
+        LAGRE_SOKNAD,
+        LAGRE_MELDEKORT,
 
         // Systemadministrator (oss)
         DRIFT,
