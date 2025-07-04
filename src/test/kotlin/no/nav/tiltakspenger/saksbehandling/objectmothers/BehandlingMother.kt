@@ -544,7 +544,7 @@ fun TestApplicationContext.nySøknad(
         sakId = sak.id,
         saksnummer = sak.saksnummer,
     ),
-    systembruker: Systembruker = ObjectMother.systembrukerLageHendelser(),
+    systembruker: Systembruker = ObjectMother.systembrukerLagreSoknad(),
 ): Søknad {
     this.søknadContext.søknadService.nySøknad(søknad, systembruker)
     this.leggTilPerson(fnr, personopplysningerForBrukerFraPdl, tiltaksdeltagelse ?: søknad.tiltak.toTiltak())

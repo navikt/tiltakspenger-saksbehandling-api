@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevLageHendelserRollen
+import no.nav.tiltakspenger.saksbehandling.felles.krevLagreMeldekortRollen
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
@@ -35,7 +35,7 @@ internal fun Route.mottaMeldekortRoutes(
             call.withBody<BrukerutfyltMeldekortDTO> { meldekort ->
                 logger.info { "Mottatt meldekort fra bruker: ${meldekort.id} - meldeperiode: ${meldekort.meldeperiodeId}" }
 
-                krevLageHendelserRollen(systembruker)
+                krevLagreMeldekortRollen(systembruker)
                 mottaBrukerutfyltMeldekortService.mottaBrukerutfyltMeldekort(meldekort.toDomain()).onRight {
                     call.respond(HttpStatusCode.OK)
                 }.onLeft {

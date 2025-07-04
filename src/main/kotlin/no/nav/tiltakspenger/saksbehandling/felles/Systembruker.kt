@@ -11,8 +11,9 @@ data class Systembruker(
 ) : GenerellSystembruker<Systembrukerrolle, Systembrukerroller>
 
 enum class Systembrukerrolle : GenerellSystembrukerrolle {
-    LAGE_HENDELSER,
-    HENTE_DATA,
+    HENT_ELLER_OPPRETT_SAK,
+    LAGRE_SOKNAD,
+    LAGRE_MELDEKORT,
 }
 
 data class Systembrukerroller(
@@ -25,6 +26,7 @@ data class Systembrukerroller(
 
     override fun harRolle(rolle: Systembrukerrolle): Boolean = contains(rolle)
 
-    fun harLageHendelser(): Boolean = value.contains(Systembrukerrolle.LAGE_HENDELSER)
-    fun harHenteData(): Boolean = value.contains(Systembrukerrolle.HENTE_DATA)
+    fun harHentEllerOpprettSak(): Boolean = value.contains(Systembrukerrolle.HENT_ELLER_OPPRETT_SAK)
+    fun harLagreSoknad(): Boolean = value.contains(Systembrukerrolle.LAGRE_SOKNAD)
+    fun harLagreMeldekort(): Boolean = value.contains(Systembrukerrolle.LAGRE_MELDEKORT)
 }
