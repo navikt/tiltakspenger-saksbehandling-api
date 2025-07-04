@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.service.sak
+package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -7,7 +7,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKom
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
@@ -16,6 +17,7 @@ class StartRevurderingService(
     private val sakService: SakService,
     private val behandlingRepo: BehandlingRepo,
     private val saksopplysningerService: OppdaterSaksopplysningerService,
+    private val navkontorService: NavkontorService,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
@@ -34,6 +36,7 @@ class StartRevurderingService(
         val (oppdatertSak, revurdering) = sak.startRevurdering(
             kommando = kommando,
             clock = clock,
+            hentNavkontor = navkontorService::hentOppfolgingsenhet,
             hentSaksopplysninger = saksopplysningerService::hentSaksopplysningerFraRegistre,
         )
 

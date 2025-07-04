@@ -113,7 +113,13 @@ class RammevedtakPostgresRepo(
         }
     }
 
-    override fun markerJournalført(id: VedtakId, vedtaksdato: LocalDate, brevJson: String, journalpostId: JournalpostId, tidspunkt: LocalDateTime) {
+    override fun markerJournalført(
+        id: VedtakId,
+        vedtaksdato: LocalDate,
+        brevJson: String,
+        journalpostId: JournalpostId,
+        tidspunkt: LocalDateTime,
+    ) {
         sessionFactory.withSession { session ->
             session.run(
                 queryOf(
@@ -205,6 +211,22 @@ class RammevedtakPostgresRepo(
     }
 
     companion object {
+        fun hentForBehandlingId(
+            behandlingId: BehandlingId,
+            session: Session,
+        ): Rammevedtak? {
+            return session.run(
+                queryOf(
+                    "select * from rammevedtak where behandling_id = :id",
+                    mapOf(
+                        "id" to behandlingId.toString(),
+                    ),
+                ).map { row ->
+                    row.toVedtak(session)
+                }.asSingle,
+            )
+        }
+
         fun hentForSakId(
             sakId: SakId,
             session: Session,

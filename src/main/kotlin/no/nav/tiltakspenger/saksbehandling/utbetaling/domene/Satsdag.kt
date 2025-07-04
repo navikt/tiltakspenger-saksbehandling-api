@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.domene
+package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import java.time.LocalDate
 

@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Satsdag
 import java.time.LocalDate
 
 class Satser {

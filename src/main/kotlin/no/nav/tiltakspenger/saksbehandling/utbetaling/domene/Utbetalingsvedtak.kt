@@ -1,21 +1,30 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
+import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkUtbetalingDTO
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 import java.time.LocalDateTime
+
+/**
+ * TODO (kanskje) abn: Split denne til "MeldekortBehandlingVedtak" og "Utbetaling".
+ * MeldekortBehandlingVedtak vil da ha en Utbetaling, og Rammevedtak kan ha en Utbetaling ved revurdering som
+ * fører til endring på beregningen av allerede utbetalte meldeperioder
+ * */
 
 /**
  * @property forrigeUtbetalingsvedtakId er null for første utbetalingsvedtak i en sak.
@@ -27,24 +36,25 @@ data class Utbetalingsvedtak(
     val saksnummer: Saksnummer,
     val fnr: Fnr,
     val opprettet: LocalDateTime,
-    val meldekortbehandling: MeldekortBehandling.Behandlet,
     val forrigeUtbetalingsvedtakId: VedtakId?,
     val sendtTilUtbetaling: LocalDateTime?,
     val journalpostId: JournalpostId?,
     val journalføringstidspunkt: LocalDateTime?,
     val status: Utbetalingsstatus?,
+    val beregning: UtbetalingBeregning,
+    val saksbehandler: String,
+    val beslutter: String,
+    val brukerNavkontor: Navkontor,
+    val rammevedtak: List<VedtakId>?,
+    val automatiskBehandlet: Boolean,
+    val erKorrigering: Boolean,
+    val begrunnelse: String?,
 ) {
-    val periode: Periode = meldekortbehandling.beregningPeriode
-    val ordinærBeløp: Int = meldekortbehandling.ordinærBeløp
-    val barnetilleggBeløp: Int = meldekortbehandling.barnetilleggBeløp
-    val totalBeløp: Int = meldekortbehandling.beløpTotal
-    val meldekortId: MeldekortId = meldekortbehandling.id
-    val kjedeId: MeldeperiodeKjedeId = meldekortbehandling.kjedeId
-    val saksbehandler: String = meldekortbehandling.saksbehandler!!
-    val beslutter: String = meldekortbehandling.beslutter!!
-    val brukerNavkontor: Navkontor = meldekortbehandling.navkontor
-    val meldeperiode: Meldeperiode = meldekortbehandling.meldeperiode
-    val automatiskBehandlet = meldekortbehandling is MeldekortBehandletAutomatisk
+    val periode: Periode = beregning.periode
+    val ordinærBeløp: Int = beregning.ordinærBeløp
+    val barnetilleggBeløp: Int = beregning.barnetilleggBeløp
+    val totalBeløp: Int = beregning.totalBeløp
+    val beregningKilde: BeregningKilde = beregning.beregningKilde
 
     fun oppdaterStatus(status: Utbetalingsstatus?): Utbetalingsvedtak {
         return this.copy(status = status)
@@ -63,13 +73,60 @@ fun MeldekortBehandling.Behandlet.opprettUtbetalingsvedtak(
         sakId = this.sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        meldekortbehandling = this,
         forrigeUtbetalingsvedtakId = forrigeUtbetalingsvedtak?.id,
         sendtTilUtbetaling = null,
         journalpostId = null,
         journalføringstidspunkt = null,
         status = null,
+        beregning = this.beregning,
+        saksbehandler = this.saksbehandler!!,
+        beslutter = this.beslutter!!,
+        brukerNavkontor = this.navkontor,
+        rammevedtak = this.rammevedtak!!,
+        automatiskBehandlet = this is MeldekortBehandletAutomatisk,
+        erKorrigering = this.type == MeldekortBehandlingType.KORRIGERING,
+        begrunnelse = this.begrunnelse?.verdi,
     )
+
+fun Rammevedtak.opprettUtbetalingsvedtak(
+    forrigeUtbetalingsvedtak: Utbetalingsvedtak?,
+    clock: Clock,
+): Utbetalingsvedtak {
+    require(behandling.resultat is RevurderingResultat.Innvilgelse) {
+        "Kan kun opprette utbetaling for innvilget revurdering"
+    }
+
+    val behandling = this.behandling as Revurdering
+
+    requireNotNull(behandling.beregning) {
+        "Rammevedtak $id med behandling ${behandling.id} mangler utbetalingsberegning, kan ikke opprette utbetalingsvedtak"
+    }
+
+    requireNotNull(behandling.navkontor) {
+        "Rammevedtak $id med behandling ${behandling.id} mangler brukers Nav-kontor, kan ikke opprette utbetalingsvedtak"
+    }
+
+    return Utbetalingsvedtak(
+        id = VedtakId.random(),
+        opprettet = nå(clock),
+        sakId = this.sakId,
+        saksnummer = this.saksnummer,
+        fnr = this.fnr,
+        forrigeUtbetalingsvedtakId = forrigeUtbetalingsvedtak?.id,
+        sendtTilUtbetaling = null,
+        journalpostId = null,
+        journalføringstidspunkt = null,
+        status = null,
+        beregning = behandling.beregning,
+        saksbehandler = this.saksbehandlerNavIdent,
+        beslutter = this.beslutterNavIdent,
+        brukerNavkontor = behandling.navkontor,
+        rammevedtak = listOf(this.id),
+        automatiskBehandlet = false,
+        erKorrigering = false,
+        begrunnelse = behandling.begrunnelseVilkårsvurdering?.verdi,
+    )
+}
 
 fun Utbetalingsvedtak.tilStatistikk(): StatistikkUtbetalingDTO =
     StatistikkUtbetalingDTO(
@@ -85,7 +142,7 @@ fun Utbetalingsvedtak.tilStatistikk(): StatistikkUtbetalingDTO =
         gyldigFraDatoPostering = this.periode.fraOgMed,
         gyldigTilDatoPostering = this.periode.tilOgMed,
         utbetalingId = this.id.uuidPart(),
-        vedtakId = meldeperiode.rammevedtak?.perioderMedVerdi?.mapNotNull { it.verdi?.toString() }?.distinct(),
+        vedtakId = rammevedtak?.map { it.toString() },
         opprettet = LocalDateTime.now(),
         sistEndret = LocalDateTime.now(),
         brukerId = this.fnr.verdi,

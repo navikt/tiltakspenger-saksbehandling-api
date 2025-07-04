@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import arrow.core.Either
+import no.nav.tiltakspenger.saksbehandling.beregning.beregn
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata

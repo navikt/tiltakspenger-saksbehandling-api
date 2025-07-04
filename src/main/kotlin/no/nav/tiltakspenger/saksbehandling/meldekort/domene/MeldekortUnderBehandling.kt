@@ -11,6 +11,8 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
@@ -60,9 +62,9 @@ data class MeldekortUnderBehandling(
     override val beslutter = null
 
     /** Totalsummen for meldeperioden */
-    override val beløpTotal = beregning?.beregnTotaltBeløp()
-    override val ordinærBeløp = beregning?.beregnTotalOrdinærBeløp()
-    override val barnetilleggBeløp = beregning?.beregnTotalBarnetillegg()
+    override val beløpTotal = beregning?.totalBeløp
+    override val ordinærBeløp = beregning?.ordinærBeløp
+    override val barnetilleggBeløp = beregning?.barnetilleggBeløp
 
     suspend fun oppdater(
         kommando: OppdaterMeldekortKommando,

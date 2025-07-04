@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import java.time.LocalDate
@@ -44,12 +45,19 @@ interface UtbetalingsvedtakMother : MotherOfAllMothers {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            meldekortbehandling = meldekortBehandling,
             forrigeUtbetalingsvedtakId = forrigeUtbetalingsvedtakId,
             sendtTilUtbetaling = sendtTilUtbetaling,
             journalpostId = journalpostId,
             journalføringstidspunkt = journalføringstidspunkt,
             status = null,
+            beregning = meldekortBehandling.beregning,
+            saksbehandler = meldekortBehandling.saksbehandler,
+            beslutter = meldekortBehandling.beslutter!!,
+            brukerNavkontor = meldekortBehandling.navkontor,
+            rammevedtak = meldekortBehandling.rammevedtak!!,
+            automatiskBehandlet = false,
+            erKorrigering = meldekortBehandling.type == MeldekortBehandlingType.KORRIGERING,
+            begrunnelse = meldekortBehandling.begrunnelse?.verdi,
         )
     }
 }

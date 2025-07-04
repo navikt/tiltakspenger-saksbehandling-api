@@ -3,6 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 
 sealed interface RevurderingResultat : BehandlingResultat {
@@ -32,6 +34,8 @@ sealed interface RevurderingResultat : BehandlingResultat {
         override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
         override val barnetillegg: Barnetillegg?,
         override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
+        val beregning: BehandlingBeregning?,
+        val navkontor: Navkontor?,
     ) : BehandlingResultat.Innvilgelse,
         RevurderingResultat
 }

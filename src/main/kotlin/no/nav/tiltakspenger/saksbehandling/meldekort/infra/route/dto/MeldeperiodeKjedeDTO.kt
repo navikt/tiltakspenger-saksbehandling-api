@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
@@ -28,8 +29,14 @@ data class MeldeperiodeKjedeDTO(
 
 fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeDTO {
     val meldeperiodeKjede = this.meldeperiodeKjeder.single { it.kjedeId == kjedeId }
+
+    // TODO: denne bør skrives om litt, bør ikke gå via beregningene her
     val korrigering = meldeperiodeBeregninger.sisteBeregningPerKjede[kjedeId]?.let {
-        val forrigeBehandling = meldekortBehandlinger.hentMeldekortBehandling(it.beregningMeldekortId)
+        if (it.beregningKilde !is BeregningKilde.Meldekort) {
+            return@let null
+        }
+
+        val forrigeBehandling = meldekortBehandlinger.hentMeldekortBehandling(it.beregningKilde.id)
         if (forrigeBehandling !is MeldekortBehandletManuelt) {
             return@let null
         }
@@ -57,20 +64,13 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
         meldekortBehandlinger = this.meldekortBehandlinger
             .hentMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)
             .map {
-                // Bruker vedtaket istedenfor behandlingen dersom det finnes ett.
-                this.utbetalinger.hentUtbetalingForBehandlingId(it.id)
-                    ?.toMeldekortBehandlingDTO()
-                    ?: it.toMeldekortBehandlingDTO(UtbetalingsstatusDTO.IKKE_GODKJENT)
+                it.tilMeldekortBehandlingDTO(this.utbetalinger.hentUtbetalingForMeldekort(it.id))
             },
         brukersMeldekort = brukersMeldekort?.toBrukersMeldekortDTO(),
         korrigeringFraTidligerePeriode = korrigering,
         avbrutteMeldekortBehandlinger = this.meldekortBehandlinger
             .hentAvbrutteMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)
-            .map {
-                it.toMeldekortBehandlingDTO(
-                    UtbetalingsstatusDTO.AVBRUTT,
-                )
-            },
+            .map { it.tilMeldekortBehandlingDTO() },
         sisteBeregning = meldeperiodeBeregninger.sisteBeregningPerKjede[kjedeId]?.tilMeldeperiodeBeregningDTO(),
     )
 }

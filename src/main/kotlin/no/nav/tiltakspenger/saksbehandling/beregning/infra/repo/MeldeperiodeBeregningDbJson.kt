@@ -1,24 +1,26 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
+package no.nav.tiltakspenger.saksbehandling.beregning.infra.repo
 
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Syk.SykBruker
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeDeltatt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
+import no.nav.tiltakspenger.saksbehandling.beregning.BeregningId
+import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Syk.SykBruker
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeDeltatt
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortstatusDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.repo.toTiltakstypeSomGirRett
 import java.time.LocalDate
@@ -109,20 +111,11 @@ private data class MeldeperiodeBeregningDagDbJson(
 }
 
 private data class MeldeperiodeBeregningDbJson(
+    val beregningId: String,
     val kjedeId: String,
     val meldekortId: String,
     val dager: List<MeldeperiodeBeregningDagDbJson>,
 )
-
-fun MeldekortBeregning.tilBeregningerDbJson(): String {
-    return this.map {
-        MeldeperiodeBeregningDbJson(
-            kjedeId = it.kjedeId.toString(),
-            meldekortId = it.dagerMeldekortId.toString(),
-            dager = it.dager.toDbJson(),
-        )
-    }.let { serialize(it) }
-}
 
 private fun List<MeldeperiodeBeregningDag>.toDbJson() = this.map { meldekortdag ->
     MeldeperiodeBeregningDagDbJson(
@@ -145,23 +138,42 @@ private fun List<MeldeperiodeBeregningDag>.toDbJson() = this.map { meldekortdag 
     )
 }
 
-private fun ReduksjonAvYtelsePåGrunnAvFravær.toDb(): ReduksjonAvYtelsePåGrunnAvFraværDb =
+private fun ReduksjonAvYtelsePåGrunnAvFravær.toDb(): MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb =
     when (this) {
-        ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon -> ReduksjonAvYtelsePåGrunnAvFraværDb.IngenReduksjon
-        ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon -> ReduksjonAvYtelsePåGrunnAvFraværDb.DelvisReduksjon
-        ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort -> ReduksjonAvYtelsePåGrunnAvFraværDb.YtelsenFallerBort
+        ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon -> MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb.IngenReduksjon
+        ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon -> MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb.DelvisReduksjon
+        ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort -> MeldeperiodeBeregningDagDbJson.ReduksjonAvYtelsePåGrunnAvFraværDb.YtelsenFallerBort
     }
 
-private fun MeldeperiodeBeregningDbJson.tilMeldeperiodeBeregning(meldekortId: MeldekortId): MeldeperiodeBeregning {
-    return MeldeperiodeBeregning(
-        kjedeId = MeldeperiodeKjedeId(this.kjedeId),
-        beregningMeldekortId = meldekortId,
-        dagerMeldekortId = MeldekortId.fromString(this.meldekortId),
-        dager = this.dager.map { it.tilMeldeperiodeBeregningDag() }.toNonEmptyListOrNull()!!,
-    )
+fun List<MeldeperiodeBeregning>.tilBeregningerDbJson(): String {
+    return this.map {
+        MeldeperiodeBeregningDbJson(
+            beregningId = it.id.toString(),
+            kjedeId = it.kjedeId.toString(),
+            meldekortId = it.meldekortId.toString(),
+            dager = it.dager.toDbJson(),
+        )
+    }.let { serialize(it) }
 }
 
-fun String.tilBeregninger(meldekortId: MeldekortId): NonEmptyList<MeldeperiodeBeregning> =
+fun String.tilMeldeperiodeBeregningerFraMeldekort(meldekortId: MeldekortId): NonEmptyList<MeldeperiodeBeregning> =
     deserializeList<MeldeperiodeBeregningDbJson>(this).map {
-        it.tilMeldeperiodeBeregning(meldekortId)
+        MeldeperiodeBeregning(
+            id = BeregningId(it.beregningId),
+            kjedeId = MeldeperiodeKjedeId(it.kjedeId),
+            meldekortId = MeldekortId.fromString(it.meldekortId),
+            beregningKilde = BeregningKilde.Meldekort(meldekortId),
+            dager = it.dager.map { dag -> dag.tilMeldeperiodeBeregningDag() }.toNonEmptyListOrNull()!!,
+        )
+    }.toNonEmptyListOrNull()!!
+
+fun String.tilMeldeperiodeBeregningerFraBehandling(behandlingId: BehandlingId): NonEmptyList<MeldeperiodeBeregning> =
+    deserializeList<MeldeperiodeBeregningDbJson>(this).map {
+        MeldeperiodeBeregning(
+            id = BeregningId(it.beregningId),
+            kjedeId = MeldeperiodeKjedeId(it.kjedeId),
+            meldekortId = MeldekortId.fromString(it.meldekortId),
+            beregningKilde = BeregningKilde.Behandling(behandlingId),
+            dager = it.dager.map { dag -> dag.tilMeldeperiodeBeregningDag() }.toNonEmptyListOrNull()!!,
+        )
     }.toNonEmptyListOrNull()!!

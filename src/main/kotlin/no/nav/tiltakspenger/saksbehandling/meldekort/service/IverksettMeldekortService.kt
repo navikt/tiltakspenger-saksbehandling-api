@@ -19,7 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.opprettUtbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.tilStatistikk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
@@ -40,7 +39,7 @@ class IverksettMeldekortService(
 
     suspend fun iverksettMeldekort(
         kommando: IverksettMeldekortKommando,
-    ): Either<KanIkkeIverksetteMeldekort, Pair<Sak, Utbetalingsvedtak>> {
+    ): Either<KanIkkeIverksetteMeldekort, Pair<Sak, MeldekortBehandling>> {
         krevBeslutterRolle(kommando.beslutter)
 
         val meldekortId = kommando.meldekortId
@@ -79,7 +78,7 @@ class IverksettMeldekortService(
             }
             ferdigstillOppgave(meldeperiode.id, meldekortId)
             sak.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
-                .leggTilUtbetalingsvedtak(utbetalingsvedtak) to utbetalingsvedtak
+                .leggTilUtbetalingsvedtak(utbetalingsvedtak) to iverksattMeldekortbehandling
         }
     }
 

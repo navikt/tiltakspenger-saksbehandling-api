@@ -6,10 +6,10 @@ import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.sammenlign
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringForDag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringerForDag
@@ -85,7 +85,7 @@ fun Sak.genererSimuleringFraBeregning(
 ): SimuleringMedMetadata {
     val simuleringForMeldeperioder = behandling.beregning!!.beregninger.map { beregningEtter ->
         val beregningFør = this.meldeperiodeBeregninger.sisteBeregningFør(
-            beregningEtter.beregningMeldekortId,
+            beregningEtter.id,
             beregningEtter.kjedeId,
         )
         val sammenligning = sammenlign(

@@ -4,10 +4,10 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periodisering.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periodisering.norskTidspunktFormatter
 import no.nav.tiltakspenger.libs.periodisering.norskUkedagOgDatoUtenÅrFormatter
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SammenligningAvBeregninger
+import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
+import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 
@@ -69,16 +69,21 @@ private data class UtbetalingsvedtakDTO(
     )
 }
 
+// TODO: må tilpasses utbetalingsvedtak fra revurdering
 suspend fun Utbetalingsvedtak.toJsonRequest(
     hentSaksbehandlersNavn: suspend (String) -> String,
     tiltaksdeltagelser: List<Tiltaksdeltagelse>,
     sammenlign: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
 ): String {
+    require(beregningKilde is BeregningKilde.Meldekort) {
+        "Vi har ikke brev for utbetalingsvedtak fra revurdering ennå"
+    }
+
     return UtbetalingsvedtakDTO(
         fødselsnummer = fnr.verdi,
         saksbehandler = tilSaksbehandlerDto(saksbehandler, hentSaksbehandlersNavn),
         beslutter = tilSaksbehandlerDto(beslutter, hentSaksbehandlersNavn),
-        meldekortId = meldekortId.toString(),
+        meldekortId = beregningKilde.id.toString(),
         saksnummer = saksnummer.toString(),
         meldekortPeriode = UtbetalingsvedtakDTO.PeriodeDTO(
             fom = periode.fraOgMed.format(norskDatoFormatter),
@@ -86,7 +91,7 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
         ),
         tiltak = tiltaksdeltagelser.map { it.toTiltakDTO() },
         iverksattTidspunkt = opprettet.format(norskTidspunktFormatter),
-        korrigering = meldekortbehandling.type == MeldekortBehandlingType.KORRIGERING,
+        korrigering = erKorrigering,
         sammenligningAvBeregninger = toBeregningSammenligningDTO(sammenlign),
     ).let { serialize(it) }
 }
@@ -94,7 +99,7 @@ suspend fun Utbetalingsvedtak.toJsonRequest(
 private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
     sammenlign: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
 ): UtbetalingsvedtakDTO.SammenligningAvBeregningerDTO {
-    return this.meldekortbehandling.beregning.beregninger
+    return this.beregning.beregninger
         .map { beregninger -> sammenlign(beregninger) }
         .map { sammenligningPerMeldeperiode ->
             sammenligningPerMeldeperiode.periode.let { periode ->
@@ -138,7 +143,7 @@ private fun Utbetalingsvedtak.toBeregningSammenligningDTO(
             // Kommentar: Bug rundt serialisering av NonEmptyList gjør at vi konverterer til standard kotlin list
             UtbetalingsvedtakDTO.SammenligningAvBeregningerDTO(
                 meldeperioder = meldeperiodeSammenligninger.toList(),
-                begrunnelse = this.meldekortbehandling.begrunnelse?.verdi,
+                begrunnelse = begrunnelse,
                 totalDifferanse = meldeperiodeSammenligninger.toList().sumOf { it.differanseFraForrige },
             )
         }

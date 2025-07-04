@@ -1,7 +1,7 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.domene
+package no.nav.tiltakspenger.saksbehandling.beregning
 
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SammenligningAvBeregninger.DagSammenligning
+import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger.DagSammenligning
 import java.time.LocalDate
 
 data class SammenligningAvBeregninger(
@@ -83,7 +83,7 @@ fun sammenlign(
 
     return SammenligningAvBeregninger.MeldeperiodeSammenligninger(
         periode = forrigeBeregning.periode,
-        differanseFraForrige = gjeldendeBeregning.beregnTotaltBeløp() - forrigeBeregning.beregnTotaltBeløp(),
+        differanseFraForrige = gjeldendeBeregning.totalBeløp - forrigeBeregning.totalBeløp,
         dager = forrigeBeregning.dager
             .zip(gjeldendeBeregning.dager)
             .map { (forrige, gjeldende) -> sammenlign(forrige, gjeldende) },

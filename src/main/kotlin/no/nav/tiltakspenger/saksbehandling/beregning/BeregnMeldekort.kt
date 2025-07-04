@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.domene
+package no.nav.tiltakspenger.saksbehandling.beregning
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
@@ -7,17 +7,22 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Syk.SykBruker
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeDeltatt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Syk.SykBruker
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeDeltatt
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.Reduksjon
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.LocalDate
 
@@ -50,6 +55,7 @@ private data class BeregnMeldekort(
     /** Returnerer beregnede dager fra kommando, og evt nye beregninger for påfølgende meldeperioder på saken */
     fun beregn(): NonEmptyList<MeldeperiodeBeregning> {
         val meldeperiodeSomBeregnesFraOgMed = meldeperiodeSomBeregnes.first().dato
+        val kilde = BeregningKilde.Meldekort(meldekortIdSomBeregnes)
 
         val meldeperiodeBeregninger = meldekortBehandlinger.meldeperiodeBeregninger
 
@@ -62,9 +68,10 @@ private data class BeregnMeldekort(
 
                 nonEmptyListOf(
                     MeldeperiodeBeregning(
+                        id = BeregningId.random(),
                         kjedeId = meldeperiodeSomBeregnes.meldeperiode.kjedeId,
-                        beregningMeldekortId = meldekortIdSomBeregnes,
-                        dagerMeldekortId = meldekortIdSomBeregnes,
+                        beregningKilde = kilde,
+                        meldekortId = meldekortIdSomBeregnes,
                         dager = beregnMeldeperiodeSomBeregnes(),
                     ),
                 ).plus(
@@ -82,9 +89,10 @@ private data class BeregnMeldekort(
                         }
 
                         MeldeperiodeBeregning(
+                            id = BeregningId.random(),
                             kjedeId = kjedeId,
-                            beregningMeldekortId = meldekortIdSomBeregnes,
-                            dagerMeldekortId = meldekort.id,
+                            beregningKilde = kilde,
+                            meldekortId = meldekort.id,
                             dager = beregnedeDager,
                         )
                     },

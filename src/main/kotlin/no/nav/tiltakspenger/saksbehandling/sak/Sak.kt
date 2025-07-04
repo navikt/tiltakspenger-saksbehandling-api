@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
@@ -20,7 +21,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
@@ -64,7 +64,7 @@ data class Sak(
     val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy { vedtaksliste.tiltakstypeperioder }
 
     fun hentSisteInnvilgetBehandling(): Behandling? {
-        return this.vedtaksliste.tidslinje.findLast { it.verdi?.behandling?.resultat is BehandlingResultat.Innvilgelse }?.verdi?.behandling
+        return this.vedtaksliste.tidslinje.findLast { it.verdi.behandling.resultat is BehandlingResultat.Innvilgelse }?.verdi?.behandling
     }
 
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {

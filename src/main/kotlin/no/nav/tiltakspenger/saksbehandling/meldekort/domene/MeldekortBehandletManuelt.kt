@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer

@@ -1,9 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.toJsonRequest
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeBeregning
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SammenligningAvBeregninger
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
@@ -17,7 +16,7 @@ class UtbetalingsvedtakDTOTest {
         utbetalingsvedtak.toJsonRequest(
             hentSaksbehandlersNavn = { "Saksbehandler Navn" },
             tiltaksdeltagelser = tiltaksdeltagelser,
-            sammenlign = { sammenlign(utbetalingsvedtak.meldekortbehandling.beregning.beregninger.first()) },
+            sammenlign = { sammenlign(utbetalingsvedtak.beregning.beregninger.first()) },
         )
     }
 

@@ -37,6 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
@@ -544,77 +545,6 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
     return Triple(sakMedVedtak, vedtak, oppdatertSøknadsbehandling)
 }
 
-/**
- * Persisterer søknadsbehandling med tilhørende rammevedtak og starter en revurdering
- */
-internal fun TestDataHelper.persisterOpprettetRevurderingDeprecated(
-    sakId: SakId = SakId.random(),
-    fnr: Fnr = Fnr.random(),
-    deltakelseFom: LocalDate = ObjectMother.virkningsperiode().fraOgMed,
-    deltakelseTom: LocalDate = ObjectMother.virkningsperiode().tilOgMed,
-    journalpostId: String = Random.nextInt().toString(),
-    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    beslutter: Saksbehandler = ObjectMother.beslutter(),
-    tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
-    sak: Sak = ObjectMother.nySak(
-        sakId = sakId,
-        fnr = fnr,
-        saksnummer = this.saksnummerGenerator.neste(),
-    ),
-    id: SøknadId = Søknad.randomId(),
-    søknad: Søknad =
-        ObjectMother.nySøknad(
-            periode = tiltaksOgVurderingsperiode,
-            journalpostId = journalpostId,
-            personopplysninger =
-            ObjectMother.personSøknad(
-                fnr = fnr,
-            ),
-            id = id,
-            søknadstiltak =
-            ObjectMother.søknadstiltak(
-                deltakelseFom = deltakelseFom,
-                deltakelseTom = deltakelseTom,
-            ),
-            barnetillegg = listOf(),
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-        ),
-    hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
-    clock: Clock = this.clock,
-): Pair<Sak, Behandling> {
-    val (sak, _) = runBlocking {
-        persisterIverksattSøknadsbehandling(
-            sakId = sakId,
-            fnr = fnr,
-            deltakelseFom = deltakelseFom,
-            deltakelseTom = deltakelseTom,
-            journalpostId = journalpostId,
-            saksbehandler = saksbehandler,
-            beslutter = beslutter,
-            tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
-            søknadId = id,
-            søknad = søknad,
-            sak = sak,
-            clock = clock,
-        )
-    }
-    return runBlocking {
-        sak.startRevurdering(
-            kommando = StartRevurderingKommando(
-                sakId = sakId,
-                correlationId = CorrelationId.generate(),
-                saksbehandler = saksbehandler,
-                revurderingType = RevurderingType.STANS,
-            ),
-            hentSaksopplysninger = hentSaksopplysninger,
-            clock = clock,
-        )
-    }.also {
-        behandlingRepo.lagre(it.second)
-    }
-}
-
 internal fun TestDataHelper.persisterOpprettetRevurdering(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
@@ -644,6 +574,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
     clock: Clock = this.clock,
     revurderingType: RevurderingType = RevurderingType.STANS,
+    navkontor: Navkontor = ObjectMother.navkontor(),
 ): Pair<Sak, Behandling> {
     val (sak, _) = runBlocking {
         persisterIverksattSøknadsbehandling(
@@ -670,6 +601,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
                 revurderingType = revurderingType,
             ),
             hentSaksopplysninger = hentSaksopplysninger,
+            hentNavkontor = { navkontor },
             clock = clock,
         )
     }.also {

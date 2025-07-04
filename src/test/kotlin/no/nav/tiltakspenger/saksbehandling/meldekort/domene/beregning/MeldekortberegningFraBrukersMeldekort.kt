@@ -1,18 +1,18 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.beregning
 
 import arrow.core.toNonEmptyListOrNull
-import io.kotest.matchers.shouldBe
+import io.kotest.matchers.equals.shouldBeEqual
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.beregning.beregn
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.beregn
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -83,20 +83,23 @@ class MeldekortberegningFraBrukersMeldekort {
             ),
         )
 
-        beregn(
-            meldekortIdSomBeregnes = brukersMeldekort.id,
+        val dagerBeregnetFraBruker = beregn(
+            meldekortIdSomBeregnes = meldekortBehandlingId,
             meldeperiodeSomBeregnes = brukersMeldekort.tilMeldekortDager(),
             barnetilleggsPerioder = sakMedÅpenMeldekortbehandling.barnetilleggsperioder,
             tiltakstypePerioder = sakMedÅpenMeldekortbehandling.tiltakstypeperioder,
             meldekortBehandlinger = sakMedÅpenMeldekortbehandling.meldekortBehandlinger,
+        ).map { it.dager }
 
-        ) shouldBe beregn(
-            meldekortIdSomBeregnes = saksbehandlerBehandling.id,
+        val dagerBeregnetFraSaksbehandler = beregn(
+            meldekortIdSomBeregnes = meldekortBehandlingId,
             meldeperiodeSomBeregnes = dager.tilMeldekortDager(meldeperiode),
             barnetilleggsPerioder = sakMedÅpenMeldekortbehandling.barnetilleggsperioder,
             tiltakstypePerioder = sakMedÅpenMeldekortbehandling.tiltakstypeperioder,
             meldekortBehandlinger = sakMedÅpenMeldekortbehandling.meldekortBehandlinger,
-        )
+        ).map { it.dager }
+
+        dagerBeregnetFraBruker shouldBeEqual dagerBeregnetFraSaksbehandler
     }
 
     @Test

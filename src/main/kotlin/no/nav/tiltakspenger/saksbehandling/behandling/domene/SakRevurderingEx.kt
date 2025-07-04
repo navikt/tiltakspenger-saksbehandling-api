@@ -9,16 +9,19 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDate
 
 private typealias HentSaksopplysninger = suspend (Periode) -> Saksopplysninger
+private typealias HentNavkontor = suspend (Fnr) -> Navkontor
 
 suspend fun Sak.startRevurdering(
     kommando: StartRevurderingKommando,
     clock: Clock,
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger,
+    hentNavkontor: HentNavkontor,
 ): Pair<Sak, Revurdering> {
     val saksbehandler = kommando.saksbehandler
     krevSaksbehandlerRolle(saksbehandler)
@@ -33,7 +36,7 @@ suspend fun Sak.startRevurdering(
 
     val revurdering = when (kommando.revurderingType) {
         RevurderingType.STANS -> startStans(saksbehandler, hentSaksopplysninger, clock)
-        RevurderingType.INNVILGELSE -> startInnvilgelse(saksbehandler, hentSaksopplysninger, clock)
+        RevurderingType.INNVILGELSE -> startInnvilgelse(saksbehandler, hentSaksopplysninger, hentNavkontor, clock)
     }
 
     return Pair(
@@ -69,6 +72,7 @@ private suspend fun Sak.startStans(
 private suspend fun Sak.startInnvilgelse(
     saksbehandler: Saksbehandler,
     hentSaksopplysninger: HentSaksopplysninger,
+    hentNavkontor: HentNavkontor,
     clock: Clock,
 ): Revurdering {
     val sisteBehandling = hentSisteInnvilgetBehandling()
@@ -83,6 +87,7 @@ private suspend fun Sak.startInnvilgelse(
         fnr = this.fnr,
         saksbehandler = saksbehandler,
         saksopplysninger = hentSaksopplysninger(sisteBehandling.saksopplysningsperiode),
+        navkontor = hentNavkontor(fnr),
         clock = clock,
     )
 }
@@ -103,8 +108,19 @@ fun Sak.sendRevurderingTilBeslutning(
         is RevurderingInnvilgelseTilBeslutningKommando -> {
             validerInnvilgelsesperiode(kommando.innvilgelsesperiode).onLeft { return it.left() }
 
+//            TODO abn: fjern valideringen over når funksjonaliten under er ferdig!
+//            val beregning = beregnRevurderingInnvilgelse(kommando).getOrElse {
+//                when (it) {
+//                    is RevurderingIkkeBeregnet.IngenEndring -> null
+//                    is RevurderingIkkeBeregnet.IngenTidligereBeregninger -> null
+//                    is RevurderingIkkeBeregnet.StøtterIkkeTilbakekreving ->
+//                        return KanIkkeSendeTilBeslutter.StøtterIkkeTilbakekreving.left()
+//                }
+//            }
+
             behandling.tilBeslutning(
                 kommando = kommando,
+                beregning = null,
                 clock = clock,
             )
         }

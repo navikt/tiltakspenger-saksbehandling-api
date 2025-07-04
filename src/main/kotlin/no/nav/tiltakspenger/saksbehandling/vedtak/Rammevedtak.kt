@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -54,6 +55,10 @@ data class Rammevedtak(
 
     /** Vil være null dersom bruker ikke har rett på barnetillegg  */
     val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
+
+    val beregning: BehandlingBeregning? by lazy {
+        (behandling.resultat as? RevurderingResultat.Innvilgelse)?.beregning
+    }
 
     /** TODO jah: Endre til behandling.antallDagerPerMeldeperiode - merk at den ikke er satt for Avslag eller Stans. */
     override val antallDagerPerMeldeperiode: Int = behandling.maksDagerMedTiltakspengerForPeriode

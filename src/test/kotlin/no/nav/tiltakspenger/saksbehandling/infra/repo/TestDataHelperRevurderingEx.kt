@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStan
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
@@ -41,6 +42,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
         s ?: this.persisterIverksattSøknadsbehandling().first
     },
     revurderingType: RevurderingType = RevurderingType.STANS,
+    navkontor: Navkontor = ObjectMother.navkontor(),
 ): Pair<Sak, Behandling> {
     val sakMedVedtak = genererSak(sak)
 
@@ -53,6 +55,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
                 revurderingType = revurderingType,
             ),
             hentSaksopplysninger = hentSaksopplysninger,
+            hentNavkontor = { navkontor },
             clock = clock,
         )
     }.also {

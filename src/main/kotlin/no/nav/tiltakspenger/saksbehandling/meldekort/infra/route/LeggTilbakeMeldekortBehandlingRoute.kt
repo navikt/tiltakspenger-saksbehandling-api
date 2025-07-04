@@ -11,8 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.UtbetalingsstatusDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldekortBehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekortBehandlingService
 
 private const val LEGG_TILBAKE_MELDEKORTBEHANDLING_PATH = "/sak/{sakId}/meldekort/{meldekortId}/legg-tilbake"
@@ -44,7 +43,7 @@ fun Route.leggTilbakeMeldekortBehandlingRoute(
 
                     call.respond(
                         status = HttpStatusCode.OK,
-                        it.toMeldekortBehandlingDTO(UtbetalingsstatusDTO.IKKE_GODKJENT),
+                        it.tilMeldekortBehandlingDTO(),
                     )
                 }
             }

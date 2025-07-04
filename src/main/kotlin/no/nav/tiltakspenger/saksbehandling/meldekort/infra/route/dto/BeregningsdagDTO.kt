@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Beregningsdag
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregningsdag
 
 data class BeregningsdagDTO(
     val beløp: Int,

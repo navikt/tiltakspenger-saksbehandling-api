@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toDTO
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -94,7 +93,7 @@ internal class UtbetalingDTOTest {
                 antallBarn = AntallBarn(1),
             ),
         )
-        utbetalingsvedtak.meldekortbehandling.beregning.alleDager.map { it.beregningsdag }.forEach {
+        utbetalingsvedtak.beregning.dager.map { it.beregningsdag }.forEach {
             withClue("Beregningsdag $it") {
                 if (it!!.beløp > 0) it.beløpBarnetillegg shouldBe 52
             }
@@ -188,7 +187,7 @@ internal class UtbetalingDTOTest {
                 antallBarn = AntallBarn(2),
             ),
         )
-        utbetalingsvedtak.meldekortbehandling.beregning.alleDager.map { it.beregningsdag }.forEach {
+        utbetalingsvedtak.beregning.dager.map { it.beregningsdag }.forEach {
             withClue("Beregningsdag $it") {
                 if (it!!.beløp > 0) it.beløpBarnetillegg shouldBe 104
             }

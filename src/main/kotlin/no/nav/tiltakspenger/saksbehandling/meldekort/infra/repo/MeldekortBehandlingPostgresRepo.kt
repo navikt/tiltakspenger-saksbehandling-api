@@ -15,6 +15,9 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJson
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeBeregningerFraMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
@@ -25,7 +28,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -421,10 +423,8 @@ class MeldekortBehandlingPostgresRepo(
             val saksbehandler = row.stringOrNull("saksbehandler")
 
             val dager = row.string("meldekortdager").tilMeldekortDager(meldeperiode)
-            val beregning = row.stringOrNull("beregninger")?.tilBeregninger(id)?.let {
-                MeldekortBeregning(it)
-            }
-            val simulering = row.stringOrNull("simulering")?.toSimuleringFraDbJson(MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(sakId, session))
+            val simulering = row.stringOrNull("simulering")
+                ?.toSimuleringFraDbJson(MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(sakId, session))
 
             val brukersMeldekort = row.stringOrNull("brukers_meldekort_id")?.let {
                 BrukersMeldekortPostgresRepo.hentForMeldekortId(
@@ -432,6 +432,12 @@ class MeldekortBehandlingPostgresRepo(
                     session,
                 )
             }
+
+            val iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt")
+
+            val beregning = row.stringOrNull("beregninger")
+                ?.tilMeldeperiodeBeregningerFraMeldekort(id)
+                ?.let { MeldekortBeregning(it) }
 
             return when (val status = row.string("status").toMeldekortBehandlingStatus()) {
                 MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> {
@@ -474,7 +480,7 @@ class MeldekortBehandlingPostgresRepo(
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
                         beslutter = row.stringOrNull("beslutter"),
                         status = status,
-                        iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
+                        iverksattTidspunkt = iverksattTidspunkt,
                         beregning = beregning!!,
                         simulering = simulering,
                         dager = dager,

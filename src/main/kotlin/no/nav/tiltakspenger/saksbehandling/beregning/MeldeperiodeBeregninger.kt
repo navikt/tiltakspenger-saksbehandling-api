@@ -1,7 +1,8 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.domene
+package no.nav.tiltakspenger.saksbehandling.beregning
 
-import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 
 data class MeldeperiodeBeregninger(
     val meldekortBehandlinger: MeldekortBehandlinger,
@@ -21,8 +22,12 @@ data class MeldeperiodeBeregninger(
         beregningerPerKjede.entries.associate { it.key to it.value.last() }
     }
 
-    fun sisteBeregningFør(meldekortId: MeldekortId, kjedeId: MeldeperiodeKjedeId): MeldeperiodeBeregning? {
-        return beregningerPerKjede[kjedeId]?.takeWhile { it.beregningMeldekortId != meldekortId }?.lastOrNull()
+    fun sisteBeregningFør(beregningId: BeregningId, kjedeId: MeldeperiodeKjedeId): MeldeperiodeBeregning? {
+        return beregningerPerKjede[kjedeId]?.takeWhile { it.id != beregningId }?.lastOrNull()
+    }
+
+    fun sisteBeregningerForPeriode(periode: Periode): List<MeldeperiodeBeregning> {
+        return sisteBeregningPerKjede.values.filter { it.periode.overlapperMed(periode) }
     }
 
     init {

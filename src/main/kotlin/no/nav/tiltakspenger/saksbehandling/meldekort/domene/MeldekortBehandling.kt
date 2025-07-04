@@ -5,11 +5,13 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
@@ -80,6 +82,8 @@ sealed interface MeldekortBehandling {
 
     val avbrutt: Avbrutt?
 
+    val rammevedtak: List<VedtakId>? get() = meldeperiode.rammevedtak?.verdier?.distinct()
+
     /** Merk at statusen [IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den brukes ifm stans. */
     fun erÅpen(): Boolean = !erAvsluttet
 
@@ -139,9 +143,9 @@ sealed interface MeldekortBehandling {
 
     sealed interface Behandlet : MeldekortBehandling {
         override val beregning: MeldekortBeregning
-        override val beløpTotal: Int get() = beregning.beregnTotaltBeløp()
-        override val ordinærBeløp: Int get() = beregning.beregnTotalOrdinærBeløp()
-        override val barnetilleggBeløp: Int get() = beregning.beregnTotalBarnetillegg()
+        override val beløpTotal: Int get() = beregning.totalBeløp
+        override val ordinærBeløp: Int get() = beregning.ordinærBeløp
+        override val barnetilleggBeløp: Int get() = beregning.barnetilleggBeløp
 
         /**
          *  Perioden for beregningen av meldekortet.

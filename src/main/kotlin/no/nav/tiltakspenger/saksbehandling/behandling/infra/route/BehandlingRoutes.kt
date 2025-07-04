@@ -17,10 +17,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Oppdate
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaBehandlingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.StartRevurderingService
 
 internal const val BEHANDLING_PATH = "/behandling"
 internal const val BEHANDLINGER_PATH = "/behandlinger"

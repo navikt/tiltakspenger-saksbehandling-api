@@ -18,9 +18,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
+import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import java.time.Clock
@@ -75,6 +77,16 @@ data class Revurdering(
         }
     }
 
+    val navkontor: Navkontor? = when (resultat) {
+        is Innvilgelse -> resultat.navkontor
+        is Stans -> null
+    }
+
+    val beregning: BehandlingBeregning? = when (resultat) {
+        is Innvilgelse -> resultat.beregning
+        is Stans -> null
+    }
+
     init {
         super.init()
 
@@ -112,12 +124,14 @@ data class Revurdering(
 
     fun tilBeslutning(
         kommando: RevurderingInnvilgelseTilBeslutningKommando,
+        beregning: BehandlingBeregning?,
         clock: Clock,
     ): Either<KanIkkeSendeTilBeslutter, Revurdering> {
         return validerSendTilBeslutning(kommando.saksbehandler).mapLeft {
             it
         }.map {
             require(this.resultat is Innvilgelse)
+
             this.copy(
                 status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
                 sendtTilBeslutning = nå(clock),
@@ -131,6 +145,7 @@ data class Revurdering(
                     ),
                     barnetillegg = kommando.barnetillegg,
                     antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+                    beregning = beregning,
                 ),
             )
         }
@@ -190,6 +205,7 @@ data class Revurdering(
             saksbehandler: Saksbehandler,
             saksopplysninger: Saksopplysninger,
             clock: Clock,
+            navkontor: Navkontor,
         ): Revurdering {
             return opprett(
                 sakId = sakId,
@@ -203,6 +219,8 @@ data class Revurdering(
                     barnetillegg = null,
                     // TODO John + Anders: Siden vi ikke har en virkningsperiode på dette tidspunktet, gir det ikke noen mening og sette antallDagerPerMeldeperiode
                     antallDagerPerMeldeperiode = null,
+                    beregning = null,
+                    navkontor = navkontor,
                 ),
             )
         }

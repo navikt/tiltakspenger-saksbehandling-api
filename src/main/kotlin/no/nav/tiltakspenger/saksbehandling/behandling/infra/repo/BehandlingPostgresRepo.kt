@@ -30,8 +30,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingT
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJson
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeBeregningerFraBehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
 import org.intellij.lang.annotations.Language
@@ -349,6 +353,17 @@ class BehandlingPostgresRepo(
                 virkningsperiodeFraOgMed?.let { Periode(virkningsperiodeFraOgMed, virkningsperiodeTilOgMed!!) }
             val søknadId = stringOrNull("soknad_id")?.let { SøknadId.fromString(it) }
 
+            val beregning = stringOrNull("beregning")?.let {
+                BehandlingBeregning(it.tilMeldeperiodeBeregningerFraBehandling(id))
+            }
+
+            val navkontor = stringOrNull("navkontor")?.let {
+                Navkontor(
+                    kontornummer = it,
+                    kontornavn = stringOrNull("navkontor_navn"),
+                )
+            }
+
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
                     val automatiskSaksbehandlet = boolean("automatisk_saksbehandlet")
@@ -412,6 +427,8 @@ class BehandlingPostgresRepo(
                                 ?.toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                             antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")?.toAntallDagerForMeldeperiode(),
+                            beregning = beregning,
+                            navkontor = navkontor,
                         )
                     }
 
@@ -473,7 +490,10 @@ class BehandlingPostgresRepo(
                 resultat,
                 soknad_id,
                 automatisk_saksbehandlet,
-                manuelt_behandles_grunner
+                manuelt_behandles_grunner,
+                beregning,
+                navkontor,
+                navkontor_navn
             ) values (
                 :id,
                 :sak_id,
@@ -504,7 +524,10 @@ class BehandlingPostgresRepo(
                 :resultat,
                 :soknad_id,
                 :automatisk_saksbehandlet,
-                to_jsonb(:manuelt_behandles_grunner::jsonb)
+                to_jsonb(:manuelt_behandles_grunner::jsonb),
+                to_jsonb(:beregning::jsonb),
+                :navkontor,
+                :navkontor_navn
             )
             """.trimIndent()
 
@@ -537,7 +560,10 @@ class BehandlingPostgresRepo(
                 resultat = :resultat,
                 soknad_id = :soknad_id,
                 automatisk_saksbehandlet = :automatisk_saksbehandlet,
-                manuelt_behandles_grunner = to_jsonb(:manuelt_behandles_grunner::jsonb)
+                manuelt_behandles_grunner = to_jsonb(:manuelt_behandles_grunner::jsonb),
+                beregning = to_jsonb(:beregning::jsonb),
+                navkontor = :navkontor,
+                navkontor_navn = :navkontor_navn                
             where id = :id and sist_endret = :sist_endret_old
             """.trimIndent()
 
@@ -671,12 +697,18 @@ private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when 
         "avslagsgrunner" to this.avslagsgrunner.toDb(),
     )
 
-    is SøknadsbehandlingResultat.Innvilgelse,
-    is RevurderingResultat.Innvilgelse,
-    -> arrayOf(
+    is BehandlingResultat.Innvilgelse -> arrayOf(
         "barnetillegg" to this.barnetillegg?.toDbJson(),
         "valgte_tiltaksdeltakelser" to this.valgteTiltaksdeltakelser?.toDbJson(),
         "antall_dager_per_meldeperiode" to this.antallDagerPerMeldeperiode?.toDbJson(),
+        *when (this) {
+            is SøknadsbehandlingResultat.Innvilgelse -> emptyArray()
+            is RevurderingResultat.Innvilgelse -> arrayOf(
+                "beregning" to this.beregning?.tilBeregningerDbJson(),
+                "navkontor" to this.navkontor?.kontornummer,
+                "navkontor_navn" to this.navkontor?.kontornavn,
+            )
+        },
     )
 
     is RevurderingResultat.Stans -> arrayOf(
