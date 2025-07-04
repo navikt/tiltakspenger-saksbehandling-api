@@ -71,18 +71,23 @@ private suspend fun Sak.startInnvilgelse(
     hentSaksopplysninger: HentSaksopplysninger,
     clock: Clock,
 ): Revurdering {
-    val sisteBehandling = hentSisteInnvilgetBehandling()
-
-    requireNotNull(sisteBehandling) {
+    require(harFørstegangsvedtak) {
         "Må ha en tidligere vedtatt innvilgelse for å kunne revurdere innvilgelse"
     }
-
+    val saksopplysningsperiode = this.saksopplysningsperiode.let {
+        Periode(
+            it.minOf { it.fraOgMed },
+            // Legger på et år for å matche søknadsbehandlingen enn så lenge. Dette vil kun være OK for forlengelse frem i tid, ikke forlengelse tilbake i tid eller omgjøring tilbake i tid.
+            it.maxOf { it.tilOgMed }.plusYears(1),
+        )
+    }
     return Revurdering.opprettInnvilgelse(
         sakId = this.id,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
         saksbehandler = saksbehandler,
-        saksopplysninger = hentSaksopplysninger(sisteBehandling.saksopplysningsperiode),
+        // TODO jah: På sikt vil vi dele innhenting i 1) tiltaksdeltagelser 2) velger revurderingsperiode 3) bruker revurderingsperiode som innhentingsperiode for resten av saksopplysnignene
+        saksopplysninger = hentSaksopplysninger(saksopplysningsperiode),
         clock = clock,
     )
 }

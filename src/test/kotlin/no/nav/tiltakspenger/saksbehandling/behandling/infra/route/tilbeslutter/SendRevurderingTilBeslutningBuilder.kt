@@ -61,7 +61,7 @@ interface SendRevurderingTilBeslutningBuilder {
                 sakId,
                 behandlingId,
                 saksbehandler,
-                stansperiode = søknad.vurderingsperiode(),
+                stansperiode = søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
                 valgteHjemler = nonEmptyListOf("Alder"),
             ),
         )

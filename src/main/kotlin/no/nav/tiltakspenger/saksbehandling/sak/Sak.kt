@@ -5,11 +5,13 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.leggSammen
+import no.nav.tiltakspenger.libs.periodisering.leggSammenMed
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
@@ -63,8 +65,42 @@ data class Sak(
 
     val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy { vedtaksliste.tiltakstypeperioder }
 
-    fun hentSisteInnvilgetBehandling(): Behandling? {
-        return this.vedtaksliste.tidslinje.findLast { it.verdi?.behandling?.resultat is BehandlingResultat.Innvilgelse }?.verdi?.behandling
+    /** Et førstegangsvedtak defineres som den første søknadsbehandlingen som fører til innvilgelse for en ikke-overlappende periode. */
+    val harFørstegangsvedtak: Boolean by lazy { this.vedtaksliste.harFørstegangsvedtak }
+
+    /**
+     * Periodene det er søkt om, slått sammen overlappende og tilstøtende perioder.
+     * Merk at tiltaksdeltagelsesperiodene er som de så ut på søknadstidspunktet og kan ha endret seg i etterkant.
+     * Man kan bare søke på en tiltaksdeltagelse per søknad.
+     */
+    val søknadsperioder: List<Periode> by lazy {
+        soknader.map { it.tiltaksdeltagelseperiodeDetErSøktOm() }.leggSammen(godtaOverlapp = true)
+    }
+
+    val tiltaksdeltagelserIderDetErSøktPå: List<String> by lazy {
+        soknader.map { it.tiltak.id }.sorted().distinct()
+    }
+
+    /**
+     * Ikke basert på tidslinje.
+     * Dette er summen av alle vedtak sine tiltaksdeltagelseperioder, filtrert på tiltaksdeltagelseId, slått sammen overlappende og tilstøtende perioder.
+     */
+    val tiltaksdeltagelsesperioderFraVedtak: List<Periode> by lazy {
+        vedtaksliste.value
+            .flatMap { it.behandling.saksopplysninger.tiltaksdeltagelse }
+            .filter { it.eksternDeltagelseId in tiltaksdeltagelserIderDetErSøktPå }
+            .map { Periode(it.deltagelseFraOgMed!!, it.deltagelseTilOgMed!!) }
+            .leggSammen(godtaOverlapp = true)
+    }
+
+    /**
+     * Sakens totale saksopplysningsperiode/innhentingsperiode.
+     * Denne vil omfavne sakens totale behandlingsgrunnlag.
+     * Dette vil være summen av periodene til tiltaksdeltagelsene det er søkt for. Bruker den største perioden av tiltaksdeltagelsen på søknaden og vedtaket.
+     * I mange tilfeller bør en behandling bruke et subset av denne perioden.
+     */
+    val saksopplysningsperiode: List<Periode> by lazy {
+        søknadsperioder.leggSammenMed(tiltaksdeltagelsesperioderFraVedtak, godtaOverlapp = true)
     }
 
     fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {

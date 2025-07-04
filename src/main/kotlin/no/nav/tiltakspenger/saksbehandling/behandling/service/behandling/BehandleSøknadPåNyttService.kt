@@ -51,7 +51,7 @@ class BehandleSøknadPåNyttService(
         }
 
         val søknad = avslåtteSøknadsbehandlinger.first().søknad
-        val perioderMedUtbetalinger = sak.utbetalinger.hentUtbetalingerFraPeriode(søknad.vurderingsperiode())
+        val perioderMedUtbetalinger = sak.utbetalinger.hentUtbetalingerFraPeriode(søknad.tiltaksdeltagelseperiodeDetErSøktOm())
 
         if (perioderMedUtbetalinger.isNotEmpty()) {
             throw IllegalStateException("Det finnes utbetalinger i vurderingsperioden til søknaden: ${søknad.id}")

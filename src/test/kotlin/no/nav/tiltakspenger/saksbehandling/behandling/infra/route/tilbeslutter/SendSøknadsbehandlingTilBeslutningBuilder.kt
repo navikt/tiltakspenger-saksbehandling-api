@@ -66,7 +66,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                 sakId = sakId,
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
-                innvilgelsesperiode = søknad.vurderingsperiode(),
+                innvilgelsesperiode = søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
                 eksternDeltagelseId = søknad.tiltak.id,
                 resultat = resultat,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
