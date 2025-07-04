@@ -92,10 +92,6 @@ spec:
           permissions:
             roles:
               - "lage_hendelser"
-        - application: tiltakspenger-datadeling
-          permissions:
-            roles:
-              - "hente_data"
         - application: tiltakspenger-soknad-api
           permissions:
             roles:
