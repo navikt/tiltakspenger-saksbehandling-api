@@ -601,7 +601,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
                 revurderingType = revurderingType,
             ),
             hentSaksopplysninger = hentSaksopplysninger,
-            navkontor = navkontor,
+            hentNavkontor = { navkontor },
             clock = clock,
         )
     }.also {

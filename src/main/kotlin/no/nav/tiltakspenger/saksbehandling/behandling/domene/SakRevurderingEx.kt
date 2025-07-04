@@ -18,12 +18,13 @@ import java.time.Clock
 import java.time.LocalDate
 
 private typealias HentSaksopplysninger = suspend (Periode) -> Saksopplysninger
+private typealias HentNavkontor = suspend (Fnr) -> Navkontor
 
 suspend fun Sak.startRevurdering(
     kommando: StartRevurderingKommando,
-    navkontor: Navkontor,
     clock: Clock,
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger,
+    hentNavkontor: HentNavkontor,
 ): Pair<Sak, Revurdering> {
     val saksbehandler = kommando.saksbehandler
     krevSaksbehandlerRolle(saksbehandler)
@@ -38,7 +39,7 @@ suspend fun Sak.startRevurdering(
 
     val revurdering = when (kommando.revurderingType) {
         RevurderingType.STANS -> startStans(saksbehandler, hentSaksopplysninger, clock)
-        RevurderingType.INNVILGELSE -> startInnvilgelse(saksbehandler, hentSaksopplysninger, navkontor, clock)
+        RevurderingType.INNVILGELSE -> startInnvilgelse(saksbehandler, hentSaksopplysninger, hentNavkontor, clock)
     }
 
     return Pair(
@@ -74,7 +75,7 @@ private suspend fun Sak.startStans(
 private suspend fun Sak.startInnvilgelse(
     saksbehandler: Saksbehandler,
     hentSaksopplysninger: HentSaksopplysninger,
-    navkontor: Navkontor,
+    hentNavkontor: HentNavkontor,
     clock: Clock,
 ): Revurdering {
     val sisteBehandling = hentSisteInnvilgetBehandling()
@@ -89,7 +90,7 @@ private suspend fun Sak.startInnvilgelse(
         fnr = this.fnr,
         saksbehandler = saksbehandler,
         saksopplysninger = hentSaksopplysninger(sisteBehandling.saksopplysningsperiode),
-        navkontor = navkontor,
+        navkontor = hentNavkontor(fnr),
         clock = clock,
     )
 }

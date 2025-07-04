@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
@@ -27,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import java.time.LocalDateTime
 
 internal class UtbetalingsvedtakPostgresRepo(
@@ -280,6 +280,19 @@ internal class UtbetalingsvedtakPostgresRepo(
 
         private fun Row.toVedtak(session: Session): Utbetalingsvedtak {
             val vedtakId = VedtakId.fromString(string("id"))
+            val sakId = SakId.fromString(string("sak_id"))
+            val saksnummer = Saksnummer(string("saksnummer"))
+            val fnr = Fnr.fromString(string("fnr"))
+            val forrigeUtbetalingsvedtakId = stringOrNull("forrige_vedtak_id")?.let {
+                VedtakId.fromString(
+                    it,
+                )
+            }
+            val sendtTilUtbetaling = localDateTimeOrNull("sendt_til_utbetaling_tidspunkt")
+            val journalpostId = stringOrNull("journalpost_id")?.let { JournalpostId(it) }
+            val journalføringstidspunkt = localDateTimeOrNull("journalføringstidspunkt")
+            val opprettet = localDateTime("opprettet")
+            val status = stringOrNull("status").toUtbetalingsstatus()
 
             val beregningKilde = BeregningKildeDb.valueOf(string("beregning_kilde"))
 
@@ -299,19 +312,15 @@ internal class UtbetalingsvedtakPostgresRepo(
 
                     Utbetalingsvedtak(
                         id = vedtakId,
-                        sakId = SakId.fromString(string("sak_id")),
-                        saksnummer = Saksnummer(string("saksnummer")),
-                        fnr = Fnr.fromString(string("fnr")),
-                        forrigeUtbetalingsvedtakId = stringOrNull("forrige_vedtak_id")?.let {
-                            VedtakId.fromString(
-                                it,
-                            )
-                        },
-                        sendtTilUtbetaling = localDateTimeOrNull("sendt_til_utbetaling_tidspunkt"),
-                        journalpostId = stringOrNull("journalpost_id")?.let { JournalpostId(it) },
-                        journalføringstidspunkt = localDateTimeOrNull("journalføringstidspunkt"),
-                        opprettet = localDateTime("opprettet"),
-                        status = stringOrNull("status").toUtbetalingsstatus(),
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        forrigeUtbetalingsvedtakId = forrigeUtbetalingsvedtakId,
+                        sendtTilUtbetaling = sendtTilUtbetaling,
+                        journalpostId = journalpostId,
+                        journalføringstidspunkt = journalføringstidspunkt,
+                        opprettet = opprettet,
+                        status = status,
                         beregning = meldekortbehandling.beregning,
                         saksbehandler = meldekortbehandling.saksbehandler!!,
                         beslutter = meldekortbehandling.beslutter!!,
@@ -324,35 +333,33 @@ internal class UtbetalingsvedtakPostgresRepo(
                 BeregningKildeDb.BEHANDLING -> {
                     val behandlingId = BehandlingId.fromString(string("behandling_id"))
 
-                    val behandling = BehandlingPostgresRepo.hentOrNull(
+                    val rammevedtak = RammevedtakPostgresRepo.hentForBehandlingId(
                         behandlingId,
                         session,
                     )
 
-                    requireNotNull(behandling) {
-                        "Fant ikke behandlingen $behandlingId på utbetalingsvedtak $vedtakId"
+                    requireNotNull(rammevedtak) {
+                        "Fant ingen rammevedtak for $behandlingId på utbetalingsvedtak $vedtakId"
                     }
+
+                    val behandling = rammevedtak.behandling
 
                     Utbetalingsvedtak(
                         id = vedtakId,
-                        sakId = SakId.fromString(string("sak_id")),
-                        saksnummer = Saksnummer(string("saksnummer")),
-                        fnr = Fnr.fromString(string("fnr")),
-                        forrigeUtbetalingsvedtakId = stringOrNull("forrige_vedtak_id")?.let {
-                            VedtakId.fromString(
-                                it,
-                            )
-                        },
-                        sendtTilUtbetaling = localDateTimeOrNull("sendt_til_utbetaling_tidspunkt"),
-                        journalpostId = stringOrNull("journalpost_id")?.let { JournalpostId(it) },
-                        journalføringstidspunkt = localDateTimeOrNull("journalføringstidspunkt"),
-                        opprettet = localDateTime("opprettet"),
-                        status = stringOrNull("status").toUtbetalingsstatus(),
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        fnr = fnr,
+                        forrigeUtbetalingsvedtakId = forrigeUtbetalingsvedtakId,
+                        sendtTilUtbetaling = sendtTilUtbetaling,
+                        journalpostId = journalpostId,
+                        journalføringstidspunkt = journalføringstidspunkt,
+                        opprettet = opprettet,
+                        status = status,
                         beregning = behandling.beregning!!,
                         saksbehandler = behandling.saksbehandler!!,
                         beslutter = behandling.beslutter!!,
                         brukerNavkontor = behandling.navkontor!!,
-                        rammevedtak = emptyList(), // TODO: hent denne fra et sted!
+                        rammevedtak = listOf(rammevedtak.id),
                         automatiskBehandlet = false,
                     )
                 }
