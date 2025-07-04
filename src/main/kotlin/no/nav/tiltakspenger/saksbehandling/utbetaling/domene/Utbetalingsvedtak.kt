@@ -21,9 +21,9 @@ import java.time.Clock
 import java.time.LocalDateTime
 
 /**
- * TODO abn: Split denne til "MeldekortBehandlingVedtak" og "Utbetaling".
+ * TODO (kanskje) abn: Split denne til "MeldekortBehandlingVedtak" og "Utbetaling".
  * MeldekortBehandlingVedtak vil da ha en Utbetaling, og Rammevedtak kan ha en Utbetaling ved revurdering som
- * fører til endring på beregningen av allerede utbetalte meldekort
+ * fører til endring på beregningen av allerede utbetalte meldeperioder
  * */
 
 /**
