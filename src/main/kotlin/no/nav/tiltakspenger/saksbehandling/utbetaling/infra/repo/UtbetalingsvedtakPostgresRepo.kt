@@ -327,7 +327,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                         saksbehandler = meldekortbehandling.saksbehandler!!,
                         beslutter = meldekortbehandling.beslutter!!,
                         brukerNavkontor = meldekortbehandling.navkontor,
-                        rammevedtak = meldekortbehandling.rammevedtak!!,
+                        rammevedtak = meldekortbehandling.rammevedtak,
                         automatiskBehandlet = meldekortbehandling is MeldekortBehandletAutomatisk,
                         erKorrigering = meldekortbehandling.type == MeldekortBehandlingType.KORRIGERING,
                         begrunnelse = meldekortbehandling.begrunnelse?.verdi,

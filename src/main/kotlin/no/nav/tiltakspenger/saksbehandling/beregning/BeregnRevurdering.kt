@@ -22,6 +22,10 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.lang.IllegalStateException
 import java.time.LocalDate
 
+/* TODO abn: denne må nok tweakes litt før den tas i bruk.
+ * Hva skal vi f.eks. gjøre dersom kun tiltakstype er endret?
+ * Trenger også tester!
+ * */
 fun Sak.beregnRevurderingInnvilgelse(
     kommando: RevurderingInnvilgelseTilBeslutningKommando,
 ): Either<RevurderingIkkeBeregnet, BehandlingBeregning> {
