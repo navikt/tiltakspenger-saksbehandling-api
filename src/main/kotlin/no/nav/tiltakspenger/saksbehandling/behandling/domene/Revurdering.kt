@@ -48,8 +48,6 @@ data class Revurdering(
     override val resultat: RevurderingResultat,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
-    override val beregning: BehandlingBeregning?,
-    override val navkontor: Navkontor?,
 ) : Behandling {
 
     override val barnetillegg: Barnetillegg? = when (resultat) {
@@ -77,6 +75,16 @@ data class Revurdering(
             is Innvilgelse -> SammenhengendePeriodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, virkningsperiode)
             is Stans -> SammenhengendePeriodisering(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, virkningsperiode)
         }
+    }
+
+    val navkontor: Navkontor? = when (resultat) {
+        is Innvilgelse -> resultat.navkontor
+        is Stans -> null
+    }
+
+    val beregning: BehandlingBeregning? = when (resultat) {
+        is Innvilgelse -> resultat.beregning
+        is Stans -> null
     }
 
     init {
@@ -130,7 +138,6 @@ data class Revurdering(
                 begrunnelseVilkårsvurdering = kommando.begrunnelse,
                 fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
                 virkningsperiode = kommando.innvilgelsesperiode,
-                beregning = beregning,
                 resultat = this.resultat.copy(
                     valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
                         tiltaksdeltakelser = kommando.tiltaksdeltakelser,
@@ -138,6 +145,7 @@ data class Revurdering(
                     ),
                     barnetillegg = kommando.barnetillegg,
                     antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+                    beregning = beregning,
                 ),
             )
         }
@@ -187,7 +195,6 @@ data class Revurdering(
                 resultat = Stans(
                     valgtHjemmel = emptyList(),
                 ),
-                navkontor = null,
             )
         }
 
@@ -212,8 +219,9 @@ data class Revurdering(
                     barnetillegg = null,
                     // TODO John + Anders: Siden vi ikke har en virkningsperiode på dette tidspunktet, gir det ikke noen mening og sette antallDagerPerMeldeperiode
                     antallDagerPerMeldeperiode = null,
+                    beregning = null,
+                    navkontor = navkontor,
                 ),
-                navkontor = navkontor,
             )
         }
 
@@ -225,7 +233,6 @@ data class Revurdering(
             saksopplysninger: Saksopplysninger,
             opprettet: LocalDateTime,
             resultat: RevurderingResultat,
-            navkontor: Navkontor?,
         ): Revurdering {
             return Revurdering(
                 id = BehandlingId.random(),
@@ -239,7 +246,6 @@ data class Revurdering(
                 sistEndret = opprettet,
                 resultat = resultat,
                 attesteringer = emptyList(),
-                navkontor = navkontor,
                 virkningsperiode = null,
                 sendtTilBeslutning = null,
                 beslutter = null,
@@ -248,7 +254,6 @@ data class Revurdering(
                 sendtTilDatadeling = null,
                 avbrutt = null,
                 begrunnelseVilkårsvurdering = null,
-                beregning = null,
             )
         }
     }

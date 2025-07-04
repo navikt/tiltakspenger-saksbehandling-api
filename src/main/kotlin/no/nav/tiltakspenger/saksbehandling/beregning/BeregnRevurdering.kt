@@ -25,7 +25,8 @@ import java.time.LocalDate
 fun Sak.beregnRevurderingInnvilgelse(
     kommando: RevurderingInnvilgelseTilBeslutningKommando,
 ): Either<RevurderingIkkeBeregnet, BehandlingBeregning> {
-    val behandling = hentBehandling(kommando.behandlingId)
+    val behandlingId = kommando.behandlingId
+    val behandling = hentBehandling(behandlingId)
 
     require(behandling?.resultat is RevurderingResultat.Innvilgelse)
 
@@ -47,56 +48,72 @@ fun Sak.beregnRevurderingInnvilgelse(
             }
         }
 
-    val sisteBeregninger = meldeperiodeBeregninger.sisteBeregningerForPeriode(periode)
+    val tidligereBeregninger = meldeperiodeBeregninger.sisteBeregningerForPeriode(periode)
 
-    if (sisteBeregninger.isEmpty()) {
+    if (tidligereBeregninger.isEmpty()) {
         return RevurderingIkkeBeregnet.IngenTidligereBeregninger.left()
     }
 
-    val nyeBeregninger = sisteBeregninger.map { beregning ->
-        beregning.copy(
-            dager = beregning.dager.map { dag ->
-                val dato = dag.dato
-                val reduksjon = dag.reduksjon
+    val nyeBeregninger: List<Pair<MeldeperiodeBeregning, Int>> = tidligereBeregninger.mapNotNull { beregning ->
+        val eksisterendeDager = beregning.dager
 
-                val antallBarn = antallBarnForDato(dato)
-                val tiltakstype: TiltakstypeSomGirRett by lazy {
-                    tiltakstypeForDato(dato)
-                }
+        val nyeDager = eksisterendeDager.map { dag ->
+            val dato = dag.dato
+            val reduksjon = dag.reduksjon
 
-                when (dag) {
-                    is DeltattMedLønnITiltaket -> DeltattMedLønnITiltaket.create(dato, tiltakstype, antallBarn)
-                    is DeltattUtenLønnITiltaket -> DeltattMedLønnITiltaket.create(dato, tiltakstype, antallBarn)
-                    is SykBruker -> SykBruker.create(dato, reduksjon, tiltakstype, antallBarn)
-                    is SyktBarn -> SyktBarn.create(dato, reduksjon, tiltakstype, antallBarn)
-                    is FraværAnnet -> FraværAnnet.create(dato, tiltakstype, antallBarn)
-                    is FraværGodkjentAvNav -> FraværGodkjentAvNav.create(dato, tiltakstype, antallBarn)
-                    is IkkeBesvart -> IkkeBesvart.create(dato, tiltakstype, antallBarn)
-                    is IkkeDeltatt -> IkkeDeltatt.create(dato, tiltakstype, antallBarn)
-                    is IkkeRettTilTiltakspenger -> IkkeRettTilTiltakspenger(dato)
-                }
-            },
+            val antallBarn = antallBarnForDato(dato)
+
+            val tiltakstype: TiltakstypeSomGirRett by lazy {
+                tiltakstypeForDato(dato)
+            }
+
+            when (dag) {
+                is DeltattMedLønnITiltaket -> DeltattMedLønnITiltaket.create(dato, tiltakstype, antallBarn)
+                is DeltattUtenLønnITiltaket -> DeltattMedLønnITiltaket.create(dato, tiltakstype, antallBarn)
+                is SykBruker -> SykBruker.create(dato, reduksjon, tiltakstype, antallBarn)
+                is SyktBarn -> SyktBarn.create(dato, reduksjon, tiltakstype, antallBarn)
+                is FraværAnnet -> FraværAnnet.create(dato, tiltakstype, antallBarn)
+                is FraværGodkjentAvNav -> FraværGodkjentAvNav.create(dato, tiltakstype, antallBarn)
+                is IkkeBesvart -> IkkeBesvart.create(dato, tiltakstype, antallBarn)
+                is IkkeDeltatt -> IkkeDeltatt.create(dato, tiltakstype, antallBarn)
+                is IkkeRettTilTiltakspenger -> IkkeRettTilTiltakspenger(dato)
+            }
+        }
+
+        if (nyeDager == eksisterendeDager) {
+            return@mapNotNull null
+        }
+
+        val nyBeregning = MeldeperiodeBeregning(
+            id = BeregningId.random(),
+            dager = nyeDager,
+            meldekortId = beregning.meldekortId,
+            kjedeId = beregning.kjedeId,
+            beregningKilde = BeregningKilde.Behandling(behandlingId),
         )
+
+        val beløpDiff = nyBeregning.totalBeløp - beregning.totalBeløp
+
+        nyBeregning to beløpDiff
     }
 
-    if (nyeBeregninger == sisteBeregninger) {
+    if (nyeBeregninger.isEmpty()) {
         return RevurderingIkkeBeregnet.IngenEndring.left()
     }
 
-    if (nyeBeregninger.beregnTotalBeløp() < sisteBeregninger.beregnTotalBeløp()) {
-        return RevurderingIkkeBeregnet.Tilbakekreving(
-            forrigeBeløp = sisteBeregninger.beregnTotalBeløp(),
-            nyttBeløp = nyeBeregninger.beregnTotalBeløp(),
-        ).left()
+    val beløpTotalDiff = nyeBeregninger.sumOf { it.second }
+
+    if (beløpTotalDiff < 0) {
+        return RevurderingIkkeBeregnet.StøtterIkkeTilbakekreving.left()
     }
 
     return BehandlingBeregning(
-        beregninger = nyeBeregninger.toNonEmptyListOrThrow(),
+        beregninger = nyeBeregninger.map { it.first }.toNonEmptyListOrThrow(),
     ).right()
 }
 
 sealed interface RevurderingIkkeBeregnet {
     data object IngenTidligereBeregninger : RevurderingIkkeBeregnet
     data object IngenEndring : RevurderingIkkeBeregnet
-    data class Tilbakekreving(val forrigeBeløp: Int, val nyttBeløp: Int) : RevurderingIkkeBeregnet
+    data object StøtterIkkeTilbakekreving : RevurderingIkkeBeregnet
 }

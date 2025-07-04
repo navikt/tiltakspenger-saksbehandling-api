@@ -410,7 +410,6 @@ class BehandlingPostgresRepo(
                         resultat = resultat,
                         automatiskSaksbehandlet = automatiskSaksbehandlet,
                         manueltBehandlesGrunner = manueltBehandlesGrunner,
-                        navkontor = navkontor,
                     )
                 }
 
@@ -428,6 +427,8 @@ class BehandlingPostgresRepo(
                                 ?.toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                             antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")?.toAntallDagerForMeldeperiode(),
+                            beregning = beregning,
+                            navkontor = navkontor,
                         )
                     }
 
@@ -451,8 +452,6 @@ class BehandlingPostgresRepo(
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avbrutt = avbrutt,
                         resultat = resultat,
-                        beregning = beregning,
-                        navkontor = navkontor,
                     )
                 }
             }
@@ -689,9 +688,6 @@ private fun Behandling.tilDbParams(): Map<String, Any?> {
         "soknad_id" to søknadId,
         "automatisk_saksbehandlet" to automatiskSaksbehandlet,
         "manuelt_behandles_grunner" to manueltBehandlesGrunner?.toDbJson(),
-        "beregning" to this.beregning?.tilBeregningerDbJson(),
-        "navkontor" to this.navkontor?.kontornummer,
-        "navkontor_navn" to this.navkontor?.kontornavn,
         *this.resultat.tilDbParams(),
     )
 }
@@ -701,12 +697,18 @@ private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when 
         "avslagsgrunner" to this.avslagsgrunner.toDb(),
     )
 
-    is SøknadsbehandlingResultat.Innvilgelse,
-    is RevurderingResultat.Innvilgelse,
-    -> arrayOf(
+    is BehandlingResultat.Innvilgelse -> arrayOf(
         "barnetillegg" to this.barnetillegg?.toDbJson(),
         "valgte_tiltaksdeltakelser" to this.valgteTiltaksdeltakelser?.toDbJson(),
         "antall_dager_per_meldeperiode" to this.antallDagerPerMeldeperiode?.toDbJson(),
+        *when (this) {
+            is SøknadsbehandlingResultat.Innvilgelse -> emptyArray()
+            is RevurderingResultat.Innvilgelse -> arrayOf(
+                "beregning" to this.beregning?.tilBeregningerDbJson(),
+                "navkontor" to this.navkontor?.kontornummer,
+                "navkontor_navn" to this.navkontor?.kontornavn,
+            )
+        },
     )
 
     is RevurderingResultat.Stans -> arrayOf(

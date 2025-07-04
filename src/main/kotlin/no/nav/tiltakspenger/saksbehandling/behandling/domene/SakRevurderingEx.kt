@@ -10,9 +10,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.beregning.RevurderingIkkeBeregnet
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.krevSaksbehandlerRolle
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDate
@@ -113,7 +112,7 @@ fun Sak.sendRevurderingTilBeslutning(
                 when (it) {
                     is RevurderingIkkeBeregnet.IngenEndring -> null
                     is RevurderingIkkeBeregnet.IngenTidligereBeregninger -> null
-                    is RevurderingIkkeBeregnet.Tilbakekreving ->
+                    is RevurderingIkkeBeregnet.StøtterIkkeTilbakekreving ->
                         return KanIkkeSendeTilBeslutter.StøtterIkkeTilbakekreving.left()
                 }
             }

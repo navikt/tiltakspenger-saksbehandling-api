@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -14,9 +16,13 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkUtbetalingDTO
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
-import java.lang.IllegalStateException
 import java.time.Clock
 import java.time.LocalDateTime
+
+/**
+ * TODO abn: Split denne til "MeldekortBehandlingVedtak" og "Utbetaling". Utbetaling skal brukes både for utbetalinger
+ * fra meldekort og fra revurdering
+ * */
 
 /**
  * @property forrigeUtbetalingsvedtakId er null for første utbetalingsvedtak i en sak.
@@ -80,13 +86,19 @@ fun Rammevedtak.opprettUtbetalingsvedtak(
     forrigeUtbetalingsvedtak: Utbetalingsvedtak?,
     clock: Clock,
 ): Utbetalingsvedtak {
-    val beregning = this.beregning ?: throw IllegalStateException(
-        "Rammevedtak $id med behandling ${behandling.id} mangler utbetalingsberegning, kan ikke opprette utbetalingsvedtak",
-    )
+    require(behandling.resultat is RevurderingResultat.Innvilgelse) {
+        "Kan kun opprette utbetaling for innvilget revurdering"
+    }
 
-    val navkontor = this.behandling.navkontor ?: throw IllegalStateException(
-        "Rammevedtak $id med behandling ${behandling.id} mangler brukers Nav-kontor, kan ikke opprette utbetalingsvedtak",
-    )
+    val behandling = this.behandling as Revurdering
+
+    requireNotNull(behandling.beregning) {
+        "Rammevedtak $id med behandling ${behandling.id} mangler utbetalingsberegning, kan ikke opprette utbetalingsvedtak"
+    }
+
+    requireNotNull(behandling.navkontor) {
+        "Rammevedtak $id med behandling ${behandling.id} mangler brukers Nav-kontor, kan ikke opprette utbetalingsvedtak"
+    }
 
     return Utbetalingsvedtak(
         id = VedtakId.random(),
@@ -99,10 +111,10 @@ fun Rammevedtak.opprettUtbetalingsvedtak(
         journalpostId = null,
         journalføringstidspunkt = null,
         status = null,
-        beregning = beregning,
+        beregning = behandling.beregning,
         saksbehandler = this.saksbehandlerNavIdent,
         beslutter = this.beslutterNavIdent,
-        brukerNavkontor = navkontor,
+        brukerNavkontor = behandling.navkontor,
         rammevedtak = listOf(this.id),
         automatiskBehandlet = false,
     )

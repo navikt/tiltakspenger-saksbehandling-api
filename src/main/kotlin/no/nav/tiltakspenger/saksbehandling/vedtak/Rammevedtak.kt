@@ -56,7 +56,9 @@ data class Rammevedtak(
     /** Vil være null dersom bruker ikke har rett på barnetillegg  */
     val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
 
-    val beregning: BehandlingBeregning? by lazy { behandling.beregning }
+    val beregning: BehandlingBeregning? by lazy {
+        (behandling.resultat as? RevurderingResultat.Innvilgelse)?.beregning
+    }
 
     /** TODO jah: Endre til behandling.antallDagerPerMeldeperiode - merk at den ikke er satt for Avslag eller Stans. */
     override val antallDagerPerMeldeperiode: Int = behandling.maksDagerMedTiltakspengerForPeriode

@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
@@ -342,7 +343,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                         "Fant ingen rammevedtak for $behandlingId på utbetalingsvedtak $vedtakId"
                     }
 
-                    val behandling = rammevedtak.behandling
+                    val behandling = rammevedtak.behandling as Revurdering
 
                     Utbetalingsvedtak(
                         id = vedtakId,
@@ -355,9 +356,9 @@ internal class UtbetalingsvedtakPostgresRepo(
                         journalføringstidspunkt = journalføringstidspunkt,
                         opprettet = opprettet,
                         status = status,
-                        beregning = behandling.beregning!!,
                         saksbehandler = behandling.saksbehandler!!,
                         beslutter = behandling.beslutter!!,
+                        beregning = behandling.beregning!!,
                         brukerNavkontor = behandling.navkontor!!,
                         rammevedtak = listOf(rammevedtak.id),
                         automatiskBehandlet = false,

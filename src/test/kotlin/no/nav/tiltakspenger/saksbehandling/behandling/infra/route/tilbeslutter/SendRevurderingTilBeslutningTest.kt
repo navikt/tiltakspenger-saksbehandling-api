@@ -212,7 +212,12 @@ class SendRevurderingTilBeslutningTest {
                 revurdering.resultat shouldBe RevurderingResultat.Innvilgelse(
                     valgteTiltaksdeltakelser = revurdering.valgteTiltaksdeltakelser!!,
                     barnetillegg = søknadsbehandling.barnetillegg,
-                    antallDagerPerMeldeperiode = SammenhengendePeriodisering(AntallDagerForMeldeperiode.default, revurderingInnvilgelsesperiode),
+                    antallDagerPerMeldeperiode = SammenhengendePeriodisering(
+                        AntallDagerForMeldeperiode.default,
+                        revurderingInnvilgelsesperiode,
+                    ),
+                    beregning = revurdering.beregning,
+                    navkontor = revurdering.navkontor,
                 )
 
                 revurdering.virkningsperiode shouldBe revurderingInnvilgelsesperiode
