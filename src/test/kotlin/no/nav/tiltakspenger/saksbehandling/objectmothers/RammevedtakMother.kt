@@ -7,7 +7,10 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -58,11 +61,16 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
+        antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
+            AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+            periode,
+        ),
         behandling: Behandling = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
             virkningsperiode = periode,
             saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
             fnr = fnr,
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         ),
         vedtaksdato: LocalDate = 2.januar(2023),
         journalpostId: JournalpostId? = null,
