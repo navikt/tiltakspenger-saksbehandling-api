@@ -21,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 
-internal const val BARNETILLEGG_PATH = "/sak/{sakId}/behandling/{behandlingId}"
+internal const val BARNETILLEGG_PATH = "/sak/{sakId}/behandling/{behandlingId}/barnetillegg"
 
 fun Route.oppdaterBarnetilleggRoute(
     tokenService: TokenService,

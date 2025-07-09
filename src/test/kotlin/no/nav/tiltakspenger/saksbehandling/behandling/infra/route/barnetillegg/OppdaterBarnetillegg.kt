@@ -34,7 +34,7 @@ suspend fun ApplicationTestBuilder.oppdaterBarnetillegg(
         HttpMethod.Patch,
         url {
             protocol = URLProtocol.HTTPS
-            path("/sak/$sakId/behandling/$behandlingId")
+            path("/sak/$sakId/behandling/$behandlingId/barnetillegg")
         },
         jwt = tac.jwtGenerator.createJwtForSaksbehandler(),
     ) {
