@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBarnetilleggKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KunneIkkeOppdatereBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
@@ -12,7 +12,10 @@ class OppdaterBarnetilleggService(
     private val behandlingRepo: BehandlingRepo,
 ) {
     suspend fun oppdaterBarnetillegg(
-        kommando: OppdaterBarnetilleggKommando,
+        /**
+         * TODO: Se [Søknadsbehandling.oppdaterBarnetillegg] for mer info om hvorfor 'feil' kommando er i bruk
+         */
+        kommando: SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse,
     ): Either<KunneIkkeOppdatereBarnetillegg, Behandling> {
         // Denne sjekker tilgang til person og sak.
         val sak = sakService.sjekkTilgangOgHentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId)

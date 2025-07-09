@@ -39,14 +39,16 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 
+internal const val SEND_TIL_BESLUTNING_PATH = "/sak/{sakId}/behandling/{behandlingId}/sendtilbeslutning"
+
 fun Route.sendSøknadsbehandlingTilBeslutningRoute(
     sendBehandlingTilBeslutningService: SendBehandlingTilBeslutningService,
     auditService: AuditService,
     tokenService: TokenService,
 ) {
     val logger = KotlinLogging.logger {}
-    post("/sak/{sakId}/behandling/{behandlingId}/sendtilbeslutning") {
-        logger.debug { "Mottatt post-request på '/sak/{sakId}/behandling/{behandlingId}/sendtilbeslutning' - Sender behandlingen til beslutning" }
+    post(SEND_TIL_BESLUTNING_PATH) {
+        logger.debug { "Mottatt post-request på $SEND_TIL_BESLUTNING_PATH - Sender behandlingen til beslutning" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->

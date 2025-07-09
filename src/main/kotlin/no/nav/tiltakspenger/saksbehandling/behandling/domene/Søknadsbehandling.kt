@@ -149,13 +149,22 @@ data class Søknadsbehandling(
 
     /**
      * Krever at [virkningsperiode] er satt før vi kan oppdatere barnetillegg.
+     *
+     * TODO - for å støtte autolagring med at innvilgelse er påkrevd, har vi behov for å sende mer informasjon
+     *  til denne metoden, slik at vi kan oppdatere barnetillegg uten å måtte sende innvilgelse.
+     *  Derfor som en fiks (så prod ikke er broken) bare bruker vi beslutning kommando som lagrer de fleste ting
      */
-    fun oppdaterBarnetillegg(kommando: OppdaterBarnetilleggKommando): Either<KunneIkkeOppdatereBarnetillegg, Søknadsbehandling> {
-        require(this.resultat is SøknadsbehandlingResultat.Innvilgelse)
+    fun oppdaterBarnetillegg(kommando: SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse): Either<KunneIkkeOppdatereBarnetillegg, Søknadsbehandling> {
         return validerKanOppdatere(kommando.saksbehandler, "Kunne ikke oppdatere barnetillegg").mapLeft {
             KunneIkkeOppdatereBarnetillegg.KunneIkkeOppdatereBehandling(it)
         }.map {
-            this.copy(resultat = resultat.copy(barnetillegg = kommando.barnetillegg(this.virkningsperiode!!)))
+            this.copy(
+                resultat = SøknadsbehandlingResultat.Innvilgelse(
+                    valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
+                    barnetillegg = kommando.barnetillegg,
+                    antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+                ),
+            )
         }
     }
 

@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -19,11 +18,11 @@ import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 
 interface BehandlingBuilder {
     // oppretter sak, søknad og behandling som er klar til manuell behandling
-    suspend fun ApplicationTestBuilder.opprettBehandlingKlarTilBehandling(
+    suspend fun ApplicationTestBuilder.opprettSøknadsbehandlingKlarTilBehandling(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
         virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
-    ): Tuple4<Sak, Søknad, Behandling, String> {
+    ): Tuple4<Sak, Søknad, Søknadsbehandling, String> {
         val (sak, søknad, behandling, _) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
             tac = tac,
             fnr = fnr,
@@ -44,7 +43,7 @@ interface BehandlingBuilder {
         fnr: Fnr = Fnr.random(),
         virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    ): Tuple4<Sak, Søknad, Behandling, String> {
+    ): Tuple4<Sak, Søknad, Søknadsbehandling, String> {
         val (sak, søknad, behandling, _) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
             tac = tac,
             fnr = fnr,

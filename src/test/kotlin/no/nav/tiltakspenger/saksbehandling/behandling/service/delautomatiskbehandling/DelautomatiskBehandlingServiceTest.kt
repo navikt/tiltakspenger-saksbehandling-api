@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettBehandlingKlarTilBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
@@ -126,7 +126,7 @@ class DelautomatiskBehandlingServiceTest {
                     routing { routes(tac) }
                 }
                 val fnr = Fnr.random()
-                opprettBehandlingKlarTilBehandling(tac, fnr)
+                opprettSøknadsbehandlingKlarTilBehandling(tac, fnr)
 
                 val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac, fnr)
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
@@ -184,7 +184,7 @@ class DelautomatiskBehandlingServiceTest {
                     (it as Søknadsbehandling).søknad.kvp.erJa() shouldBe true
                     it.søknad.institusjon.erJa() shouldBe true
                 }
-                opprettBehandlingKlarTilBehandling(tac, sak.fnr)
+                opprettSøknadsbehandlingKlarTilBehandling(tac, sak.fnr)
 
                 tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
 
