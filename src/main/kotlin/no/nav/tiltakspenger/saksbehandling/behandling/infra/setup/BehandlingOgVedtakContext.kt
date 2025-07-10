@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBarnetilleggService
@@ -21,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Oppdate
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettBehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaBehandlingService
@@ -239,6 +241,26 @@ open class BehandlingOgVedtakContext(
 
     val leggTilbakeBehandlingService by lazy {
         LeggTilbakeBehandlingService(
+            tilgangsstyringService = tilgangsstyringService,
+            behandlingRepo = behandlingRepo,
+            statistikkSakService = statistikkSakService,
+            statistikkSakRepo = statistikkSakRepo,
+            sessionFactory = sessionFactory,
+        )
+    }
+
+    val settBehandlingPåVentService by lazy {
+        SettBehandlingPåVentService(
+            tilgangsstyringService = tilgangsstyringService,
+            behandlingRepo = behandlingRepo,
+            statistikkSakService = statistikkSakService,
+            statistikkSakRepo = statistikkSakRepo,
+            sessionFactory = sessionFactory,
+        )
+    }
+
+    val gjenopptaBehandlingService by lazy {
+        GjenopptaBehandlingService(
             tilgangsstyringService = tilgangsstyringService,
             behandlingRepo = behandlingRepo,
             statistikkSakService = statistikkSakService,
