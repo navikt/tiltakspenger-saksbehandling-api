@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.iver
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.underkjennBehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBarnetilleggService
@@ -18,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Oppdate
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettBehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
@@ -43,6 +45,8 @@ fun Route.behandlingRoutes(
     overtaBehandlingService: OvertaBehandlingService,
     leggTilbakeBehandlingService: LeggTilbakeBehandlingService,
     oppdaterBehandlingService: OppdaterBehandlingService,
+    settBehandlingPåVentService: SettBehandlingPåVentService,
+    gjenopptaBehandlingService: GjenopptaBehandlingService,
 ) {
     hentBehandlingRoute(tokenService, behandlingService, auditService)
     behandleSøknadPåNyttRoute(tokenService, behandleSøknadPåNyttService, auditService)
@@ -59,4 +63,6 @@ fun Route.behandlingRoutes(
     overtaBehandlingRoute(tokenService, overtaBehandlingService, auditService)
     leggTilbakeBehandlingRoute(tokenService, auditService, leggTilbakeBehandlingService)
     oppdaterBehandlingRoute(oppdaterBehandlingService, auditService, tokenService)
+    settBehandlingPåVentRoute(tokenService, auditService, settBehandlingPåVentService)
+    gjenopptaBehandling(tokenService, auditService, gjenopptaBehandlingService)
 }

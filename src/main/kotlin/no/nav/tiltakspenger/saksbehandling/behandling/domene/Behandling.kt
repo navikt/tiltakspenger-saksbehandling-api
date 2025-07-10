@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.felles.SattPåVentBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
@@ -57,6 +58,8 @@ sealed interface Behandling {
 
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val avbrutt: Avbrutt?
+    val erSattPåVent: Boolean
+    val sattPåVentBegrunnelser: List<SattPåVentBegrunnelse>
     val resultat: BehandlingResultat?
     val virkningsperiode: Periode?
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
@@ -87,6 +90,56 @@ sealed interface Behandling {
         saksopplysninger.getTiltaksdeltagelse(eksternDeltagelseId)
 
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Behandling
+
+    fun settPåVent(
+        saksbehandler: Saksbehandler,
+        begrunnelse: String,
+        tidspunkt: LocalDateTime,
+    ): Behandling {
+        krevSaksbehandlerRolle(saksbehandler)
+
+        when (status) {
+            UNDER_BESLUTNING -> {
+                check(!erSattPåVent) { "Behandlingen er allerede satt på vent" }
+                require(begrunnelse.isNotBlank()) { "Du må oppgi en grunn for at behandlingen settes på vent." }
+
+                val begrunnelser = sattPåVentBegrunnelser + SattPåVentBegrunnelse(
+                    tidspunkt = tidspunkt,
+                    saksbehandler = saksbehandler.navIdent,
+                    begrunnelse = begrunnelse,
+                )
+
+                return when (this) {
+                    is Søknadsbehandling -> this.copy(erSattPåVent = true, sattPåVentBegrunnelser = begrunnelser)
+                    is Revurdering -> this.copy(erSattPåVent = true, sattPåVentBegrunnelser = begrunnelser)
+                }
+            }
+
+            KLAR_TIL_BEHANDLING,
+            UNDER_BEHANDLING,
+            UNDER_AUTOMATISK_BEHANDLING,
+            KLAR_TIL_BESLUTNING,
+            VEDTATT,
+            AVBRUTT,
+            -> throw IllegalStateException("Kan bare sette behandling på vent dersom den er UNDER_BESLUTNING")
+        }
+    }
+
+    fun gjenoppta(
+        saksbehandler: Saksbehandler,
+        tidspunkt: LocalDateTime,
+    ): Behandling {
+        krevSaksbehandlerRolle(saksbehandler)
+
+        if (!erSattPåVent) {
+            throw IllegalArgumentException("Behandlingen er ikke satt på vent")
+        }
+
+        return when (this) {
+            is Søknadsbehandling -> this.copy(erSattPåVent = false)
+            is Revurdering -> this.copy(erSattPåVent = false)
+        }
+    }
 
     fun leggTilbakeBehandling(saksbehandler: Saksbehandler): Behandling {
         return when (status) {
@@ -243,6 +296,7 @@ sealed interface Behandling {
                 check(!this.attesteringer.any { it.isGodkjent() }) {
                     "Behandlingen er allerede godkjent"
                 }
+                check(!erSattPåVent) { "Behandlingen må gjenopptas før den kan iverksettes." }
 
                 val attesteringer = attesteringer + attestering
                 val iverksattTidspunkt = nå(clock)

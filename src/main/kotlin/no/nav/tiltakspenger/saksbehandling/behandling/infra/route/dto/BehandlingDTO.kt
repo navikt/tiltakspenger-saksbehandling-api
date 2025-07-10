@@ -12,6 +12,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.B
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.SattPåVentBegrunnelseDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.tilSattPåVentBegrunnelseDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
@@ -38,6 +40,7 @@ sealed interface BehandlingDTO {
     val begrunnelseVilkårsvurdering: String?
     val avbrutt: AvbruttDTO?
     val iverksattTidspunkt: String?
+    val sattPåVentBegrunnelse: SattPåVentBegrunnelseDTO?
 }
 
 data class SøknadsbehandlingDTO(
@@ -55,6 +58,7 @@ data class SøknadsbehandlingDTO(
     override val begrunnelseVilkårsvurdering: String?,
     override val avbrutt: AvbruttDTO?,
     override val iverksattTidspunkt: String?,
+    override val sattPåVentBegrunnelse: SattPåVentBegrunnelseDTO?,
     val søknad: SøknadDTO?,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
@@ -81,6 +85,7 @@ data class RevurderingDTO(
     override val begrunnelseVilkårsvurdering: String?,
     override val avbrutt: AvbruttDTO?,
     override val iverksattTidspunkt: String?,
+    override val sattPåVentBegrunnelse: SattPåVentBegrunnelseDTO?,
     val valgtHjemmelHarIkkeRettighet: List<String>?,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
@@ -122,6 +127,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(): SøknadsbehandlingDTO {
         avslagsgrunner = null,
         automatiskSaksbehandlet = this.automatiskSaksbehandlet,
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
+        sattPåVentBegrunnelse = this.sattPåVentBegrunnelser.firstOrNull()?.tilSattPåVentBegrunnelseDTO(),
     ).let {
         when (resultat) {
             is SøknadsbehandlingResultat.Innvilgelse -> it.copy(
@@ -159,6 +165,7 @@ fun Revurdering.tilRevurderingDTO(): RevurderingDTO {
         antallDagerPerMeldeperiode = null,
         barnetillegg = null,
         utbetaling = null,
+        sattPåVentBegrunnelse = sattPåVentBegrunnelser.firstOrNull()?.tilSattPåVentBegrunnelseDTO(),
     ).let {
         when (resultat) {
             is RevurderingResultat.Stans -> it.copy(
