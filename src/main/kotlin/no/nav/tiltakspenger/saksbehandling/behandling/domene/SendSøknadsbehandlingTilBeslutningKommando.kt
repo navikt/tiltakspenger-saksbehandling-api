@@ -20,12 +20,10 @@ sealed interface SendSøknadsbehandlingTilBeslutningKommando {
     val tiltaksdeltakelser: List<Pair<Periode, String>>
     val automatiskSaksbehandlet: Boolean
 
-    fun valgteTiltaksdeltakelser(behandling: Behandling): ValgteTiltaksdeltakelser {
-        return ValgteTiltaksdeltakelser.periodiser(
-            tiltaksdeltakelser = tiltaksdeltakelser,
-            behandling = behandling,
-        )
-    }
+    fun valgteTiltaksdeltakelser(behandling: Behandling): ValgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
+        tiltaksdeltakelser = tiltaksdeltakelser,
+        behandling = behandling,
+    )
 
     fun asInnvilgelseOrNull(): Innvilgelse? = this as? Innvilgelse
     fun asAvslagOrNull(): Avslag? = this as? Avslag

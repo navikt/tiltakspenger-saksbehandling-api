@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.K
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.barnetillegg.OppdaterBarnetilleggCommand
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KunneIkkeOppdatereBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -147,14 +148,7 @@ data class Søknadsbehandling(
         )
     }
 
-    /**
-     * Krever at [virkningsperiode] er satt før vi kan oppdatere barnetillegg.
-     *
-     * TODO - for å støtte autolagring med at innvilgelse er påkrevd, har vi behov for å sende mer informasjon
-     *  til denne metoden, slik at vi kan oppdatere barnetillegg uten å måtte sende innvilgelse.
-     *  Derfor som en fiks (så prod ikke er broken) bare bruker vi beslutning kommando som lagrer de fleste ting
-     */
-    fun oppdaterBarnetillegg(kommando: SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse): Either<KunneIkkeOppdatereBarnetillegg, Søknadsbehandling> {
+    fun oppdaterBarnetillegg(kommando: OppdaterBarnetilleggCommand): Either<KunneIkkeOppdatereBarnetillegg, Søknadsbehandling> {
         return validerKanOppdatere(kommando.saksbehandler, "Kunne ikke oppdatere barnetillegg").mapLeft {
             KunneIkkeOppdatereBarnetillegg.KunneIkkeOppdatereBehandling(it)
         }.map {

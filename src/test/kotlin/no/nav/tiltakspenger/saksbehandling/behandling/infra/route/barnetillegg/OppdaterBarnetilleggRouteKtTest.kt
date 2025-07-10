@@ -25,7 +25,8 @@ class OppdaterBarnetilleggRouteKtTest {
                 val innvilgelsesperiode =
                     """{"fraOgMed": "${behandling.søknad.vurderingsperiode().fraOgMed}", "tilOgMed": "${behandling.søknad.vurderingsperiode().tilOgMed}"}"""
 
-                val (_, _, responseJson) = oppdaterBarnetillegg(
+                // vi har en sjekk på funksjonen for at barnetillegg er satt i json
+                oppdaterBarnetillegg(
                     tac = tac,
                     sakId = sak.id,
                     behandlingId = behandling.id,

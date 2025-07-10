@@ -42,9 +42,6 @@ suspend fun ApplicationTestBuilder.oppdaterBarnetillegg(
         setBody(
             """
             {
-              "resultat": "INNVILGELSE",
-              "fritekstTilVedtaksbrev": null,
-              "begrunnelseVilkårsvurdering": null,
               "valgteTiltaksdeltakelser": $valgteTiltaksdeltakelser,
               "innvilgelsesperiode": $innvilgelsesperiode,
               "barnetillegg": $barnetilleggDTO,
