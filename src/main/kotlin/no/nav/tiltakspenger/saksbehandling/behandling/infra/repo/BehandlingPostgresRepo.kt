@@ -329,8 +329,8 @@ class BehandlingPostgresRepo(
             val iverksattTidspunkt = localDateTimeOrNull("iverksatt_tidspunkt")
             val sistEndret = localDateTime("sist_endret")
             val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
-            val erSattPåVent = boolean("er_satt_på_vent")
-            val sattPåVentBegrunnelser = string("satt_på_vent_begrunnelser").toSattPåVentBegrunnelser()
+            val erSattPåVent = boolean("er_satt_paa_vent")
+            val sattPåVentBegrunnelser = string("satt_paa_vent_begrunnelser").toSattPåVentBegrunnelser()
             val sendtTilDatadeling = localDateTimeOrNull("sendt_til_datadeling")
             val fritekstTilVedtaksbrev = stringOrNull("fritekst_vedtaksbrev")?.let { FritekstTilVedtaksbrev(it) }
             val begrunnelseVilkårsvurdering = stringOrNull("begrunnelse_vilkårsvurdering")?.let {
@@ -489,8 +489,8 @@ class BehandlingPostgresRepo(
                 barnetillegg,
                 valgte_tiltaksdeltakelser,
                 avbrutt,
-                er_satt_på_vent,
-                satt_på_vent_begrunnelser,
+                er_satt_paa_vent,
+                satt_paa_vent_begrunnelser,
                 antall_dager_per_meldeperiode,
                 avslagsgrunner,
                 resultat,
@@ -525,8 +525,8 @@ class BehandlingPostgresRepo(
                 to_jsonb(:barnetillegg::jsonb),
                 to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
                 to_jsonb(:avbrutt::jsonb),
-                :er_satt_på_vent,
-                to_jsonb(:satt_på_vent_begrunnelser::jsonb),
+                :er_satt_paa_vent,
+                to_jsonb(:satt_paa_vent_begrunnelser::jsonb),
                 to_jsonb(:antall_dager_per_meldeperiode::jsonb),
                 to_jsonb(:avslagsgrunner::jsonb),
                 :resultat,
@@ -563,8 +563,8 @@ class BehandlingPostgresRepo(
                 barneTillegg = to_jsonb(:barnetillegg::jsonb),
                 valgte_tiltaksdeltakelser = to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
                 avbrutt = to_jsonb(:avbrutt::jsonb),
-                er_satt_på_vent = :er_satt_på_vent,
-                satt_på_vent_begrunnelser = to_jsonb(:satt_på_vent_begrunnelser::jsonb),
+                er_satt_paa_vent = :er_satt_paa_vent,
+                satt_paa_vent_begrunnelser = to_jsonb(:satt_paa_vent_begrunnelser::jsonb),
                 antall_dager_per_meldeperiode = to_jsonb(:antall_dager_per_meldeperiode::jsonb),
                 avslagsgrunner = to_jsonb(:avslagsgrunner::jsonb),
                 resultat = :resultat,
@@ -691,7 +691,8 @@ private fun Behandling.tilDbParams(): Map<String, Any?> {
         "saksopplysningsperiode_fra_og_med" to this.saksopplysningsperiode.fraOgMed,
         "saksopplysningsperiode_til_og_med" to this.saksopplysningsperiode.tilOgMed,
         "avbrutt" to this.avbrutt?.toDbJson(),
-        "satt_på_vent_begrunnelser" to this.sattPåVentBegrunnelser?.toDbJson(),
+        "er_satt_paa_vent" to this.erSattPåVent,
+        "satt_paa_vent_begrunnelser" to this.sattPåVentBegrunnelser?.toDbJson(),
         "resultat" to this.resultat?.toDb(),
         "opprettet" to this.opprettet,
         "sak_id" to this.sakId.toString(),
