@@ -105,7 +105,7 @@ sealed interface Behandling {
 
                 val begrunnelser = sattPåVentBegrunnelser + SattPåVentBegrunnelse(
                     tidspunkt = tidspunkt,
-                    saksbehandler = saksbehandler.navIdent,
+                    sattPåVentAv = saksbehandler.navIdent,
                     begrunnelse = begrunnelse,
                 )
 

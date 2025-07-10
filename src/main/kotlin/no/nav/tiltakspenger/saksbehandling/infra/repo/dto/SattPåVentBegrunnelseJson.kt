@@ -11,7 +11,7 @@ data class SattPåVentBegrunnelseJson(
     fun toSattPåVentBegrunnelse(): SattPåVentBegrunnelse {
         return SattPåVentBegrunnelse(
             tidspunkt = LocalDateTime.parse(sattPåVentTidspunkt),
-            saksbehandler = sattPåVentAv,
+            sattPåVentAv = sattPåVentAv,
             begrunnelse = begrunnelse,
         )
     }
@@ -19,6 +19,6 @@ data class SattPåVentBegrunnelseJson(
 
 fun SattPåVentBegrunnelse.toDbJson(): SattPåVentBegrunnelseJson = SattPåVentBegrunnelseJson(
     begrunnelse = this.begrunnelse,
-    sattPåVentAv = this.saksbehandler,
+    sattPåVentAv = this.sattPåVentAv,
     sattPåVentTidspunkt = this.tidspunkt.toString(),
 )
