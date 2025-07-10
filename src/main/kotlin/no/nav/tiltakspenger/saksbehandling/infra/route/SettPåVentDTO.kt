@@ -3,13 +3,13 @@ package no.nav.tiltakspenger.saksbehandling.infra.route
 import no.nav.tiltakspenger.saksbehandling.felles.SattPåVentBegrunnelse
 
 data class SattPåVentBegrunnelseDTO(
-    val saksbehandler: String,
+    val sattPåVentAv: String,
     val tidspunkt: String,
     val begrunnelse: String,
 )
 
 fun SattPåVentBegrunnelse.tilSattPåVentBegrunnelseDTO() = SattPåVentBegrunnelseDTO(
-    saksbehandler = saksbehandler,
+    sattPåVentAv = sattPåVentAv,
     tidspunkt = tidspunkt.toString(),
     begrunnelse = begrunnelse,
 )
