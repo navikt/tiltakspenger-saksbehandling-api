@@ -99,7 +99,7 @@ dependencies {
     implementation("io.arrow-kt:arrow-core-jackson:2.1.2")
 
     // Caffeine
-    implementation("com.github.ben-manes.caffeine:caffeine:3.2.1")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.2")
 
     testImplementation(platform("org.junit:junit-bom:5.13.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
