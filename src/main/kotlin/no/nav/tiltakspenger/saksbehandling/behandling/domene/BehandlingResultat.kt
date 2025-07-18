@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
-import java.lang.IllegalStateException
 
 sealed interface BehandlingResultat {
 
@@ -22,6 +21,7 @@ sealed interface BehandlingResultat {
         val barnetillegg: Barnetillegg?
 
         fun valider(status: Behandlingsstatus, virkningsperiode: Periode?) {
+            // TODO - Disse sjekkene er veldig lite intuitivt fra saksbehandlers side fordi det bare fører til en exception
             when (status) {
                 KLAR_TIL_BESLUTNING,
                 UNDER_BESLUTNING,
