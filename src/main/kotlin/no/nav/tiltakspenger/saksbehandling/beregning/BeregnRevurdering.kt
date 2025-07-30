@@ -22,20 +22,10 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.lang.IllegalStateException
 import java.time.LocalDate
 
-/* TODO abn: denne må nok tweakes litt før den tas i bruk.
- * Hva skal vi f.eks. gjøre dersom kun tiltakstype er endret?
- * Trenger også tester!
- * */
 fun Sak.beregnRevurderingInnvilgelse(
     kommando: RevurderingInnvilgelseTilBeslutningKommando,
 ): Either<RevurderingIkkeBeregnet, BehandlingBeregning> {
-    val tidligereBeregninger = meldeperiodeBeregninger.sisteBeregningerForPeriode(kommando.innvilgelsesperiode)
-
-    if (tidligereBeregninger.isEmpty()) {
-        return RevurderingIkkeBeregnet.IngenTidligereBeregninger.left()
-    }
-
-    val nyeBeregninger: List<Pair<MeldeperiodeBeregning, Int>> = beregnMeldeperioder(tidligereBeregninger, kommando)
+    val nyeBeregninger: List<Pair<MeldeperiodeBeregning, Int>> = beregnMeldeperioderPåNytt(kommando)
 
     if (nyeBeregninger.isEmpty()) {
         return RevurderingIkkeBeregnet.IngenEndring.left()
@@ -52,8 +42,7 @@ fun Sak.beregnRevurderingInnvilgelse(
     ).right()
 }
 
-private fun Sak.beregnMeldeperioder(
-    tidligereBeregninger: List<MeldeperiodeBeregning>,
+private fun Sak.beregnMeldeperioderPåNytt(
     kommando: RevurderingInnvilgelseTilBeslutningKommando,
 ): List<Pair<MeldeperiodeBeregning, Int>> {
     val behandlingId = kommando.behandlingId
@@ -62,6 +51,8 @@ private fun Sak.beregnMeldeperioder(
     require(behandling?.resultat is RevurderingResultat.Innvilgelse) {
         "Behandlingen må være en revurdering av innvilgelse for å kunne beregnes"
     }
+
+    val tidligereBeregninger = meldeperiodeBeregninger.sisteBeregningerForPeriode(kommando.innvilgelsesperiode)
 
     val antallBarnForDato: (dato: LocalDate) -> AntallBarn =
         kommando.barnetillegg?.periodisering?.let {
@@ -124,7 +115,6 @@ private fun Sak.beregnMeldeperioder(
 }
 
 sealed interface RevurderingIkkeBeregnet {
-    data object IngenTidligereBeregninger : RevurderingIkkeBeregnet
     data object IngenEndring : RevurderingIkkeBeregnet
     data object StøtterIkkeTilbakekreving : RevurderingIkkeBeregnet
 }

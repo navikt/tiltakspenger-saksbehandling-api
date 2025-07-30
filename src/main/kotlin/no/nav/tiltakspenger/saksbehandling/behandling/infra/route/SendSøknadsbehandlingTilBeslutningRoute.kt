@@ -83,7 +83,9 @@ fun Route.sendSøknadsbehandlingTilBeslutningRoute(
 }
 
 internal fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
-    KanIkkeSendeTilBeslutter.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode -> HttpStatusCode.BadRequest to ErrorJson(
+    KanIkkeSendeTilBeslutter.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode,
+    KanIkkeSendeTilBeslutter.StøtterIkkeTilbakekreving,
+    -> HttpStatusCode.BadRequest to ErrorJson(
         "Innvilgelsesperioden overlapper med en eller flere utbetalingsperioder",
         "innvilgelsesperioden_overlapper_med_utbetalingsperiode",
     )

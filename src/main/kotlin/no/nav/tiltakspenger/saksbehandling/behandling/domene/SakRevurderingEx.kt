@@ -1,13 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
+import no.nav.tiltakspenger.saksbehandling.beregning.RevurderingIkkeBeregnet
+import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -106,21 +108,17 @@ fun Sak.sendRevurderingTilBeslutning(
 
     return when (kommando) {
         is RevurderingInnvilgelseTilBeslutningKommando -> {
-            validerInnvilgelsesperiode(kommando.innvilgelsesperiode).onLeft { return it.left() }
-
-//            TODO abn: fjern valideringen over når funksjonaliten under er ferdig!
-//            val beregning = beregnRevurderingInnvilgelse(kommando).getOrElse {
-//                when (it) {
-//                    is RevurderingIkkeBeregnet.IngenEndring -> null
-//                    is RevurderingIkkeBeregnet.IngenTidligereBeregninger -> null
-//                    is RevurderingIkkeBeregnet.StøtterIkkeTilbakekreving ->
-//                        return KanIkkeSendeTilBeslutter.StøtterIkkeTilbakekreving.left()
-//                }
-//            }
+            val beregning = beregnRevurderingInnvilgelse(kommando).getOrElse {
+                when (it) {
+                    is RevurderingIkkeBeregnet.IngenEndring -> null
+                    is RevurderingIkkeBeregnet.StøtterIkkeTilbakekreving ->
+                        return KanIkkeSendeTilBeslutter.StøtterIkkeTilbakekreving.left()
+                }
+            }
 
             behandling.tilBeslutning(
                 kommando = kommando,
-                beregning = null,
+                beregning = beregning,
                 clock = clock,
             )
         }
@@ -134,13 +132,6 @@ fun Sak.sendRevurderingTilBeslutning(
             )
         }
     }
-}
-
-private fun Sak.validerInnvilgelsesperiode(innvilgelsesperiode: Periode): Either<KanIkkeSendeTilBeslutter.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode, Unit> {
-    if (utbetalinger.hentUtbetalingerFraPeriode(innvilgelsesperiode).isNotEmpty()) {
-        return KanIkkeSendeTilBeslutter.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode.left()
-    }
-    return Unit.right()
 }
 
 fun Sak.validerStansDato(stansDato: LocalDate?) {

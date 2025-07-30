@@ -117,7 +117,7 @@ class BeregnRevurderingTest {
         )
 
         sak.beregnRevurderingInnvilgelse(kommando).leftOrNull()
-            .shouldBeInstanceOf<RevurderingIkkeBeregnet.IngenTidligereBeregninger>()
+            .shouldBeInstanceOf<RevurderingIkkeBeregnet.IngenEndring>()
     }
 
     @Test
