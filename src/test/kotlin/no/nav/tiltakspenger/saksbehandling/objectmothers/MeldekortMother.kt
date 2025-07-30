@@ -30,6 +30,15 @@ import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Syk.SykBruker
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeBesvart
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeDeltatt
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
 import no.nav.tiltakspenger.saksbehandling.beregning.beregn
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
@@ -54,6 +63,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehand
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -186,37 +196,27 @@ interface MeldekortMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         fnr: Fnr = Fnr.random(),
-        periode: Periode = Periode(6.januar(2025), 19.januar(2025)),
-        kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
         opprettet: LocalDateTime = nå(clock),
-        antallDagerForPeriode: Int = 10,
         barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>? = null,
         navkontor: Navkontor = ObjectMother.navkontor(),
         meldeperiode: Meldeperiode = meldeperiode(
-            periode = periode,
-            kjedeId = kjedeId,
+            periode = Periode(6.januar(2025), 19.januar(2025)),
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
             opprettet = opprettet,
-            antallDagerForPeriode = antallDagerForPeriode,
+            antallDagerForPeriode = 10,
         ),
         dager: MeldekortDager = genererMeldekortdagerFraMeldeperiode(meldeperiode),
-        beregning: MeldekortBeregning =
-            meldekortBeregning(
-                meldekortId = id,
-                sakId = sakId,
-                startDato = meldeperiode.periode.fraOgMed,
-                barnetilleggsPerioder = barnetilleggsPerioder,
-            ),
         type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
-        status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT,
+        status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
         brukersMeldekort: BrukersMeldekort = brukersMeldekort(
             sakId = sakId,
             meldeperiode = meldeperiode,
             behandlesAutomatisk = true,
             mottatt = nå(clock),
         ),
+        beregning: MeldekortBeregning = brukersMeldekort.tilMeldekortBeregning(id),
         simulering: Simulering? = null,
     ): MeldekortBehandletAutomatisk {
         return MeldekortBehandletAutomatisk(
@@ -233,6 +233,51 @@ interface MeldekortMother : MotherOfAllMothers {
             type = type,
             status = status,
             simulering = simulering,
+        )
+    }
+
+    fun BrukersMeldekort.tilMeldekortBeregning(
+        meldekortBehandlingId: MeldekortId = MeldekortId.random(),
+        tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
+        antallBarn: AntallBarn = AntallBarn.ZERO,
+        reduksjon: ReduksjonAvYtelsePåGrunnAvFravær = ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon,
+    ): MeldekortBeregning {
+        return MeldekortBeregning(
+            nonEmptyListOf(
+                MeldeperiodeBeregning(
+                    id = BeregningId.random(),
+                    kjedeId = kjedeId,
+                    meldekortId = meldekortBehandlingId,
+                    beregningKilde = BeregningKilde.Meldekort(meldekortBehandlingId),
+                    dager = tilMeldekortDager().map {
+                        val dato = it.dato
+
+                        when (it.status) {
+                            MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> DeltattUtenLønnITiltaket.create(
+                                dato,
+                                tiltakstype,
+                                antallBarn,
+                            )
+                            MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> DeltattMedLønnITiltaket.create(
+                                dato,
+                                tiltakstype,
+                                antallBarn,
+                            )
+                            MeldekortDagStatus.FRAVÆR_SYK -> SykBruker.create(dato, reduksjon, tiltakstype, antallBarn)
+                            MeldekortDagStatus.FRAVÆR_SYKT_BARN -> SyktBarn.create(dato, reduksjon, tiltakstype, antallBarn)
+                            MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> FraværGodkjentAvNav.create(
+                                dato,
+                                tiltakstype,
+                                antallBarn,
+                            )
+                            MeldekortDagStatus.FRAVÆR_ANNET -> FraværAnnet.create(dato, tiltakstype, antallBarn)
+                            MeldekortDagStatus.IKKE_BESVART -> IkkeBesvart.create(dato, tiltakstype, antallBarn)
+                            MeldekortDagStatus.IKKE_TILTAKSDAG -> IkkeDeltatt.create(dato, tiltakstype, antallBarn)
+                            MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> IkkeRettTilTiltakspenger(dato)
+                        }
+                    }.toNonEmptyListOrNull()!!,
+                ),
+            ),
         )
     }
 
@@ -299,13 +344,13 @@ interface MeldekortMother : MotherOfAllMothers {
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         antallDager: Int = 5,
         barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>? = null,
-    ): NonEmptyList<MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket> {
+    ): NonEmptyList<DeltattUtenLønnITiltaket> {
         require(antallDager in 1..5) {
             "Antall sammenhengende dager vil aldri være mer mindre enn 1 eller mer enn 5, men var $antallDager"
         }
         return List(antallDager) { index ->
             val dato = startDato.plusDays(index.toLong())
-            MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket.create(
+            DeltattUtenLønnITiltaket.create(
                 dato = dato,
                 tiltakstype = tiltakstype,
                 antallBarn = barnetilleggsPerioder?.hentVerdiForDag(dato) ?: AntallBarn.ZERO,
@@ -319,13 +364,13 @@ interface MeldekortMother : MotherOfAllMothers {
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         antallDager: Int = 5,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
-    ): NonEmptyList<MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket> {
+    ): NonEmptyList<DeltattMedLønnITiltaket> {
         require(antallDager in 1..5) {
             "Antall sammenhengende dager vil aldri være mer mindre enn 1 eller mer enn 5, men var $antallDager"
         }
         return List(antallDager) { index ->
             val dato = startDato.plusDays(index.toLong())
-            MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket.create(
+            DeltattMedLønnITiltaket.create(
                 dato = dato,
                 tiltakstype = tiltakstype,
                 antallBarn = barnetilleggsPerioder.hentVerdiForDag(dato) ?: AntallBarn.ZERO,
@@ -339,13 +384,13 @@ interface MeldekortMother : MotherOfAllMothers {
         antallDager: Int = 2,
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
-    ): NonEmptyList<MeldeperiodeBeregningDag.IkkeDeltatt> {
+    ): NonEmptyList<IkkeDeltatt> {
         require(antallDager in 1..5) {
             "Antall sammenhengende dager vil aldri være mer mindre enn 1 eller mer enn 5, men var $antallDager"
         }
         return List(antallDager) { index ->
             val dato = startDato.plusDays(index.toLong())
-            MeldeperiodeBeregningDag.IkkeDeltatt.create(
+            IkkeDeltatt.create(
                 dato = dato,
                 tiltakstype = tiltakstype,
                 antallBarn = barnetilleggsPerioder.hentVerdiForDag(dato) ?: AntallBarn.ZERO,
@@ -626,16 +671,11 @@ interface MeldekortMother : MotherOfAllMothers {
             // Meldeperioden kommer før innsendingen.
             opprettet = mottatt.minus(1, ChronoUnit.MILLIS),
         ),
-        dager: List<BrukersMeldekortDag> = buildList {
-            val dagerFraPeriode = meldeperiode.periode.tilDager()
-            require(dagerFraPeriode.size == 14)
-            addAll(dagerFraPeriode.take(5).map { BrukersMeldekortDag(InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET, it) })
-            addAll(dagerFraPeriode.subList(5, 7).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_BESVART, it) })
-            addAll(
-                dagerFraPeriode.subList(7, 12)
-                    .map { BrukersMeldekortDag(InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET, it) },
+        dager: List<BrukersMeldekortDag> = meldeperiode.girRett.entries.map { (dato, girRett) ->
+            BrukersMeldekortDag(
+                status = if (dato.erHelg() || !girRett) InnmeldtStatus.IKKE_BESVART else InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET,
+                dato = dato,
             )
-            addAll(dagerFraPeriode.subList(12, 14).map { BrukersMeldekortDag(InnmeldtStatus.IKKE_BESVART, it) })
         },
         behandlesAutomatisk: Boolean = false,
         behandletAutomatiskStatus: BrukersMeldekortBehandletAutomatiskStatus? = null,

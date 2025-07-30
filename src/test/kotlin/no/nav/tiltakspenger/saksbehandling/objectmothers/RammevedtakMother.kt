@@ -101,7 +101,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
-        behandling: Behandling = ObjectMother.nyVedtattRevurdering(
+        behandling: Behandling = ObjectMother.nyVedtattRevurderingStans(
             sakId = sakId,
             virkningsperiode = periode,
             saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),

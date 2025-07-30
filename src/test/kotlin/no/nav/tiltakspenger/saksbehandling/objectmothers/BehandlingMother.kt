@@ -1,9 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
-import arrow.core.Nel
-import arrow.core.NonEmptyList
 import arrow.core.NonEmptySet
-import arrow.core.nonEmptyListOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -30,13 +27,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -64,7 +58,6 @@ import java.time.LocalDateTime
 interface BehandlingMother : MotherOfAllMothers {
     /** Felles default vurderingsperiode for testdatatypene */
     fun virkningsperiode() = 1.januar(2023) til 31.mars(2023)
-    fun revurderingsperiode() = 2.januar(2023) til 31.mars(2023)
 
     fun godkjentAttestering(beslutter: Saksbehandler = beslutter()): Attestering =
         Attestering(
@@ -74,116 +67,6 @@ interface BehandlingMother : MotherOfAllMothers {
             beslutter = beslutter.navIdent,
             tidspunkt = nå(clock),
         )
-
-    fun nyOpprettetRevurdering(
-        id: BehandlingId = BehandlingId.random(),
-        sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
-        fnr: Fnr = Fnr.random(),
-        saksbehandler: Saksbehandler = saksbehandler(),
-        virkningsperiode: Periode = virkningsperiode(),
-        hentSaksopplysninger: (Periode) -> Saksopplysninger = {
-            saksopplysninger(
-                fom = it.fraOgMed,
-                tom = it.tilOgMed,
-            )
-        },
-    ): Revurdering {
-        return runBlocking {
-            Revurdering.opprettStans(
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                saksbehandler = saksbehandler,
-                saksopplysninger = hentSaksopplysninger(virkningsperiode),
-                clock = clock,
-            )
-        }
-    }
-
-    fun nyRevurderingKlarTilBeslutning(
-        id: BehandlingId = BehandlingId.random(),
-        sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
-        fnr: Fnr = Fnr.random(),
-        saksbehandler: Saksbehandler = saksbehandler(),
-        sendtTilBeslutning: LocalDateTime? = null,
-        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nyRevurderingKlarTilBeslutning()"),
-        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyRevurderingKlarTilBeslutning()"),
-        virkningsperiode: Periode = virkningsperiode(),
-        saksopplysninger: Saksopplysninger = saksopplysninger(
-            fom = virkningsperiode.fraOgMed,
-            tom = virkningsperiode.tilOgMed,
-        ),
-        valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
-        stansDato: LocalDate,
-        sisteDagSomGirRett: LocalDate,
-        kommando: RevurderingStansTilBeslutningKommando = RevurderingStansTilBeslutningKommando(
-            sakId = sakId,
-            behandlingId = id,
-            saksbehandler = saksbehandler,
-            correlationId = CorrelationId.generate(),
-            begrunnelse = begrunnelseVilkårsvurdering,
-            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-            valgteHjemler = valgteHjemler,
-            stansFraOgMed = stansDato,
-            sisteDagSomGirRett = sisteDagSomGirRett,
-        ),
-    ): Revurdering {
-        return this.nyOpprettetRevurdering(
-            id = id,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            fnr = fnr,
-            saksbehandler = saksbehandler,
-            virkningsperiode = virkningsperiode,
-            hentSaksopplysninger = { saksopplysninger },
-        ).stansTilBeslutning(
-            kommando = kommando,
-            clock = clock,
-        ).getOrFail()
-    }
-
-    fun nyVedtattRevurdering(
-        id: BehandlingId = BehandlingId.random(),
-        sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
-        fnr: Fnr = Fnr.random(),
-        saksbehandler: Saksbehandler = saksbehandler(),
-        beslutter: Saksbehandler = beslutter(),
-        sendtTilBeslutning: LocalDateTime? = null,
-        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nyRevurderingKlarTilBeslutning()"),
-        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyRevurderingKlarTilBeslutning()"),
-        virkningsperiode: Periode = virkningsperiode(),
-        saksopplysninger: Saksopplysninger = saksopplysninger(
-            fom = virkningsperiode.fraOgMed,
-            tom = virkningsperiode.tilOgMed,
-        ),
-        valgteHjemler: Nel<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
-        attestering: Attestering = godkjentAttestering(beslutter),
-        stansDato: LocalDate,
-        sisteDagSomGirRett: LocalDate,
-    ): Revurdering {
-        return nyRevurderingKlarTilBeslutning(
-            id = id,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            fnr = fnr,
-            saksbehandler = saksbehandler,
-            sendtTilBeslutning = sendtTilBeslutning,
-            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-            virkningsperiode = virkningsperiode,
-            saksopplysninger = saksopplysninger,
-            valgteHjemler = valgteHjemler,
-            stansDato = stansDato,
-            sisteDagSomGirRett = sisteDagSomGirRett,
-        ).taBehandling(beslutter).iverksett(
-            utøvendeBeslutter = beslutter,
-            attestering = attestering,
-            clock = clock,
-        ) as Revurdering
-    }
 
     fun nyOpprettetSøknadsbehandling(
         id: BehandlingId = BehandlingId.random(),

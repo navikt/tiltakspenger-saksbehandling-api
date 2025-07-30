@@ -636,7 +636,7 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
         ),
-    stansDato: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
+    stansDato: LocalDate = ObjectMother.revurderingVirkningsperiode().fraOgMed,
     begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("fordi"),
     clock: Clock = this.clock,
 ): Pair<Sak, Behandling> {

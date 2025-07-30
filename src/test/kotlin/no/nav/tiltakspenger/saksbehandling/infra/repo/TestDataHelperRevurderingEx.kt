@@ -73,7 +73,7 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
     s: Sak? = null,
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("TestDataHelper.persisterRevurderingTilBeslutning"),
-    stansDato: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
+    stansDato: LocalDate = ObjectMother.revurderingVirkningsperiode().fraOgMed,
     valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, Behandling> = { s -> this.persisterOpprettetRevurdering(s) },
@@ -106,7 +106,7 @@ internal fun TestDataHelper.persisterRevurderingUnderBeslutning(
     opprettetAv: Saksbehandler = ObjectMother.saksbehandler(),
     beslutterAv: Saksbehandler = ObjectMother.beslutter(),
     begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("TestDataHelper.persisterRevurderingUnderBeslutning"),
-    stansDato: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
+    stansDato: LocalDate = ObjectMother.revurderingVirkningsperiode().fraOgMed,
     valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, Behandling> = { s ->
@@ -139,7 +139,7 @@ internal fun TestDataHelper.persisterIverksattRevurdering(
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("TestDataHelper.persisterRevurderingTilBeslutning"),
-    stansDato: LocalDate = ObjectMother.revurderingsperiode().fraOgMed,
+    stansDato: LocalDate = ObjectMother.revurderingVirkningsperiode().fraOgMed,
     valgteHjemler: Nel<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, Behandling> = { s ->

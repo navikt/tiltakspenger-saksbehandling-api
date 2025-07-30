@@ -29,12 +29,39 @@ import java.time.LocalDate
 fun Sak.beregnRevurderingInnvilgelse(
     kommando: RevurderingInnvilgelseTilBeslutningKommando,
 ): Either<RevurderingIkkeBeregnet, BehandlingBeregning> {
+    val tidligereBeregninger = meldeperiodeBeregninger.sisteBeregningerForPeriode(kommando.innvilgelsesperiode)
+
+    if (tidligereBeregninger.isEmpty()) {
+        return RevurderingIkkeBeregnet.IngenTidligereBeregninger.left()
+    }
+
+    val nyeBeregninger: List<Pair<MeldeperiodeBeregning, Int>> = beregnMeldeperioder(tidligereBeregninger, kommando)
+
+    if (nyeBeregninger.isEmpty()) {
+        return RevurderingIkkeBeregnet.IngenEndring.left()
+    }
+
+    val beløpTotalDiff = nyeBeregninger.sumOf { it.second }
+
+    if (beløpTotalDiff < 0) {
+        return RevurderingIkkeBeregnet.StøtterIkkeTilbakekreving.left()
+    }
+
+    return BehandlingBeregning(
+        beregninger = nyeBeregninger.map { it.first }.toNonEmptyListOrThrow(),
+    ).right()
+}
+
+private fun Sak.beregnMeldeperioder(
+    tidligereBeregninger: List<MeldeperiodeBeregning>,
+    kommando: RevurderingInnvilgelseTilBeslutningKommando,
+): List<Pair<MeldeperiodeBeregning, Int>> {
     val behandlingId = kommando.behandlingId
     val behandling = hentBehandling(behandlingId)
 
-    require(behandling?.resultat is RevurderingResultat.Innvilgelse)
-
-    val periode = kommando.innvilgelsesperiode
+    require(behandling?.resultat is RevurderingResultat.Innvilgelse) {
+        "Behandlingen må være en revurdering av innvilgelse for å kunne beregnes"
+    }
 
     val antallBarnForDato: (dato: LocalDate) -> AntallBarn =
         kommando.barnetillegg?.periodisering?.let {
@@ -52,13 +79,7 @@ fun Sak.beregnRevurderingInnvilgelse(
             }
         }
 
-    val tidligereBeregninger = meldeperiodeBeregninger.sisteBeregningerForPeriode(periode)
-
-    if (tidligereBeregninger.isEmpty()) {
-        return RevurderingIkkeBeregnet.IngenTidligereBeregninger.left()
-    }
-
-    val nyeBeregninger: List<Pair<MeldeperiodeBeregning, Int>> = tidligereBeregninger.mapNotNull { beregning ->
+    return tidligereBeregninger.mapNotNull { beregning ->
         val eksisterendeDager = beregning.dager
 
         val nyeDager = eksisterendeDager.map { dag ->
@@ -73,7 +94,7 @@ fun Sak.beregnRevurderingInnvilgelse(
 
             when (dag) {
                 is DeltattMedLønnITiltaket -> DeltattMedLønnITiltaket.create(dato, tiltakstype, antallBarn)
-                is DeltattUtenLønnITiltaket -> DeltattMedLønnITiltaket.create(dato, tiltakstype, antallBarn)
+                is DeltattUtenLønnITiltaket -> DeltattUtenLønnITiltaket.create(dato, tiltakstype, antallBarn)
                 is SykBruker -> SykBruker.create(dato, reduksjon, tiltakstype, antallBarn)
                 is SyktBarn -> SyktBarn.create(dato, reduksjon, tiltakstype, antallBarn)
                 is FraværAnnet -> FraværAnnet.create(dato, tiltakstype, antallBarn)
@@ -100,20 +121,6 @@ fun Sak.beregnRevurderingInnvilgelse(
 
         nyBeregning to beløpDiff
     }
-
-    if (nyeBeregninger.isEmpty()) {
-        return RevurderingIkkeBeregnet.IngenEndring.left()
-    }
-
-    val beløpTotalDiff = nyeBeregninger.sumOf { it.second }
-
-    if (beløpTotalDiff < 0) {
-        return RevurderingIkkeBeregnet.StøtterIkkeTilbakekreving.left()
-    }
-
-    return BehandlingBeregning(
-        beregninger = nyeBeregninger.map { it.first }.toNonEmptyListOrThrow(),
-    ).right()
 }
 
 sealed interface RevurderingIkkeBeregnet {
