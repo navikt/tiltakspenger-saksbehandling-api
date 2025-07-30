@@ -66,6 +66,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKom
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
@@ -190,14 +191,13 @@ interface MeldekortMother : MotherOfAllMothers {
         )
     }
 
-    @Suppress("unused")
     fun meldekortBehandletAutomatisk(
         id: MeldekortId = MeldekortId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         fnr: Fnr = Fnr.random(),
         opprettet: LocalDateTime = nå(clock),
-        barnetilleggsPerioder: SammenhengendePeriodisering<AntallBarn>? = null,
+        barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
         navkontor: Navkontor = ObjectMother.navkontor(),
         meldeperiode: Meldeperiode = meldeperiode(
             periode = Periode(6.januar(2025), 19.januar(2025)),
@@ -209,14 +209,17 @@ interface MeldekortMother : MotherOfAllMothers {
         ),
         dager: MeldekortDager = genererMeldekortdagerFraMeldeperiode(meldeperiode),
         type: MeldekortBehandlingType = MeldekortBehandlingType.FØRSTE_BEHANDLING,
-        status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
         brukersMeldekort: BrukersMeldekort = brukersMeldekort(
             sakId = sakId,
             meldeperiode = meldeperiode,
             behandlesAutomatisk = true,
             mottatt = nå(clock),
+
         ),
-        beregning: MeldekortBeregning = brukersMeldekort.tilMeldekortBeregning(id),
+        beregning: MeldekortBeregning = brukersMeldekort.tilMeldekortBeregning(
+            meldekortBehandlingId = id,
+            barnetilleggsPerioder = barnetilleggsPerioder,
+        ),
         simulering: Simulering? = null,
     ): MeldekortBehandletAutomatisk {
         return MeldekortBehandletAutomatisk(
@@ -231,15 +234,40 @@ interface MeldekortMother : MotherOfAllMothers {
             dager = dager,
             beregning = beregning,
             type = type,
-            status = status,
+            status = MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
             simulering = simulering,
         )
+    }
+
+    fun Sak.leggTilMeldekortBehandletAutomatisk(
+        periode: Periode,
+        opprettet: LocalDateTime = nå(clock),
+        navkontor: Navkontor = ObjectMother.navkontor(),
+        brukersMeldekort: BrukersMeldekort = brukersMeldekort(
+            sakId = id,
+            meldeperiode = meldeperiodeKjeder.hentMeldeperiode(periode)!!,
+            behandlesAutomatisk = true,
+            mottatt = nå(clock),
+        ),
+    ): Pair<Sak, MeldekortBehandletAutomatisk> {
+        val meldekortBehandling = meldekortBehandletAutomatisk(
+            sakId = id,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+            barnetilleggsPerioder = barnetilleggsperioder,
+            navkontor = navkontor,
+            meldeperiode = meldeperiodeKjeder.hentMeldeperiode(periode)!!,
+
+        )
+
+        return this.copy(meldekortBehandlinger = meldekortBehandlinger.leggTil(meldekortBehandling)) to meldekortBehandling
     }
 
     fun BrukersMeldekort.tilMeldekortBeregning(
         meldekortBehandlingId: MeldekortId = MeldekortId.random(),
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
-        antallBarn: AntallBarn = AntallBarn.ZERO,
+        barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
         reduksjon: ReduksjonAvYtelsePåGrunnAvFravær = ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon,
     ): MeldekortBeregning {
         return MeldekortBeregning(
@@ -251,6 +279,9 @@ interface MeldekortMother : MotherOfAllMothers {
                     beregningKilde = BeregningKilde.Meldekort(meldekortBehandlingId),
                     dager = tilMeldekortDager().map {
                         val dato = it.dato
+                        val antallBarn: AntallBarn by lazy {
+                            barnetilleggsPerioder?.hentVerdiForDag(dato) ?: AntallBarn.ZERO
+                        }
 
                         when (it.status) {
                             MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> DeltattUtenLønnITiltaket.create(
@@ -258,18 +289,27 @@ interface MeldekortMother : MotherOfAllMothers {
                                 tiltakstype,
                                 antallBarn,
                             )
+
                             MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> DeltattMedLønnITiltaket.create(
                                 dato,
                                 tiltakstype,
                                 antallBarn,
                             )
+
                             MeldekortDagStatus.FRAVÆR_SYK -> SykBruker.create(dato, reduksjon, tiltakstype, antallBarn)
-                            MeldekortDagStatus.FRAVÆR_SYKT_BARN -> SyktBarn.create(dato, reduksjon, tiltakstype, antallBarn)
+                            MeldekortDagStatus.FRAVÆR_SYKT_BARN -> SyktBarn.create(
+                                dato,
+                                reduksjon,
+                                tiltakstype,
+                                antallBarn,
+                            )
+
                             MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> FraværGodkjentAvNav.create(
                                 dato,
                                 tiltakstype,
                                 antallBarn,
                             )
+
                             MeldekortDagStatus.FRAVÆR_ANNET -> FraværAnnet.create(dato, tiltakstype, antallBarn)
                             MeldekortDagStatus.IKKE_BESVART -> IkkeBesvart.create(dato, tiltakstype, antallBarn)
                             MeldekortDagStatus.IKKE_TILTAKSDAG -> IkkeDeltatt.create(dato, tiltakstype, antallBarn)

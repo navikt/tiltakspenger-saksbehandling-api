@@ -224,6 +224,7 @@ interface SakMother {
         saksbehandler: Saksbehandler = saksbehandler(),
         virkningsperiode: Periode = virkningsperiode(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
+        barnetillegg: Barnetillegg? = null,
         clock: Clock = fixedClock,
     ): Triple<Sak, Vedtak, Behandling> {
         val (sak, søknadsbehandling) = this.sakMedOpprettetBehandling(
@@ -240,7 +241,7 @@ interface SakMother {
                 behandlingId = søknadsbehandling.id,
                 correlationId = CorrelationId.generate(),
                 saksbehandler = saksbehandler,
-                barnetillegg = null,
+                barnetillegg = barnetillegg,
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
                 innvilgelsesperiode = virkningsperiode,
