@@ -22,8 +22,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.t
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toAvslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toDomain
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -63,7 +63,7 @@ private data class Body(
             correlationId = correlationId,
             saksbehandler = saksbehandler,
             virkningsperiode = virkningsperiode,
-            valgteHjemler = valgteHjemler?.toDomain(),
+            valgteHjemler = valgteHjemler?.tilBeslutningKommando(),
             stansDato = stansDato,
             barnetillegg = barnetillegg?.let { it.tilPeriodisering() as IkkeTomPeriodisering },
             resultat = resultat.toDomain(),

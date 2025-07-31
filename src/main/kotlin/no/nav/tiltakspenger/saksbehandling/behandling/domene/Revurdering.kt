@@ -92,7 +92,7 @@ data class Revurdering(
     }
 
     fun stansTilBeslutning(
-        kommando: RevurderingStansTilBeslutningKommando,
+        kommando: RevurderingTilBeslutningKommando.Stans,
         clock: Clock,
     ): Either<KanIkkeSendeTilBeslutter, Revurdering> {
         return validerSendTilBeslutning(kommando.saksbehandler).mapLeft {
@@ -107,7 +107,7 @@ data class Revurdering(
             return this.copy(
                 status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
                 sendtTilBeslutning = nå(clock),
-                begrunnelseVilkårsvurdering = kommando.begrunnelse,
+                begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
                 virkningsperiode = Periode(kommando.stansFraOgMed, kommando.sisteDagSomGirRett),
                 resultat = Stans(
@@ -118,7 +118,7 @@ data class Revurdering(
     }
 
     fun tilBeslutning(
-        kommando: RevurderingInnvilgelseTilBeslutningKommando,
+        kommando: RevurderingTilBeslutningKommando.Innvilgelse,
         utbetaling: Innvilgelse.Utbetaling?,
         clock: Clock,
     ): Either<KanIkkeSendeTilBeslutter, Revurdering> {
@@ -130,7 +130,7 @@ data class Revurdering(
             this.copy(
                 status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
                 sendtTilBeslutning = nå(clock),
-                begrunnelseVilkårsvurdering = kommando.begrunnelse,
+                begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
                 virkningsperiode = kommando.innvilgelsesperiode,
                 resultat = this.resultat.copy(

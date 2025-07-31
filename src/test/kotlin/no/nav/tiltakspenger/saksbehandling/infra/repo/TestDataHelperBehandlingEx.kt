@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårs
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
@@ -657,12 +657,12 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
     }
     return runBlocking {
         sak.sendRevurderingTilBeslutning(
-            kommando = RevurderingStansTilBeslutningKommando(
+            kommando = RevurderingTilBeslutningKommando.Stans(
                 sakId = sakId,
                 behandlingId = behandling.id,
                 saksbehandler = saksbehandler,
                 correlationId = CorrelationId.generate(),
-                begrunnelse = begrunnelse,
+                begrunnelseVilkårsvurdering = begrunnelse,
                 stansFraOgMed = stansDato,
                 valgteHjemler = valgteHjemler,
                 fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("fritekstTilVedtaksbrev"),

@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RevurderingTilBeslutningDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -30,11 +30,11 @@ fun Route.sendRevurderingTilBeslutningRoute(
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<RevurderingTilBeslutningDTO> { body ->
+                    call.withBody<OppdaterRevurderingDTO> { body ->
                         val correlationId = call.correlationId()
 
                         sendBehandlingTilBeslutningService.sendRevurderingTilBeslutning(
-                            kommando = body.tilKommando(
+                            kommando = body.tilDomene(
                                 sakId = sakId,
                                 behandlingId = behandlingId,
                                 saksbehandler = saksbehandler,

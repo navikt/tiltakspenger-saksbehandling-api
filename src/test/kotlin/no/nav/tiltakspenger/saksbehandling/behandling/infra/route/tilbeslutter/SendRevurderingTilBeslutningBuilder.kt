@@ -5,7 +5,6 @@ import arrow.core.Tuple4
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
@@ -36,7 +35,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRe
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
-import org.intellij.lang.annotations.Language
 
 interface SendRevurderingTilBeslutningBuilder {
 
@@ -105,11 +103,12 @@ interface SendRevurderingTilBeslutningBuilder {
         begrunnelseVilkårsvurdering: String = "begrunnelse",
         stansperiode: Periode,
         valgteHjemler: Nel<String>,
+        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
     ): String {
         defaultRequest(
-            HttpMethod.Companion.Post,
+            HttpMethod.Post,
             url {
-                protocol = URLProtocol.Companion.HTTPS
+                protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/revurdering/$behandlingId/sendtilbeslutning")
             },
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(
@@ -117,15 +116,13 @@ interface SendRevurderingTilBeslutningBuilder {
             ),
         ) {
             setBody(
-                @Language("JSON")
+                //language=JSON
                 """
                 {
                     "type": "STANS",
-                    "begrunnelse": "$begrunnelseVilkårsvurdering",
-                    "stans": {
-                        "stansFraOgMed": "${stansperiode.fraOgMed}",
-                        "valgteHjemler": [${valgteHjemler.joinToString(separator = ",", prefix = "\"", postfix = "\"")}]
-                    }
+                    "begrunnelseVilkårsvurdering": "$begrunnelseVilkårsvurdering",
+                    "stansFraOgMed": "${stansperiode.fraOgMed}",
+                    "valgteHjemler": [${valgteHjemler.joinToString(separator = ",", prefix = "\"", postfix = "\"")}]
                 }
                 """.trimIndent(),
             )
@@ -139,7 +136,7 @@ interface SendRevurderingTilBeslutningBuilder {
                     Body: $bodyAsText
                 """.trimMargin(),
             ) {
-                status shouldBe HttpStatusCode.Companion.OK
+                status shouldBe forventetStatus
             }
             return bodyAsText
         }
@@ -160,11 +157,12 @@ interface SendRevurderingTilBeslutningBuilder {
             AntallDagerForMeldeperiode.default,
             innvilgelsesperiode,
         ),
+        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
     ): String {
         defaultRequest(
-            HttpMethod.Companion.Post,
+            HttpMethod.Post,
             url {
-                protocol = URLProtocol.Companion.HTTPS
+                protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/revurdering/$behandlingId/sendtilbeslutning")
             },
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(
@@ -176,32 +174,30 @@ interface SendRevurderingTilBeslutningBuilder {
                 """
                 {
                     "type": "REVURDERING_INNVILGELSE",
-                    "begrunnelse": "$begrunnelseVilkårsvurdering",
-                    "innvilgelse": {
-                        "innvilgelsesperiode": {
-                            "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
-                            "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
-                        },
-                        "valgteTiltaksdeltakelser": [
-                            {
-                                "eksternDeltagelseId": "$eksternDeltagelseId",
-                                "periode": {
-                                    "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
-                                    "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
-                                }
-                            }
-                        ],
-                         "antallDagerPerMeldeperiodeForPerioder": [
-                          {
-                            "antallDagerPerMeldeperiode": 10,
+                    "begrunnelseVilkårsvurdering": "$begrunnelseVilkårsvurdering",
+                    "innvilgelsesperiode": {
+                        "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
+                        "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
+                    },
+                    "valgteTiltaksdeltakelser": [
+                        {
+                            "eksternDeltagelseId": "$eksternDeltagelseId",
                             "periode": {
-                              "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
-                              "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
+                                "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
+                                "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
                             }
-                          }
-                        ],
-                        "barnetillegg": ${if (barnetillegg == null) null else serialize(barnetillegg.toBarnetilleggDTO())}
-                    }
+                        }
+                    ],
+                    "antallDagerPerMeldeperiodeForPerioder": [
+                      {
+                        "antallDagerPerMeldeperiode": 10,
+                        "periode": {
+                          "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
+                          "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
+                        }
+                      }
+                    ],
+                    "barnetillegg": ${if (barnetillegg == null) null else serialize(barnetillegg.toBarnetilleggDTO())}
                 }
                 """.trimIndent(),
             )
@@ -215,8 +211,7 @@ interface SendRevurderingTilBeslutningBuilder {
                     Body: $bodyAsText
                 """.trimMargin(),
             ) {
-                status shouldBe HttpStatusCode.Companion.OK
-                bodyAsText shouldContain "id"
+                status shouldBe forventetStatus
             }
             return bodyAsText
         }

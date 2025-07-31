@@ -105,7 +105,7 @@ suspend fun Sak.sendRevurderingTilBeslutning(
     }
 
     return when (kommando) {
-        is RevurderingInnvilgelseTilBeslutningKommando -> {
+        is RevurderingTilBeslutningKommando.Innvilgelse -> {
             val utbetaling = beregnRevurderingInnvilgelse(kommando).fold(
                 ifLeft = {
                     when (it) {
@@ -130,7 +130,7 @@ suspend fun Sak.sendRevurderingTilBeslutning(
             )
         }
 
-        is RevurderingStansTilBeslutningKommando -> {
+        is RevurderingTilBeslutningKommando.Stans -> {
             validerStansDato(kommando.stansFraOgMed)
 
             behandling.stansTilBeslutning(

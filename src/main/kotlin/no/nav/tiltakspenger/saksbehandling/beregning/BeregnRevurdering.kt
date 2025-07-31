@@ -7,8 +7,8 @@ import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingInnvilgelseTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Syk.SykBruker
@@ -23,7 +23,7 @@ import java.lang.IllegalStateException
 import java.time.LocalDate
 
 fun Sak.beregnRevurderingInnvilgelse(
-    kommando: RevurderingInnvilgelseTilBeslutningKommando,
+    kommando: RevurderingTilBeslutningKommando.Innvilgelse,
 ): Either<RevurderingIkkeBeregnet, BehandlingBeregning> {
     val nyeBeregninger: List<Pair<MeldeperiodeBeregning, Int>> = beregnMeldeperioderPåNytt(kommando)
 
@@ -43,7 +43,7 @@ fun Sak.beregnRevurderingInnvilgelse(
 }
 
 private fun Sak.beregnMeldeperioderPåNytt(
-    kommando: RevurderingInnvilgelseTilBeslutningKommando,
+    kommando: RevurderingTilBeslutningKommando.Innvilgelse,
 ): List<Pair<MeldeperiodeBeregning, Int>> {
     val behandlingId = kommando.behandlingId
     val behandling = hentBehandling(behandlingId)
