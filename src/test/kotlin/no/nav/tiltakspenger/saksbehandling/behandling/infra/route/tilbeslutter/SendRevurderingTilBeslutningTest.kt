@@ -216,8 +216,7 @@ class SendRevurderingTilBeslutningTest {
                         AntallDagerForMeldeperiode.default,
                         revurderingInnvilgelsesperiode,
                     ),
-                    beregning = revurdering.beregning,
-                    navkontor = revurdering.navkontor,
+                    utbetaling = null,
                 )
 
                 revurdering.virkningsperiode shouldBe revurderingInnvilgelsesperiode

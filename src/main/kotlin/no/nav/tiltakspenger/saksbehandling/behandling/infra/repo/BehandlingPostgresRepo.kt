@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
@@ -353,17 +354,6 @@ class BehandlingPostgresRepo(
                 virkningsperiodeFraOgMed?.let { Periode(virkningsperiodeFraOgMed, virkningsperiodeTilOgMed!!) }
             val søknadId = stringOrNull("soknad_id")?.let { SøknadId.fromString(it) }
 
-            val beregning = stringOrNull("beregning")?.let {
-                BehandlingBeregning(it.tilMeldeperiodeBeregningerFraBehandling(id))
-            }
-
-            val navkontor = stringOrNull("navkontor")?.let {
-                Navkontor(
-                    kontornummer = it,
-                    kontornavn = stringOrNull("navkontor_navn"),
-                )
-            }
-
             when (behandlingstype) {
                 Behandlingstype.SØKNADSBEHANDLING -> {
                     val automatiskSaksbehandlet = boolean("automatisk_saksbehandlet")
@@ -427,8 +417,15 @@ class BehandlingPostgresRepo(
                                 ?.toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                             antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")?.toAntallDagerForMeldeperiode(),
-                            beregning = beregning,
-                            navkontor = navkontor,
+                            utbetaling = stringOrNull("beregning")?.let {
+                                Utbetaling(
+                                    beregning = BehandlingBeregning(it.tilMeldeperiodeBeregningerFraBehandling(id)),
+                                    navkontor = Navkontor(
+                                        kontornummer = string("navkontor"),
+                                        kontornavn = stringOrNull("navkontor_navn"),
+                                    ),
+                                )
+                            },
                         )
                     }
 
@@ -704,9 +701,9 @@ private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when 
         *when (this) {
             is SøknadsbehandlingResultat.Innvilgelse -> emptyArray()
             is RevurderingResultat.Innvilgelse -> arrayOf(
-                "beregning" to this.beregning?.tilBeregningerDbJson(),
-                "navkontor" to this.navkontor?.kontornummer,
-                "navkontor_navn" to this.navkontor?.kontornavn,
+                "beregning" to this.utbetaling?.beregning?.tilBeregningerDbJson(),
+                "navkontor" to this.utbetaling?.navkontor?.kontornummer,
+                "navkontor_navn" to this.utbetaling?.navkontor?.kontornavn,
             )
         },
     )

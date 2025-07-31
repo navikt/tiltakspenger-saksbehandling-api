@@ -162,6 +162,7 @@ open class BehandlingOgVedtakContext(
             clock = clock,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
+            navkontorService = navkontorService,
             sessionFactory = sessionFactory,
         )
     }
@@ -170,7 +171,6 @@ open class BehandlingOgVedtakContext(
             sakService = sakService,
             behandlingRepo = behandlingRepo,
             saksopplysningerService = oppdaterSaksopplysningerService,
-            navkontorService = navkontorService,
             clock = clock,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,

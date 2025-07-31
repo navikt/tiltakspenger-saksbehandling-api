@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
@@ -11,7 +10,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
     data class Stans(
         val valgtHjemmel: List<ValgtHjemmelForStans>,
     ) : RevurderingResultat {
-        fun valider(status: Behandlingsstatus, virkningsperiode: Periode?) {
+        fun valider(status: Behandlingsstatus) {
             when (status) {
                 Behandlingsstatus.KLAR_TIL_BESLUTNING,
                 Behandlingsstatus.UNDER_BESLUTNING,
@@ -21,6 +20,7 @@ sealed interface RevurderingResultat : BehandlingResultat {
                         "Valgt hjemmel må ha minst ett element for status $status."
                     }
                 }
+
                 Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
                 Behandlingsstatus.KLAR_TIL_BEHANDLING,
                 Behandlingsstatus.UNDER_BEHANDLING,
@@ -34,8 +34,13 @@ sealed interface RevurderingResultat : BehandlingResultat {
         override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?,
         override val barnetillegg: Barnetillegg?,
         override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
-        val beregning: BehandlingBeregning?,
-        val navkontor: Navkontor?,
+        val utbetaling: Utbetaling?,
     ) : BehandlingResultat.Innvilgelse,
-        RevurderingResultat
+        RevurderingResultat {
+
+        data class Utbetaling(
+            val beregning: BehandlingBeregning,
+            val navkontor: Navkontor,
+        )
+    }
 }

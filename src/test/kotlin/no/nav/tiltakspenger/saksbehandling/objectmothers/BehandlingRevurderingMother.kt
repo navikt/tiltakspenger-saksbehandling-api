@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingInnvilgelseTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
@@ -164,7 +165,6 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                 tom = it.tilOgMed,
             )
         },
-        navkontor: Navkontor = navkontor(),
     ): Revurdering {
         return runBlocking {
             Revurdering.opprettInnvilgelse(
@@ -173,7 +173,6 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                 fnr = fnr,
                 saksbehandler = saksbehandler,
                 saksopplysninger = hentSaksopplysninger(virkningsperiode),
-                navkontor = navkontor,
                 clock = clock,
             )
         }
@@ -224,11 +223,17 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             virkningsperiode = virkningsperiode,
             hentSaksopplysninger = { saksopplysninger },
-            navkontor = navkontor,
         ).tilBeslutning(
             kommando = kommando,
             clock = clock,
-            beregning = beregning,
+            utbetaling = if (beregning == null) {
+                null
+            } else {
+                Utbetaling(
+                    beregning = beregning,
+                    navkontor = navkontor,
+                )
+            },
         ).getOrFail()
     }
 

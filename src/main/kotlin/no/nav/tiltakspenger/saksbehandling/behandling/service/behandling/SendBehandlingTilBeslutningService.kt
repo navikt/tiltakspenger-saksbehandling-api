@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
@@ -21,6 +22,7 @@ class SendBehandlingTilBeslutningService(
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
+    private val navkontorService: NavkontorService,
     private val sessionFactory: SessionFactory,
 ) {
     suspend fun sendSøknadsbehandlingTilBeslutning(
@@ -49,7 +51,11 @@ class SendBehandlingTilBeslutningService(
             correlationId = kommando.correlationId,
         )
         // Denne validerer saksbehandler
-        return sak.sendRevurderingTilBeslutning(kommando, clock).onRight {
+        return sak.sendRevurderingTilBeslutning(
+            kommando = kommando,
+            hentNavkontor = navkontorService::hentOppfolgingsenhet,
+            clock = clock,
+        ).onRight {
             val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
             sessionFactory.withTransactionContext { tx ->
                 behandlingRepo.lagre(it, tx)

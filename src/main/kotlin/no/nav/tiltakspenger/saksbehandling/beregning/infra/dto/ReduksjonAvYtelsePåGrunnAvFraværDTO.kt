@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
+package no.nav.tiltakspenger.saksbehandling.beregning.infra.dto
 
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 

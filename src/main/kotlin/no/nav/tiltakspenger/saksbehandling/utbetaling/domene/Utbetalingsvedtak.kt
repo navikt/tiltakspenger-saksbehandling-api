@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -92,18 +91,10 @@ fun Rammevedtak.opprettUtbetalingsvedtak(
     forrigeUtbetalingsvedtak: Utbetalingsvedtak?,
     clock: Clock,
 ): Utbetalingsvedtak {
-    require(behandling.resultat is RevurderingResultat.Innvilgelse) {
-        "Kan kun opprette utbetaling for innvilget revurdering"
-    }
+    val utbetaling = (this.behandling as Revurdering).utbetaling
 
-    val behandling = this.behandling as Revurdering
-
-    requireNotNull(behandling.beregning) {
+    requireNotNull(utbetaling) {
         "Rammevedtak $id med behandling ${behandling.id} mangler utbetalingsberegning, kan ikke opprette utbetalingsvedtak"
-    }
-
-    requireNotNull(behandling.navkontor) {
-        "Rammevedtak $id med behandling ${behandling.id} mangler brukers Nav-kontor, kan ikke opprette utbetalingsvedtak"
     }
 
     return Utbetalingsvedtak(
@@ -117,10 +108,10 @@ fun Rammevedtak.opprettUtbetalingsvedtak(
         journalpostId = null,
         journalføringstidspunkt = null,
         status = null,
-        beregning = behandling.beregning,
         saksbehandler = this.saksbehandlerNavIdent,
         beslutter = this.beslutterNavIdent,
-        brukerNavkontor = behandling.navkontor,
+        beregning = utbetaling.beregning,
+        brukerNavkontor = utbetaling.navkontor,
         rammevedtak = listOf(this.id),
         automatiskBehandlet = false,
         erKorrigering = false,

@@ -574,7 +574,6 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
     clock: Clock = this.clock,
     revurderingType: RevurderingType = RevurderingType.STANS,
-    navkontor: Navkontor = ObjectMother.navkontor(),
 ): Pair<Sak, Behandling> {
     val (sak, _) = runBlocking {
         persisterIverksattSøknadsbehandling(
@@ -601,7 +600,6 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
                 revurderingType = revurderingType,
             ),
             hentSaksopplysninger = hentSaksopplysninger,
-            hentNavkontor = { navkontor },
             clock = clock,
         )
     }.also {
@@ -638,6 +636,7 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
         ),
     stansDato: LocalDate = ObjectMother.revurderingVirkningsperiode().fraOgMed,
     begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("fordi"),
+    navkontor: Navkontor = ObjectMother.navkontor(),
     clock: Clock = this.clock,
 ): Pair<Sak, Behandling> {
     val (sak, behandling) = runBlocking {
@@ -669,6 +668,7 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
                 fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("fritekstTilVedtaksbrev"),
                 sisteDagSomGirRett = null,
             ),
+            hentNavkontor = { navkontor },
             clock = clock,
         )
     }.getOrNull()!!.let {

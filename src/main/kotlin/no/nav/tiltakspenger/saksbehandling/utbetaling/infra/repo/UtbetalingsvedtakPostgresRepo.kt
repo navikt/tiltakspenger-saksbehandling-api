@@ -347,6 +347,11 @@ internal class UtbetalingsvedtakPostgresRepo(
                     }
 
                     val behandling = rammevedtak.behandling as Revurdering
+                    val utbetaling = behandling.utbetaling
+
+                    requireNotNull(utbetaling) {
+                        "Fant ingen utbetaling for $behandlingId på utbetalingsvedtak $vedtakId"
+                    }
 
                     Utbetalingsvedtak(
                         id = vedtakId,
@@ -361,8 +366,8 @@ internal class UtbetalingsvedtakPostgresRepo(
                         status = status,
                         saksbehandler = behandling.saksbehandler!!,
                         beslutter = behandling.beslutter!!,
-                        beregning = behandling.beregning!!,
-                        brukerNavkontor = behandling.navkontor!!,
+                        beregning = utbetaling.beregning,
+                        brukerNavkontor = utbetaling.navkontor,
                         rammevedtak = listOf(rammevedtak.id),
                         automatiskBehandlet = false,
                         erKorrigering = false,

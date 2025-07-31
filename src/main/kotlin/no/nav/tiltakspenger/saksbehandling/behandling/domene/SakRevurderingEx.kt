@@ -1,12 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.beregning.RevurderingIkkeBeregnet
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingInnvilgelse
@@ -23,7 +23,6 @@ suspend fun Sak.startRevurdering(
     kommando: StartRevurderingKommando,
     clock: Clock,
     hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger,
-    hentNavkontor: HentNavkontor,
 ): Pair<Sak, Revurdering> {
     val saksbehandler = kommando.saksbehandler
     krevSaksbehandlerRolle(saksbehandler)
@@ -38,7 +37,7 @@ suspend fun Sak.startRevurdering(
 
     val revurdering = when (kommando.revurderingType) {
         RevurderingType.STANS -> startStans(saksbehandler, hentSaksopplysninger, clock)
-        RevurderingType.INNVILGELSE -> startInnvilgelse(saksbehandler, hentSaksopplysninger, hentNavkontor, clock)
+        RevurderingType.INNVILGELSE -> startInnvilgelse(saksbehandler, hentSaksopplysninger, clock)
     }
 
     return Pair(
@@ -74,7 +73,6 @@ private suspend fun Sak.startStans(
 private suspend fun Sak.startInnvilgelse(
     saksbehandler: Saksbehandler,
     hentSaksopplysninger: HentSaksopplysninger,
-    hentNavkontor: HentNavkontor,
     clock: Clock,
 ): Revurdering {
     val sisteBehandling = hentSisteInnvilgetBehandling()
@@ -89,13 +87,13 @@ private suspend fun Sak.startInnvilgelse(
         fnr = this.fnr,
         saksbehandler = saksbehandler,
         saksopplysninger = hentSaksopplysninger(sisteBehandling.saksopplysningsperiode),
-        navkontor = hentNavkontor(fnr),
         clock = clock,
     )
 }
 
-fun Sak.sendRevurderingTilBeslutning(
+suspend fun Sak.sendRevurderingTilBeslutning(
     kommando: RevurderingTilBeslutningKommando,
+    hentNavkontor: HentNavkontor,
     clock: Clock,
 ): Either<KanIkkeSendeTilBeslutter, Revurdering> {
     krevSaksbehandlerRolle(kommando.saksbehandler)
@@ -108,17 +106,26 @@ fun Sak.sendRevurderingTilBeslutning(
 
     return when (kommando) {
         is RevurderingInnvilgelseTilBeslutningKommando -> {
-            val beregning = beregnRevurderingInnvilgelse(kommando).getOrElse {
-                when (it) {
-                    is RevurderingIkkeBeregnet.IngenEndring -> null
-                    is RevurderingIkkeBeregnet.StøtterIkkeTilbakekreving ->
-                        return KanIkkeSendeTilBeslutter.StøtterIkkeTilbakekreving.left()
-                }
-            }
+            val utbetaling = beregnRevurderingInnvilgelse(kommando).fold(
+                ifLeft = {
+                    when (it) {
+                        is RevurderingIkkeBeregnet.IngenEndring -> null
+                        is RevurderingIkkeBeregnet.StøtterIkkeTilbakekreving ->
+                            return KanIkkeSendeTilBeslutter.StøtterIkkeTilbakekreving.left()
+                    }
+                },
+
+                ifRight = {
+                    Utbetaling(
+                        beregning = it,
+                        navkontor = hentNavkontor(this.fnr),
+                    )
+                },
+            )
 
             behandling.tilBeslutning(
                 kommando = kommando,
-                beregning = beregning,
+                utbetaling = utbetaling,
                 clock = clock,
             )
         }

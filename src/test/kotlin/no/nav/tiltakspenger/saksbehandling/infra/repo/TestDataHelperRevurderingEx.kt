@@ -42,7 +42,6 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
         s ?: this.persisterIverksattSøknadsbehandling().first
     },
     revurderingType: RevurderingType = RevurderingType.STANS,
-    navkontor: Navkontor = ObjectMother.navkontor(),
 ): Pair<Sak, Behandling> {
     val sakMedVedtak = genererSak(sak)
 
@@ -55,7 +54,6 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
                 revurderingType = revurderingType,
             ),
             hentSaksopplysninger = hentSaksopplysninger,
-            hentNavkontor = { navkontor },
             clock = clock,
         )
     }.also {
@@ -77,6 +75,7 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
     valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, Behandling> = { s -> this.persisterOpprettetRevurdering(s) },
+    navkontor: Navkontor = ObjectMother.navkontor(),
 ): Pair<Sak, Behandling> {
     val (sakMedRevurdering, revurdering) = genererSak(s)
 
@@ -93,6 +92,7 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
                 fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("TestDataHelper.persisterRevurderingTilBeslutning"),
                 sisteDagSomGirRett = null,
             ),
+            hentNavkontor = { navkontor },
             clock = clock,
         )
     }.getOrNull()!!.let {

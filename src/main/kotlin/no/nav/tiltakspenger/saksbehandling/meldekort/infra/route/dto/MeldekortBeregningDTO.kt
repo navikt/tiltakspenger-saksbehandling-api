@@ -1,38 +1,18 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldekortBeregning
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.BeløpDTO
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.MeldeperiodeBeregningDTO
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.MeldeperiodeKorrigeringDTO
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilMeldeperiodeBeregningDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
-import java.time.LocalDateTime
 
 data class MeldekortBeregningDTO(
     val totalBeløp: BeløpDTO,
     val beregningForMeldekortetsPeriode: MeldeperiodeBeregningDTO,
     val beregningerForPåfølgendePerioder: List<MeldeperiodeBeregningDTO>,
-)
-
-data class MeldeperiodeKorrigeringDTO(
-    val meldekortId: String,
-    val kjedeId: String,
-    val periode: PeriodeDTO,
-    val iverksatt: LocalDateTime?,
-    val beregning: MeldeperiodeBeregningDTO,
-)
-
-data class MeldeperiodeBeregningDTO(
-    val kjedeId: String,
-    val periode: PeriodeDTO,
-    val beløp: BeløpDTO,
-    val dager: List<MeldeperiodeBeregningDagDTO>,
-)
-
-data class BeløpDTO(
-    val totalt: Int,
-    val ordinært: Int,
-    val barnetillegg: Int,
 )
 
 fun MeldekortBeregning.tilMeldekortBeregningDTO(): MeldekortBeregningDTO {
@@ -44,19 +24,6 @@ fun MeldekortBeregning.tilMeldekortBeregningDTO(): MeldekortBeregningDTO {
         ),
         beregningForMeldekortetsPeriode = beregningForMeldekortetsPeriode.tilMeldeperiodeBeregningDTO(),
         beregningerForPåfølgendePerioder = beregningerForPåfølgendePerioder.map { it.tilMeldeperiodeBeregningDTO() },
-    )
-}
-
-fun MeldeperiodeBeregning.tilMeldeperiodeBeregningDTO(): MeldeperiodeBeregningDTO {
-    return MeldeperiodeBeregningDTO(
-        kjedeId = this.kjedeId.toString(),
-        periode = this.periode.toDTO(),
-        beløp = BeløpDTO(
-            totalt = totalBeløp,
-            ordinært = ordinærBeløp,
-            barnetillegg = barnetilleggBeløp,
-        ),
-        dager = this.tilMeldeperiodeBeregningDagerDTO(),
     )
 }
 
