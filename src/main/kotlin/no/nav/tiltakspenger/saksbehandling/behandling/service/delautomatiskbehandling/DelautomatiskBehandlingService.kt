@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
@@ -46,7 +46,7 @@ class DelautomatiskBehandlingService(
     }
 
     private suspend fun sendTilBeslutning(behandling: Søknadsbehandling, correlationId: CorrelationId) {
-        val kommando = SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
+        val kommando = OppdaterSøknadsbehandlingKommando.Innvilgelse(
             sakId = behandling.sakId,
             behandlingId = behandling.id,
             saksbehandler = AUTOMATISK_SAKSBEHANDLER,

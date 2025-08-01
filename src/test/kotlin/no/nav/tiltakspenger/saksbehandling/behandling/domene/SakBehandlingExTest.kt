@@ -24,7 +24,7 @@ class SakBehandlingExTest {
         )
         val sak = ObjectMother.nySak(behandlinger = Behandlinger(søknadsbehandling))
         val virkningsperiode = ObjectMother.virkningsperiode()
-        val kommando = SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
+        val kommando = OppdaterSøknadsbehandlingKommando.Innvilgelse(
             sakId = sak.id,
             behandlingId = søknadsbehandling.id,
             saksbehandler = saksbehandler,
@@ -85,7 +85,7 @@ class SakBehandlingExTest {
                 ),
             ),
         )
-        val kommando = SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
+        val kommando = OppdaterSøknadsbehandlingKommando.Innvilgelse(
             sakId = sak.id,
             behandlingId = søknadsbehandling.id,
             saksbehandler = saksbehandler,

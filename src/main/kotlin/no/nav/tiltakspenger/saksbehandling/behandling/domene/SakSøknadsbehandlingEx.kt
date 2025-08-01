@@ -8,13 +8,15 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 
 fun Sak.sendSøknadsbehandlingTilBeslutning(
-    kommando: SendSøknadsbehandlingTilBeslutningKommando,
+    kommando: OppdaterSøknadsbehandlingKommando,
     clock: Clock,
 ): Either<KanIkkeSendeTilBeslutter, Pair<Sak, Søknadsbehandling>> {
     krevSaksbehandlerRolle(kommando.saksbehandler)
 
     val behandling = this.hentBehandling(kommando.behandlingId)
-    require(behandling is Søknadsbehandling) { "Behandlingen må være en søknadsbehandling, men var: ${behandling?.behandlingstype}" }
+    require(behandling is Søknadsbehandling) {
+        "Behandlingen må være en søknadsbehandling, men var: ${behandling?.behandlingstype}"
+    }
 
     if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {
         return KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(eiesAvSaksbehandler = behandling.saksbehandler)

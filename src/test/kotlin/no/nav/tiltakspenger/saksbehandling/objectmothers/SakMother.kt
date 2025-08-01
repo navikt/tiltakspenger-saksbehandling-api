@@ -20,8 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
@@ -123,7 +123,7 @@ interface SakMother {
                 } else {
                     behandling.tilBeslutning(
                         when (resultat) {
-                            SøknadsbehandlingType.INNVILGELSE -> SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
+                            SøknadsbehandlingType.INNVILGELSE -> OppdaterSøknadsbehandlingKommando.Innvilgelse(
                                 sakId = sakId,
                                 behandlingId = behandling.id,
                                 correlationId = CorrelationId.generate(),
@@ -136,7 +136,7 @@ interface SakMother {
                                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                             )
 
-                            SøknadsbehandlingType.AVSLAG -> SendSøknadsbehandlingTilBeslutningKommando.Avslag(
+                            SøknadsbehandlingType.AVSLAG -> OppdaterSøknadsbehandlingKommando.Avslag(
                                 sakId = sakId,
                                 behandlingId = behandling.id,
                                 correlationId = CorrelationId.generate(),
@@ -236,7 +236,7 @@ interface SakMother {
         )
 
         val iverksattBehandling = søknadsbehandling.tilBeslutning(
-            SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
+            OppdaterSøknadsbehandlingKommando.Innvilgelse(
                 sakId = sakId,
                 behandlingId = søknadsbehandling.id,
                 correlationId = CorrelationId.generate(),
@@ -285,7 +285,7 @@ interface SakMother {
         )
 
         val iverksattBehandling = søknadsbehandling.tilBeslutning(
-            SendSøknadsbehandlingTilBeslutningKommando.Avslag(
+            OppdaterSøknadsbehandlingKommando.Avslag(
                 sakId = sakId,
                 behandlingId = søknadsbehandling.id,
                 correlationId = CorrelationId.generate(),

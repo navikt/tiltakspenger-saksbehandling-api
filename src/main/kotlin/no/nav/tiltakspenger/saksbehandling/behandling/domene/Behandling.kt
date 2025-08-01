@@ -360,7 +360,6 @@ sealed interface Behandling {
             }
         }
     }
-
     fun oppdaterFritekstTilVedtaksbrev(
         saksbehandler: Saksbehandler,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev,

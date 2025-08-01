@@ -21,10 +21,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingInnvilgelseTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse.Utbetaling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
@@ -85,12 +84,12 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
         stansDato: LocalDate,
         sisteDagSomGirRett: LocalDate,
-        kommando: RevurderingStansTilBeslutningKommando = RevurderingStansTilBeslutningKommando(
+        kommando: OppdaterRevurderingKommando.Stans = OppdaterRevurderingKommando.Stans(
             sakId = sakId,
             behandlingId = id,
             saksbehandler = saksbehandler,
             correlationId = CorrelationId.generate(),
-            begrunnelse = begrunnelseVilkårsvurdering,
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             valgteHjemler = valgteHjemler,
             stansFraOgMed = stansDato,
@@ -202,12 +201,12 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         barnetillegg: Barnetillegg? = null,
         beregning: BehandlingBeregning? = null,
     ): Revurdering {
-        val kommando = RevurderingInnvilgelseTilBeslutningKommando(
+        val kommando = OppdaterRevurderingKommando.Innvilgelse(
             sakId = sakId,
             behandlingId = id,
             saksbehandler = saksbehandler,
             correlationId = CorrelationId.generate(),
-            begrunnelse = begrunnelseVilkårsvurdering,
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             innvilgelsesperiode = virkningsperiode,
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,

@@ -17,7 +17,7 @@ interface BarnetilleggMother {
     ): Barnetillegg {
         return Barnetillegg(
             periodisering = periodiseringAntallBarn,
-            begrunnelse = null,
+            begrunnelse = begrunnelse,
         )
     }
 

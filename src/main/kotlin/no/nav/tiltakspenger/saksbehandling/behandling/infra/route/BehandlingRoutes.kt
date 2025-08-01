@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Iverkse
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBarnetilleggService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
@@ -41,6 +42,7 @@ fun Route.behandlingRoutes(
     taBehandlingService: TaBehandlingService,
     overtaBehandlingService: OvertaBehandlingService,
     leggTilbakeBehandlingService: LeggTilbakeBehandlingService,
+    oppdaterBehandlingService: OppdaterBehandlingService,
 ) {
     hentBehandlingRoute(tokenService, behandlingService, auditService)
     behandleSøknadPåNyttRoute(tokenService, behandleSøknadPåNyttService, auditService)
@@ -57,4 +59,5 @@ fun Route.behandlingRoutes(
     underkjennBehandlingRoute(tokenService, auditService, behandlingService)
     overtaBehandlingRoute(tokenService, overtaBehandlingService, auditService)
     leggTilbakeBehandlingRoute(tokenService, auditService, leggTilbakeBehandlingService)
+    oppdaterBehandlingRoute(oppdaterBehandlingService, auditService, tokenService)
 }

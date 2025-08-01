@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
@@ -26,7 +26,7 @@ class SendBehandlingTilBeslutningService(
     private val sessionFactory: SessionFactory,
 ) {
     suspend fun sendSøknadsbehandlingTilBeslutning(
-        kommando: SendSøknadsbehandlingTilBeslutningKommando,
+        kommando: OppdaterSøknadsbehandlingKommando,
     ): Either<KanIkkeSendeTilBeslutter, Behandling> {
         val sak: Sak = sakService.sjekkTilgangOgHentForSakId(
             sakId = kommando.sakId,
@@ -43,7 +43,7 @@ class SendBehandlingTilBeslutningService(
         }
     }
 
-    suspend fun sendRevurderingTilBeslutning(kommando: RevurderingTilBeslutningKommando): Either<KanIkkeSendeTilBeslutter, Behandling> {
+    suspend fun sendRevurderingTilBeslutning(kommando: OppdaterRevurderingKommando): Either<KanIkkeSendeTilBeslutter, Behandling> {
         // Denne sjekker tilgang til person og rollene SAKSBEHANDLER eller BESLUTTER.
         val sak: Sak = sakService.sjekkTilgangOgHentForSakId(
             sakId = kommando.sakId,

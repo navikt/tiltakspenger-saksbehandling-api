@@ -92,7 +92,7 @@ data class Søknadsbehandling(
     }
 
     fun tilBeslutning(
-        kommando: SendSøknadsbehandlingTilBeslutningKommando,
+        kommando: OppdaterSøknadsbehandlingKommando,
         clock: Clock,
     ): Either<KanIkkeSendeTilBeslutter, Søknadsbehandling> {
         if (status != UNDER_BEHANDLING && status != UNDER_AUTOMATISK_BEHANDLING) {
@@ -105,15 +105,15 @@ data class Søknadsbehandling(
         val status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING
 
         val virkningsperiode = when (kommando) {
-            is SendSøknadsbehandlingTilBeslutningKommando.Avslag -> this.søknad.vurderingsperiode()
-            is SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse -> kommando.innvilgelsesperiode
+            is OppdaterSøknadsbehandlingKommando.Avslag -> this.søknad.vurderingsperiode()
+            is OppdaterSøknadsbehandlingKommando.Innvilgelse -> kommando.innvilgelsesperiode
         }
 
         val resultat: SøknadsbehandlingResultat = when (kommando) {
-            is SendSøknadsbehandlingTilBeslutningKommando.Avslag -> {
+            is OppdaterSøknadsbehandlingKommando.Avslag -> {
                 SøknadsbehandlingResultat.Avslag(avslagsgrunner = kommando.avslagsgrunner)
             }
-            is SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse -> {
+            is OppdaterSøknadsbehandlingKommando.Innvilgelse -> {
                 SøknadsbehandlingResultat.Innvilgelse(
                     valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
                     barnetillegg = kommando.barnetillegg,
@@ -146,6 +146,40 @@ data class Søknadsbehandling(
             saksbehandler = null,
             manueltBehandlesGrunner = manueltBehandlesGrunner,
         )
+    }
+
+    fun oppdater(
+        kommando: OppdaterSøknadsbehandlingKommando,
+        clock: Clock,
+    ): Either<KanIkkeOppdatereBehandling, Søknadsbehandling> {
+        super.validerKanOppdatere(kommando.saksbehandler, "lol")
+
+        val virkningsperiode = when (kommando) {
+            is OppdaterSøknadsbehandlingKommando.Avslag -> this.søknad.vurderingsperiode()
+            is OppdaterSøknadsbehandlingKommando.Innvilgelse -> kommando.innvilgelsesperiode
+        }
+
+        val resultat: SøknadsbehandlingResultat = when (kommando) {
+            is OppdaterSøknadsbehandlingKommando.Avslag -> {
+                SøknadsbehandlingResultat.Avslag(avslagsgrunner = kommando.avslagsgrunner)
+            }
+            is OppdaterSøknadsbehandlingKommando.Innvilgelse -> {
+                SøknadsbehandlingResultat.Innvilgelse(
+                    valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
+                    barnetillegg = kommando.barnetillegg,
+                    antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+                )
+            }
+        }
+
+        return this.copy(
+            sistEndret = nå(clock),
+            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
+            virkningsperiode = virkningsperiode,
+            begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
+            resultat = resultat,
+            automatiskSaksbehandlet = kommando.automatiskSaksbehandlet,
+        ).right()
     }
 
     fun oppdaterBarnetillegg(kommando: OppdaterBarnetilleggCommand): Either<KunneIkkeOppdatereBarnetillegg, Søknadsbehandling> {
