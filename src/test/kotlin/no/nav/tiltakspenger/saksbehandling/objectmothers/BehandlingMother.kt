@@ -27,8 +27,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -182,7 +182,7 @@ interface BehandlingMother : MotherOfAllMothers {
             hentSaksopplysninger = { saksopplysninger },
         ).tilBeslutning(
             when (resultat) {
-                SøknadsbehandlingType.INNVILGELSE -> SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
+                SøknadsbehandlingType.INNVILGELSE -> OppdaterSøknadsbehandlingKommando.Innvilgelse(
                     sakId = sakId,
                     saksbehandler = saksbehandler,
                     behandlingId = id,
@@ -195,7 +195,7 @@ interface BehandlingMother : MotherOfAllMothers {
                     antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                 )
 
-                SøknadsbehandlingType.AVSLAG -> SendSøknadsbehandlingTilBeslutningKommando.Avslag(
+                SøknadsbehandlingType.AVSLAG -> OppdaterSøknadsbehandlingKommando.Avslag(
                     sakId = sakId,
                     saksbehandler = saksbehandler,
                     behandlingId = id,
@@ -537,7 +537,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
 
     this.behandlingContext.sendBehandlingTilBeslutningService.sendSøknadsbehandlingTilBeslutning(
         when (resultat) {
-            SøknadsbehandlingType.INNVILGELSE -> SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
+            SøknadsbehandlingType.INNVILGELSE -> OppdaterSøknadsbehandlingKommando.Innvilgelse(
                 sakId = sakMedSøknadsbehandling.id,
                 behandlingId = behandling.id,
                 saksbehandler = saksbehandler,
@@ -549,7 +549,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
                 tiltaksdeltakelser = tiltaksdeltakelser,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             )
-            SøknadsbehandlingType.AVSLAG -> SendSøknadsbehandlingTilBeslutningKommando.Avslag(
+            SøknadsbehandlingType.AVSLAG -> OppdaterSøknadsbehandlingKommando.Avslag(
                 sakId = sakMedSøknadsbehandling.id,
                 behandlingId = behandling.id,
                 saksbehandler = saksbehandler,

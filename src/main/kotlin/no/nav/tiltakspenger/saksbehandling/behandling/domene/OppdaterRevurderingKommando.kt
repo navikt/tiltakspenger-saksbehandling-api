@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import java.time.LocalDate
 
-sealed interface RevurderingTilBeslutningKommando : SendBehandlingTilBeslutningKommando {
+sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
     override val sakId: SakId
     override val behandlingId: BehandlingId
     override val saksbehandler: Saksbehandler
@@ -29,7 +29,7 @@ sealed interface RevurderingTilBeslutningKommando : SendBehandlingTilBeslutningK
         val stansFraOgMed: LocalDate,
         // Bestemmes av tidligere vedtak på saken, må settes når behandlingen sendes til beslutning
         val sisteDagSomGirRett: LocalDate?,
-    ) : RevurderingTilBeslutningKommando
+    ) : OppdaterRevurderingKommando
 
     data class Innvilgelse(
         override val sakId: SakId,
@@ -42,5 +42,5 @@ sealed interface RevurderingTilBeslutningKommando : SendBehandlingTilBeslutningK
         val tiltaksdeltakelser: List<Pair<Periode, String>>,
         val barnetillegg: Barnetillegg?,
         val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>,
-    ) : RevurderingTilBeslutningKommando
+    ) : OppdaterRevurderingKommando
 }

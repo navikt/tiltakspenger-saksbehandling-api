@@ -91,8 +91,63 @@ data class Revurdering(
         }
     }
 
+    fun oppdaterInnvilgelse(
+        kommando: OppdaterRevurderingKommando.Innvilgelse,
+        utbetaling: Innvilgelse.Utbetaling?,
+        clock: Clock,
+    ): Either<KanIkkeOppdatereBehandling, Revurdering> {
+        return validerKanOppdatere(kommando.saksbehandler, "Kunne ikke oppdatere revurdering innvilgelse")
+            .mapLeft {
+                KanIkkeOppdatereBehandling.MåVæreUnderBehandling
+            }.map {
+                require(this.resultat is Innvilgelse)
+
+                this.copy(
+                    sistEndret = nå(clock),
+                    begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
+                    fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
+                    virkningsperiode = kommando.innvilgelsesperiode,
+                    resultat = this.resultat.copy(
+                        valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
+                            tiltaksdeltakelser = kommando.tiltaksdeltakelser,
+                            behandling = this,
+                        ),
+                        barnetillegg = kommando.barnetillegg,
+                        antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+                        utbetaling = utbetaling,
+                    ),
+                )
+            }
+    }
+
+    fun oppdaterStans(
+        kommando: OppdaterRevurderingKommando.Stans,
+        clock: Clock,
+    ): Either<KanIkkeOppdatereBehandling, Revurdering> {
+        return validerKanOppdatere(kommando.saksbehandler, "Kunne ikke oppdatere revurdering stans")
+            .mapLeft {
+                KanIkkeOppdatereBehandling.MåVæreUnderBehandling
+            }.map {
+                requireNotNull(kommando.sisteDagSomGirRett) {
+                    "Siste dag som gir rett må være bestemt før stans kan lagres"
+                }
+
+                require(this.resultat is Stans)
+
+                this.copy(
+                    sistEndret = nå(clock),
+                    begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
+                    fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
+                    virkningsperiode = Periode(kommando.stansFraOgMed, kommando.sisteDagSomGirRett),
+                    resultat = Stans(
+                        valgtHjemmel = kommando.valgteHjemler,
+                    ),
+                )
+            }
+    }
+
     fun stansTilBeslutning(
-        kommando: RevurderingTilBeslutningKommando.Stans,
+        kommando: OppdaterRevurderingKommando.Stans,
         clock: Clock,
     ): Either<KanIkkeSendeTilBeslutter, Revurdering> {
         return validerSendTilBeslutning(kommando.saksbehandler).mapLeft {
@@ -118,7 +173,7 @@ data class Revurdering(
     }
 
     fun tilBeslutning(
-        kommando: RevurderingTilBeslutningKommando.Innvilgelse,
+        kommando: OppdaterRevurderingKommando.Innvilgelse,
         utbetaling: Innvilgelse.Utbetaling?,
         clock: Clock,
     ): Either<KanIkkeSendeTilBeslutter, Revurdering> {

@@ -92,7 +92,7 @@ private suspend fun Sak.startInnvilgelse(
 }
 
 suspend fun Sak.sendRevurderingTilBeslutning(
-    kommando: RevurderingTilBeslutningKommando,
+    kommando: OppdaterRevurderingKommando,
     hentNavkontor: HentNavkontor,
     clock: Clock,
 ): Either<KanIkkeSendeTilBeslutter, Revurdering> {
@@ -105,7 +105,7 @@ suspend fun Sak.sendRevurderingTilBeslutning(
     }
 
     return when (kommando) {
-        is RevurderingTilBeslutningKommando.Innvilgelse -> {
+        is OppdaterRevurderingKommando.Innvilgelse -> {
             val utbetaling = beregnRevurderingInnvilgelse(kommando).fold(
                 ifLeft = {
                     when (it) {
@@ -130,7 +130,7 @@ suspend fun Sak.sendRevurderingTilBeslutning(
             )
         }
 
-        is RevurderingTilBeslutningKommando.Stans -> {
+        is OppdaterRevurderingKommando.Stans -> {
             validerStansDato(kommando.stansFraOgMed)
 
             behandling.stansTilBeslutning(

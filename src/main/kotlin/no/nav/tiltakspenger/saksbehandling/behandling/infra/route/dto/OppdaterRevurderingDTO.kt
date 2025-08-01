@@ -15,8 +15,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingTilBeslutningKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingTilBeslutningKommando.Stans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.Tiltaks
 import java.time.LocalDate
 import kotlin.collections.List
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "resultat")
 @JsonSubTypes(
     JsonSubTypes.Type(value = OppdaterRevurderingDTO.Innvilgelse::class, name = "REVURDERING_INNVILGELSE"),
     JsonSubTypes.Type(value = OppdaterRevurderingDTO.Stans::class, name = "STANS"),
@@ -36,34 +36,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): RevurderingTilBeslutningKommando
-
-    data class Stans(
-        override val begrunnelseVilkårsvurdering: String?,
-        override val fritekstTilVedtaksbrev: String?,
-        val valgteHjemler: List<ValgtHjemmelForStansDTO>,
-        val stansFraOgMed: LocalDate,
-    ) : OppdaterRevurderingDTO {
-
-        override fun tilDomene(
-            sakId: SakId,
-            behandlingId: BehandlingId,
-            saksbehandler: Saksbehandler,
-            correlationId: CorrelationId,
-        ): RevurderingTilBeslutningKommando.Stans {
-            return Stans(
-                sakId = sakId,
-                behandlingId = behandlingId,
-                saksbehandler = saksbehandler,
-                correlationId = correlationId,
-                begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering(saniter(begrunnelseVilkårsvurdering ?: "")),
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
-                stansFraOgMed = stansFraOgMed,
-                valgteHjemler = valgteHjemler.tilBeslutningKommando().toNonEmptyListOrThrow(),
-                sisteDagSomGirRett = null,
-            )
-        }
-    }
+    ): OppdaterRevurderingKommando
 
     data class Innvilgelse(
         override val fritekstTilVedtaksbrev: String?,
@@ -78,16 +51,17 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
             ),
         ),
     ) : OppdaterRevurderingDTO {
+        override val resultat: BehandlingResultatDTO = BehandlingResultatDTO.REVURDERING_INNVILGELSE
 
         override fun tilDomene(
             sakId: SakId,
             behandlingId: BehandlingId,
             saksbehandler: Saksbehandler,
             correlationId: CorrelationId,
-        ): RevurderingTilBeslutningKommando.Innvilgelse {
+        ): OppdaterRevurderingKommando.Innvilgelse {
             val innvilgelsesperiode = innvilgelsesperiode.toDomain()
 
-            return RevurderingTilBeslutningKommando.Innvilgelse(
+            return OppdaterRevurderingKommando.Innvilgelse(
                 sakId = sakId,
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
@@ -106,6 +80,34 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                     )
                 }.tilSammenhengendePeriodisering(),
 
+            )
+        }
+    }
+
+    data class Stans(
+        override val begrunnelseVilkårsvurdering: String?,
+        override val fritekstTilVedtaksbrev: String?,
+        val valgteHjemler: List<ValgtHjemmelForStansDTO>,
+        val stansFraOgMed: LocalDate,
+    ) : OppdaterRevurderingDTO {
+        override val resultat: BehandlingResultatDTO = BehandlingResultatDTO.STANS
+
+        override fun tilDomene(
+            sakId: SakId,
+            behandlingId: BehandlingId,
+            saksbehandler: Saksbehandler,
+            correlationId: CorrelationId,
+        ): OppdaterRevurderingKommando.Stans {
+            return Stans(
+                sakId = sakId,
+                behandlingId = behandlingId,
+                saksbehandler = saksbehandler,
+                correlationId = correlationId,
+                begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering(saniter(begrunnelseVilkårsvurdering ?: "")),
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
+                stansFraOgMed = stansFraOgMed,
+                valgteHjemler = valgteHjemler.tilBeslutningKommando().toNonEmptyListOrThrow(),
+                sisteDagSomGirRett = null,
             )
         }
     }

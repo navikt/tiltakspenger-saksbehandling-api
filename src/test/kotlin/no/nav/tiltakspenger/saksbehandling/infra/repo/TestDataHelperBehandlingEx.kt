@@ -24,10 +24,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårs
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
@@ -235,7 +235,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
         søknadsbehandling
             .tilBeslutning(
                 when (resultat) {
-                    SøknadsbehandlingType.INNVILGELSE -> SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
+                    SøknadsbehandlingType.INNVILGELSE -> OppdaterSøknadsbehandlingKommando.Innvilgelse(
                         sakId = sak.id,
                         saksbehandler = saksbehandler,
                         behandlingId = søknadsbehandling.id,
@@ -248,7 +248,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
                         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                     )
 
-                    SøknadsbehandlingType.AVSLAG -> SendSøknadsbehandlingTilBeslutningKommando.Avslag(
+                    SøknadsbehandlingType.AVSLAG -> OppdaterSøknadsbehandlingKommando.Avslag(
                         sakId = sak.id,
                         saksbehandler = saksbehandler,
                         behandlingId = søknadsbehandling.id,
@@ -657,7 +657,7 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
     }
     return runBlocking {
         sak.sendRevurderingTilBeslutning(
-            kommando = RevurderingTilBeslutningKommando.Stans(
+            kommando = OppdaterRevurderingKommando.Stans(
                 sakId = sakId,
                 behandlingId = behandling.id,
                 saksbehandler = saksbehandler,

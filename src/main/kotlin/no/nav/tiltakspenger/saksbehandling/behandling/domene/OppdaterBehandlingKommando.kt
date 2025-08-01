@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 
-sealed interface SendBehandlingTilBeslutningKommando {
+sealed interface OppdaterBehandlingKommando {
     val sakId: SakId
     val behandlingId: BehandlingId
     val saksbehandler: Saksbehandler

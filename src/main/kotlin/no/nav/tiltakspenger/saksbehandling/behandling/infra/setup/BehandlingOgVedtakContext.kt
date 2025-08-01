@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Iverkse
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBarnetilleggService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBegrunnelseVilkårsvurderingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterFritekstTilVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
@@ -244,6 +245,15 @@ open class BehandlingOgVedtakContext(
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
             sessionFactory = sessionFactory,
+        )
+    }
+
+    val oppdaterBehandlingService by lazy {
+        OppdaterBehandlingService(
+            sakService = sakService,
+            behandlingRepo = behandlingRepo,
+            navkontorService = navkontorService,
+            clock = clock,
         )
     }
 }

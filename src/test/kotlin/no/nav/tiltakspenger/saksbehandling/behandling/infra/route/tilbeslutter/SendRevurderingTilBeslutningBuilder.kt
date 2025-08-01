@@ -119,7 +119,7 @@ interface SendRevurderingTilBeslutningBuilder {
                 //language=JSON
                 """
                 {
-                    "type": "STANS",
+                    "resultat": "STANS",
                     "begrunnelseVilkårsvurdering": "$begrunnelseVilkårsvurdering",
                     "stansFraOgMed": "${stansperiode.fraOgMed}",
                     "valgteHjemler": [${valgteHjemler.joinToString(separator = ",", prefix = "\"", postfix = "\"")}]
@@ -173,7 +173,7 @@ interface SendRevurderingTilBeslutningBuilder {
                 //language=JSON
                 """
                 {
-                    "type": "REVURDERING_INNVILGELSE",
+                    "resultat": "REVURDERING_INNVILGELSE",
                     "begrunnelseVilkårsvurdering": "$begrunnelseVilkårsvurdering",
                     "innvilgelsesperiode": {
                         "fraOgMed": "${innvilgelsesperiode.fraOgMed}",

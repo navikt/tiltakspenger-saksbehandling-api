@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendSøknadsbehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
@@ -32,7 +32,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): SendSøknadsbehandlingTilBeslutningKommando
+    ): OppdaterSøknadsbehandlingKommando
 
     data class Innvilgelse(
         override val fritekstTilVedtaksbrev: String?,
@@ -47,16 +47,17 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
             ),
         ),
     ) : OppdaterSøknadsbehandlingDTO {
+        override val resultat: BehandlingResultatDTO = BehandlingResultatDTO.INNVILGELSE
 
         override fun tilDomene(
             sakId: SakId,
             behandlingId: BehandlingId,
             saksbehandler: Saksbehandler,
             correlationId: CorrelationId,
-        ): SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse {
+        ): OppdaterSøknadsbehandlingKommando.Innvilgelse {
             val innvilgelsesperiode = innvilgelsesperiode.toDomain()
 
-            return SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse(
+            return OppdaterSøknadsbehandlingKommando.Innvilgelse(
                 sakId = sakId,
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
@@ -85,14 +86,15 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         override val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
         val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>,
     ) : OppdaterSøknadsbehandlingDTO {
+        override val resultat: BehandlingResultatDTO = BehandlingResultatDTO.AVSLAG
 
         override fun tilDomene(
             sakId: SakId,
             behandlingId: BehandlingId,
             saksbehandler: Saksbehandler,
             correlationId: CorrelationId,
-        ): SendSøknadsbehandlingTilBeslutningKommando {
-            return SendSøknadsbehandlingTilBeslutningKommando.Avslag(
+        ): OppdaterSøknadsbehandlingKommando {
+            return OppdaterSøknadsbehandlingKommando.Avslag(
                 sakId = sakId,
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
