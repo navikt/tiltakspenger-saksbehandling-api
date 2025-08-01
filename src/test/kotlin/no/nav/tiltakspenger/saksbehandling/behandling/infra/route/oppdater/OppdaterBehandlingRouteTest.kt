@@ -23,57 +23,56 @@ import org.junit.jupiter.api.Test
 class OppdaterBehandlingRouteTest {
     @Test
     fun `kan oppdatere innvilget søknadsbehandling`() {
-        with(TestApplicationContext()) {
-            val tac = this
-            testApplication {
-                application {
-                    jacksonSerialization()
-                    routing { routes(tac) }
-                }
+        val tac = TestApplicationContext()
 
-                val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
-
-                val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelse.first()
-                val nyInnvilgelsesperiode = tiltaksdeltagelse.periode!!.minusTilOgMed(1)
-
-                val barnetillegg = barnetillegg(
-                    begrunnelse = BegrunnelseVilkårsvurdering("barnetillegg begrunnelse"),
-                    periode = nyInnvilgelsesperiode,
-                    antallBarn = AntallBarn(1),
-                )
-
-                val antallDager = SammenhengendePeriodisering(
-                    AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-                    nyInnvilgelsesperiode,
-                )
-
-                oppdaterBehandling(
-                    tac = tac,
-                    sakId = sak.id,
-                    behandlingId = behandling.id,
-                    oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.Innvilgelse(
-                        fritekstTilVedtaksbrev = "ny brevtekst",
-                        begrunnelseVilkårsvurdering = "ny begrunnelse",
-                        valgteTiltaksdeltakelser = listOf(
-                            TiltaksdeltakelsePeriodeDTO(
-                                eksternDeltagelseId = tiltaksdeltagelse.eksternDeltagelseId,
-                                periode = tiltaksdeltagelse.periode!!.toDTO(),
-                            ),
-                        ),
-                        innvilgelsesperiode = nyInnvilgelsesperiode.toDTO(),
-                        barnetillegg = barnetillegg.toBarnetilleggDTO(),
-                        antallDagerPerMeldeperiodeForPerioder = antallDager.toDTO(),
-                    ),
-                )
-
-                val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id)
-
-                oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
-                oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
-                oppdatertBehandling.virkningsperiode shouldBe nyInnvilgelsesperiode
-                oppdatertBehandling.barnetillegg shouldBe barnetillegg
-                oppdatertBehandling.antallDagerPerMeldeperiode shouldBe antallDager
+        testApplication {
+            application {
+                jacksonSerialization()
+                routing { routes(tac) }
             }
+
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+
+            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelse.first()
+            val nyInnvilgelsesperiode = tiltaksdeltagelse.periode!!.minusTilOgMed(1)
+
+            val barnetillegg = barnetillegg(
+                begrunnelse = BegrunnelseVilkårsvurdering("barnetillegg begrunnelse"),
+                periode = nyInnvilgelsesperiode,
+                antallBarn = AntallBarn(1),
+            )
+
+            val antallDager = SammenhengendePeriodisering(
+                AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+                nyInnvilgelsesperiode,
+            )
+
+            oppdaterBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.Innvilgelse(
+                    fritekstTilVedtaksbrev = "ny brevtekst",
+                    begrunnelseVilkårsvurdering = "ny begrunnelse",
+                    valgteTiltaksdeltakelser = listOf(
+                        TiltaksdeltakelsePeriodeDTO(
+                            eksternDeltagelseId = tiltaksdeltagelse.eksternDeltagelseId,
+                            periode = tiltaksdeltagelse.periode!!.toDTO(),
+                        ),
+                    ),
+                    innvilgelsesperiode = nyInnvilgelsesperiode.toDTO(),
+                    barnetillegg = barnetillegg.toBarnetilleggDTO(),
+                    antallDagerPerMeldeperiodeForPerioder = antallDager.toDTO(),
+                ),
+            )
+
+            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id)
+
+            oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
+            oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
+            oppdatertBehandling.virkningsperiode shouldBe nyInnvilgelsesperiode
+            oppdatertBehandling.barnetillegg shouldBe barnetillegg
+            oppdatertBehandling.antallDagerPerMeldeperiode shouldBe antallDager
         }
     }
 }

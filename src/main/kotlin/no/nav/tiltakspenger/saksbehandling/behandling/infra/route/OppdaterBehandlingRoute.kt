@@ -45,7 +45,24 @@ fun Route.oppdaterBehandlingRoute(
 
                         oppdaterBehandlingService.oppdater(kommando).fold(
                             ifLeft = {
-                                it.toErrorJson()
+                                val (status, message) = when (it) {
+                                    KanIkkeOppdatereBehandling.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode,
+                                    KanIkkeOppdatereBehandling.StøtterIkkeTilbakekreving,
+                                    -> HttpStatusCode.BadRequest to ErrorJson(
+                                        "Innvilgelsesperioden overlapper med en eller flere utbetalingsperioder",
+                                        "innvilgelsesperioden_overlapper_med_utbetalingsperiode",
+                                    )
+
+                                    is KanIkkeOppdatereBehandling.BehandlingenEiesAvAnnenSaksbehandler -> HttpStatusCode.BadRequest to Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
+                                        it.eiesAvSaksbehandler,
+                                    )
+
+                                    KanIkkeOppdatereBehandling.MåVæreUnderBehandling -> HttpStatusCode.BadRequest to ErrorJson(
+                                        "Behandlingen må være under behandling eller automatisk for å kunne sendes til beslutning",
+                                        "må_være_under_behandling_eller_automatisk",
+                                    )
+                                }
+                                call.respond(status, message)
                             },
                             ifRight = {
                                 auditService.logMedBehandlingId(
@@ -63,22 +80,4 @@ fun Route.oppdaterBehandlingRoute(
             }
         }
     }
-}
-
-private fun KanIkkeOppdatereBehandling.toErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
-    KanIkkeOppdatereBehandling.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode,
-    KanIkkeOppdatereBehandling.StøtterIkkeTilbakekreving,
-    -> HttpStatusCode.BadRequest to ErrorJson(
-        "Innvilgelsesperioden overlapper med en eller flere utbetalingsperioder",
-        "innvilgelsesperioden_overlapper_med_utbetalingsperiode",
-    )
-
-    is KanIkkeOppdatereBehandling.BehandlingenEiesAvAnnenSaksbehandler -> HttpStatusCode.BadRequest to Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
-        this.eiesAvSaksbehandler,
-    )
-
-    KanIkkeOppdatereBehandling.MåVæreUnderBehandling -> HttpStatusCode.BadRequest to ErrorJson(
-        "Behandlingen må være under behandling eller automatisk for å kunne sendes til beslutning",
-        "må_være_under_behandling_eller_automatisk",
-    )
 }
