@@ -58,8 +58,8 @@ fun Route.oppdaterBehandlingRoute(
                                     )
 
                                     KanIkkeOppdatereBehandling.MåVæreUnderBehandling -> HttpStatusCode.BadRequest to ErrorJson(
-                                        "Behandlingen må være under behandling eller automatisk for å kunne sendes til beslutning",
-                                        "må_være_under_behandling_eller_automatisk",
+                                        "Behandlingen må være under behandling for å kunne oppdateres",
+                                        "må_være_under_behandling",
                                     )
                                 }
                                 call.respond(status, message)

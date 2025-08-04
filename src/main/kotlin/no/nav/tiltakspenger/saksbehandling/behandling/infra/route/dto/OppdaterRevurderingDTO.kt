@@ -106,7 +106,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering(saniter(begrunnelseVilkårsvurdering ?: "")),
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
                 stansFraOgMed = stansFraOgMed,
-                valgteHjemler = valgteHjemler.tilBeslutningKommando().toNonEmptyListOrThrow(),
+                valgteHjemler = valgteHjemler.toDomain().toNonEmptyListOrThrow(),
                 sisteDagSomGirRett = null,
             )
         }

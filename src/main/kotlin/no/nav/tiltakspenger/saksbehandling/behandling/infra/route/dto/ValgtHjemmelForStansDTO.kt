@@ -25,4 +25,4 @@ enum class ValgtHjemmelForStansDTO {
     }
 }
 
-fun List<ValgtHjemmelForStansDTO>.tilBeslutningKommando(): List<ValgtHjemmelForStans> = this.map { it.toDomain() }
+fun List<ValgtHjemmelForStansDTO>.toDomain(): List<ValgtHjemmelForStans> = this.map { it.toDomain() }
