@@ -34,6 +34,7 @@ data class SaksoversiktDTO(
     val saksbehandler: String?,
     val beslutter: String?,
     val opprettet: LocalDateTime,
+    val erSattPåVent: Boolean?,
 )
 
 fun List<Behandling>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
@@ -57,6 +58,7 @@ fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
     saksbehandler = saksbehandler,
     beslutter = beslutter,
     opprettet = opprettet,
+    erSattPåVent = erSattPåVent,
 )
 
 fun Søknad.toSaksoversiktDTO() = SaksoversiktDTO(
@@ -73,4 +75,5 @@ fun Søknad.toSaksoversiktDTO() = SaksoversiktDTO(
     saksbehandler = null,
     beslutter = null,
     opprettet = opprettet,
+    erSattPåVent = null,
 )

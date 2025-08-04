@@ -41,6 +41,7 @@ sealed interface BehandlingDTO {
     val avbrutt: AvbruttDTO?
     val iverksattTidspunkt: String?
     val sattPåVentBegrunnelse: SattPåVentBegrunnelseDTO?
+    val erSattPåVent: Boolean
 }
 
 data class SøknadsbehandlingDTO(
@@ -59,6 +60,7 @@ data class SøknadsbehandlingDTO(
     override val avbrutt: AvbruttDTO?,
     override val iverksattTidspunkt: String?,
     override val sattPåVentBegrunnelse: SattPåVentBegrunnelseDTO?,
+    override val erSattPåVent: Boolean,
     val søknad: SøknadDTO?,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
@@ -86,6 +88,7 @@ data class RevurderingDTO(
     override val avbrutt: AvbruttDTO?,
     override val iverksattTidspunkt: String?,
     override val sattPåVentBegrunnelse: SattPåVentBegrunnelseDTO?,
+    override val erSattPåVent: Boolean,
     val valgtHjemmelHarIkkeRettighet: List<String>?,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
@@ -127,7 +130,8 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(): SøknadsbehandlingDTO {
         avslagsgrunner = null,
         automatiskSaksbehandlet = this.automatiskSaksbehandlet,
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
-        sattPåVentBegrunnelse = this.sattPåVentBegrunnelser.firstOrNull()?.tilSattPåVentBegrunnelseDTO(),
+        sattPåVentBegrunnelse = this.sattPåVentBegrunnelser.lastOrNull()?.tilSattPåVentBegrunnelseDTO(),
+        erSattPåVent = this.erSattPåVent,
     ).let {
         when (resultat) {
             is SøknadsbehandlingResultat.Innvilgelse -> it.copy(
@@ -165,7 +169,8 @@ fun Revurdering.tilRevurderingDTO(): RevurderingDTO {
         antallDagerPerMeldeperiode = null,
         barnetillegg = null,
         utbetaling = null,
-        sattPåVentBegrunnelse = sattPåVentBegrunnelser.firstOrNull()?.tilSattPåVentBegrunnelseDTO(),
+        sattPåVentBegrunnelse = sattPåVentBegrunnelser.lastOrNull()?.tilSattPåVentBegrunnelseDTO(),
+        erSattPåVent = erSattPåVent,
     ).let {
         when (resultat) {
             is RevurderingResultat.Stans -> it.copy(
