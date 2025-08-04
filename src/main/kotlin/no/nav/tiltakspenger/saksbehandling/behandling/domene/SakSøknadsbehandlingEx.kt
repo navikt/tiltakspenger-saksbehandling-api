@@ -29,9 +29,7 @@ fun Sak.sendSøknadsbehandlingTilBeslutning(
         return KanIkkeSendeTilBeslutter.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode.left()
     }
 
-    return behandling.tilBeslutning(kommando, clock).mapLeft {
-        it
-    }.map {
+    return behandling.tilBeslutning(kommando, clock).map {
         (this.copy(behandlinger = this.behandlinger.oppdaterBehandling(it)) to it)
     }
 }

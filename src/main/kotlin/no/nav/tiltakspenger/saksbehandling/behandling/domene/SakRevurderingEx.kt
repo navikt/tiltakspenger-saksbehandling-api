@@ -123,7 +123,7 @@ suspend fun Sak.sendRevurderingTilBeslutning(
                 },
             )
 
-            behandling.tilBeslutning(
+            behandling.innvilgelseTilBeslutning(
                 kommando = kommando,
                 utbetaling = utbetaling,
                 clock = clock,

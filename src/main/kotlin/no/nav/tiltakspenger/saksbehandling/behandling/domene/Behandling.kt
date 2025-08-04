@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -337,12 +338,19 @@ sealed interface Behandling {
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering,
         clock: Clock,
     ): Either<KunneIkkeOppdatereBegrunnelseVilkårsvurdering, Behandling> {
-        return validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere begrunnelse/vilkårsvurdering").mapLeft {
+        return validerKanOppdatere(saksbehandler).mapLeft {
             KunneIkkeOppdatereBegrunnelseVilkårsvurdering.KunneIkkeOppdatereBehandling(it)
         }.map {
             when (this) {
-                is Søknadsbehandling -> this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering, sistEndret = nå(clock))
-                is Revurdering -> this.copy(begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering, sistEndret = nå(clock))
+                is Søknadsbehandling -> this.copy(
+                    begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+                    sistEndret = nå(clock),
+                )
+
+                is Revurdering -> this.copy(
+                    begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+                    sistEndret = nå(clock),
+                )
             }
         }
     }
@@ -351,7 +359,7 @@ sealed interface Behandling {
         saksbehandler: Saksbehandler,
         oppdaterteSaksopplysninger: Saksopplysninger,
     ): Either<KunneIkkeOppdatereSaksopplysninger, Behandling> {
-        return validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere saksopplysinger").mapLeft {
+        return validerKanOppdatere(saksbehandler).mapLeft {
             KunneIkkeOppdatereSaksopplysninger.KunneIkkeOppdatereBehandling(it)
         }.map {
             when (this) {
@@ -360,33 +368,49 @@ sealed interface Behandling {
             }
         }
     }
+
     fun oppdaterFritekstTilVedtaksbrev(
         saksbehandler: Saksbehandler,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev,
         clock: Clock,
     ): Either<KunneIkkeOppdatereFritekstTilVedtaksbrev, Behandling> {
-        return validerKanOppdatere(saksbehandler, "Kunne ikke oppdatere fritekst til vedtaksbrev").mapLeft {
+        return validerKanOppdatere(saksbehandler).mapLeft {
             KunneIkkeOppdatereFritekstTilVedtaksbrev.KunneIkkeOppdatereBehandling(it)
         }.map {
             when (this) {
-                is Søknadsbehandling -> this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev, sistEndret = nå(clock))
+                is Søknadsbehandling -> this.copy(
+                    fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                    sistEndret = nå(clock),
+                )
+
                 is Revurdering -> this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev, sistEndret = nå(clock))
             }
         }
     }
 
-    fun validerKanOppdatere(
-        saksbehandler: Saksbehandler,
-        errorMsg: String,
-    ): Either<Valideringsfeil, Unit> {
+    fun validerKanOppdatere(saksbehandler: Saksbehandler): Either<KanIkkeOppdatereBehandling, Unit> {
         if (!saksbehandler.erSaksbehandler()) {
-            throw TilgangException("$errorMsg - Saksbehandler ${saksbehandler.navIdent} mangler rollen SAKSBEHANDLER - sakId=$sakId, behandlingId=$id")
+            throw TilgangException("Saksbehandler ${saksbehandler.navIdent} mangler rollen SAKSBEHANDLER - sakId=$sakId, behandlingId=$id")
         }
         if (this.saksbehandler != null && this.saksbehandler != saksbehandler.navIdent) {
-            return Valideringsfeil.UtdøvendeSaksbehandlerErIkkePåBehandlingen(this.saksbehandler!!).left()
+            return KanIkkeOppdatereBehandling.BehandlingenEiesAvAnnenSaksbehandler(this.saksbehandler!!).left()
         }
         if (!this.erUnderBehandling) {
-            return Valideringsfeil.BehandlingenErIkkeUnderBehandling.left()
+            return KanIkkeOppdatereBehandling.MåVæreUnderBehandling.left()
+        }
+
+        return Unit.right()
+    }
+
+    fun validerKanSendeTilBeslutning(saksbehandler: Saksbehandler): Either<KanIkkeSendeTilBeslutter, Unit> {
+        if (!saksbehandler.erSaksbehandler()) {
+            throw TilgangException("Saksbehandler ${saksbehandler.navIdent} mangler rollen SAKSBEHANDLER - sakId=$sakId, behandlingId=$id")
+        }
+        if (this.saksbehandler != null && this.saksbehandler != saksbehandler.navIdent) {
+            return KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(this.saksbehandler!!).left()
+        }
+        if (status != UNDER_BEHANDLING && status != UNDER_AUTOMATISK_BEHANDLING) {
+            return KanIkkeSendeTilBeslutter.MåVæreUnderBehandlingEllerAutomatisk.left()
         }
 
         return Unit.right()

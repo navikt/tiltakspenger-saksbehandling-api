@@ -222,7 +222,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             virkningsperiode = virkningsperiode,
             hentSaksopplysninger = { saksopplysninger },
-        ).tilBeslutning(
+        ).innvilgelseTilBeslutning(
             kommando = kommando,
             clock = clock,
             utbetaling = if (beregning == null) {

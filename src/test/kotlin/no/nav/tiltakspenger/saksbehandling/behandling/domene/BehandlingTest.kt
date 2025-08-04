@@ -159,7 +159,7 @@ class BehandlingTest {
             assertThrows<TilgangException> {
                 val saksbehandler = ObjectMother.saksbehandler(roller = Saksbehandlerroller(emptyList()))
                 val behandling = ObjectMother.nyOpprettetSøknadsbehandling()
-                behandling.validerKanOppdatere(saksbehandler, "en error msg")
+                behandling.validerKanOppdatere(saksbehandler)
             }
         }
 
@@ -168,13 +168,13 @@ class BehandlingTest {
             val søknadsbehandling = ObjectMother.nyOpprettetSøknadsbehandling()
             val ikkeUtdøvendeSaksbehandler = ObjectMother.saksbehandler(navIdent = "ikkeUtdøvendeSaksbehandler")
 
-            søknadsbehandling.validerKanOppdatere(ikkeUtdøvendeSaksbehandler, "en error msg").isLeft() shouldBe true
+            søknadsbehandling.validerKanOppdatere(ikkeUtdøvendeSaksbehandler).isLeft() shouldBe true
         }
 
         @Test
         fun `returnerer left dersom behandlingen er ikke under behandling`() {
             val søknadsbehandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
-            søknadsbehandling.validerKanOppdatere(ObjectMother.saksbehandler(), "en error msg").isLeft() shouldBe true
+            søknadsbehandling.validerKanOppdatere(ObjectMother.saksbehandler()).isLeft() shouldBe true
         }
     }
 }
