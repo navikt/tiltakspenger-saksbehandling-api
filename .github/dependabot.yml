@@ -5,11 +5,7 @@ updates:
     schedule:
       interval: daily
     open-pull-requests-limit: 10
-    assignees:
-      - "@navikt/tpts"
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: daily
-    assignees:
-      - "@navikt/tpts"
