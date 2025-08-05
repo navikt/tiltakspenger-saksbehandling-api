@@ -12,8 +12,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.B
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
-import no.nav.tiltakspenger.saksbehandling.infra.route.SattPåVentBegrunnelseDTO
-import no.nav.tiltakspenger.saksbehandling.infra.route.tilSattPåVentBegrunnelseDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.SattPåVentDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.tilSattPåVentDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
@@ -40,8 +40,7 @@ sealed interface BehandlingDTO {
     val begrunnelseVilkårsvurdering: String?
     val avbrutt: AvbruttDTO?
     val iverksattTidspunkt: String?
-    val sattPåVentBegrunnelse: SattPåVentBegrunnelseDTO?
-    val erSattPåVent: Boolean
+    val sattPåVent: SattPåVentDTO
 }
 
 data class SøknadsbehandlingDTO(
@@ -59,8 +58,7 @@ data class SøknadsbehandlingDTO(
     override val begrunnelseVilkårsvurdering: String?,
     override val avbrutt: AvbruttDTO?,
     override val iverksattTidspunkt: String?,
-    override val sattPåVentBegrunnelse: SattPåVentBegrunnelseDTO?,
-    override val erSattPåVent: Boolean,
+    override val sattPåVent: SattPåVentDTO,
     val søknad: SøknadDTO?,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
@@ -87,8 +85,7 @@ data class RevurderingDTO(
     override val begrunnelseVilkårsvurdering: String?,
     override val avbrutt: AvbruttDTO?,
     override val iverksattTidspunkt: String?,
-    override val sattPåVentBegrunnelse: SattPåVentBegrunnelseDTO?,
-    override val erSattPåVent: Boolean,
+    override val sattPåVent: SattPåVentDTO,
     val valgtHjemmelHarIkkeRettighet: List<String>?,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
@@ -130,8 +127,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(): SøknadsbehandlingDTO {
         avslagsgrunner = null,
         automatiskSaksbehandlet = this.automatiskSaksbehandlet,
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
-        sattPåVentBegrunnelse = this.sattPåVentBegrunnelser.lastOrNull()?.tilSattPåVentBegrunnelseDTO(),
-        erSattPåVent = this.erSattPåVent,
+        sattPåVent = sattPåVent.tilSattPåVentDTO(),
     ).let {
         when (resultat) {
             is SøknadsbehandlingResultat.Innvilgelse -> it.copy(
@@ -169,8 +165,7 @@ fun Revurdering.tilRevurderingDTO(): RevurderingDTO {
         antallDagerPerMeldeperiode = null,
         barnetillegg = null,
         utbetaling = null,
-        sattPåVentBegrunnelse = sattPåVentBegrunnelser.lastOrNull()?.tilSattPåVentBegrunnelseDTO(),
-        erSattPåVent = erSattPåVent,
+        sattPåVent = sattPåVent.tilSattPåVentDTO(),
     ).let {
         when (resultat) {
             is RevurderingResultat.Stans -> it.copy(

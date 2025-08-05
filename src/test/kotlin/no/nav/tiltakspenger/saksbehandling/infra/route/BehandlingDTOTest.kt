@@ -22,13 +22,13 @@ class BehandlingDTOTest {
             behandlingSattPåVent = behandlingSattPåVent.gjenoppta(saksbehandler, sjetteAugust)
             behandlingSattPåVent = behandlingSattPåVent.settPåVent(saksbehandler, "2", sjetteAugust)
 
-            behandlingSattPåVent.sattPåVentBegrunnelser.size shouldBe 2
+            behandlingSattPåVent.sattPåVent.sattPåVentBegrunnelser.size shouldBe 2
             val dto = behandlingSattPåVent.tilBehandlingDTO()
 
-            dto.erSattPåVent shouldBe true
-            dto.sattPåVentBegrunnelse?.sattPåVentAv shouldBe saksbehandler.navIdent
-            dto.sattPåVentBegrunnelse?.begrunnelse shouldBe "2"
-            dto.sattPåVentBegrunnelse?.tidspunkt shouldBe sjetteAugust.toString()
+            dto.sattPåVent.erSattPåVent shouldBe true
+            dto.sattPåVent.sattPåVentBegrunnelse?.sattPåVentAv shouldBe saksbehandler.navIdent
+            dto.sattPåVent.sattPåVentBegrunnelse?.begrunnelse shouldBe "2"
+            dto.sattPåVent.sattPåVentBegrunnelse?.tidspunkt shouldBe sjetteAugust.toString()
         }
     }
 }

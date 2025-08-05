@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.felles.SattPåVent
 import no.nav.tiltakspenger.saksbehandling.felles.SattPåVentBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
@@ -58,8 +59,7 @@ sealed interface Behandling {
 
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val avbrutt: Avbrutt?
-    val erSattPåVent: Boolean
-    val sattPåVentBegrunnelser: List<SattPåVentBegrunnelse>
+    val sattPåVent: SattPåVent
     val resultat: BehandlingResultat?
     val virkningsperiode: Periode?
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
@@ -99,24 +99,34 @@ sealed interface Behandling {
         krevSaksbehandlerRolle(saksbehandler)
 
         when (status) {
-            UNDER_BESLUTNING -> {
-                check(!erSattPåVent) { "Behandlingen er allerede satt på vent" }
+            UNDER_BEHANDLING,
+            UNDER_BESLUTNING,
+            -> {
                 require(begrunnelse.isNotBlank()) { "Du må oppgi en grunn for at behandlingen settes på vent." }
 
-                val begrunnelser = sattPåVentBegrunnelser + SattPåVentBegrunnelse(
+                val begrunnelser = sattPåVent.sattPåVentBegrunnelser + SattPåVentBegrunnelse(
                     tidspunkt = tidspunkt,
                     sattPåVentAv = saksbehandler.navIdent,
                     begrunnelse = begrunnelse,
                 )
 
                 return when (this) {
-                    is Søknadsbehandling -> this.copy(erSattPåVent = true, sattPåVentBegrunnelser = begrunnelser)
-                    is Revurdering -> this.copy(erSattPåVent = true, sattPåVentBegrunnelser = begrunnelser)
+                    is Søknadsbehandling -> this.copy(
+                        sattPåVent = SattPåVent(
+                            erSattPåVent = true,
+                            sattPåVentBegrunnelser = begrunnelser,
+                        ),
+                    )
+
+                    is Revurdering -> this.copy(
+                        sattPåVent = SattPåVent(
+                            erSattPåVent = true,
+                            sattPåVentBegrunnelser = begrunnelser,
+                        ),
+                    )
                 }
             }
-
             KLAR_TIL_BEHANDLING,
-            UNDER_BEHANDLING,
             UNDER_AUTOMATISK_BEHANDLING,
             KLAR_TIL_BESLUTNING,
             VEDTATT,
@@ -131,13 +141,24 @@ sealed interface Behandling {
     ): Behandling {
         krevSaksbehandlerRolle(saksbehandler)
 
-        if (!erSattPåVent) {
+        if (!sattPåVent.erSattPåVent) {
             throw IllegalArgumentException("Behandlingen er ikke satt på vent")
         }
 
         return when (this) {
-            is Søknadsbehandling -> this.copy(erSattPåVent = false)
-            is Revurdering -> this.copy(erSattPåVent = false)
+            is Søknadsbehandling -> this.copy(
+                sattPåVent = SattPåVent(
+                    erSattPåVent = false,
+                    sattPåVentBegrunnelser = sattPåVent.sattPåVentBegrunnelser,
+                ),
+            )
+
+            is Revurdering -> this.copy(
+                sattPåVent = SattPåVent(
+                    erSattPåVent = false,
+                    sattPåVentBegrunnelser = sattPåVent.sattPåVentBegrunnelser,
+                ),
+            )
         }
     }
 
@@ -296,7 +317,7 @@ sealed interface Behandling {
                 check(!this.attesteringer.any { it.isGodkjent() }) {
                     "Behandlingen er allerede godkjent"
                 }
-                check(!erSattPåVent) { "Behandlingen må gjenopptas før den kan iverksettes." }
+                check(!sattPåVent.erSattPåVent) { "Behandlingen må gjenopptas før den kan iverksettes." }
 
                 val attesteringer = attesteringer + attestering
                 val iverksattTidspunkt = nå(clock)
@@ -346,6 +367,7 @@ sealed interface Behandling {
                 check(!this.attesteringer.any { it.isGodkjent() }) {
                     "Behandlingen er allerede godkjent"
                 }
+                check(!sattPåVent.erSattPåVent) { "Behandlingen må gjenopptas før den kan underkjennes." }
 
                 val attesteringer = attesteringer + attestering
 

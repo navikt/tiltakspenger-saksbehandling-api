@@ -58,7 +58,7 @@ fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
     saksbehandler = saksbehandler,
     beslutter = beslutter,
     opprettet = opprettet,
-    erSattPåVent = erSattPåVent,
+    erSattPåVent = sattPåVent.erSattPåVent,
 )
 
 fun Søknad.toSaksoversiktDTO() = SaksoversiktDTO(
