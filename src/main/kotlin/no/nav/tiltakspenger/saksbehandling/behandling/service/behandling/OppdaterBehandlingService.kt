@@ -106,7 +106,8 @@ class OppdaterBehandlingService(
                 validerStansDato(kommando.stansFraOgMed)
 
                 behandling.oppdaterStans(
-                    kommando = kommando.copy(sisteDagSomGirRett = sisteDagSomGirRett),
+                    kommando = kommando,
+                    sisteDagSomGirRett = sisteDagSomGirRett!!,
                     clock = clock,
                 )
             }

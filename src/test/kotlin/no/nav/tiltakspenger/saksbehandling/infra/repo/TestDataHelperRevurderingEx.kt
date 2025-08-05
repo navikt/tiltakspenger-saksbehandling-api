@@ -90,7 +90,6 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
                 stansFraOgMed = stansDato,
                 valgteHjemler = valgteHjemler,
                 fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("TestDataHelper.persisterRevurderingTilBeslutning"),
-                sisteDagSomGirRett = null,
             ),
             hentNavkontor = { navkontor },
             clock = clock,

@@ -666,7 +666,6 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
                 stansFraOgMed = stansDato,
                 valgteHjemler = valgteHjemler,
                 fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("fritekstTilVedtaksbrev"),
-                sisteDagSomGirRett = null,
             ),
             hentNavkontor = { navkontor },
             clock = clock,

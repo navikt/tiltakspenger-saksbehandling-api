@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import java.time.Clock
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class Revurdering(
@@ -119,13 +120,10 @@ data class Revurdering(
 
     fun oppdaterStans(
         kommando: OppdaterRevurderingKommando.Stans,
+        sisteDagSomGirRett: LocalDate,
         clock: Clock,
     ): Either<KanIkkeOppdatereBehandling, Revurdering> {
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
-
-        requireNotNull(kommando.sisteDagSomGirRett) {
-            "Siste dag som gir rett må være bestemt før stans kan lagres"
-        }
 
         require(this.resultat is Stans)
 
@@ -133,7 +131,7 @@ data class Revurdering(
             sistEndret = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            virkningsperiode = Periode(kommando.stansFraOgMed, kommando.sisteDagSomGirRett),
+            virkningsperiode = Periode(kommando.stansFraOgMed, sisteDagSomGirRett),
             resultat = Stans(
                 valgtHjemmel = kommando.valgteHjemler,
             ),
@@ -169,13 +167,10 @@ data class Revurdering(
 
     fun stansTilBeslutning(
         kommando: OppdaterRevurderingKommando.Stans,
+        sisteDagSomGirRett: LocalDate,
         clock: Clock,
     ): Either<KanIkkeSendeTilBeslutter, Revurdering> {
         validerKanSendeTilBeslutning(kommando.saksbehandler).onLeft { return it.left() }
-
-        requireNotNull(kommando.sisteDagSomGirRett) {
-            "Siste dag som gir rett må være bestemt før stans kan sendes til beslutning"
-        }
 
         require(resultat is Stans)
 
@@ -184,7 +179,7 @@ data class Revurdering(
             sendtTilBeslutning = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            virkningsperiode = Periode(kommando.stansFraOgMed, kommando.sisteDagSomGirRett),
+            virkningsperiode = Periode(kommando.stansFraOgMed, sisteDagSomGirRett),
             resultat = Stans(
                 valgtHjemmel = kommando.valgteHjemler,
             ),

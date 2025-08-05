@@ -107,7 +107,6 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
                 stansFraOgMed = stansFraOgMed,
                 valgteHjemler = valgteHjemler.toDomain().toNonEmptyListOrThrow(),
-                sisteDagSomGirRett = null,
             )
         }
     }

@@ -134,7 +134,8 @@ suspend fun Sak.sendRevurderingTilBeslutning(
             validerStansDato(kommando.stansFraOgMed)
 
             behandling.stansTilBeslutning(
-                kommando = kommando.copy(sisteDagSomGirRett = sisteDagSomGirRett),
+                kommando = kommando,
+                sisteDagSomGirRett = sisteDagSomGirRett!!,
                 clock = clock,
             )
         }

@@ -93,7 +93,6 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             valgteHjemler = valgteHjemler,
             stansFraOgMed = stansDato,
-            sisteDagSomGirRett = sisteDagSomGirRett,
         ),
     ): Revurdering {
         return this.nyOpprettetRevurderingStans(
@@ -106,6 +105,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             hentSaksopplysninger = { saksopplysninger },
         ).stansTilBeslutning(
             kommando = kommando,
+            sisteDagSomGirRett = sisteDagSomGirRett,
             clock = clock,
         ).getOrFail()
     }
