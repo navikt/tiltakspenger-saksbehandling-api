@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.enUkeEtterFixedClock
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 class BehandlingTest {
@@ -175,6 +177,66 @@ class BehandlingTest {
         fun `returnerer left dersom behandlingen er ikke under behandling`() {
             val søknadsbehandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
             søknadsbehandling.validerKanOppdatere(ObjectMother.saksbehandler()).isLeft() shouldBe true
+        }
+    }
+
+    @Nested
+    inner class SettPåVent {
+        @Test
+        fun `kan sette behandling på vent`() {
+            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
+            val saksbehandler = ObjectMother.saksbehandler()
+            val tidspunkt = (5.august(2025).atStartOfDay())
+
+            val behandlingSattPåVent = behandling.settPåVent(saksbehandler, "Venter på mer informasjon", tidspunkt)
+
+            behandlingSattPåVent.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
+            behandlingSattPåVent.erSattPåVent shouldBe true
+            behandlingSattPåVent.sattPåVentBegrunnelser.size shouldBe 1
+            behandlingSattPåVent.sattPåVentBegrunnelser.last().let { it ->
+                it.sattPåVentAv shouldBe saksbehandler.navIdent
+                it.begrunnelse shouldBe "Venter på mer informasjon"
+                it.tidspunkt shouldBe tidspunkt
+            }
+        }
+
+        @Test
+        fun `kan ikke sette behandling som er satt på vent fra før på vent`() {
+            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
+            val saksbehandler = ObjectMother.saksbehandler()
+            val tidspunkt = (5.august(2025).atStartOfDay())
+
+            val behandlingSattPåVent = behandling.settPåVent(saksbehandler, "Venter på mer informasjon", tidspunkt)
+
+            assertThrows<IllegalStateException> {
+                behandlingSattPåVent.settPåVent(saksbehandler, "Venter på mer informasjon", tidspunkt)
+            }
+        }
+    }
+
+    @Nested
+    inner class Gjenoppta {
+        @Test
+        fun `kan gjenoppta behandling som er satt på vent`() {
+            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
+            val saksbehandler = ObjectMother.saksbehandler()
+            val tidspunkt = (5.august(2025).atStartOfDay())
+
+            val behandlingSattPåVent = behandling.settPåVent(saksbehandler, "Venter på mer informasjon", tidspunkt)
+            val gjenopptattBehandling = behandlingSattPåVent.gjenoppta(saksbehandler, tidspunkt)
+
+            gjenopptattBehandling.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
+            gjenopptattBehandling.erSattPåVent shouldBe false
+        }
+
+        @Test
+        fun `kan ikke gjenoppta behandling som ikke er satt på vent`() {
+            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
+            val saksbehandler = ObjectMother.saksbehandler()
+
+            assertThrows<IllegalArgumentException> {
+                behandling.gjenoppta(saksbehandler, LocalDateTime.now())
+            }
         }
     }
 }
