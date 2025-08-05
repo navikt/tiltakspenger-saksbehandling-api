@@ -94,7 +94,7 @@ sealed interface Behandling {
     fun settPåVent(
         saksbehandler: Saksbehandler,
         begrunnelse: String,
-        tidspunkt: LocalDateTime,
+        clock: Clock,
     ): Behandling {
         krevSaksbehandlerRolle(saksbehandler)
 
@@ -105,7 +105,7 @@ sealed interface Behandling {
                 require(begrunnelse.isNotBlank()) { "Du må oppgi en grunn for at behandlingen settes på vent." }
 
                 val begrunnelser = sattPåVent.sattPåVentBegrunnelser + SattPåVentBegrunnelse(
-                    tidspunkt = tidspunkt,
+                    tidspunkt = nå(clock),
                     sattPåVentAv = saksbehandler.navIdent,
                     begrunnelse = begrunnelse,
                 )
@@ -116,6 +116,7 @@ sealed interface Behandling {
                             erSattPåVent = true,
                             sattPåVentBegrunnelser = begrunnelser,
                         ),
+                        sistEndret = nå(clock),
                     )
 
                     is Revurdering -> this.copy(
@@ -123,6 +124,7 @@ sealed interface Behandling {
                             erSattPåVent = true,
                             sattPåVentBegrunnelser = begrunnelser,
                         ),
+                        sistEndret = nå(clock),
                     )
                 }
             }
@@ -137,7 +139,7 @@ sealed interface Behandling {
 
     fun gjenoppta(
         saksbehandler: Saksbehandler,
-        tidspunkt: LocalDateTime,
+        clock: Clock,
     ): Behandling {
         krevSaksbehandlerRolle(saksbehandler)
 
@@ -151,6 +153,7 @@ sealed interface Behandling {
                     erSattPåVent = false,
                     sattPåVentBegrunnelser = sattPåVent.sattPåVentBegrunnelser,
                 ),
+                sistEndret = nå(clock),
             )
 
             is Revurdering -> this.copy(
@@ -158,6 +161,7 @@ sealed interface Behandling {
                     erSattPåVent = false,
                     sattPåVentBegrunnelser = sattPåVent.sattPåVentBegrunnelser,
                 ),
+                sistEndret = nå(clock),
             )
         }
     }

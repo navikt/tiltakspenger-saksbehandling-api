@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
-import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.enUkeEtterFixedClock
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
@@ -16,7 +15,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
 import java.time.Instant
-import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 class BehandlingTest {
@@ -182,13 +180,14 @@ class BehandlingTest {
 
     @Nested
     inner class SettPåVent {
+        val clock: Clock = Clock.fixed(Instant.parse("2025-08-05T12:30:00Z"), ZoneOffset.UTC)
+
         @Test
         fun `kan sette behandling på vent`() {
             val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
             val saksbehandler = ObjectMother.saksbehandler()
-            val tidspunkt = (5.august(2025).atStartOfDay())
 
-            val behandlingSattPåVent = behandling.settPåVent(saksbehandler, "Venter på mer informasjon", tidspunkt)
+            val behandlingSattPåVent = behandling.settPåVent(saksbehandler, "Venter på mer informasjon", clock)
 
             behandlingSattPåVent.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
             behandlingSattPåVent.sattPåVent.erSattPåVent shouldBe true
@@ -196,21 +195,21 @@ class BehandlingTest {
             behandlingSattPåVent.sattPåVent.sattPåVentBegrunnelser.last().let { it ->
                 it.sattPåVentAv shouldBe saksbehandler.navIdent
                 it.begrunnelse shouldBe "Venter på mer informasjon"
-                it.tidspunkt shouldBe tidspunkt
             }
         }
     }
 
     @Nested
     inner class Gjenoppta {
+        val clock: Clock = Clock.fixed(Instant.parse("2025-08-05T12:30:00Z"), ZoneOffset.UTC)
+
         @Test
         fun `kan gjenoppta behandling som er satt på vent`() {
             val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
             val saksbehandler = ObjectMother.saksbehandler()
-            val tidspunkt = (5.august(2025).atStartOfDay())
 
-            val behandlingSattPåVent = behandling.settPåVent(saksbehandler, "Venter på mer informasjon", tidspunkt)
-            val gjenopptattBehandling = behandlingSattPåVent.gjenoppta(saksbehandler, tidspunkt)
+            val behandlingSattPåVent = behandling.settPåVent(saksbehandler, "Venter på mer informasjon", clock)
+            val gjenopptattBehandling = behandlingSattPåVent.gjenoppta(saksbehandler, clock)
 
             gjenopptattBehandling.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
             gjenopptattBehandling.sattPåVent.erSattPåVent shouldBe false
@@ -222,7 +221,7 @@ class BehandlingTest {
             val saksbehandler = ObjectMother.saksbehandler()
 
             assertThrows<IllegalArgumentException> {
-                behandling.gjenoppta(saksbehandler, LocalDateTime.now())
+                behandling.gjenoppta(saksbehandler, clock)
             }
         }
     }

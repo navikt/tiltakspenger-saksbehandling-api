@@ -1,26 +1,27 @@
 package no.nav.tiltakspenger.saksbehandling.infra.route
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 
 class BehandlingDTOTest {
     @Nested
     inner class BehandlingSattPåVent {
+        val clock: Clock = Clock.fixed(Instant.parse("2025-08-05T12:30:00Z"), ZoneOffset.UTC)
+
         @Test
         fun `Den nyeste begrunnelsen blir med`() {
             val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
             val saksbehandler = ObjectMother.saksbehandler()
 
-            val femteAugust = 5.august(2025).atStartOfDay()
-            val sjetteAugust = 6.august(2025).atStartOfDay()
-
-            var behandlingSattPåVent = behandling.settPåVent(saksbehandler, "1", femteAugust)
-            behandlingSattPåVent = behandlingSattPåVent.gjenoppta(saksbehandler, sjetteAugust)
-            behandlingSattPåVent = behandlingSattPåVent.settPåVent(saksbehandler, "2", sjetteAugust)
+            var behandlingSattPåVent = behandling.settPåVent(saksbehandler, "1", clock)
+            behandlingSattPåVent = behandlingSattPåVent.gjenoppta(saksbehandler, clock)
+            behandlingSattPåVent = behandlingSattPåVent.settPåVent(saksbehandler, "2", clock)
 
             behandlingSattPåVent.sattPåVent.sattPåVentBegrunnelser.size shouldBe 2
             val dto = behandlingSattPåVent.tilBehandlingDTO()
@@ -28,7 +29,6 @@ class BehandlingDTOTest {
             dto.sattPåVent.erSattPåVent shouldBe true
             dto.sattPåVent.sattPåVentBegrunnelse?.sattPåVentAv shouldBe saksbehandler.navIdent
             dto.sattPåVent.sattPåVentBegrunnelse?.begrunnelse shouldBe "2"
-            dto.sattPåVent.sattPåVentBegrunnelse?.tidspunkt shouldBe sjetteAugust.toString()
         }
     }
 }

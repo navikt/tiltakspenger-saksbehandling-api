@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevTilgangTilPerson
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
-import java.time.LocalDateTime
+import java.time.Clock
 
 class SettBehandlingPåVentService(
     private val tilgangsstyringService: TilgangsstyringService,
@@ -20,6 +20,7 @@ class SettBehandlingPåVentService(
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val sessionFactory: SessionFactory,
+    private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -37,7 +38,7 @@ class SettBehandlingPåVentService(
         return behandling.settPåVent(
             saksbehandler = saksbehandler,
             begrunnelse = begrunnelse,
-            tidspunkt = LocalDateTime.now(),
+            clock = clock,
         ).also {
             val statistikk = statistikkSakService.genererStatistikkForBehandlingSattPåVent(it)
             sessionFactory.withTransactionContext { tx ->

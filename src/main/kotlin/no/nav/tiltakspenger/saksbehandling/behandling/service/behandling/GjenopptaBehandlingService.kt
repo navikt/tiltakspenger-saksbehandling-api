@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevTilgangTilPerson
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
-import java.time.LocalDateTime
+import java.time.Clock
 
 class GjenopptaBehandlingService(
     private val tilgangsstyringService: TilgangsstyringService,
@@ -20,6 +20,7 @@ class GjenopptaBehandlingService(
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val sessionFactory: SessionFactory,
+    private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -35,7 +36,7 @@ class GjenopptaBehandlingService(
 
         return behandling.gjenoppta(
             saksbehandler = saksbehandler,
-            tidspunkt = LocalDateTime.now(),
+            clock = clock,
         ).also {
             val statistikk = statistikkSakService.genererStatistikkForGjenopptattBehandling(it)
             sessionFactory.withTransactionContext { tx ->
