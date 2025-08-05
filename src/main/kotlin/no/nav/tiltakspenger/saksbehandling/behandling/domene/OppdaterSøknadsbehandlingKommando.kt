@@ -10,13 +10,13 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 
-sealed interface SendSøknadsbehandlingTilBeslutningKommando {
-    val sakId: SakId
-    val behandlingId: BehandlingId
-    val saksbehandler: Saksbehandler
-    val correlationId: CorrelationId
-    val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
-    val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
+sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando {
+    override val sakId: SakId
+    override val behandlingId: BehandlingId
+    override val saksbehandler: Saksbehandler
+    override val correlationId: CorrelationId
+    override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
+    override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
     val tiltaksdeltakelser: List<Pair<Periode, String>>
     val automatiskSaksbehandlet: Boolean
 
@@ -40,7 +40,7 @@ sealed interface SendSøknadsbehandlingTilBeslutningKommando {
         val innvilgelsesperiode: Periode,
         val barnetillegg: Barnetillegg?,
         val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
-    ) : SendSøknadsbehandlingTilBeslutningKommando
+    ) : OppdaterSøknadsbehandlingKommando
 
     data class Avslag(
         override val sakId: SakId,
@@ -52,5 +52,5 @@ sealed interface SendSøknadsbehandlingTilBeslutningKommando {
         override val tiltaksdeltakelser: List<Pair<Periode, String>>,
         override val automatiskSaksbehandlet: Boolean = false,
         val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
-    ) : SendSøknadsbehandlingTilBeslutningKommando
+    ) : OppdaterSøknadsbehandlingKommando
 }

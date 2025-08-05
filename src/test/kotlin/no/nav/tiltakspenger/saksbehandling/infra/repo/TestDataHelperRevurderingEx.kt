@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingStansTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
@@ -81,16 +81,15 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
 
     return runBlocking {
         sakMedRevurdering.sendRevurderingTilBeslutning(
-            kommando = RevurderingStansTilBeslutningKommando(
+            kommando = OppdaterRevurderingKommando.Stans(
                 sakId = sakMedRevurdering.id,
                 behandlingId = revurdering.id,
                 saksbehandler = saksbehandler,
                 correlationId = CorrelationId.generate(),
-                begrunnelse = begrunnelse,
+                begrunnelseVilkårsvurdering = begrunnelse,
                 stansFraOgMed = stansDato,
                 valgteHjemler = valgteHjemler,
                 fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("TestDataHelper.persisterRevurderingTilBeslutning"),
-                sisteDagSomGirRett = null,
             ),
             hentNavkontor = { navkontor },
             clock = clock,

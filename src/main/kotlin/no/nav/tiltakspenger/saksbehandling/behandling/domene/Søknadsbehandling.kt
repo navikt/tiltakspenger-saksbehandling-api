@@ -92,39 +92,36 @@ data class Søknadsbehandling(
     }
 
     fun tilBeslutning(
-        kommando: SendSøknadsbehandlingTilBeslutningKommando,
+        kommando: OppdaterSøknadsbehandlingKommando,
         clock: Clock,
     ): Either<KanIkkeSendeTilBeslutter, Søknadsbehandling> {
-        if (status != UNDER_BEHANDLING && status != UNDER_AUTOMATISK_BEHANDLING) {
-            return KanIkkeSendeTilBeslutter.MåVæreUnderBehandlingEllerAutomatisk.left()
-        }
-        if (kommando.saksbehandler.navIdent != this.saksbehandler) {
-            return KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(this.saksbehandler).left()
-        }
+        validerKanSendeTilBeslutning(kommando.saksbehandler).onLeft { return it.left() }
 
         val status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING
 
-        val virkningsperiode = when (kommando) {
-            is SendSøknadsbehandlingTilBeslutningKommando.Avslag -> this.søknad.vurderingsperiode()
-            is SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse -> kommando.innvilgelsesperiode
-        }
-
-        val resultat: SøknadsbehandlingResultat = when (kommando) {
-            is SendSøknadsbehandlingTilBeslutningKommando.Avslag -> {
-                SøknadsbehandlingResultat.Avslag(avslagsgrunner = kommando.avslagsgrunner)
-            }
-            is SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse -> {
-                SøknadsbehandlingResultat.Innvilgelse(
-                    valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
-                    barnetillegg = kommando.barnetillegg,
-                    antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
-                )
-            }
-        }
+        val (virkningsperiode, resultat) = virkningsperiodeOgResultat(kommando)
 
         return this.copy(
             status = status,
             sendtTilBeslutning = nå(clock),
+            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
+            virkningsperiode = virkningsperiode,
+            begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
+            resultat = resultat,
+            automatiskSaksbehandlet = kommando.automatiskSaksbehandlet,
+        ).right()
+    }
+
+    fun oppdater(
+        kommando: OppdaterSøknadsbehandlingKommando,
+        clock: Clock,
+    ): Either<KanIkkeOppdatereBehandling, Søknadsbehandling> {
+        validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
+
+        val (virkningsperiode, resultat) = virkningsperiodeOgResultat(kommando)
+
+        return this.copy(
+            sistEndret = nå(clock),
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             virkningsperiode = virkningsperiode,
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
@@ -149,7 +146,7 @@ data class Søknadsbehandling(
     }
 
     fun oppdaterBarnetillegg(kommando: OppdaterBarnetilleggCommand): Either<KunneIkkeOppdatereBarnetillegg, Søknadsbehandling> {
-        return validerKanOppdatere(kommando.saksbehandler, "Kunne ikke oppdatere barnetillegg").mapLeft {
+        return validerKanOppdatere(kommando.saksbehandler).mapLeft {
             KunneIkkeOppdatereBarnetillegg.KunneIkkeOppdatereBehandling(it)
         }.map {
             this.copy(
@@ -176,6 +173,28 @@ data class Søknadsbehandling(
                 begrunnelse = begrunnelse,
             ),
         )
+    }
+
+    private fun virkningsperiodeOgResultat(kommando: OppdaterSøknadsbehandlingKommando): Pair<Periode, SøknadsbehandlingResultat> {
+        val virkningsperiode = when (kommando) {
+            is OppdaterSøknadsbehandlingKommando.Avslag -> this.søknad.vurderingsperiode()
+            is OppdaterSøknadsbehandlingKommando.Innvilgelse -> kommando.innvilgelsesperiode
+        }
+
+        val resultat: SøknadsbehandlingResultat = when (kommando) {
+            is OppdaterSøknadsbehandlingKommando.Avslag -> {
+                SøknadsbehandlingResultat.Avslag(avslagsgrunner = kommando.avslagsgrunner)
+            }
+            is OppdaterSøknadsbehandlingKommando.Innvilgelse -> {
+                SøknadsbehandlingResultat.Innvilgelse(
+                    valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
+                    barnetillegg = kommando.barnetillegg,
+                    antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+                )
+            }
+        }
+
+        return virkningsperiode to resultat
     }
 
     companion object {

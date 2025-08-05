@@ -24,6 +24,16 @@ data class Tiltaksdeltagelse(
     val antallDagerPerUke: Float?,
     val kilde: Tiltakskilde,
 ) {
+    val periode: Periode?
+        get() = if (deltagelseFraOgMed != null && deltagelseTilOgMed != null) {
+            Periode(
+                deltagelseFraOgMed,
+                deltagelseTilOgMed,
+            )
+        } else {
+            null
+        }
+
     fun overlapperMedPeriode(periode: Periode): Boolean {
         // Hvis begge datoene mangler kan vi ikke si noe om overlapp og må dermed anta at de kan overlappe
         if (deltagelseFraOgMed == null && deltagelseTilOgMed == null) {

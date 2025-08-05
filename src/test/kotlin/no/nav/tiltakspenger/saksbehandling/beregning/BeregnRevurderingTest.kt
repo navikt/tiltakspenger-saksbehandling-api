@@ -14,8 +14,8 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingInnvilgelseTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.leggTilMeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyOpprettetRevurderingInnvilgelse
@@ -64,13 +64,13 @@ class BeregnRevurderingTest {
             virkningsperiodeRevurdering,
         ),
         barnetillegg: Barnetillegg? = null,
-    ): RevurderingInnvilgelseTilBeslutningKommando {
-        return RevurderingInnvilgelseTilBeslutningKommando(
+    ): OppdaterRevurderingKommando.Innvilgelse {
+        return OppdaterRevurderingKommando.Innvilgelse(
             sakId = revurdering.sakId,
             behandlingId = revurdering.id,
             saksbehandler = saksbehandler(),
             correlationId = CorrelationId.generate(),
-            begrunnelse = BegrunnelseVilkårsvurdering("lol"),
+            begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("lol"),
             fritekstTilVedtaksbrev = null,
             innvilgelsesperiode = virkningsperiodeRevurdering,
             tiltaksdeltakelser = revurdering.saksopplysninger.tiltaksdeltagelse.map {
