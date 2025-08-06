@@ -22,9 +22,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.felles.SattPåVent
-import no.nav.tiltakspenger.saksbehandling.felles.SattPåVentBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
+import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
@@ -59,7 +58,7 @@ sealed interface Behandling {
 
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val avbrutt: Avbrutt?
-    val sattPåVent: SattPåVent
+    val ventestatus: Ventestatus
     val resultat: BehandlingResultat?
     val virkningsperiode: Periode?
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
@@ -103,26 +102,32 @@ sealed interface Behandling {
             UNDER_BESLUTNING,
             -> {
                 require(begrunnelse.isNotBlank()) { "Du må oppgi en grunn for at behandlingen settes på vent." }
-
-                val begrunnelser = sattPåVent.sattPåVentBegrunnelser + SattPåVentBegrunnelse(
-                    tidspunkt = nå(clock),
-                    sattPåVentAv = saksbehandler.navIdent,
-                    begrunnelse = begrunnelse,
-                )
+                if (status == UNDER_BEHANDLING) {
+                    require(this.saksbehandler == saksbehandler.navIdent) { "Du må være saksbehandler på behandlingen for å kunne sette den på vent." }
+                }
+                if (status == UNDER_BESLUTNING) {
+                    require(this.beslutter == saksbehandler.navIdent) { "Du må være beslutter på behandlingen for å kunne sette den på vent." }
+                }
 
                 return when (this) {
                     is Søknadsbehandling -> this.copy(
-                        sattPåVent = SattPåVent(
+                        ventestatus = ventestatus.leggTil(
+                            tidspunkt = nå(clock),
+                            endretAv = saksbehandler.navIdent,
+                            begrunnelse = begrunnelse,
                             erSattPåVent = true,
-                            sattPåVentBegrunnelser = begrunnelser,
+                            status = status,
                         ),
                         sistEndret = nå(clock),
                     )
 
                     is Revurdering -> this.copy(
-                        sattPåVent = SattPåVent(
+                        ventestatus = ventestatus.leggTil(
+                            tidspunkt = nå(clock),
+                            endretAv = saksbehandler.navIdent,
+                            begrunnelse = begrunnelse,
                             erSattPåVent = true,
-                            sattPåVentBegrunnelser = begrunnelser,
+                            status = status,
                         ),
                         sistEndret = nå(clock),
                     )
@@ -142,24 +147,31 @@ sealed interface Behandling {
         clock: Clock,
     ): Behandling {
         krevSaksbehandlerRolle(saksbehandler)
-
-        if (!sattPåVent.erSattPåVent) {
-            throw IllegalArgumentException("Behandlingen er ikke satt på vent")
+        if (status == UNDER_BEHANDLING) {
+            require(this.saksbehandler == saksbehandler.navIdent) { "Du må være saksbehandler på behandlingen for å kunne gjenoppta den." }
         }
+        if (status == UNDER_BESLUTNING) {
+            require(this.beslutter == saksbehandler.navIdent) { "Du må være beslutter på behandlingen for å kunne gjenoppta den." }
+        }
+        require(ventestatus.erSattPåVent) { "Behandlingen er ikke satt på vent" }
 
         return when (this) {
             is Søknadsbehandling -> this.copy(
-                sattPåVent = SattPåVent(
+                ventestatus = ventestatus.leggTil(
+                    tidspunkt = nå(clock),
+                    endretAv = saksbehandler.navIdent,
                     erSattPåVent = false,
-                    sattPåVentBegrunnelser = sattPåVent.sattPåVentBegrunnelser,
+                    status = status,
                 ),
                 sistEndret = nå(clock),
             )
 
             is Revurdering -> this.copy(
-                sattPåVent = SattPåVent(
+                ventestatus = ventestatus.leggTil(
+                    tidspunkt = nå(clock),
+                    endretAv = saksbehandler.navIdent,
                     erSattPåVent = false,
-                    sattPåVentBegrunnelser = sattPåVent.sattPåVentBegrunnelser,
+                    status = status,
                 ),
                 sistEndret = nå(clock),
             )
@@ -321,7 +333,7 @@ sealed interface Behandling {
                 check(!this.attesteringer.any { it.isGodkjent() }) {
                     "Behandlingen er allerede godkjent"
                 }
-                check(!sattPåVent.erSattPåVent) { "Behandlingen må gjenopptas før den kan iverksettes." }
+                check(!ventestatus.erSattPåVent) { "Behandlingen må gjenopptas før den kan iverksettes." }
 
                 val attesteringer = attesteringer + attestering
                 val iverksattTidspunkt = nå(clock)
@@ -371,7 +383,7 @@ sealed interface Behandling {
                 check(!this.attesteringer.any { it.isGodkjent() }) {
                     "Behandlingen er allerede godkjent"
                 }
-                check(!sattPåVent.erSattPåVent) { "Behandlingen må gjenopptas før den kan underkjennes." }
+                check(!ventestatus.erSattPåVent) { "Behandlingen må gjenopptas før den kan underkjennes." }
 
                 val attesteringer = attesteringer + attestering
 

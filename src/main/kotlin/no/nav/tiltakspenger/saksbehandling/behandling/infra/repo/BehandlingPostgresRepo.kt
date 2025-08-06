@@ -34,10 +34,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJson
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldeperiodeBeregningerFraBehandling
-import no.nav.tiltakspenger.saksbehandling.felles.SattPåVent
+import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toSattPåVent
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
@@ -330,7 +330,7 @@ class BehandlingPostgresRepo(
             val iverksattTidspunkt = localDateTimeOrNull("iverksatt_tidspunkt")
             val sistEndret = localDateTime("sist_endret")
             val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
-            val sattPåVent = stringOrNull("satt_paa_vent")?.toSattPåVent() ?: SattPåVent()
+            val ventestatus = stringOrNull("ventestatus")?.toVentestatus() ?: Ventestatus()
             val sendtTilDatadeling = localDateTimeOrNull("sendt_til_datadeling")
             val fritekstTilVedtaksbrev = stringOrNull("fritekst_vedtaksbrev")?.let { FritekstTilVedtaksbrev(it) }
             val begrunnelseVilkårsvurdering = stringOrNull("begrunnelse_vilkårsvurdering")?.let {
@@ -400,7 +400,7 @@ class BehandlingPostgresRepo(
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avbrutt = avbrutt,
-                        sattPåVent = sattPåVent,
+                        ventestatus = ventestatus,
                         resultat = resultat,
                         automatiskSaksbehandlet = automatiskSaksbehandlet,
                         manueltBehandlesGrunner = manueltBehandlesGrunner,
@@ -452,7 +452,7 @@ class BehandlingPostgresRepo(
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         avbrutt = avbrutt,
-                        sattPåVent = sattPåVent,
+                        ventestatus = ventestatus,
                         resultat = resultat,
                     )
                 }
@@ -487,7 +487,7 @@ class BehandlingPostgresRepo(
                 barnetillegg,
                 valgte_tiltaksdeltakelser,
                 avbrutt,
-                satt_paa_vent,
+                ventestatus,
                 antall_dager_per_meldeperiode,
                 avslagsgrunner,
                 resultat,
@@ -522,7 +522,7 @@ class BehandlingPostgresRepo(
                 to_jsonb(:barnetillegg::jsonb),
                 to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
                 to_jsonb(:avbrutt::jsonb),
-                to_jsonb(:satt_paa_vent::jsonb),
+                to_jsonb(:ventestatus::jsonb),
                 to_jsonb(:antall_dager_per_meldeperiode::jsonb),
                 to_jsonb(:avslagsgrunner::jsonb),
                 :resultat,
@@ -559,7 +559,7 @@ class BehandlingPostgresRepo(
                 barneTillegg = to_jsonb(:barnetillegg::jsonb),
                 valgte_tiltaksdeltakelser = to_jsonb(:valgte_tiltaksdeltakelser::jsonb),
                 avbrutt = to_jsonb(:avbrutt::jsonb),
-                satt_paa_vent = to_jsonb(:satt_paa_vent::jsonb),
+                ventestatus = to_jsonb(:ventestatus::jsonb),
                 antall_dager_per_meldeperiode = to_jsonb(:antall_dager_per_meldeperiode::jsonb),
                 avslagsgrunner = to_jsonb(:avslagsgrunner::jsonb),
                 resultat = :resultat,
@@ -686,7 +686,7 @@ private fun Behandling.tilDbParams(): Map<String, Any?> {
         "saksopplysningsperiode_fra_og_med" to this.saksopplysningsperiode.fraOgMed,
         "saksopplysningsperiode_til_og_med" to this.saksopplysningsperiode.tilOgMed,
         "avbrutt" to this.avbrutt?.toDbJson(),
-        "satt_paa_vent" to this.sattPåVent.toDbJson(),
+        "ventestatus" to this.ventestatus.toDbJson(),
         "resultat" to this.resultat?.toDb(),
         "opprettet" to this.opprettet,
         "sak_id" to this.sakId.toString(),

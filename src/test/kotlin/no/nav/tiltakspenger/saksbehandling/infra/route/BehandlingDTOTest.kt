@@ -23,12 +23,12 @@ class BehandlingDTOTest {
             behandlingSattPåVent = behandlingSattPåVent.gjenoppta(saksbehandler, clock)
             behandlingSattPåVent = behandlingSattPåVent.settPåVent(saksbehandler, "2", clock)
 
-            behandlingSattPåVent.sattPåVent.sattPåVentBegrunnelser.size shouldBe 2
+            behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 3
             val dto = behandlingSattPåVent.tilBehandlingDTO()
 
-            dto.sattPåVent.erSattPåVent shouldBe true
-            dto.sattPåVent.sattPåVentBegrunnelse?.sattPåVentAv shouldBe saksbehandler.navIdent
-            dto.sattPåVent.sattPåVentBegrunnelse?.begrunnelse shouldBe "2"
+            dto.ventestatus.erSattPåVent shouldBe true
+            dto.ventestatus.sattPåVentAv shouldBe saksbehandler.navIdent
+            dto.ventestatus.begrunnelse shouldBe "2"
         }
     }
 }

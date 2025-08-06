@@ -190,11 +190,11 @@ class BehandlingTest {
             val behandlingSattPåVent = behandling.settPåVent(saksbehandler, "Venter på mer informasjon", clock)
 
             behandlingSattPåVent.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
-            behandlingSattPåVent.sattPåVent.erSattPåVent shouldBe true
-            behandlingSattPåVent.sattPåVent.sattPåVentBegrunnelser.size shouldBe 1
-            behandlingSattPåVent.sattPåVent.sattPåVentBegrunnelser.last().let { it ->
-                it.sattPåVentAv shouldBe saksbehandler.navIdent
+            behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 1
+            behandlingSattPåVent.ventestatus.ventestatusHendelser.last().let { it ->
+                it.endretAv shouldBe saksbehandler.navIdent
                 it.begrunnelse shouldBe "Venter på mer informasjon"
+                it.erSattPåVent shouldBe true
             }
         }
     }
@@ -212,7 +212,7 @@ class BehandlingTest {
             val gjenopptattBehandling = behandlingSattPåVent.gjenoppta(saksbehandler, clock)
 
             gjenopptattBehandling.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
-            gjenopptattBehandling.sattPåVent.erSattPåVent shouldBe false
+            gjenopptattBehandling.ventestatus.erSattPåVent shouldBe false
         }
 
         @Test

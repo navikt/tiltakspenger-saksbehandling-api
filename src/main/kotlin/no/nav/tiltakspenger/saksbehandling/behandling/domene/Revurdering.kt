@@ -20,8 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.felles.SattPåVent
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
+import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import java.time.Clock
@@ -45,7 +45,7 @@ data class Revurdering(
     override val attesteringer: List<Attestering>,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val avbrutt: Avbrutt?,
-    override val sattPåVent: SattPåVent,
+    override val ventestatus: Ventestatus,
     override val resultat: RevurderingResultat,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
@@ -278,7 +278,7 @@ data class Revurdering(
                 iverksattTidspunkt = null,
                 sendtTilDatadeling = null,
                 avbrutt = null,
-                sattPåVent = SattPåVent(),
+                ventestatus = Ventestatus(),
                 begrunnelseVilkårsvurdering = null,
             )
         }

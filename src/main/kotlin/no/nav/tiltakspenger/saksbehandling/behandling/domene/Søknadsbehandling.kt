@@ -22,8 +22,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KunneIkkeOppdatereBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.felles.SattPåVent
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
+import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -49,7 +49,7 @@ data class Søknadsbehandling(
     override val attesteringer: List<Attestering>,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val avbrutt: Avbrutt?,
-    override val sattPåVent: SattPåVent,
+    override val ventestatus: Ventestatus,
     override val resultat: SøknadsbehandlingResultat?,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
@@ -239,7 +239,7 @@ data class Søknadsbehandling(
                 sendtTilDatadeling = null,
                 sistEndret = opprettet,
                 avbrutt = null,
-                sattPåVent = SattPåVent(),
+                ventestatus = Ventestatus(),
                 resultat = null,
                 virkningsperiode = null,
                 begrunnelseVilkårsvurdering = null,
@@ -275,7 +275,7 @@ data class Søknadsbehandling(
                 sendtTilDatadeling = null,
                 sistEndret = opprettet,
                 avbrutt = null,
-                sattPåVent = SattPåVent(),
+                ventestatus = Ventestatus(),
                 resultat = null,
                 virkningsperiode = null,
                 begrunnelseVilkårsvurdering = null,
