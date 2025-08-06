@@ -184,15 +184,15 @@ class BehandlingTest {
 
         @Test
         fun `kan sette behandling på vent`() {
-            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
-            val saksbehandler = ObjectMother.saksbehandler()
+            val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
+            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
 
-            val behandlingSattPåVent = behandling.settPåVent(saksbehandler, "Venter på mer informasjon", clock)
+            val behandlingSattPåVent = behandling.settPåVent(beslutter, "Venter på mer informasjon", clock)
 
             behandlingSattPåVent.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
             behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 1
             behandlingSattPåVent.ventestatus.ventestatusHendelser.last().let { it ->
-                it.endretAv shouldBe saksbehandler.navIdent
+                it.endretAv shouldBe beslutter.navIdent
                 it.begrunnelse shouldBe "Venter på mer informasjon"
                 it.erSattPåVent shouldBe true
             }
@@ -205,11 +205,12 @@ class BehandlingTest {
 
         @Test
         fun `kan gjenoppta behandling som er satt på vent`() {
-            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
-            val saksbehandler = ObjectMother.saksbehandler()
+            val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
+            val behandling =
+                ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
 
-            val behandlingSattPåVent = behandling.settPåVent(saksbehandler, "Venter på mer informasjon", clock)
-            val gjenopptattBehandling = behandlingSattPåVent.gjenoppta(saksbehandler, clock)
+            val behandlingSattPåVent = behandling.settPåVent(beslutter, "Venter på mer informasjon", clock)
+            val gjenopptattBehandling = behandlingSattPåVent.gjenoppta(beslutter, clock)
 
             gjenopptattBehandling.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
             gjenopptattBehandling.ventestatus.erSattPåVent shouldBe false
@@ -217,11 +218,12 @@ class BehandlingTest {
 
         @Test
         fun `kan ikke gjenoppta behandling som ikke er satt på vent`() {
-            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
-            val saksbehandler = ObjectMother.saksbehandler()
+            val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
+            val behandling =
+                ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
 
             assertThrows<IllegalArgumentException> {
-                behandling.gjenoppta(saksbehandler, clock)
+                behandling.gjenoppta(beslutter, clock)
             }
         }
     }

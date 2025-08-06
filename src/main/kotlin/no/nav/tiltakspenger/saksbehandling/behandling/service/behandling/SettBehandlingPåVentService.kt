@@ -36,7 +36,7 @@ class SettBehandlingPåVentService(
         tilgangsstyringService.krevTilgangTilPerson(saksbehandler, behandling.fnr, correlationId)
 
         return behandling.settPåVent(
-            saksbehandler = saksbehandler,
+            endretAv = saksbehandler,
             begrunnelse = begrunnelse,
             clock = clock,
         ).also {

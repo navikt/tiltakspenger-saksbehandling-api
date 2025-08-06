@@ -35,7 +35,7 @@ class GjenopptaBehandlingService(
         tilgangsstyringService.krevTilgangTilPerson(saksbehandler, behandling.fnr, correlationId)
 
         return behandling.gjenoppta(
-            saksbehandler = saksbehandler,
+            endretAv = saksbehandler,
             clock = clock,
         ).also {
             val statistikk = statistikkSakService.genererStatistikkForGjenopptattBehandling(it)

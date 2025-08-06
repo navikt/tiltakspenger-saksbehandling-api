@@ -91,29 +91,29 @@ sealed interface Behandling {
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Behandling
 
     fun settPåVent(
-        saksbehandler: Saksbehandler,
+        endretAv: Saksbehandler,
         begrunnelse: String,
         clock: Clock,
     ): Behandling {
-        krevSaksbehandlerRolle(saksbehandler)
-
         when (status) {
             UNDER_BEHANDLING,
             UNDER_BESLUTNING,
             -> {
                 require(begrunnelse.isNotBlank()) { "Du må oppgi en grunn for at behandlingen settes på vent." }
                 if (status == UNDER_BEHANDLING) {
-                    require(this.saksbehandler == saksbehandler.navIdent) { "Du må være saksbehandler på behandlingen for å kunne sette den på vent." }
+                    krevSaksbehandlerRolle(endretAv)
+                    require(this.saksbehandler == endretAv.navIdent) { "Du må være saksbehandler på behandlingen for å kunne sette den på vent." }
                 }
                 if (status == UNDER_BESLUTNING) {
-                    require(this.beslutter == saksbehandler.navIdent) { "Du må være beslutter på behandlingen for å kunne sette den på vent." }
+                    krevBeslutterRolle(endretAv)
+                    require(this.beslutter == endretAv.navIdent) { "Du må være beslutter på behandlingen for å kunne sette den på vent." }
                 }
 
                 return when (this) {
                     is Søknadsbehandling -> this.copy(
                         ventestatus = ventestatus.leggTil(
                             tidspunkt = nå(clock),
-                            endretAv = saksbehandler.navIdent,
+                            endretAv = endretAv.navIdent,
                             begrunnelse = begrunnelse,
                             erSattPåVent = true,
                             status = status,
@@ -124,7 +124,7 @@ sealed interface Behandling {
                     is Revurdering -> this.copy(
                         ventestatus = ventestatus.leggTil(
                             tidspunkt = nå(clock),
-                            endretAv = saksbehandler.navIdent,
+                            endretAv = endretAv.navIdent,
                             begrunnelse = begrunnelse,
                             erSattPåVent = true,
                             status = status,
@@ -143,15 +143,16 @@ sealed interface Behandling {
     }
 
     fun gjenoppta(
-        saksbehandler: Saksbehandler,
+        endretAv: Saksbehandler,
         clock: Clock,
     ): Behandling {
-        krevSaksbehandlerRolle(saksbehandler)
         if (status == UNDER_BEHANDLING) {
-            require(this.saksbehandler == saksbehandler.navIdent) { "Du må være saksbehandler på behandlingen for å kunne gjenoppta den." }
+            krevSaksbehandlerRolle(endretAv)
+            require(this.saksbehandler == endretAv.navIdent) { "Du må være saksbehandler på behandlingen for å kunne gjenoppta den." }
         }
         if (status == UNDER_BESLUTNING) {
-            require(this.beslutter == saksbehandler.navIdent) { "Du må være beslutter på behandlingen for å kunne gjenoppta den." }
+            krevBeslutterRolle(endretAv)
+            require(this.beslutter == endretAv.navIdent) { "Du må være beslutter på behandlingen for å kunne gjenoppta den." }
         }
         require(ventestatus.erSattPåVent) { "Behandlingen er ikke satt på vent" }
 
@@ -159,7 +160,7 @@ sealed interface Behandling {
             is Søknadsbehandling -> this.copy(
                 ventestatus = ventestatus.leggTil(
                     tidspunkt = nå(clock),
-                    endretAv = saksbehandler.navIdent,
+                    endretAv = endretAv.navIdent,
                     erSattPåVent = false,
                     status = status,
                 ),
@@ -169,7 +170,7 @@ sealed interface Behandling {
             is Revurdering -> this.copy(
                 ventestatus = ventestatus.leggTil(
                     tidspunkt = nå(clock),
-                    endretAv = saksbehandler.navIdent,
+                    endretAv = endretAv.navIdent,
                     erSattPåVent = false,
                     status = status,
                 ),

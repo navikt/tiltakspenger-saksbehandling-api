@@ -16,19 +16,20 @@ class BehandlingDTOTest {
 
         @Test
         fun `Den nyeste begrunnelsen blir med`() {
-            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
-            val saksbehandler = ObjectMother.saksbehandler()
+            val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
+            val behandling =
+                ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
 
-            var behandlingSattPåVent = behandling.settPåVent(saksbehandler, "1", clock)
-            behandlingSattPåVent = behandlingSattPåVent.gjenoppta(saksbehandler, clock)
-            behandlingSattPåVent = behandlingSattPåVent.settPåVent(saksbehandler, "2", clock)
+            var behandlingSattPåVent = behandling.settPåVent(beslutter, "1", clock)
+            behandlingSattPåVent = behandlingSattPåVent.gjenoppta(beslutter, clock)
+            behandlingSattPåVent = behandlingSattPåVent.settPåVent(beslutter, "2", clock)
 
             behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 3
             val dto = behandlingSattPåVent.tilBehandlingDTO()
 
-            dto.ventestatus.erSattPåVent shouldBe true
-            dto.ventestatus.sattPåVentAv shouldBe saksbehandler.navIdent
-            dto.ventestatus.begrunnelse shouldBe "2"
+            dto.ventestatus?.erSattPåVent shouldBe true
+            dto.ventestatus?.sattPåVentAv shouldBe beslutter.navIdent
+            dto.ventestatus?.begrunnelse shouldBe "2"
         }
     }
 }

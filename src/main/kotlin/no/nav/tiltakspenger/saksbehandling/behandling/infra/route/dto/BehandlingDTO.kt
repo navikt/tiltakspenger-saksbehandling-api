@@ -40,7 +40,7 @@ sealed interface BehandlingDTO {
     val begrunnelseVilkårsvurdering: String?
     val avbrutt: AvbruttDTO?
     val iverksattTidspunkt: String?
-    val ventestatus: VentestatusHendelseDTO
+    val ventestatus: VentestatusHendelseDTO?
 }
 
 data class SøknadsbehandlingDTO(
@@ -58,7 +58,7 @@ data class SøknadsbehandlingDTO(
     override val begrunnelseVilkårsvurdering: String?,
     override val avbrutt: AvbruttDTO?,
     override val iverksattTidspunkt: String?,
-    override val ventestatus: VentestatusHendelseDTO,
+    override val ventestatus: VentestatusHendelseDTO?,
     val søknad: SøknadDTO?,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
@@ -85,7 +85,7 @@ data class RevurderingDTO(
     override val begrunnelseVilkårsvurdering: String?,
     override val avbrutt: AvbruttDTO?,
     override val iverksattTidspunkt: String?,
-    override val ventestatus: VentestatusHendelseDTO,
+    override val ventestatus: VentestatusHendelseDTO?,
     val valgtHjemmelHarIkkeRettighet: List<String>?,
     val barnetillegg: BarnetilleggDTO?,
     val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>?,
@@ -127,7 +127,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(): SøknadsbehandlingDTO {
         avslagsgrunner = null,
         automatiskSaksbehandlet = this.automatiskSaksbehandlet,
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
-        ventestatus = ventestatus.ventestatusHendelser.last().tilVentestatusHendelseDTO(),
+        ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
     ).let {
         when (resultat) {
             is SøknadsbehandlingResultat.Innvilgelse -> it.copy(
@@ -165,7 +165,7 @@ fun Revurdering.tilRevurderingDTO(): RevurderingDTO {
         antallDagerPerMeldeperiode = null,
         barnetillegg = null,
         utbetaling = null,
-        ventestatus = ventestatus.ventestatusHendelser.last().tilVentestatusHendelseDTO(),
+        ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
     ).let {
         when (resultat) {
             is RevurderingResultat.Stans -> it.copy(
