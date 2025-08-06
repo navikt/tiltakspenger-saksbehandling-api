@@ -109,7 +109,7 @@ interface SendRevurderingTilBeslutningBuilder {
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/revurdering/$behandlingId/sendtilbeslutning")
+                path("/sak/$sakId/behandling/$behandlingId/sendtilbeslutning")
             },
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(
                 saksbehandler = saksbehandler,
@@ -163,7 +163,7 @@ interface SendRevurderingTilBeslutningBuilder {
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/revurdering/$behandlingId/sendtilbeslutning")
+                path("/sak/$sakId/behandling/$behandlingId/sendtilbeslutning")
             },
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(
                 saksbehandler = saksbehandler,

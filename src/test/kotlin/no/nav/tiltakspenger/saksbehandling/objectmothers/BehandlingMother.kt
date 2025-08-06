@@ -535,7 +535,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
         ),
     )
 
-    this.behandlingContext.sendBehandlingTilBeslutningService.sendSøknadsbehandlingTilBeslutning(
+    this.behandlingContext.sendBehandlingTilBeslutningService.sendTilBeslutning(
         when (resultat) {
             SøknadsbehandlingType.INNVILGELSE -> OppdaterSøknadsbehandlingKommando.Innvilgelse(
                 sakId = sakMedSøknadsbehandling.id,

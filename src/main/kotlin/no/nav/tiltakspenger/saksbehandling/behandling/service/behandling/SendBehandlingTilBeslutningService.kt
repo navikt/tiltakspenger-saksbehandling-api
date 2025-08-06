@@ -1,8 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
+import arrow.core.left
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
@@ -11,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
@@ -25,42 +28,50 @@ class SendBehandlingTilBeslutningService(
     private val navkontorService: NavkontorService,
     private val sessionFactory: SessionFactory,
 ) {
-    suspend fun sendSøknadsbehandlingTilBeslutning(
-        kommando: OppdaterSøknadsbehandlingKommando,
+    suspend fun sendTilBeslutning(
+        kommando: OppdaterBehandlingKommando,
     ): Either<KanIkkeSendeTilBeslutter, Behandling> {
-        val sak: Sak = sakService.sjekkTilgangOgHentForSakId(
+        krevSaksbehandlerRolle(kommando.saksbehandler)
+
+        val sak = sakService.hentForSakId(
             sakId = kommando.sakId,
             saksbehandler = kommando.saksbehandler,
             correlationId = kommando.correlationId,
         )
-        // Denne validerer saksbehandler
-        return sak.sendSøknadsbehandlingTilBeslutning(kommando, clock).map { (_, behandling) -> behandling }.onRight {
-            val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
-            sessionFactory.withTransactionContext { tx ->
-                behandlingRepo.lagre(it, tx)
-                statistikkSakRepo.lagre(statistikk, tx)
-            }
+
+        val behandling = sak.hentBehandling(kommando.behandlingId)
+
+        requireNotNull(behandling) {
+            "Fant ikke behandlingen ${kommando.behandlingId} på sak ${kommando.sakId}"
         }
+
+        if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {
+            return KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(eiesAvSaksbehandler = behandling.saksbehandler)
+                .left()
+        }
+
+        return when (kommando) {
+            is OppdaterRevurderingKommando -> sak.sendRevurderingTilBeslutning(
+                kommando = kommando,
+                hentNavkontor = navkontorService::hentOppfolgingsenhet,
+                clock = clock,
+            )
+
+            is OppdaterSøknadsbehandlingKommando -> sak.sendSøknadsbehandlingTilBeslutning(
+                kommando = kommando,
+                clock = clock,
+            ).map { it.second }
+        }.onRight { sak.validerOgLagre(it) }
     }
 
-    suspend fun sendRevurderingTilBeslutning(kommando: OppdaterRevurderingKommando): Either<KanIkkeSendeTilBeslutter, Behandling> {
-        // Denne sjekker tilgang til person og rollene SAKSBEHANDLER eller BESLUTTER.
-        val sak: Sak = sakService.sjekkTilgangOgHentForSakId(
-            sakId = kommando.sakId,
-            saksbehandler = kommando.saksbehandler,
-            correlationId = kommando.correlationId,
-        )
-        // Denne validerer saksbehandler
-        return sak.sendRevurderingTilBeslutning(
-            kommando = kommando,
-            hentNavkontor = navkontorService::hentOppfolgingsenhet,
-            clock = clock,
-        ).onRight {
-            val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
-            sessionFactory.withTransactionContext { tx ->
-                behandlingRepo.lagre(it, tx)
-                statistikkSakRepo.lagre(statistikk, tx)
-            }
+    private suspend fun Sak.validerOgLagre(behandling: Behandling) {
+        this.copy(behandlinger = this.behandlinger.oppdaterBehandling(behandling))
+
+        val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(behandling)
+
+        sessionFactory.withTransactionContext { tx ->
+            behandlingRepo.lagre(behandling, tx)
+            statistikkSakRepo.lagre(statistikk, tx)
         }
     }
 }
