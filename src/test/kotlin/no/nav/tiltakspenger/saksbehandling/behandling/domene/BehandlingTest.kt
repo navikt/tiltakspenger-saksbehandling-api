@@ -177,4 +177,54 @@ class BehandlingTest {
             søknadsbehandling.validerKanOppdatere(ObjectMother.saksbehandler()).isLeft() shouldBe true
         }
     }
+
+    @Nested
+    inner class SettPåVent {
+        val clock: Clock = Clock.fixed(Instant.parse("2025-08-05T12:30:00Z"), ZoneOffset.UTC)
+
+        @Test
+        fun `kan sette behandling på vent`() {
+            val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
+            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
+
+            val behandlingSattPåVent = behandling.settPåVent(beslutter, "Venter på mer informasjon", clock)
+
+            behandlingSattPåVent.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
+            behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 1
+            behandlingSattPåVent.ventestatus.ventestatusHendelser.last().let { it ->
+                it.endretAv shouldBe beslutter.navIdent
+                it.begrunnelse shouldBe "Venter på mer informasjon"
+                it.erSattPåVent shouldBe true
+            }
+        }
+    }
+
+    @Nested
+    inner class Gjenoppta {
+        val clock: Clock = Clock.fixed(Instant.parse("2025-08-05T12:30:00Z"), ZoneOffset.UTC)
+
+        @Test
+        fun `kan gjenoppta behandling som er satt på vent`() {
+            val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
+            val behandling =
+                ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
+
+            val behandlingSattPåVent = behandling.settPåVent(beslutter, "Venter på mer informasjon", clock)
+            val gjenopptattBehandling = behandlingSattPåVent.gjenoppta(beslutter, clock)
+
+            gjenopptattBehandling.status shouldBe Behandlingsstatus.UNDER_BESLUTNING
+            gjenopptattBehandling.ventestatus.erSattPåVent shouldBe false
+        }
+
+        @Test
+        fun `kan ikke gjenoppta behandling som ikke er satt på vent`() {
+            val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
+            val behandling =
+                ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
+
+            assertThrows<IllegalArgumentException> {
+                behandling.gjenoppta(beslutter, clock)
+            }
+        }
+    }
 }

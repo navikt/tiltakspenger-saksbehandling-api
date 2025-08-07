@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
+import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
@@ -57,6 +58,7 @@ sealed interface Behandling {
 
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val avbrutt: Avbrutt?
+    val ventestatus: Ventestatus
     val resultat: BehandlingResultat?
     val virkningsperiode: Periode?
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
@@ -87,6 +89,95 @@ sealed interface Behandling {
         saksopplysninger.getTiltaksdeltagelse(eksternDeltagelseId)
 
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Behandling
+
+    fun settPåVent(
+        endretAv: Saksbehandler,
+        begrunnelse: String,
+        clock: Clock,
+    ): Behandling {
+        when (status) {
+            UNDER_BEHANDLING,
+            UNDER_BESLUTNING,
+            -> {
+                require(begrunnelse.isNotBlank()) { "Du må oppgi en grunn for at behandlingen settes på vent." }
+                if (status == UNDER_BEHANDLING) {
+                    krevSaksbehandlerRolle(endretAv)
+                    require(this.saksbehandler == endretAv.navIdent) { "Du må være saksbehandler på behandlingen for å kunne sette den på vent." }
+                }
+                if (status == UNDER_BESLUTNING) {
+                    krevBeslutterRolle(endretAv)
+                    require(this.beslutter == endretAv.navIdent) { "Du må være beslutter på behandlingen for å kunne sette den på vent." }
+                }
+
+                return when (this) {
+                    is Søknadsbehandling -> this.copy(
+                        ventestatus = ventestatus.leggTil(
+                            tidspunkt = nå(clock),
+                            endretAv = endretAv.navIdent,
+                            begrunnelse = begrunnelse,
+                            erSattPåVent = true,
+                            status = status,
+                        ),
+                        sistEndret = nå(clock),
+                    )
+
+                    is Revurdering -> this.copy(
+                        ventestatus = ventestatus.leggTil(
+                            tidspunkt = nå(clock),
+                            endretAv = endretAv.navIdent,
+                            begrunnelse = begrunnelse,
+                            erSattPåVent = true,
+                            status = status,
+                        ),
+                        sistEndret = nå(clock),
+                    )
+                }
+            }
+            KLAR_TIL_BEHANDLING,
+            UNDER_AUTOMATISK_BEHANDLING,
+            KLAR_TIL_BESLUTNING,
+            VEDTATT,
+            AVBRUTT,
+            -> throw IllegalStateException("Kan bare sette behandling på vent dersom den er UNDER_BESLUTNING")
+        }
+    }
+
+    fun gjenoppta(
+        endretAv: Saksbehandler,
+        clock: Clock,
+    ): Behandling {
+        if (status == UNDER_BEHANDLING) {
+            krevSaksbehandlerRolle(endretAv)
+            require(this.saksbehandler == endretAv.navIdent) { "Du må være saksbehandler på behandlingen for å kunne gjenoppta den." }
+        }
+        if (status == UNDER_BESLUTNING) {
+            krevBeslutterRolle(endretAv)
+            require(this.beslutter == endretAv.navIdent) { "Du må være beslutter på behandlingen for å kunne gjenoppta den." }
+        }
+        require(ventestatus.erSattPåVent) { "Behandlingen er ikke satt på vent" }
+
+        return when (this) {
+            is Søknadsbehandling -> this.copy(
+                ventestatus = ventestatus.leggTil(
+                    tidspunkt = nå(clock),
+                    endretAv = endretAv.navIdent,
+                    erSattPåVent = false,
+                    status = status,
+                ),
+                sistEndret = nå(clock),
+            )
+
+            is Revurdering -> this.copy(
+                ventestatus = ventestatus.leggTil(
+                    tidspunkt = nå(clock),
+                    endretAv = endretAv.navIdent,
+                    erSattPåVent = false,
+                    status = status,
+                ),
+                sistEndret = nå(clock),
+            )
+        }
+    }
 
     fun leggTilbakeBehandling(saksbehandler: Saksbehandler): Behandling {
         return when (status) {
@@ -243,6 +334,7 @@ sealed interface Behandling {
                 check(!this.attesteringer.any { it.isGodkjent() }) {
                     "Behandlingen er allerede godkjent"
                 }
+                check(!ventestatus.erSattPåVent) { "Behandlingen må gjenopptas før den kan iverksettes." }
 
                 val attesteringer = attesteringer + attestering
                 val iverksattTidspunkt = nå(clock)
@@ -292,6 +384,7 @@ sealed interface Behandling {
                 check(!this.attesteringer.any { it.isGodkjent() }) {
                     "Behandlingen er allerede godkjent"
                 }
+                check(!ventestatus.erSattPåVent) { "Behandlingen må gjenopptas før den kan underkjennes." }
 
                 val attesteringer = attesteringer + attestering
 

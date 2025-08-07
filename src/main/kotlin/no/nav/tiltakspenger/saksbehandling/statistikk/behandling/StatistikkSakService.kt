@@ -103,6 +103,30 @@ class StatistikkSakService(
         )
     }
 
+    suspend fun genererStatistikkForBehandlingSattPåVent(
+        behandling: Behandling,
+    ): StatistikkSakDTO {
+        return genererSaksstatistikkForBehandling(
+            behandling = behandling,
+            gjelderKode6 = gjelderKode6(behandling.fnr, "BehandlingId: ${behandling.id}"),
+            versjon = gitHash,
+            clock = clock,
+            hendelse = "behandling_satt_på_vent",
+        )
+    }
+
+    suspend fun genererStatistikkForGjenopptattBehandling(
+        behandling: Behandling,
+    ): StatistikkSakDTO {
+        return genererSaksstatistikkForBehandling(
+            behandling = behandling,
+            gjelderKode6 = gjelderKode6(behandling.fnr, "BehandlingId: ${behandling.id}"),
+            versjon = gitHash,
+            clock = clock,
+            hendelse = "behandling_gjenopptatt",
+        )
+    }
+
     suspend fun genererStatistikkForSøknadSomBehandlesPåNytt(
         behandling: Søknadsbehandling,
         søknadId: SøknadId,
