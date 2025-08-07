@@ -60,7 +60,18 @@ data class Søknad(
         )
     }
 
-    fun vurderingsperiode(): Periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom)
+    /**
+     * Merk at dette er sånn tiltaksdeltagelsen så ut i søknadsøyeblikket og kan ha endret seg i etterkant.
+     * Man kan bare søke om tiltakspenger for en tiltaksdeltagelse per søknad (aug 2025).
+     */
+    fun tiltaksdeltagelseperiodeDetErSøktOm(): Periode = Periode(tiltak.deltakelseFom, tiltak.deltakelseTom)
+
+    // fun tiltaksperiodeDetErSøktOmBegrensetAvKravdato(): Periode? {
+    //  if(tiltaksperiodeDetErSøktOm().tilOgMed < kravdato) {
+    //      // Hele perioden det er søkt om er før kravdatoen
+    //      return null
+    //  }
+    // }
 
     fun saksopplysningsperiode(): Periode {
         // § 11: Tiltakspenger og barnetillegg gis for opptil tre måneder før den måneden da kravet om ytelsen ble satt fram, dersom vilkårene var oppfylt i denne perioden.
@@ -107,7 +118,7 @@ data class Søknad(
         kravdato.withDayOfMonth(1).isAfter(tiltak.deltakelseFom)
 
     fun erUnder18ISoknadsperioden(fodselsdato: LocalDate): Boolean =
-        fodselsdato.plusYears(18).isAfter(vurderingsperiode().fraOgMed)
+        fodselsdato.plusYears(18).isAfter(tiltaksdeltagelseperiodeDetErSøktOm().fraOgMed)
 
     data class Personopplysninger(
         val fnr: Fnr,

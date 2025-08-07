@@ -50,4 +50,11 @@ data class Tiltaksdeltagelse(
 
         return Periode(deltagelseFraOgMed!!, deltagelseTilOgMed!!).overlapperMed(periode)
     }
+
+    fun overlapper(other: Tiltaksdeltagelse): Boolean? {
+        when {
+            this.periode != null && other.periode != null -> this.overlapper(other)
+            this.periode == null && other.periode == null -> null
+        }
+    }
 }

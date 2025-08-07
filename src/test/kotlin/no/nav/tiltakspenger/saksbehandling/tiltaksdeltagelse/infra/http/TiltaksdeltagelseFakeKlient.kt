@@ -11,12 +11,12 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
 
 class TiltaksdeltagelseFakeKlient(private val søknadRepo: SøknadRepo) : TiltaksdeltagelseKlient {
-    private val data = Atomic(mutableMapOf<Fnr, List<Tiltaksdeltagelse>>())
+    private val data = Atomic(mutableMapOf<Fnr, Tiltaksdeltagelser>())
 
     override suspend fun hentTiltaksdeltagelser(
         fnr: Fnr,
         correlationId: CorrelationId,
-    ): List<Tiltaksdeltagelse> {
+    ): Tiltaksdeltagelser {
         return data.get()[fnr] ?: hentTiltaksdeltagelseFraSøknad(fnr)
     }
 
@@ -27,7 +27,7 @@ class TiltaksdeltagelseFakeKlient(private val søknadRepo: SøknadRepo) : Tiltak
         data.get()[fnr] = listOf(tiltaksdeltagelse)
     }
 
-    private fun hentTiltaksdeltagelseFraSøknad(fnr: Fnr): List<Tiltaksdeltagelse> {
+    private fun hentTiltaksdeltagelseFraSøknad(fnr: Fnr): Tiltaksdeltagelser {
         val søknader = søknadRepo.hentSøknaderForFnr(fnr)
         val tiltak = søknader.lastOrNull()?.tiltak?.toTiltak()
 

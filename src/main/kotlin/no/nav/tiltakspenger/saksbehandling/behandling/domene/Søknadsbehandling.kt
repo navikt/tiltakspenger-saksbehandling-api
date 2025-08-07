@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.barnetillegg.OppdaterBarnetilleggCommand
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KunneIkkeOppdatereBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -178,8 +179,18 @@ data class Søknadsbehandling(
     }
 
     private fun virkningsperiodeOgResultat(kommando: OppdaterSøknadsbehandlingKommando): Pair<Periode, SøknadsbehandlingResultat> {
+        /**
+         *             is SendSøknadsbehandlingTilBeslutningKommando.Innvilgelse -> {
+         *                 SøknadsbehandlingResultat.Innvilgelse(
+         *                     valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
+         *                     barnetillegg = kommando.barnetillegg,
+         *                     antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+         *                 )
+         *             }
+         *         }
+         */
         val virkningsperiode = when (kommando) {
-            is OppdaterSøknadsbehandlingKommando.Avslag -> this.søknad.vurderingsperiode()
+            is OppdaterSøknadsbehandlingKommando.Avslag -> this.søknad.tiltaksdeltagelseperiodeDetErSøktOm()
             is OppdaterSøknadsbehandlingKommando.Innvilgelse -> kommando.innvilgelsesperiode
         }
 

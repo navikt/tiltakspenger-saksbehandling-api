@@ -2,11 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
 import arrow.core.left
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse.Utbetaling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.beregning.RevurderingIkkeBeregnet
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingInnvilgelse
@@ -16,18 +17,21 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDate
 
-private typealias HentSaksopplysninger = suspend (Periode) -> Saksopplysninger
+private typealias HentSaksopplysningerForPeriode = suspend (Periode) -> Saksopplysninger
 private typealias HentNavkontor = suspend (Fnr) -> Navkontor
 
+/**
+ * Generell funksjon for å starte revurdering (både innvilgelse og stans)
+ */
 suspend fun Sak.startRevurdering(
     kommando: StartRevurderingKommando,
     clock: Clock,
-    hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger,
+    hentSaksopplysninger: HentSaksopplysninger,
 ): Pair<Sak, Revurdering> {
     val saksbehandler = kommando.saksbehandler
     krevSaksbehandlerRolle(saksbehandler)
 
-    val hentSaksopplysninger: HentSaksopplysninger = { periode: Periode ->
+    val hentSaksopplysninger: HentSaksopplysningerForPeriode = { periode: Periode ->
         hentSaksopplysninger(
             this.fnr,
             kommando.correlationId,
@@ -36,8 +40,8 @@ suspend fun Sak.startRevurdering(
     }
 
     val revurdering = when (kommando.revurderingType) {
-        RevurderingType.STANS -> startStans(saksbehandler, hentSaksopplysninger, clock)
-        RevurderingType.INNVILGELSE -> startInnvilgelse(saksbehandler, hentSaksopplysninger, clock)
+        RevurderingType.STANS -> startRevurderingStans(saksbehandler, hentSaksopplysninger, clock)
+        RevurderingType.INNVILGELSE -> startRevurderingInnvilgelse(saksbehandler, hentSaksopplysninger, clock)
     }
 
     return Pair(
@@ -46,9 +50,9 @@ suspend fun Sak.startRevurdering(
     )
 }
 
-private suspend fun Sak.startStans(
+private suspend fun Sak.startRevurderingStans(
     saksbehandler: Saksbehandler,
-    hentSaksopplysninger: HentSaksopplysninger,
+    hentSaksopplysninger: HentSaksopplysningerForPeriode,
     clock: Clock,
 ): Revurdering {
     // TODO abn: hva (om noe) må vi fikse for å kunne fjerne denne restriksjonen?
@@ -70,23 +74,28 @@ private suspend fun Sak.startStans(
     )
 }
 
-private suspend fun Sak.startInnvilgelse(
+private suspend fun Sak.startRevurderingInnvilgelse(
     saksbehandler: Saksbehandler,
-    hentSaksopplysninger: HentSaksopplysninger,
+    hentSaksopplysninger: HentSaksopplysningerForPeriode,
     clock: Clock,
 ): Revurdering {
-    val sisteBehandling = hentSisteInnvilgetBehandling()
-
-    requireNotNull(sisteBehandling) {
-        "Må ha en tidligere vedtatt innvilgelse for å kunne revurdere innvilgelse"
+    require(harFørstegangsvedtak) {
+        "Må ha en tidligere vedtatt innvilgelse for å kunne revurdere"
     }
-
+    val saksopplysningsperiode = this.saksopplysningsperiode.let { perioder ->
+        Periode(
+            perioder.minOf { it.fraOgMed },
+            // Legger på et år for å matche søknadsbehandlingen enn så lenge. Dette vil kun være OK for forlengelse frem i tid, ikke forlengelse tilbake i tid eller omgjøring tilbake i tid.
+            perioder.maxOf { it.tilOgMed }.plusYears(1),
+        )
+    }
     return Revurdering.opprettInnvilgelse(
         sakId = this.id,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
         saksbehandler = saksbehandler,
-        saksopplysninger = hentSaksopplysninger(sisteBehandling.saksopplysningsperiode),
+        // TODO jah: På sikt vil vi dele innhenting i 1) tiltaksdeltagelser 2) velger revurderingsperiode 3) bruker revurderingsperiode som innhentingsperiode for resten av saksopplysnignene
+        saksopplysninger = hentSaksopplysninger(saksopplysningsperiode),
         clock = clock,
     )
 }
