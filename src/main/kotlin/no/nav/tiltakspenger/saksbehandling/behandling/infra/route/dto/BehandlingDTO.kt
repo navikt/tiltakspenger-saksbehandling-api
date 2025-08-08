@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallD
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toTiltaksdeltakelsePeriodeDTO
+import java.time.LocalDateTime
 
 sealed interface BehandlingDTO {
     val id: String
@@ -39,7 +40,8 @@ sealed interface BehandlingDTO {
     val fritekstTilVedtaksbrev: String?
     val begrunnelseVilkårsvurdering: String?
     val avbrutt: AvbruttDTO?
-    val iverksattTidspunkt: String?
+    val sistEndret: LocalDateTime
+    val iverksattTidspunkt: LocalDateTime?
     val ventestatus: VentestatusHendelseDTO?
 }
 
@@ -57,7 +59,8 @@ data class SøknadsbehandlingDTO(
     override val fritekstTilVedtaksbrev: String?,
     override val begrunnelseVilkårsvurdering: String?,
     override val avbrutt: AvbruttDTO?,
-    override val iverksattTidspunkt: String?,
+    override val sistEndret: LocalDateTime,
+    override val iverksattTidspunkt: LocalDateTime?,
     override val ventestatus: VentestatusHendelseDTO?,
     val søknad: SøknadDTO?,
     val barnetillegg: BarnetilleggDTO?,
@@ -84,7 +87,8 @@ data class RevurderingDTO(
     override val fritekstTilVedtaksbrev: String?,
     override val begrunnelseVilkårsvurdering: String?,
     override val avbrutt: AvbruttDTO?,
-    override val iverksattTidspunkt: String?,
+    override val sistEndret: LocalDateTime,
+    override val iverksattTidspunkt: LocalDateTime?,
     override val ventestatus: VentestatusHendelseDTO?,
     val valgtHjemmelHarIkkeRettighet: List<String>?,
     val barnetillegg: BarnetilleggDTO?,
@@ -117,7 +121,8 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(): SøknadsbehandlingDTO {
         saksopplysninger = this.saksopplysninger.toSaksopplysningerDTO(),
         søknad = this.søknad.toSøknadDTO(),
         avbrutt = this.avbrutt?.toAvbruttDTO(),
-        iverksattTidspunkt = this.iverksattTidspunkt?.toString(),
+        sistEndret = this.sistEndret,
+        iverksattTidspunkt = this.iverksattTidspunkt,
         fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
         begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
         virkningsperiode = this.virkningsperiode?.toDTO(),
@@ -158,7 +163,8 @@ fun Revurdering.tilRevurderingDTO(): RevurderingDTO {
         fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
         begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
         avbrutt = this.avbrutt?.toAvbruttDTO(),
-        iverksattTidspunkt = this.iverksattTidspunkt?.toString(),
+        sistEndret = this.sistEndret,
+        iverksattTidspunkt = this.iverksattTidspunkt,
         resultat = this.resultat.tilBehandlingResultatDTO(),
         valgtHjemmelHarIkkeRettighet = null,
         valgteTiltaksdeltakelser = null,
