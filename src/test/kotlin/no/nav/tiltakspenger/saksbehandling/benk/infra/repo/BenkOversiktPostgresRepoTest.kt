@@ -8,7 +8,9 @@ import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
+import no.nav.tiltakspenger.libs.periodisering.zoneIdOslo
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragBenktype
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
@@ -35,9 +37,11 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningS�
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
+import java.time.Clock
 
 class BenkOversiktPostgresRepoTest {
     private fun newCommand(
+        benktype: BehandlingssammendragBenktype = BehandlingssammendragBenktype.KLAR,
         behandlingstype: List<BehandlingssammendragType>? = null,
         status: List<BehandlingssammendragStatus>? = null,
         saksbehandlere: List<String>? = null,
@@ -45,6 +49,7 @@ class BenkOversiktPostgresRepoTest {
     ): HentÅpneBehandlingerCommand {
         return HentÅpneBehandlingerCommand(
             åpneBehandlingerFiltrering = ÅpneBehandlingerFiltrering(
+                benktype = benktype,
                 behandlingstype = behandlingstype,
                 status = status,
                 identer = saksbehandlere,
@@ -399,6 +404,26 @@ class BenkOversiktPostgresRepoTest {
                 it.last().saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
                 it.last().beslutter shouldBe null
             }
+        }
+    }
+
+    @Test
+    fun `kan filtrere på behandlinger som er satt på vent`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val beslutter = ObjectMother.beslutter("Z111111")
+
+            testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
+            testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
+            val (_, behandling) = testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
+            val oppdatertBehandling = behandling.settPåVent(beslutter, "Venter på AAP søknad", Clock.system(zoneIdOslo))
+            testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
+
+            val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(benktype = BehandlingssammendragBenktype.VENTER),
+            )
+
+            totalAntall shouldBe 1
+            behandlingssamendrag.size shouldBe 1
         }
     }
 

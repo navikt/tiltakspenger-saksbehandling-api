@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.BEHANDLINGER_PATH
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragBenktype
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
@@ -28,6 +29,7 @@ fun Route.hentBenkRoute(
     val logger = KotlinLogging.logger {}
 
     data class HentBenkOversiktBody(
+        val benktype: String?,
         val behandlingstype: List<String>?,
         val status: List<String>? = null,
         val identer: List<String>? = null,
@@ -36,6 +38,7 @@ fun Route.hentBenkRoute(
         fun toCommand(saksbehandler: Saksbehandler, correlationId: CorrelationId): HentÅpneBehandlingerCommand =
             HentÅpneBehandlingerCommand(
                 åpneBehandlingerFiltrering = ÅpneBehandlingerFiltrering(
+                    benktype = benktype?.let { BehandlingssammendragBenktype.valueOf(it) } ?: BehandlingssammendragBenktype.KLAR,
                     behandlingstype = behandlingstype?.map { BehandlingssammendragType.valueOf(it) },
                     status = status?.map { BehandlingssammendragStatus.valueOf(it) },
                     identer = identer,

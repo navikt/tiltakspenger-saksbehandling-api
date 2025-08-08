@@ -32,14 +32,17 @@ class BenkOversiktPostgresRepo(
                 queryOf(
                     //language="sql"
                     """
-                        with åpneSøknaderUtenBehandling AS (select sa.id                 as sakId,
-                                           sø.fnr                as fnr,
-                                           sa.saksnummer         as saksnummer,
-                                           sø.opprettet          as startet,
-                                           'SØKNADSBEHANDLING'   AS behandlingstype,
-                                           'KLAR_TIL_BEHANDLING' AS status,
-                                           null                  AS saksbehandler,
-                                           null                  AS beslutter
+                        with 
+    åpneSøknaderUtenBehandling as (select 
+                                       sa.id                 as sakId,
+                                       sø.fnr                as fnr,
+                                       sa.saksnummer         as saksnummer,
+                                       sø.opprettet          as startet,
+                                       'SØKNADSBEHANDLING'   as behandlingstype,
+                                       'KLAR_TIL_BEHANDLING' as status,
+                                       null                  as saksbehandler,
+                                       null                  as beslutter,
+                                       null                  as erSattPåVent
                                     from søknad sø
                                              join sak sa on sø.sak_id = sa.id
                                              left join behandling b on sø.id = b.soknad_id
@@ -52,7 +55,8 @@ class BenkOversiktPostgresRepo(
                                         'SØKNADSBEHANDLING' as behandlingstype,
                                         b.status            as status,
                                         b.saksbehandler     as saksbehandler,
-                                        b.beslutter         as beslutter
+                                        b.beslutter         as beslutter,
+                                        b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent' as erSattPåVent
                                  from behandling b
                                           join søknad s on s.id = b.soknad_id
                                           join sak sa on b.sak_id = sa.id
@@ -67,7 +71,8 @@ class BenkOversiktPostgresRepo(
                                   'REVURDERING'   as behandlingstype,
                                   b.status        as status,
                                   b.saksbehandler as saksbehandler,
-                                  b.beslutter     as beslutter
+                                  b.beslutter     as beslutter,
+                                  b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent' as erSattPåVent
                            from behandling b
                                     join sak sa on b.sak_id = sa.id
                            where b.behandlingstype = 'REVURDERING'
@@ -81,7 +86,8 @@ class BenkOversiktPostgresRepo(
                                           'MELDEKORTBEHANDLING' as behandlingstype,
                                           m.status              as status,
                                           m.saksbehandler       as saksbehandler,
-                                          m.beslutter           as beslutter
+                                          m.beslutter           as beslutter,
+                                          null                  as erSattPåVent
                                    from meldekortbehandling m
                                             join sak s on m.sak_id = s.id
                                    where m.avbrutt is null
@@ -94,7 +100,8 @@ class BenkOversiktPostgresRepo(
                                            'INNSENDT_MELDEKORT'  as behandlingstype,
                                            'KLAR_TIL_BEHANDLING' as status,
                                            null                  as saksbehandler,
-                                           null                  as beslutter
+                                           null                  as beslutter,
+                                           null                  as erSattPåVent
                                     FROM meldekort_bruker mbr
                                              JOIN sak s ON mbr.sak_id = s.id
                                              left join meldekortbehandling mbh1
@@ -139,6 +146,10 @@ where behandlingstype = any (:behandlingstype)
       else (saksbehandler = any(:identer::text[]) or beslutter = any(:identer::text[]))
     end
   )
+and (
+    ((erSattPåVent is null or erSattPåVent != 'true') and :benktype::text != 'VENTER')
+        or (erSattPåVent = 'true' and :benktype::text = 'VENTER')
+)
                     order by startet ${command.sortering}
                     limit :limit;
                     """.trimIndent(),
@@ -160,6 +171,7 @@ where behandlingstype = any (:behandlingstype)
                             command.åpneBehandlingerFiltrering.status.map { it.toString() }.toTypedArray()
                         },
                         "identer" to command.åpneBehandlingerFiltrering.identer?.toTypedArray(),
+                        "benktype" to command.åpneBehandlingerFiltrering.benktype.toString().uppercase(),
                     ),
                 ).map { row ->
                     val sakId = SakId.fromString(row.string("sakId"))
