@@ -144,7 +144,7 @@ class DelautomatiskBehandlingService(
         }
 
         if (behandling.saksopplysninger.harAndreYtelser()) {
-            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SOKNAD_HAR_ANDRE_YTELSER)
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_ANDRE_YTELSER)
         }
 
         val behandlinger = behandlingRepo.hentAlleForFnr(behandling.fnr)
