@@ -104,7 +104,7 @@ data class Søknad(
         barnetillegg.any { it.fødselsdato.isAfter(dato) }
 
     fun harSoktMerEnn3ManederEtterOppstart(): Boolean =
-        kravdato.withDayOfMonth(1).isAfter(tiltak.deltakelseFom)
+        kravdato.withDayOfMonth(1).minusMonths(3).isAfter(tiltak.deltakelseFom)
 
     fun erUnder18ISoknadsperioden(fodselsdato: LocalDate): Boolean =
         fodselsdato.plusYears(18).isAfter(vurderingsperiode().fraOgMed)
