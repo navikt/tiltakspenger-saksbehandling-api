@@ -50,7 +50,7 @@ data class BrukersMeldekort(
         require(dager.last().dato == periode.tilOgMed) { "Siste dag i meldekortet må være lik siste dag i meldeperioden" }
         require(dager.size.toLong() == periode.antallDager) { "Antall dager i meldekortet må være lik antall dager i meldeperioden" }
         dager.zip(meldeperiode.girRett.values).forEach { (dag, harRett) ->
-            require(harRett || dag.status === InnmeldtStatus.IKKE_BESVART) {
+            require(harRett || (!harRett && dag.status == InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER) || dag.status === InnmeldtStatus.IKKE_BESVART) {
                 "Brukers meldekort kan ikke ha registrering på dager uten rett - $id har registrering $dag"
             }
         }
@@ -86,6 +86,8 @@ enum class InnmeldtStatus {
     FRAVÆR_GODKJENT_AV_NAV,
     FRAVÆR_ANNET,
     IKKE_BESVART,
+    IKKE_TILTAKSDAG,
+    IKKE_RETT_TIL_TILTAKSPENGER,
     ;
 
     fun tilMeldekortDagStatus(): MeldekortDagStatus = when (this) {
@@ -97,6 +99,8 @@ enum class InnmeldtStatus {
         FRAVÆR_GODKJENT_AV_NAV -> MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV
         FRAVÆR_ANNET -> MeldekortDagStatus.FRAVÆR_ANNET
         IKKE_BESVART -> MeldekortDagStatus.IKKE_TILTAKSDAG
+        IKKE_TILTAKSDAG -> MeldekortDagStatus.IKKE_TILTAKSDAG
+        IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
     }
 }
 

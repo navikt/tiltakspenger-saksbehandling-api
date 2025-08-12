@@ -14,6 +14,8 @@ private enum class InnmeldtStatusDTO {
     FRAVÆR_GODKJENT_AV_NAV,
     FRAVÆR_ANNET,
     IKKE_BESVART,
+    IKKE_TILTAKSDAG,
+    IKKE_RETT_TIL_TILTAKSPENGER,
 }
 
 enum class BrukersMeldekortBehandletAutomatiskStatusDTO {
@@ -85,4 +87,6 @@ private fun InnmeldtStatus.toInnmeldtStatusString(): String = when (this) {
     InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV -> InnmeldtStatusDTO.FRAVÆR_GODKJENT_AV_NAV
     InnmeldtStatus.FRAVÆR_ANNET -> InnmeldtStatusDTO.FRAVÆR_ANNET
     InnmeldtStatus.IKKE_BESVART -> InnmeldtStatusDTO.IKKE_BESVART
+    InnmeldtStatus.IKKE_TILTAKSDAG -> InnmeldtStatusDTO.IKKE_TILTAKSDAG
+    InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER -> InnmeldtStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
 }.toString()

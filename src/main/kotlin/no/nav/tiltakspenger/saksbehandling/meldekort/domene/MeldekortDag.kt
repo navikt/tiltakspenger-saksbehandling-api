@@ -44,7 +44,6 @@ enum class MeldekortDagStatus {
     /** Kun et "valg" for bruker; ikke saksbehandler. Bruker har ikke tatt stilling til denne dagen. Het tidligere IKKE_REGISTRERT og IKKE_UFYLT. */
     IKKE_BESVART,
 
-    /** Kun et valg for saksbehandler. Het tidligere IKKE_DELTATT */
     IKKE_TILTAKSDAG,
 
     /** Enten har bruker aldri fått innvilget denne dagen, eller så har den senere blitt stanset. */

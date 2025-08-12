@@ -14,6 +14,8 @@ enum class InnmeldtStatusDb {
     FRAVÆR_GODKJENT_AV_NAV,
     FRAVÆR_ANNET,
     IKKE_BESVART,
+    IKKE_TILTAKSDAG,
+    IKKE_RETT_TIL_TILTAKSPENGER,
 }
 
 data class BrukersMeldekortDagDbJson(
@@ -33,6 +35,8 @@ fun List<BrukersMeldekort.BrukersMeldekortDag>.toDbJson(): String {
                 InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV -> InnmeldtStatusDb.FRAVÆR_GODKJENT_AV_NAV
                 InnmeldtStatus.FRAVÆR_ANNET -> InnmeldtStatusDb.FRAVÆR_ANNET
                 InnmeldtStatus.IKKE_BESVART -> InnmeldtStatusDb.IKKE_BESVART
+                InnmeldtStatus.IKKE_TILTAKSDAG -> InnmeldtStatusDb.IKKE_TILTAKSDAG
+                InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER -> InnmeldtStatusDb.IKKE_RETT_TIL_TILTAKSPENGER
             },
         )
     }.let { serialize(it) }
@@ -50,6 +54,8 @@ fun String.toMeldekortDager(): List<BrukersMeldekort.BrukersMeldekortDag> {
                 InnmeldtStatusDb.FRAVÆR_GODKJENT_AV_NAV -> InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV
                 InnmeldtStatusDb.FRAVÆR_ANNET -> InnmeldtStatus.FRAVÆR_ANNET
                 InnmeldtStatusDb.IKKE_BESVART -> InnmeldtStatus.IKKE_BESVART
+                InnmeldtStatusDb.IKKE_TILTAKSDAG -> InnmeldtStatus.IKKE_TILTAKSDAG
+                InnmeldtStatusDb.IKKE_RETT_TIL_TILTAKSPENGER -> InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER
             },
         )
     }
