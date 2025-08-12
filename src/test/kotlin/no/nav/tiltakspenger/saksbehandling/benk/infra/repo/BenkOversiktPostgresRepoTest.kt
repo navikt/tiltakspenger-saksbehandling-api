@@ -13,8 +13,10 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragBenktype
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSortering
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSorteringKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
-import no.nav.tiltakspenger.saksbehandling.benk.domene.Sortering
+import no.nav.tiltakspenger.saksbehandling.benk.domene.SorteringRetning
 import no.nav.tiltakspenger.saksbehandling.benk.domene.ÅpneBehandlingerFiltrering
 import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.repo.TestDataHelper
@@ -45,7 +47,7 @@ class BenkOversiktPostgresRepoTest {
         behandlingstype: List<BehandlingssammendragType>? = null,
         status: List<BehandlingssammendragStatus>? = null,
         saksbehandlere: List<String>? = null,
-        sortering: Sortering = Sortering.ASC,
+        sortering: BenkSortering = BenkSortering(BenkSorteringKolonne.STARTET, SorteringRetning.ASC),
     ): HentÅpneBehandlingerCommand {
         return HentÅpneBehandlingerCommand(
             åpneBehandlingerFiltrering = ÅpneBehandlingerFiltrering(
@@ -127,6 +129,7 @@ class BenkOversiktPostgresRepoTest {
                     status = BehandlingssammendragStatus.UNDER_BEHANDLING,
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
+                    sistEndret = opprettetBehandling.opprettet,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakKlarTilBeslutning.id,
@@ -138,6 +141,7 @@ class BenkOversiktPostgresRepoTest {
                     status = BehandlingssammendragStatus.KLAR_TIL_BESLUTNING,
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
+                    sistEndret = klarTilBeslutning.opprettet,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakUnderBeslutning.id,
@@ -149,6 +153,7 @@ class BenkOversiktPostgresRepoTest {
                     status = BehandlingssammendragStatus.UNDER_BESLUTNING,
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = ObjectMother.beslutter().navIdent,
+                    sistEndret = underBeslutning.opprettet,
                 )
             }
         }
@@ -181,6 +186,7 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
                     kravtidspunkt = null,
+                    sistEndret = opprettetRevurdering.opprettet,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakRevurderingTilBeslutning.id,
@@ -192,6 +198,7 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
                     kravtidspunkt = null,
+                    sistEndret = revurderingTilBeslutning.opprettet,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakMedRevurderingUnderBeslutning.id,
@@ -203,6 +210,7 @@ class BenkOversiktPostgresRepoTest {
                     status = BehandlingssammendragStatus.UNDER_BESLUTNING,
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = ObjectMother.beslutter().navIdent,
+                    sistEndret = revurderingUnderBeslutning.opprettet,
                 )
             }
         }
@@ -433,8 +441,12 @@ class BenkOversiktPostgresRepoTest {
             val søknad = testDataHelper.persisterSakOgSøknad()
             val (sak2, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
 
-            val (actualAsc, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
-            val (actualDesc, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand(sortering = Sortering.DESC))
+            val (actualAsc, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(sortering = BenkSortering(BenkSorteringKolonne.STARTET, SorteringRetning.ASC)),
+            )
+            val (actualDesc, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(sortering = BenkSortering(BenkSorteringKolonne.STARTET, SorteringRetning.DESC)),
+            )
 
             actualAsc.size shouldBe 2
             actualAsc.let {
