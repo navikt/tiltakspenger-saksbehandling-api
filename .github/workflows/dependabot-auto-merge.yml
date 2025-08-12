@@ -17,7 +17,7 @@ jobs:
       WEBHOOK_URL: ${{ secrets.SLACK_VARSEL_WEBHOOK_URL }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Fetch dependabot metadata
         id: metadata
         uses: dependabot/fetch-metadata@v2
