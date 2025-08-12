@@ -10,6 +10,7 @@ data class BehandlingssammendragDTO(
     val status: BehandlingssammendragStatusDto?,
     val saksbehandler: String?,
     val beslutter: String?,
+    val sistEndret: String?,
 )
 
 enum class BehandlingssammendragTypeDTO {

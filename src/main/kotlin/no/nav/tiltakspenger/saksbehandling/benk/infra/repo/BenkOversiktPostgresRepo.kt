@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSorteringKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -42,7 +43,8 @@ class BenkOversiktPostgresRepo(
                                        'KLAR_TIL_BEHANDLING' as status,
                                        null                  as saksbehandler,
                                        null                  as beslutter,
-                                       null                  as erSattPåVent
+                                       null                  as erSattPåVent,
+                                       null::timestamp with time zone as sist_endret
                                     from søknad sø
                                              join sak sa on sø.sak_id = sa.id
                                              left join behandling b on sø.id = b.soknad_id
@@ -56,7 +58,8 @@ class BenkOversiktPostgresRepo(
                                         b.status            as status,
                                         b.saksbehandler     as saksbehandler,
                                         b.beslutter         as beslutter,
-                                        b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent' as erSattPåVent
+                                        b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent' as erSattPåVent,
+                                        b.sist_endret       as sist_endret
                                  from behandling b
                                           join søknad s on s.id = b.soknad_id
                                           join sak sa on b.sak_id = sa.id
@@ -72,7 +75,8 @@ class BenkOversiktPostgresRepo(
                                   b.status        as status,
                                   b.saksbehandler as saksbehandler,
                                   b.beslutter     as beslutter,
-                                  b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent' as erSattPåVent
+                                  b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent' as erSattPåVent,
+                                  b.sist_endret   as sist_endret
                            from behandling b
                                     join sak sa on b.sak_id = sa.id
                            where b.behandlingstype = 'REVURDERING'
@@ -87,7 +91,8 @@ class BenkOversiktPostgresRepo(
                                           m.status              as status,
                                           m.saksbehandler       as saksbehandler,
                                           m.beslutter           as beslutter,
-                                          null                  as erSattPåVent
+                                          null                  as erSattPåVent,
+                                          null::timestamp with time zone as sist_endret
                                    from meldekortbehandling m
                                             join sak s on m.sak_id = s.id
                                    where m.avbrutt is null
@@ -101,7 +106,8 @@ class BenkOversiktPostgresRepo(
                                            'KLAR_TIL_BEHANDLING' as status,
                                            null                  as saksbehandler,
                                            null                  as beslutter,
-                                           null                  as erSattPåVent
+                                           null                  as erSattPåVent,
+                                           null::timestamp with time zone as sist_endret
                                     FROM meldekort_bruker mbr
                                              JOIN sak s ON mbr.sak_id = s.id
                                              left join meldekortbehandling mbh1
@@ -150,7 +156,7 @@ and (
     ((erSattPåVent is null or erSattPåVent != 'true') and :benktype::text != 'VENTER')
         or (erSattPåVent = 'true' and :benktype::text = 'VENTER')
 )
-                    order by startet ${command.sortering}
+                    order by ${command.sortering.kolonne.toDbString()} ${command.sortering.retning}
                     limit :limit;
                     """.trimIndent(),
                     mapOf(
@@ -183,6 +189,7 @@ and (
                     val status = row.stringOrNull("status")?.toBehandlingssammendragStatus()
                     val saksbehandler = row.stringOrNull("saksbehandler")
                     val beslutter = row.stringOrNull("beslutter")
+                    val sistEndret = row.localDateTimeOrNull("sist_endret")
                     val count = row.int("total_count")
 
                     BehandlingssamendragMedCount(
@@ -196,6 +203,7 @@ and (
                             status = status,
                             saksbehandler = saksbehandler,
                             beslutter = beslutter,
+                            sistEndret = sistEndret,
                         ),
                         totalAntall = count,
                     )
@@ -224,6 +232,12 @@ private enum class BehandlingssammendragTypeDb {
         INNSENDT_MELDEKORT -> BehandlingssammendragType.INNSENDT_MELDEKORT
     }
 }
+
+private fun BenkSorteringKolonne.toDbString(): String =
+    when (this) {
+        BenkSorteringKolonne.STARTET -> "startet"
+        BenkSorteringKolonne.SIST_ENDRET -> "sist_endret"
+    }
 
 private fun String.toBehandlingssammendragStatus(): BehandlingssammendragStatus =
     BehandlingssammendragStatus.valueOf(this)

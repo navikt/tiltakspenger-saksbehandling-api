@@ -15,8 +15,8 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragBenk
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSortering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
-import no.nav.tiltakspenger.saksbehandling.benk.domene.Sortering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.ÅpneBehandlingerFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.service.BenkOversiktService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
@@ -35,6 +35,8 @@ fun Route.hentBenkRoute(
         val identer: List<String>? = null,
         val sortering: String,
     ) {
+        val benkSortering = BenkSortering.fromString(sortering)
+
         fun toCommand(saksbehandler: Saksbehandler, correlationId: CorrelationId): HentÅpneBehandlingerCommand =
             HentÅpneBehandlingerCommand(
                 åpneBehandlingerFiltrering = ÅpneBehandlingerFiltrering(
@@ -43,7 +45,7 @@ fun Route.hentBenkRoute(
                     status = status?.map { BehandlingssammendragStatus.valueOf(it) },
                     identer = identer,
                 ),
-                sortering = Sortering.valueOf(sortering),
+                sortering = benkSortering,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
             )
@@ -80,6 +82,7 @@ private fun Behandlingssammendrag.toDTO() = BehandlingssammendragDTO(
     status = status?.toBehandlingssammendragStatusDto(),
     saksbehandler = saksbehandler,
     beslutter = beslutter,
+    sistEndret = sistEndret?.toString(),
 )
 
 private fun BehandlingssammendragStatus.toBehandlingssammendragStatusDto(): BehandlingssammendragStatusDto =

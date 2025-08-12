@@ -20,6 +20,7 @@ data class Behandlingssammendrag(
     val status: BehandlingssammendragStatus?,
     val saksbehandler: String?,
     val beslutter: String?,
+    val sistEndret: LocalDateTime? = null,
 ) {
     init {
         if (behandlingstype == BehandlingssammendragType.SØKNADSBEHANDLING) {
