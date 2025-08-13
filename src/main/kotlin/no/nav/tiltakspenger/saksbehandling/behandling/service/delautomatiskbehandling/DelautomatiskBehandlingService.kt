@@ -166,6 +166,9 @@ class DelautomatiskBehandlingService(
         return manueltBehandlesGrunner
     }
 
+    // TODO False positive løst i kotlin version 2.2.10-RC
+    // https://youtrack.jetbrains.com/issue/KT-78352/False-positive-IDENTITYSENSITIVEOPERATIONSWITHVALUETYPE-when-comparing-with-equality-operator
+    @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
     private fun tiltakFraSoknadHarEndretPeriode(
         tiltakFraSoknad: Søknadstiltak,
         tiltakFraSaksopplysning: Tiltaksdeltagelse,
