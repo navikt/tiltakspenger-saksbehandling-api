@@ -90,11 +90,7 @@ internal class V109__ikke_rett_status : BaseJavaMigration() {
                 }
 
                 sqlQuery(
-                    """
-                            update meldekort_bruker
-                            set dager = :dager
-                            where id = :id
-                        """.trimIndent(),
+                    """update meldekort_bruker set dager = :dager where id = :id""",
                     "dager" to dager.toDbJson(),
                     "id" to meldekort.id.toString(),
                 ).asUpdate
@@ -121,11 +117,7 @@ internal class V109__ikke_rett_status : BaseJavaMigration() {
                 }
 
                 sqlQuery(
-                    """
-                            update saksbehandling.public.meldekortbehandling
-                            set meldekortdager = :dager
-                            where id = :id
-                        """.trimIndent(),
+                    """update saksbehandling.public.meldekortbehandling set meldekortdager = :dager where id = :id""",
                     "dager" to MeldekortDager(verdi = dager, meldeperiode = meldeperiode).tilMeldekortDagerDbJson(),
                     "id" to behandling.id.toString(),
                 ).asUpdate
