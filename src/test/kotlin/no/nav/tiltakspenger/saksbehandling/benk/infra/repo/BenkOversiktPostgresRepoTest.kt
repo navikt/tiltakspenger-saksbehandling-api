@@ -129,7 +129,7 @@ class BenkOversiktPostgresRepoTest {
                     status = BehandlingssammendragStatus.UNDER_BEHANDLING,
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
-                    sistEndret = opprettetBehandling.opprettet,
+                    sistEndret = opprettetBehandling.sistEndret,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakKlarTilBeslutning.id,
@@ -141,7 +141,7 @@ class BenkOversiktPostgresRepoTest {
                     status = BehandlingssammendragStatus.KLAR_TIL_BESLUTNING,
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
-                    sistEndret = klarTilBeslutning.opprettet,
+                    sistEndret = klarTilBeslutning.sistEndret,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakUnderBeslutning.id,
@@ -153,7 +153,7 @@ class BenkOversiktPostgresRepoTest {
                     status = BehandlingssammendragStatus.UNDER_BESLUTNING,
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = ObjectMother.beslutter().navIdent,
-                    sistEndret = underBeslutning.opprettet,
+                    sistEndret = underBeslutning.sistEndret,
                 )
             }
         }
@@ -186,7 +186,7 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
                     kravtidspunkt = null,
-                    sistEndret = opprettetRevurdering.opprettet,
+                    sistEndret = opprettetRevurdering.sistEndret,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakRevurderingTilBeslutning.id,
@@ -198,7 +198,7 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
                     kravtidspunkt = null,
-                    sistEndret = revurderingTilBeslutning.opprettet,
+                    sistEndret = revurderingTilBeslutning.sistEndret,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakMedRevurderingUnderBeslutning.id,
@@ -210,7 +210,7 @@ class BenkOversiktPostgresRepoTest {
                     status = BehandlingssammendragStatus.UNDER_BESLUTNING,
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = ObjectMother.beslutter().navIdent,
-                    sistEndret = revurderingUnderBeslutning.opprettet,
+                    sistEndret = revurderingUnderBeslutning.sistEndret,
                 )
             }
         }

@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -15,15 +16,19 @@ class BehandlingerTest {
     fun `henter alle åpne behandlinger`() {
         val sakId = SakId.random()
         val fnr = Fnr.random()
-        val åpenBehandling = ObjectMother.nyOpprettetSøknadsbehandling(sakId = sakId, fnr = fnr)
+        val clock = TikkendeKlokke()
+
+        val åpenBehandling = ObjectMother.nyOpprettetSøknadsbehandling(sakId = sakId, fnr = fnr, clock = clock)
         val vedtattBehandling = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
             fnr = fnr,
             virkningsperiode = Periode(1.januar(2025), 10.januar(2025)),
+            clock = clock,
         )
         val avbruttBehandling = ObjectMother.nyAvbruttSøknadsbehandling(
             fnr = fnr,
             sakId = sakId,
+            clock = clock,
         )
         val åpenOgAvbrutt = Behandlinger(listOf(åpenBehandling, avbruttBehandling))
         val vedtattOgAvbrutt = Behandlinger(listOf(vedtattBehandling, avbruttBehandling))

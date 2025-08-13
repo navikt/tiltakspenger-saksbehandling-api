@@ -172,6 +172,7 @@ interface BehandlingMother : MotherOfAllMothers {
         ),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        clock: Clock = this.clock,
     ): Søknadsbehandling {
         return this.nyOpprettetSøknadsbehandling(
             id = id,
@@ -181,6 +182,7 @@ interface BehandlingMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             søknad = søknad,
             hentSaksopplysninger = { saksopplysninger },
+            clock = clock,
         ).oppdater(
             when (resultat) {
                 SøknadsbehandlingType.INNVILGELSE -> OppdaterSøknadsbehandlingKommando.Innvilgelse(
@@ -207,7 +209,7 @@ interface BehandlingMother : MotherOfAllMothers {
                     avslagsgrunner = avslagsgrunner!!,
                 )
             },
-            clock = fixedClock,
+            clock = clock,
         ).getOrFail()
     }
 
@@ -237,6 +239,7 @@ interface BehandlingMother : MotherOfAllMothers {
         ),
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+        clock: Clock = this.clock,
     ): Søknadsbehandling {
         return this.oppdatertSøknadsbehandling(
             id = id,
@@ -256,9 +259,10 @@ interface BehandlingMother : MotherOfAllMothers {
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             avslagsgrunner = avslagsgrunner,
             resultat = resultat,
+            clock = clock,
         ).tilBeslutning(
             saksbehandler = saksbehandler,
-            clock = fixedClock,
+            clock = clock,
         ) as Søknadsbehandling
     }
 
@@ -307,6 +311,7 @@ interface BehandlingMother : MotherOfAllMothers {
             oppgaveId = oppgaveId,
             resultat = resultat,
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+            clock = clock,
         ).taBehandling(beslutter) as Søknadsbehandling
     }
 
@@ -444,6 +449,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fnr = fnr,
             saksbehandler = saksbehandler,
             hentSaksopplysninger = { saksopplysninger() },
+            clock = clock,
         ).avbryt(
             avbruttAv = avbruttAv,
             begrunnelse = begrunnelse,
