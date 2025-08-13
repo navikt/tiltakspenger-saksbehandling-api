@@ -76,6 +76,12 @@ sealed interface MeldekortBehandling {
             GODKJENT, AUTOMATISK_BEHANDLET, IKKE_RETT_TIL_TILTAKSPENGER, AVBRUTT -> true
         }
 
+    val erGodkjentEllerIkkeRett
+        get() = when (status) {
+            KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, UNDER_BESLUTNING, AVBRUTT -> false
+            GODKJENT, AUTOMATISK_BEHANDLET, IKKE_RETT_TIL_TILTAKSPENGER -> true
+        }
+
     val beløpTotal: Int?
     val ordinærBeløp: Int?
     val barnetilleggBeløp: Int?

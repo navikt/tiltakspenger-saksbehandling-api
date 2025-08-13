@@ -19,12 +19,11 @@ data class MeldeperiodeKjedeDTO(
     val id: String,
     val periode: PeriodeDTO,
     val status: MeldeperiodeKjedeStatusDTO,
-    val behandletAutomatiskStatus: BrukersMeldekortBehandletAutomatiskStatusDTO?,
     val periodeMedÅpenBehandling: PeriodeDTO?,
     val tiltaksnavn: List<String>,
     val meldeperioder: List<MeldeperiodeDTO>,
     val meldekortBehandlinger: List<MeldekortBehandlingDTO>,
-    val brukersMeldekort: BrukersMeldekortDTO?,
+    val brukersMeldekort: List<BrukersMeldekortDTO>,
     val korrigeringFraTidligerePeriode: MeldeperiodeKorrigeringDTO?,
     val avbrutteMeldekortBehandlinger: List<MeldekortBehandlingDTO>,
     val sisteBeregning: MeldeperiodeBeregningDTO?,
@@ -52,13 +51,13 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
     }
 
     val brukersMeldekort = this.brukersMeldekort
-        .find { it.kjedeId == kjedeId }
+        .filter { it.kjedeId == kjedeId }
+        .sortedBy { it.mottatt }
 
     return MeldeperiodeKjedeDTO(
         id = meldeperiodeKjede.kjedeId.toString(),
         periode = meldeperiodeKjede.periode.toDTO(),
-        status = toMeldeperiodeKjedeStatusDTO(kjedeId, clock, brukersMeldekort),
-        behandletAutomatiskStatus = brukersMeldekort?.tilBehandletAutomatiskStatusDTO(),
+        status = toMeldeperiodeKjedeStatusDTO(kjedeId, clock, brukersMeldekort.isNotEmpty()),
         periodeMedÅpenBehandling = this.meldekortBehandlinger.åpenMeldekortBehandling?.periode?.toDTO(),
         tiltaksnavn = this.vedtaksliste
             .valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode)
@@ -69,7 +68,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
             .map {
                 it.tilMeldekortBehandlingDTO(this.utbetalinger.hentUtbetalingForMeldekort(it.id))
             },
-        brukersMeldekort = brukersMeldekort?.toBrukersMeldekortDTO(),
+        brukersMeldekort = brukersMeldekort.map { it.toBrukersMeldekortDTO() },
         korrigeringFraTidligerePeriode = korrigering,
         avbrutteMeldekortBehandlinger = this.meldekortBehandlinger
             .hentAvbrutteMeldekortBehandlingerForKjede(meldeperiodeKjede.kjedeId)

@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
@@ -19,7 +18,8 @@ enum class MeldeperiodeKjedeStatusDTO {
     AVBRUTT,
 }
 
-fun Sak.toMeldeperiodeKjedeStatusDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock, brukersmeldekort: BrukersMeldekort?): MeldeperiodeKjedeStatusDTO {
+fun Sak.toMeldeperiodeKjedeStatusDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock, finnesMeldekortFraBruker: Boolean): MeldeperiodeKjedeStatusDTO {
+    // denne vil ikke inkludere avbrutte
     this.hentSisteMeldekortBehandlingForKjede(kjedeId)?.also {
         return when (it.status) {
             MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
@@ -33,6 +33,8 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock,
         }
     }
 
+    // Alt under her betyr at det ikke finnes en meldekortbehandling
+
     val meldeperiode = this.hentSisteMeldeperiodeForKjede(kjedeId)
 
     val forrigeKjede = this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
@@ -45,13 +47,13 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock,
 
     /** Kan starte behandling dersom perioden er klar til utfylling og forrige behandling er godkjent,
      *  eller dette er første meldeperiode
-     *  */
+     */
     val kanBehandles =
-        meldeperiode.erKlarTilUtfylling(clock) && (forrigeKjede == null || forrigeBehandling?.erAvsluttet == true)
+        meldeperiode.erKlarTilUtfylling(clock) && (forrigeKjede == null || forrigeBehandling?.erGodkjentEllerIkkeRett == true)
 
     return when {
         meldeperiode.girIngenDagerRett() -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
-        brukersmeldekort != null -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
+        finnesMeldekortFraBruker -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
         kanBehandles -> MeldeperiodeKjedeStatusDTO.AVVENTER_MELDEKORT
         else -> MeldeperiodeKjedeStatusDTO.IKKE_KLAR_TIL_BEHANDLING
     }
