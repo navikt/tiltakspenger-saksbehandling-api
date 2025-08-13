@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -145,7 +146,7 @@ interface BehandlingMother : MotherOfAllMothers {
         }
     }
 
-    fun nySøknadsbehandlingKlarTilBeslutning(
+    fun oppdatertSøknadsbehandling(
         id: BehandlingId = BehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
@@ -180,7 +181,7 @@ interface BehandlingMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             søknad = søknad,
             hentSaksopplysninger = { saksopplysninger },
-        ).tilBeslutning(
+        ).oppdater(
             when (resultat) {
                 SøknadsbehandlingType.INNVILGELSE -> OppdaterSøknadsbehandlingKommando.Innvilgelse(
                     sakId = sakId,
@@ -208,6 +209,57 @@ interface BehandlingMother : MotherOfAllMothers {
             },
             clock = fixedClock,
         ).getOrFail()
+    }
+
+    fun nySøknadsbehandlingKlarTilBeslutning(
+        id: BehandlingId = BehandlingId.random(),
+        sakId: SakId = SakId.random(),
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        fnr: Fnr = Fnr.random(),
+        saksbehandler: Saksbehandler = saksbehandler(),
+        søknad: Søknad = nySøknad(),
+        sendtTilBeslutning: LocalDateTime? = null,
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nySøknadsbehandlingKlarTilBeslutning()"),
+        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nySøknadsbehandlingKlarTilBeslutning()"),
+        barnetillegg: Barnetillegg? = null,
+        virkningsperiode: Periode = virkningsperiode(),
+        saksopplysninger: Saksopplysninger = saksopplysninger(
+            fom = virkningsperiode.fraOgMed,
+            tom = virkningsperiode.tilOgMed,
+        ),
+        valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelse.map {
+            Pair(virkningsperiode, it.eksternDeltagelseId)
+        },
+        oppgaveId: OppgaveId = ObjectMother.oppgaveId(),
+        antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
+            AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+            virkningsperiode,
+        ),
+        avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
+        resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
+    ): Søknadsbehandling {
+        return this.oppdatertSøknadsbehandling(
+            id = id,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            saksbehandler = saksbehandler,
+            søknad = søknad,
+            sendtTilBeslutning = sendtTilBeslutning,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+            barnetillegg = barnetillegg,
+            virkningsperiode = virkningsperiode,
+            saksopplysninger = saksopplysninger,
+            valgteTiltaksdeltakelser = valgteTiltaksdeltakelser,
+            oppgaveId = oppgaveId,
+            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+            avslagsgrunner = avslagsgrunner,
+            resultat = resultat,
+        ).tilBeslutning(
+            saksbehandler = saksbehandler,
+            clock = fixedClock,
+        ) as Søknadsbehandling
     }
 
     fun nySøknadsbehandlingUnderBeslutning(
@@ -535,7 +587,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
         ),
     )
 
-    this.behandlingContext.sendBehandlingTilBeslutningService.sendTilBeslutning(
+    this.behandlingContext.oppdaterBehandlingService.oppdater(
         when (resultat) {
             SøknadsbehandlingType.INNVILGELSE -> OppdaterSøknadsbehandlingKommando.Innvilgelse(
                 sakId = sakMedSøknadsbehandling.id,
@@ -549,6 +601,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
                 tiltaksdeltakelser = tiltaksdeltakelser,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             )
+
             SøknadsbehandlingType.AVSLAG -> OppdaterSøknadsbehandlingKommando.Avslag(
                 sakId = sakMedSøknadsbehandling.id,
                 behandlingId = behandling.id,
@@ -561,6 +614,16 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
             )
         },
     ).getOrFail()
+
+    this.behandlingContext.sendBehandlingTilBeslutningService.sendTilBeslutning(
+        kommando = SendBehandlingTilBeslutningKommando(
+            sakId = sakMedSøknadsbehandling.id,
+            behandlingId = behandling.id,
+            saksbehandler = saksbehandler,
+            correlationId = correlationId,
+        ),
+    )
+
     return this.sakContext.sakService.sjekkTilgangOgHentForSakId(
         sakMedSøknadsbehandling.id,
         saksbehandler,
@@ -772,4 +835,20 @@ suspend fun TestApplicationContext.andreMeldekortIverksatt(
     )
 
     return this.sakContext.sakService.sjekkTilgangOgHentForSakId(sak.id, saksbehandler, correlationId = correlationId)
+}
+
+fun Behandling.tilBeslutning(
+    saksbehandler: Saksbehandler = saksbehandler(),
+    correlationId: CorrelationId = CorrelationId.generate(),
+    clock: Clock = fixedClock,
+): Behandling {
+    return this.tilBeslutning(
+        kommando = SendBehandlingTilBeslutningKommando(
+            sakId = this.sakId,
+            behandlingId = this.id,
+            saksbehandler = saksbehandler,
+            correlationId = correlationId,
+        ),
+        clock = clock,
+    ).getOrFail()
 }

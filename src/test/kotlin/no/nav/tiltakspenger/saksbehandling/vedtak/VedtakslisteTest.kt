@@ -20,9 +20,9 @@ internal class VedtakslisteTest {
     fun `default antall dager for hele innvilgelsesperioden`() {
         withTestApplicationContext { tac ->
             val innvilgelsesperiode = 1 til 31.januar(2025)
-            val (sak, _, søknadsbehandling, _) = this.iverksettSøknadsbehandling(
+            val (sak, _, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                virkingsperiode = innvilgelsesperiode,
+                virkningsperiode = innvilgelsesperiode,
                 resultat = SøknadsbehandlingType.INNVILGELSE,
             )
             sak.vedtaksliste.antallDagerPerMeldeperiode shouldBe Periodisering(
@@ -46,9 +46,9 @@ internal class VedtakslisteTest {
                 PeriodeMedVerdi(AntallDagerForMeldeperiode(9), 1 til 14.september(2025)),
                 PeriodeMedVerdi(AntallDagerForMeldeperiode(8), 15 til 28.september(2025)),
             )
-            val (sak, _, søknadsbehandling, _) = this.iverksettSøknadsbehandling(
+            val (sak, _, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                virkingsperiode = innvilgelsesperiode,
+                virkningsperiode = innvilgelsesperiode,
                 resultat = SøknadsbehandlingType.INNVILGELSE,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             )
@@ -69,7 +69,7 @@ internal class VedtakslisteTest {
             )
             val (sak, _, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                virkingsperiode = innvilgelsesperiode,
+                virkningsperiode = innvilgelsesperiode,
                 resultat = SøknadsbehandlingType.INNVILGELSE,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             )
@@ -90,7 +90,7 @@ internal class VedtakslisteTest {
             )
             val (sak, _, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
-                virkingsperiode = innvilgelsesperiode,
+                virkningsperiode = innvilgelsesperiode,
                 resultat = SøknadsbehandlingType.INNVILGELSE,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             )

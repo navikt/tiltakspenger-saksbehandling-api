@@ -33,7 +33,7 @@ interface BehandleSøknadPåNyttBuilder {
         sak: Sak,
         søknad: Søknad,
         fnr: Fnr = Fnr.random(),
-        virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, Søknadsbehandling, String> {
         val (behandling, response) = startBehandlingAvSøknadPåyttForSøknadId(tac, sak.id, søknad.id)

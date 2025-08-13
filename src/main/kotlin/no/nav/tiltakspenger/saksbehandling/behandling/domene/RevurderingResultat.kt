@@ -10,22 +10,10 @@ sealed interface RevurderingResultat : BehandlingResultat {
     data class Stans(
         val valgtHjemmel: List<ValgtHjemmelForStans>,
     ) : RevurderingResultat {
-        fun valider(status: Behandlingsstatus) {
-            when (status) {
-                Behandlingsstatus.KLAR_TIL_BESLUTNING,
-                Behandlingsstatus.UNDER_BESLUTNING,
-                Behandlingsstatus.VEDTATT,
-                -> {
-                    require(valgtHjemmel.isNotEmpty()) {
-                        "Valgt hjemmel må ha minst ett element for status $status."
-                    }
-                }
 
-                Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
-                Behandlingsstatus.KLAR_TIL_BEHANDLING,
-                Behandlingsstatus.UNDER_BEHANDLING,
-                Behandlingsstatus.AVBRUTT,
-                -> Unit
+        fun valider() {
+            require(valgtHjemmel.isNotEmpty()) {
+                "Valgt hjemmel må ha minst ett element"
             }
         }
     }

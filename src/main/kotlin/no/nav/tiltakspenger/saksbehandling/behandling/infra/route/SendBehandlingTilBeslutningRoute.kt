@@ -11,14 +11,13 @@ import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendBehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 
@@ -35,32 +34,30 @@ fun Route.sendBehandlingTilBeslutningRoute(
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<OppdaterBehandlingDTO> { body ->
-                        val correlationId = call.correlationId()
+                    val correlationId = call.correlationId()
 
-                        sendBehandlingTilBeslutningService.sendTilBeslutning(
-                            kommando = body.tilDomene(
-                                sakId = sakId,
-                                behandlingId = behandlingId,
-                                saksbehandler = saksbehandler,
-                                correlationId = correlationId,
-                            ),
-                        ).onLeft {
-                            val error = it.toErrorJson()
-                            call.respond(error.first, error.second)
-                        }.onRight {
-                            auditService.logMedBehandlingId(
-                                behandlingId = behandlingId,
-                                navIdent = saksbehandler.navIdent,
-                                action = AuditLogEvent.Action.UPDATE,
-                                contextMessage = when (it) {
-                                    is Revurdering -> "Sender revurdering til beslutter"
-                                    is Søknadsbehandling -> "Sender søknadsbehandling til beslutter"
-                                },
-                                correlationId = correlationId,
-                            )
-                            call.respond(HttpStatusCode.OK, it.tilBehandlingDTO())
-                        }
+                    sendBehandlingTilBeslutningService.sendTilBeslutning(
+                        kommando = SendBehandlingTilBeslutningKommando(
+                            sakId = sakId,
+                            behandlingId = behandlingId,
+                            saksbehandler = saksbehandler,
+                            correlationId = correlationId,
+                        ),
+                    ).onLeft {
+                        val error = it.toErrorJson()
+                        call.respond(error.first, error.second)
+                    }.onRight {
+                        auditService.logMedBehandlingId(
+                            behandlingId = behandlingId,
+                            navIdent = saksbehandler.navIdent,
+                            action = AuditLogEvent.Action.UPDATE,
+                            contextMessage = when (it) {
+                                is Revurdering -> "Sender revurdering til beslutter"
+                                is Søknadsbehandling -> "Sender søknadsbehandling til beslutter"
+                            },
+                            correlationId = correlationId,
+                        )
+                        call.respond(HttpStatusCode.OK, it.tilBehandlingDTO())
                     }
                 }
             }
@@ -69,13 +66,6 @@ fun Route.sendBehandlingTilBeslutningRoute(
 }
 
 private fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
-    KanIkkeSendeTilBeslutter.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode,
-    KanIkkeSendeTilBeslutter.StøtterIkkeTilbakekreving,
-    -> HttpStatusCode.BadRequest to ErrorJson(
-        "Innvilgelsesperioden overlapper med en eller flere utbetalingsperioder",
-        "innvilgelsesperioden_overlapper_med_utbetalingsperiode",
-    )
-
     is KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler -> HttpStatusCode.BadRequest to Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
         this.eiesAvSaksbehandler,
     )

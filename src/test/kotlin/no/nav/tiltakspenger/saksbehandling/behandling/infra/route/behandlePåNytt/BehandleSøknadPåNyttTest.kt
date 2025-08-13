@@ -40,7 +40,7 @@ internal class BehandleSøknadPåNyttTest {
                     sak = sak,
                     søknad = søknad,
                     fnr = behandling.fnr,
-                    virkingsperiode = behandling.virkningsperiode,
+                    virkningsperiode = behandling.virkningsperiode,
                 )
 
                 nyBehandling.shouldNotBeNull()

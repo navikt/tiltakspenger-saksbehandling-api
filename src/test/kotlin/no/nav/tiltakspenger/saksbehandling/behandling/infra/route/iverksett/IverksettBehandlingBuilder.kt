@@ -28,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
@@ -43,18 +44,18 @@ interface IverksettBehandlingBuilder {
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandling(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
-        virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            virkingsperiode,
+            virkningsperiode,
         ),
     ): Tuple4<Sak, Søknad, Søknadsbehandling, String> {
         val (sak, søknad, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(
             tac = tac,
             fnr = fnr,
-            virkingsperiode = virkingsperiode,
+            virkningsperiode = virkningsperiode,
             resultat = resultat,
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         )
@@ -77,18 +78,18 @@ interface IverksettBehandlingBuilder {
     suspend fun ApplicationTestBuilder.iverksettAutomatiskBehandletSøknadsbehandling(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
-        virkingsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            virkingsperiode,
+            virkningsperiode,
         ),
     ): Tuple4<Sak, Søknad, Søknadsbehandling, String> {
-        val (sak, søknad, behandling, _) = opprettAutomatiskBehandlingKlarTilBeslutning(
+        val (sak, søknad, behandling) = opprettAutomatiskBehandlingKlarTilBeslutning(
             tac = tac,
             fnr = fnr,
-            virkingsperiode = virkingsperiode,
+            virkningsperiode = virkningsperiode,
         )
         taBehanding(tac, sak.id, behandling.id, beslutter)
         val (oppdatertSak, oppdatertBehandling, jsonResponse) = iverksettForBehandlingId(
@@ -140,7 +141,7 @@ interface IverksettBehandlingBuilder {
         behandlingId: BehandlingId,
         beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): HttpResponse {
-        defaultRequest(
+        return defaultRequest(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
@@ -149,8 +150,6 @@ interface IverksettBehandlingBuilder {
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(
                 saksbehandler = beslutter,
             ),
-        ).apply {
-            return this
-        }
+        )
     }
 }

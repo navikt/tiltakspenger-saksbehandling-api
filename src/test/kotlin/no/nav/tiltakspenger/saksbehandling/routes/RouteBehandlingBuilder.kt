@@ -1,10 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.routes
 
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.begrunnelse.OppdaterBegrunnelseBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.behandlePåNytt.BehandleSøknadPåNyttBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.ForhåndsvisVedtaksbrevTestbuilder
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.fritekst.OppdaterFritekstBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettBehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater.OppdaterBehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSaksopplysninger.OppdaterSaksopplysningerBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.sendtilbake.SendTilbakeBehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start.StartRevurderingBuilder
@@ -12,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.Ove
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.TaBehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.SendRevurderingTilBeslutningBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.SendSøknadsbehandlingTilBeslutningBuilder
-import no.nav.tiltakspenger.saksbehandling.behandling.util.BehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.util.SøknadsbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.TaMeldekortBehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.OpprettSakRouteBuilder
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.MottaSøknadRouteBuilder
@@ -20,10 +19,8 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.MottaSøknadRoute
 object RouteBehandlingBuilder :
     OpprettSakRouteBuilder,
     MottaSøknadRouteBuilder,
-    BehandlingBuilder,
+    SøknadsbehandlingBuilder,
     TaBehandlingBuilder,
-    OppdaterFritekstBuilder,
-    OppdaterBegrunnelseBuilder,
     SendSøknadsbehandlingTilBeslutningBuilder,
     SendRevurderingTilBeslutningBuilder,
     SendTilbakeBehandlingBuilder,
@@ -33,4 +30,5 @@ object RouteBehandlingBuilder :
     OvertaBehandlingBuilder,
     TaMeldekortBehandlingBuilder,
     BehandleSøknadPåNyttBuilder,
-    ForhåndsvisVedtaksbrevTestbuilder
+    ForhåndsvisVedtaksbrevTestbuilder,
+    OppdaterBehandlingBuilder

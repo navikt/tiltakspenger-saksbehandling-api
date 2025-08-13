@@ -1,10 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo
 
-import arrow.core.Nel
 import arrow.core.NonEmptySet
-import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
-import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
@@ -24,20 +21,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårs
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
+import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
@@ -233,7 +223,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
 
     val oppdatertSøknadsbehandling =
         søknadsbehandling
-            .tilBeslutning(
+            .oppdater(
                 when (resultat) {
                     SøknadsbehandlingType.INNVILGELSE -> OppdaterSøknadsbehandlingKommando.Innvilgelse(
                         sakId = sak.id,
@@ -262,9 +252,14 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
                 clock = clock,
             ).getOrFail()
 
-    behandlingRepo.lagre(oppdatertSøknadsbehandling)
+    val søknadsbehandlingKlarTilBeslutning = oppdatertSøknadsbehandling.tilBeslutning(
+        saksbehandler = saksbehandler,
+        clock = clock,
+    )
+
+    behandlingRepo.lagre(søknadsbehandlingKlarTilBeslutning)
     val oppdatertSak = sakRepo.hentForSakId(sakId)!!
-    return Pair(oppdatertSak, oppdatertSøknadsbehandling)
+    return Pair(oppdatertSak, søknadsbehandlingKlarTilBeslutning)
 }
 
 internal fun TestDataHelper.persisterUnderBeslutningSøknadsbehandling(
@@ -543,137 +538,6 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
     val (sakMedVedtak, vedtak) = sak.opprettVedtak(oppdatertSøknadsbehandling, clock)
     vedtakRepo.lagre(vedtak)
     return Triple(sakMedVedtak, vedtak, oppdatertSøknadsbehandling)
-}
-
-internal fun TestDataHelper.persisterOpprettetRevurdering(
-    sakId: SakId = SakId.random(),
-    fnr: Fnr = Fnr.random(),
-    deltakelseFom: LocalDate = ObjectMother.virkningsperiode().fraOgMed,
-    deltakelseTom: LocalDate = ObjectMother.virkningsperiode().tilOgMed,
-    journalpostId: String = Random.nextInt().toString(),
-    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    beslutter: Saksbehandler = ObjectMother.beslutter(),
-    tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
-    sak: Sak = ObjectMother.nySak(
-        sakId = sakId,
-        fnr = fnr,
-        saksnummer = this.saksnummerGenerator.neste(),
-    ),
-    id: SøknadId = Søknad.randomId(),
-    søknad: Søknad =
-        ObjectMother.nySøknad(
-            periode = tiltaksOgVurderingsperiode,
-            journalpostId = journalpostId,
-            personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-            id = id,
-            søknadstiltak = ObjectMother.søknadstiltak(deltakelseFom = deltakelseFom, deltakelseTom = deltakelseTom),
-            barnetillegg = listOf(),
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-        ),
-    hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
-    clock: Clock = this.clock,
-    revurderingType: RevurderingType = RevurderingType.STANS,
-): Pair<Sak, Behandling> {
-    val (sak, _) = runBlocking {
-        persisterIverksattSøknadsbehandling(
-            sakId = sak.id,
-            fnr = sak.fnr,
-            deltakelseFom = deltakelseFom,
-            deltakelseTom = deltakelseTom,
-            journalpostId = journalpostId,
-            saksbehandler = saksbehandler,
-            beslutter = beslutter,
-            tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
-            søknadId = id,
-            søknad = søknad,
-            sak = sak,
-            clock = clock,
-        )
-    }
-    return runBlocking {
-        sak.startRevurdering(
-            kommando = StartRevurderingKommando(
-                sakId = sakId,
-                correlationId = CorrelationId.generate(),
-                saksbehandler = saksbehandler,
-                revurderingType = revurderingType,
-            ),
-            hentSaksopplysninger = hentSaksopplysninger,
-            clock = clock,
-        )
-    }.also {
-        behandlingRepo.lagre(it.second)
-    }
-}
-
-internal fun TestDataHelper.persisterRevurderingTilBeslutning(
-    sakId: SakId = SakId.random(),
-    fnr: Fnr = Fnr.random(),
-    deltakelseFom: LocalDate = ObjectMother.virkningsperiode().fraOgMed,
-    deltakelseTom: LocalDate = ObjectMother.virkningsperiode().tilOgMed,
-    journalpostId: String = Random.nextInt().toString(),
-    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    beslutter: Saksbehandler = ObjectMother.beslutter(),
-    tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
-    valgteHjemler: Nel<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
-    sak: Sak = ObjectMother.nySak(
-        sakId = sakId,
-        fnr = fnr,
-        saksnummer = this.saksnummerGenerator.neste(),
-    ),
-    søknadId: SøknadId = Søknad.randomId(),
-    søknad: Søknad =
-        ObjectMother.nySøknad(
-            periode = tiltaksOgVurderingsperiode,
-            journalpostId = journalpostId,
-            personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-            id = søknadId,
-            søknadstiltak = ObjectMother.søknadstiltak(deltakelseFom = deltakelseFom, deltakelseTom = deltakelseTom),
-            barnetillegg = listOf(),
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-        ),
-    stansDato: LocalDate = ObjectMother.revurderingVirkningsperiode().fraOgMed,
-    begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("fordi"),
-    navkontor: Navkontor = ObjectMother.navkontor(),
-    clock: Clock = this.clock,
-): Pair<Sak, Behandling> {
-    val (sak, behandling) = runBlocking {
-        persisterOpprettetRevurdering(
-            sakId = sak.id,
-            fnr = sak.fnr,
-            deltakelseFom = deltakelseFom,
-            deltakelseTom = deltakelseTom,
-            journalpostId = journalpostId,
-            saksbehandler = saksbehandler,
-            beslutter = beslutter,
-            tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
-            id = søknadId,
-            søknad = søknad,
-            sak = sak,
-            clock = clock,
-        )
-    }
-    return runBlocking {
-        sak.sendRevurderingTilBeslutning(
-            kommando = OppdaterRevurderingKommando.Stans(
-                sakId = sakId,
-                behandlingId = behandling.id,
-                saksbehandler = saksbehandler,
-                correlationId = CorrelationId.generate(),
-                begrunnelseVilkårsvurdering = begrunnelse,
-                stansFraOgMed = stansDato,
-                valgteHjemler = valgteHjemler,
-                fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("fritekstTilVedtaksbrev"),
-            ),
-            hentNavkontor = { navkontor },
-            clock = clock,
-        )
-    }.getOrNull()!!.let {
-        behandlingRepo.lagre(it)
-        sakRepo.hentForSakId(sakId)!! to it
-    }
 }
 
 internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
