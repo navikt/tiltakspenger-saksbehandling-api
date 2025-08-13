@@ -1,23 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
-import arrow.core.Either
-import arrow.core.left
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse.Utbetaling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
-import no.nav.tiltakspenger.saksbehandling.beregning.RevurderingIkkeBeregnet
-import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDate
 
 private typealias HentSaksopplysninger = suspend (Periode) -> Saksopplysninger
-private typealias HentNavkontor = suspend (Fnr) -> Navkontor
 
 suspend fun Sak.startRevurdering(
     kommando: StartRevurderingKommando,
@@ -89,57 +81,6 @@ private suspend fun Sak.startInnvilgelse(
         saksopplysninger = hentSaksopplysninger(sisteBehandling.saksopplysningsperiode),
         clock = clock,
     )
-}
-
-suspend fun Sak.sendRevurderingTilBeslutning(
-    kommando: OppdaterRevurderingKommando,
-    hentNavkontor: HentNavkontor,
-    clock: Clock,
-): Either<KanIkkeSendeTilBeslutter, Revurdering> {
-    krevSaksbehandlerRolle(kommando.saksbehandler)
-
-    val behandling = this.hentBehandling(kommando.behandlingId)
-
-    require(behandling is Revurdering) {
-        "Behandlingen må være en revurdering, men er: ${behandling?.behandlingstype}"
-    }
-
-    return when (kommando) {
-        is OppdaterRevurderingKommando.Innvilgelse -> {
-            val utbetaling = beregnRevurderingInnvilgelse(kommando).fold(
-                ifLeft = {
-                    when (it) {
-                        is RevurderingIkkeBeregnet.IngenEndring -> null
-                        is RevurderingIkkeBeregnet.StøtterIkkeTilbakekreving ->
-                            return KanIkkeSendeTilBeslutter.StøtterIkkeTilbakekreving.left()
-                    }
-                },
-
-                ifRight = {
-                    Utbetaling(
-                        beregning = it,
-                        navkontor = hentNavkontor(this.fnr),
-                    )
-                },
-            )
-
-            behandling.innvilgelseTilBeslutning(
-                kommando = kommando,
-                utbetaling = utbetaling,
-                clock = clock,
-            )
-        }
-
-        is OppdaterRevurderingKommando.Stans -> {
-            validerStansDato(kommando.stansFraOgMed)
-
-            behandling.stansTilBeslutning(
-                kommando = kommando,
-                sisteDagSomGirRett = sisteDagSomGirRett!!,
-                clock = clock,
-            )
-        }
-    }
 }
 
 fun Sak.validerStansDato(stansDato: LocalDate?) {

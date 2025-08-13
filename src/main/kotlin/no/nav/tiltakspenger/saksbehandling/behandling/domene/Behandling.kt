@@ -74,7 +74,7 @@ sealed interface Behandling {
             is Søknadsbehandling -> Behandlingstype.SØKNADSBEHANDLING
         }
 
-    val erUnderBehandling: Boolean get() = status == UNDER_BEHANDLING
+    val erUnderBehandling: Boolean get() = status == UNDER_BEHANDLING || status === UNDER_AUTOMATISK_BEHANDLING
     val erAvbrutt: Boolean get() = status == AVBRUTT
     val erVedtatt: Boolean get() = status == VEDTATT
     val erAvsluttet: Boolean get() = erAvbrutt || erVedtatt
@@ -133,6 +133,7 @@ sealed interface Behandling {
                     )
                 }
             }
+
             KLAR_TIL_BEHANDLING,
             UNDER_AUTOMATISK_BEHANDLING,
             KLAR_TIL_BESLUTNING,
@@ -320,6 +321,28 @@ sealed interface Behandling {
         }
     }
 
+    fun tilBeslutning(
+        kommando: SendBehandlingTilBeslutningKommando,
+        clock: Clock,
+    ): Either<KanIkkeSendeTilBeslutter, Behandling> {
+        validerKanSendeTilBeslutning(kommando.saksbehandler).onLeft { return it.left() }
+
+        val status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING
+        val sendtTilBeslutning = nå(clock)
+
+        return when (this) {
+            is Revurdering -> this.copy(
+                status = status,
+                sendtTilBeslutning = sendtTilBeslutning,
+            )
+
+            is Søknadsbehandling -> this.copy(
+                status = status,
+                sendtTilBeslutning = sendtTilBeslutning,
+            )
+        }.right()
+    }
+
     fun iverksett(
         utøvendeBeslutter: Saksbehandler,
         attestering: Attestering,
@@ -426,28 +449,6 @@ sealed interface Behandling {
         return antallDagerPerMeldeperiode!!.finnAntallDagerForMeldeperiode(periode)
     }
 
-    fun oppdaterBegrunnelseVilkårsvurdering(
-        saksbehandler: Saksbehandler,
-        begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering,
-        clock: Clock,
-    ): Either<KunneIkkeOppdatereBegrunnelseVilkårsvurdering, Behandling> {
-        return validerKanOppdatere(saksbehandler).mapLeft {
-            KunneIkkeOppdatereBegrunnelseVilkårsvurdering.KunneIkkeOppdatereBehandling(it)
-        }.map {
-            when (this) {
-                is Søknadsbehandling -> this.copy(
-                    begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                    sistEndret = nå(clock),
-                )
-
-                is Revurdering -> this.copy(
-                    begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                    sistEndret = nå(clock),
-                )
-            }
-        }
-    }
-
     fun oppdaterSaksopplysninger(
         saksbehandler: Saksbehandler,
         oppdaterteSaksopplysninger: Saksopplysninger,
@@ -458,25 +459,6 @@ sealed interface Behandling {
             when (this) {
                 is Søknadsbehandling -> this.copy(saksopplysninger = oppdaterteSaksopplysninger)
                 is Revurdering -> this.copy(saksopplysninger = oppdaterteSaksopplysninger)
-            }
-        }
-    }
-
-    fun oppdaterFritekstTilVedtaksbrev(
-        saksbehandler: Saksbehandler,
-        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev,
-        clock: Clock,
-    ): Either<KunneIkkeOppdatereFritekstTilVedtaksbrev, Behandling> {
-        return validerKanOppdatere(saksbehandler).mapLeft {
-            KunneIkkeOppdatereFritekstTilVedtaksbrev.KunneIkkeOppdatereBehandling(it)
-        }.map {
-            when (this) {
-                is Søknadsbehandling -> this.copy(
-                    fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                    sistEndret = nå(clock),
-                )
-
-                is Revurdering -> this.copy(fritekstTilVedtaksbrev = fritekstTilVedtaksbrev, sistEndret = nå(clock))
             }
         }
     }

@@ -1,10 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater
 
+import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.server.routing.routing
-import io.ktor.server.testing.testApplication
+import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.toDTO
@@ -12,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Stans
@@ -23,11 +26,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRe
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
-import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.routes
-import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
@@ -37,14 +41,7 @@ import org.junit.jupiter.api.Test
 class OppdaterBehandlingRouteTest {
     @Test
     fun `kan oppdatere innvilget søknadsbehandling`() {
-        val tac = TestApplicationContext()
-
-        testApplication {
-            application {
-                jacksonSerialization()
-                routing { routes(tac) }
-            }
-
+        withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
             val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelse.first()
@@ -71,7 +68,7 @@ class OppdaterBehandlingRouteTest {
                     valgteTiltaksdeltakelser = listOf(
                         TiltaksdeltakelsePeriodeDTO(
                             eksternDeltagelseId = tiltaksdeltagelse.eksternDeltagelseId,
-                            periode = tiltaksdeltagelse.periode!!.toDTO(),
+                            periode = nyInnvilgelsesperiode.toDTO(),
                         ),
                     ),
                     innvilgelsesperiode = nyInnvilgelsesperiode.toDTO(),
@@ -93,14 +90,7 @@ class OppdaterBehandlingRouteTest {
 
     @Test
     fun `kan oppdatere avslått søknadsbehandling`() {
-        val tac = TestApplicationContext()
-
-        testApplication {
-            application {
-                jacksonSerialization()
-                routing { routes(tac) }
-            }
-
+        withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
             val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelse.first()
@@ -133,14 +123,7 @@ class OppdaterBehandlingRouteTest {
 
     @Test
     fun `kan oppdatere revurdering innvilgelse`() {
-        val tac = TestApplicationContext()
-
-        testApplication {
-            application {
-                jacksonSerialization()
-                routing { routes(tac) }
-            }
-
+        withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = startRevurderingInnvilgelse(tac)
 
             val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltagelse.first()
@@ -189,14 +172,7 @@ class OppdaterBehandlingRouteTest {
 
     @Test
     fun `kan oppdatere revurdering stans`() {
-        val tac = TestApplicationContext()
-
-        testApplication {
-            application {
-                jacksonSerialization()
-                routing { routes(tac) }
-            }
-
+        withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = startRevurderingStans(tac)
 
             oppdaterBehandling(
@@ -218,6 +194,97 @@ class OppdaterBehandlingRouteTest {
             oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
             oppdatertBehandling.virkningsperiode!!.fraOgMed shouldBe 9.april(2025)
             (oppdatertBehandling.resultat as Stans).valgtHjemmel shouldBe listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak)
+        }
+    }
+
+    @Test
+    fun `oppdatering feiler hvis behandlingsperioden er utenfor deltakelsesperioden`() = runTest {
+        withTestApplicationContext { tac ->
+            val saksbehandler = saksbehandler()
+            val (sak, søknad, behandling) = this.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
+                tac,
+                saksbehandler = saksbehandler,
+            )
+            val behandlingId = behandling.id
+
+            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+                it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                it.saksbehandler shouldBe saksbehandler.navIdent
+                it.beslutter shouldBe null
+            }
+
+            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelse.first()
+            val tiltaksdeltakelsePeriode = tiltaksdeltagelse.periode!!
+
+            oppdaterBehandling(
+                tac,
+                sak.id,
+                behandlingId,
+                oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.Innvilgelse(
+                    fritekstTilVedtaksbrev = "asdf",
+                    begrunnelseVilkårsvurdering = null,
+                    valgteTiltaksdeltakelser = listOf(
+                        TiltaksdeltakelsePeriodeDTO(
+                            eksternDeltagelseId = tiltaksdeltagelse.eksternDeltagelseId,
+                            periode = tiltaksdeltakelsePeriode.toDTO(),
+                        ),
+                    ),
+                    innvilgelsesperiode = tiltaksdeltakelsePeriode.minusFraOgMed(7).toDTO(),
+                    barnetillegg = null,
+                    antallDagerPerMeldeperiodeForPerioder = null,
+                ),
+                forventetStatus = HttpStatusCode.InternalServerError,
+            )
+
+            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+                it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                it.saksbehandler shouldBe saksbehandler.navIdent
+                it.beslutter shouldBe null
+                it.fritekstTilVedtaksbrev.shouldBeNull()
+            }
+        }
+    }
+
+    @Test
+    fun `oppdater revurdering stans feiler hvis stansdato er før innvilgelsesperioden`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, _, revurdering) = startRevurderingStans(tac)
+
+            val stansdato = sak.vedtaksliste.førsteDagSomGirRett!!.minusDays(2)
+
+            oppdaterBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
+                    begrunnelseVilkårsvurdering = null,
+                    fritekstTilVedtaksbrev = null,
+                    valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
+                    stansFraOgMed = stansdato,
+                ),
+                forventetStatus = HttpStatusCode.InternalServerError,
+            )
+        }
+    }
+
+    @Test
+    fun `send revurdering stans til beslutning feiler hvis stansdato er etter innvilgelsesperioden`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, _, revurdering) = startRevurderingStans(tac)
+            val stansdato = sak.sisteDagSomGirRett!!.plusDays(2)
+
+            oppdaterBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
+                    begrunnelseVilkårsvurdering = null,
+                    fritekstTilVedtaksbrev = null,
+                    valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
+                    stansFraOgMed = stansdato,
+                ),
+                forventetStatus = HttpStatusCode.InternalServerError,
+            )
         }
     }
 }

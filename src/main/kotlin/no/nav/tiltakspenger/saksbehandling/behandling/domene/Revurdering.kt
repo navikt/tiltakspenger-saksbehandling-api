@@ -12,12 +12,14 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Stans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
@@ -89,8 +91,31 @@ data class Revurdering(
         super.init()
 
         when (resultat) {
-            is Innvilgelse -> resultat.valider(status, virkningsperiode)
-            is Stans -> resultat.valider(status)
+            is Innvilgelse -> when (status) {
+                KLAR_TIL_BESLUTNING,
+                UNDER_BESLUTNING,
+                VEDTATT,
+                -> resultat.valider(virkningsperiode)
+
+                UNDER_AUTOMATISK_BEHANDLING,
+                KLAR_TIL_BEHANDLING,
+                UNDER_BEHANDLING,
+                AVBRUTT,
+                -> Unit
+            }
+
+            is Stans -> when (status) {
+                KLAR_TIL_BESLUTNING,
+                UNDER_BESLUTNING,
+                VEDTATT,
+                -> resultat.valider()
+
+                UNDER_AUTOMATISK_BEHANDLING,
+                KLAR_TIL_BEHANDLING,
+                UNDER_BEHANDLING,
+                AVBRUTT,
+                -> Unit
+            }
         }
     }
 
@@ -131,54 +156,6 @@ data class Revurdering(
 
         return this.copy(
             sistEndret = nå(clock),
-            begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
-            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            virkningsperiode = Periode(kommando.stansFraOgMed, sisteDagSomGirRett),
-            resultat = Stans(
-                valgtHjemmel = kommando.valgteHjemler,
-            ),
-        ).right()
-    }
-
-    fun innvilgelseTilBeslutning(
-        kommando: OppdaterRevurderingKommando.Innvilgelse,
-        utbetaling: Innvilgelse.Utbetaling?,
-        clock: Clock,
-    ): Either<KanIkkeSendeTilBeslutter, Revurdering> {
-        validerKanSendeTilBeslutning(kommando.saksbehandler).onLeft { return it.left() }
-
-        require(this.resultat is Innvilgelse)
-
-        return this.copy(
-            status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
-            sendtTilBeslutning = nå(clock),
-            begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
-            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            virkningsperiode = kommando.innvilgelsesperiode,
-            resultat = this.resultat.copy(
-                valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
-                    tiltaksdeltakelser = kommando.tiltaksdeltakelser,
-                    behandling = this,
-                ),
-                barnetillegg = kommando.barnetillegg,
-                antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
-                utbetaling = utbetaling,
-            ),
-        ).right()
-    }
-
-    fun stansTilBeslutning(
-        kommando: OppdaterRevurderingKommando.Stans,
-        sisteDagSomGirRett: LocalDate,
-        clock: Clock,
-    ): Either<KanIkkeSendeTilBeslutter, Revurdering> {
-        validerKanSendeTilBeslutning(kommando.saksbehandler).onLeft { return it.left() }
-
-        require(resultat is Stans)
-
-        return this.copy(
-            status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING,
-            sendtTilBeslutning = nå(clock),
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             virkningsperiode = Periode(kommando.stansFraOgMed, sisteDagSomGirRett),

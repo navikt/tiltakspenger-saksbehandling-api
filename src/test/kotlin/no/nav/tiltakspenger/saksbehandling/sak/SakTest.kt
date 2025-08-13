@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.sak
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -124,12 +125,16 @@ class SakTest {
 
     @Test
     fun `harSoknadUnderBehandling - har iverksatt søknadsbehandling og ny behandling av samme søknad - returnerer true`() {
-        val sak = ObjectMother.nySakMedVedtak().first
+        val clock = TikkendeKlokke()
+        val sak = ObjectMother.nySakMedVedtak(
+            clock = clock,
+        ).first
         val behandling = ObjectMother.nyOpprettetSøknadsbehandling(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
             søknad = sak.soknader.first(),
+            clock = clock,
         )
 
         val behandlinger = sak.behandlinger

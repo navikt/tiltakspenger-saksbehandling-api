@@ -13,13 +13,8 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BEHANDLING
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.barnetillegg.OppdaterBarnetilleggCommand
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KunneIkkeOppdatereBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
@@ -87,31 +82,10 @@ data class Søknadsbehandling(
         super.init()
 
         when (resultat) {
-            is SøknadsbehandlingResultat.Innvilgelse -> resultat.valider(status, virkningsperiode)
+            is SøknadsbehandlingResultat.Innvilgelse -> resultat.valider(virkningsperiode)
             is SøknadsbehandlingResultat.Avslag -> Unit
             null -> Unit
         }
-    }
-
-    fun tilBeslutning(
-        kommando: OppdaterSøknadsbehandlingKommando,
-        clock: Clock,
-    ): Either<KanIkkeSendeTilBeslutter, Søknadsbehandling> {
-        validerKanSendeTilBeslutning(kommando.saksbehandler).onLeft { return it.left() }
-
-        val status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING
-
-        val (virkningsperiode, resultat) = virkningsperiodeOgResultat(kommando)
-
-        return this.copy(
-            status = status,
-            sendtTilBeslutning = nå(clock),
-            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            virkningsperiode = virkningsperiode,
-            begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
-            resultat = resultat,
-            automatiskSaksbehandlet = kommando.automatiskSaksbehandlet,
-        ).right()
     }
 
     fun oppdater(
@@ -147,20 +121,6 @@ data class Søknadsbehandling(
         )
     }
 
-    fun oppdaterBarnetillegg(kommando: OppdaterBarnetilleggCommand): Either<KunneIkkeOppdatereBarnetillegg, Søknadsbehandling> {
-        return validerKanOppdatere(kommando.saksbehandler).mapLeft {
-            KunneIkkeOppdatereBarnetillegg.KunneIkkeOppdatereBehandling(it)
-        }.map {
-            this.copy(
-                resultat = SøknadsbehandlingResultat.Innvilgelse(
-                    valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
-                    barnetillegg = kommando.barnetillegg,
-                    antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
-                ),
-            )
-        }
-    }
-
     override fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Søknadsbehandling {
         if (this.status == AVBRUTT || avbrutt != null) {
             throw IllegalArgumentException("Behandlingen er allerede avbrutt")
@@ -187,6 +147,7 @@ data class Søknadsbehandling(
             is OppdaterSøknadsbehandlingKommando.Avslag -> {
                 SøknadsbehandlingResultat.Avslag(avslagsgrunner = kommando.avslagsgrunner)
             }
+
             is OppdaterSøknadsbehandlingKommando.Innvilgelse -> {
                 SøknadsbehandlingResultat.Innvilgelse(
                     valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),

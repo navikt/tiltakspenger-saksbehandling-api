@@ -12,14 +12,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårs
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
+import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
@@ -42,7 +42,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
         s ?: this.persisterIverksattSøknadsbehandling().first
     },
     revurderingType: RevurderingType = RevurderingType.STANS,
-): Pair<Sak, Behandling> {
+): Pair<Sak, Revurdering> {
     val sakMedVedtak = genererSak(sak)
 
     return runBlocking {
@@ -67,20 +67,19 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
  * @param s optional sak som kan bygges på videre. Dersom den ikke sendes, får du en default sak
  * @param genererSak funksjon som genererer sak og revurdering. Den kan brukes til å lage en ny sak eller bruke en eksisterende.
  */
-internal fun TestDataHelper.persisterRevurderingTilBeslutning(
+internal fun TestDataHelper.persisterRevurderingStansTilBeslutning(
     s: Sak? = null,
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("TestDataHelper.persisterRevurderingTilBeslutning"),
     stansDato: LocalDate = ObjectMother.revurderingVirkningsperiode().fraOgMed,
     valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
-    genererSak: (Sak?) -> Pair<Sak, Behandling> = { s -> this.persisterOpprettetRevurdering(s) },
-    navkontor: Navkontor = ObjectMother.navkontor(),
-): Pair<Sak, Behandling> {
+    genererSak: (Sak?) -> Pair<Sak, Revurdering> = { s -> this.persisterOpprettetRevurdering(s) },
+): Pair<Sak, Revurdering> {
     val (sakMedRevurdering, revurdering) = genererSak(s)
 
     return runBlocking {
-        sakMedRevurdering.sendRevurderingTilBeslutning(
+        revurdering.oppdaterStans(
             kommando = OppdaterRevurderingKommando.Stans(
                 sakId = sakMedRevurdering.id,
                 behandlingId = revurdering.id,
@@ -91,16 +90,16 @@ internal fun TestDataHelper.persisterRevurderingTilBeslutning(
                 valgteHjemler = valgteHjemler,
                 fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("TestDataHelper.persisterRevurderingTilBeslutning"),
             ),
-            hentNavkontor = { navkontor },
+            sisteDagSomGirRett = sakMedRevurdering.sisteDagSomGirRett!!,
             clock = clock,
         )
-    }.getOrNull()!!.let {
+    }.getOrNull()!!.tilBeslutning().let {
         behandlingRepo.lagre(it)
-        sakRepo.hentForSakId(sakMedRevurdering.id)!! to it
+        sakRepo.hentForSakId(sakMedRevurdering.id)!! to it as Revurdering
     }
 }
 
-internal fun TestDataHelper.persisterRevurderingUnderBeslutning(
+internal fun TestDataHelper.persisterRevurderingStansUnderBeslutning(
     sak: Sak? = null,
     opprettetAv: Saksbehandler = ObjectMother.saksbehandler(),
     beslutterAv: Saksbehandler = ObjectMother.beslutter(),
@@ -109,7 +108,7 @@ internal fun TestDataHelper.persisterRevurderingUnderBeslutning(
     valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, Behandling> = { s ->
-        this.persisterRevurderingTilBeslutning(
+        this.persisterRevurderingStansTilBeslutning(
             s = s,
             saksbehandler = opprettetAv,
             begrunnelse = begrunnelse,
@@ -133,7 +132,7 @@ internal fun TestDataHelper.persisterRevurderingUnderBeslutning(
  * @param sak optional sak som kan bygges på videre. Dersom den ikke sendes, får du en default sak
  * @param genererSak funksjon som genererer sak og revurdering. Den kan brukes til å lage en ny sak eller bruke en eksisterende.
  */
-internal fun TestDataHelper.persisterIverksattRevurdering(
+internal fun TestDataHelper.persisterIverksattRevurderingStans(
     sak: Sak? = null,
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
@@ -142,7 +141,7 @@ internal fun TestDataHelper.persisterIverksattRevurdering(
     valgteHjemler: Nel<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, Behandling> = { s ->
-        this.persisterRevurderingUnderBeslutning(
+        this.persisterRevurderingStansUnderBeslutning(
             sak = s,
             opprettetAv = saksbehandler,
             beslutterAv = beslutter,

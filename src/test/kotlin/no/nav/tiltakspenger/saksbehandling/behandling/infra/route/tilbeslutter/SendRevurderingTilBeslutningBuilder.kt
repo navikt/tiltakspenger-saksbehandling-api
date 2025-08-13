@@ -1,11 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter
 
-import arrow.core.Nel
 import arrow.core.Tuple4
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -18,23 +16,25 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.dato.april
-import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
-import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBegrunnelseForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterFritekstForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
 
 interface SendRevurderingTilBeslutningBuilder {
 
@@ -47,9 +47,21 @@ interface SendRevurderingTilBeslutningBuilder {
         val (sak, søknad, behandling) = startRevurderingStans(tac)
         val sakId = sak.id
         val behandlingId = behandling.id
-        oppdaterFritekstForBehandlingId(tac, sakId, behandlingId, saksbehandler)
-        oppdaterBegrunnelseForBehandlingId(tac, sakId, behandlingId, saksbehandler)
+
         taBehanding(tac, sak.id, behandlingId, saksbehandler)
+
+        oppdaterBehandling(
+            tac = tac,
+            sakId = sak.id,
+            behandlingId = behandling.id,
+            oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
+                begrunnelseVilkårsvurdering = null,
+                fritekstTilVedtaksbrev = null,
+                valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
+                stansFraOgMed = søknad.vurderingsperiode().fraOgMed,
+            ),
+        )
+
         return Tuple4(
             sak,
             søknad,
@@ -59,8 +71,6 @@ interface SendRevurderingTilBeslutningBuilder {
                 sakId,
                 behandlingId,
                 saksbehandler,
-                stansperiode = søknad.vurderingsperiode(),
-                valgteHjemler = nonEmptyListOf("Alder"),
             ),
         )
     }
@@ -78,6 +88,32 @@ interface SendRevurderingTilBeslutningBuilder {
             revurderingVirkningsperiode = revurderingVirkningsperiode,
         )
 
+        val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltagelse.first()
+
+        val antallDager = SammenhengendePeriodisering(
+            AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+            revurderingVirkningsperiode,
+        )
+
+        oppdaterBehandling(
+            tac = tac,
+            sakId = sak.id,
+            behandlingId = revurdering.id,
+            oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
+                begrunnelseVilkårsvurdering = null,
+                fritekstTilVedtaksbrev = null,
+                innvilgelsesperiode = revurderingVirkningsperiode.toDTO(),
+                valgteTiltaksdeltakelser = listOf(
+                    TiltaksdeltakelsePeriodeDTO(
+                        eksternDeltagelseId = tiltaksdeltagelse.eksternDeltagelseId,
+                        periode = tiltaksdeltagelse.periode!!.toDTO(),
+                    ),
+                ),
+                antallDagerPerMeldeperiodeForPerioder = antallDager.toDTO(),
+                barnetillegg = null,
+            ),
+        )
+
         return Tuple4(
             sak,
             søknad,
@@ -87,8 +123,8 @@ interface SendRevurderingTilBeslutningBuilder {
                 sak.id,
                 revurdering.id,
                 saksbehandler,
-                innvilgelsesperiode = revurderingVirkningsperiode,
-                eksternDeltagelseId = søknad.tiltak.id,
+//                innvilgelsesperiode = revurderingVirkningsperiode,
+//                eksternDeltagelseId = søknad.tiltak.id,
             ),
         )
     }
@@ -99,10 +135,6 @@ interface SendRevurderingTilBeslutningBuilder {
         sakId: SakId,
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        fritekstTilVedtaksbrev: String = "fritekst",
-        begrunnelseVilkårsvurdering: String = "begrunnelse",
-        stansperiode: Periode,
-        valgteHjemler: Nel<String>,
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
     ): String {
         defaultRequest(
@@ -114,19 +146,7 @@ interface SendRevurderingTilBeslutningBuilder {
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(
                 saksbehandler = saksbehandler,
             ),
-        ) {
-            setBody(
-                //language=JSON
-                """
-                {
-                    "resultat": "STANS",
-                    "begrunnelseVilkårsvurdering": "$begrunnelseVilkårsvurdering",
-                    "stansFraOgMed": "${stansperiode.fraOgMed}",
-                    "valgteHjemler": [${valgteHjemler.joinToString(separator = ",", prefix = "\"", postfix = "\"")}]
-                }
-                """.trimIndent(),
-            )
-        }.apply {
+        ).apply {
             val bodyAsText = this.bodyAsText()
             withClue(
                 """
@@ -148,15 +168,6 @@ interface SendRevurderingTilBeslutningBuilder {
         sakId: SakId,
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        fritekstTilVedtaksbrev: String = "fritekst",
-        begrunnelseVilkårsvurdering: String = "begrunnelse",
-        eksternDeltagelseId: String = "TA12345",
-        barnetillegg: Barnetillegg? = null,
-        innvilgelsesperiode: Periode,
-        antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
-            AntallDagerForMeldeperiode.default,
-            innvilgelsesperiode,
-        ),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
     ): String {
         defaultRequest(
@@ -168,40 +179,7 @@ interface SendRevurderingTilBeslutningBuilder {
             jwt = tac.jwtGenerator.createJwtForSaksbehandler(
                 saksbehandler = saksbehandler,
             ),
-        ) {
-            setBody(
-                //language=JSON
-                """
-                {
-                    "resultat": "REVURDERING_INNVILGELSE",
-                    "begrunnelseVilkårsvurdering": "$begrunnelseVilkårsvurdering",
-                    "innvilgelsesperiode": {
-                        "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
-                        "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
-                    },
-                    "valgteTiltaksdeltakelser": [
-                        {
-                            "eksternDeltagelseId": "$eksternDeltagelseId",
-                            "periode": {
-                                "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
-                                "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
-                            }
-                        }
-                    ],
-                    "antallDagerPerMeldeperiodeForPerioder": [
-                      {
-                        "antallDagerPerMeldeperiode": 10,
-                        "periode": {
-                          "fraOgMed": "${innvilgelsesperiode.fraOgMed}",
-                          "tilOgMed": "${innvilgelsesperiode.tilOgMed}"
-                        }
-                      }
-                    ],
-                    "barnetillegg": ${if (barnetillegg == null) null else serialize(barnetillegg.toBarnetilleggDTO())}
-                }
-                """.trimIndent(),
-            )
-        }.apply {
+        ).apply {
             val bodyAsText = this.bodyAsText()
             withClue(
                 """

@@ -121,7 +121,7 @@ interface SakMother {
                 if (barnetillegg == null) {
                     behandling
                 } else {
-                    behandling.tilBeslutning(
+                    behandling.oppdater(
                         when (resultat) {
                             SøknadsbehandlingType.INNVILGELSE -> OppdaterSøknadsbehandlingKommando.Innvilgelse(
                                 sakId = sakId,
@@ -151,6 +151,7 @@ interface SakMother {
                     ).getOrFail()
                 }
             }
+
         return Sak(
             id = sakId,
             fnr = fnr,
@@ -235,7 +236,7 @@ interface SakMother {
             saksbehandler = saksbehandler,
         )
 
-        val iverksattBehandling = søknadsbehandling.tilBeslutning(
+        val iverksattBehandling = søknadsbehandling.oppdater(
             OppdaterSøknadsbehandlingKommando.Innvilgelse(
                 sakId = sakId,
                 behandlingId = søknadsbehandling.id,
@@ -254,7 +255,10 @@ interface SakMother {
                 ),
             ),
             clock = clock,
-        ).getOrFail().taBehandling(beslutter)
+        ).getOrFail().tilBeslutning(
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).taBehandling(beslutter)
             .iverksett(
                 utøvendeBeslutter = beslutter,
                 attestering = ObjectMother.godkjentAttestering(beslutter),
@@ -284,7 +288,7 @@ interface SakMother {
             saksbehandler = saksbehandler,
         )
 
-        val iverksattBehandling = søknadsbehandling.tilBeslutning(
+        val iverksattBehandling = søknadsbehandling.oppdater(
             OppdaterSøknadsbehandlingKommando.Avslag(
                 sakId = sakId,
                 behandlingId = søknadsbehandling.id,
@@ -298,7 +302,10 @@ interface SakMother {
                 avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
             ),
             clock = clock,
-        ).getOrFail().taBehandling(beslutter)
+        ).getOrFail().tilBeslutning(
+            saksbehandler = saksbehandler,
+            clock = clock,
+        ).taBehandling(beslutter)
             .iverksett(
                 utøvendeBeslutter = beslutter,
                 attestering = ObjectMother.godkjentAttestering(beslutter),

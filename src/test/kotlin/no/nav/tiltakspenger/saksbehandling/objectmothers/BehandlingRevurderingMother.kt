@@ -103,11 +103,11 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             virkningsperiode = virkningsperiode,
             hentSaksopplysninger = { saksopplysninger },
-        ).stansTilBeslutning(
+        ).oppdaterStans(
             kommando = kommando,
             sisteDagSomGirRett = sisteDagSomGirRett,
             clock = clock,
-        ).getOrFail()
+        ).getOrFail().tilBeslutning(saksbehandler) as Revurdering
     }
 
     fun nyVedtattRevurderingStans(
@@ -222,7 +222,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             virkningsperiode = virkningsperiode,
             hentSaksopplysninger = { saksopplysninger },
-        ).innvilgelseTilBeslutning(
+        ).oppdaterInnvilgelse(
             kommando = kommando,
             clock = clock,
             utbetaling = if (beregning == null) {
@@ -233,7 +233,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                     navkontor = navkontor,
                 )
             },
-        ).getOrFail()
+        ).getOrFail().tilBeslutning(saksbehandler = saksbehandler, clock = clock) as Revurdering
     }
 
     fun nyVedtattRevurderingInnvilgelse(

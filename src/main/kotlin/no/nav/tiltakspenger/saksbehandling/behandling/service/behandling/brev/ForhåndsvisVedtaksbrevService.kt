@@ -33,7 +33,7 @@ class ForhåndsvisVedtaksbrevService(
         // hentForSakId sjekker tilgang til person og sak.
         val sak = sakService.sjekkTilgangOgHentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
         val behandling = sak.hentBehandling(kommando.behandlingId)!!
-        val virkingsperiode = when (behandling.status) {
+        val virkningsperiode = when (behandling.status) {
             Behandlingsstatus.KLAR_TIL_BEHANDLING,
             Behandlingsstatus.UNDER_BEHANDLING,
             // gir det mening at man har lyst til å se innvilgelsesbrevet hvis behandlingen er avbrutt eller til automatisk behandling?
@@ -55,14 +55,14 @@ class ForhåndsvisVedtaksbrevService(
                         kommando = kommando,
                         sak = sak,
                         behandling = behandling,
-                        virkingsperiode = virkingsperiode,
+                        virkningsperiode = virkningsperiode,
                     )
 
                     SøknadsbehandlingType.AVSLAG -> genererSøknadsbehandlingAvslagsbrev(
                         kommando = kommando,
                         sak = sak,
                         behandling = behandling,
-                        virkingsperiode = virkingsperiode,
+                        virkningsperiode = virkningsperiode,
                     )
 
                     is RevurderingType -> throw IllegalArgumentException("$resultat er ikke gyldig resultat for søknadsbehandling")
@@ -75,7 +75,7 @@ class ForhåndsvisVedtaksbrevService(
                     RevurderingType.INNVILGELSE -> genererRevurderingInnvilgelsesbrev(
                         sak = sak,
                         behandling = behandling,
-                        virkingsperiode = virkingsperiode,
+                        virkningsperiode = virkningsperiode,
                         kommando = kommando,
                     )
 
@@ -88,7 +88,7 @@ class ForhåndsvisVedtaksbrevService(
     private suspend fun genererRevurderingInnvilgelsesbrev(
         sak: Sak,
         behandling: Revurdering,
-        virkingsperiode: Periode?,
+        virkningsperiode: Periode?,
         kommando: ForhåndsvisVedtaksbrevKommando,
     ): PdfA = genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrev(
         hentBrukersNavn = personService::hentNavn,
@@ -99,10 +99,10 @@ class ForhåndsvisVedtaksbrevService(
         saksnummer = sak.saksnummer,
         sakId = sak.id,
         forhåndsvisning = true,
-        vurderingsperiode = virkingsperiode!!,
+        vurderingsperiode = virkningsperiode!!,
         saksbehandlersVurdering = kommando.fritekstTilVedtaksbrev,
         barnetillegg = kommando.barnetillegg?.let {
-            it.utvid(AntallBarn(0), virkingsperiode) as SammenhengendePeriodisering
+            it.utvid(AntallBarn(0), virkningsperiode) as SammenhengendePeriodisering
         },
     ).fold(
         ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
@@ -145,7 +145,7 @@ class ForhåndsvisVedtaksbrevService(
         kommando: ForhåndsvisVedtaksbrevKommando,
         sak: Sak,
         behandling: Søknadsbehandling,
-        virkingsperiode: Periode?,
+        virkningsperiode: Periode?,
     ): PdfA = genererVedtaksbrevForAvslagKlient.genererAvslagsVedtaksbrev(
         hentBrukersNavn = personService::hentNavn,
         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -153,7 +153,7 @@ class ForhåndsvisVedtaksbrevService(
         fnr = sak.fnr,
         saksbehandlerNavIdent = behandling.saksbehandler!!,
         beslutterNavIdent = behandling.beslutter,
-        avslagsperiode = virkingsperiode!!,
+        avslagsperiode = virkningsperiode!!,
         saksnummer = sak.saksnummer,
         sakId = sak.id,
         tilleggstekst = kommando.fritekstTilVedtaksbrev,
@@ -169,7 +169,7 @@ class ForhåndsvisVedtaksbrevService(
         kommando: ForhåndsvisVedtaksbrevKommando,
         sak: Sak,
         behandling: Søknadsbehandling,
-        virkingsperiode: Periode?,
+        virkningsperiode: Periode?,
     ): PdfA = genererInnvilgelsesbrevClient.genererInnvilgelsesvedtaksbrevMedTilleggstekst(
         hentBrukersNavn = personService::hentNavn,
         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -178,12 +178,12 @@ class ForhåndsvisVedtaksbrevService(
         fnr = sak.fnr,
         saksbehandlerNavIdent = behandling.saksbehandler!!,
         beslutterNavIdent = behandling.beslutter,
-        innvilgelsesperiode = virkingsperiode!!,
+        innvilgelsesperiode = virkningsperiode!!,
         saksnummer = sak.saksnummer,
         sakId = sak.id,
         forhåndsvisning = true,
         barnetilleggsPerioder = kommando.barnetillegg?.let {
-            it.utvid(AntallBarn(0), virkingsperiode) as SammenhengendePeriodisering
+            it.utvid(AntallBarn(0), virkningsperiode) as SammenhengendePeriodisering
         },
     ).fold(
         ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },

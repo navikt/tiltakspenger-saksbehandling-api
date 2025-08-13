@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttRevurderin
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterBrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurdering
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandlingAvslag
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBehandlingManuellMeldekortBehandling
@@ -32,8 +32,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterManuellMeldekortBehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingUnderBeslutning
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingStansTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingStansUnderBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
@@ -129,7 +129,7 @@ class BenkOversiktPostgresRepoTest {
                     status = BehandlingssammendragStatus.UNDER_BEHANDLING,
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
-                    sistEndret = opprettetBehandling.opprettet,
+                    sistEndret = opprettetBehandling.sistEndret,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakKlarTilBeslutning.id,
@@ -141,7 +141,7 @@ class BenkOversiktPostgresRepoTest {
                     status = BehandlingssammendragStatus.KLAR_TIL_BESLUTNING,
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
-                    sistEndret = klarTilBeslutning.opprettet,
+                    sistEndret = klarTilBeslutning.sistEndret,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakUnderBeslutning.id,
@@ -153,7 +153,7 @@ class BenkOversiktPostgresRepoTest {
                     status = BehandlingssammendragStatus.UNDER_BESLUTNING,
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = ObjectMother.beslutter().navIdent,
-                    sistEndret = underBeslutning.opprettet,
+                    sistEndret = underBeslutning.sistEndret,
                 )
             }
         }
@@ -164,11 +164,11 @@ class BenkOversiktPostgresRepoTest {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (sakOpprettetRevurdering, opprettetRevurdering) = testDataHelper.persisterOpprettetRevurdering()
             val (sakRevurderingTilBeslutning, revurderingTilBeslutning) =
-                testDataHelper.persisterRevurderingTilBeslutning(s = sakOpprettetRevurdering)
+                testDataHelper.persisterRevurderingStansTilBeslutning(s = sakOpprettetRevurdering)
             val (sakMedRevurderingUnderBeslutning, revurderingUnderBeslutning) =
-                testDataHelper.persisterRevurderingUnderBeslutning(sakRevurderingTilBeslutning)
+                testDataHelper.persisterRevurderingStansUnderBeslutning(sakRevurderingTilBeslutning)
 
-            testDataHelper.persisterIverksattRevurdering(sak = sakMedRevurderingUnderBeslutning)
+            testDataHelper.persisterIverksattRevurderingStans(sak = sakMedRevurderingUnderBeslutning)
             testDataHelper.persisterAvbruttRevurdering(sak = sakMedRevurderingUnderBeslutning)
 
             val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
@@ -186,7 +186,7 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
                     kravtidspunkt = null,
-                    sistEndret = opprettetRevurdering.opprettet,
+                    sistEndret = opprettetRevurdering.sistEndret,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakRevurderingTilBeslutning.id,
@@ -198,7 +198,7 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
                     kravtidspunkt = null,
-                    sistEndret = revurderingTilBeslutning.opprettet,
+                    sistEndret = revurderingTilBeslutning.sistEndret,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakMedRevurderingUnderBeslutning.id,
@@ -210,7 +210,7 @@ class BenkOversiktPostgresRepoTest {
                     status = BehandlingssammendragStatus.UNDER_BESLUTNING,
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = ObjectMother.beslutter().navIdent,
-                    sistEndret = revurderingUnderBeslutning.opprettet,
+                    sistEndret = revurderingUnderBeslutning.sistEndret,
                 )
             }
         }
@@ -319,8 +319,8 @@ class BenkOversiktPostgresRepoTest {
             testDataHelper.persisterUnderBeslutningSøknadsbehandling()
 
             testDataHelper.persisterOpprettetRevurdering()
-            testDataHelper.persisterRevurderingTilBeslutning()
-            testDataHelper.persisterRevurderingUnderBeslutning()
+            testDataHelper.persisterRevurderingStansTilBeslutning()
+            testDataHelper.persisterRevurderingStansUnderBeslutning()
 
             testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling()
             testDataHelper.persisterManuellMeldekortBehandlingTilBeslutning()

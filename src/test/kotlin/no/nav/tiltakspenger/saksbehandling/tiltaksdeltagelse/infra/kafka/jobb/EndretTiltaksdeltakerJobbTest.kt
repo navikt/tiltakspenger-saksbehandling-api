@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurdering
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakAvslag
@@ -335,7 +335,7 @@ class EndretTiltaksdeltakerJobbTest {
                         sak = sak,
                         søknad = førsteSøknad,
                     )
-                    testDataHelper.persisterIverksattRevurdering(
+                    testDataHelper.persisterIverksattRevurderingStans(
                         sak = sakMedFørstegangsvedtak,
                         stansDato = vedtak.fraOgMed,
                     )

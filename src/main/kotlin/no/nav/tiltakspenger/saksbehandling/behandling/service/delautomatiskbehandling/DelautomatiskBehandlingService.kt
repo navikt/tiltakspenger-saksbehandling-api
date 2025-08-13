@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling
 
+import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -11,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
@@ -46,7 +48,7 @@ class DelautomatiskBehandlingService(
     }
 
     private suspend fun sendTilBeslutning(behandling: Søknadsbehandling, correlationId: CorrelationId) {
-        val kommando = OppdaterSøknadsbehandlingKommando.Innvilgelse(
+        val oppdaterKommando = OppdaterSøknadsbehandlingKommando.Innvilgelse(
             sakId = behandling.sakId,
             behandlingId = behandling.id,
             saksbehandler = AUTOMATISK_SAKSBEHANDLER,
@@ -59,7 +61,19 @@ class DelautomatiskBehandlingService(
             antallDagerPerMeldeperiode = utledAntallDagerPerMeldeperiode(behandling),
             automatiskSaksbehandlet = true,
         )
-        behandling.tilBeslutning(kommando, clock).mapLeft {
+
+        val oppdatertBehandling = behandling.oppdater(oppdaterKommando, clock).getOrElse {
+            throw IllegalStateException("Kunne ikke oppdatere behandling med id ${behandling.id} fordi: ${it::class.simpleName}")
+        }
+
+        val tilBeslutningKommando = SendBehandlingTilBeslutningKommando(
+            sakId = behandling.sakId,
+            behandlingId = behandling.id,
+            saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+            correlationId = correlationId,
+        )
+
+        oppdatertBehandling.tilBeslutning(tilBeslutningKommando, clock).mapLeft {
             throw IllegalStateException("Kunne ikke sende behandling med id ${behandling.id} til beslutning fordi: ${it::class.simpleName}")
         }.map {
             val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)

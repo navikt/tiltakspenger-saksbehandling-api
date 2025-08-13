@@ -4,18 +4,12 @@ import arrow.core.Either
 import arrow.core.left
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendRevurderingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.sendSøknadsbehandlingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
-import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 
@@ -25,11 +19,10 @@ class SendBehandlingTilBeslutningService(
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
-    private val navkontorService: NavkontorService,
     private val sessionFactory: SessionFactory,
 ) {
     suspend fun sendTilBeslutning(
-        kommando: OppdaterBehandlingKommando,
+        kommando: SendBehandlingTilBeslutningKommando,
     ): Either<KanIkkeSendeTilBeslutter, Behandling> {
         krevSaksbehandlerRolle(kommando.saksbehandler)
 
@@ -50,28 +43,19 @@ class SendBehandlingTilBeslutningService(
                 .left()
         }
 
-        return when (kommando) {
-            is OppdaterRevurderingKommando -> sak.sendRevurderingTilBeslutning(
-                kommando = kommando,
-                hentNavkontor = navkontorService::hentOppfolgingsenhet,
-                clock = clock,
-            )
+        return behandling.tilBeslutning(
+            kommando = kommando,
+            clock = clock,
+        ).onRight {
+            // Verifiserer at den oppdaterte behandlingen kan legges til saken
+            sak.copy(behandlinger = sak.behandlinger.oppdaterBehandling(it))
 
-            is OppdaterSøknadsbehandlingKommando -> sak.sendSøknadsbehandlingTilBeslutning(
-                kommando = kommando,
-                clock = clock,
-            ).map { it.second }
-        }.onRight { sak.validerOgLagre(it) }
-    }
+            val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
 
-    private suspend fun Sak.validerOgLagre(behandling: Behandling) {
-        this.copy(behandlinger = this.behandlinger.oppdaterBehandling(behandling))
-
-        val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(behandling)
-
-        sessionFactory.withTransactionContext { tx ->
-            behandlingRepo.lagre(behandling, tx)
-            statistikkSakRepo.lagre(statistikk, tx)
+            sessionFactory.withTransactionContext { tx ->
+                behandlingRepo.lagre(it, tx)
+                statistikkSakRepo.lagre(statistikk, tx)
+            }
         }
     }
 }
