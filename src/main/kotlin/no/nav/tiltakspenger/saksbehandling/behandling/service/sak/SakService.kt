@@ -62,7 +62,7 @@ class SakService(
             id = SakId.random(),
             fnr = fnr,
             saksnummer = sakRepo.hentNesteSaksnummer(),
-            behandlinger = Behandlinger(emptyList()),
+            behandlinger = Behandlinger.empty(),
             vedtaksliste = Vedtaksliste.empty(),
             meldekortBehandlinger = MeldekortBehandlinger.empty(),
             utbetalinger = Utbetalinger(emptyList()),

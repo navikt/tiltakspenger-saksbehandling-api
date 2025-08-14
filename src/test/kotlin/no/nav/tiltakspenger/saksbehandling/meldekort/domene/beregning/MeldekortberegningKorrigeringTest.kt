@@ -7,6 +7,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -164,7 +165,7 @@ internal class MeldekortberegningKorrigeringTest {
 
             val sisteKjedeId = meldekortbehandlinger.last().kjedeId
 
-            MeldeperiodeBeregninger(meldekortbehandlinger).sisteBeregningPerKjede[sisteKjedeId]!!.totalBeløp shouldBe 0
+            MeldeperiodeBeregninger(meldekortbehandlinger, Behandlinger.empty()).sisteBeregningPerKjede[sisteKjedeId]!!.totalBeløp shouldBe 0
         }
     }
 

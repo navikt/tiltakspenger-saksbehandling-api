@@ -15,7 +15,7 @@ data class Behandlinger(
     constructor(behandling: Behandling) : this(listOf(behandling))
 
     val revurderinger: Revurderinger = Revurderinger(behandlinger.filterIsInstance<Revurdering>())
-    val søknadsbehandlinger = this.behandlinger.filterIsInstance<Søknadsbehandling>()
+    val søknadsbehandlinger: List<Søknadsbehandling> = behandlinger.filterIsInstance<Søknadsbehandling>()
 
     fun leggTilRevurdering(
         revurdering: Revurdering,
@@ -44,5 +44,11 @@ data class Behandlinger(
         require(behandlinger.distinctBy { it.saksnummer }.size <= 1) { "Behandlinger inneholder behandlinger for ulike saksnummer: ${behandlinger.map { it.saksnummer.toString() }}" }
         behandlinger.map { it.opprettet }
             .zipWithNext { a, b -> require(a < b) { "Behandlinger er ikke sortert på opprettet-tidspunkt" } }
+    }
+
+    companion object {
+        fun empty(): Behandlinger {
+            return Behandlinger(emptyList())
+        }
     }
 }

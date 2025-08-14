@@ -49,7 +49,7 @@ interface SakMother {
         fnr: Fnr = Fnr.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
         søknader: List<Søknad> = emptyList(),
-        behandlinger: Behandlinger = Behandlinger(emptyList()),
+        behandlinger: Behandlinger = Behandlinger.empty(),
     ): Sak = Sak(
         id = sakId,
         fnr = fnr,

@@ -2,16 +2,22 @@ package no.nav.tiltakspenger.saksbehandling.beregning
 
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 
 data class MeldeperiodeBeregninger(
     val meldekortBehandlinger: MeldekortBehandlinger,
+    val behandlinger: Behandlinger,
 ) {
     private val godkjenteMeldekort = meldekortBehandlinger.godkjenteMeldekort
         .sortedBy { it.iverksattTidspunkt }
 
     private val meldeperiodeBeregninger: List<MeldeperiodeBeregning> by lazy {
-        godkjenteMeldekort.flatMap { it.beregning.beregninger }
+        godkjenteMeldekort.flatMap { it.beregning.beregninger }.plus(
+            behandlinger.revurderinger.revurderinger
+                .mapNotNull { it.utbetaling?.beregning?.beregninger?.toList() }
+                .flatten(),
+        )
     }
 
     val beregningerPerKjede: Map<MeldeperiodeKjedeId, List<MeldeperiodeBeregning>> by lazy {
