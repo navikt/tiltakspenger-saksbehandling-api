@@ -43,7 +43,7 @@ data class Sak(
     val utbetalinger: Utbetalinger,
     val soknader: List<Søknad>,
 ) {
-    val meldeperiodeBeregninger: MeldeperiodeBeregninger = meldekortBehandlinger.meldeperiodeBeregninger
+    val meldeperiodeBeregninger: MeldeperiodeBeregninger by lazy { MeldeperiodeBeregninger(meldekortBehandlinger) }
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
     val førsteDagSomGirRett = vedtaksliste.førsteDagSomGirRett

@@ -39,6 +39,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fr
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeBesvart
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.beregning.beregn
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
@@ -563,6 +564,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     barnetilleggsPerioder = barnetilleggsPerioder,
                     tiltakstypePerioder = tiltakstypePerioder,
                     meldekortBehandlinger = meldekortBehandlinger,
+                    meldeperiodeBeregninger = MeldeperiodeBeregninger(meldekortBehandlinger),
                 )
             },
             simuler = {
@@ -646,6 +648,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     barnetilleggsPerioder = barnetilleggsPerioder,
                     tiltakstypePerioder = tiltakstypePerioder,
                     meldekortBehandlinger = this,
+                    meldeperiodeBeregninger = MeldeperiodeBeregninger(this),
                 )
             },
             simuler = { KunneIkkeSimulere.UkjentFeil.left() },

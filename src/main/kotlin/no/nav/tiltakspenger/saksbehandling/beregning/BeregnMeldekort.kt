@@ -41,6 +41,7 @@ private data class BeregnMeldekort(
     val meldekortBehandlinger: MeldekortBehandlinger,
     val barnetilleggsPerioder: Periodisering<AntallBarn>,
     val tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+    val meldeperiodeBeregninger: MeldeperiodeBeregninger,
 ) {
     private var sykTilstand: SykTilstand = SykTilstand.FullUtbetaling
     private var egenmeldingsdagerSyk: Int = ANTALL_EGENMELDINGSDAGER
@@ -56,8 +57,6 @@ private data class BeregnMeldekort(
     fun beregn(): NonEmptyList<MeldeperiodeBeregning> {
         val meldeperiodeSomBeregnesFraOgMed = meldeperiodeSomBeregnes.first().dato
         val kilde = BeregningKilde.Meldekort(meldekortIdSomBeregnes)
-
-        val meldeperiodeBeregninger = meldekortBehandlinger.meldeperiodeBeregninger
 
         return meldekortBehandlinger.sisteBehandledeMeldekortPerKjede
             .filterNot { it.kjedeId == meldeperiodeSomBeregnes.meldeperiode.kjedeId }
@@ -449,6 +448,7 @@ fun Sak.beregn(
         barnetilleggsPerioder = this.barnetilleggsperioder,
         tiltakstypePerioder = this.tiltakstypeperioder,
         meldekortBehandlinger = meldekortBehandlinger,
+        meldeperiodeBeregninger = meldeperiodeBeregninger,
     )
 }
 
@@ -458,6 +458,7 @@ fun beregn(
     barnetilleggsPerioder: Periodisering<AntallBarn>,
     tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
     meldekortBehandlinger: MeldekortBehandlinger,
+    meldeperiodeBeregninger: MeldeperiodeBeregninger,
 ): NonEmptyList<MeldeperiodeBeregning> {
     return BeregnMeldekort(
         meldekortIdSomBeregnes = meldekortIdSomBeregnes,
@@ -465,5 +466,6 @@ fun beregn(
         barnetilleggsPerioder = barnetilleggsPerioder,
         tiltakstypePerioder = tiltakstypePerioder,
         meldekortBehandlinger = meldekortBehandlinger,
+        meldeperiodeBeregninger = meldeperiodeBeregninger,
     ).beregn()
 }

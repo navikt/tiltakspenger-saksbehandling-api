@@ -89,6 +89,7 @@ class MeldekortberegningFraBrukersMeldekort {
             barnetilleggsPerioder = sakMedÅpenMeldekortbehandling.barnetilleggsperioder,
             tiltakstypePerioder = sakMedÅpenMeldekortbehandling.tiltakstypeperioder,
             meldekortBehandlinger = sakMedÅpenMeldekortbehandling.meldekortBehandlinger,
+            meldeperiodeBeregninger = sakMedÅpenMeldekortbehandling.meldeperiodeBeregninger,
         ).map { it.dager }
 
         val dagerBeregnetFraSaksbehandler = beregn(
@@ -97,6 +98,7 @@ class MeldekortberegningFraBrukersMeldekort {
             barnetilleggsPerioder = sakMedÅpenMeldekortbehandling.barnetilleggsperioder,
             tiltakstypePerioder = sakMedÅpenMeldekortbehandling.tiltakstypeperioder,
             meldekortBehandlinger = sakMedÅpenMeldekortbehandling.meldekortBehandlinger,
+            meldeperiodeBeregninger = sakMedÅpenMeldekortbehandling.meldeperiodeBeregninger,
         ).map { it.dager }
 
         dagerBeregnetFraBruker shouldBeEqual dagerBeregnetFraSaksbehandler

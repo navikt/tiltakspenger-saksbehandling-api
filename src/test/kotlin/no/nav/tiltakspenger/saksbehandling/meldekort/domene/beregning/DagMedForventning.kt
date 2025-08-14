@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import arrow.core.flatten
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
@@ -21,7 +22,10 @@ suspend fun NonEmptyList<NonEmptyList<DagMedForventning>>.assertForventning(vurd
         vurderingsperiode = vurderingsperiode,
         meldeperioder = this.map { outer -> outer.map { OppdaterMeldekortKommando.Dager.Dag(it.dag, it.status) } },
     )
-    actual.utfylteDager.forEachIndexed { index, it ->
-        (it.dato to it.reduksjon) shouldBe (this.flatten()[index].dag to flatten()[index].forventning)
-    }
+
+    MeldeperiodeBeregninger(actual).sisteBeregningPerKjede.values
+        .flatMap { it.dager }
+        .forEachIndexed { index, it ->
+            (it.dato to it.reduksjon) shouldBe (this.flatten()[index].dag to flatten()[index].forventning)
+        }
 }

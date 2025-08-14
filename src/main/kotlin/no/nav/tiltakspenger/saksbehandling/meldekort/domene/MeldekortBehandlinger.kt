@@ -8,8 +8,6 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
@@ -35,8 +33,6 @@ data class MeldekortBehandlinger(
     val avbrutteMeldekortBehandlinger: List<AvbruttMeldekortBehandling> by lazy {
         verdi.filterIsInstance<AvbruttMeldekortBehandling>()
     }
-
-    val meldeperiodeBeregninger by lazy { MeldeperiodeBeregninger(this) }
 
     private val behandledeMeldekort: List<MeldekortBehandling.Behandlet> by lazy {
         verdi.filterIsInstance<MeldekortBehandling.Behandlet>()
@@ -77,11 +73,6 @@ data class MeldekortBehandlinger(
     /** Merk at denne går helt tilbake til siste godkjente, utbetalte dag. Dette er ikke nødvendigvis den siste godkjente meldeperioden. */
     val sisteUtbetalteMeldekortDag: LocalDate? by lazy {
         godkjenteMeldekort.flatMap { it.beregning.first().dager }.lastOrNull { it.beløp > 0 }?.dato
-    }
-
-    /** Vil kun returnere hele meldekortperioder som er utfylt og godkjent */
-    val utfylteDager: List<MeldeperiodeBeregningDag> by lazy {
-        meldeperiodeBeregninger.sisteBeregningPerKjede.values.flatMap { it.dager }
     }
 
     /** Meldekort som er under behandling eller venter på beslutning */
