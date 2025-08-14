@@ -105,5 +105,20 @@ enum class InnmeldtStatus {
 }
 
 fun List<BrukersMeldekortDag>.antallDagerRegistrert(): Int {
-    return this.count { it.status != InnmeldtStatus.IKKE_BESVART && it.status != InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER }
+    return this.count {
+        when (it.status) {
+            InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET,
+            InnmeldtStatus.DELTATT_MED_LØNN_I_TILTAKET,
+            InnmeldtStatus.FRAVÆR_SYK,
+            InnmeldtStatus.FRAVÆR_SYKT_BARN,
+            InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV,
+            InnmeldtStatus.FRAVÆR_ANNET,
+            InnmeldtStatus.IKKE_TILTAKSDAG,
+            -> true
+
+            InnmeldtStatus.IKKE_BESVART,
+            InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER,
+            -> false
+        }
+    }
 }
