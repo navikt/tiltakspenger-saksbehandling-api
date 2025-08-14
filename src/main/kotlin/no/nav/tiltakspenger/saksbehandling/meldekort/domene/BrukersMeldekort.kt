@@ -105,5 +105,5 @@ enum class InnmeldtStatus {
 }
 
 fun List<BrukersMeldekortDag>.antallDagerRegistrert(): Int {
-    return this.count { it.status != InnmeldtStatus.IKKE_BESVART }
+    return this.count { it.status != InnmeldtStatus.IKKE_BESVART && it.status != InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER }
 }
