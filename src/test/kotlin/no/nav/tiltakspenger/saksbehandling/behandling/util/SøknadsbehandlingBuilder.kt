@@ -130,7 +130,7 @@ interface SøknadsbehandlingBuilder {
                 tiltaksdeltakelser = listOf(
                     Pair(
                         virkningsperiode,
-                        behandling.saksopplysninger.tiltaksdeltagelse[0].eksternDeltagelseId,
+                        behandling.saksopplysninger.tiltaksdeltagelser[0].eksternDeltagelseId,
                     ),
                 ),
                 automatiskSaksbehandlet = false,
@@ -173,7 +173,7 @@ interface SøknadsbehandlingBuilder {
                 tiltaksdeltakelser = listOf(
                     Pair(
                         virkningsperiode,
-                        behandling.saksopplysninger.tiltaksdeltagelse[0].eksternDeltagelseId,
+                        behandling.saksopplysninger.tiltaksdeltagelser[0].eksternDeltagelseId,
                     ),
                 ),
                 automatiskSaksbehandlet = false,

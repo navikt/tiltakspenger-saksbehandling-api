@@ -9,9 +9,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
@@ -26,7 +24,7 @@ class BehandleSøknadPåNyttService(
     private val clock: Clock,
     private val sakService: SakService,
     private val behandlingRepo: BehandlingRepo,
-    private val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
+    private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val sessionFactory: SessionFactory,
@@ -50,28 +48,20 @@ class BehandleSøknadPåNyttService(
             throw IllegalStateException("Kan ikke behandle søknad på nytt fordi det finnes ikke vedtatte avslag på søknaden: $søknadId")
         }
 
-        val søknad = avslåtteSøknadsbehandlinger.first().søknad
-        val perioderMedUtbetalinger = sak.utbetalinger.hentUtbetalingerFraPeriode(søknad.vurderingsperiode())
-
+        val søknad = avslåtteSøknadsbehandlinger.single().søknad
+        val perioderMedUtbetalinger =
+            sak.utbetalinger.hentUtbetalingerFraPeriode(søknad.tiltaksdeltagelseperiodeDetErSøktOm())
+        // TODO jah: Fjern denne sjekken når vi har revurdering på plass.
         if (perioderMedUtbetalinger.isNotEmpty()) {
             throw IllegalStateException("Det finnes utbetalinger i vurderingsperioden til søknaden: ${søknad.id}")
         }
 
-        val hentSaksopplysninger: suspend (Periode) -> Saksopplysninger = { saksopplysningsperiode: Periode ->
-            oppdaterSaksopplysningerService.hentSaksopplysningerFraRegistre(
-                fnr = sak.fnr,
-                correlationId = correlationId,
-                saksopplysningsperiode = saksopplysningsperiode,
-            )
-        }
-
         val søknadsbehandling = Søknadsbehandling.opprett(
-            sakId = sakId,
-            saksnummer = sak.saksnummer,
-            fnr = sak.fnr,
+            sak = sak,
             søknad = søknad,
             saksbehandler = saksbehandler,
-            hentSaksopplysninger = hentSaksopplysninger,
+            hentSaksopplysninger = hentSaksopplysingerService::hentSaksopplysningerFraRegistre,
+            correlationId = correlationId,
             clock = clock,
         ).getOrElse { return KanIkkeBehandleSøknadPåNytt.OppretteBehandling(it).left() }
 

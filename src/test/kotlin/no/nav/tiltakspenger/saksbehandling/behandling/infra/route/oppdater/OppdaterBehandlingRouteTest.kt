@@ -44,7 +44,7 @@ class OppdaterBehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
-            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelse.first()
+            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.first()
             val nyInnvilgelsesperiode = tiltaksdeltagelse.periode!!.minusTilOgMed(1)
 
             val barnetillegg = barnetillegg(
@@ -93,7 +93,7 @@ class OppdaterBehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
-            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelse.first()
+            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.first()
 
             oppdaterBehandling(
                 tac = tac,
@@ -126,7 +126,7 @@ class OppdaterBehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (sak, _, _, revurdering) = startRevurderingInnvilgelse(tac)
 
-            val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltagelse.first()
+            val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltagelser.first()
             val nyInnvilgelsesperiode = tiltaksdeltagelse.periode!!.minusTilOgMed(1)
 
             val barnetillegg = barnetillegg(
@@ -201,7 +201,7 @@ class OppdaterBehandlingRouteTest {
     fun `oppdatering feiler hvis behandlingsperioden er utenfor deltakelsesperioden`() = runTest {
         withTestApplicationContext { tac ->
             val saksbehandler = saksbehandler()
-            val (sak, søknad, behandling) = this.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
+            val (sak, _, behandling) = this.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
                 tac,
                 saksbehandler = saksbehandler,
             )
@@ -213,7 +213,7 @@ class OppdaterBehandlingRouteTest {
                 it.beslutter shouldBe null
             }
 
-            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelse.first()
+            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.single()
             val tiltaksdeltakelsePeriode = tiltaksdeltagelse.periode!!
 
             oppdaterBehandling(

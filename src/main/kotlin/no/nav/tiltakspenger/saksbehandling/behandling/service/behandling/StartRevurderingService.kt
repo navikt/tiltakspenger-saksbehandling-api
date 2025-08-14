@@ -15,7 +15,7 @@ import java.time.Clock
 class StartRevurderingService(
     private val sakService: SakService,
     private val behandlingRepo: BehandlingRepo,
-    private val saksopplysningerService: OppdaterSaksopplysningerService,
+    private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
@@ -34,7 +34,7 @@ class StartRevurderingService(
         val (oppdatertSak, revurdering) = sak.startRevurdering(
             kommando = kommando,
             clock = clock,
-            hentSaksopplysninger = saksopplysningerService::hentSaksopplysningerFraRegistre,
+            hentSaksopplysninger = hentSaksopplysingerService::hentSaksopplysningerFraRegistre,
         )
 
         val statistikk = statistikkSakService.genererStatistikkForRevurdering(revurdering)

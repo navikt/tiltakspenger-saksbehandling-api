@@ -21,9 +21,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySøknad
@@ -33,7 +35,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.virkningsp
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
@@ -84,12 +85,12 @@ interface SakMother {
                     deltakelseTom = virkningsperiode.tilOgMed,
                 ),
             ),
-        registrerteTiltak: List<Tiltaksdeltagelse> = listOf(søknad.tiltak.toTiltak()),
+        registrerteTiltak: Tiltaksdeltagelser = Tiltaksdeltagelser(listOf(søknad.tiltak.toTiltak())),
         saksopplysninger: Saksopplysninger = Saksopplysninger(
             fødselsdato = fødselsdato,
-            tiltaksdeltagelse = registrerteTiltak,
-            periode = søknad.saksopplysningsperiode(),
-            ytelser = emptyList(),
+            tiltaksdeltagelser = registrerteTiltak,
+            periode = registrerteTiltak.totalPeriode,
+            ytelser = Ytelser.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
         ),
         barnetillegg: Barnetillegg? = null,
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = listOf(
@@ -105,17 +106,18 @@ interface SakMother {
             AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
             virkningsperiode,
         ),
+        sak: Sak = ObjectMother.nySak(sakId = sakId, saksnummer = saksnummer, fnr = fnr, søknader = listOf(søknad)),
+        correlationId: CorrelationId = CorrelationId.generate(),
     ): Pair<Sak, Søknadsbehandling> {
         val søknadsbehandling =
             runBlocking {
                 val behandling = Søknadsbehandling.opprett(
-                    sakId = sakId,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
+                    sak = sak,
                     søknad = søknad,
                     saksbehandler = saksbehandler,
-                    hentSaksopplysninger = { saksopplysninger },
+                    hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger },
                     clock = clock,
+                    correlationId = correlationId,
                 ).getOrFail()
 
                 if (barnetillegg == null) {
@@ -187,21 +189,25 @@ interface SakMother {
                     deltakelseTom = virkningsperiode.tilOgMed,
                 ),
             ),
-        registrerteTiltak: List<Tiltaksdeltagelse> = listOf(søknad.tiltak.toTiltak()),
+        registrerteTiltak: Tiltaksdeltagelser = Tiltaksdeltagelser(listOf(søknad.tiltak.toTiltak())),
         saksopplysninger: Saksopplysninger = Saksopplysninger(
             fødselsdato = fødselsdato,
-            tiltaksdeltagelse = registrerteTiltak,
-            periode = søknad.saksopplysningsperiode(),
-            ytelser = emptyList(),
+            tiltaksdeltagelser = registrerteTiltak,
+            periode = registrerteTiltak.totalPeriode,
+            ytelser = Ytelser.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
         ),
         clock: Clock = fixedClock,
+        correlationId: CorrelationId = CorrelationId.generate(),
+        sak: Sak = ObjectMother.nySak(sakId = sakId, saksnummer = saksnummer, fnr = fnr, søknader = listOf(søknad)),
     ): Pair<Sak, Søknadsbehandling> {
         val søknadsbehandling =
             runBlocking {
                 Søknadsbehandling.opprettAutomatiskBehandling(
                     søknad = søknad,
-                    hentSaksopplysninger = { saksopplysninger },
+                    hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger },
                     clock = clock,
+                    sak = sak,
+                    correlationId = correlationId,
                 )
             }
         return Sak(
@@ -246,7 +252,7 @@ interface SakMother {
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
                 innvilgelsesperiode = virkningsperiode,
-                tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltagelse.map {
+                tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltagelser.map {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
                 antallDagerPerMeldeperiode = SammenhengendePeriodisering(
@@ -296,7 +302,7 @@ interface SakMother {
                 saksbehandler = saksbehandler,
                 fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nySakMedAvslagsvedtak"),
                 begrunnelseVilkårsvurdering = null,
-                tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltagelse.map {
+                tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltagelser.map {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
                 avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),

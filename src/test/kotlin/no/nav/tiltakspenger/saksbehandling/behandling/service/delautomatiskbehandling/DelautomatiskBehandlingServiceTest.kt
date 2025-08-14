@@ -43,7 +43,7 @@ class DelautomatiskBehandlingServiceTest {
                     it.status shouldBe Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                     it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
                 }
-                val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltagelse.find { it.eksternDeltagelseId == soknad.tiltak.id }!!
+                val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltagelser.find { it.eksternDeltagelseId == soknad.tiltak.id }!!
 
                 tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
 
@@ -53,14 +53,14 @@ class DelautomatiskBehandlingServiceTest {
                 oppdatertBehandling.automatiskSaksbehandlet shouldBe true
                 oppdatertBehandling.manueltBehandlesGrunner shouldBe emptyList()
 
-                oppdatertBehandling.antallDagerPerMeldeperiode shouldBe Periodisering(AntallDagerForMeldeperiode(10), soknad.vurderingsperiode())
+                oppdatertBehandling.antallDagerPerMeldeperiode shouldBe Periodisering(AntallDagerForMeldeperiode(10), soknad.tiltaksdeltagelseperiodeDetErSøktOm())
                 oppdatertBehandling.resultat!!.instanceOf(BehandlingResultat.Innvilgelse::class) shouldBe true
-                oppdatertBehandling.virkningsperiode shouldBe soknad.vurderingsperiode()
+                oppdatertBehandling.virkningsperiode shouldBe soknad.tiltaksdeltagelseperiodeDetErSøktOm()
                 oppdatertBehandling.barnetillegg shouldBe null
                 oppdatertBehandling.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser(
                     SammenhengendePeriodisering(
                         tiltaksdeltakelse,
-                        soknad.vurderingsperiode(),
+                        soknad.tiltaksdeltagelseperiodeDetErSøktOm(),
                     ),
                 )
             }
@@ -96,7 +96,7 @@ class DelautomatiskBehandlingServiceTest {
                 tac.leggTilPerson(
                     fnr = sak.fnr,
                     personopplysningerForBruker = ObjectMother.personopplysningKjedeligFyr(sak.fnr),
-                    tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelse.first(),
+                    tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.first(),
                 )
 
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
@@ -175,7 +175,7 @@ class DelautomatiskBehandlingServiceTest {
                 tac.leggTilPerson(
                     fnr = sak.fnr,
                     personopplysningerForBruker = ObjectMother.personopplysningKjedeligFyr(sak.fnr),
-                    tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelse.first(),
+                    tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.first(),
                 )
 
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {

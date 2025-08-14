@@ -44,32 +44,32 @@ interface SendRevurderingTilBeslutningBuilder {
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
-        val (sak, søknad, behandling) = startRevurderingStans(tac)
+        val (sak, søknad, søknadsbehandling, revurdering) = startRevurderingStans(tac)
         val sakId = sak.id
-        val behandlingId = behandling.id
+        val revurderingId = revurdering.id
 
-        taBehanding(tac, sak.id, behandlingId, saksbehandler)
+        taBehanding(tac, sak.id, revurderingId, saksbehandler)
 
         oppdaterBehandling(
             tac = tac,
             sakId = sak.id,
-            behandlingId = behandling.id,
+            behandlingId = revurdering.id,
             oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
                 begrunnelseVilkårsvurdering = null,
                 fritekstTilVedtaksbrev = null,
                 valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
-                stansFraOgMed = søknad.vurderingsperiode().fraOgMed,
+                stansFraOgMed = søknadsbehandling.virkningsperiode!!.fraOgMed,
             ),
         )
 
         return Tuple4(
             sak,
             søknad,
-            behandlingId,
+            revurderingId,
             sendRevurderingStansTilBeslutningForBehandlingId(
                 tac,
                 sakId,
-                behandlingId,
+                revurderingId,
                 saksbehandler,
             ),
         )
@@ -88,7 +88,7 @@ interface SendRevurderingTilBeslutningBuilder {
             revurderingVirkningsperiode = revurderingVirkningsperiode,
         )
 
-        val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltagelse.first()
+        val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltagelser.single()
 
         val antallDager = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),

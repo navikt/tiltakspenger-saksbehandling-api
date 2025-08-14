@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -14,7 +15,7 @@ class PdfgenHttpClientTest {
             val utbetalingsvedtak = ObjectMother.utbetalingsvedtak()
             PdfgenHttpClient("unused").genererUtbetalingsvedtak(
                 utbetalingsvedtak,
-                tiltaksdeltagelser = listOf(ObjectMother.tiltaksdeltagelse()),
+                tiltaksdeltagelser = Tiltaksdeltagelser(listOf(ObjectMother.tiltaksdeltagelse())),
                 sammenligning = { sammenlign(utbetalingsvedtak.beregning.beregninger.first()) },
                 hentSaksbehandlersNavn = { ObjectMother.saksbehandler().brukernavn },
             )

@@ -2,9 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
@@ -19,7 +17,7 @@ class StartSøknadsbehandlingService(
     private val sessionFactory: SessionFactory,
     private val behandlingRepo: BehandlingRepo,
     private val statistikkSakRepo: StatistikkSakRepo,
-    private val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
+    private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
 ) {
@@ -30,16 +28,12 @@ class StartSøknadsbehandlingService(
         soknad: Søknad,
         correlationId: CorrelationId,
     ): Søknadsbehandling {
-        val hentSaksopplysninger: suspend (Periode) -> Saksopplysninger = { saksopplysningsperiode: Periode ->
-            oppdaterSaksopplysningerService.hentSaksopplysningerFraRegistre(
-                fnr = soknad.fnr,
-                correlationId = correlationId,
-                saksopplysningsperiode = saksopplysningsperiode,
-            )
-        }
+        val sak = sakService.hentSakForIdAvSystembruker(soknad.sakId)
         val behandling = Søknadsbehandling.opprettAutomatiskBehandling(
+            sak = sak,
             søknad = soknad,
-            hentSaksopplysninger = hentSaksopplysninger,
+            hentSaksopplysninger = hentSaksopplysingerService::hentSaksopplysningerFraRegistre,
+            correlationId = correlationId,
             clock = clock,
         )
 

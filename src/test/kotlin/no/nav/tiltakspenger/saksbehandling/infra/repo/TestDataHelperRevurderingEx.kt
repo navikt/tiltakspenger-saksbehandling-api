@@ -5,18 +5,16 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
@@ -36,7 +34,7 @@ import java.time.LocalDateTime
 internal fun TestDataHelper.persisterOpprettetRevurdering(
     sak: Sak? = null,
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
+    hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ -> ObjectMother.saksopplysninger() },
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Sak = { s ->
         s ?: this.persisterIverksattSøknadsbehandling().first
@@ -170,11 +168,11 @@ internal fun TestDataHelper.persisterAvbruttRevurdering(
     opprettetAv: Saksbehandler = ObjectMother.saksbehandler(),
     avbruttAv: Saksbehandler = ObjectMother.saksbehandler(),
     begrunnelse: String = "TestDataHelper.persisterAvbruttRevurdering",
-    hentSaksopplysninger: suspend (fnr: Fnr, correlationId: CorrelationId, saksopplysningsperiode: Periode) -> Saksopplysninger = { _, _, _ -> ObjectMother.saksopplysninger() },
+    hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ -> ObjectMother.saksopplysninger() },
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, Behandling> = { s ->
         this.persisterOpprettetRevurdering(
-            sak = s,
+            sak = s!!,
             saksbehandler = opprettetAv,
             hentSaksopplysninger = hentSaksopplysninger,
             clock = clock,

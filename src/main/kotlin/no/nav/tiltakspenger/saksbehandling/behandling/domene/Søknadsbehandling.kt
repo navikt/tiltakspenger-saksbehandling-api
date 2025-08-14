@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -15,12 +16,15 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.A
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
@@ -139,7 +143,7 @@ data class Søknadsbehandling(
 
     private fun virkningsperiodeOgResultat(kommando: OppdaterSøknadsbehandlingKommando): Pair<Periode, SøknadsbehandlingResultat> {
         val virkningsperiode = when (kommando) {
-            is OppdaterSøknadsbehandlingKommando.Avslag -> this.søknad.vurderingsperiode()
+            is OppdaterSøknadsbehandlingKommando.Avslag -> this.søknad.tiltaksdeltagelseperiodeDetErSøktOm()
             is OppdaterSøknadsbehandlingKommando.Innvilgelse -> kommando.innvilgelsesperiode
         }
 
@@ -156,37 +160,38 @@ data class Søknadsbehandling(
                 )
             }
         }
-
         return virkningsperiode to resultat
     }
 
     companion object {
         suspend fun opprett(
-            sakId: SakId,
-            saksnummer: Saksnummer,
-            fnr: Fnr,
+            sak: Sak,
             søknad: Søknad,
             saksbehandler: Saksbehandler,
-            hentSaksopplysninger: suspend (saksopplysningsperiode: Periode) -> Saksopplysninger,
+            hentSaksopplysninger: HentSaksopplysninger,
+            correlationId: CorrelationId,
             clock: Clock,
         ): Either<KanIkkeOppretteBehandling, Søknadsbehandling> {
             krevSaksbehandlerRolle(saksbehandler)
             val opprettet = nå(clock)
 
-            /** Kommentar jah: Det kan bli aktuelt at saksbehandler får endre på fraOgMed her. */
-            val saksopplysningsperiode: Periode = søknad.saksopplysningsperiode()
+            val saksopplysninger = hentSaksopplysninger(
+                sak.fnr,
+                correlationId,
+                sak.tiltaksdeltagelserDetErSøktTiltakspengerFor,
+                listOf(søknad.tiltak.id),
+                true,
+            )
 
-            val saksopplysninger = hentSaksopplysninger(saksopplysningsperiode)
-
-            if (saksopplysninger.tiltaksdeltagelse.isEmpty()) {
+            if (saksopplysninger.tiltaksdeltagelser.isEmpty()) {
                 return KanIkkeOppretteBehandling.IngenRelevanteTiltak.left()
             }
 
             return Søknadsbehandling(
                 id = BehandlingId.random(),
-                saksnummer = saksnummer,
-                sakId = sakId,
-                fnr = fnr,
+                saksnummer = sak.saksnummer,
+                sakId = sak.id,
+                fnr = sak.fnr,
                 søknad = søknad,
                 saksopplysninger = saksopplysninger,
                 fritekstTilVedtaksbrev = null,
@@ -210,14 +215,20 @@ data class Søknadsbehandling(
         }
 
         suspend fun opprettAutomatiskBehandling(
+            sak: Sak,
             søknad: Søknad,
-            hentSaksopplysninger: suspend (saksopplysningsperiode: Periode) -> Saksopplysninger,
+            hentSaksopplysninger: HentSaksopplysninger,
+            correlationId: CorrelationId,
             clock: Clock,
         ): Søknadsbehandling {
             val opprettet = nå(clock)
-            val saksopplysningsperiode: Periode = søknad.saksopplysningsperiode()
-            val saksopplysninger = hentSaksopplysninger(saksopplysningsperiode)
-
+            val saksopplysninger = hentSaksopplysninger(
+                søknad.fnr,
+                correlationId,
+                sak.tiltaksdeltagelserDetErSøktTiltakspengerFor,
+                listOf(søknad.tiltak.id),
+                true,
+            )
             return Søknadsbehandling(
                 id = BehandlingId.random(),
                 saksnummer = søknad.saksnummer,
