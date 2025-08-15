@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
+import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coJustRun
 import io.mockk.coVerify
@@ -17,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -24,6 +26,11 @@ internal class SendUtbetalingerServiceTest {
     private val utbetalingsvedtakRepo = mockk<UtbetalingsvedtakRepo>()
     private val utbetalingsklient = mockk<Utbetalingsklient>()
     private val sendUtbetalingerService = SendUtbetalingerService(utbetalingsvedtakRepo, utbetalingsklient, fixedClock)
+
+    @BeforeEach
+    fun setup() {
+        clearAllMocks()
+    }
 
     @Test
     fun `utbetaling blir iverksatt og markert som sendt til utbetaling`() = runTest {
