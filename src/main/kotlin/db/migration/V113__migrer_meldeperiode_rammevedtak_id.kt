@@ -100,7 +100,8 @@ class V113__migrer_meldeperiode_rammevedtak_id : BaseJavaMigration() {
 
                             transactionalSession.run(
                                 sqlQuery(
-                                    """update meldeperiode SET rammevedtak = to_jsonb(:rammevedtak::jsonb)""",
+                                    """update meldeperiode SET rammevedtak = to_jsonb(:rammevedtak::jsonb) where id = :id""",
+                                    "id" to eksisterendeMeldeperiode.id.toString(),
                                     "rammevedtak" to nyMeldeperiode.rammevedtak.toDbJson(),
                                 ).asUpdate,
                             )
