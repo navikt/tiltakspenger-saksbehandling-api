@@ -87,7 +87,7 @@ class V113__migrer_meldeperiode_rammevedtak_id : BaseJavaMigration() {
                                     }
                             val eksisterendeMeldeperiode: Meldeperiode =
                                 eksisterendeKjede.single { it.versjon == nyMeldeperiode.versjon }
-                            if (eksisterendeMeldeperiode == nyMeldeperiode.copy(
+                            if (eksisterendeMeldeperiode != nyMeldeperiode.copy(
                                     // Vi gjør bare en rask sjekk på at vi snakker om den samme meldeperioden som er generert tidligere. Vi må ignorere id, opprettet og rammevedtak.
                                     rammevedtak = eksisterendeMeldeperiode.rammevedtak,
                                     id = eksisterendeMeldeperiode.id,
