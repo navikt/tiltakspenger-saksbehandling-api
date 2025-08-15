@@ -83,6 +83,7 @@ open class BehandlingOgVedtakContext(
             clock = clock,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
+            sakService = sakService,
         )
     }
     val startSøknadsbehandlingService: StartSøknadsbehandlingService by lazy {
@@ -203,7 +204,7 @@ open class BehandlingOgVedtakContext(
 
     val taBehandlingService by lazy {
         TaBehandlingService(
-            tilgangsstyringService = tilgangsstyringService,
+            behandlingService = behandlingService,
             behandlingRepo = behandlingRepo,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
@@ -213,7 +214,7 @@ open class BehandlingOgVedtakContext(
 
     val overtaBehandlingService by lazy {
         OvertaBehandlingService(
-            tilgangsstyringService = tilgangsstyringService,
+            behandlingService = behandlingService,
             behandlingRepo = behandlingRepo,
             clock = clock,
             statistikkSakService = statistikkSakService,
@@ -224,7 +225,7 @@ open class BehandlingOgVedtakContext(
 
     val leggTilbakeBehandlingService by lazy {
         LeggTilbakeBehandlingService(
-            tilgangsstyringService = tilgangsstyringService,
+            behandlingService = behandlingService,
             behandlingRepo = behandlingRepo,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
@@ -243,22 +244,16 @@ open class BehandlingOgVedtakContext(
 
     val settBehandlingPåVentService by lazy {
         SettBehandlingPåVentService(
-            tilgangsstyringService = tilgangsstyringService,
-            behandlingRepo = behandlingRepo,
+            behandlingService = behandlingService,
             statistikkSakService = statistikkSakService,
-            statistikkSakRepo = statistikkSakRepo,
-            sessionFactory = sessionFactory,
             clock = clock,
         )
     }
 
     val gjenopptaBehandlingService by lazy {
         GjenopptaBehandlingService(
-            tilgangsstyringService = tilgangsstyringService,
-            behandlingRepo = behandlingRepo,
+            behandlingService = behandlingService,
             statistikkSakService = statistikkSakService,
-            statistikkSakRepo = statistikkSakRepo,
-            sessionFactory = sessionFactory,
             clock = clock,
         )
     }

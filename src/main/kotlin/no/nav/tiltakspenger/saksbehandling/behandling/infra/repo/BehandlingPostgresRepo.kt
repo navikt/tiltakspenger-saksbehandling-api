@@ -117,13 +117,11 @@ class BehandlingPostgresRepo(
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
-                queryOf(
+                sqlQuery(
                     """update behandling set saksbehandler = :saksbehandler, status = :status where id = :id and saksbehandler is null""",
-                    mapOf(
-                        "id" to behandlingId.toString(),
-                        "saksbehandler" to saksbehandler.navIdent,
-                        "status" to behandlingsstatus.toDb(),
-                    ),
+                    "id" to behandlingId.toString(),
+                    "saksbehandler" to saksbehandler.navIdent,
+                    "status" to behandlingsstatus.toDb(),
                 ).asUpdate,
             ) > 0
         }
@@ -140,13 +138,11 @@ class BehandlingPostgresRepo(
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
-                queryOf(
+                sqlQuery(
                     """update behandling set beslutter = :beslutter, status = :status where id = :id and beslutter is null""",
-                    mapOf(
-                        "id" to behandlingId.toString(),
-                        "beslutter" to beslutter.navIdent,
-                        "status" to behandlingsstatus.toDb(),
-                    ),
+                    "id" to behandlingId.toString(),
+                    "beslutter" to beslutter.navIdent,
+                    "status" to behandlingsstatus.toDb(),
                 ).asUpdate,
             ) > 0
         }
@@ -163,13 +159,11 @@ class BehandlingPostgresRepo(
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
-                queryOf(
+                sqlQuery(
                     """update behandling set saksbehandler = :nySaksbehandler where id = :id and saksbehandler = :lagretSaksbehandler""",
-                    mapOf(
-                        "id" to behandlingId.toString(),
-                        "nySaksbehandler" to nySaksbehandler.navIdent,
-                        "lagretSaksbehandler" to nåværendeSaksbehandler,
-                    ),
+                    "id" to behandlingId.toString(),
+                    "nySaksbehandler" to nySaksbehandler.navIdent,
+                    "lagretSaksbehandler" to nåværendeSaksbehandler,
                 ).asUpdate,
             ) > 0
         }
@@ -187,13 +181,11 @@ class BehandlingPostgresRepo(
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
-                queryOf(
+                sqlQuery(
                     """update behandling set beslutter = :nyBeslutter where id = :id and beslutter = :lagretBeslutter""",
-                    mapOf(
-                        "id" to behandlingId.toString(),
-                        "nyBeslutter" to nyBeslutter.navIdent,
-                        "lagretBeslutter" to nåværendeBeslutter,
-                    ),
+                    "id" to behandlingId.toString(),
+                    "nyBeslutter" to nyBeslutter.navIdent,
+                    "lagretBeslutter" to nåværendeBeslutter,
                 ).asUpdate,
             ) > 0
         }
@@ -207,13 +199,11 @@ class BehandlingPostgresRepo(
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
-                queryOf(
+                sqlQuery(
                     """update behandling set saksbehandler = null, status = :status where id = :id and saksbehandler = :lagretSaksbehandler""",
-                    mapOf(
-                        "id" to behandlingId.toString(),
-                        "lagretSaksbehandler" to nåværendeSaksbehandler.navIdent,
-                        "status" to behandlingsstatus.toDb(),
-                    ),
+                    "id" to behandlingId.toString(),
+                    "lagretSaksbehandler" to nåværendeSaksbehandler.navIdent,
+                    "status" to behandlingsstatus.toDb(),
                 ).asUpdate,
             ) > 0
         }
@@ -227,13 +217,11 @@ class BehandlingPostgresRepo(
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
-                queryOf(
+                sqlQuery(
                     """update behandling set beslutter = null, status = :status where id = :id and beslutter = :lagretBeslutter""",
-                    mapOf(
-                        "id" to behandlingId.toString(),
-                        "lagretBeslutter" to nåværendeBeslutter.navIdent,
-                        "status" to behandlingsstatus.toDb(),
-                    ),
+                    "id" to behandlingId.toString(),
+                    "lagretBeslutter" to nåværendeBeslutter.navIdent,
+                    "status" to behandlingsstatus.toDb(),
                 ).asUpdate,
             ) > 0
         }
@@ -259,11 +247,9 @@ class BehandlingPostgresRepo(
         ): Behandlinger =
             session
                 .run(
-                    queryOf(
+                    sqlQuery(
                         "select b.*,s.fnr, s.saksnummer from behandling b join sak s on s.id = b.sak_id where b.sak_id = :sak_id order by b.opprettet",
-                        mapOf(
-                            "sak_id" to sakId.toString(),
-                        ),
+                        "sak_id" to sakId.toString(),
                     ).map { it.toBehandling(session) }.asList,
                 )
                 .let { Behandlinger(it) }

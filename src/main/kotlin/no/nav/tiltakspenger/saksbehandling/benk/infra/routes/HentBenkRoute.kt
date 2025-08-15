@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.BEHANDLINGER_PATH
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragBenktype
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
@@ -21,6 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.ÅpneBehandlingerFiltreri
 import no.nav.tiltakspenger.saksbehandling.benk.service.BenkOversiktService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
+
+private const val PATH = "/behandlinger"
 
 fun Route.hentBenkRoute(
     tokenService: TokenService,
@@ -51,8 +52,8 @@ fun Route.hentBenkRoute(
             )
     }
 
-    post(BEHANDLINGER_PATH) {
-        logger.debug { "Mottatt get-request på $BEHANDLINGER_PATH for å hente alle behandlinger på benken" }
+    post(PATH) {
+        logger.debug { "Mottatt get-request på $PATH for å hente alle behandlinger på benken" }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withBody<HentBenkOversiktBody> {
                 benkOversiktService.hentBenkOversikt(

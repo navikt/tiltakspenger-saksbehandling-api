@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.infra.route
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
@@ -20,12 +21,16 @@ class BehandlingDTOTest {
             val behandling =
                 ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
 
-            var behandlingSattPåVent = behandling.settPåVent(beslutter, "1", clock)
-            behandlingSattPåVent = behandlingSattPåVent.gjenoppta(beslutter, clock)
-            behandlingSattPåVent = behandlingSattPåVent.settPåVent(beslutter, "2", clock)
+            val behandlingSattPåVent = behandling
+                .settPåVent(beslutter, "1", clock)
+                .gjenoppta(beslutter, clock)
+                .settPåVent(beslutter, "2", clock)
 
             behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 3
-            val dto = behandlingSattPåVent.tilBehandlingDTO()
+
+            val sak = ObjectMother.nySak(behandlinger = Behandlinger(listOf(behandlingSattPåVent)))
+
+            val dto = sak.tilBehandlingDTO(behandlingSattPåVent.id)
 
             dto.ventestatus?.erSattPåVent shouldBe true
             dto.ventestatus?.sattPåVentAv shouldBe beslutter.navIdent

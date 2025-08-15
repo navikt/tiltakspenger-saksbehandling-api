@@ -57,7 +57,7 @@ class IverksettBehandlingService(
         beslutter: Saksbehandler,
         correlationId: CorrelationId,
         sakId: SakId,
-    ): Either<KanIkkeIverksetteBehandling, Behandling> {
+    ): Either<KanIkkeIverksetteBehandling, Pair<Sak, Behandling>> {
         // Denne sjekker at saksbehandler har tilgang til personen og en av rollene SAKSBEHANDLER eller BESLUTTER.
         val sak = sakService.sjekkTilgangOgHentForSakId(sakId, beslutter, correlationId)
         val behandling = sak.hentBehandling(behandlingId)!!
@@ -100,7 +100,7 @@ class IverksettBehandlingService(
             )
         }
 
-        return iverksattBehandling.right()
+        return (oppdatertSak to iverksattBehandling).right()
     }
 
     private fun Sak.iverksettSøknadsbehandling(

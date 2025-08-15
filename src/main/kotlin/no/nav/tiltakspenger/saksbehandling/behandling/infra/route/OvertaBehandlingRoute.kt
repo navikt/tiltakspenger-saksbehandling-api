@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaBehandlingCommand
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaBehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
@@ -39,7 +39,7 @@ fun Route.overtaBehandlingRoute(
                     call.withBody<OvertaBehandlingBody> { body ->
                         val correlationId = call.correlationId()
                         overtaBehandlingService.overta(
-                            OvertaBehandlingCommand(
+                            OvertaBehandlingKommando(
                                 sakId = sakId,
                                 behandlingId = behandlingId,
                                 saksbehandler = saksbehandler,
@@ -51,7 +51,7 @@ fun Route.overtaBehandlingRoute(
                                 val (status, error) = it.tilStatusOgErrorJson()
                                 call.respond(status, error)
                             },
-                            {
+                            { (sak) ->
                                 auditService.logMedBehandlingId(
                                     behandlingId = behandlingId,
                                     navIdent = saksbehandler.navIdent,
@@ -60,7 +60,7 @@ fun Route.overtaBehandlingRoute(
                                     correlationId = correlationId,
                                 )
 
-                                call.respond(HttpStatusCode.OK, it.tilBehandlingDTO())
+                                call.respond(HttpStatusCode.OK, sak.tilBehandlingDTO(behandlingId))
                             },
                         )
                     }
