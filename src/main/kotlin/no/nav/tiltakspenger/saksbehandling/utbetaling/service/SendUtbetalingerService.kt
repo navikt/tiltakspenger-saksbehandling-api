@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.backoff.shouldRetry
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
@@ -22,18 +23,29 @@ class SendUtbetalingerService(
             utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk().forEach { utbetalingsvedtak ->
                 val correlationId = CorrelationId.generate()
                 Either.catch {
+                    val antallForsøk = utbetalingsvedtak.statusMetadata?.antallForsøk ?: 0
+
+                    if (utbetalingsvedtak.sendtTilUtbetaling != null &&
+                        !utbetalingsvedtak.sendtTilUtbetaling.shouldRetry(antallForsøk, clock)
+                    ) {
+                        return@forEach
+                    }
+
                     val forrigeUtbetalingJson =
                         utbetalingsvedtak.forrigeUtbetalingsvedtakId?.let { forrigeUtbetalingsvedtakId ->
                             utbetalingsvedtakRepo.hentUtbetalingJsonForVedtakId(forrigeUtbetalingsvedtakId)
                         }
-                    utbetalingsklient.iverksett(utbetalingsvedtak, forrigeUtbetalingJson, correlationId).onRight {
-                        logger.info { "Utbetaling iverksatt for vedtak ${utbetalingsvedtak.id}" }
-                        utbetalingsvedtakRepo.markerSendtTilUtbetaling(utbetalingsvedtak.id, nå(clock), it)
-                        logger.info { "Utbetaling markert som utbetalt for vedtak ${utbetalingsvedtak.id}" }
-                    }.onLeft {
-                        logger.error { "Utbetaling kunne ikke iverksettes. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
-                        utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(utbetalingsvedtak.id, it)
-                    }
+
+                    utbetalingsklient.iverksett(utbetalingsvedtak, forrigeUtbetalingJson, correlationId)
+                        .onRight {
+                            logger.info { "Utbetaling iverksatt for vedtak ${utbetalingsvedtak.id}" }
+                            utbetalingsvedtakRepo.markerSendtTilUtbetaling(utbetalingsvedtak.id, nå(clock), it)
+                            logger.info { "Utbetaling markert som utbetalt for vedtak ${utbetalingsvedtak.id}" }
+                        }
+                        .onLeft {
+                            logger.error { "Utbetaling kunne ikke iverksettes. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
+                            utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(utbetalingsvedtak.id, it)
+                        }
                 }.onLeft {
                     logger.error(it) { "Ukjent feil skjedde under iverksetting av utbetaling. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
                 }
