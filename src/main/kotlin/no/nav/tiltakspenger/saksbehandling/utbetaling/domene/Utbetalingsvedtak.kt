@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
@@ -40,6 +41,7 @@ data class Utbetalingsvedtak(
     val journalpostId: JournalpostId?,
     val journalføringstidspunkt: LocalDateTime?,
     val status: Utbetalingsstatus?,
+    val statusMetadata: Forsøkshistorikk?,
     val beregning: UtbetalingBeregning,
     val saksbehandler: String,
     val beslutter: String,
@@ -77,6 +79,7 @@ fun MeldekortBehandling.Behandlet.opprettUtbetalingsvedtak(
         journalpostId = null,
         journalføringstidspunkt = null,
         status = null,
+        statusMetadata = null,
         beregning = this.beregning,
         saksbehandler = this.saksbehandler!!,
         beslutter = this.beslutter!!,
@@ -108,6 +111,7 @@ fun Rammevedtak.opprettUtbetalingsvedtak(
         journalpostId = null,
         journalføringstidspunkt = null,
         status = null,
+        statusMetadata = null,
         saksbehandler = this.saksbehandlerNavIdent,
         beslutter = this.beslutterNavIdent,
         beregning = utbetaling.beregning,

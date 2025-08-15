@@ -295,6 +295,7 @@ internal class UtbetalingsvedtakPostgresRepo(
             val journalføringstidspunkt = localDateTimeOrNull("journalføringstidspunkt")
             val opprettet = localDateTime("opprettet")
             val status = stringOrNull("status").toUtbetalingsstatus()
+            val statusMetadata = stringOrNull("status_metadata")?.toForsøkshistorikk()
 
             val beregningKilde = BeregningKildeDb.valueOf(string("beregning_kilde"))
 
@@ -323,6 +324,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                         journalføringstidspunkt = journalføringstidspunkt,
                         opprettet = opprettet,
                         status = status,
+                        statusMetadata = statusMetadata,
                         beregning = meldekortbehandling.beregning,
                         saksbehandler = meldekortbehandling.saksbehandler!!,
                         beslutter = meldekortbehandling.beslutter!!,
@@ -364,6 +366,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                         journalføringstidspunkt = journalføringstidspunkt,
                         opprettet = opprettet,
                         status = status,
+                        statusMetadata = statusMetadata,
                         saksbehandler = behandling.saksbehandler!!,
                         beslutter = behandling.beslutter!!,
                         beregning = utbetaling.beregning,
