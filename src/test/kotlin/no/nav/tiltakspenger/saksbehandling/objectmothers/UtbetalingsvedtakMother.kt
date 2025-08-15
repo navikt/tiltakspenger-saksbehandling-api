@@ -9,10 +9,12 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -38,6 +40,8 @@ interface UtbetalingsvedtakMother : MotherOfAllMothers {
         journalpostId: JournalpostId? = null,
         journalføringstidspunkt: LocalDateTime? = null,
         opprettet: LocalDateTime = nå(clock),
+        status: Utbetalingsstatus? = null,
+        statusMetadata: Forsøkshistorikk? = null,
     ): Utbetalingsvedtak {
         return Utbetalingsvedtak(
             id = id,
@@ -49,7 +53,8 @@ interface UtbetalingsvedtakMother : MotherOfAllMothers {
             sendtTilUtbetaling = sendtTilUtbetaling,
             journalpostId = journalpostId,
             journalføringstidspunkt = journalføringstidspunkt,
-            status = null,
+            status = status,
+            statusMetadata = statusMetadata,
             beregning = meldekortBehandling.beregning,
             saksbehandler = meldekortBehandling.saksbehandler,
             beslutter = meldekortBehandling.beslutter!!,
