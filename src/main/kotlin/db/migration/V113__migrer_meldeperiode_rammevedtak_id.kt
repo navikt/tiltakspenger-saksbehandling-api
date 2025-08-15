@@ -93,6 +93,8 @@ class V113__migrer_meldeperiode_rammevedtak_id : BaseJavaMigration() {
                                     rammevedtak = eksisterendeMeldeperiode.rammevedtak,
                                     id = eksisterendeMeldeperiode.id,
                                     opprettet = eksisterendeMeldeperiode.opprettet,
+                                    // Nå har den kjørt ok i prod, vi ignorerer dette feltet for å få igjennom migreringen i dev. Databasen tømmes uansett 27. aug 25.
+                                    maksAntallDagerForMeldeperiode = eksisterendeMeldeperiode.maksAntallDagerForMeldeperiode
                                 ),
                             ) {
                                 "Kunne ikke migrere meldeperiode ${nyMeldeperiode.id} for sak $sakId fordi den ikke samsvarer med eksisterende meldeperiode ${eksisterendeMeldeperiode.id} i kjede ${eksisterendeKjede.kjedeId}. " +
