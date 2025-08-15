@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.felles.ServiceCommand
 
-data class OvertaBehandlingCommand(
+data class OvertaBehandlingKommando(
     val sakId: SakId,
     val behandlingId: BehandlingId,
     val overtarFra: String,

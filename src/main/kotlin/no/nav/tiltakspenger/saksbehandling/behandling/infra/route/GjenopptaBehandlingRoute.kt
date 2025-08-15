@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandl
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 
 private const val GJENNOPPTA_BEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/gjenoppta"
 
@@ -25,23 +26,26 @@ fun Route.gjenopptaBehandling(
     post(GJENNOPPTA_BEHANDLING_PATH) {
         logger.debug { "Mottatt post-request på '$GJENNOPPTA_BEHANDLING_PATH' - Gjenopptar behandling." }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
-            call.withBehandlingId { behandlingId ->
-                val correlationId = call.correlationId()
+            call.withSakId { sakId ->
+                call.withBehandlingId { behandlingId ->
+                    val correlationId = call.correlationId()
 
-                gjenopptaBehandlingService.gjenopptaBehandling(
-                    behandlingId = behandlingId,
-                    saksbehandler = saksbehandler,
-                    correlationId = correlationId,
-                ).also {
-                    auditService.logMedBehandlingId(
+                    gjenopptaBehandlingService.gjenopptaBehandling(
+                        sakId = sakId,
                         behandlingId = behandlingId,
-                        navIdent = saksbehandler.navIdent,
-                        action = AuditLogEvent.Action.UPDATE,
-                        contextMessage = "Gjenopptar behandling",
+                        saksbehandler = saksbehandler,
                         correlationId = correlationId,
-                    )
+                    ).also { (sak) ->
+                        auditService.logMedBehandlingId(
+                            behandlingId = behandlingId,
+                            navIdent = saksbehandler.navIdent,
+                            action = AuditLogEvent.Action.UPDATE,
+                            contextMessage = "Gjenopptar behandling",
+                            correlationId = correlationId,
+                        )
 
-                    call.respond(status = HttpStatusCode.OK, it.tilBehandlingDTO())
+                        call.respond(status = HttpStatusCode.OK, sak.tilBehandlingDTO(behandlingId))
+                    }
                 }
             }
         }

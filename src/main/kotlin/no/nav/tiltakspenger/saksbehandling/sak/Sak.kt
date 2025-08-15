@@ -194,4 +194,8 @@ data class Sak(
     fun leggTilUtbetalingsvedtak(utbetalingsvedtak: Utbetalingsvedtak): Sak {
         return this.copy(utbetalinger = this.utbetalinger.leggTil(utbetalingsvedtak))
     }
+
+    fun oppdaterBehandling(behandling: Behandling): Sak {
+        return this.copy(behandlinger = this.behandlinger.oppdaterBehandling(behandling))
+    }
 }

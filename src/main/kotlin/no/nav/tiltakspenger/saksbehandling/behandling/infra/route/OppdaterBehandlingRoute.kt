@@ -45,7 +45,7 @@ fun Route.oppdaterBehandlingRoute(
                                 val (status, message) = it.tilStatusOgErrorJson()
                                 call.respond(status, message)
                             },
-                            ifRight = {
+                            ifRight = { (sak) ->
                                 auditService.logMedBehandlingId(
                                     behandlingId = behandlingId,
                                     navIdent = saksbehandler.navIdent,
@@ -53,7 +53,7 @@ fun Route.oppdaterBehandlingRoute(
                                     contextMessage = "Saksbehandler har oppdatert en behandling under behandling",
                                     correlationId = correlationId,
                                 )
-                                call.respond(status = HttpStatusCode.OK, message = it.tilBehandlingDTO())
+                                call.respond(status = HttpStatusCode.OK, message = sak.tilBehandlingDTO(behandlingId))
                             },
                         )
                     }

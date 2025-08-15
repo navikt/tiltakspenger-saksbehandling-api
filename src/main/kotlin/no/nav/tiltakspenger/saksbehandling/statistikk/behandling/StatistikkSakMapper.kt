@@ -82,7 +82,7 @@ fun genererSaksstatistikkForBehandling(
         registrertTidspunkt = behandling.opprettet,
         ferdigBehandletTidspunkt = behandling.avbrutt?.tidspunkt,
         vedtakTidspunkt = null,
-        endretTidspunkt = nå(clock),
+        endretTidspunkt = behandling.sistEndret,
         utbetaltTidspunkt = null,
         tekniskTidspunkt = nå(clock),
         søknadsformat = StatistikkFormat.DIGITAL.name,
