@@ -67,6 +67,10 @@ data class Meldeperiode(
         }
     }
 
+    override fun toString(): String {
+        return "Meldeperiode(id=$id, kjedeId=$kjedeId, versjon=$versjon, periode=$periode, opprettet=$opprettet, sakId=$sakId, saksnummer=$saksnummer, fnr=*****, maksAntallDagerForMeldeperiode=$maksAntallDagerForMeldeperiode, girRett=$girRett, rammevedtak=$rammevedtak)"
+    }
+
     companion object {
         fun opprettMeldeperiode(
             periode: Periode,

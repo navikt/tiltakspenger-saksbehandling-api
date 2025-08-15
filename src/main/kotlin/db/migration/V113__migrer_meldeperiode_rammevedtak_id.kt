@@ -38,7 +38,7 @@ import org.flywaydb.core.api.migration.Context
 import java.time.Clock
 import java.time.LocalDate
 
-class V113__fiks_ikke_rett_meldekort_bruker : BaseJavaMigration() {
+class V113__migrer_meldeperiode_rammevedtak_id : BaseJavaMigration() {
     override fun migrate(context: Context) {
         val logger = KotlinLogging.logger {}
         val dataSource = context.configuration.dataSource
@@ -81,7 +81,7 @@ class V113__fiks_ikke_rett_meldekort_bruker : BaseJavaMigration() {
                             require(nyMeldeperiode.rammevedtak!!.isNotEmpty())
                             val eksisterendeKjede: MeldeperiodeKjede =
                                 eksisterendeMeldeperiodeKjeder.hentMeldeperiodeKjedeForPeriode(nyMeldeperiode.periode)!!
-                            val eksisterendeMeldeperiode =
+                            val eksisterendeMeldeperiode: Meldeperiode =
                                 eksisterendeKjede.single { it.versjon == nyMeldeperiode.versjon }
                             require(
                                 eksisterendeMeldeperiode == nyMeldeperiode.copy(
@@ -90,7 +90,10 @@ class V113__fiks_ikke_rett_meldekort_bruker : BaseJavaMigration() {
                                     id = eksisterendeMeldeperiode.id,
                                     opprettet = eksisterendeMeldeperiode.opprettet,
                                 ),
-                            )
+                            ) {
+                                "Kunne ikke migrere meldeperiode ${nyMeldeperiode.id} for sak ${sakId} fordi den ikke samsvarer med eksisterende meldeperiode ${eksisterendeMeldeperiode.id} i kjede ${eksisterendeKjede.kjedeId}. " +
+                                    "Eksisterende: $eksisterendeMeldeperiode, ny: $nyMeldeperiode"
+                            }
                             if (eksisterendeMeldeperiode.rammevedtak != null && eksisterendeMeldeperiode.rammevedtak != nyMeldeperiode.rammevedtak) {
                                 throw IllegalStateException("Rammevedtak for meldeperiode ${nyMeldeperiode.id} er endret. Eksisterende: ${eksisterendeMeldeperiode.rammevedtak}, ny: ${nyMeldeperiode.rammevedtak}")
                             }
