@@ -44,6 +44,6 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     sisteDagSomGirRett = sisteDagSomGirRett,
     søknader = soknader.toSøknadDTO(),
     behandlinger = this.tilBehandlingerDTO(),
-    tidslinje = vedtaksliste.tidslinje.verdier.mapNotNull { it?.tilRammevedtakDTO() },
-    vedtakshistorikk = vedtaksliste.vedtakshistorikk.verdier.mapNotNull { it?.tilRammevedtakDTO() },
+    tidslinje = vedtaksliste.tidslinje.verdier.map { it.tilRammevedtakDTO() },
+    vedtakshistorikk = vedtaksliste.vedtakshistorikk.verdier.map { it.tilRammevedtakDTO() },
 )
