@@ -87,18 +87,20 @@ class V113__migrer_meldeperiode_rammevedtak_id : BaseJavaMigration() {
                                     }
                             val eksisterendeMeldeperiode: Meldeperiode =
                                 eksisterendeKjede.single { it.versjon == nyMeldeperiode.versjon }
-                            require(
-                                eksisterendeMeldeperiode == nyMeldeperiode.copy(
+                            if (eksisterendeMeldeperiode == nyMeldeperiode.copy(
                                     // Vi gjør bare en rask sjekk på at vi snakker om den samme meldeperioden som er generert tidligere. Vi må ignorere id, opprettet og rammevedtak.
                                     rammevedtak = eksisterendeMeldeperiode.rammevedtak,
                                     id = eksisterendeMeldeperiode.id,
                                     opprettet = eksisterendeMeldeperiode.opprettet,
                                     // Nå har den kjørt ok i prod, vi ignorerer dette feltet for å få igjennom migreringen i dev. Databasen tømmes uansett 27. aug 25.
-                                    maksAntallDagerForMeldeperiode = eksisterendeMeldeperiode.maksAntallDagerForMeldeperiode
-                                ),
+                                    maksAntallDagerForMeldeperiode = eksisterendeMeldeperiode.maksAntallDagerForMeldeperiode,
+                                )
                             ) {
-                                "Kunne ikke migrere meldeperiode ${nyMeldeperiode.id} for sak $sakId fordi den ikke samsvarer med eksisterende meldeperiode ${eksisterendeMeldeperiode.id} i kjede ${eksisterendeKjede.kjedeId}. " +
-                                    "Eksisterende: $eksisterendeMeldeperiode, ny: $nyMeldeperiode"
+                                logger.error {
+                                    "Vurder slett denne fra dev. Kunne ikke migrere meldeperiode ${nyMeldeperiode.id} for sak $sakId fordi den ikke samsvarer med eksisterende meldeperiode ${eksisterendeMeldeperiode.id} i kjede ${eksisterendeKjede.kjedeId}. " +
+                                        "Eksisterende: $eksisterendeMeldeperiode, ny: $nyMeldeperiode"
+                                }
+                                return@forEach
                             }
                             if (eksisterendeMeldeperiode.rammevedtak != null && eksisterendeMeldeperiode.rammevedtak != nyMeldeperiode.rammevedtak) {
                                 throw IllegalStateException("Rammevedtak for meldeperiode ${nyMeldeperiode.id} er endret. Eksisterende: ${eksisterendeMeldeperiode.rammevedtak}, ny: ${nyMeldeperiode.rammevedtak}")
