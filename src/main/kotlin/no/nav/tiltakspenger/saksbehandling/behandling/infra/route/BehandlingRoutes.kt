@@ -20,9 +20,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaBehan
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisVedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaBehandlingService
 
-internal const val BEHANDLING_PATH = "/behandling"
-internal const val BEHANDLINGER_PATH = "/behandlinger"
-
 fun Route.behandlingRoutes(
     behandlingService: BehandlingService,
     tokenService: TokenService,

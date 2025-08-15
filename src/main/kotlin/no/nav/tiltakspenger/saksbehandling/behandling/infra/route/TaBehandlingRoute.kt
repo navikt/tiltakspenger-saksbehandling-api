@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandl
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaBehandlingService
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 
 private const val TA_BEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/ta"
 
@@ -25,19 +26,21 @@ fun Route.taBehandlingRoute(
     post(TA_BEHANDLING_PATH) {
         logger.debug { "Mottatt post-request på '$TA_BEHANDLING_PATH' - Knytter saksbehandler/beslutter til behandlingen." }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
-            call.withBehandlingId { behandlingId ->
-                val correlationId = call.correlationId()
+            call.withSakId { sakId ->
+                call.withBehandlingId { behandlingId ->
+                    val correlationId = call.correlationId()
 
-                taBehandlingService.taBehandling(behandlingId, saksbehandler, correlationId = correlationId).also {
-                    auditService.logMedBehandlingId(
-                        behandlingId = behandlingId,
-                        navIdent = saksbehandler.navIdent,
-                        action = AuditLogEvent.Action.UPDATE,
-                        contextMessage = "Saksbehandler tar behandlingen",
-                        correlationId = correlationId,
-                    )
+                    taBehandlingService.taBehandling(sakId, behandlingId, saksbehandler, correlationId = correlationId).also { (sak) ->
+                        auditService.logMedBehandlingId(
+                            behandlingId = behandlingId,
+                            navIdent = saksbehandler.navIdent,
+                            action = AuditLogEvent.Action.UPDATE,
+                            contextMessage = "Saksbehandler tar behandlingen",
+                            correlationId = correlationId,
+                        )
 
-                    call.respond(status = HttpStatusCode.OK, it.tilBehandlingDTO())
+                        call.respond(status = HttpStatusCode.OK, sak.tilBehandlingDTO(behandlingId))
+                    }
                 }
             }
         }

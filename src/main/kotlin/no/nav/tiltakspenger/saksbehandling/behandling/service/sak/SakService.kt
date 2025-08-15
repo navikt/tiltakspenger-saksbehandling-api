@@ -194,12 +194,6 @@ class SakService(
     }
 }
 
-sealed interface KanIkkeStarteSøknadsbehandling {
-    data class OppretteBehandling(
-        val underliggende: KanIkkeOppretteBehandling,
-    ) : KanIkkeStarteSøknadsbehandling
-}
-
 sealed interface KanIkkeBehandleSøknadPåNytt {
     data class OppretteBehandling(
         val underliggende: KanIkkeOppretteBehandling,

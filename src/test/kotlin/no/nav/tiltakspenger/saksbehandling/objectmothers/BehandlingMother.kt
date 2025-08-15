@@ -667,6 +667,7 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
     )
     this.behandlingContext.taBehandlingService.taBehandling(
+        vilkårsvurdert.id,
         vilkårsvurdert.behandlinger.singleOrNullOrThrow()!!.id,
         beslutter,
         correlationId = correlationId,

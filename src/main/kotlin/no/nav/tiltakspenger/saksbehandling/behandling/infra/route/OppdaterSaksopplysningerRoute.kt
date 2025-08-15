@@ -17,14 +17,16 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 
+private const val PATH = "/sak/{sakId}/behandling/{behandlingId}/saksopplysninger"
+
 fun Route.oppdaterSaksopplysningerRoute(
     tokenService: TokenService,
     auditService: AuditService,
     oppdaterSaksopplysningerService: OppdaterSaksopplysningerService,
 ) {
     val logger = KotlinLogging.logger {}
-    patch("/sak/{sakId}/behandling/{behandlingId}/saksopplysninger") {
-        logger.debug { "Mottatt get-request på '/sak/{sakId}/behandling/{behandlingId}/saksopplysninger' - henter saksopplysninger fra registre på nytt og oppdaterer behandlingen." }
+    patch(PATH) {
+        logger.debug { "Mottatt patch-request på '$PATH' - henter saksopplysninger fra registre på nytt og oppdaterer behandlingen." }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
@@ -39,7 +41,7 @@ fun Route.oppdaterSaksopplysningerRoute(
                             val (status, errorJson) = it.tilStatusOgErrorJson()
                             call.respond(status = status, errorJson)
                         },
-                        ifRight = {
+                        ifRight = { (sak) ->
                             auditService.logMedBehandlingId(
                                 behandlingId = behandlingId,
                                 navIdent = saksbehandler.navIdent,
@@ -48,7 +50,7 @@ fun Route.oppdaterSaksopplysningerRoute(
                                 correlationId = correlationId,
                             )
 
-                            call.respond(status = HttpStatusCode.OK, it.tilBehandlingDTO())
+                            call.respond(status = HttpStatusCode.OK, sak.tilBehandlingDTO(behandlingId))
                         },
                     )
                 }
