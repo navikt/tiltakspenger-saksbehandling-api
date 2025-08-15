@@ -48,7 +48,7 @@ class V113__fiks_ikke_rett_meldekort_bruker : BaseJavaMigration() {
         sessionFactory.withTransactionContext { tx ->
             val meldeperioder: Map<SakId, MeldeperiodeKjeder> = tx.withSession { session ->
                 session.run(
-                    sqlQuery("""select * from meldeperiode order by sak_id, kjede_id, versjon""")
+                    sqlQuery("""select m.*,s.saksnummer,s.fnr from meldeperiode m join sak s on s.id = m.sak_id order by m.sak_id, m.kjede_id, m.versjon""")
                         .map { row -> fromRowToMeldeperiode(row) }.asList,
                 )
             }.groupBy { it.sakId }.map {
