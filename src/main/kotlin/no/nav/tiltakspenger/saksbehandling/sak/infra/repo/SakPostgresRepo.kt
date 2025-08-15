@@ -71,19 +71,11 @@ class SakPostgresRepo(
             }
         }
 
-    override fun hentForSakId(sakId: SakId): Sak? =
-        sessionFactory.withSessionContext { sessionContext ->
-            sessionContext.withSession { session ->
-                session.run(
-                    queryOf(
-                        sqlHent,
-                        mapOf("id" to sakId.toString()),
-                    ).map { row ->
-                        row.toSak(sessionContext)
-                    }.asSingle,
-                )
-            }
+    override fun hentForSakId(sakId: SakId): Sak? {
+        return sessionFactory.withSessionContext { sessionContext ->
+            hentForSakId(sakId, sessionContext)
         }
+    }
 
     override fun hentFnrForSaksnummer(
         saksnummer: Saksnummer,
@@ -233,6 +225,19 @@ class SakPostgresRepo(
         ) ?: throw RuntimeException("Kunne ikke avgjøre om sak finnes")
 
     companion object {
+
+        fun hentForSakId(sakId: SakId, sessionContext: SessionContext): Sak? {
+            return sessionContext.withSession { session ->
+                session.run(
+                    queryOf(
+                        sqlHent,
+                        mapOf("id" to sakId.toString()),
+                    ).map { row ->
+                        row.toSak(sessionContext)
+                    }.asSingle,
+                )
+            }
+        }
 
         fun Row.toSak(sessionContext: SessionContext): Sak {
             val id: SakId = SakId.fromString(string("id"))
