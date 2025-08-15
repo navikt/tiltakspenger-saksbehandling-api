@@ -80,7 +80,11 @@ class V113__migrer_meldeperiode_rammevedtak_id : BaseJavaMigration() {
                         nyeMeldeperioder.forEach { nyMeldeperiode ->
                             require(nyMeldeperiode.rammevedtak!!.isNotEmpty())
                             val eksisterendeKjede: MeldeperiodeKjede =
-                                eksisterendeMeldeperiodeKjeder.hentMeldeperiodeKjedeForPeriode(nyMeldeperiode.periode)!!
+                                eksisterendeMeldeperiodeKjeder.hentMeldeperiodeKjedeForPeriode(nyMeldeperiode.periode)
+                                    ?: run {
+                                        logger.debug { "Forventet meldeperiodekjede for sak ${nyMeldeperiode.sakId} med periode ${nyMeldeperiode.periode}, men den finnes ikke i basen. Hopper over denne." }
+                                        return@forEach
+                                    }
                             val eksisterendeMeldeperiode: Meldeperiode =
                                 eksisterendeKjede.single { it.versjon == nyMeldeperiode.versjon }
                             require(
@@ -91,7 +95,7 @@ class V113__migrer_meldeperiode_rammevedtak_id : BaseJavaMigration() {
                                     opprettet = eksisterendeMeldeperiode.opprettet,
                                 ),
                             ) {
-                                "Kunne ikke migrere meldeperiode ${nyMeldeperiode.id} for sak ${sakId} fordi den ikke samsvarer med eksisterende meldeperiode ${eksisterendeMeldeperiode.id} i kjede ${eksisterendeKjede.kjedeId}. " +
+                                "Kunne ikke migrere meldeperiode ${nyMeldeperiode.id} for sak $sakId fordi den ikke samsvarer med eksisterende meldeperiode ${eksisterendeMeldeperiode.id} i kjede ${eksisterendeKjede.kjedeId}. " +
                                     "Eksisterende: $eksisterendeMeldeperiode, ny: $nyMeldeperiode"
                             }
                             if (eksisterendeMeldeperiode.rammevedtak != null && eksisterendeMeldeperiode.rammevedtak != nyMeldeperiode.rammevedtak) {
