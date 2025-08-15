@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.common.singleOrNullOrThrow
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
@@ -86,7 +87,10 @@ class V113__migrer_meldeperiode_rammevedtak_id : BaseJavaMigration() {
                                         return@forEach
                                     }
                             val eksisterendeMeldeperiode: Meldeperiode =
-                                eksisterendeKjede.single { it.versjon == nyMeldeperiode.versjon }
+                                eksisterendeKjede.singleOrNullOrThrow { it.versjon == nyMeldeperiode.versjon } ?: run {
+                                    logger.debug { "Vurder slett denne fra dev. Forventet samme versjon for sak ${nyMeldeperiode.sakId} med periode ${nyMeldeperiode.periode}. Sannsynligvis har vi for få meldeperiode i dev-basen. Hopper over denne." }
+                                    return@forEach
+                                }
                             if (eksisterendeMeldeperiode != nyMeldeperiode.copy(
                                     // Vi gjør bare en rask sjekk på at vi snakker om den samme meldeperioden som er generert tidligere. Vi må ignorere id, opprettet og rammevedtak.
                                     rammevedtak = eksisterendeMeldeperiode.rammevedtak,
