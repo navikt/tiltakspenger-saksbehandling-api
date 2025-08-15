@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.overlapperIkke
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
@@ -178,7 +179,7 @@ data class MeldeperiodeKjeder(
                 sakId = vedtaksliste.sakId!!,
                 antallDagerForPeriode = antallDagerSomGirRettForMeldePeriode,
                 versjon = versjon,
-                rammevedtak = vedtaksliste.vedtakForPeriode(nærmesteMeldeperiode),
+                rammevedtak = vedtaksliste.vedtakForPeriode(nærmesteMeldeperiode) as IkkeTomPeriodisering,
                 clock = clock,
             )
 

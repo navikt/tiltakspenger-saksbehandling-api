@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
@@ -689,7 +690,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 put(periode.fraOgMed.plusDays(day.toLong()), false)
             }
         },
-        rammevedtak: Periodisering<VedtakId> = SammenhengendePeriodisering(VedtakId.random(), periode),
+        rammevedtak: IkkeTomPeriodisering<VedtakId> = SammenhengendePeriodisering(VedtakId.random(), periode),
     ): Meldeperiode = Meldeperiode(
         kjedeId = kjedeId,
         id = id,
