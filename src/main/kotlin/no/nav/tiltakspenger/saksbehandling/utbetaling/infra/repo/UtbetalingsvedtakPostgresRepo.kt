@@ -195,7 +195,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                             select u.*, s.fnr, s.saksnummer 
                             from utbetalingsvedtak u 
                             join sak s on s.id = u.sak_id 
-                            where u.journalpost_id is null
+                            where u.journalpost_id is null and u.meldekort_id is not null
                             limit :limit
                     """.trimIndent(),
                     mapOf("limit" to limit),
