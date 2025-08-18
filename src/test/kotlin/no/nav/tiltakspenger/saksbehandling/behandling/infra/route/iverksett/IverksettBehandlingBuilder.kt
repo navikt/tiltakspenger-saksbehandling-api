@@ -113,15 +113,17 @@ interface IverksettBehandlingBuilder {
         behandlingId: BehandlingId,
         beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): Triple<Sak, Behandling, String> {
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
+            saksbehandler = beslutter,
+        )
+        tac.texasClient.leggTilBruker(jwt, beslutter)
         defaultRequest(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/behandling/$behandlingId/iverksett")
             },
-            jwt = tac.jwtGenerator.createJwtForSaksbehandler(
-                saksbehandler = beslutter,
-            ),
+            jwt = jwt,
         ).apply {
             val bodyAsText = this.bodyAsText()
             withClue(
@@ -141,15 +143,17 @@ interface IverksettBehandlingBuilder {
         behandlingId: BehandlingId,
         beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): HttpResponse {
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
+            saksbehandler = beslutter,
+        )
+        tac.texasClient.leggTilBruker(jwt, beslutter)
         return defaultRequest(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/behandling/$behandlingId/iverksett")
             },
-            jwt = tac.jwtGenerator.createJwtForSaksbehandler(
-                saksbehandler = beslutter,
-            ),
+            jwt = jwt,
         )
     }
 }

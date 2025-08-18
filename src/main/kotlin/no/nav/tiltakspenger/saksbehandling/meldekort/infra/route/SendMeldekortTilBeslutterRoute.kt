@@ -5,11 +5,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import no.nav.tiltakspenger.libs.auth.core.TokenService
-import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
+import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
+import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
@@ -23,50 +23,49 @@ import java.time.Clock
 fun Route.sendMeldekortTilBeslutterRoute(
     sendMeldekortTilBeslutterService: SendMeldekortTilBeslutterService,
     auditService: AuditService,
-    tokenService: TokenService,
     clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
     post("/sak/{sakId}/meldekort/{meldekortId}") {
         logger.debug { "Mottatt post-request på /sak/{sakId}/meldekort/{meldekortId} - saksbehandler har fylt ut meldekortet og sendt til beslutter" }
-        call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
-            call.withSakId { sakId ->
-                call.withMeldekortId { meldekortId ->
-                    call.withBody<SendMeldekortTilBeslutterDTO> { body ->
-                        val correlationId = call.correlationId()
-                        val kommando = body.toDomain(
-                            saksbehandler = saksbehandler,
-                            meldekortId = meldekortId,
-                            sakId = sakId,
-                            correlationId = correlationId,
-                        )
-                        sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(kommando).fold(
-                            ifLeft = {
-                                when (it) {
-                                    is KanIkkeSendeMeldekortTilBeslutter.MeldekortperiodenKanIkkeVæreFremITid -> {
-                                        call.respond400BadRequest(
-                                            melding = "Kan ikke sende inn et meldekort før meldekortperioden har begynt.",
-                                            kode = "meldekortperioden_kan_ikke_være_frem_i_tid",
-                                        )
-                                    }
-                                    is KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere -> respondWithError(it.underliggende)
+        val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
+        call.withSakId { sakId ->
+            call.withMeldekortId { meldekortId ->
+                call.withBody<SendMeldekortTilBeslutterDTO> { body ->
+                    val correlationId = call.correlationId()
+                    val kommando = body.toDomain(
+                        saksbehandler = saksbehandler,
+                        meldekortId = meldekortId,
+                        sakId = sakId,
+                        correlationId = correlationId,
+                    )
+                    sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(kommando).fold(
+                        ifLeft = {
+                            when (it) {
+                                is KanIkkeSendeMeldekortTilBeslutter.MeldekortperiodenKanIkkeVæreFremITid -> {
+                                    call.respond400BadRequest(
+                                        melding = "Kan ikke sende inn et meldekort før meldekortperioden har begynt.",
+                                        kode = "meldekortperioden_kan_ikke_være_frem_i_tid",
+                                    )
                                 }
-                            },
-                            ifRight = {
-                                auditService.logMedMeldekortId(
-                                    meldekortId = meldekortId,
-                                    navIdent = saksbehandler.navIdent,
-                                    action = AuditLogEvent.Action.UPDATE,
-                                    contextMessage = "Saksbehandler har fylt ut meldekortet og sendt til beslutter",
-                                    correlationId = correlationId,
-                                )
-                                call.respond(
-                                    message = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock),
-                                    status = HttpStatusCode.OK,
-                                )
-                            },
-                        )
-                    }
+
+                                is KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere -> respondWithError(it.underliggende)
+                            }
+                        },
+                        ifRight = {
+                            auditService.logMedMeldekortId(
+                                meldekortId = meldekortId,
+                                navIdent = saksbehandler.navIdent,
+                                action = AuditLogEvent.Action.UPDATE,
+                                contextMessage = "Saksbehandler har fylt ut meldekortet og sendt til beslutter",
+                                correlationId = correlationId,
+                            )
+                            call.respond(
+                                message = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock),
+                                status = HttpStatusCode.OK,
+                            )
+                        },
+                    )
                 }
             }
         }

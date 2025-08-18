@@ -6,6 +6,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
+import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 
 fun withTestApplicationContext(
     additionalConfig: Application.() -> Unit = {},
@@ -14,6 +15,7 @@ fun withTestApplicationContext(
     testApplication {
         application {
             jacksonSerialization()
+            setupAuthentication(texasClient)
             routing { routes(this@with) }
             additionalConfig()
         }

@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
-import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -10,19 +9,23 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
 import io.ktor.http.path
+import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import io.ktor.server.util.url
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.texas.IdentityProvider
+import no.nav.tiltakspenger.libs.texas.client.TexasClient
+import no.nav.tiltakspenger.libs.texas.client.TexasIntrospectionResponse
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
+import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -32,11 +35,24 @@ class ExceptionHandlingTest {
 
     @Test
     fun `IllegalStateException skal bli til 500`() {
-        val tokenServiceMock = mockk<TokenService>()
+        val texasClientMock = mockk<TexasClient>()
         val sakService = mockk<SakService>()
         val auditServiceMock = mockk<AuditService>()
+        val beslutter = ObjectMother.beslutter()
         runTest {
-            coEvery { tokenServiceMock.validerOgHentBruker(any()) } returns ObjectMother.beslutter().right()
+            coEvery { texasClientMock.introspectToken(any(), IdentityProvider.AZUREAD) } returns TexasIntrospectionResponse(
+                active = true,
+                error = null,
+                other = mutableMapOf(
+                    "azp_name" to beslutter.klientnavn,
+                    "azp" to beslutter.klientId,
+                    "NAVident" to beslutter.navIdent,
+                    "preferred_username" to beslutter.epost,
+                    "groups" to """
+                    ["79985315-b2de-40b8-a740-9510796993c6"]
+                    """.trimIndent(),
+                ),
+            )
             coEvery { sakService.hentForFnr(any(), any(), any()) } throws IllegalStateException("Wuzza")
 
             val exceptedStatusCode = HttpStatusCode.Companion.InternalServerError
@@ -52,13 +68,15 @@ class ExceptionHandlingTest {
                 application {
                     jacksonSerialization()
                     configureExceptions()
+                    setupAuthentication(texasClientMock)
                     routing {
-                        hentSakForFnrRoute(
-                            tokenService = tokenServiceMock,
-                            sakService = sakService,
-                            auditService = auditServiceMock,
-                            clock = fixedClock,
-                        )
+                        authenticate(IdentityProvider.AZUREAD.value) {
+                            hentSakForFnrRoute(
+                                sakService = sakService,
+                                auditService = auditServiceMock,
+                                clock = fixedClock,
+                            )
+                        }
                     }
                 }
                 defaultRequest(

@@ -1,9 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup
 
-import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
+import no.nav.tiltakspenger.libs.texas.IdentityProvider
+import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
@@ -46,7 +47,7 @@ open class MeldekortContext(
     personService: PersonService,
     utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
     statistikkStønadRepo: StatistikkStønadRepo,
-    entraIdSystemtokenClient: EntraIdSystemtokenClient,
+    texasClient: TexasClient,
     navkontorService: NavkontorService,
     oppgaveKlient: OppgaveKlient,
     sakRepo: SakRepo,
@@ -115,7 +116,7 @@ open class MeldekortContext(
     open val meldekortApiHttpClient: MeldekortApiKlient by lazy {
         MeldekortApiHttpClient(
             baseUrl = Configuration.meldekortApiUrl,
-            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.meldekortApiScope) },
+            getToken = { texasClient.getSystemToken(Configuration.meldekortApiScope, IdentityProvider.AZUREAD) },
         )
     }
     val sendTilMeldekortApiService by lazy {

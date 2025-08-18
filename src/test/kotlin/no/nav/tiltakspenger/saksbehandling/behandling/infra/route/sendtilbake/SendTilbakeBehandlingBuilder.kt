@@ -59,15 +59,17 @@ interface SendTilbakeBehandlingBuilder {
         begrunnelse: String = "send_tilbake_begrunnelse",
         beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): String {
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
+            saksbehandler = beslutter,
+        )
+        tac.texasClient.leggTilBruker(jwt, beslutter)
         defaultRequest(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/behandling/sendtilbake/$behandlingId")
             },
-            jwt = tac.jwtGenerator.createJwtForSaksbehandler(
-                saksbehandler = beslutter,
-            ),
+            jwt = jwt,
         ) {
             setBody("""{"begrunnelse": "$begrunnelse"}""")
         }.apply {

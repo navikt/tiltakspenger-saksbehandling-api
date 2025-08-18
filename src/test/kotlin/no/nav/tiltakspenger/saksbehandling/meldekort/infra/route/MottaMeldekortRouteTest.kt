@@ -3,10 +3,12 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
 import io.ktor.http.path
+import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
@@ -17,8 +19,11 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
+import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.frameldekortapi.mottaMeldekortRoutes
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -41,17 +46,21 @@ internal class MottaMeldekortRouteTest {
     private suspend fun ApplicationTestBuilder.mottaMeldekortRequest(
         dto: BrukerutfyltMeldekortDTO,
         tac: TestApplicationContext,
-    ) = defaultRequest(
-        HttpMethod.Post,
-        url {
-            protocol = URLProtocol.HTTPS
-            path("/meldekort/motta")
-        },
-        jwt = tac.jwtGenerator.createJwtForSystembruker(
+    ): HttpResponse {
+        val jwt = tac.jwtGenerator.createJwtForSystembruker(
             roles = listOf("lagre_meldekort"),
-        ),
-    ) {
-        setBody(serialize(dto))
+        )
+        tac.texasClient.leggTilBruker(jwt, ObjectMother.systembrukerLagreMeldekort())
+        return defaultRequest(
+            HttpMethod.Post,
+            url {
+                protocol = URLProtocol.HTTPS
+                path("/meldekort/motta")
+            },
+            jwt = jwt,
+        ) {
+            setBody(serialize(dto))
+        }
     }
 
     @Test
@@ -69,11 +78,14 @@ internal class MottaMeldekortRouteTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    configureExceptions()
+                    setupAuthentication(tac.texasClient)
                     routing {
-                        mottaMeldekortRoutes(
-                            mottaBrukerutfyltMeldekortService = tac.mottaBrukerutfyltMeldekortService,
-                            tokenService = tac.tokenService,
-                        )
+                        authenticate(IdentityProvider.AZUREAD.value) {
+                            mottaMeldekortRoutes(
+                                mottaBrukerutfyltMeldekortService = tac.mottaBrukerutfyltMeldekortService,
+                            )
+                        }
                     }
                 }
 
@@ -100,11 +112,14 @@ internal class MottaMeldekortRouteTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    configureExceptions()
+                    setupAuthentication(tac.texasClient)
                     routing {
-                        mottaMeldekortRoutes(
-                            mottaBrukerutfyltMeldekortService = tac.mottaBrukerutfyltMeldekortService,
-                            tokenService = tac.tokenService,
-                        )
+                        authenticate(IdentityProvider.AZUREAD.value) {
+                            mottaMeldekortRoutes(
+                                mottaBrukerutfyltMeldekortService = tac.mottaBrukerutfyltMeldekortService,
+                            )
+                        }
                     }
                 }
 
@@ -142,11 +157,14 @@ internal class MottaMeldekortRouteTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    configureExceptions()
+                    setupAuthentication(tac.texasClient)
                     routing {
-                        mottaMeldekortRoutes(
-                            mottaBrukerutfyltMeldekortService = tac.mottaBrukerutfyltMeldekortService,
-                            tokenService = tac.tokenService,
-                        )
+                        authenticate(IdentityProvider.AZUREAD.value) {
+                            mottaMeldekortRoutes(
+                                mottaBrukerutfyltMeldekortService = tac.mottaBrukerutfyltMeldekortService,
+                            )
+                        }
                     }
                 }
 

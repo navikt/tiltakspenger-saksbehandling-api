@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
+import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehanding
@@ -23,6 +24,7 @@ internal class TaOgOvertaBehandlingTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
                 val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
@@ -58,6 +60,7 @@ internal class TaOgOvertaBehandlingTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
                 val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)

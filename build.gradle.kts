@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 val jvmVersion = JvmTarget.JVM_21
 val kotlinxCoroutinesVersion = "1.10.2"
 val kotestVersion = "5.9.1"
-val felleslibVersion = "0.0.548"
+val felleslibVersion = "0.0.554"
 val mockkVersion = "1.14.5"
 val ktorVersion = "3.2.3"
 val testContainersVersion = "1.21.3"
@@ -33,12 +33,12 @@ dependencies {
     implementation("com.github.navikt.tiltakspenger-libs:common:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:json:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:auth-core:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:auth-ktor:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:ktor-common:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:logging:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:meldekort-dtos:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:meldekort:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:kafka:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:texas:$felleslibVersion")
 
     implementation("io.github.oshai:kotlin-logging-jvm:7.0.12")
     implementation("ch.qos.logback:logback-classic:1.5.18")
@@ -46,17 +46,15 @@ dependencies {
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
     implementation("com.aallam.ulid:ulid-kotlin:1.5.0")
 
+    implementation("io.ktor:ktor-server-auth:$ktorVersion")
     implementation("io.ktor:ktor-server-call-id:$ktorVersion")
     implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-server-core:$ktorVersion")
-    implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-cors:$ktorVersion")
     implementation("io.ktor:ktor-server-default-headers-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-host-common:$ktorVersion")
-    implementation("io.ktor:ktor-server-host-common-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-utils:$ktorVersion")

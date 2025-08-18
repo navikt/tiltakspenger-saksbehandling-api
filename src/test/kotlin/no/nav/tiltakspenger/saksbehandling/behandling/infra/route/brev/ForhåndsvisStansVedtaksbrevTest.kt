@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemm
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
+import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.forhåndsvisVedtaksbrevForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
 import org.junit.jupiter.api.Test
@@ -24,6 +25,7 @@ internal class ForhåndsvisStansVedtaksbrevTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
                 val (sak, _, _, revurdering) = startRevurderingStans(

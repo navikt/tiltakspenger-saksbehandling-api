@@ -137,15 +137,17 @@ interface SendRevurderingTilBeslutningBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
     ): String {
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
+            saksbehandler = saksbehandler,
+        )
+        tac.texasClient.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/behandling/$behandlingId/sendtilbeslutning")
             },
-            jwt = tac.jwtGenerator.createJwtForSaksbehandler(
-                saksbehandler = saksbehandler,
-            ),
+            jwt = jwt,
         ).apply {
             val bodyAsText = this.bodyAsText()
             withClue(
@@ -170,15 +172,17 @@ interface SendRevurderingTilBeslutningBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
     ): String {
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
+            saksbehandler = saksbehandler,
+        )
+        tac.texasClient.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/behandling/$behandlingId/sendtilbeslutning")
             },
-            jwt = tac.jwtGenerator.createJwtForSaksbehandler(
-                saksbehandler = saksbehandler,
-            ),
+            jwt = jwt,
         ).apply {
             val bodyAsText = this.bodyAsText()
             withClue(

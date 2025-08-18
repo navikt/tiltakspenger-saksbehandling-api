@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
+import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
@@ -24,6 +25,7 @@ internal class OppdaterSaksopplysningerTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
                 val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)

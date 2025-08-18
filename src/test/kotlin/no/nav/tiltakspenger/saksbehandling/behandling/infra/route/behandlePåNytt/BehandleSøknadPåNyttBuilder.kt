@@ -46,13 +46,15 @@ interface BehandleSøknadPåNyttBuilder {
         sakId: SakId,
         søknadId: SøknadId,
     ): Pair<Behandling, String> {
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler()
+        tac.texasClient.leggTilBruker(jwt, ObjectMother.saksbehandler())
         defaultRequest(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/soknad/$søknadId/behandling/ny-behandling")
             },
-            jwt = tac.jwtGenerator.createJwtForSaksbehandler(),
+            jwt = jwt,
         ).apply {
             val bodyAsText = this.bodyAsText()
             withClue(

@@ -7,6 +7,7 @@ import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
+import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -21,6 +22,7 @@ class TaMeldekortBehandlingRouteTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
                 val (sak, _, _) = this.iverksettSøknadsbehandling(tac)
@@ -54,6 +56,7 @@ class TaMeldekortBehandlingRouteTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
                 val (sak, _, _) = this.iverksettSøknadsbehandling(tac)

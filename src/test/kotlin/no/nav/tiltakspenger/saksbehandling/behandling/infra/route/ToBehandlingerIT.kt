@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
+import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import org.junit.jupiter.api.Test
 
@@ -25,6 +26,7 @@ class ToBehandlingerIT {
                 testApplication {
                     application {
                         jacksonSerialization()
+                        setupAuthentication(texasClient)
                         routing { routes(tac) }
                     }
                     val fnr = Fnr.random()

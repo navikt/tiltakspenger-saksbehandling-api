@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.infra.route
 
+import io.ktor.server.auth.authenticate
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.routing.Route
+import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.behandlingRoutes
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.hentBenkRoute
 import no.nav.tiltakspenger.saksbehandling.infra.repo.healthRoutes
@@ -18,61 +20,57 @@ fun Route.routes(
 ) {
     devRoutes(applicationContext)
     healthRoutes()
-    meRoute(applicationContext.tokenService)
-    behandlingRoutes(
-        behandlingService = applicationContext.behandlingContext.behandlingService,
-        auditService = applicationContext.personContext.auditService,
-        tokenService = applicationContext.tokenService,
-        behandleSøknadPåNyttService = applicationContext.behandlingContext.behandleSøknadPåNyttService,
-        oppdaterSaksopplysningerService = applicationContext.behandlingContext.oppdaterSaksopplysningerService,
-        iverksettBehandlingService = applicationContext.behandlingContext.iverksettBehandlingService,
-        sendBehandlingTilBeslutningService = applicationContext.behandlingContext.sendBehandlingTilBeslutningService,
-        forhåndsvisVedtaksbrevService = applicationContext.behandlingContext.forhåndsvisVedtaksbrevService,
-        startRevurderingService = applicationContext.behandlingContext.startRevurderingService,
-        taBehandlingService = applicationContext.behandlingContext.taBehandlingService,
-        overtaBehandlingService = applicationContext.behandlingContext.overtaBehandlingService,
-        leggTilbakeBehandlingService = applicationContext.behandlingContext.leggTilbakeBehandlingService,
-        oppdaterBehandlingService = applicationContext.behandlingContext.oppdaterBehandlingService,
-        settBehandlingPåVentService = applicationContext.behandlingContext.settBehandlingPåVentService,
-        gjenopptaBehandlingService = applicationContext.behandlingContext.gjenopptaBehandlingService,
-    )
-    hentBenkRoute(
-        tokenService = applicationContext.tokenService,
-        benkOversiktService = applicationContext.benkOversiktContext.benkOversiktService,
-    )
-    hentPersonRoute(
-        applicationContext.tokenService,
-        applicationContext.sakContext.sakService,
-        applicationContext.personContext.auditService,
-    )
-    sakRoutes(
-        tokenService = applicationContext.tokenService,
-        sakService = applicationContext.sakContext.sakService,
-        auditService = applicationContext.personContext.auditService,
-        avbrytSøknadOgBehandlingService = applicationContext.avbrytSøknadOgBehandlingContext.avsluttSøknadOgBehandlingService,
-        clock = applicationContext.clock,
-    )
-    meldekortRoutes(
-        iverksettMeldekortService = applicationContext.meldekortContext.iverksettMeldekortService,
-        oppdaterMeldekortService = applicationContext.meldekortContext.oppdaterMeldekortService,
-        opprettMeldekortBehandlingService = applicationContext.meldekortContext.opprettMeldekortBehandlingService,
-        auditService = applicationContext.personContext.auditService,
-        sakService = applicationContext.sakContext.sakService,
-        tokenService = applicationContext.tokenService,
-        mottaBrukerutfyltMeldekortService = applicationContext.mottaBrukerutfyltMeldekortService,
-        underkjennMeldekortBehandlingService = applicationContext.meldekortContext.underkjennMeldekortBehandlingService,
-        overtaMeldekortBehandlingService = applicationContext.meldekortContext.overtaMeldekortBehandlingService,
-        taMeldekortBehandlingService = applicationContext.meldekortContext.taMeldekortBehandlingService,
-        leggTilbakeMeldekortBehandlingService = applicationContext.meldekortContext.leggTilbakeMeldekortBehandlingService,
-        sendMeldekortTilBeslutterService = applicationContext.meldekortContext.sendMeldekortTilBeslutterService,
-        avbrytMeldekortBehandlingService = applicationContext.meldekortContext.avbrytMeldekortBehandlingService,
-        clock = applicationContext.clock,
-    )
-    mottaSøknadRoute(
-        applicationContext.søknadContext.søknadService,
-        applicationContext.sakContext.sakService,
-        tokenService = applicationContext.tokenService,
-    )
+    authenticate(IdentityProvider.AZUREAD.value) {
+        meRoute()
+        behandlingRoutes(
+            behandlingService = applicationContext.behandlingContext.behandlingService,
+            auditService = applicationContext.personContext.auditService,
+            behandleSøknadPåNyttService = applicationContext.behandlingContext.behandleSøknadPåNyttService,
+            oppdaterSaksopplysningerService = applicationContext.behandlingContext.oppdaterSaksopplysningerService,
+            iverksettBehandlingService = applicationContext.behandlingContext.iverksettBehandlingService,
+            sendBehandlingTilBeslutningService = applicationContext.behandlingContext.sendBehandlingTilBeslutningService,
+            forhåndsvisVedtaksbrevService = applicationContext.behandlingContext.forhåndsvisVedtaksbrevService,
+            startRevurderingService = applicationContext.behandlingContext.startRevurderingService,
+            taBehandlingService = applicationContext.behandlingContext.taBehandlingService,
+            overtaBehandlingService = applicationContext.behandlingContext.overtaBehandlingService,
+            leggTilbakeBehandlingService = applicationContext.behandlingContext.leggTilbakeBehandlingService,
+            oppdaterBehandlingService = applicationContext.behandlingContext.oppdaterBehandlingService,
+            settBehandlingPåVentService = applicationContext.behandlingContext.settBehandlingPåVentService,
+            gjenopptaBehandlingService = applicationContext.behandlingContext.gjenopptaBehandlingService,
+        )
+        hentBenkRoute(
+            benkOversiktService = applicationContext.benkOversiktContext.benkOversiktService,
+        )
+        hentPersonRoute(
+            applicationContext.sakContext.sakService,
+            applicationContext.personContext.auditService,
+        )
+        sakRoutes(
+            sakService = applicationContext.sakContext.sakService,
+            auditService = applicationContext.personContext.auditService,
+            avbrytSøknadOgBehandlingService = applicationContext.avbrytSøknadOgBehandlingContext.avsluttSøknadOgBehandlingService,
+            clock = applicationContext.clock,
+        )
+        meldekortRoutes(
+            iverksettMeldekortService = applicationContext.meldekortContext.iverksettMeldekortService,
+            oppdaterMeldekortService = applicationContext.meldekortContext.oppdaterMeldekortService,
+            opprettMeldekortBehandlingService = applicationContext.meldekortContext.opprettMeldekortBehandlingService,
+            auditService = applicationContext.personContext.auditService,
+            sakService = applicationContext.sakContext.sakService,
+            mottaBrukerutfyltMeldekortService = applicationContext.mottaBrukerutfyltMeldekortService,
+            underkjennMeldekortBehandlingService = applicationContext.meldekortContext.underkjennMeldekortBehandlingService,
+            overtaMeldekortBehandlingService = applicationContext.meldekortContext.overtaMeldekortBehandlingService,
+            taMeldekortBehandlingService = applicationContext.meldekortContext.taMeldekortBehandlingService,
+            leggTilbakeMeldekortBehandlingService = applicationContext.meldekortContext.leggTilbakeMeldekortBehandlingService,
+            sendMeldekortTilBeslutterService = applicationContext.meldekortContext.sendMeldekortTilBeslutterService,
+            avbrytMeldekortBehandlingService = applicationContext.meldekortContext.avbrytMeldekortBehandlingService,
+            clock = applicationContext.clock,
+        )
+        mottaSøknadRoute(
+            applicationContext.søknadContext.søknadService,
+            applicationContext.sakContext.sakService,
+        )
+    }
     staticResources(
         remotePath = "/",
         basePackage = "static",

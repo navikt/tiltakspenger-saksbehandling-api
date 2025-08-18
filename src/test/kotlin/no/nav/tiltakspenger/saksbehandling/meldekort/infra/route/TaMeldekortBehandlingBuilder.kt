@@ -24,15 +24,17 @@ interface TaMeldekortBehandlingBuilder {
         meldekortId: MeldekortId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): String {
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
+            saksbehandler = saksbehandler,
+        )
+        tac.texasClient.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/meldekort/$meldekortId/ta")
             },
-            jwt = tac.jwtGenerator.createJwtForSaksbehandler(
-                saksbehandler = saksbehandler,
-            ),
+            jwt = jwt,
         ).apply {
             val bodyAsText = this.bodyAsText()
             withClue(

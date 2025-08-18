@@ -31,15 +31,17 @@ interface OppdaterSaksopplysningerBuilder {
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Triple<Sak, Behandling, String> {
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
+            saksbehandler = saksbehandler,
+        )
+        tac.texasClient.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
             HttpMethod.Patch,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/behandling/$behandlingId/saksopplysninger")
             },
-            jwt = tac.jwtGenerator.createJwtForSaksbehandler(
-                saksbehandler = saksbehandler,
-            ),
+            jwt = jwt,
         ).apply {
             val bodyAsText = this.bodyAsText()
             withClue(

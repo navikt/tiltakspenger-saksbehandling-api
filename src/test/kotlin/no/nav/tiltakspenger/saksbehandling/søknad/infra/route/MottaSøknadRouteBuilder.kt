@@ -52,15 +52,17 @@ interface MottaSøknadRouteBuilder {
         søknadId: SøknadId = SøknadId.random(),
         deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
     ) {
+        val jwt = tac.jwtGenerator.createJwtForSystembruker(
+            roles = listOf("hent_eller_opprett_sak", "lagre_soknad"),
+        )
+        tac.texasClient.leggTilBruker(jwt, ObjectMother.systembrukerHentEllerOpprettSakOgLagreSoknad())
         defaultRequest(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/soknad")
             },
-            jwt = tac.jwtGenerator.createJwtForSystembruker(
-                roles = listOf("hent_eller_opprett_sak", "lagre_soknad"),
-            ),
+            jwt = jwt,
         ) {
             setBody(
                 createRequest(

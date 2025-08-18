@@ -53,13 +53,17 @@ interface ForhåndsvisVedtaksbrevTestbuilder {
         resultat: BehandlingResultatDTO,
         avslagsgrunner: List<ValgtHjemmelForAvslagDTO>? = null,
     ): Triple<Sak, Behandling, String> {
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
+            saksbehandler = saksbehandler,
+        )
+        tac.texasClient.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/behandling/$behandlingId/forhandsvis")
             },
-            jwt = tac.jwtGenerator.createJwtForSaksbehandler(),
+            jwt = jwt,
         ) {
             val jsonBody = """
                   {

@@ -31,15 +31,17 @@ interface OvertaBehandlingBuilder {
         overtarFra: String,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): String {
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
+            saksbehandler = saksbehandler,
+        )
+        tac.texasClient.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
             HttpMethod.Patch,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/behandling/$behandlingId/overta")
             },
-            jwt = tac.jwtGenerator.createJwtForSaksbehandler(
-                saksbehandler = saksbehandler,
-            ),
+            jwt = jwt,
         ) {
             this.setBody("""{"overtarFra":"$overtarFra"}""")
         }.apply {

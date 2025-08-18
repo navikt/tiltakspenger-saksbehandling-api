@@ -5,15 +5,15 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
-import no.nav.tiltakspenger.libs.auth.core.TokenService
-import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
+import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaBehandlingService
+import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
@@ -26,44 +26,42 @@ data class OvertaBehandlingBody(
 )
 
 fun Route.overtaBehandlingRoute(
-    tokenService: TokenService,
     overtaBehandlingService: OvertaBehandlingService,
     auditService: AuditService,
 ) {
     val logger = KotlinLogging.logger {}
     patch(OVERTA_BEHANDLING_PATH) {
         logger.debug { "Mottatt post-request på '$OVERTA_BEHANDLING_PATH' - Tar over behandling" }
-        call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
-            call.withSakId { sakId ->
-                call.withBehandlingId { behandlingId ->
-                    call.withBody<OvertaBehandlingBody> { body ->
-                        val correlationId = call.correlationId()
-                        overtaBehandlingService.overta(
-                            OvertaBehandlingCommand(
-                                sakId = sakId,
+        val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@patch
+        call.withSakId { sakId ->
+            call.withBehandlingId { behandlingId ->
+                call.withBody<OvertaBehandlingBody> { body ->
+                    val correlationId = call.correlationId()
+                    overtaBehandlingService.overta(
+                        OvertaBehandlingCommand(
+                            sakId = sakId,
+                            behandlingId = behandlingId,
+                            saksbehandler = saksbehandler,
+                            correlationId = correlationId,
+                            overtarFra = body.overtarFra,
+                        ),
+                    ).fold(
+                        {
+                            val (status, error) = it.tilStatusOgErrorJson()
+                            call.respond(status, error)
+                        },
+                        {
+                            auditService.logMedBehandlingId(
                                 behandlingId = behandlingId,
-                                saksbehandler = saksbehandler,
+                                navIdent = saksbehandler.navIdent,
+                                action = AuditLogEvent.Action.CREATE,
+                                contextMessage = "Oppretter behandling fra søknad og starter behandlingen",
                                 correlationId = correlationId,
-                                overtarFra = body.overtarFra,
-                            ),
-                        ).fold(
-                            {
-                                val (status, error) = it.tilStatusOgErrorJson()
-                                call.respond(status, error)
-                            },
-                            {
-                                auditService.logMedBehandlingId(
-                                    behandlingId = behandlingId,
-                                    navIdent = saksbehandler.navIdent,
-                                    action = AuditLogEvent.Action.CREATE,
-                                    contextMessage = "Oppretter behandling fra søknad og starter behandlingen",
-                                    correlationId = correlationId,
-                                )
+                            )
 
-                                call.respond(HttpStatusCode.OK, it.tilBehandlingDTO())
-                            },
-                        )
-                    }
+                            call.respond(HttpStatusCode.OK, it.tilBehandlingDTO())
+                        },
+                    )
                 }
             }
         }
