@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
+package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 
