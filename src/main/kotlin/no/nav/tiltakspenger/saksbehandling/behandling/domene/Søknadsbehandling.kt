@@ -14,8 +14,11 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -86,7 +89,18 @@ data class Søknadsbehandling(
         super.init()
 
         when (resultat) {
-            is SøknadsbehandlingResultat.Innvilgelse -> resultat.valider(virkningsperiode)
+            is SøknadsbehandlingResultat.Innvilgelse -> when (status) {
+                KLAR_TIL_BESLUTNING,
+                UNDER_BESLUTNING,
+                VEDTATT,
+                -> resultat.valider(virkningsperiode)
+
+                UNDER_AUTOMATISK_BEHANDLING,
+                KLAR_TIL_BEHANDLING,
+                UNDER_BEHANDLING,
+                AVBRUTT,
+                -> Unit
+            }
             is SøknadsbehandlingResultat.Avslag -> Unit
             null -> Unit
         }
