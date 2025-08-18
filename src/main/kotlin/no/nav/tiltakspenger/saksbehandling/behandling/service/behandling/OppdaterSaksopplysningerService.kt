@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 class OppdaterSaksopplysningerService(
     private val sakService: SakService,
@@ -23,7 +24,7 @@ class OppdaterSaksopplysningerService(
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<KunneIkkeOppdatereSaksopplysninger, Behandling> {
+    ): Either<KunneIkkeOppdatereSaksopplysninger, Pair<Sak, Behandling>> {
         // Denne sjekker tilgang til person og rollene SAKSBEHANDLER eller BESLUTTER.
         val sak = sakService.sjekkTilgangOgHentForSakId(sakId, saksbehandler, correlationId)
         val behandling = sak.hentBehandling(behandlingId)!!
@@ -40,11 +41,14 @@ class OppdaterSaksopplysningerService(
                 is Søknadsbehandling -> true
             },
         )
+
         // Denne validerer saksbehandler
-        return behandling.oppdaterSaksopplysninger(saksbehandler, oppdaterteSaksopplysninger).mapLeft {
-            it
-        }.onRight {
+        return behandling.oppdaterSaksopplysninger(saksbehandler, oppdaterteSaksopplysninger).map {
+            val oppdatertSak = sak.oppdaterBehandling(it)
+
             behandlingRepo.lagre(it)
+
+            oppdatertSak to it
         }
     }
 }

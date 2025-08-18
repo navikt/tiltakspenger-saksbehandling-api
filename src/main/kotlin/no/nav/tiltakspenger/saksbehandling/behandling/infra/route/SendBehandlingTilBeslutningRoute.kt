@@ -45,18 +45,18 @@ fun Route.sendBehandlingTilBeslutningRoute(
                 ).onLeft {
                     val error = it.toErrorJson()
                     call.respond(error.first, error.second)
-                }.onRight {
+                }.onRight { (sak, behandling) ->
                     auditService.logMedBehandlingId(
                         behandlingId = behandlingId,
                         navIdent = saksbehandler.navIdent,
                         action = AuditLogEvent.Action.UPDATE,
-                        contextMessage = when (it) {
+                        contextMessage = when (behandling) {
                             is Revurdering -> "Sender revurdering til beslutter"
                             is Søknadsbehandling -> "Sender søknadsbehandling til beslutter"
                         },
                         correlationId = correlationId,
                     )
-                    call.respond(HttpStatusCode.OK, it.tilBehandlingDTO())
+                    call.respond(HttpStatusCode.OK, sak.tilBehandlingDTO(behandlingId))
                 }
             }
         }

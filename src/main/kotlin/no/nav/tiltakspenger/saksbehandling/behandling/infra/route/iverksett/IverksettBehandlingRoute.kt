@@ -38,7 +38,7 @@ fun Route.iverksettBehandlingRoute(
                             )
                         }
                     },
-                    {
+                    { (sak) ->
                         auditService.logMedSakId(
                             behandlingId = behandlingId,
                             navIdent = saksbehandler.navIdent,
@@ -48,7 +48,7 @@ fun Route.iverksettBehandlingRoute(
                             sakId = sakId,
                         )
                         MetricRegister.IVERKSATT_BEHANDLING.inc()
-                        call.respond(message = it.tilBehandlingDTO(), status = HttpStatusCode.OK)
+                        call.respond(message = sak.tilBehandlingDTO(behandlingId), status = HttpStatusCode.OK)
                     },
                 )
             }

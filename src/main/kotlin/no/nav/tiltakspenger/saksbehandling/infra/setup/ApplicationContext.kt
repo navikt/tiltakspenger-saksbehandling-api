@@ -318,7 +318,6 @@ open class ApplicationContext(
             søknadService = søknadContext.søknadService,
             behandlingService = behandlingContext.behandlingService,
             statistikkSakService = statistikkContext.statistikkSakService,
-            statistikkSakRepo = statistikkContext.statistikkSakRepo,
             sessionFactory = sessionFactory,
         )
     }

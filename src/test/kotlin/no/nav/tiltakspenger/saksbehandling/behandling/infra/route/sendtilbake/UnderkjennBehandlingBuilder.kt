@@ -13,6 +13,7 @@ import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -26,35 +27,46 @@ import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 /**
  * Gjelder for både søknadsbehandling og revurdering.
  */
-interface SendTilbakeBehandlingBuilder {
+interface UnderkjennBehandlingBuilder {
 
     /**
      * Oppretter ny sak, søknad og behandling.
      * Merk at denne tar behandlingen, før den sender tilbake til saksbehandler.
      * */
-    suspend fun ApplicationTestBuilder.sendTilbake(
+    suspend fun ApplicationTestBuilder.underkjenn(
         tac: TestApplicationContext,
         begrunnelse: String = "send_tilbake_begrunnelse",
         beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
         val (sak, søknad, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
         taBehanding(tac, sak.id, behandlingId, beslutter)
-        return Tuple4(sak, søknad, behandlingId, sendTilbakeForBehandlingId(tac, behandlingId, begrunnelse, beslutter))
+        return Tuple4(
+            sak,
+            søknad,
+            behandlingId,
+            underkjennForBehandlingId(tac, sak.id, behandlingId, begrunnelse, beslutter),
+        )
     }
 
-    suspend fun ApplicationTestBuilder.sendTilbakeAutomatiskSaksbehandletBehandling(
+    suspend fun ApplicationTestBuilder.underkjennAutomatiskSaksbehandletBehandling(
         tac: TestApplicationContext,
         begrunnelse: String = "send_tilbake_begrunnelse",
         beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
         val (sak, søknad, behandling) = opprettAutomatiskBehandlingKlarTilBeslutning(tac)
         taBehanding(tac, sak.id, behandling.id, beslutter)
-        return Tuple4(sak, søknad, behandling.id, sendTilbakeForBehandlingId(tac, behandling.id, begrunnelse, beslutter))
+        return Tuple4(
+            sak,
+            søknad,
+            behandling.id,
+            underkjennForBehandlingId(tac, sak.id, behandling.id, begrunnelse, beslutter),
+        )
     }
 
     /** Forventer at det allerede finnes en behandling med status `UNDER_BESLUTNING` */
-    suspend fun ApplicationTestBuilder.sendTilbakeForBehandlingId(
+    suspend fun ApplicationTestBuilder.underkjennForBehandlingId(
         tac: TestApplicationContext,
+        sakId: SakId,
         behandlingId: BehandlingId,
         begrunnelse: String = "send_tilbake_begrunnelse",
         beslutter: Saksbehandler = ObjectMother.beslutter(),
@@ -67,7 +79,7 @@ interface SendTilbakeBehandlingBuilder {
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/behandling/sendtilbake/$behandlingId")
+                path("/sak/$sakId/behandling/$behandlingId/underkjenn")
             },
             jwt = jwt,
         ) {

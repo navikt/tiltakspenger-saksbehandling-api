@@ -10,13 +10,15 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeUnderkjenne
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.BEHANDLING_PATH
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
+import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
+
+private const val PATH = "/sak/{sakId}/behandling/{behandlingId}/underkjenn"
 
 private data class BegrunnelseDTO(
     val begrunnelse: String?,
@@ -27,41 +29,44 @@ fun Route.underkjennBehandlingRoute(
     behandlingService: BehandlingService,
 ) {
     val logger = KotlinLogging.logger {}
-    // TODO jah: Endre til /sak/{sakId}/behandling/{behandlingId}/underkjenn
-    post("$BEHANDLING_PATH/sendtilbake/{behandlingId}") {
-        logger.debug { "Mottatt post-request på '$BEHANDLING_PATH/sendtilbake/{behandlingId}' - sender behandling tilbake til saksbehandler" }
+    post(PATH) {
+        logger.debug { "Mottatt post-request på '$PATH' - sender behandling tilbake til saksbehandler" }
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
-        call.withBehandlingId { behandlingId ->
-            call.withBody<BegrunnelseDTO> { body ->
-                val begrunnelse = body.begrunnelse
-                val correlationId = call.correlationId()
-                behandlingService.sendTilbakeTilSaksbehandler(
-                    behandlingId = behandlingId,
-                    beslutter = saksbehandler,
-                    begrunnelse = begrunnelse,
-                    correlationId = correlationId,
-                ).fold(
-                    {
-                        val (status, message) = it.toStatusAndErrorJson()
-                        call.respond(status, message)
-                    },
-                    {
-                        auditService.logMedBehandlingId(
-                            behandlingId = behandlingId,
-                            navIdent = saksbehandler.navIdent,
-                            action = AuditLogEvent.Action.UPDATE,
-                            contextMessage = "Beslutter underkjenner behandling",
-                            correlationId = correlationId,
-                        )
-                        call.respond(status = HttpStatusCode.OK, message = it.tilBehandlingDTO())
-                    },
-                )
+        call.withSakId { sakId ->
+            call.withBehandlingId { behandlingId ->
+                call.withBody<BegrunnelseDTO> { body ->
+                    val begrunnelse = body.begrunnelse
+                    val correlationId = call.correlationId()
+
+                    behandlingService.sendTilbakeTilSaksbehandler(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        beslutter = saksbehandler,
+                        begrunnelse = begrunnelse,
+                        correlationId = correlationId,
+                    ).fold(
+                        {
+                            val (status, message) = it.toStatusAndErrorJson()
+                            call.respond(status, message)
+                        },
+                        { (sak) ->
+                            auditService.logMedBehandlingId(
+                                behandlingId = behandlingId,
+                                navIdent = saksbehandler.navIdent,
+                                action = AuditLogEvent.Action.UPDATE,
+                                contextMessage = "Beslutter underkjenner behandling",
+                                correlationId = correlationId,
+                            )
+                            call.respond(status = HttpStatusCode.OK, message = sak.tilBehandlingDTO(behandlingId))
+                        },
+                    )
+                }
             }
         }
     }
 }
 
-internal fun KanIkkeUnderkjenne.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
+private fun KanIkkeUnderkjenne.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
     KanIkkeUnderkjenne.ManglerBegrunnelse -> HttpStatusCode.BadRequest to ErrorJson(
         "Begrunnelse må være utfylt",
         "begrunnelse_må_være_utfylt",

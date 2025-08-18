@@ -41,17 +41,17 @@ fun Route.startRevurderingRoute(
                         saksbehandler,
                         correlationId,
                     ),
-                ).also {
-                    val revurderingId = it.second.id
+                ).also { (sak, behandling) ->
+                    val behandlingId = behandling.id
                     auditService.logMedSakId(
                         sakId = sakId,
                         navIdent = saksbehandler.navIdent,
                         action = AuditLogEvent.Action.CREATE,
                         contextMessage = "Oppretter revurdering på sak $sakId",
                         correlationId = correlationId,
-                        behandlingId = revurderingId,
+                        behandlingId = behandlingId,
                     )
-                    call.respond(HttpStatusCode.OK, it.second.tilBehandlingDTO())
+                    call.respond(HttpStatusCode.OK, sak.tilBehandlingDTO(behandlingId))
                 }
             }
         }

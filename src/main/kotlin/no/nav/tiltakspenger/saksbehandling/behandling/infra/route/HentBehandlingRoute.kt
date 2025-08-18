@@ -13,27 +13,33 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Behandl
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
+
+// TODO abn: Denne er ikke i bruk av sbh frontend og kan antagelig fjernes
+
+private const val PATH = "/sak/{sakId}/behandling/{behandlingId}"
 
 fun Route.hentBehandlingRoute(
     behandlingService: BehandlingService,
     auditService: AuditService,
 ) {
     val logger = KotlinLogging.logger {}
-    // TODO jah: Endre til /sak/{sakId}/behandling/{behandlingId}
-    get("$BEHANDLING_PATH/{behandlingId}") {
-        logger.debug { "Mottatt get-request på '$BEHANDLING_PATH/{behandlingId}' - henter hele behandlingen" }
+    get(PATH) {
+        logger.debug { "Mottatt get-request på '$PATH' - henter hele behandlingen" }
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@get
-        call.withBehandlingId { behandlingId ->
-            val correlationId = call.correlationId()
-            behandlingService.hentBehandling(behandlingId, saksbehandler, correlationId).also {
-                auditService.logMedBehandlingId(
-                    behandlingId = behandlingId,
-                    navIdent = saksbehandler.navIdent,
-                    action = AuditLogEvent.Action.ACCESS,
-                    contextMessage = "Henter hele behandlingen",
-                    correlationId = correlationId,
-                )
-                call.respond(status = HttpStatusCode.OK, it.tilBehandlingDTO())
+        call.withSakId { sakId ->
+            call.withBehandlingId { behandlingId ->
+                val correlationId = call.correlationId()
+                behandlingService.hentSakOgBehandling(sakId, behandlingId, saksbehandler, correlationId).also { (sak) ->
+                    auditService.logMedBehandlingId(
+                        behandlingId = behandlingId,
+                        navIdent = saksbehandler.navIdent,
+                        action = AuditLogEvent.Action.ACCESS,
+                        contextMessage = "Henter hele behandlingen",
+                        correlationId = correlationId,
+                    )
+                    call.respond(status = HttpStatusCode.OK, sak.tilBehandlingDTO(behandlingId))
+                }
             }
         }
     }

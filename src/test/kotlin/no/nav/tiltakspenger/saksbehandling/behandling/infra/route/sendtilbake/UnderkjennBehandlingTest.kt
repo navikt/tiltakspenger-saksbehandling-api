@@ -14,11 +14,11 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendTilbake
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendTilbakeAutomatiskSaksbehandletBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkjenn
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkjennAutomatiskSaksbehandletBehandling
 import org.junit.jupiter.api.Test
 
-class SendTilbakeTilSaksbehandlerTest {
+class UnderkjennBehandlingTest {
 
     @Test
     fun `sjekk at begrunnelse kan sendes inn`() {
@@ -31,7 +31,7 @@ class SendTilbakeTilSaksbehandlerTest {
                         setupAuthentication(texasClient)
                         routing { routes(tac) }
                     }
-                    val (_, _, behandlingId, _) = this.sendTilbake(tac)
+                    val (_, _, behandlingId, _) = this.underkjenn(tac)
 
                     val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandlingId)
                     oppdatertBehandling.attesteringer.single().let {
@@ -63,7 +63,7 @@ class SendTilbakeTilSaksbehandlerTest {
                         setupAuthentication(texasClient)
                         routing { routes(tac) }
                     }
-                    val (_, _, behandlingId, _) = this.sendTilbakeAutomatiskSaksbehandletBehandling(tac)
+                    val (_, _, behandlingId, _) = this.underkjennAutomatiskSaksbehandletBehandling(tac)
 
                     val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandlingId)
                     oppdatertBehandling.attesteringer.single().let {

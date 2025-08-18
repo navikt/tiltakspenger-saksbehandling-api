@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
@@ -27,7 +28,7 @@ data class Meldeperiode(
     val fnr: Fnr,
     val maksAntallDagerForMeldeperiode: Int,
     val girRett: Map<LocalDate, Boolean>,
-    val rammevedtak: Periodisering<VedtakId>?,
+    val rammevedtak: IkkeTomPeriodisering<VedtakId>,
 ) : Comparable<Meldeperiode> {
     val antallDagerSomGirRett = girRett.values.count { it }
     val ingenDagerGirRett = antallDagerSomGirRett == 0
@@ -67,6 +68,10 @@ data class Meldeperiode(
         }
     }
 
+    override fun toString(): String {
+        return "Meldeperiode(id=$id, kjedeId=$kjedeId, versjon=$versjon, periode=$periode, opprettet=$opprettet, sakId=$sakId, saksnummer=$saksnummer, fnr=*****, maksAntallDagerForMeldeperiode=$maksAntallDagerForMeldeperiode, girRett=$girRett, rammevedtak=$rammevedtak)"
+    }
+
     companion object {
         fun opprettMeldeperiode(
             periode: Periode,
@@ -76,7 +81,7 @@ data class Meldeperiode(
             sakId: SakId,
             antallDagerForPeriode: Int,
             versjon: HendelseVersjon = HendelseVersjon.ny(),
-            rammevedtak: Periodisering<VedtakId>,
+            rammevedtak: IkkeTomPeriodisering<VedtakId>,
             clock: Clock,
         ): Meldeperiode {
             val meldeperiode = Meldeperiode(

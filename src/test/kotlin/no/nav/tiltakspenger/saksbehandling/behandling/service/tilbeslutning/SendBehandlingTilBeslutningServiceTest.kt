@@ -39,7 +39,7 @@ class SendBehandlingTilBeslutningServiceTest {
 
             val oppdatertBehandling = tac.behandlingContext.sendBehandlingTilBeslutningService.sendTilBeslutning(
                 kommando,
-            ).getOrFail()
+            ).getOrFail().second
 
             val oppdatertSak = tac.sakContext.sakService.hentForSakId(
                 sak.id,
@@ -86,7 +86,7 @@ class SendBehandlingTilBeslutningServiceTest {
 
             val innvilgetBehandlingSendtTilBeslutning = tac.behandlingContext.sendBehandlingTilBeslutningService.sendTilBeslutning(
                 kommando,
-            ).getOrFail()
+            ).getOrFail().second
 
             val oppdatertSak = tac.sakContext.sakService.hentForSakId(
                 sak.id,

@@ -59,7 +59,6 @@ import java.time.Clock
  */
 class LocalApplicationContext(
     usePdfGen: Boolean,
-    brukFakeMeldekortApi: Boolean?,
     clock: Clock,
 ) : ApplicationContext(gitHash = "fake-git-hash", clock = clock) {
 
@@ -181,26 +180,15 @@ class LocalApplicationContext(
             simulerService = utbetalingContext.simulerService,
         ) {
             override val meldekortApiHttpClient: MeldekortApiKlient
-                // ved kjøring direkte lokalt kan vi styre kjøring av fake eller ekte API
-                get() = if (brukFakeMeldekortApi != null) {
-                    if (brukFakeMeldekortApi) {
-                        MeldekortApiFakeKlient()
-                    } else {
-                        MeldekortApiHttpClient(
-                            baseUrl = Configuration.meldekortApiUrl,
-                            getToken = { texasClient.getSystemToken(Configuration.meldekortApiScope, IdentityProvider.AZUREAD) },
-                        )
-                    }
+                // Ved kjøring lokalt kan vi styre kjøring av fake eller ekte API med env-var BRUK_FAKE_MELDEKORT_API
+                get() = if (Configuration.brukFakeMeldekortApiLokalt) {
+                    MeldekortApiFakeKlient()
                 } else {
-                    // ved bruk av docker-compose vil konfigurasjon avgjøre om vi skal bruke fake eller ekte API
-                    if (Configuration.brukFakeMeldekortApiLokalt) {
-                        MeldekortApiFakeKlient()
-                    } else {
-                        MeldekortApiHttpClient(
-                            baseUrl = Configuration.meldekortApiUrl,
-                            getToken = { texasClient.getSystemToken(Configuration.meldekortApiScope, IdentityProvider.AZUREAD) },
-                        )
-                    }
+                    MeldekortApiHttpClient(
+                        baseUrl = Configuration.meldekortApiUrl,
+                        // Vi trenger en ekte token-klient for å snakke med meldekort-api
+                        getToken = { texasClient.getSystemToken(Configuration.meldekortApiScope, IdentityProvider.AZUREAD) },
+                    )
                 }
         }
     }
