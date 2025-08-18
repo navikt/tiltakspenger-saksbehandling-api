@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettBeh
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
+import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 
 private const val SETT_BEHANDLING_PÅ_VENT_PATH = "/sak/{sakId}/behandling/{behandlingId}/pause"
 
@@ -30,25 +31,28 @@ fun Route.settBehandlingPåVentRoute(
     post(SETT_BEHANDLING_PÅ_VENT_PATH) {
         logger.debug { "Mottatt post-request på '$SETT_BEHANDLING_PÅ_VENT_PATH' - Setter behandling på vent inntil videre." }
         call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
-            call.withBehandlingId { behandlingId ->
-                call.withBody<BegrunnelseDTO> { body ->
-                    val correlationId = call.correlationId()
+            call.withSakId { sakId ->
+                call.withBehandlingId { behandlingId ->
+                    call.withBody<BegrunnelseDTO> { body ->
+                        val correlationId = call.correlationId()
 
-                    settBehandlingPåVentService.settBehandlingPåVent(
-                        behandlingId = behandlingId,
-                        begrunnelse = body.begrunnelse,
-                        saksbehandler = saksbehandler,
-                        correlationId = correlationId,
-                    ).also {
-                        auditService.logMedBehandlingId(
+                        settBehandlingPåVentService.settBehandlingPåVent(
+                            sakId = sakId,
                             behandlingId = behandlingId,
-                            navIdent = saksbehandler.navIdent,
-                            action = AuditLogEvent.Action.UPDATE,
-                            contextMessage = "Setter behandling på vent",
+                            begrunnelse = body.begrunnelse,
+                            saksbehandler = saksbehandler,
                             correlationId = correlationId,
-                        )
+                        ).also { (sak) ->
+                            auditService.logMedBehandlingId(
+                                behandlingId = behandlingId,
+                                navIdent = saksbehandler.navIdent,
+                                action = AuditLogEvent.Action.UPDATE,
+                                contextMessage = "Setter behandling på vent",
+                                correlationId = correlationId,
+                            )
 
-                        call.respond(status = HttpStatusCode.OK, it.tilBehandlingDTO())
+                            call.respond(status = HttpStatusCode.OK, sak.tilBehandlingDTO(behandlingId))
+                        }
                     }
                 }
             }

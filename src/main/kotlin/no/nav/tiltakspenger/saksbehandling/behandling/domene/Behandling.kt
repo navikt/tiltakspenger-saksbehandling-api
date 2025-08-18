@@ -75,7 +75,7 @@ sealed interface Behandling {
             is Søknadsbehandling -> Behandlingstype.SØKNADSBEHANDLING
         }
 
-    val erUnderBehandling: Boolean get() = status == UNDER_BEHANDLING || status === UNDER_AUTOMATISK_BEHANDLING
+    val erUnderBehandling: Boolean get() = status == UNDER_BEHANDLING || status == UNDER_AUTOMATISK_BEHANDLING
     val erAvbrutt: Boolean get() = status == AVBRUTT
     val erVedtatt: Boolean get() = status == VEDTATT
     val erAvsluttet: Boolean get() = erAvbrutt || erVedtatt

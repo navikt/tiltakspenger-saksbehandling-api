@@ -7,12 +7,13 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.LocalDateTime
 
@@ -21,7 +22,6 @@ class AvbrytSøknadOgBehandlingService(
     private val søknadService: SøknadService,
     private val behandlingService: BehandlingService,
     private val statistikkSakService: StatistikkSakService,
-    private val statistikkSakRepo: StatistikkSakRepo,
     private val sessionFactory: SessionFactory,
 ) {
 
@@ -38,22 +38,28 @@ class AvbrytSøknadOgBehandlingService(
             avbruttTidspunkt = LocalDateTime.now(),
         )
 
-        val statistikk = avbruttBehandling?.let { statistikkSakService.genererStatistikkForAvsluttetBehandling(it) }
+        val behandlingOgStatistikk: Pair<Behandling, StatistikkSakDTO>? = avbruttBehandling?.let {
+            it to statistikkSakService.genererStatistikkForAvsluttetBehandling(it)
+        }
 
         sessionFactory.withTransactionContext { tx ->
-            avbruttSøknad?.let { søknadService.lagreAvbruttSøknad(it, tx) }
-            avbruttBehandling?.let { behandlingService.lagreBehandling(it, tx) }
+            avbruttSøknad?.also {
+                søknadService.lagreAvbruttSøknad(it, tx)
+            }
+            behandlingOgStatistikk?.also {
+                behandlingService.lagreMedStatistikk(it.first, it.second, tx)
+            }
             sakService.oppdaterSkalSendesTilMeldekortApi(
                 sakId = sak.id,
                 skalSendesTilMeldekortApi = true,
                 sessionContext = tx,
             )
-            statistikk?.let { statistikkSakRepo.lagre(it, tx) }
         }.also {
             return oppdatertSak.right()
         }
     }
 }
+
 sealed interface KunneIkkeAvbryteSøknadOgBehandling {
     data object Feil : KunneIkkeAvbryteSøknadOgBehandling
 }

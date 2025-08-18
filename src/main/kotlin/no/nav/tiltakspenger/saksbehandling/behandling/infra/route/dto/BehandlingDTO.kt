@@ -1,21 +1,22 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.tilVentestatusHendelseDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toSøknadDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
@@ -99,14 +100,20 @@ data class RevurderingDTO(
     override val type = BehandlingstypeDTO.REVURDERING
 }
 
-fun Behandling.tilBehandlingDTO(): BehandlingDTO {
-    return when (this) {
-        is Revurdering -> this.tilRevurderingDTO()
-        is Søknadsbehandling -> this.tilSøknadsbehandlingDTO()
+fun Sak.tilBehandlingDTO(behandlingId: BehandlingId): BehandlingDTO {
+    val behandling = behandlinger.hentBehandling(behandlingId)
+
+    requireNotNull(behandling) {
+        "Fant ingen behandling med id $behandlingId"
+    }
+
+    return when (behandling) {
+        is Revurdering -> behandling.tilRevurderingDTO(meldeperiodeBeregninger)
+        is Søknadsbehandling -> behandling.tilSøknadsbehandlingDTO()
     }
 }
 
-fun Behandlinger.tilBehandlingerDTO() = this.map { it.tilBehandlingDTO() }
+fun Sak.tilBehandlingerDTO(): List<BehandlingDTO> = this.behandlinger.map { this.tilBehandlingDTO(it.id) }
 
 fun Søknadsbehandling.tilSøknadsbehandlingDTO(): SøknadsbehandlingDTO {
     return SøknadsbehandlingDTO(
@@ -149,7 +156,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(): SøknadsbehandlingDTO {
     }
 }
 
-fun Revurdering.tilRevurderingDTO(): RevurderingDTO {
+fun Revurdering.tilRevurderingDTO(meldeperiodeBeregninger: MeldeperiodeBeregninger): RevurderingDTO {
     return RevurderingDTO(
         id = this.id.toString(),
         status = this.status.toBehandlingsstatusDTO(),
@@ -180,11 +187,14 @@ fun Revurdering.tilRevurderingDTO(): RevurderingDTO {
 
             is RevurderingResultat.Innvilgelse -> it.copy(
                 antallDagerPerMeldeperiode = resultat.antallDagerPerMeldeperiode?.perioderMedVerdi?.map {
-                    AntallDagerPerMeldeperiodeDTO(antallDagerPerMeldeperiode = it.verdi.value, periode = it.periode.toDTO())
+                    AntallDagerPerMeldeperiodeDTO(
+                        antallDagerPerMeldeperiode = it.verdi.value,
+                        periode = it.periode.toDTO(),
+                    )
                 },
                 barnetillegg = resultat.barnetillegg?.toBarnetilleggDTO(),
                 valgteTiltaksdeltakelser = resultat.valgteTiltaksdeltakelser?.tilDTO(),
-                utbetaling = resultat.utbetaling?.tilDTO(),
+                utbetaling = resultat.utbetaling?.tilDTO(meldeperiodeBeregninger),
             )
         }
     }

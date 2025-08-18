@@ -37,7 +37,7 @@ fun Route.iverksettBehandlingRoute(
                                 is KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter -> call.respond400BadRequest(behandlingenEiesAvAnnenSaksbehandler(it.eiesAvBeslutter))
                             }
                         },
-                        {
+                        { (sak) ->
                             auditService.logMedSakId(
                                 behandlingId = behandlingId,
                                 navIdent = saksbehandler.navIdent,
@@ -47,7 +47,7 @@ fun Route.iverksettBehandlingRoute(
                                 sakId = sakId,
                             )
                             MetricRegister.IVERKSATT_BEHANDLING.inc()
-                            call.respond(message = it.tilBehandlingDTO(), status = HttpStatusCode.OK)
+                            call.respond(message = sak.tilBehandlingDTO(behandlingId), status = HttpStatusCode.OK)
                         },
                     )
                 }

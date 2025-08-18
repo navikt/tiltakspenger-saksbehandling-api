@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
 
@@ -23,7 +24,7 @@ class SendBehandlingTilBeslutningService(
 ) {
     suspend fun sendTilBeslutning(
         kommando: SendBehandlingTilBeslutningKommando,
-    ): Either<KanIkkeSendeTilBeslutter, Behandling> {
+    ): Either<KanIkkeSendeTilBeslutter, Pair<Sak, Behandling>> {
         krevSaksbehandlerRolle(kommando.saksbehandler)
 
         val sak = sakService.hentForSakId(
@@ -46,9 +47,8 @@ class SendBehandlingTilBeslutningService(
         return behandling.tilBeslutning(
             kommando = kommando,
             clock = clock,
-        ).onRight {
-            // Verifiserer at den oppdaterte behandlingen kan legges til saken
-            sak.copy(behandlinger = sak.behandlinger.oppdaterBehandling(it))
+        ).map {
+            val oppdaterSak = sak.oppdaterBehandling(it)
 
             val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
 
@@ -56,6 +56,8 @@ class SendBehandlingTilBeslutningService(
                 behandlingRepo.lagre(it, tx)
                 statistikkSakRepo.lagre(statistikk, tx)
             }
+
+            oppdaterSak to it
         }
     }
 }

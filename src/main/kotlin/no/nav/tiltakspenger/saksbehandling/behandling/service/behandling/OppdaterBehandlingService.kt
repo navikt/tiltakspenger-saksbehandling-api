@@ -29,7 +29,7 @@ class OppdaterBehandlingService(
     private val clock: Clock,
 ) {
 
-    suspend fun oppdater(kommando: OppdaterBehandlingKommando): Either<KanIkkeOppdatereBehandling, Behandling> {
+    suspend fun oppdater(kommando: OppdaterBehandlingKommando): Either<KanIkkeOppdatereBehandling, Pair<Sak, Behandling>> {
         krevSaksbehandlerRolle(kommando.saksbehandler)
 
         val sak = sakService.hentForSakId(
@@ -52,6 +52,12 @@ class OppdaterBehandlingService(
         return when (kommando) {
             is OppdaterSøknadsbehandlingKommando -> sak.oppdaterSøknadsbehandling(kommando)
             is OppdaterRevurderingKommando -> sak.oppdaterRevurdering(kommando)
+        }.map {
+            val oppdatertSak = sak.oppdaterBehandling(it)
+
+            behandlingRepo.lagre(it)
+
+            oppdatertSak to it
         }
     }
 
@@ -66,9 +72,7 @@ class OppdaterBehandlingService(
 
         val behandling = this.hentBehandling(kommando.behandlingId) as Søknadsbehandling
 
-        return behandling.oppdater(kommando, clock).onRight {
-            validerOgLagre(it)
-        }
+        return behandling.oppdater(kommando, clock)
     }
 
     private suspend fun Sak.oppdaterRevurdering(
@@ -111,13 +115,6 @@ class OppdaterBehandlingService(
                     clock = clock,
                 )
             }
-        }.onRight {
-            validerOgLagre(it)
         }
-    }
-
-    private fun Sak.validerOgLagre(behandling: Behandling) {
-        this.copy(behandlinger = this.behandlinger.oppdaterBehandling(behandling))
-        behandlingRepo.lagre(behandling)
     }
 }
