@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling
 
+import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
+import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenHttpClient
 import no.nav.tiltakspenger.libs.auth.test.core.EntraIdSystemtokenFakeClient
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -58,7 +60,6 @@ import java.time.Clock
  */
 class LocalApplicationContext(
     usePdfGen: Boolean,
-    brukFakeMeldekortApi: Boolean?,
     clock: Clock,
 ) : ApplicationContext(gitHash = "fake-git-hash", clock = clock) {
 
@@ -109,6 +110,14 @@ class LocalApplicationContext(
     override val oppgaveKlient: OppgaveKlient by lazy { OppgaveFakeKlient() }
 
     override val entraIdSystemtokenClient = EntraIdSystemtokenFakeClient()
+
+    private val entraIdSystemtokenRealClient: EntraIdSystemtokenClient by lazy {
+        EntraIdSystemtokenHttpClient(
+            baseUrl = Configuration.azureOpenidConfigTokenEndpoint,
+            clientId = Configuration.clientId,
+            clientSecret = Configuration.clientSecret,
+        )
+    }
 
     override val veilarboppfolgingKlient: VeilarboppfolgingKlient by lazy {
         VeilarboppfolgingFakeKlient()
@@ -180,26 +189,15 @@ class LocalApplicationContext(
             simulerService = utbetalingContext.simulerService,
         ) {
             override val meldekortApiHttpClient: MeldekortApiKlient
-                // ved kjøring direkte lokalt kan vi styre kjøring av fake eller ekte API
-                get() = if (brukFakeMeldekortApi != null) {
-                    if (brukFakeMeldekortApi) {
-                        MeldekortApiFakeKlient()
-                    } else {
-                        MeldekortApiHttpClient(
-                            baseUrl = Configuration.meldekortApiUrl,
-                            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.meldekortApiScope) },
-                        )
-                    }
+                // Ved kjøring lokalt kan vi styre kjøring av fake eller ekte API med env-var BRUK_FAKE_MELDEKORT_API
+                get() = if (Configuration.brukFakeMeldekortApiLokalt) {
+                    MeldekortApiFakeKlient()
                 } else {
-                    // ved bruk av docker-compose vil konfigurasjon avgjøre om vi skal bruke fake eller ekte API
-                    if (Configuration.brukFakeMeldekortApiLokalt) {
-                        MeldekortApiFakeKlient()
-                    } else {
-                        MeldekortApiHttpClient(
-                            baseUrl = Configuration.meldekortApiUrl,
-                            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.meldekortApiScope) },
-                        )
-                    }
+                    MeldekortApiHttpClient(
+                        baseUrl = Configuration.meldekortApiUrl,
+                        // Vi trenger en ekte token-klient for å snakke med meldekort-api
+                        getToken = { entraIdSystemtokenRealClient.getSystemtoken(Configuration.meldekortApiScope) },
+                    )
                 }
         }
     }
