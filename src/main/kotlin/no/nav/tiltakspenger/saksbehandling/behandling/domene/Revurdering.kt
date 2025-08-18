@@ -91,32 +91,24 @@ data class Revurdering(
     init {
         super.init()
 
+        when (status) {
+            KLAR_TIL_BESLUTNING,
+            UNDER_BESLUTNING,
+            VEDTATT,
+            -> validerResultat()
+
+            UNDER_AUTOMATISK_BEHANDLING,
+            KLAR_TIL_BEHANDLING,
+            UNDER_BEHANDLING,
+            AVBRUTT,
+            -> Unit
+        }
+    }
+
+    private fun validerResultat() {
         when (resultat) {
-            is Innvilgelse -> when (status) {
-                KLAR_TIL_BESLUTNING,
-                UNDER_BESLUTNING,
-                VEDTATT,
-                -> resultat.valider(virkningsperiode)
-
-                UNDER_AUTOMATISK_BEHANDLING,
-                KLAR_TIL_BEHANDLING,
-                UNDER_BEHANDLING,
-                AVBRUTT,
-                -> Unit
-            }
-
-            is Stans -> when (status) {
-                KLAR_TIL_BESLUTNING,
-                UNDER_BESLUTNING,
-                VEDTATT,
-                -> resultat.valider()
-
-                UNDER_AUTOMATISK_BEHANDLING,
-                KLAR_TIL_BEHANDLING,
-                UNDER_BEHANDLING,
-                AVBRUTT,
-                -> Unit
-            }
+            is Innvilgelse -> resultat.valider(virkningsperiode)
+            is Stans -> resultat.valider()
         }
     }
 
@@ -143,7 +135,9 @@ data class Revurdering(
                 antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
                 utbetaling = utbetaling,
             ),
-        ).right()
+        ).also {
+            it.validerResultat()
+        }.right()
     }
 
     fun oppdaterStans(

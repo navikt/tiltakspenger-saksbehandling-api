@@ -150,7 +150,7 @@ class OppdaterBehandlingRouteTest {
                     valgteTiltaksdeltakelser = listOf(
                         TiltaksdeltakelsePeriodeDTO(
                             eksternDeltagelseId = tiltaksdeltagelse.eksternDeltagelseId,
-                            periode = tiltaksdeltagelse.periode!!.toDTO(),
+                            periode = nyInnvilgelsesperiode.toDTO(),
                         ),
                     ),
                     innvilgelsesperiode = nyInnvilgelsesperiode.toDTO(),

@@ -88,19 +88,23 @@ data class Søknadsbehandling(
     init {
         super.init()
 
-        when (resultat) {
-            is SøknadsbehandlingResultat.Innvilgelse -> when (status) {
-                KLAR_TIL_BESLUTNING,
-                UNDER_BESLUTNING,
-                VEDTATT,
-                -> resultat.valider(virkningsperiode)
+        when (status) {
+            KLAR_TIL_BESLUTNING,
+            UNDER_BESLUTNING,
+            VEDTATT,
+            -> validerResultat()
 
-                UNDER_AUTOMATISK_BEHANDLING,
-                KLAR_TIL_BEHANDLING,
-                UNDER_BEHANDLING,
-                AVBRUTT,
-                -> Unit
-            }
+            UNDER_AUTOMATISK_BEHANDLING,
+            KLAR_TIL_BEHANDLING,
+            UNDER_BEHANDLING,
+            AVBRUTT,
+            -> Unit
+        }
+    }
+
+    private fun validerResultat() {
+        when (resultat) {
+            is SøknadsbehandlingResultat.Innvilgelse -> resultat.valider(virkningsperiode)
             is SøknadsbehandlingResultat.Avslag -> Unit
             null -> Unit
         }
@@ -121,7 +125,9 @@ data class Søknadsbehandling(
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             resultat = resultat,
             automatiskSaksbehandlet = kommando.automatiskSaksbehandlet,
-        ).right()
+        ).also {
+            it.validerResultat()
+        }.right()
     }
 
     fun tilManuellBehandling(
