@@ -53,9 +53,11 @@ class OppdaterBehandlingService(
             is OppdaterSøknadsbehandlingKommando -> sak.oppdaterSøknadsbehandling(kommando)
             is OppdaterRevurderingKommando -> sak.oppdaterRevurdering(kommando)
         }.map {
+            val oppdatertSak = sak.oppdaterBehandling(it)
+
             behandlingRepo.lagre(it)
 
-            sak.oppdaterBehandling(it) to it
+            oppdatertSak to it
         }
     }
 
