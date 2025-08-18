@@ -296,11 +296,14 @@ internal class UtbetalingsvedtakPostgresRepo(
             val opprettet = localDateTime("opprettet")
             val status = stringOrNull("status").toUtbetalingsstatus()
 
-            val beregningKilde = BeregningKildeDb.valueOf(string("beregning_kilde"))
+            // En (og bare en) av meldekort_id eller behandling_id er alltid non-null
+            val beregningKilde =
+                stringOrNull("meldekort_id")?.let { BeregningKilde.Meldekort(MeldekortId.fromString(it)) }
+                    ?: BeregningKilde.Behandling(BehandlingId.fromString(string("behandling_id")))
 
             return when (beregningKilde) {
-                BeregningKildeDb.MELDEKORT -> {
-                    val meldekortId = MeldekortId.fromString(string("meldekort_id"))
+                is BeregningKilde.Meldekort -> {
+                    val meldekortId = beregningKilde.id
 
                     val meldekortbehandling = MeldekortBehandlingPostgresRepo
                         .hentForMeldekortId(
@@ -334,8 +337,8 @@ internal class UtbetalingsvedtakPostgresRepo(
                     )
                 }
 
-                BeregningKildeDb.BEHANDLING -> {
-                    val behandlingId = BehandlingId.fromString(string("behandling_id"))
+                is BeregningKilde.Behandling -> {
+                    val behandlingId = beregningKilde.id
 
                     val rammevedtak = RammevedtakPostgresRepo.hentForBehandlingId(
                         behandlingId,
@@ -377,9 +380,4 @@ internal class UtbetalingsvedtakPostgresRepo(
             }
         }
     }
-}
-
-private enum class BeregningKildeDb {
-    MELDEKORT,
-    BEHANDLING,
 }
