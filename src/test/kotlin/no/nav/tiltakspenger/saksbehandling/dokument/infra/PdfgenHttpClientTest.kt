@@ -16,7 +16,7 @@ class PdfgenHttpClientTest {
             PdfgenHttpClient("unused").genererUtbetalingsvedtak(
                 utbetalingsvedtak,
                 tiltaksdeltagelser = Tiltaksdeltagelser(listOf(ObjectMother.tiltaksdeltagelse())),
-                sammenligning = { sammenlign(utbetalingsvedtak.beregning.beregninger.first()) },
+                sammenligning = { sammenlign(utbetalingsvedtak.utbetaling.beregning.beregninger.first()) },
                 hentSaksbehandlersNavn = { ObjectMother.saksbehandler().brukernavn },
             )
         }

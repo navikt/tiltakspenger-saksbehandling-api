@@ -10,10 +10,10 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk.Companion.opprett
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
@@ -21,9 +21,9 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 class UtbetalingsvedtakFakeRepo : UtbetalingsvedtakRepo {
-    private val data = Atomic(mutableMapOf<VedtakId, Utbetalingsvedtak>())
+    private val data = Atomic(mutableMapOf<VedtakId, MeldekortVedtak>())
 
-    override fun lagre(vedtak: Utbetalingsvedtak, context: TransactionContext?) {
+    override fun lagre(vedtak: MeldekortVedtak, context: TransactionContext?) {
         data.get()[vedtak.id] = vedtak
     }
 
@@ -32,14 +32,15 @@ class UtbetalingsvedtakFakeRepo : UtbetalingsvedtakRepo {
         tidspunkt: LocalDateTime,
         utbetalingsrespons: SendtUtbetaling,
     ) {
-        data.get()[vedtakId] = data.get()[vedtakId]!!.copy(sendtTilUtbetaling = tidspunkt)
+        data.get()[vedtakId] = data.get()[vedtakId]!!.copy(
+            utbetaling = data.get()[vedtakId]!!.utbetaling.copy(sendtTilUtbetaling = tidspunkt),
+        )
     }
 
-    override fun lagreFeilResponsFraUtbetaling(
-        vedtakId: VedtakId,
-        utbetalingsrespons: KunneIkkeUtbetale,
-    ) {
-        data.get()[vedtakId] = data.get()[vedtakId]!!.copy(sendtTilUtbetaling = null)
+    override fun lagreFeilResponsFraUtbetaling(vedtakId: VedtakId, utbetalingsrespons: KunneIkkeUtbetale) {
+        data.get()[vedtakId] = data.get()[vedtakId]!!.copy(
+            utbetaling = data.get()[vedtakId]!!.utbetaling.copy(sendtTilUtbetaling = null),
+        )
     }
 
     override fun markerJournalført(
@@ -57,15 +58,15 @@ class UtbetalingsvedtakFakeRepo : UtbetalingsvedtakRepo {
 
     fun hentForSakId(
         sakId: SakId,
-    ): Utbetalinger {
-        return Utbetalinger(data.get().values.filter { it.sakId == sakId })
+    ): MeldekortVedtaksliste {
+        return MeldekortVedtaksliste(data.get().values.filter { it.sakId == sakId })
     }
 
-    override fun hentUtbetalingsvedtakForUtsjekk(limit: Int): List<Utbetalingsvedtak> {
-        return data.get().values.filter { it.sendtTilUtbetaling == null }.take(limit)
+    override fun hentUtbetalingsvedtakForUtsjekk(limit: Int): List<MeldekortVedtak> {
+        return data.get().values.filter { it.utbetaling.sendtTilUtbetaling == null }.take(limit)
     }
 
-    override fun hentDeSomSkalJournalføres(limit: Int): List<Utbetalingsvedtak> {
+    override fun hentDeSomSkalJournalføres(limit: Int): List<MeldekortVedtak> {
         return data.get().values.filter { it.journalpostId == null }.take(limit)
     }
 
@@ -75,18 +76,26 @@ class UtbetalingsvedtakFakeRepo : UtbetalingsvedtakRepo {
         metadata: Forsøkshistorikk,
         context: TransactionContext?,
     ) {
-        data.get()[vedtakId] = data.get()[vedtakId]!!.oppdaterStatus(status)
+        data.get()[vedtakId] =
+            data.get()[vedtakId]!!.copy(utbetaling = data.get()[vedtakId]!!.utbetaling.oppdaterStatus(status))
     }
 
     override fun hentDeSomSkalHentesUtbetalingsstatusFor(limit: Int): List<UtbetalingDetSkalHentesStatusFor> {
         return data.get()!!.filter {
-            it.value.status in listOf(null, Utbetalingsstatus.IkkePåbegynt, Utbetalingsstatus.SendtTilOppdrag)
+            it.value.utbetaling.status in listOf(
+                null,
+                Utbetalingsstatus.IkkePåbegynt,
+                Utbetalingsstatus.SendtTilOppdrag,
+            )
         }.map {
             UtbetalingDetSkalHentesStatusFor(
                 sakId = it.value.sakId,
                 saksnummer = it.value.saksnummer,
                 vedtakId = it.value.id,
                 opprettet = it.value.opprettet,
+                sendtTilUtbetalingstidspunkt = it.value.utbetaling.sendtTilUtbetaling!!,
+                forsøkshistorikk = Forsøkshistorikk(
+                    forrigeForsøk = it.value.utbetaling.sendtTilUtbetaling!!.plus(1, ChronoUnit.MICROS),
                 sendtTilUtbetalingstidspunkt = it.value.sendtTilUtbetaling!!,
                 forsøkshistorikk = opprett(
                     forrigeForsøk = it.value.sendtTilUtbetaling!!.plus(1, ChronoUnit.MICROS),

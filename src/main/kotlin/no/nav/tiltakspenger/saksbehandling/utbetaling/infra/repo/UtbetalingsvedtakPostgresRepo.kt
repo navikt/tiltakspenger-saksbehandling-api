@@ -3,73 +3,58 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toForsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
-import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import java.time.LocalDateTime
 
 internal class UtbetalingsvedtakPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : UtbetalingsvedtakRepo {
 
-    override fun lagre(vedtak: Utbetalingsvedtak, context: TransactionContext?) {
+    override fun lagre(vedtak: MeldekortVedtak, context: TransactionContext?) {
         sessionFactory.withSession(context) { session ->
             session.run(
-                queryOf(
-                    //language=SQL
+                sqlQuery(
                     """
                         insert into utbetalingsvedtak (
                             id,
                             sak_id,
                             opprettet,
                             forrige_vedtak_id,
-                            meldekort_id,
-                            behandling_id,
-                            status_metadata
+                            meldekort_id
                         ) values (
                             :id,
                             :sak_id,
                             :opprettet,
                             :forrige_vedtak_id,
-                            :meldekort_id,
-                            :behandling_id,
-                            to_jsonb(:status_metadata::jsonb)
+                            :meldekort_id
                         )
-                    """.trimIndent(),
-                    mapOf(
-                        "id" to vedtak.id.toString(),
-                        "sak_id" to vedtak.sakId.toString(),
-                        "opprettet" to vedtak.opprettet,
-                        "forrige_vedtak_id" to vedtak.forrigeUtbetalingsvedtakId?.toString(),
-                        when (vedtak.beregningKilde) {
-                            is BeregningKilde.Behandling -> "behandling_id" to vedtak.beregningKilde.id.toString()
-                            is BeregningKilde.Meldekort -> "meldekort_id" to vedtak.beregningKilde.id.toString()
-                        },
-                        "status_metadata" to vedtak.statusMetadata?.toDbJson(),
-                    ),
+                    """,
+                    "id" to vedtak.id.toString(),
+                    "sak_id" to vedtak.sakId.toString(),
+                    "opprettet" to vedtak.opprettet,
+                    "forrige_vedtak_id" to vedtak.utbetaling.forrigeUtbetalingVedtakId?.toString(),
+                    "meldekort_id" to vedtak.utbetaling.beregningKilde.id.toString(),
                 ).asUpdate,
             )
         }
@@ -82,19 +67,16 @@ internal class UtbetalingsvedtakPostgresRepo(
     ) {
         sessionFactory.withSession { session ->
             session.run(
-                queryOf(
-                    //language=SQL
+                sqlQuery(
                     """
                         update utbetalingsvedtak
                         set sendt_til_utbetaling_tidspunkt = :tidspunkt, 
                             utbetaling_metadata = to_jsonb(:metadata::jsonb)
                         where id = :id
-                    """.trimIndent(),
-                    mapOf(
-                        "id" to vedtakId.toString(),
-                        "tidspunkt" to tidspunkt,
-                        "metadata" to utbetalingsrespons.toJson(),
-                    ),
+                    """,
+                    "id" to vedtakId.toString(),
+                    "tidspunkt" to tidspunkt,
+                    "metadata" to utbetalingsrespons.toJson(),
                 ).asUpdate,
             )
         }
@@ -106,17 +88,14 @@ internal class UtbetalingsvedtakPostgresRepo(
     ) {
         sessionFactory.withSession { session ->
             session.run(
-                queryOf(
-                    //language=SQL
+                sqlQuery(
                     """
                         update utbetalingsvedtak
                         set utbetaling_metadata = to_jsonb(:metadata::jsonb)
                         where id = :id
-                    """.trimIndent(),
-                    mapOf(
-                        "id" to vedtakId.toString(),
-                        "metadata" to utbetalingsrespons.toJson(),
-                    ),
+                    """,
+                    "id" to vedtakId.toString(),
+                    "metadata" to utbetalingsrespons.toJson(),
                 ).asUpdate,
             )
         }
@@ -129,19 +108,16 @@ internal class UtbetalingsvedtakPostgresRepo(
     ) {
         sessionFactory.withSession { session ->
             session.run(
-                queryOf(
-                    //language=SQL
+                sqlQuery(
                     """
                         update utbetalingsvedtak 
                         set journalpost_id = :journalpost_id,
                         journalføringstidspunkt = :tidspunkt
                         where id = :id
-                    """.trimIndent(),
-                    mapOf(
-                        "id" to vedtakId.toString(),
-                        "journalpost_id" to journalpostId.toString(),
-                        "tidspunkt" to tidspunkt,
-                    ),
+                    """,
+                    "id" to vedtakId.toString(),
+                    "journalpost_id" to journalpostId.toString(),
+                    "tidspunkt" to tidspunkt,
                 ).asUpdate,
             )
         }
@@ -150,14 +126,13 @@ internal class UtbetalingsvedtakPostgresRepo(
     override fun hentUtbetalingJsonForVedtakId(vedtakId: VedtakId): String? {
         return sessionFactory.withSession { session ->
             session.run(
-                queryOf(
-                    //language=SQL
+                sqlQuery(
                     """
                         select (utbetaling_metadata->>'request') as req 
                         from utbetalingsvedtak 
                         where id = :id
-                    """.trimIndent(),
-                    mapOf("id" to vedtakId.toString()),
+                    """,
+                    "id" to vedtakId.toString(),
                 ).map { row ->
                     row.stringOrNull("req")
                 }.asSingle,
@@ -165,7 +140,7 @@ internal class UtbetalingsvedtakPostgresRepo(
         }
     }
 
-    override fun hentUtbetalingsvedtakForUtsjekk(limit: Int): List<Utbetalingsvedtak> {
+    override fun hentUtbetalingsvedtakForUtsjekk(limit: Int): List<MeldekortVedtak> {
         return sessionFactory.withSession { session ->
             session.run(
                 queryOf(
@@ -189,19 +164,18 @@ internal class UtbetalingsvedtakPostgresRepo(
         }
     }
 
-    override fun hentDeSomSkalJournalføres(limit: Int): List<Utbetalingsvedtak> {
+    override fun hentDeSomSkalJournalføres(limit: Int): List<MeldekortVedtak> {
         return sessionFactory.withSession { session ->
             session.run(
-                queryOf(
-                    //language=SQL
+                sqlQuery(
                     """
                             select u.*, s.fnr, s.saksnummer 
                             from utbetalingsvedtak u 
                             join sak s on s.id = u.sak_id 
-                            where u.journalpost_id is null and u.meldekort_id is not null
+                            where u.journalpost_id is null
                             limit :limit
-                    """.trimIndent(),
-                    mapOf("limit" to limit),
+                    """,
+                    "limit" to limit,
                 ).map { row ->
                     row.toVedtak(session)
                 }.asList,
@@ -217,19 +191,16 @@ internal class UtbetalingsvedtakPostgresRepo(
     ) {
         sessionFactory.withSession(context) { session ->
             session.run(
-                queryOf(
-                    //language=SQL
+                sqlQuery(
                     """
                         update utbetalingsvedtak
                         set status = :status,
                         status_metadata = to_jsonb(:status_metadata::jsonb)
                         where id = :id
-                    """.trimIndent(),
-                    mapOf(
-                        "id" to vedtakId.toString(),
-                        "status" to status.toDbType(),
-                        "status_metadata" to metadata.toDbJson(),
-                    ),
+                    """,
+                    "id" to vedtakId.toString(),
+                    "status" to status.toDbType(),
+                    "status_metadata" to metadata.toDbJson(),
                 ).asUpdate,
             )
         }
@@ -238,18 +209,16 @@ internal class UtbetalingsvedtakPostgresRepo(
     override fun hentDeSomSkalHentesUtbetalingsstatusFor(limit: Int): List<UtbetalingDetSkalHentesStatusFor> {
         return sessionFactory.withSession { session ->
             session.run(
-                queryOf(
-                    //language=SQL
+                sqlQuery(
                     """
                             select u.id, u.sak_id, u.opprettet, u.sendt_til_utbetaling_tidspunkt, u.status_metadata, s.saksnummer 
                             from utbetalingsvedtak u 
                             join sak s on s.id = u.sak_id 
                             where (u.status is null or u.status IN ('IKKE_PÅBEGYNT', 'SENDT_TIL_OPPDRAG')) and u.sendt_til_utbetaling_tidspunkt is not null
-                                and (u.status_metadata->>'nesteForsøk')::timestamptz <= now()
-                            order by (u.status_metadata->>'antall_forsøk')::int, u.opprettet
+                            order by u.opprettet
                             limit :limit
-                    """.trimIndent(),
-                    mapOf("limit" to limit),
+                    """,
+                    "limit" to limit,
                 ).map { row ->
                     UtbetalingDetSkalHentesStatusFor(
                         saksnummer = Saksnummer(row.string("saksnummer")),
@@ -258,7 +227,6 @@ internal class UtbetalingsvedtakPostgresRepo(
                         opprettet = row.localDateTime("opprettet"),
                         sendtTilUtbetalingstidspunkt = row.localDateTime("sendt_til_utbetaling_tidspunkt"),
                         forsøkshistorikk = row.stringOrNull("status_metadata")?.toForsøkshistorikk(),
-
                     )
                 }.asList,
             )
@@ -266,7 +234,7 @@ internal class UtbetalingsvedtakPostgresRepo(
     }
 
     companion object {
-        fun hentForSakId(sakId: SakId, session: Session): Utbetalinger {
+        fun hentForSakId(sakId: SakId, session: Session): MeldekortVedtaksliste {
             return session.run(
                 queryOf(
                     //language=SQL
@@ -281,15 +249,15 @@ internal class UtbetalingsvedtakPostgresRepo(
                 ).map { row ->
                     row.toVedtak(session)
                 }.asList,
-            ).let { Utbetalinger(it) }
+            ).let { MeldekortVedtaksliste(it) }
         }
 
-        private fun Row.toVedtak(session: Session): Utbetalingsvedtak {
+        private fun Row.toVedtak(session: Session): MeldekortVedtak {
             val vedtakId = VedtakId.fromString(string("id"))
             val sakId = SakId.fromString(string("sak_id"))
             val saksnummer = Saksnummer(string("saksnummer"))
             val fnr = Fnr.fromString(string("fnr"))
-            val forrigeUtbetalingsvedtakId = stringOrNull("forrige_vedtak_id")?.let {
+            val forrigeUtbetalingVedtakId = stringOrNull("forrige_vedtak_id")?.let {
                 VedtakId.fromString(
                     it,
                 )
@@ -299,92 +267,78 @@ internal class UtbetalingsvedtakPostgresRepo(
             val journalføringstidspunkt = localDateTimeOrNull("journalføringstidspunkt")
             val opprettet = localDateTime("opprettet")
             val status = stringOrNull("status").toUtbetalingsstatus()
-            val statusMetadata = string("status_metadata").toForsøkshistorikk()
 
-            // En (og bare en) av meldekort_id eller behandling_id er alltid non-null
-            val beregningKilde =
-                stringOrNull("meldekort_id")?.let { BeregningKilde.Meldekort(MeldekortId.fromString(it)) }
-                    ?: BeregningKilde.Behandling(BehandlingId.fromString(string("behandling_id")))
+            val meldekortId = MeldekortId.fromString(string("meldekort_id"))
 
-            return when (beregningKilde) {
-                is BeregningKilde.Meldekort -> {
-                    val meldekortId = beregningKilde.id
+            val meldekortbehandling = MeldekortBehandlingPostgresRepo
+                .hentForMeldekortId(
+                    meldekortId,
+                    session,
+                )
 
-                    val meldekortbehandling = MeldekortBehandlingPostgresRepo
-                        .hentForMeldekortId(
-                            meldekortId,
-                            session,
-                        )
-
-                    require(meldekortbehandling is MeldekortBehandling.Behandlet) {
-                        "Meldekortet $meldekortId på utbetalingsvedtak $vedtakId er ikke et behandlet meldekort"
-                    }
-
-                    Utbetalingsvedtak(
-                        id = vedtakId,
-                        sakId = sakId,
-                        saksnummer = saksnummer,
-                        fnr = fnr,
-                        forrigeUtbetalingsvedtakId = forrigeUtbetalingsvedtakId,
-                        sendtTilUtbetaling = sendtTilUtbetaling,
-                        journalpostId = journalpostId,
-                        journalføringstidspunkt = journalføringstidspunkt,
-                        opprettet = opprettet,
-                        status = status,
-                        statusMetadata = statusMetadata,
-                        beregning = meldekortbehandling.beregning,
-                        saksbehandler = meldekortbehandling.saksbehandler!!,
-                        beslutter = meldekortbehandling.beslutter!!,
-                        brukerNavkontor = meldekortbehandling.navkontor,
-                        rammevedtak = meldekortbehandling.rammevedtak,
-                        automatiskBehandlet = meldekortbehandling is MeldekortBehandletAutomatisk,
-                        erKorrigering = meldekortbehandling.type == MeldekortBehandlingType.KORRIGERING,
-                        begrunnelse = meldekortbehandling.begrunnelse?.verdi,
-                    )
-                }
-
-                is BeregningKilde.Behandling -> {
-                    val behandlingId = beregningKilde.id
-
-                    val rammevedtak = RammevedtakPostgresRepo.hentForBehandlingId(
-                        behandlingId,
-                        session,
-                    )
-
-                    requireNotNull(rammevedtak) {
-                        "Fant ingen rammevedtak for $behandlingId på utbetalingsvedtak $vedtakId"
-                    }
-
-                    val behandling = rammevedtak.behandling as Revurdering
-                    val utbetaling = behandling.utbetaling
-
-                    requireNotNull(utbetaling) {
-                        "Fant ingen utbetaling for $behandlingId på utbetalingsvedtak $vedtakId"
-                    }
-
-                    Utbetalingsvedtak(
-                        id = vedtakId,
-                        sakId = sakId,
-                        saksnummer = saksnummer,
-                        fnr = fnr,
-                        forrigeUtbetalingsvedtakId = forrigeUtbetalingsvedtakId,
-                        sendtTilUtbetaling = sendtTilUtbetaling,
-                        journalpostId = journalpostId,
-                        journalføringstidspunkt = journalføringstidspunkt,
-                        opprettet = opprettet,
-                        status = status,
-                        statusMetadata = statusMetadata,
-                        saksbehandler = behandling.saksbehandler!!,
-                        beslutter = behandling.beslutter!!,
-                        beregning = utbetaling.beregning,
-                        brukerNavkontor = utbetaling.navkontor,
-                        rammevedtak = listOf(rammevedtak.id),
-                        automatiskBehandlet = false,
-                        erKorrigering = false,
-                        begrunnelse = behandling.begrunnelseVilkårsvurdering?.verdi,
-                    )
-                }
+            require(meldekortbehandling is MeldekortBehandling.Behandlet) {
+                "Meldekortet $meldekortId på utbetalingsvedtak $vedtakId er ikke et behandlet meldekort"
             }
+
+            return MeldekortVedtak(
+                id = vedtakId,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                journalpostId = journalpostId,
+                journalføringstidspunkt = journalføringstidspunkt,
+                opprettet = opprettet,
+                utbetaling = Utbetaling(
+                    beregning = meldekortbehandling.beregning,
+                    brukerNavkontor = meldekortbehandling.navkontor,
+                    vedtakId = vedtakId,
+                    forrigeUtbetalingVedtakId = forrigeUtbetalingVedtakId,
+                    sendtTilUtbetaling = sendtTilUtbetaling,
+                    status = status,
+                ),
+                meldekortBehandling = meldekortbehandling,
+            )
+
+//                is BeregningKilde.Behandling -> {
+//                    val behandlingId = beregningKilde.id
+//
+//                    val rammevedtak = RammevedtakPostgresRepo.hentForBehandlingId(
+//                        behandlingId,
+//                        session,
+//                    )
+//
+//                    requireNotNull(rammevedtak) {
+//                        "Fant ingen rammevedtak for $behandlingId på utbetalingsvedtak $vedtakId"
+//                    }
+//
+//                    val behandling = rammevedtak.behandling as Revurdering
+//                    val utbetaling = behandling.utbetaling
+//
+//                    requireNotNull(utbetaling) {
+//                        "Fant ingen utbetaling for $behandlingId på utbetalingsvedtak $vedtakId"
+//                    }
+//
+//                    Utbetaling(
+//                        id = vedtakId,
+//                        sakId = sakId,
+//                        saksnummer = saksnummer,
+//                        fnr = fnr,
+//                        forrigeUtbetalingVedtakId = forrigeUtbetalingVedtakId,
+//                        sendtTilUtbetaling = sendtTilUtbetaling,
+//                        journalpostId = journalpostId,
+//                        journalføringstidspunkt = journalføringstidspunkt,
+//                        opprettet = opprettet,
+//                        status = status,
+//                        saksbehandler = behandling.saksbehandler!!,
+//                        beslutter = behandling.beslutter!!,
+//                        beregning = utbetaling.beregning,
+//                        brukerNavkontor = utbetaling.navkontor,
+//                        rammevedtak = listOf(rammevedtak.id),
+//                        automatiskBehandlet = false,
+//                        erKorrigering = false,
+//                        begrunnelse = behandling.begrunnelseVilkårsvurdering?.verdi,
+//                    )
+//                }
         }
     }
 }

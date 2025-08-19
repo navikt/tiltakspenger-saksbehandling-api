@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import java.time.LocalDate
 
 data class Vedtaksliste(
@@ -27,6 +28,10 @@ data class Vedtaksliste(
     /** Et førstegangsvedtak defineres som den første søknadsbehandlingen som førte til innvilgelse. */
     val harFørstegangsvedtak: Boolean by lazy {
         value.any { it.behandling is Søknadsbehandling && it.vedtakstype == Vedtakstype.INNVILGELSE }
+    }
+
+    val utbetalinger: List<Utbetaling> by lazy {
+        value.mapNotNull { it.utbetaling }
     }
 
     /**

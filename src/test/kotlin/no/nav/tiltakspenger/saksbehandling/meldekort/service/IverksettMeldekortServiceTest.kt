@@ -35,8 +35,8 @@ internal class IverksettMeldekortServiceTest {
             )
             (utbetalingContext.utbetalingsvedtakRepo as UtbetalingsvedtakFakeRepo).hentForSakId(sakId).let {
                 it.size shouldBe 2
-                it[0].forrigeUtbetalingsvedtakId shouldBe null
-                it[1].forrigeUtbetalingsvedtakId shouldBe it[0].id
+                it[0].utbetaling.forrigeUtbetalingVedtakId shouldBe null
+                it[1].utbetaling.forrigeUtbetalingVedtakId shouldBe it[0].id
             }
         }
     }

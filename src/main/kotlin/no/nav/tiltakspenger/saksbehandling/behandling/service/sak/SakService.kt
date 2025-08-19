@@ -17,11 +17,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHe
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPersonMedSkjerming
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 
 class SakService(
@@ -50,10 +50,10 @@ class SakService(
             behandlinger = Behandlinger.empty(),
             vedtaksliste = Vedtaksliste.empty(),
             meldekortBehandlinger = MeldekortBehandlinger.empty(),
-            utbetalinger = Utbetalinger(emptyList()),
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             soknader = emptyList(),
+            meldekortVedtaksliste = MeldekortVedtaksliste.empty(),
         )
         sakRepo.opprettSak(sak)
         logger.info { "Opprettet ny sak med saksnummer ${sak.saksnummer}, correlationId $correlationId" }

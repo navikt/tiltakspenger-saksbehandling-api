@@ -14,17 +14,17 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletMa
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingBegrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.oppdaterMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettManuellMeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.saksbehandlerFyllerUtMeldeperiodeDager
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.opprettUtbetalingsvedtak
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -166,22 +166,22 @@ internal fun TestDataHelper.persisterIverksattMeldekortbehandling(
             clock = clock,
         )
     },
-): Pair<Sak, Utbetalingsvedtak> {
+): Pair<Sak, MeldekortVedtak> {
     val (sakMedMeldekortbehandlingTilBeslutning, meldekortbehandlingTilBeslutning) = genererSak(sak)
 
     val iverksattMeldekortBehandling =
         (meldekortbehandlingTilBeslutning.taMeldekortBehandling(beslutter) as MeldekortBehandletManuelt)
             .iverksettMeldekort(beslutter, clock).getOrFail()
 
-    val utbetalingsvedtak = iverksattMeldekortBehandling.opprettUtbetalingsvedtak(
+    val meldekortVedtak = iverksattMeldekortBehandling.opprettVedtak(
         saksnummer = sakMedMeldekortbehandlingTilBeslutning.saksnummer,
         fnr = sakMedMeldekortbehandlingTilBeslutning.fnr,
-        forrigeUtbetalingsvedtak = sakMedMeldekortbehandlingTilBeslutning.utbetalinger.lastOrNull(),
+        forrigeUtbetaling = sakMedMeldekortbehandlingTilBeslutning.utbetalinger.lastOrNull(),
         clock = clock,
     )
 
     meldekortRepo.oppdater(iverksattMeldekortBehandling)
-    utbetalingsvedtakRepo.lagre(utbetalingsvedtak)
+    utbetalingsvedtakRepo.lagre(meldekortVedtak)
 
-    return sakRepo.hentForSakId(sakMedMeldekortbehandlingTilBeslutning.id)!! to utbetalingsvedtak
+    return sakRepo.hentForSakId(sakMedMeldekortbehandlingTilBeslutning.id)!! to meldekortVedtak
 }

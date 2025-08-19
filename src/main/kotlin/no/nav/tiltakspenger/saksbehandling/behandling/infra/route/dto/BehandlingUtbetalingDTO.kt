@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.beregnOrdinærBeløp
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnTotalBeløp
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.MeldeperiodeBeregningDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilMeldeperiodeBeregningDTO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toUtbetalingsstatusDTO
 
@@ -33,7 +33,7 @@ data class BeløpFørOgNå(
 
 fun BehandlingUtbetaling.tilDTO(
     meldeperiodeBeregninger: MeldeperiodeBeregninger,
-    utbetalingsvedtak: Utbetalingsvedtak?,
+    utbetalingsvedtak: Utbetaling?,
 ): BehandlingUtbetalingDTO {
     val forrigeBeregninger: List<MeldeperiodeBeregning> =
         beregning.beregninger.map { meldeperiodeBeregninger.sisteBeregningFør(it.id, it.kjedeId)!! }

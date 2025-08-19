@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.genererSimuleringFraBeregning
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -17,7 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
@@ -28,7 +28,7 @@ class UtbetalingFakeKlient(
     private val utbetalinger = Atomic(mutableMapOf<VedtakId, Utbetaling>())
 
     override suspend fun iverksett(
-        vedtak: Utbetalingsvedtak,
+        vedtak: MeldekortVedtak,
         forrigeUtbetalingJson: String?,
         correlationId: CorrelationId,
     ): Either<KunneIkkeUtbetale, SendtUtbetaling> {
@@ -54,8 +54,9 @@ class UtbetalingFakeKlient(
         val sak = sakFakeRepo.hentForSakId(behandling.sakId)!!
         return sak.genererSimuleringFraBeregning(behandling).right()
     }
-    data class Utbetaling(
-        val vedtak: Utbetalingsvedtak,
+
+    private data class Utbetaling(
+        val vedtak: MeldekortVedtak,
         val correlationId: CorrelationId,
         val sendtUtbetaling: SendtUtbetaling,
     )

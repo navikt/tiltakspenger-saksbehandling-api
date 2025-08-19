@@ -19,29 +19,23 @@ class SendUtbetalingerService(
     val logger = KotlinLogging.logger { }
     suspend fun send() {
         Either.catch {
-            utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk().forEach { utbetalingsvedtak ->
+            utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk().forEach { meldekortVedtak ->
                 val correlationId = CorrelationId.generate()
                 Either.catch {
                     val forrigeUtbetalingJson =
-                        utbetalingsvedtak.forrigeUtbetalingsvedtakId?.let { forrigeUtbetalingsvedtakId ->
-                            utbetalingsvedtakRepo.hentUtbetalingJsonForVedtakId(forrigeUtbetalingsvedtakId)
+                        meldekortVedtak.utbetaling.forrigeUtbetalingVedtakId?.let { forrigeUtbetalingVedtakId ->
+                            utbetalingsvedtakRepo.hentUtbetalingJsonForVedtakId(forrigeUtbetalingVedtakId)
                         }
-
-                    utbetalingsklient.iverksett(utbetalingsvedtak, forrigeUtbetalingJson, correlationId)
-                        .onRight {
-                            logger.info { "Utbetaling iverksatt for vedtak ${utbetalingsvedtak.id}" }
-                            utbetalingsvedtakRepo.markerSendtTilUtbetaling(utbetalingsvedtak.id, nå(clock), it)
-                            logger.info { "Utbetaling markert som utbetalt for vedtak ${utbetalingsvedtak.id}" }
-                        }
-                        .onLeft {
-                            logger.error { "Utbetaling kunne ikke iverksettes. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
-                            utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(
-                                vedtakId = utbetalingsvedtak.id,
-                                utbetalingsrespons = it,
-                            )
-                        }
+                    utbetalingsklient.iverksett(meldekortVedtak, forrigeUtbetalingJson, correlationId).onRight {
+                        logger.info { "Utbetaling iverksatt for vedtak ${meldekortVedtak.id}" }
+                        utbetalingsvedtakRepo.markerSendtTilUtbetaling(meldekortVedtak.id, nå(clock), it)
+                        logger.info { "Utbetaling markert som utbetalt for vedtak ${meldekortVedtak.id}" }
+                    }.onLeft {
+                        logger.error { "Utbetaling kunne ikke iverksettes. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, utbetalingsvedtakId: ${meldekortVedtak.id}" }
+                        utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(meldekortVedtak.id, it)
+                    }
                 }.onLeft {
-                    logger.error(it) { "Ukjent feil skjedde under iverksetting av utbetaling. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
+                    logger.error(it) { "Ukjent feil skjedde under iverksetting av utbetaling. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, utbetalingsvedtakId: ${meldekortVedtak.id}" }
                 }
             }
         }.onLeft {
