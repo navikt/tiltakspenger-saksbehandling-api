@@ -74,4 +74,9 @@ private fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJs
         "Behandlingen må være under behandling eller automatisk for å kunne sendes til beslutning",
         "må_være_under_behandling_eller_automatisk",
     )
+
+    KanIkkeSendeTilBeslutter.StøtterIkkeTilbakekreving -> HttpStatusCode.BadRequest to ErrorJson(
+        "Behandlingen vil føre til en tilbakekreving, det støtter vi ikke ennå",
+        "støtter_ikke_tilbakekreving",
+    )
 }

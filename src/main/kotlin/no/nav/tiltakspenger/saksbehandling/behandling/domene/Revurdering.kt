@@ -52,6 +52,7 @@ data class Revurdering(
     override val resultat: RevurderingResultat,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
+    override val utbetaling: BehandlingUtbetaling?,
 ) : Behandling {
 
     override val barnetillegg: Barnetillegg? = when (resultat) {
@@ -81,13 +82,6 @@ data class Revurdering(
         }
     }
 
-    val utbetaling: Innvilgelse.Utbetaling? by lazy {
-        when (resultat) {
-            is Innvilgelse -> resultat.utbetaling
-            is Stans -> null
-        }
-    }
-
     init {
         super.init()
 
@@ -114,7 +108,7 @@ data class Revurdering(
 
     fun oppdaterInnvilgelse(
         kommando: OppdaterRevurderingKommando.Innvilgelse,
-        utbetaling: Innvilgelse.Utbetaling?,
+        utbetaling: BehandlingUtbetaling?,
         clock: Clock,
     ): Either<KanIkkeOppdatereBehandling, Revurdering> {
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
@@ -126,6 +120,7 @@ data class Revurdering(
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             virkningsperiode = kommando.innvilgelsesperiode,
+            utbetaling = utbetaling,
             resultat = this.resultat.copy(
                 valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
                     tiltaksdeltakelser = kommando.tiltaksdeltakelser,
@@ -133,7 +128,6 @@ data class Revurdering(
                 ),
                 barnetillegg = kommando.barnetillegg,
                 antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
-                utbetaling = utbetaling,
             ),
         ).also {
             it.validerResultat()
@@ -217,7 +211,6 @@ data class Revurdering(
                     barnetillegg = null,
                     // TODO John + Anders: Siden vi ikke har en virkningsperiode på dette tidspunktet, gir det ikke noen mening og sette antallDagerPerMeldeperiode
                     antallDagerPerMeldeperiode = null,
-                    utbetaling = null,
                 ),
             )
         }
@@ -252,6 +245,7 @@ data class Revurdering(
                 avbrutt = null,
                 ventestatus = Ventestatus(),
                 begrunnelseVilkårsvurdering = null,
+                utbetaling = null,
             )
         }
     }

@@ -1,8 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -24,27 +21,21 @@ import java.time.LocalDate
 
 fun Sak.beregnRevurderingInnvilgelse(
     kommando: OppdaterRevurderingKommando.Innvilgelse,
-): Either<RevurderingIkkeBeregnet, BehandlingBeregning> {
-    val nyeBeregninger: List<Pair<MeldeperiodeBeregning, Int>> = beregnMeldeperioderPåNytt(kommando)
+): BehandlingBeregning? {
+    val nyeBeregninger: List<MeldeperiodeBeregning> = beregnMeldeperioderPåNytt(kommando)
 
     if (nyeBeregninger.isEmpty()) {
-        return RevurderingIkkeBeregnet.IngenEndring.left()
-    }
-
-    val beløpTotalDiff = nyeBeregninger.sumOf { it.second }
-
-    if (beløpTotalDiff < 0) {
-        return RevurderingIkkeBeregnet.StøtterIkkeTilbakekreving.left()
+        return null
     }
 
     return BehandlingBeregning(
-        beregninger = nyeBeregninger.map { it.first }.toNonEmptyListOrThrow(),
-    ).right()
+        beregninger = nyeBeregninger.toNonEmptyListOrThrow(),
+    )
 }
 
 private fun Sak.beregnMeldeperioderPåNytt(
     kommando: OppdaterRevurderingKommando.Innvilgelse,
-): List<Pair<MeldeperiodeBeregning, Int>> {
+): List<MeldeperiodeBeregning> {
     val behandlingId = kommando.behandlingId
     val behandling = hentBehandling(behandlingId)
 
@@ -108,13 +99,6 @@ private fun Sak.beregnMeldeperioderPåNytt(
             beregningKilde = BeregningKilde.Behandling(behandlingId),
         )
 
-        val beløpDiff = nyBeregning.totalBeløp - beregning.totalBeløp
-
-        nyBeregning to beløpDiff
+        nyBeregning
     }
-}
-
-sealed interface RevurderingIkkeBeregnet {
-    data object IngenEndring : RevurderingIkkeBeregnet
-    data object StøtterIkkeTilbakekreving : RevurderingIkkeBeregnet
 }

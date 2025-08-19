@@ -185,8 +185,8 @@ fun Revurdering.tilRevurderingDTO(
         valgteTiltaksdeltakelser = null,
         antallDagerPerMeldeperiode = null,
         barnetillegg = null,
-        utbetaling = null,
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
+        utbetaling = utbetaling?.tilDTO(meldeperiodeBeregninger, utbetalingsvedtak),
     ).let {
         when (resultat) {
             is RevurderingResultat.Stans -> it.copy(
@@ -202,7 +202,6 @@ fun Revurdering.tilRevurderingDTO(
                 },
                 barnetillegg = resultat.barnetillegg?.toBarnetilleggDTO(),
                 valgteTiltaksdeltakelser = resultat.valgteTiltaksdeltakelser?.tilDTO(),
-                utbetaling = resultat.utbetaling?.tilDTO(meldeperiodeBeregninger, utbetalingsvedtak),
             )
         }
     }

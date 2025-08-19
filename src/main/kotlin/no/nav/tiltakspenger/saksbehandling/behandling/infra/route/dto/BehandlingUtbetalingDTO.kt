@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse.Utbetaling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnBarnetilleggBeløp
@@ -31,7 +31,7 @@ data class BeløpFørOgNå(
     val nå: Int,
 )
 
-fun Utbetaling.tilDTO(
+fun BehandlingUtbetaling.tilDTO(
     meldeperiodeBeregninger: MeldeperiodeBeregninger,
     utbetalingsvedtak: Utbetalingsvedtak?,
 ): BehandlingUtbetalingDTO {

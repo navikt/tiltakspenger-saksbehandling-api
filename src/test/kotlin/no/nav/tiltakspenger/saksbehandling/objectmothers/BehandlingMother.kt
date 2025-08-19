@@ -589,6 +589,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
         periode,
     ),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
+    barnetillegg: Barnetillegg? = null,
     resultat: SøknadsbehandlingType,
 ): Sak {
     val sakMedSøknadsbehandling = startSøknadsbehandling(
@@ -613,7 +614,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                 innvilgelsesperiode = periode,
-                barnetillegg = null,
+                barnetillegg = barnetillegg,
                 tiltaksdeltakelser = tiltaksdeltakelser,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             )
@@ -658,6 +659,7 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
         AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
         periode,
     ),
+    barnetillegg: Barnetillegg? = null,
 ): Sak {
     val vilkårsvurdert = søknadsbehandlingTilBeslutter(
         periode = periode,
@@ -665,6 +667,7 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
         saksbehandler = saksbehandler,
         resultat = resultat,
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+        barnetillegg = barnetillegg,
     )
     this.behandlingContext.taBehandlingService.taBehandling(
         vilkårsvurdert.id,
@@ -690,6 +693,7 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
         AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
         periode,
     ),
+    barnetillegg: Barnetillegg? = null,
 ): Sak {
     val tac = this
     val underBeslutning = søknadsbehandlingUnderBeslutning(
@@ -699,6 +703,7 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
         beslutter = beslutter,
         resultat = resultat,
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+        barnetillegg = barnetillegg,
     )
     tac.behandlingContext.iverksettBehandlingService.iverksett(
         behandlingId = underBeslutning.behandlinger.singleOrNullOrThrow()!!.id,
@@ -725,6 +730,7 @@ suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
         AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
         periode,
     ),
+    barnetillegg: Barnetillegg? = null,
 ): Sak {
     val (sak, meldeperioder) = søknadssbehandlingIverksatt(
         periode = periode,
@@ -734,6 +740,7 @@ suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
         correlationId = correlationId,
         resultat = resultat,
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+        barnetillegg = barnetillegg,
     ).genererMeldeperioder(clock)
 
     this.meldekortContext.meldeperiodeRepo.lagre(meldeperioder)

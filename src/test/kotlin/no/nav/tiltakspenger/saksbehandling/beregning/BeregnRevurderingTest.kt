@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.fixedClock
-import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -97,7 +97,7 @@ class BeregnRevurderingTest {
             ),
         )
 
-        val beregning = sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando).getOrFail()
+        val beregning = sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando)
 
         beregning.shouldBeInstanceOf<BehandlingBeregning>()
         beregning.size shouldBe 1
@@ -116,8 +116,7 @@ class BeregnRevurderingTest {
             revurdering = revurdering,
         )
 
-        sak.beregnRevurderingInnvilgelse(kommando).leftOrNull()
-            .shouldBeInstanceOf<RevurderingIkkeBeregnet.IngenEndring>()
+        sak.beregnRevurderingInnvilgelse(kommando).shouldBeNull()
     }
 
     @Test
@@ -132,24 +131,6 @@ class BeregnRevurderingTest {
             revurdering = revurdering,
         )
 
-        sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando).leftOrNull()
-            .shouldBeInstanceOf<RevurderingIkkeBeregnet.IngenEndring>()
-    }
-
-    @Test
-    fun `Skal ikke returnere beregning dersom det fører til tilbakekreving (fjerner barnetillegg)`() {
-        val (sak, revurdering) = sakMedRevurdering(antallBarnFraSøknad = 1)
-
-        val (sakMedMeldekortBehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
-            periode = sak.meldeperiodeKjeder.first().periode,
-        )
-
-        val kommando = tilBeslutningKommando(
-            revurdering = revurdering,
-            barnetillegg = null,
-        )
-
-        sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando).leftOrNull()
-            .shouldBeInstanceOf<RevurderingIkkeBeregnet.StøtterIkkeTilbakekreving>()
+        sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando).shouldBeNull()
     }
 }

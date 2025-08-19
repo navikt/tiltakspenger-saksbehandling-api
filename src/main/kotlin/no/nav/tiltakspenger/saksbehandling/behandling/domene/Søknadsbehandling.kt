@@ -59,6 +59,7 @@ data class Søknadsbehandling(
     val automatiskSaksbehandlet: Boolean,
     val manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
 ) : Behandling {
+    override val utbetaling = null
 
     override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
         get() = when (resultat) {

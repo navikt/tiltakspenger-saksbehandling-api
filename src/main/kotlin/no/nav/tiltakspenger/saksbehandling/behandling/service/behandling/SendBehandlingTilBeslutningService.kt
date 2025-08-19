@@ -44,6 +44,12 @@ class SendBehandlingTilBeslutningService(
                 .left()
         }
 
+        behandling.utbetaling?.also {
+            if (it.beregning.finnBeløpDiff(sak.meldeperiodeBeregninger) < 0) {
+                return KanIkkeSendeTilBeslutter.StøtterIkkeTilbakekreving.left()
+            }
+        }
+
         return behandling.tilBeslutning(
             kommando = kommando,
             clock = clock,

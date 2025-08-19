@@ -83,6 +83,8 @@ sealed interface Behandling {
 
     val saksopplysningsperiode: Periode? get() = saksopplysninger.periode
 
+    val utbetaling: BehandlingUtbetaling?
+
     fun inneholderEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
         saksopplysninger.tiltaksdeltagelser.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
 
