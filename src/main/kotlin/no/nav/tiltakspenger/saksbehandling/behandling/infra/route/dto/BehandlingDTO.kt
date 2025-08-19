@@ -202,7 +202,7 @@ fun Revurdering.tilRevurderingDTO(
                 },
                 barnetillegg = resultat.barnetillegg?.toBarnetilleggDTO(),
                 valgteTiltaksdeltakelser = resultat.valgteTiltaksdeltakelser?.tilDTO(),
-                utbetaling = resultat.utbetaling?.tilDTO(meldeperiodeBeregninger, utbetalingsvedtak!!),
+                utbetaling = resultat.utbetaling?.tilDTO(meldeperiodeBeregninger, utbetalingsvedtak),
             )
         }
     }
