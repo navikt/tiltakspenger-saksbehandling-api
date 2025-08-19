@@ -17,7 +17,7 @@ class UtbetalingsvedtakDTOTest {
         utbetalingsvedtak.toJsonRequest(
             hentSaksbehandlersNavn = { "Saksbehandler Navn" },
             tiltaksdeltagelser = Tiltaksdeltagelser(tiltaksdeltagelser),
-            sammenlign = { sammenlign(utbetalingsvedtak.beregning.beregninger.first()) },
+            sammenlign = { sammenlign(utbetalingsvedtak.utbetaling.beregning.beregninger.first()) },
         )
     }
 

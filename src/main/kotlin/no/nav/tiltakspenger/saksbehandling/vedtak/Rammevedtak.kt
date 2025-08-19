@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.sak.utfallsperioder
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -33,13 +34,14 @@ import java.time.LocalDateTime
 data class Rammevedtak(
     override val id: VedtakId = VedtakId.random(),
     override val opprettet: LocalDateTime,
-    val sakId: SakId,
+    override val sakId: SakId,
+    override val periode: Periode,
+    override val journalpostId: JournalpostId?,
+    override val journalføringstidspunkt: LocalDateTime?,
+    override val utbetaling: Utbetaling?,
     val behandling: Behandling,
     val vedtaksdato: LocalDate?,
     val vedtakstype: Vedtakstype,
-    override val periode: Periode,
-    val journalpostId: JournalpostId?,
-    val journalføringstidspunkt: LocalDateTime?,
     val distribusjonId: DistribusjonId?,
     val distribusjonstidspunkt: LocalDateTime?,
     val sendtTilDatadeling: LocalDateTime?,
@@ -57,15 +59,11 @@ data class Rammevedtak(
     val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
 
     val beregning: BehandlingBeregning? by lazy {
-        behandling.utbetaling?.beregning
+        utbetaling?.beregning as BehandlingBeregning
     }
 
     /** TODO jah: Endre til behandling.antallDagerPerMeldeperiode - merk at den ikke er satt for Avslag eller Stans. */
     override val antallDagerPerMeldeperiode: Int = behandling.maksDagerMedTiltakspengerForPeriode
-
-    override fun erStansvedtak(): Boolean {
-        return vedtakstype == Vedtakstype.STANS
-    }
 
     init {
         require(behandling.erVedtatt) { "Kan ikke lage vedtak for behandling som ikke er vedtatt. BehandlingId: ${behandling.id}" }
@@ -86,8 +84,21 @@ fun Sak.opprettVedtak(
 ): Pair<Sak, Rammevedtak> {
     require(behandling.status == Behandlingsstatus.VEDTATT) { "Krever behandlingsstatus VEDTATT når vi skal opprette et vedtak." }
 
+    val vedtakId = VedtakId.random()
+
+    val utbetaling = behandling.utbetaling?.let {
+        Utbetaling(
+            beregning = it.beregning,
+            brukerNavkontor = it.navkontor,
+            vedtakId = vedtakId,
+            forrigeUtbetalingVedtakId = utbetalinger.lastOrNull()?.vedtakId,
+            sendtTilUtbetaling = null,
+            status = null,
+        )
+    }
+
     val vedtak = Rammevedtak(
-        id = VedtakId.random(),
+        id = vedtakId,
         opprettet = nå(clock),
         sakId = this.id,
         behandling = behandling,
@@ -100,6 +111,7 @@ fun Sak.opprettVedtak(
         distribusjonstidspunkt = null,
         sendtTilDatadeling = null,
         brevJson = null,
+        utbetaling = utbetaling,
     )
 
     val oppdatertSak = this.copy(vedtaksliste = this.vedtaksliste.leggTilVedtak(vedtak))

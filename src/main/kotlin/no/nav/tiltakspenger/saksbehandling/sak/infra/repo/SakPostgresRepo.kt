@@ -256,7 +256,7 @@ class SakPostgresRepo(
                     behandlinger = behandlinger,
                     vedtaksliste = vedtaksliste,
                     meldekortBehandlinger = meldekortBehandlinger,
-                    utbetalinger = UtbetalingsvedtakPostgresRepo.hentForSakId(id, session),
+                    meldekortVedtaksliste = UtbetalingsvedtakPostgresRepo.hentForSakId(id, session),
                     meldeperiodeKjeder = meldeperiodekjeder,
                     brukersMeldekort = BrukersMeldekortPostgresRepo.hentForSakId(id, session),
                     soknader = soknader,

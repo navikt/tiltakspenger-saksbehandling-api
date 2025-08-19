@@ -14,12 +14,12 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeIverksetteMel
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilStatistikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.opprettUtbetalingsvedtak
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.tilStatistikk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import java.time.Clock
 
@@ -59,10 +59,10 @@ class IverksettMeldekortService(
 
         return meldekortBehandling.iverksettMeldekort(kommando.beslutter, clock).map { iverksattMeldekortbehandling ->
             val eksisterendeUtbetalingsvedtak = sak.utbetalinger
-            val utbetalingsvedtak = iverksattMeldekortbehandling.opprettUtbetalingsvedtak(
+            val utbetalingsvedtak = iverksattMeldekortbehandling.opprettVedtak(
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
-                forrigeUtbetalingsvedtak = eksisterendeUtbetalingsvedtak.lastOrNull(),
+                forrigeUtbetaling = eksisterendeUtbetalingsvedtak.lastOrNull(),
                 clock = clock,
             )
             val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()
@@ -74,7 +74,7 @@ class IverksettMeldekortService(
             }
             ferdigstillOppgave(meldeperiode.id, meldekortId)
             sak.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
-                .leggTilUtbetalingsvedtak(utbetalingsvedtak) to iverksattMeldekortbehandling
+                .leggTilMeldekortVedtak(utbetalingsvedtak) to iverksattMeldekortbehandling
         }
     }
 

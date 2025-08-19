@@ -57,7 +57,7 @@ class SakFakeRepo(
             behandlinger = behandlinger,
             vedtaksliste = rammevedtakRepo.hentForSakId(sakId),
             meldekortBehandlinger = meldekortBehandlinger,
-            utbetalinger = utbetalingsvedtakRepo.hentForSakId(sakId),
+            meldekortVedtaksliste = utbetalingsvedtakRepo.hentForSakId(sakId),
             meldeperiodeKjeder = meldeperiodeRepo.hentForSakId(sakId),
             soknader = soknader,
         )

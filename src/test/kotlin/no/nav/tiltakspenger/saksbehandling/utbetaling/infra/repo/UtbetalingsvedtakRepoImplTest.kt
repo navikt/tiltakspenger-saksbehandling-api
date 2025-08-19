@@ -10,9 +10,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakMedBehandletMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.opprettUtbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import org.junit.jupiter.api.Test
@@ -29,7 +29,7 @@ class UtbetalingsvedtakRepoImplTest {
                 deltakelseTom = 2.april(2023),
             )
             val utbetalingsvedtakRepo = testDataHelper.utbetalingsvedtakRepo as UtbetalingsvedtakPostgresRepo
-            val utbetalingsvedtak = meldekort.opprettUtbetalingsvedtak(sak.saksnummer, sak.fnr, null, fixedClock)
+            val utbetalingsvedtak = meldekort.opprettVedtak(sak.saksnummer, sak.fnr, null, fixedClock)
             // Utbetaling
             utbetalingsvedtakRepo.lagre(utbetalingsvedtak)
             utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk() shouldBe listOf(utbetalingsvedtak)
@@ -64,7 +64,7 @@ class UtbetalingsvedtakRepoImplTest {
             )
             val utbetalingsvedtakRepo = testDataHelper.utbetalingsvedtakRepo as UtbetalingsvedtakPostgresRepo
             // Utbetaling
-            val utbetalingsvedtak = meldekort.opprettUtbetalingsvedtak(sak.saksnummer, sak.fnr, null, fixedClock)
+            val utbetalingsvedtak = meldekort.opprettVedtak(sak.saksnummer, sak.fnr, null, fixedClock)
             utbetalingsvedtakRepo.lagre(utbetalingsvedtak)
 
             utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk() shouldBe listOf(utbetalingsvedtak)
@@ -86,7 +86,7 @@ class UtbetalingsvedtakRepoImplTest {
             )
             val utbetalingsvedtakRepo = testDataHelper.utbetalingsvedtakRepo as UtbetalingsvedtakPostgresRepo
             // Utbetaling
-            val utbetalingsvedtak = meldekort.opprettUtbetalingsvedtak(sak.saksnummer, sak.fnr, null, fixedClock)
+            val utbetalingsvedtak = meldekort.opprettVedtak(sak.saksnummer, sak.fnr, null, fixedClock)
             utbetalingsvedtakRepo.lagre(utbetalingsvedtak)
             val sendtTilUtbetalingTidspunkt = nå(fixedClock.plus(1, ChronoUnit.MICROS))
             utbetalingsvedtakRepo.markerSendtTilUtbetaling(
@@ -112,7 +112,7 @@ class UtbetalingsvedtakRepoImplTest {
                 ),
             )
             testDataHelper.sessionFactory.withSession {
-                UtbetalingsvedtakPostgresRepo.hentForSakId(sak.id, it).single().status shouldBe null
+                UtbetalingsvedtakPostgresRepo.hentForSakId(sak.id, it).single().utbetaling.status shouldBe null
             }
             val forsøk0 = Forsøkshistorikk.opprett(
                 forrigeForsøk = null,
@@ -132,7 +132,7 @@ class UtbetalingsvedtakRepoImplTest {
             )
             testDataHelper.sessionFactory.withSession {
                 UtbetalingsvedtakPostgresRepo.hentForSakId(sak.id, it)
-                    .single().status shouldBe Utbetalingsstatus.IkkePåbegynt
+                    .single().utbetaling.status shouldBe Utbetalingsstatus.IkkePåbegynt
             }
             utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe expected(forsøk1)
 

@@ -93,7 +93,7 @@ internal class UtbetalingDTOTest {
                 antallBarn = AntallBarn(1),
             ),
         )
-        utbetalingsvedtak.beregning.dager.map { it.beregningsdag }.forEach {
+        utbetalingsvedtak.utbetaling.beregning.dager.map { it.beregningsdag }.forEach {
             withClue("Beregningsdag $it") {
                 if (it!!.beløp > 0) it.beløpBarnetillegg shouldBe 52
             }
@@ -187,7 +187,7 @@ internal class UtbetalingDTOTest {
                 antallBarn = AntallBarn(2),
             ),
         )
-        utbetalingsvedtak.beregning.dager.map { it.beregningsdag }.forEach {
+        utbetalingsvedtak.utbetaling.beregning.dager.map { it.beregningsdag }.forEach {
             withClue("Beregningsdag $it") {
                 if (it!!.beløp > 0) it.beløpBarnetillegg shouldBe 104
             }
