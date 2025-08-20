@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.auth.infra
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Bruker
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasIntrospectionResponse
@@ -54,28 +53,32 @@ class TexasClientFake : TexasClient {
             is Saksbehandler -> TexasIntrospectionResponse(
                 active = true,
                 error = null,
+                groups = getGroups(bruker),
+                roles = null,
                 other = mutableMapOf(
                     "azp_name" to bruker.klientnavn,
                     "azp" to bruker.klientId,
                     "NAVident" to bruker.navIdent,
                     "preferred_username" to bruker.epost,
-                    "groups" to objectMapper.writeValueAsString(getGroups(bruker)),
                 ),
             )
             is Systembruker -> TexasIntrospectionResponse(
                 active = true,
                 error = null,
+                groups = null,
+                roles = getRoles(bruker),
                 other = mutableMapOf(
                     "azp_name" to bruker.klientnavn,
                     "azp" to bruker.klientId,
                     "idtyp" to "app",
-                    "roles" to objectMapper.writeValueAsString(getRoles(bruker)),
                 ),
             )
 
             else -> TexasIntrospectionResponse(
                 active = false,
                 error = null,
+                groups = null,
+                roles = null,
                 other = emptyMap(),
             )
         }

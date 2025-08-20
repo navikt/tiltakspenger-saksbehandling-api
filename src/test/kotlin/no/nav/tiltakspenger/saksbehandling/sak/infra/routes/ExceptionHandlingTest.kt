@@ -43,14 +43,13 @@ class ExceptionHandlingTest {
             coEvery { texasClientMock.introspectToken(any(), IdentityProvider.AZUREAD) } returns TexasIntrospectionResponse(
                 active = true,
                 error = null,
+                groups = listOf("79985315-b2de-40b8-a740-9510796993c6"),
+                roles = null,
                 other = mutableMapOf(
                     "azp_name" to beslutter.klientnavn,
                     "azp" to beslutter.klientId,
                     "NAVident" to beslutter.navIdent,
                     "preferred_username" to beslutter.epost,
-                    "groups" to """
-                    ["79985315-b2de-40b8-a740-9510796993c6"]
-                    """.trimIndent(),
                 ),
             )
             coEvery { sakService.hentForFnr(any(), any(), any()) } throws IllegalStateException("Wuzza")

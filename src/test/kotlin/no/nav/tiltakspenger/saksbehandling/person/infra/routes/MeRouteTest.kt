@@ -47,14 +47,13 @@ class MeRouteTest {
         coEvery { texasClient.introspectToken(any(), IdentityProvider.AZUREAD) } returns TexasIntrospectionResponse(
             active = true,
             error = null,
+            groups = listOf("1b3a2c4d-d620-4fcf-a29b-a6cdadf29680"),
+            roles = null,
             other = mutableMapOf(
                 "azp_name" to "saksbehandling",
                 "azp" to "saksbehandling-id",
                 "NAVident" to "Z12345",
                 "preferred_username" to "Sak.Behandler@nav.no",
-                "groups" to """
-                    ["1b3a2c4d-d620-4fcf-a29b-a6cdadf29680"]
-                """.trimIndent(),
             ),
         )
         runTest {
@@ -99,14 +98,13 @@ class MeRouteTest {
         coEvery { texasClient.introspectToken(any(), IdentityProvider.AZUREAD) } returns TexasIntrospectionResponse(
             active = false,
             error = null,
+            groups = listOf("1b3a2c4d-d620-4fcf-a29b-a6cdadf29680"),
+            roles = null,
             other = mutableMapOf(
                 "azp_name" to "saksbehandling",
                 "azp" to "saksbehandling-id",
                 "NAVident" to "Z12345",
                 "preferred_username" to "Sak.Behandler@nav.no",
-                "groups" to """
-                    ["1b3a2c4d-d620-4fcf-a29b-a6cdadf29680"]
-                """.trimIndent(),
             ),
         )
         runTest {
@@ -138,12 +136,11 @@ class MeRouteTest {
         coEvery { texasClient.introspectToken(any(), IdentityProvider.AZUREAD) } returns TexasIntrospectionResponse(
             active = true,
             error = null,
+            groups = listOf("1b3a2c4d-d620-4fcf-a29b-a6cdadf29680"),
+            roles = null,
             other = mutableMapOf(
                 "azp_name" to "saksbehandling",
                 "azp" to "saksbehandling-id",
-                "groups" to """
-                    ["1b3a2c4d-d620-4fcf-a29b-a6cdadf29680"]
-                """.trimIndent(),
             ),
         )
         runTest {

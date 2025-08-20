@@ -52,14 +52,13 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
         coEvery { texasClient.introspectToken(any(), IdentityProvider.AZUREAD) } returns TexasIntrospectionResponse(
             active = true,
             error = null,
+            groups = listOf("1b3a2c4d-d620-4fcf-a29b-a6cdadf29680"),
+            roles = null,
             other = mutableMapOf(
                 "azp_name" to saksbehandler.klientnavn,
                 "azp" to saksbehandler.klientId,
                 "NAVident" to saksbehandler.navIdent,
                 "preferred_username" to saksbehandler.epost,
-                "groups" to """
-                    ["1b3a2c4d-d620-4fcf-a29b-a6cdadf29680"]
-                """.trimIndent(),
             ),
         )
         val request = """
