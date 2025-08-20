@@ -92,9 +92,9 @@ object Configuration {
                 "SOKOS_UTBETALDATA_SCOPE" to "localhost",
                 "SOKOS_UTBETALDATA_URL" to "http://host.docker.internal:8091",
                 "BRUK_FAKE_MELDEKORT_API" to "true",
-                "NAIS_TOKEN_ENDPOINT" to "http://localhost:7164/api/v1/token",
-                "NAIS_TOKEN_INTROSPECTION_ENDPOINT" to "http://localhost:7164/api/v1/introspect",
-                "NAIS_TOKEN_EXCHANGE_ENDPOINT" to "http://localhost:7164/api/v1/token/exchange",
+                "NAIS_TOKEN_ENDPOINT" to "http://localhost:7165/api/v1/token",
+                "NAIS_TOKEN_INTROSPECTION_ENDPOINT" to "http://localhost:7165/api/v1/introspect",
+                "NAIS_TOKEN_EXCHANGE_ENDPOINT" to "http://localhost:7165/api/v1/token/exchange",
             ),
         )
 
