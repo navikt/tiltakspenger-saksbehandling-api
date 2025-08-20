@@ -2,11 +2,30 @@ package no.nav.tiltakspenger.saksbehandling.felles
 
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.GenerellSystembruker
+import no.nav.tiltakspenger.libs.common.GenerellSystembrukerrolle
+import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
+import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
+import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
+
+/**
+ * Brukes for å mappe verifisert saksbehandler-token til Saksbehandler
+ */
+fun autoriserteBrukerroller() = Configuration.alleAdRoller()
+
+/**
+ * Brukes for å mappe verifisert systembruker-token til Systembruker
+ */
+@Suppress("UNCHECKED_CAST")
+fun getSystemBrukerMapper() = ::systembrukerMapper as (String, String, Set<String>) -> GenerellSystembruker<
+    GenerellSystembrukerrolle,
+    GenerellSystembrukerroller<GenerellSystembrukerrolle>,
+    >
 
 /**
  * Kaster en [TilgangException] dersom saksbehandler ikke har rollen [Saksbehandlerrolle.SAKSBEHANDLER].

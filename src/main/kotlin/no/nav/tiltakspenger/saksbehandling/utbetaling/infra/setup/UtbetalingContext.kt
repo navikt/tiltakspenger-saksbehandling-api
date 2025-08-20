@@ -1,8 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup
 
-import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.texas.IdentityProvider
+import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
@@ -24,7 +25,7 @@ open class UtbetalingContext(
     genererVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient,
     journalførMeldekortKlient: JournalførMeldekortKlient,
     navIdentClient: NavIdentClient,
-    entraIdSystemtokenClient: EntraIdSystemtokenClient,
+    texasClient: TexasClient,
     sakRepo: SakRepo,
     clock: Clock,
     navkontorService: NavkontorService,
@@ -32,7 +33,7 @@ open class UtbetalingContext(
     open val utbetalingsklient: Utbetalingsklient by lazy {
         UtbetalingHttpKlient(
             baseUrl = Configuration.utbetalingUrl,
-            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.utbetalingScope) },
+            getToken = { texasClient.getSystemToken(Configuration.utbetalingScope, IdentityProvider.AZUREAD) },
         )
     }
     open val utbetalingsvedtakRepo: UtbetalingsvedtakRepo by lazy {

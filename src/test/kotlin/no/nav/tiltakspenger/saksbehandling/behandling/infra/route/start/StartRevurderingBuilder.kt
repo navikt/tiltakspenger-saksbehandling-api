@@ -89,13 +89,15 @@ interface StartRevurderingBuilder {
         sakId: SakId,
         type: RevurderingType,
     ): Revurdering {
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler()
+        tac.texasClient.leggTilBruker(jwt, ObjectMother.saksbehandler())
         defaultRequest(
             HttpMethod.Companion.Post,
             url {
                 protocol = URLProtocol.Companion.HTTPS
                 path("/sak/$sakId/revurdering/start")
             },
-            jwt = tac.jwtGenerator.createJwtForSaksbehandler(),
+            jwt = jwt,
         ) {
             setBody("""{"revurderingType": "${type.tilDTO()}"}""")
         }

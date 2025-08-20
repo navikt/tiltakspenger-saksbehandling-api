@@ -1,14 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling
 
-import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
-import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenHttpClient
-import no.nav.tiltakspenger.libs.auth.test.core.EntraIdSystemtokenFakeClient
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringServiceImpl
+import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.auth.infra.PoaoTilgangskontrollFake
+import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
@@ -109,15 +108,7 @@ class LocalApplicationContext(
 
     override val oppgaveKlient: OppgaveKlient by lazy { OppgaveFakeKlient() }
 
-    override val entraIdSystemtokenClient = EntraIdSystemtokenFakeClient()
-
-    private val entraIdSystemtokenRealClient: EntraIdSystemtokenClient by lazy {
-        EntraIdSystemtokenHttpClient(
-            baseUrl = Configuration.azureOpenidConfigTokenEndpoint,
-            clientId = Configuration.clientId,
-            clientSecret = Configuration.clientSecret,
-        )
-    }
+    override val texasClient = TexasClientFake()
 
     override val veilarboppfolgingKlient: VeilarboppfolgingKlient by lazy {
         VeilarboppfolgingFakeKlient()
@@ -126,7 +117,7 @@ class LocalApplicationContext(
     override val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingKlient) }
 
     override val personContext =
-        object : PersonContext(sessionFactory, entraIdSystemtokenClient) {
+        object : PersonContext(sessionFactory, texasClient) {
             override val personKlient = personFakeKlient
             override val tilgangsstyringService = TilgangsstyringServiceImpl(
                 fellesPersonTilgangsstyringsklient = fellesFakeAdressebeskyttelseKlient,
@@ -137,7 +128,7 @@ class LocalApplicationContext(
         }
 
     override val dokumentContext by lazy {
-        object : DokumentContext(entraIdSystemtokenClient) {
+        object : DokumentContext(texasClient) {
             override val journalførMeldekortKlient = journalførFakeMeldekortKlient
             override val journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient
             override val genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient
@@ -151,7 +142,7 @@ class LocalApplicationContext(
     }
 
     override val tiltakContext by lazy {
-        object : TiltaksdeltagelseContext(entraIdSystemtokenClient) {
+        object : TiltaksdeltagelseContext(texasClient) {
             override val tiltaksdeltagelseKlient = tiltaksdeltagelseFakeKlient
         }
     }
@@ -181,7 +172,7 @@ class LocalApplicationContext(
             utbetalingsvedtakRepo = utbetalingContext.utbetalingsvedtakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             personService = personContext.personService,
-            entraIdSystemtokenClient = entraIdSystemtokenClient,
+            texasClient = texasClient,
             navkontorService = navkontorService,
             oppgaveKlient = oppgaveKlient,
             sakRepo = sakContext.sakRepo,
@@ -196,7 +187,7 @@ class LocalApplicationContext(
                     MeldekortApiHttpClient(
                         baseUrl = Configuration.meldekortApiUrl,
                         // Vi trenger en ekte token-klient for å snakke med meldekort-api
-                        getToken = { entraIdSystemtokenRealClient.getSystemtoken(Configuration.meldekortApiScope) },
+                        getToken = { texasClient.getSystemToken(Configuration.meldekortApiScope, IdentityProvider.AZUREAD) },
                     )
                 }
         }
@@ -230,7 +221,7 @@ class LocalApplicationContext(
             sessionFactory = sessionFactory,
             genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient,
             journalførMeldekortKlient = journalførFakeMeldekortKlient,
-            entraIdSystemtokenClient = entraIdSystemtokenClient,
+            texasClient = texasClient,
             sakRepo = sakContext.sakRepo,
             navIdentClient = personContext.navIdentClient,
             clock = clock,

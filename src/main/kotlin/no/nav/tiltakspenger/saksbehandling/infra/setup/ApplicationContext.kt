@@ -1,19 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.infra.setup
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
-import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenHttpClient
-import no.nav.tiltakspenger.libs.auth.core.MicrosoftEntraIdTokenService
-import no.nav.tiltakspenger.libs.auth.core.TokenService
-import no.nav.tiltakspenger.libs.common.GenerellSystembruker
-import no.nav.tiltakspenger.libs.common.GenerellSystembrukerrolle
-import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
 import no.nav.tiltakspenger.libs.kafka.Producer
 import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
-import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
+import no.nav.tiltakspenger.libs.texas.IdentityProvider
+import no.nav.tiltakspenger.libs.texas.client.TexasClient
+import no.nav.tiltakspenger.libs.texas.client.TexasHttpClient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.AvbrytSøknadOgBehandlingContext
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
@@ -70,46 +65,32 @@ open class ApplicationContext(
     open val sessionCounter by lazy { SessionCounter(log) }
     open val sessionFactory: SessionFactory by lazy { PostgresSessionFactory(dataSource, sessionCounter) }
 
-    @Suppress("UNCHECKED_CAST")
-    open val tokenService: TokenService by lazy {
-        val tokenVerificationToken = Configuration.TokenVerificationConfig()
-        MicrosoftEntraIdTokenService(
-            url = tokenVerificationToken.jwksUri,
-            issuer = tokenVerificationToken.issuer,
-            clientId = tokenVerificationToken.clientId,
-            autoriserteBrukerroller = tokenVerificationToken.roles,
-            systembrukerMapper = ::systembrukerMapper as (String, String, Set<String>) -> GenerellSystembruker<
-                GenerellSystembrukerrolle,
-                GenerellSystembrukerroller<GenerellSystembrukerrolle>,
-                >,
-            inkluderScopes = false,
+    open val texasClient: TexasClient by lazy {
+        TexasHttpClient(
+            introspectionUrl = Configuration.naisTokenIntrospectionEndpoint,
+            tokenUrl = Configuration.naisTokenEndpoint,
+            tokenExchangeUrl = Configuration.tokenExchangeEndpoint,
         )
     }
-    open val entraIdSystemtokenClient: EntraIdSystemtokenClient by lazy {
-        EntraIdSystemtokenHttpClient(
-            baseUrl = Configuration.azureOpenidConfigTokenEndpoint,
-            clientId = Configuration.clientId,
-            clientSecret = Configuration.clientSecret,
-        )
-    }
+
     open val veilarboppfolgingKlient: VeilarboppfolgingKlient by lazy {
         VeilarboppfolgingHttpClient(
             baseUrl = Configuration.veilarboppfolgingUrl,
-            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.veilarboppfolgingScope) },
+            getToken = { texasClient.getSystemToken(Configuration.veilarboppfolgingScope, IdentityProvider.AZUREAD) },
         )
     }
     open val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingKlient) }
     open val oppgaveKlient: OppgaveKlient by lazy {
         OppgaveHttpClient(
             baseUrl = Configuration.oppgaveUrl,
-            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.oppgaveScope) },
+            getToken = { texasClient.getSystemToken(Configuration.oppgaveScope, IdentityProvider.AZUREAD) },
         )
     }
 
     open val sokosUtbetaldataClient: SokosUtbetaldataClient by lazy {
         SokosUtbetaldataHttpClient(
             baseUrl = Configuration.sokosUtbetaldataUrl,
-            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.sokosUtbetaldataScope) },
+            getToken = { texasClient.getSystemToken(Configuration.sokosUtbetaldataScope, IdentityProvider.AZUREAD) },
             clock = clock,
         )
     }
@@ -226,8 +207,8 @@ open class ApplicationContext(
         )
     }
 
-    open val personContext by lazy { PersonContext(sessionFactory, entraIdSystemtokenClient) }
-    open val dokumentContext by lazy { DokumentContext(entraIdSystemtokenClient) }
+    open val personContext by lazy { PersonContext(sessionFactory, texasClient) }
+    open val dokumentContext by lazy { DokumentContext(texasClient) }
     open val statistikkContext by lazy {
         StatistikkContext(
             sessionFactory,
@@ -237,7 +218,7 @@ open class ApplicationContext(
         )
     }
     open val søknadContext by lazy { SøknadContext(sessionFactory, sakContext.sakService) }
-    open val tiltakContext by lazy { TiltaksdeltagelseContext(entraIdSystemtokenClient) }
+    open val tiltakContext by lazy { TiltaksdeltagelseContext(texasClient) }
     open val profile by lazy { Configuration.applicationProfile() }
     open val sakContext by lazy {
         SakContext(
@@ -254,7 +235,7 @@ open class ApplicationContext(
             sessionFactory = sessionFactory,
             genererVedtaksbrevForUtbetalingKlient = dokumentContext.genererVedtaksbrevForUtbetalingKlient,
             journalførMeldekortKlient = dokumentContext.journalførMeldekortKlient,
-            entraIdSystemtokenClient = entraIdSystemtokenClient,
+            texasClient = texasClient,
             navIdentClient = personContext.navIdentClient,
             sakRepo = sakContext.sakRepo,
             clock = clock,
@@ -269,7 +250,7 @@ open class ApplicationContext(
             utbetalingsvedtakRepo = utbetalingContext.utbetalingsvedtakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             personService = personContext.personService,
-            entraIdSystemtokenClient = entraIdSystemtokenClient,
+            texasClient = texasClient,
             navkontorService = navkontorService,
             oppgaveKlient = oppgaveKlient,
             sakRepo = sakContext.sakRepo,
@@ -311,7 +292,7 @@ open class ApplicationContext(
     private val datadelingKlient by lazy {
         DatadelingHttpClient(
             baseUrl = Configuration.datadelingUrl,
-            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.datadelingScope) },
+            getToken = { texasClient.getSystemToken(Configuration.datadelingScope, IdentityProvider.AZUREAD) },
         )
     }
 

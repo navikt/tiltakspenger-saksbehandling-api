@@ -1,20 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.common
 
-import no.nav.tiltakspenger.libs.auth.core.AdRolle
-import no.nav.tiltakspenger.libs.auth.core.MicrosoftEntraIdTokenService
-import no.nav.tiltakspenger.libs.auth.core.TokenService
-import no.nav.tiltakspenger.libs.auth.test.core.EntraIdSystemtokenFakeClient
-import no.nav.tiltakspenger.libs.auth.test.core.JwkFakeProvider
 import no.nav.tiltakspenger.libs.auth.test.core.JwtGenerator
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.GenerellSystembruker
-import no.nav.tiltakspenger.libs.common.GenerellSystembrukerrolle
-import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
-import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
-import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
+import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
@@ -103,19 +94,7 @@ class TestApplicationContext(
 
     val jwtGenerator = JwtGenerator()
 
-    override val tokenService: TokenService = MicrosoftEntraIdTokenService(
-        url = "unused",
-        issuer = "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0",
-        clientId = "c7adbfbb-1b1e-41f6-9b7a-af9627c04998",
-        autoriserteBrukerroller = Saksbehandlerrolle.entries.map { AdRolle(it, "ROLE_${it.name}") },
-        acceptIssuedAtLeeway = 0,
-        acceptNotBeforeLeeway = 0,
-        provider = JwkFakeProvider(jwtGenerator.jwk),
-        systembrukerMapper = ::systembrukerMapper as (String, String, Set<String>) -> GenerellSystembruker<
-            GenerellSystembrukerrolle,
-            GenerellSystembrukerroller<GenerellSystembrukerrolle>,
-            >,
-    )
+    override val texasClient = TexasClientFake()
 
     fun leggTilPerson(
         fnr: Fnr,
@@ -149,20 +128,18 @@ class TestApplicationContext(
     private val personFakeRepo =
         PersonFakeRepo(sakFakeRepo, søknadFakeRepo, meldekortBehandlingFakeRepo, behandlingFakeRepo)
 
-    override val entraIdSystemtokenClient = EntraIdSystemtokenFakeClient()
-
     override val veilarboppfolgingKlient = VeilarboppfolgingFakeKlient()
     override val navkontorService: NavkontorService = NavkontorService(veilarboppfolgingKlient)
 
     override val oppgaveKlient: OppgaveKlient = OppgaveFakeKlient()
 
     override val personContext =
-        object : PersonContext(sessionFactory, entraIdSystemtokenClient) {
+        object : PersonContext(sessionFactory, texasClient) {
             override val personKlient = personFakeKlient
             override val personRepo = personFakeRepo
         }
     override val dokumentContext by lazy {
-        object : DokumentContext(entraIdSystemtokenClient) {
+        object : DokumentContext(texasClient) {
             override val journalførMeldekortKlient = journalførFakeMeldekortKlient
             override val journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient
             override val genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient
@@ -184,7 +161,7 @@ class TestApplicationContext(
     }
 
     override val tiltakContext by lazy {
-        object : TiltaksdeltagelseContext(entraIdSystemtokenClient) {
+        object : TiltaksdeltagelseContext(texasClient) {
             override val tiltaksdeltagelseKlient = tiltaksdeltagelseFakeKlient
         }
     }
@@ -212,7 +189,7 @@ class TestApplicationContext(
                 utbetalingsvedtakRepo = utbetalingsvedtakFakeRepo,
                 statistikkStønadRepo = statistikkStønadFakeRepo,
                 personService = personContext.personService,
-                entraIdSystemtokenClient = entraIdSystemtokenClient,
+                texasClient = texasClient,
                 navkontorService = navkontorService,
                 oppgaveKlient = oppgaveKlient,
                 sakRepo = sakContext.sakRepo,
@@ -268,7 +245,7 @@ class TestApplicationContext(
             sessionFactory = sessionFactory,
             genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient,
             journalførMeldekortKlient = journalførFakeMeldekortKlient,
-            entraIdSystemtokenClient = entraIdSystemtokenClient,
+            texasClient = texasClient,
             navIdentClient = personContext.navIdentClient,
             sakRepo = sakContext.sakRepo,
             clock = clock,

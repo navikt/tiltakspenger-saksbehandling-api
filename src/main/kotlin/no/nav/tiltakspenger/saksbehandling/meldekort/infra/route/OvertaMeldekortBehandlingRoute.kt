@@ -5,11 +5,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
-import no.nav.tiltakspenger.libs.auth.core.TokenService
-import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
+import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
+import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
@@ -26,44 +26,42 @@ data class OvertaBehandlingBody(
 )
 
 fun Route.overtaMeldekortBehandlingRoute(
-    tokenService: TokenService,
     overtaMeldekortBehandlingService: OvertaMeldekortBehandlingService,
     auditService: AuditService,
 ) {
     val logger = KotlinLogging.logger {}
     patch(OVERTA_MELDEKORTBEHANDLING_PATH) {
         logger.debug { "Mottatt post-request på '$OVERTA_MELDEKORTBEHANDLING_PATH' - Tar over meldekortbehandling" }
-        call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
-            call.withSakId { sakId ->
-                call.withMeldekortId { meldekortId ->
-                    call.withBody<OvertaBehandlingBody> { body ->
-                        val correlationId = call.correlationId()
-                        overtaMeldekortBehandlingService.overta(
-                            OvertaMeldekortBehandlingCommand(
-                                sakId = sakId,
+        val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@patch
+        call.withSakId { sakId ->
+            call.withMeldekortId { meldekortId ->
+                call.withBody<OvertaBehandlingBody> { body ->
+                    val correlationId = call.correlationId()
+                    overtaMeldekortBehandlingService.overta(
+                        OvertaMeldekortBehandlingCommand(
+                            sakId = sakId,
+                            meldekortId = meldekortId,
+                            saksbehandler = saksbehandler,
+                            correlationId = correlationId,
+                            overtarFra = body.overtarFra,
+                        ),
+                    ).fold(
+                        {
+                            val (status, error) = it.tilStatusOgErrorJson()
+                            call.respond(status, error)
+                        },
+                        {
+                            auditService.logMedMeldekortId(
                                 meldekortId = meldekortId,
-                                saksbehandler = saksbehandler,
+                                navIdent = saksbehandler.navIdent,
+                                action = AuditLogEvent.Action.UPDATE,
+                                contextMessage = "Overtar meldekortbehandlingen",
                                 correlationId = correlationId,
-                                overtarFra = body.overtarFra,
-                            ),
-                        ).fold(
-                            {
-                                val (status, error) = it.tilStatusOgErrorJson()
-                                call.respond(status, error)
-                            },
-                            {
-                                auditService.logMedMeldekortId(
-                                    meldekortId = meldekortId,
-                                    navIdent = saksbehandler.navIdent,
-                                    action = AuditLogEvent.Action.UPDATE,
-                                    contextMessage = "Overtar meldekortbehandlingen",
-                                    correlationId = correlationId,
-                                )
+                            )
 
-                                call.respond(HttpStatusCode.OK, it.tilMeldekortBehandlingDTO())
-                            },
-                        )
-                    }
+                            call.respond(HttpStatusCode.OK, it.tilMeldekortBehandlingDTO())
+                        },
+                    )
                 }
             }
         }

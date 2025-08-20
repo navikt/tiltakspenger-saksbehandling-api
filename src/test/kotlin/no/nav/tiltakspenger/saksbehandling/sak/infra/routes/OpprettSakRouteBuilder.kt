@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import org.json.JSONObject
 
@@ -23,15 +24,17 @@ interface OpprettSakRouteBuilder {
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
     ): Saksnummer {
+        val jwt = tac.jwtGenerator.createJwtForSystembruker(
+            roles = listOf("hent_eller_opprett_sak"),
+        )
+        tac.texasClient.leggTilBruker(jwt, ObjectMother.systembrukerHentEllerOpprettSak())
         defaultRequest(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/saksnummer")
             },
-            jwt = tac.jwtGenerator.createJwtForSystembruker(
-                roles = listOf("hent_eller_opprett_sak"),
-            ),
+            jwt = jwt,
         ) { setBody("""{"fnr":"${fnr.verdi}"}""") }.apply {
             val bodyAsText = this.bodyAsText()
             withClue(

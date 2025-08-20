@@ -6,32 +6,30 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import no.nav.tiltakspenger.libs.auth.core.TokenService
-import no.nav.tiltakspenger.libs.auth.ktor.withSystembruker
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.texas.systembruker
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
+import no.nav.tiltakspenger.saksbehandling.felles.getSystemBrukerMapper
 
 const val SAKSNUMMER_PATH = "/saksnummer"
 
 fun Route.hentEllerOpprettSakRoute(
     sakService: SakService,
-    tokenService: TokenService,
 ) {
     val logger = KotlinLogging.logger {}
 
     post(SAKSNUMMER_PATH) {
         logger.debug { "Mottatt kall på '$SAKSNUMMER_PATH' - henter eller oppretter sak." }
-        call.withSystembruker(tokenService = tokenService) { systembruker: Systembruker ->
-            val fnr = call.receive<FnrDTO>().fnr
-            val sak = sakService.hentEllerOpprettSak(
-                fnr = Fnr.fromString(fnr),
-                systembruker = systembruker,
-                correlationId = CorrelationId.generate(),
-            )
-            call.respond(message = SaksnummerResponse(saksnummer = sak.saksnummer.verdi), status = HttpStatusCode.OK)
-        }
+        val systembruker = call.systembruker(getSystemBrukerMapper()) ?: return@post
+        val fnr = call.receive<FnrDTO>().fnr
+        val sak = sakService.hentEllerOpprettSak(
+            fnr = Fnr.fromString(fnr),
+            systembruker = systembruker as Systembruker,
+            correlationId = CorrelationId.generate(),
+        )
+        call.respond(message = SaksnummerResponse(saksnummer = sak.saksnummer.verdi), status = HttpStatusCode.OK)
     }
 }
 

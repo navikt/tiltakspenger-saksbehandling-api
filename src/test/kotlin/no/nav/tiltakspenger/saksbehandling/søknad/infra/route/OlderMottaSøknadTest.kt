@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
+import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.BarnetilleggFraSøknad
@@ -42,17 +43,20 @@ class OlderMottaSøknadTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
+                val jwt = tac.jwtGenerator.createJwtForSystembruker(
+                    roles = listOf("hent_eller_opprett_sak", "lagre_soknad"),
+                )
+                tac.texasClient.leggTilBruker(jwt, ObjectMother.systembrukerHentEllerOpprettSakOgLagreSoknad())
                 defaultRequest(
                     HttpMethod.Post,
                     url {
                         protocol = URLProtocol.HTTPS
                         path(SØKNAD_PATH)
                     },
-                    jwt = tac.jwtGenerator.createJwtForSystembruker(
-                        roles = listOf("hent_eller_opprett_sak", "lagre_soknad"),
-                    ),
+                    jwt = jwt,
                 ) {
                     setBody(søknadBodyV3(søknadId, sak.saksnummer))
                 }.apply {

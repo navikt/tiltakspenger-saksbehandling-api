@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
 import io.ktor.server.routing.Route
-import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.frameldekortapi.mottaMeldekortRoutes
@@ -23,7 +22,6 @@ fun Route.meldekortRoutes(
     oppdaterMeldekortService: OppdaterMeldekortService,
     auditService: AuditService,
     sakService: SakService,
-    tokenService: TokenService,
     mottaBrukerutfyltMeldekortService: MottaBrukerutfyltMeldekortService,
     underkjennMeldekortBehandlingService: UnderkjennMeldekortBehandlingService,
     overtaMeldekortBehandlingService: OvertaMeldekortBehandlingService,
@@ -33,15 +31,15 @@ fun Route.meldekortRoutes(
     avbrytMeldekortBehandlingService: AvbrytMeldekortBehandlingService,
     clock: Clock,
 ) {
-    hentMeldekortRoute(sakService, auditService, tokenService, clock)
-    iverksettMeldekortRoute(iverksettMeldekortService, auditService, tokenService, clock)
-    sendMeldekortTilBeslutterRoute(sendMeldekortTilBeslutterService, auditService, tokenService, clock)
-    oppdaterMeldekortBehandlingRoute(oppdaterMeldekortService, auditService, tokenService, clock)
-    opprettMeldekortBehandlingRoute(opprettMeldekortBehandlingService, auditService, tokenService, clock)
-    overtaMeldekortBehandlingRoute(tokenService, overtaMeldekortBehandlingService, auditService)
-    mottaMeldekortRoutes(mottaBrukerutfyltMeldekortService, tokenService)
-    taMeldekortBehandlingRoute(tokenService, auditService, taMeldekortBehandlingService)
-    underkjennMeldekortBehandlingRoute(underkjennMeldekortBehandlingService, auditService, tokenService)
-    leggTilbakeMeldekortBehandlingRoute(tokenService, auditService, leggTilbakeMeldekortBehandlingService)
-    avbrytMeldekortBehandlingRoute(tokenService, auditService, avbrytMeldekortBehandlingService)
+    hentMeldekortRoute(sakService, auditService, clock)
+    iverksettMeldekortRoute(iverksettMeldekortService, auditService, clock)
+    sendMeldekortTilBeslutterRoute(sendMeldekortTilBeslutterService, auditService, clock)
+    oppdaterMeldekortBehandlingRoute(oppdaterMeldekortService, auditService, clock)
+    opprettMeldekortBehandlingRoute(opprettMeldekortBehandlingService, auditService, clock)
+    overtaMeldekortBehandlingRoute(overtaMeldekortBehandlingService, auditService)
+    mottaMeldekortRoutes(mottaBrukerutfyltMeldekortService)
+    taMeldekortBehandlingRoute(auditService, taMeldekortBehandlingService)
+    underkjennMeldekortBehandlingRoute(underkjennMeldekortBehandlingService, auditService)
+    leggTilbakeMeldekortBehandlingRoute(auditService, leggTilbakeMeldekortBehandlingService)
+    avbrytMeldekortBehandlingRoute(auditService, avbrytMeldekortBehandlingService)
 }

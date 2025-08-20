@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
+import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkjenn
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkjennAutomatiskSaksbehandletBehandling
@@ -27,6 +28,7 @@ class UnderkjennBehandlingTest {
                 testApplication {
                     application {
                         jacksonSerialization()
+                        setupAuthentication(texasClient)
                         routing { routes(tac) }
                     }
                     val (_, _, behandlingId, _) = this.underkjenn(tac)
@@ -58,6 +60,7 @@ class UnderkjennBehandlingTest {
                 testApplication {
                     application {
                         jacksonSerialization()
+                        setupAuthentication(texasClient)
                         routing { routes(tac) }
                     }
                     val (_, _, behandlingId, _) = this.underkjennAutomatiskSaksbehandletBehandling(tac)

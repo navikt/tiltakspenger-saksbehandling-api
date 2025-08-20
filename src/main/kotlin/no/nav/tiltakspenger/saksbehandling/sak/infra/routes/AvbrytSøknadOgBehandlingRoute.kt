@@ -5,18 +5,18 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import no.nav.tiltakspenger.libs.auth.core.TokenService
-import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.KunneIkkeAvbryteSøknadOgBehandling
+import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSaksnummer
@@ -24,7 +24,6 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
 
 fun Route.avbrytSøknadOgBehandling(
-    tokenService: TokenService,
     auditService: AuditService,
     avbrytSøknadOgBehandlingService: AvbrytSøknadOgBehandlingService,
     clock: Clock,
@@ -32,32 +31,31 @@ fun Route.avbrytSøknadOgBehandling(
     val logger = KotlinLogging.logger {}
     post("$SAK_PATH/{saksnummer}/avbryt-aktiv-behandling") {
         logger.debug { "Mottatt post-request på $SAK_PATH/{saksnummer}/avbryt-aktiv-behandling - Prøver å avslutte søknad og behandling" }
-        call.withSaksbehandler(tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
-            call.withSaksnummer { saksnummer ->
-                call.withBody<AvsluttSøknadOgBehandlingBody> { body ->
-                    avbrytSøknadOgBehandlingService.avbrytSøknadOgBehandling(
-                        body.toCommand(
+        val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
+        call.withSaksnummer { saksnummer ->
+            call.withBody<AvsluttSøknadOgBehandlingBody> { body ->
+                avbrytSøknadOgBehandlingService.avbrytSøknadOgBehandling(
+                    body.toCommand(
+                        saksnummer = saksnummer,
+                        avsluttetAv = saksbehandler,
+                        correlationId = call.correlationId(),
+                    ),
+                ).fold(
+                    {
+                        val (status, message) = it.toStatusAndMessage()
+                        call.respond(status, message)
+                    },
+                    {
+                        auditService.logMedSaksnummer(
                             saksnummer = saksnummer,
-                            avsluttetAv = saksbehandler,
+                            navIdent = saksbehandler.navIdent,
+                            action = AuditLogEvent.Action.UPDATE,
                             correlationId = call.correlationId(),
-                        ),
-                    ).fold(
-                        {
-                            val (status, message) = it.toStatusAndMessage()
-                            call.respond(status, message)
-                        },
-                        {
-                            auditService.logMedSaksnummer(
-                                saksnummer = saksnummer,
-                                navIdent = saksbehandler.navIdent,
-                                action = AuditLogEvent.Action.UPDATE,
-                                correlationId = call.correlationId(),
-                                contextMessage = "Avsluttet søknad og behandling",
-                            )
-                            call.respond(status = HttpStatusCode.OK, it.toSakDTO(clock))
-                        },
-                    )
-                }
+                            contextMessage = "Avsluttet søknad og behandling",
+                        )
+                        call.respond(status = HttpStatusCode.OK, it.toSakDTO(clock))
+                    },
+                )
             }
         }
     }

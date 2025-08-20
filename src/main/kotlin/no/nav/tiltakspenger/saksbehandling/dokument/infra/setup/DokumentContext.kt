@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra.setup
 
-import no.nav.tiltakspenger.libs.auth.core.EntraIdSystemtokenClient
+import no.nav.tiltakspenger.libs.texas.IdentityProvider
+import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
@@ -14,18 +15,18 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevFor
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 
 open class DokumentContext(
-    private val entraIdSystemtokenClient: EntraIdSystemtokenClient,
+    private val texasClient: TexasClient,
 ) {
     private val joarkClient by lazy {
         JoarkHttpClient(
             baseUrl = Configuration.joarkUrl,
-            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.joarkScope) },
+            getToken = { texasClient.getSystemToken(Configuration.joarkScope, IdentityProvider.AZUREAD) },
         )
     }
     open val dokumentdistribusjonsklient: Dokumentdistribusjonsklient by lazy {
         DokdistHttpClient(
             baseUrl = Configuration.dokdistUrl,
-            getToken = { entraIdSystemtokenClient.getSystemtoken(Configuration.dokdistScope) },
+            getToken = { texasClient.getSystemToken(Configuration.dokdistScope, IdentityProvider.AZUREAD) },
         )
     }
     open val journalførMeldekortKlient: JournalførMeldekortKlient by lazy { joarkClient }

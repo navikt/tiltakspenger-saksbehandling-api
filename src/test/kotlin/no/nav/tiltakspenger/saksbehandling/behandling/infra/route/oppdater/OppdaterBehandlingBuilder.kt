@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 interface OppdaterBehandlingBuilder {
@@ -29,13 +30,15 @@ interface OppdaterBehandlingBuilder {
         oppdaterBehandlingDTO: OppdaterBehandlingDTO,
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
     ): Triple<Sak, Behandling, String> {
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler()
+        tac.texasClient.leggTilBruker(jwt, ObjectMother.saksbehandler())
         defaultRequest(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/behandling/$behandlingId/oppdater")
             },
-            jwt = tac.jwtGenerator.createJwtForSaksbehandler(),
+            jwt = jwt,
         ) {
             setBody(
                 serialize(oppdaterBehandlingDTO),

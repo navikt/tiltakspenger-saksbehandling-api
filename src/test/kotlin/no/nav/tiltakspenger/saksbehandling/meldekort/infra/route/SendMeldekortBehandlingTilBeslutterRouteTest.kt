@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
 import arrow.core.left
-import arrow.core.right
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
@@ -12,19 +11,24 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
 import io.ktor.http.path
+import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import io.ktor.server.util.url
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.libs.auth.core.TokenService
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.texas.IdentityProvider
+import no.nav.tiltakspenger.libs.texas.client.TexasClient
+import no.nav.tiltakspenger.libs.texas.client.TexasIntrospectionResponse
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
+import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
+import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutterService
@@ -37,15 +41,26 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
     fun `meldekortperioden kan ikke være frem i tid`() {
         val sakId = SakId.random()
         val meldekortId = MeldekortId.random()
-        val tokenService = object : TokenService {
-            override suspend fun validerOgHentBruker(token: String) = ObjectMother.saksbehandler().right()
-        }
+        val texasClient = mockk<TexasClient>()
+        val saksbehandler = ObjectMother.saksbehandler()
         val auditService = mockk<AuditService>()
         val sendMeldekortTilBeslutterService = mockk<SendMeldekortTilBeslutterService>()
         coEvery { auditService.logMedMeldekortId(any(), any(), any(), any(), any()) } returns Unit
         coEvery {
             sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(any())
         } returns KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere(KanIkkeOppdatereMeldekort.MeldekortperiodenKanIkkeVæreFremITid).left()
+        coEvery { texasClient.introspectToken(any(), IdentityProvider.AZUREAD) } returns TexasIntrospectionResponse(
+            active = true,
+            error = null,
+            groups = listOf("1b3a2c4d-d620-4fcf-a29b-a6cdadf29680"),
+            roles = null,
+            other = mutableMapOf(
+                "azp_name" to saksbehandler.klientnavn,
+                "azp" to saksbehandler.klientId,
+                "NAVident" to saksbehandler.navIdent,
+                "preferred_username" to saksbehandler.epost,
+            ),
+        )
         val request = """
             {
               "dager": [
@@ -57,13 +72,16 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    configureExceptions()
+                    setupAuthentication(texasClient)
                     routing {
-                        sendMeldekortTilBeslutterRoute(
-                            tokenService = tokenService,
-                            auditService = auditService,
-                            sendMeldekortTilBeslutterService = sendMeldekortTilBeslutterService,
-                            clock = fixedClock,
-                        )
+                        authenticate(IdentityProvider.AZUREAD.value) {
+                            sendMeldekortTilBeslutterRoute(
+                                auditService = auditService,
+                                sendMeldekortTilBeslutterService = sendMeldekortTilBeslutterService,
+                                clock = fixedClock,
+                            )
+                        }
                     }
                 }
                 defaultRequest(

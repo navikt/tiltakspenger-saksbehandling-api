@@ -5,11 +5,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import no.nav.tiltakspenger.libs.auth.core.TokenService
-import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
+import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
+import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMeldekortId
@@ -26,41 +26,39 @@ private data class UnderkjennMeldekortBehandlingBody(val begrunnelse: String)
 fun Route.underkjennMeldekortBehandlingRoute(
     underkjennMeldekortBehandlingService: UnderkjennMeldekortBehandlingService,
     auditService: AuditService,
-    tokenService: TokenService,
 ) {
     val logger = KotlinLogging.logger { }
     post(UNDERKJENN_MELDEKORT_BEHANDLING_PATH) {
         logger.debug { "Mottatt post-request på $UNDERKJENN_MELDEKORT_BEHANDLING_PATH - Beslutter ønsker å underkjenne" }
-        call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
-            call.withSakId {
-                call.withMeldekortId { meldekortId ->
-                    call.withBody<UnderkjennMeldekortBehandlingBody> { body ->
-                        val correlationId = call.correlationId()
-                        underkjennMeldekortBehandlingService.underkjenn(
-                            UnderkjennMeldekortBehandlingCommand(
+        val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
+        call.withSakId {
+            call.withMeldekortId { meldekortId ->
+                call.withBody<UnderkjennMeldekortBehandlingBody> { body ->
+                    val correlationId = call.correlationId()
+                    underkjennMeldekortBehandlingService.underkjenn(
+                        UnderkjennMeldekortBehandlingCommand(
+                            meldekortId = meldekortId,
+                            begrunnelse = body.begrunnelse,
+                            saksbehandler = saksbehandler,
+                            correlationId = correlationId,
+                        ),
+                    ).fold(
+                        ifLeft = {
+                            val (status, message) = it.toErrorJson()
+                            call.respond(status, message)
+                        },
+                        ifRight = {
+                            auditService.logMedMeldekortId(
                                 meldekortId = meldekortId,
-                                begrunnelse = body.begrunnelse,
-                                saksbehandler = saksbehandler,
+                                navIdent = saksbehandler.navIdent,
+                                action = AuditLogEvent.Action.UPDATE,
+                                contextMessage = "Beslutter underkjenner meldekort $meldekortId",
                                 correlationId = correlationId,
-                            ),
-                        ).fold(
-                            ifLeft = {
-                                val (status, message) = it.toErrorJson()
-                                call.respond(status, message)
-                            },
-                            ifRight = {
-                                auditService.logMedMeldekortId(
-                                    meldekortId = meldekortId,
-                                    navIdent = saksbehandler.navIdent,
-                                    action = AuditLogEvent.Action.UPDATE,
-                                    contextMessage = "Beslutter underkjenner meldekort $meldekortId",
-                                    correlationId = correlationId,
-                                )
+                            )
 
-                                call.respond(HttpStatusCode.OK, it.tilMeldekortBehandlingDTO())
-                            },
-                        )
-                    }
+                            call.respond(HttpStatusCode.OK, it.tilMeldekortBehandlingDTO())
+                        },
+                    )
                 }
             }
         }

@@ -5,10 +5,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import no.nav.tiltakspenger.libs.auth.core.TokenService
-import no.nav.tiltakspenger.libs.auth.ktor.withSaksbehandler
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragBenktype
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
@@ -18,13 +17,13 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSortering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
 import no.nav.tiltakspenger.saksbehandling.benk.domene.ÅpneBehandlingerFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.service.BenkOversiktService
+import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 
 private const val PATH = "/behandlinger"
 
 fun Route.hentBenkRoute(
-    tokenService: TokenService,
     benkOversiktService: BenkOversiktService,
 ) {
     val logger = KotlinLogging.logger {}
@@ -41,7 +40,8 @@ fun Route.hentBenkRoute(
         fun toCommand(saksbehandler: Saksbehandler, correlationId: CorrelationId): HentÅpneBehandlingerCommand =
             HentÅpneBehandlingerCommand(
                 åpneBehandlingerFiltrering = ÅpneBehandlingerFiltrering(
-                    benktype = benktype?.let { BehandlingssammendragBenktype.valueOf(it) } ?: BehandlingssammendragBenktype.KLAR,
+                    benktype = benktype?.let { BehandlingssammendragBenktype.valueOf(it) }
+                        ?: BehandlingssammendragBenktype.KLAR,
                     behandlingstype = behandlingstype?.map { BehandlingssammendragType.valueOf(it) },
                     status = status?.map { BehandlingssammendragStatus.valueOf(it) },
                     identer = identer,
@@ -54,13 +54,12 @@ fun Route.hentBenkRoute(
 
     post(PATH) {
         logger.debug { "Mottatt get-request på $PATH for å hente alle behandlinger på benken" }
-        call.withSaksbehandler(tokenService = tokenService, svarMed403HvisIngenScopes = false) { saksbehandler ->
-            call.withBody<HentBenkOversiktBody> {
-                benkOversiktService.hentBenkOversikt(
-                    command = it.toCommand(saksbehandler, call.correlationId()),
-                ).also {
-                    call.respond(status = HttpStatusCode.OK, it.toDTO())
-                }
+        val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
+        call.withBody<HentBenkOversiktBody> {
+            benkOversiktService.hentBenkOversikt(
+                command = it.toCommand(saksbehandler, call.correlationId()),
+            ).also {
+                call.respond(status = HttpStatusCode.OK, it.toDTO())
             }
         }
     }
