@@ -36,7 +36,7 @@ internal class MeldekortVedtakPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                        insert into utbetalingsvedtak (
+                        insert into meldekortvedtak (
                             id,
                             sak_id,
                             opprettet,
@@ -69,7 +69,7 @@ internal class MeldekortVedtakPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                        update utbetalingsvedtak
+                        update meldekortvedtak
                         set sendt_til_utbetaling_tidspunkt = :tidspunkt, 
                             utbetaling_metadata = to_jsonb(:metadata::jsonb)
                         where id = :id
@@ -90,7 +90,7 @@ internal class MeldekortVedtakPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                        update utbetalingsvedtak
+                        update meldekortvedtak
                         set utbetaling_metadata = to_jsonb(:metadata::jsonb)
                         where id = :id
                     """,
@@ -110,7 +110,7 @@ internal class MeldekortVedtakPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                        update utbetalingsvedtak 
+                        update meldekortvedtak 
                         set journalpost_id = :journalpost_id,
                         journalføringstidspunkt = :tidspunkt
                         where id = :id
@@ -129,7 +129,7 @@ internal class MeldekortVedtakPostgresRepo(
                 sqlQuery(
                     """
                         select (utbetaling_metadata->>'request') as req 
-                        from utbetalingsvedtak 
+                        from meldekortvedtak 
                         where id = :id
                     """,
                     "id" to vedtakId.toString(),
@@ -147,9 +147,9 @@ internal class MeldekortVedtakPostgresRepo(
                     //language=SQL
                     """
                             select u.*, s.fnr, s.saksnummer
-                            from utbetalingsvedtak u
+                            from meldekortvedtak u
                             join sak s on s.id = u.sak_id
-                            left join utbetalingsvedtak parent on parent.id = u.forrige_vedtak_id
+                            left join meldekortvedtak parent on parent.id = u.forrige_vedtak_id
                               and parent.sak_id = u.sak_id
                             where u.sendt_til_utbetaling_tidspunkt is null
                               and (u.forrige_vedtak_id is null or (parent.sendt_til_utbetaling_tidspunkt is not null and parent.status IN ('OK','OK_UTEN_UTBETALING')))
@@ -170,7 +170,7 @@ internal class MeldekortVedtakPostgresRepo(
                 sqlQuery(
                     """
                             select u.*, s.fnr, s.saksnummer 
-                            from utbetalingsvedtak u 
+                            from meldekortvedtak u 
                             join sak s on s.id = u.sak_id 
                             where u.journalpost_id is null
                             limit :limit
@@ -193,7 +193,7 @@ internal class MeldekortVedtakPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                        update utbetalingsvedtak
+                        update meldekortvedtak
                         set status = :status,
                         status_metadata = to_jsonb(:status_metadata::jsonb)
                         where id = :id
@@ -212,7 +212,7 @@ internal class MeldekortVedtakPostgresRepo(
                 sqlQuery(
                     """
                             select u.id, u.sak_id, u.opprettet, u.sendt_til_utbetaling_tidspunkt, u.status_metadata, s.saksnummer 
-                            from utbetalingsvedtak u 
+                            from meldekortvedtak u 
                             join sak s on s.id = u.sak_id 
                             where (u.status is null or u.status IN ('IKKE_PÅBEGYNT', 'SENDT_TIL_OPPDRAG')) and u.sendt_til_utbetaling_tidspunkt is not null
                             order by u.opprettet
@@ -240,7 +240,7 @@ internal class MeldekortVedtakPostgresRepo(
                     //language=SQL
                     """
                         select u.*, s.saksnummer, s.fnr 
-                        from utbetalingsvedtak u 
+                        from meldekortvedtak u 
                         join sak s on s.id = u.sak_id 
                         where u.sak_id = :sak_id 
                         order by u.opprettet
@@ -277,7 +277,7 @@ internal class MeldekortVedtakPostgresRepo(
                 )
 
             require(meldekortbehandling is MeldekortBehandling.Behandlet) {
-                "Meldekortet $meldekortId på utbetalingsvedtak $vedtakId er ikke et behandlet meldekort"
+                "Meldekortet $meldekortId på meldekortvedtak $vedtakId er ikke et behandlet meldekort"
             }
 
             return MeldekortVedtak(
@@ -308,14 +308,14 @@ internal class MeldekortVedtakPostgresRepo(
 //                    )
 //
 //                    requireNotNull(rammevedtak) {
-//                        "Fant ingen rammevedtak for $behandlingId på utbetalingsvedtak $vedtakId"
+//                        "Fant ingen rammevedtak for $behandlingId på meldekortvedtak $vedtakId"
 //                    }
 //
 //                    val behandling = rammevedtak.behandling as Revurdering
 //                    val utbetaling = behandling.utbetaling
 //
 //                    requireNotNull(utbetaling) {
-//                        "Fant ingen utbetaling for $behandlingId på utbetalingsvedtak $vedtakId"
+//                        "Fant ingen utbetaling for $behandlingId på meldekortvedtak $vedtakId"
 //                    }
 //
 //                    Utbetaling(

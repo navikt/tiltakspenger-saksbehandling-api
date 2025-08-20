@@ -140,7 +140,6 @@ open class BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
             statistikkSakRepo = statistikkSakRepo,
             statistikkStønadRepo = statistikkStønadRepo,
-            meldekortVedtakRepo = meldekortVedtakRepo,
             sakService = sakService,
             clock = clock,
             statistikkSakService = statistikkSakService,
