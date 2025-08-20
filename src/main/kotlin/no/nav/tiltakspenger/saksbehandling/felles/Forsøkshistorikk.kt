@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.felles
 
+import no.nav.tiltakspenger.libs.common.backoff.shouldRetry
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -9,24 +10,36 @@ import java.time.LocalDateTime
  */
 data class Forsøkshistorikk(
     val forrigeForsøk: LocalDateTime,
+    val nesteForsøk: LocalDateTime,
     val antallForsøk: Long,
 ) {
     init {
-        require(antallForsøk > 0) { "antallForsøk må være større enn 0, men var $antallForsøk" }
+        require(antallForsøk > -1) { "antallForsøk kan ikke være negativ, men var $antallForsøk" }
     }
 
     fun inkrementer(clock: Clock): Forsøkshistorikk {
+        val oppdatertAntallForsøk = antallForsøk + 1
+        val nesteForsøk = forrigeForsøk.shouldRetry(oppdatertAntallForsøk, clock).second
         return Forsøkshistorikk(
             forrigeForsøk = LocalDateTime.now(clock),
-            antallForsøk = antallForsøk + 1,
+            nesteForsøk = nesteForsøk,
+            antallForsøk = oppdatertAntallForsøk,
         )
     }
 
     companion object {
-        fun førsteForsøk(clock: Clock): Forsøkshistorikk {
+        fun opprett(
+            forrigeForsøk: LocalDateTime? = null,
+            antallForsøk: Long = 0,
+            clock: Clock,
+        ): Forsøkshistorikk {
+            val nå = LocalDateTime.now(clock)
+            val forrigeForsøk = forrigeForsøk ?: nå
+            val nesteForsøk = forrigeForsøk?.shouldRetry(antallForsøk, clock)?.second ?: nå
             return Forsøkshistorikk(
-                forrigeForsøk = LocalDateTime.now(clock),
-                antallForsøk = 1,
+                forrigeForsøk = forrigeForsøk,
+                nesteForsøk = nesteForsøk,
+                antallForsøk = antallForsøk,
             )
         }
     }

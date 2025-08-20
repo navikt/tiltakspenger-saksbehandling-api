@@ -71,6 +71,7 @@ class UtbetalingsvedtakRepoImplTest {
             utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(
                 vedtakId = utbetalingsvedtak.id,
                 utbetalingsrespons = KunneIkkeUtbetale("myFailedReq", "myFailedRes", 409),
+                forsøkshistorikk = utbetalingsvedtak.statusMetadata,
             )
             utbetalingsvedtakRepo.hentUtbetalingJsonForVedtakId(utbetalingsvedtak.id) shouldBe "myFailedReq"
             utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk() shouldBe listOf(utbetalingsvedtak)
@@ -96,9 +97,10 @@ class UtbetalingsvedtakRepoImplTest {
             )
 
             fun expected(
-                forsøkshistorikk: Forsøkshistorikk? = Forsøkshistorikk(
+                forsøkshistorikk: Forsøkshistorikk? = Forsøkshistorikk.opprett(
                     forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(1, ChronoUnit.MICROS),
                     antallForsøk = 1,
+                    clock = fixedClock,
                 ),
             ) = listOf(
                 UtbetalingDetSkalHentesStatusFor(
@@ -113,10 +115,16 @@ class UtbetalingsvedtakRepoImplTest {
             testDataHelper.sessionFactory.withSession {
                 UtbetalingsvedtakPostgresRepo.hentForSakId(sak.id, it).single().status shouldBe null
             }
-            utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe expected(forsøkshistorikk = null)
-            val forsøk1 = Forsøkshistorikk(
+            val forsøk0 = Forsøkshistorikk.opprett(
+                forrigeForsøk = null,
+                antallForsøk = 0,
+                clock = fixedClock,
+            )
+            utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe expected(forsøkshistorikk = forsøk0)
+            val forsøk1 = Forsøkshistorikk.opprett(
                 forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(1, ChronoUnit.MICROS),
                 antallForsøk = 1,
+                clock = fixedClock,
             )
             utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
                 vedtakId = utbetalingsvedtak.id,
@@ -129,9 +137,10 @@ class UtbetalingsvedtakRepoImplTest {
             }
             utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe expected(forsøk1)
 
-            val forsøk2 = Forsøkshistorikk(
+            val forsøk2 = Forsøkshistorikk.opprett(
                 forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(2, ChronoUnit.MICROS),
                 antallForsøk = 2,
+                clock = fixedClock,
             )
             utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
                 vedtakId = utbetalingsvedtak.id,
@@ -143,9 +152,10 @@ class UtbetalingsvedtakRepoImplTest {
             utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
                 vedtakId = utbetalingsvedtak.id,
                 status = Utbetalingsstatus.FeiletMotOppdrag,
-                metadata = Forsøkshistorikk(
+                metadata = Forsøkshistorikk.opprett(
                     forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(3, ChronoUnit.MICROS),
                     antallForsøk = 3,
+                    clock = fixedClock,
                 ),
             )
             utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe emptyList()
@@ -153,9 +163,10 @@ class UtbetalingsvedtakRepoImplTest {
             utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
                 vedtakId = utbetalingsvedtak.id,
                 status = Utbetalingsstatus.OkUtenUtbetaling,
-                metadata = Forsøkshistorikk(
+                metadata = Forsøkshistorikk.opprett(
                     forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(4, ChronoUnit.MICROS),
                     antallForsøk = 4,
+                    clock = fixedClock,
                 ),
             )
             utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe emptyList()
@@ -163,9 +174,10 @@ class UtbetalingsvedtakRepoImplTest {
             utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
                 vedtakId = utbetalingsvedtak.id,
                 status = Utbetalingsstatus.Ok,
-                metadata = Forsøkshistorikk(
+                metadata = Forsøkshistorikk.opprett(
                     forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(5, ChronoUnit.MICROS),
                     antallForsøk = 5,
+                    clock = fixedClock,
                 ),
             )
             utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe emptyList()

@@ -47,14 +47,16 @@ internal class UtbetalingsvedtakPostgresRepo(
                             opprettet,
                             forrige_vedtak_id,
                             meldekort_id,
-                            behandling_id
+                            behandling_id,
+                            status_metadata
                         ) values (
                             :id,
                             :sak_id,
                             :opprettet,
                             :forrige_vedtak_id,
                             :meldekort_id,
-                            :behandling_id
+                            :behandling_id,
+                            to_jsonb(:status_metadata::jsonb)
                         )
                     """.trimIndent(),
                     mapOf(
@@ -66,6 +68,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                             is BeregningKilde.Behandling -> "behandling_id" to vedtak.beregningKilde.id.toString()
                             is BeregningKilde.Meldekort -> "meldekort_id" to vedtak.beregningKilde.id.toString()
                         },
+                        "status_metadata" to vedtak.statusMetadata?.toDbJson(),
                     ),
                 ).asUpdate,
             )
@@ -100,6 +103,7 @@ internal class UtbetalingsvedtakPostgresRepo(
     override fun lagreFeilResponsFraUtbetaling(
         vedtakId: VedtakId,
         utbetalingsrespons: KunneIkkeUtbetale,
+        forsøkshistorikk: Forsøkshistorikk,
     ) {
         sessionFactory.withSession { session ->
             session.run(
@@ -107,12 +111,14 @@ internal class UtbetalingsvedtakPostgresRepo(
                     //language=SQL
                     """
                         update utbetalingsvedtak
-                        set utbetaling_metadata = to_jsonb(:metadata::jsonb)
+                        set utbetaling_metadata = to_jsonb(:utbetaling_metadata::jsonb),
+                            status_metadata = to_jsonb(:status_metadata::jsonb)
                         where id = :id
                     """.trimIndent(),
                     mapOf(
                         "id" to vedtakId.toString(),
-                        "metadata" to utbetalingsrespons.toJson(),
+                        "utbetaling_metadata" to utbetalingsrespons.toJson(),
+                        "status_metadata" to forsøkshistorikk.toDbJson(),
                     ),
                 ).asUpdate,
             )
@@ -175,7 +181,8 @@ internal class UtbetalingsvedtakPostgresRepo(
                               and parent.sak_id = u.sak_id
                             where u.sendt_til_utbetaling_tidspunkt is null
                               and (u.forrige_vedtak_id is null or (parent.sendt_til_utbetaling_tidspunkt is not null and parent.status IN ('OK','OK_UTEN_UTBETALING')))
-                            order by u.opprettet
+                              and (u.status_metadata->>'nesteForsøk')::timestamptz <= now()
+                            order by (u.status_metadata->>'antall_forsøk')::int, u.opprettet
                             limit :limit
                     """.trimIndent(),
                     mapOf("limit" to limit),
@@ -295,7 +302,7 @@ internal class UtbetalingsvedtakPostgresRepo(
             val journalføringstidspunkt = localDateTimeOrNull("journalføringstidspunkt")
             val opprettet = localDateTime("opprettet")
             val status = stringOrNull("status").toUtbetalingsstatus()
-            val statusMetadata = stringOrNull("status_metadata")?.toForsøkshistorikk()
+            val statusMetadata = string("status_metadata").toForsøkshistorikk()
 
             // En (og bare en) av meldekort_id eller behandling_id er alltid non-null
             val beregningKilde =

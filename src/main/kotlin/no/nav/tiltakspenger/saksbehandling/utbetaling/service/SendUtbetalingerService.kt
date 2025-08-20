@@ -23,11 +23,11 @@ class SendUtbetalingerService(
             utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk().forEach { utbetalingsvedtak ->
                 val correlationId = CorrelationId.generate()
                 Either.catch {
-                    val antallForsøk = utbetalingsvedtak.statusMetadata?.antallForsøk ?: 0
+                    val forrigeForsøk = utbetalingsvedtak.statusMetadata.forrigeForsøk
+                    val antallForsøk = utbetalingsvedtak.statusMetadata.antallForsøk
+                    val kanPrøvePåNyttNå = forrigeForsøk.shouldRetry(antallForsøk, clock).first
 
-                    if (utbetalingsvedtak.sendtTilUtbetaling != null &&
-                        !utbetalingsvedtak.sendtTilUtbetaling.shouldRetry(antallForsøk, clock)
-                    ) {
+                    if (!kanPrøvePåNyttNå) {
                         return@forEach
                     }
 
@@ -44,7 +44,11 @@ class SendUtbetalingerService(
                         }
                         .onLeft {
                             logger.error { "Utbetaling kunne ikke iverksettes. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
-                            utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(utbetalingsvedtak.id, it)
+                            utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(
+                                vedtakId = utbetalingsvedtak.id,
+                                utbetalingsrespons = it,
+                                forsøkshistorikk = utbetalingsvedtak.statusMetadata.inkrementer(clock),
+                            )
                         }
                 }.onLeft {
                     logger.error(it) { "Ukjent feil skjedde under iverksetting av utbetaling. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }

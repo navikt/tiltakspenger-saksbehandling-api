@@ -21,6 +21,7 @@ interface UtbetalingsvedtakRepo {
     fun lagreFeilResponsFraUtbetaling(
         vedtakId: VedtakId,
         utbetalingsrespons: KunneIkkeUtbetale,
+        forsøkshistorikk: Forsøkshistorikk,
     )
 
     fun markerJournalført(

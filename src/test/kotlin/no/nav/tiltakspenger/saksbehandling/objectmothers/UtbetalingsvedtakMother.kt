@@ -41,7 +41,7 @@ interface UtbetalingsvedtakMother : MotherOfAllMothers {
         journalføringstidspunkt: LocalDateTime? = null,
         opprettet: LocalDateTime = nå(clock),
         status: Utbetalingsstatus? = null,
-        statusMetadata: Forsøkshistorikk? = null,
+        statusMetadata: Forsøkshistorikk = Forsøkshistorikk.opprett(clock = clock),
     ): Utbetalingsvedtak {
         return Utbetalingsvedtak(
             id = id,

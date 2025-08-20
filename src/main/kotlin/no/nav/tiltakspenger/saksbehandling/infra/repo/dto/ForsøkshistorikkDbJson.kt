@@ -7,6 +7,7 @@ import java.time.LocalDateTime
 
 private data class ForsøkshistorikkDbJson(
     val forrigeForsøk: String,
+    val nesteForsøk: String,
     val antallForsøk: Long,
 )
 
@@ -14,6 +15,7 @@ fun Forsøkshistorikk.toDbJson(): String {
     return serialize(
         ForsøkshistorikkDbJson(
             forrigeForsøk = forrigeForsøk.toString(),
+            nesteForsøk = nesteForsøk.toString(),
             antallForsøk = antallForsøk,
         ),
     )
@@ -23,6 +25,7 @@ fun String.toForsøkshistorikk(): Forsøkshistorikk {
     val db = deserialize<ForsøkshistorikkDbJson>(this)
     return Forsøkshistorikk(
         forrigeForsøk = LocalDateTime.parse(db.forrigeForsøk),
+        nesteForsøk = LocalDateTime.parse(db.nesteForsøk),
         antallForsøk = db.antallForsøk,
     )
 }

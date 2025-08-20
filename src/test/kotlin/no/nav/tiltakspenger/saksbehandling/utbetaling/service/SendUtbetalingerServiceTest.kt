@@ -59,14 +59,21 @@ internal class SendUtbetalingerServiceTest {
         every { utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk() } returns listOf(utbetalingsvedtak)
         val kunneIkkeUtbetale = KunneIkkeUtbetale("req", "res", 409)
         coEvery { utbetalingsklient.iverksett(any(), any(), any()) } returns Either.Left(kunneIkkeUtbetale)
-        justRun { utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(utbetalingsvedtak.id, kunneIkkeUtbetale) }
+        justRun {
+            utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(
+                vedtakId = utbetalingsvedtak.id,
+                forsøkshistorikk = utbetalingsvedtak.statusMetadata.inkrementer(fixedClock),
+                utbetalingsrespons = kunneIkkeUtbetale,
+            )
+        }
 
         sendUtbetalingerService.send()
 
         verify(exactly = 1) {
             utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(
-                utbetalingsvedtak.id,
-                kunneIkkeUtbetale,
+                vedtakId = utbetalingsvedtak.id,
+                forsøkshistorikk = utbetalingsvedtak.statusMetadata.inkrementer(fixedClock),
+                utbetalingsrespons = kunneIkkeUtbetale,
             )
         }
     }
@@ -74,11 +81,11 @@ internal class SendUtbetalingerServiceTest {
     @Test
     fun `utbetaling som har feilet mange ganger blir ikke forsøkt på nytt med en gang`() = runTest {
         val utbetalingsvedtak = ObjectMother.utbetalingsvedtak(
-            sendtTilUtbetaling = LocalDateTime.now(fixedClock).minusHours(23),
             status = Utbetalingsstatus.SendtTilOppdrag,
-            statusMetadata = Forsøkshistorikk(
+            statusMetadata = Forsøkshistorikk.opprett(
                 antallForsøk = 10,
-                forrigeForsøk = LocalDateTime.now(fixedClock),
+                forrigeForsøk = LocalDateTime.now(fixedClock).minusHours(23),
+                clock = fixedClock,
             ),
         )
         every { utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk() } returns listOf(utbetalingsvedtak)
@@ -93,16 +100,16 @@ internal class SendUtbetalingerServiceTest {
     @Test
     fun `utbetaling som har feilet mange ganger blir forsøkt på nytt etter en stund`() = runTest {
         val utbetalingsvedtak = ObjectMother.utbetalingsvedtak(
-            sendtTilUtbetaling = LocalDateTime.now(fixedClock).minusHours(25),
             status = Utbetalingsstatus.SendtTilOppdrag,
-            statusMetadata = Forsøkshistorikk(
+            statusMetadata = Forsøkshistorikk.opprett(
                 antallForsøk = 10,
-                forrigeForsøk = LocalDateTime.now(fixedClock),
+                forrigeForsøk = LocalDateTime.now(fixedClock).minusHours(25),
+                clock = fixedClock,
             ),
         )
         every { utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk() } returns listOf(utbetalingsvedtak)
         coJustRun { utbetalingsklient.iverksett(any(), any(), any()) }
-        justRun { utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(utbetalingsvedtak.id, any()) }
+        justRun { utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(utbetalingsvedtak.id, any(), any()) }
 
         sendUtbetalingerService.send()
 

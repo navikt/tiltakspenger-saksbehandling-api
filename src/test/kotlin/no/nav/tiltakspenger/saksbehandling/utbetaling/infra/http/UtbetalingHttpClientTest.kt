@@ -49,7 +49,7 @@ internal class UtbetalingHttpClientTest {
                 vedtakId = vedtakId,
                 opprettet = nå(fixedClock),
                 sendtTilUtbetalingstidspunkt = nå(fixedClock.plus(1, ChronoUnit.SECONDS)),
-                forsøkshistorikk = Forsøkshistorikk.førsteForsøk(fixedClock.plus(2, ChronoUnit.SECONDS)),
+                forsøkshistorikk = Forsøkshistorikk.opprett(clock = fixedClock.plus(2, ChronoUnit.SECONDS)),
             )
             runTest {
                 pdlClient.hentUtbetalingsstatus(utbetaling) shouldBe Utbetalingsstatus.OkUtenUtbetaling.right()
