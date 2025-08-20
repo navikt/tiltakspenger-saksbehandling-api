@@ -23,13 +23,13 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import java.time.LocalDateTime
 
-internal class UtbetalingsvedtakPostgresRepo(
+internal class MeldekortVedtakPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
-) : UtbetalingsvedtakRepo {
+) : MeldekortVedtakRepo {
 
     override fun lagre(vedtak: MeldekortVedtak, context: TransactionContext?) {
         sessionFactory.withSession(context) { session ->

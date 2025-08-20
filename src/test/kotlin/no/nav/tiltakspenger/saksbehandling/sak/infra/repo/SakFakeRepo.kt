@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingsvedtakFakeRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortVedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
 import java.time.LocalDate
 
@@ -25,7 +25,7 @@ class SakFakeRepo(
     private val rammevedtakRepo: RammevedtakFakeRepo,
     private val meldekortBehandlingRepo: MeldekortBehandlingFakeRepo,
     private val meldeperiodeRepo: MeldeperiodeFakeRepo,
-    private val utbetalingsvedtakRepo: UtbetalingsvedtakFakeRepo,
+    private val utbetalingsvedtakRepo: MeldekortVedtakFakeRepo,
     private val søknadFakeRepo: SøknadFakeRepo,
 ) : SakRepo {
     val data = Atomic(mutableMapOf<SakId, Sak>())

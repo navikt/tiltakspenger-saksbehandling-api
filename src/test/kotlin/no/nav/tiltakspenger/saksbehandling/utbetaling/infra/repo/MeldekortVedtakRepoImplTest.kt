@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 
-class UtbetalingsvedtakRepoImplTest {
+class MeldekortVedtakRepoImplTest {
 
     @Test
     fun `kan lagre og hente`() {
@@ -28,7 +28,7 @@ class UtbetalingsvedtakRepoImplTest {
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
-            val utbetalingsvedtakRepo = testDataHelper.utbetalingsvedtakRepo as UtbetalingsvedtakPostgresRepo
+            val utbetalingsvedtakRepo = testDataHelper.meldekortVedtakRepo as MeldekortVedtakPostgresRepo
             val utbetalingsvedtak = meldekort.opprettVedtak(sak.saksnummer, sak.fnr, null, fixedClock)
             // Utbetaling
             utbetalingsvedtakRepo.lagre(utbetalingsvedtak)
@@ -43,7 +43,7 @@ class UtbetalingsvedtakRepoImplTest {
 
             // Journalføring
             val oppdatertMedUtbetalingsdata = testDataHelper.sessionFactory.withSession { session ->
-                UtbetalingsvedtakPostgresRepo.hentForSakId(sak.id, session)
+                MeldekortVedtakPostgresRepo.hentForSakId(sak.id, session)
             }
             utbetalingsvedtakRepo.hentDeSomSkalJournalføres() shouldBe oppdatertMedUtbetalingsdata
             utbetalingsvedtakRepo.markerJournalført(
@@ -62,7 +62,7 @@ class UtbetalingsvedtakRepoImplTest {
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
-            val utbetalingsvedtakRepo = testDataHelper.utbetalingsvedtakRepo as UtbetalingsvedtakPostgresRepo
+            val utbetalingsvedtakRepo = testDataHelper.meldekortVedtakRepo as MeldekortVedtakPostgresRepo
             // Utbetaling
             val utbetalingsvedtak = meldekort.opprettVedtak(sak.saksnummer, sak.fnr, null, fixedClock)
             utbetalingsvedtakRepo.lagre(utbetalingsvedtak)
@@ -84,7 +84,7 @@ class UtbetalingsvedtakRepoImplTest {
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
-            val utbetalingsvedtakRepo = testDataHelper.utbetalingsvedtakRepo as UtbetalingsvedtakPostgresRepo
+            val utbetalingsvedtakRepo = testDataHelper.meldekortVedtakRepo as MeldekortVedtakPostgresRepo
             // Utbetaling
             val utbetalingsvedtak = meldekort.opprettVedtak(sak.saksnummer, sak.fnr, null, fixedClock)
             utbetalingsvedtakRepo.lagre(utbetalingsvedtak)
@@ -112,7 +112,7 @@ class UtbetalingsvedtakRepoImplTest {
                 ),
             )
             testDataHelper.sessionFactory.withSession {
-                UtbetalingsvedtakPostgresRepo.hentForSakId(sak.id, it).single().utbetaling.status shouldBe null
+                MeldekortVedtakPostgresRepo.hentForSakId(sak.id, it).single().utbetaling.status shouldBe null
             }
             val forsøk0 = Forsøkshistorikk.opprett(
                 forrigeForsøk = null,
@@ -131,7 +131,7 @@ class UtbetalingsvedtakRepoImplTest {
                 metadata = forsøk1,
             )
             testDataHelper.sessionFactory.withSession {
-                UtbetalingsvedtakPostgresRepo.hentForSakId(sak.id, it)
+                MeldekortVedtakPostgresRepo.hentForSakId(sak.id, it)
                     .single().utbetaling.status shouldBe Utbetalingsstatus.IkkePåbegynt
             }
             utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe expected(forsøk1)
