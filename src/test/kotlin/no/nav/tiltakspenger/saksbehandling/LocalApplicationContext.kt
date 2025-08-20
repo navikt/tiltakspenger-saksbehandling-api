@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringSer
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.auth.infra.PoaoTilgangskontrollFake
-import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
@@ -108,8 +107,6 @@ class LocalApplicationContext(
 
     override val oppgaveKlient: OppgaveKlient by lazy { OppgaveFakeKlient() }
 
-    override val texasClient = TexasClientFake()
-
     override val veilarboppfolgingKlient: VeilarboppfolgingKlient by lazy {
         VeilarboppfolgingFakeKlient()
     }
@@ -187,7 +184,12 @@ class LocalApplicationContext(
                     MeldekortApiHttpClient(
                         baseUrl = Configuration.meldekortApiUrl,
                         // Vi trenger en ekte token-klient for å snakke med meldekort-api
-                        getToken = { texasClient.getSystemToken(Configuration.meldekortApiScope, IdentityProvider.AZUREAD) },
+                        getToken = {
+                            texasClient.getSystemToken(
+                                Configuration.meldekortApiScope,
+                                IdentityProvider.AZUREAD,
+                            )
+                        },
                     )
                 }
         }
