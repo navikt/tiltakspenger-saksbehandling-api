@@ -59,22 +59,22 @@ class IverksettMeldekortService(
 
         return meldekortBehandling.iverksettMeldekort(kommando.beslutter, clock).map { iverksattMeldekortbehandling ->
             val eksisterendeUtbetalingsvedtak = sak.utbetalinger
-            val utbetalingsvedtak = iverksattMeldekortbehandling.opprettVedtak(
+            val meldekortVedtak = iverksattMeldekortbehandling.opprettVedtak(
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr,
                 forrigeUtbetaling = eksisterendeUtbetalingsvedtak.lastOrNull(),
                 clock = clock,
             )
-            val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()
+            val utbetalingsstatistikk = meldekortVedtak.tilStatistikk()
 
             sessionFactory.withTransactionContext { tx ->
                 meldekortBehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)
-                meldekortVedtakRepo.lagre(utbetalingsvedtak, tx)
+                meldekortVedtakRepo.lagre(meldekortVedtak, tx)
                 statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             }
             ferdigstillOppgave(meldeperiode.id, meldekortId)
             sak.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
-                .leggTilMeldekortVedtak(utbetalingsvedtak) to iverksattMeldekortbehandling
+                .leggTilMeldekortVedtak(meldekortVedtak) to iverksattMeldekortbehandling
         }
     }
 

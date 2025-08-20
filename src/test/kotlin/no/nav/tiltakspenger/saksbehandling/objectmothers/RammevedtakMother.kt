@@ -53,7 +53,6 @@ interface RammevedtakMother : MotherOfAllMothers {
         distribusjonstidspunkt = distribusjonstidspunkt,
         sendtTilDatadeling = sendtTilDatadeling,
         brevJson = brevJson,
-        utbetaling = null,
     )
 
     fun nyRammevedtakInnvilgelse(
