@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilStatistikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 
@@ -26,7 +26,7 @@ class AutomatiskMeldekortBehandlingService(
     private val brukersMeldekortRepo: BrukersMeldekortRepo,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakRepo: SakRepo,
-    private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
+    private val meldekortVedtakRepo: MeldekortVedtakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
     private val navkontorService: NavkontorService,
     private val clock: Clock,
@@ -123,7 +123,7 @@ class AutomatiskMeldekortBehandlingService(
 
         sessionFactory.withTransactionContext { tx ->
             meldekortBehandlingRepo.lagre(meldekortBehandling, simulering, tx)
-            utbetalingsvedtakRepo.lagre(meldekortvedtak, tx)
+            meldekortVedtakRepo.lagre(meldekortvedtak, tx)
             statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                 meldekortId = meldekortId,

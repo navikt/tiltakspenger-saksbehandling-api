@@ -263,7 +263,7 @@ open class ApplicationContext(
         MeldekortContext(
             sessionFactory = sessionFactory,
             sakService = sakContext.sakService,
-            utbetalingsvedtakRepo = utbetalingContext.utbetalingsvedtakRepo,
+            meldekortVedtakRepo = utbetalingContext.meldekortVedtakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             texasClient = texasClient,
             navkontorService = navkontorService,
@@ -293,7 +293,7 @@ open class ApplicationContext(
             statistikkSakService = statistikkContext.statistikkSakService,
             sokosUtbetaldataClient = sokosUtbetaldataClient,
             navkontorService = navkontorService,
-            utbetalingsvedtakRepo = utbetalingContext.utbetalingsvedtakRepo,
+            meldekortVedtakRepo = utbetalingContext.meldekortVedtakRepo,
             simulerService = utbetalingContext.simulerService,
         )
     }

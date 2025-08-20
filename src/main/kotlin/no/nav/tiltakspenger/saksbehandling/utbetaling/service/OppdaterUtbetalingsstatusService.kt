@@ -7,8 +7,8 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -18,7 +18,7 @@ import java.time.temporal.ChronoUnit
  * Oppdaterer status på utbetalinger.
  */
 class OppdaterUtbetalingsstatusService(
-    private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
+    private val meldekortVedtakRepo: MeldekortVedtakRepo,
     private val utbetalingsklient: Utbetalingsklient,
     private val clock: Clock,
 ) {
@@ -26,7 +26,7 @@ class OppdaterUtbetalingsstatusService(
 
     suspend fun oppdaterUtbetalingsstatus() {
         Either.catch {
-            utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor().forEach {
+            meldekortVedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor().forEach {
                 it.forsøkshistorikk?.let { forsøkshistorikk ->
                     val (forrigeForsøk, _, antallForsøk) = forsøkshistorikk
                     forrigeForsøk?.let { forrigeForsøk ->

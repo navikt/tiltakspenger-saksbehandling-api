@@ -11,16 +11,16 @@ import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
 import java.time.Clock
 
 /**
  * Har ansvar for å generere pdf og sende utbetalingsvedtak til journalføring.
  * Denne er kun ment og kalles fra en jobb.
  */
-class JournalførUtbetalingsvedtakService(
+class JournalførMeldekortVedtakService(
     private val journalførMeldekortKlient: JournalførMeldekortKlient,
-    private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
+    private val meldekortVedtakRepo: MeldekortVedtakRepo,
     private val genererVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient,
     private val navIdentClient: NavIdentClient,
     private val sakRepo: SakRepo,
@@ -30,7 +30,7 @@ class JournalførUtbetalingsvedtakService(
 
     suspend fun journalfør() {
         Either.catch {
-            utbetalingsvedtakRepo.hentDeSomSkalJournalføres().forEach { meldekortVedtak ->
+            meldekortVedtakRepo.hentDeSomSkalJournalføres().forEach { meldekortVedtak ->
                 val correlationId = CorrelationId.generate()
                 log.info {
                     "Journalfører utbetalingsvedtak. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, utbetalingsvedtakId: ${meldekortVedtak.id}"
@@ -73,7 +73,7 @@ class JournalførUtbetalingsvedtakService(
                         correlationId = correlationId,
                     )
                     log.info { "utbetalingsvedtak journalført. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, utbetalingsvedtakId: ${meldekortVedtak.id}. JournalpostId: $journalpostId" }
-                    utbetalingsvedtakRepo.markerJournalført(meldekortVedtak.id, journalpostId, nå(clock))
+                    meldekortVedtakRepo.markerJournalført(meldekortVedtak.id, journalpostId, nå(clock))
                     log.info { "Utbetalingsvedtak markert som journalført. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, utbetalingsvedtakId: ${meldekortVedtak.id}. JournalpostId: $journalpostId" }
                 }.onLeft {
                     log.error(it) { "Ukjent feil skjedde under generering av brev og journalføring av utbetalingsvedtak. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, utbetalingsvedtakId: ${meldekortVedtak.id}" }

@@ -46,7 +46,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseContext
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingsvedtakFakeRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortVedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFakeClient
@@ -79,7 +79,7 @@ class TestApplicationContext(
     private val meldekortBehandlingFakeRepo = MeldekortBehandlingFakeRepo()
     private val meldeperiodeFakeRepo = MeldeperiodeFakeRepo()
     private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
-    private val utbetalingsvedtakFakeRepo = UtbetalingsvedtakFakeRepo()
+    private val utbetalingsvedtakFakeRepo = MeldekortVedtakFakeRepo()
     private val behandlingFakeRepo = BehandlingFakeRepo()
     private val søknadFakeRepo = SøknadFakeRepo(behandlingFakeRepo)
     private val tiltaksdeltagelseFakeKlient = TiltaksdeltagelseFakeKlient(søknadRepo = søknadFakeRepo)
@@ -188,7 +188,7 @@ class TestApplicationContext(
             MeldekortContext(
                 sessionFactory = sessionFactory,
                 sakService = sakContext.sakService,
-                utbetalingsvedtakRepo = utbetalingsvedtakFakeRepo,
+                meldekortVedtakRepo = utbetalingsvedtakFakeRepo,
                 statistikkStønadRepo = statistikkStønadFakeRepo,
                 texasClient = texasClient,
                 navkontorService = navkontorService,
@@ -224,7 +224,7 @@ class TestApplicationContext(
             statistikkSakService = statistikkContext.statistikkSakService,
             sokosUtbetaldataClient = sokosUtbetaldataFakeClient,
             navkontorService = navkontorService,
-            utbetalingsvedtakRepo = utbetalingContext.utbetalingsvedtakRepo,
+            meldekortVedtakRepo = utbetalingContext.meldekortVedtakRepo,
             simulerService = utbetalingContext.simulerService,
         ) {
             override val rammevedtakRepo = rammevedtakFakeRepo
@@ -253,7 +253,7 @@ class TestApplicationContext(
             navkontorService = navkontorService,
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
-            override val utbetalingsvedtakRepo = utbetalingsvedtakFakeRepo
+            override val meldekortVedtakRepo = utbetalingsvedtakFakeRepo
         }
     }
 }

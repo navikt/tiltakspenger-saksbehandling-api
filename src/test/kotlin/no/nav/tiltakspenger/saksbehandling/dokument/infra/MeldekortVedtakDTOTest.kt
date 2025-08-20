@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
-class UtbetalingsvedtakDTOTest {
+class MeldekortVedtakDTOTest {
 
     @Test
     fun `kan serialiseres`() = runTest {

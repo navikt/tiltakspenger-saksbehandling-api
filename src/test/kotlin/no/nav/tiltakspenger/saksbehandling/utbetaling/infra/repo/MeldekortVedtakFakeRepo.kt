@@ -15,12 +15,12 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtakslist
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-class UtbetalingsvedtakFakeRepo : UtbetalingsvedtakRepo {
+class MeldekortVedtakFakeRepo : MeldekortVedtakRepo {
     private val data = Atomic(mutableMapOf<VedtakId, MeldekortVedtak>())
 
     override fun lagre(vedtak: MeldekortVedtak, context: TransactionContext?) {

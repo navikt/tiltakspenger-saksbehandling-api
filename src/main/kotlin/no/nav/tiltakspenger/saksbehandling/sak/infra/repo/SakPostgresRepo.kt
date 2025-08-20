@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.sak.SaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingsvedtakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortVedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import org.intellij.lang.annotations.Language
@@ -256,7 +256,7 @@ class SakPostgresRepo(
                     behandlinger = behandlinger,
                     vedtaksliste = vedtaksliste,
                     meldekortBehandlinger = meldekortBehandlinger,
-                    meldekortVedtaksliste = UtbetalingsvedtakPostgresRepo.hentForSakId(id, session),
+                    meldekortVedtaksliste = MeldekortVedtakPostgresRepo.hentForSakId(id, session),
                     meldeperiodeKjeder = meldeperiodekjeder,
                     brukersMeldekort = BrukersMeldekortPostgresRepo.hentForSakId(id, session),
                     soknader = soknader,

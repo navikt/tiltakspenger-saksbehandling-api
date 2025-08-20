@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-interface UtbetalingsvedtakMother : MotherOfAllMothers {
+interface MeldekortVedtakMother : MotherOfAllMothers {
 
     fun utbetalingsvedtak(
         id: VedtakId = VedtakId.random(),

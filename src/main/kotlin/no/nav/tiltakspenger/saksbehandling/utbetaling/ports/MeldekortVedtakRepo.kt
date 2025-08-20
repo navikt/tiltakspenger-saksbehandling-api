@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHe
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import java.time.LocalDateTime
 
-interface UtbetalingsvedtakRepo {
+interface MeldekortVedtakRepo {
     fun lagre(vedtak: MeldekortVedtak, context: TransactionContext? = null)
 
     fun markerSendtTilUtbetaling(
