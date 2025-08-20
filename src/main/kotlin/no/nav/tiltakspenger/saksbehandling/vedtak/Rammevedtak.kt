@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
-import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -38,7 +37,7 @@ data class Rammevedtak(
     override val periode: Periode,
     override val journalpostId: JournalpostId?,
     override val journalføringstidspunkt: LocalDateTime?,
-    override val utbetaling: Utbetaling?,
+    override val utbetaling: Utbetaling? = null,
     val behandling: Behandling,
     val vedtaksdato: LocalDate?,
     val vedtakstype: Vedtakstype,
@@ -57,10 +56,6 @@ data class Rammevedtak(
 
     /** Vil være null dersom bruker ikke har rett på barnetillegg  */
     val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
-
-    val beregning: BehandlingBeregning? by lazy {
-        utbetaling?.beregning as BehandlingBeregning
-    }
 
     /** TODO jah: Endre til behandling.antallDagerPerMeldeperiode - merk at den ikke er satt for Avslag eller Stans. */
     override val antallDagerPerMeldeperiode: Int = behandling.maksDagerMedTiltakspengerForPeriode
@@ -86,17 +81,6 @@ fun Sak.opprettVedtak(
 
     val vedtakId = VedtakId.random()
 
-    val utbetaling = behandling.utbetaling?.let {
-        Utbetaling(
-            beregning = it.beregning,
-            brukerNavkontor = it.navkontor,
-            vedtakId = vedtakId,
-            forrigeUtbetalingVedtakId = utbetalinger.lastOrNull()?.vedtakId,
-            sendtTilUtbetaling = null,
-            status = null,
-        )
-    }
-
     val vedtak = Rammevedtak(
         id = vedtakId,
         opprettet = nå(clock),
@@ -111,7 +95,6 @@ fun Sak.opprettVedtak(
         distribusjonstidspunkt = null,
         sendtTilDatadeling = null,
         brevJson = null,
-        utbetaling = utbetaling,
     )
 
     val oppdatertSak = this.copy(vedtaksliste = this.vedtaksliste.leggTilVedtak(vedtak))

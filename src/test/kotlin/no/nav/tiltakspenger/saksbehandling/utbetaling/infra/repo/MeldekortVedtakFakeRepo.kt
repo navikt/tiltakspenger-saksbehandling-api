@@ -32,15 +32,11 @@ class MeldekortVedtakFakeRepo : MeldekortVedtakRepo {
         tidspunkt: LocalDateTime,
         utbetalingsrespons: SendtUtbetaling,
     ) {
-        data.get()[vedtakId] = data.get()[vedtakId]!!.copy(
-            utbetaling = data.get()[vedtakId]!!.utbetaling.copy(sendtTilUtbetaling = tidspunkt),
-        )
+        data.get()[vedtakId] = data.get()[vedtakId]!!.copy(sendtTilUtbetaling = tidspunkt)
     }
 
     override fun lagreFeilResponsFraUtbetaling(vedtakId: VedtakId, utbetalingsrespons: KunneIkkeUtbetale) {
-        data.get()[vedtakId] = data.get()[vedtakId]!!.copy(
-            utbetaling = data.get()[vedtakId]!!.utbetaling.copy(sendtTilUtbetaling = null),
-        )
+        data.get()[vedtakId] = data.get()[vedtakId]!!.copy(sendtTilUtbetaling = null)
     }
 
     override fun markerJournalført(
@@ -77,7 +73,7 @@ class MeldekortVedtakFakeRepo : MeldekortVedtakRepo {
         context: TransactionContext?,
     ) {
         data.get()[vedtakId] =
-            data.get()[vedtakId]!!.copy(utbetaling = data.get()[vedtakId]!!.utbetaling.oppdaterStatus(status))
+            data.get()[vedtakId]!!.copy(status = status)
     }
 
     override fun hentDeSomSkalHentesUtbetalingsstatusFor(limit: Int): List<UtbetalingDetSkalHentesStatusFor> {

@@ -6,9 +6,9 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.utsjekk.kontrakter.felles.Personident
 import no.nav.utsjekk.kontrakter.felles.Satstype
 import no.nav.utsjekk.kontrakter.felles.StønadTypeTiltakspenger
@@ -22,13 +22,13 @@ import kotlin.collections.fold
 /**
  * @param forrigeUtbetalingJson Forrige utbetaling vi sendte til helved. Siden vi må sende alle utbetalinger på nytt, må vi sende med alle utbetalinger vi har sendt tidligere.
  */
-fun MeldekortVedtak.toDTO(
+fun Utbetaling.toDTO(
     forrigeUtbetalingJson: String?,
 ): String {
     return IverksettV2Dto(
         sakId = saksnummer.toString(),
         // Brukes som dedupliseringsnøkkel av helved dersom iverksettingId er null.
-        behandlingId = id.uuidPart(),
+        behandlingId = vedtakId.uuidPart(),
         // Dersom en vedtaksløsning har behov for å sende flere utbetalinger per behandling/vedtak, kan dette feltet brukes for å skille de. Denne blir brukt som delytelseId mot OS/UR. Se slack tråd: https://nav-it.slack.com/archives/C06SJTR2X3L/p1724136342664969
         iverksettingId = null,
         personident = Personident(verdi = fnr.verdi),
@@ -37,12 +37,12 @@ fun MeldekortVedtak.toDTO(
             vedtakstidspunkt = opprettet,
             saksbehandlerId = saksbehandler,
             beslutterId = beslutter,
-            utbetalinger = utbetaling.beregning.tilUtbetalingerDTO(
+            utbetalinger = beregning.tilUtbetalingerDTO(
                 brukersNavkontor = brukerNavkontor,
                 forrigeUtbetalingJson = forrigeUtbetalingJson,
             ),
         ),
-        forrigeIverksetting = utbetaling.forrigeUtbetalingVedtakId?.let { ForrigeIverksettingV2Dto(behandlingId = it.uuidPart()) },
+        forrigeIverksetting = forrigeUtbetalingVedtakId?.let { ForrigeIverksettingV2Dto(behandlingId = it.uuidPart()) },
     ).let { serialize(it) }
 }
 

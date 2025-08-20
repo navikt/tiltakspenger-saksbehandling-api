@@ -7,10 +7,11 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkUtbetalingDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
 import java.time.Clock
 import java.time.LocalDateTime
@@ -24,20 +25,39 @@ data class MeldekortVedtak(
     override val sakId: SakId,
     override val journalpostId: JournalpostId?,
     override val journalføringstidspunkt: LocalDateTime?,
-    override val utbetaling: Utbetaling,
     val saksnummer: Saksnummer,
     val fnr: Fnr,
     val meldekortBehandling: MeldekortBehandling.Behandlet,
+    val forrigeUtbetalingVedtakId: VedtakId?,
+    val sendtTilUtbetaling: LocalDateTime?,
+    val status: Utbetalingsstatus?,
 ) : Vedtak {
     val meldekortId: MeldekortId = meldekortBehandling.id
     val automatiskBehandlet: Boolean = meldekortBehandling is MeldekortBehandletAutomatisk
     val erKorrigering: Boolean = meldekortBehandling.type == MeldekortBehandlingType.KORRIGERING
     val begrunnelse: String? = meldekortBehandling.begrunnelse?.verdi
     val rammevedtak: List<VedtakId> = meldekortBehandling.rammevedtak
-    val brukerNavkontor: Navkontor = meldekortBehandling.navkontor
     val saksbehandler: String = meldekortBehandling.saksbehandler!!
     val beslutter: String = meldekortBehandling.beslutter!!
-    val beregningsperiode: Periode = utbetaling.periode
+    val beregningsperiode: Periode = meldekortBehandling.beregning.periode
+
+    override val utbetaling: Utbetaling by lazy {
+        Utbetaling(
+            id = UtbetalingId.random(),
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+            saksbehandler = saksbehandler,
+            beslutter = beslutter,
+            beregning = meldekortBehandling.beregning,
+            brukerNavkontor = meldekortBehandling.navkontor,
+            vedtakId = id,
+            forrigeUtbetalingVedtakId = forrigeUtbetalingVedtakId,
+            sendtTilUtbetaling = sendtTilUtbetaling,
+            status = status,
+        )
+    }
 
     override val antallDagerPerMeldeperiode: Int = meldekortBehandling.meldeperiode.maksAntallDagerForMeldeperiode
 
@@ -65,14 +85,9 @@ fun MeldekortBehandling.Behandlet.opprettVedtak(
         journalpostId = null,
         journalføringstidspunkt = null,
         meldekortBehandling = this,
-        utbetaling = Utbetaling(
-            beregning = this.beregning,
-            brukerNavkontor = this.navkontor,
-            vedtakId = vedtakId,
-            forrigeUtbetalingVedtakId = forrigeUtbetaling?.vedtakId,
-            sendtTilUtbetaling = null,
-            status = null,
-        ),
+        forrigeUtbetalingVedtakId = forrigeUtbetaling?.vedtakId,
+        sendtTilUtbetaling = null,
+        status = null,
     )
 }
 

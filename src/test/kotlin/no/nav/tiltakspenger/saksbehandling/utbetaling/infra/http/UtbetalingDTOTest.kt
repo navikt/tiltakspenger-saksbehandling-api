@@ -29,7 +29,7 @@ internal class UtbetalingDTOTest {
             saksnummer = saksnummer,
             opprettet = opprettet,
         )
-        utbetalingsvedtak.toDTO(null).shouldEqualJson(
+        utbetalingsvedtak.utbetaling.toDTO(null).shouldEqualJson(
             """
             {
               "sakId": "202410011001",
@@ -98,7 +98,7 @@ internal class UtbetalingDTOTest {
                 if (it!!.beløp > 0) it.beløpBarnetillegg shouldBe 52
             }
         }
-        val actual = utbetalingsvedtak.toDTO(null)
+        val actual = utbetalingsvedtak.utbetaling.toDTO(null)
         actual.shouldEqualJson(
             """
             {
@@ -192,7 +192,7 @@ internal class UtbetalingDTOTest {
                 if (it!!.beløp > 0) it.beløpBarnetillegg shouldBe 104
             }
         }
-        val actual = utbetalingsvedtak.toDTO(null)
+        val actual = utbetalingsvedtak.utbetaling.toDTO(null)
         actual.shouldEqualJson(
             """
             {
@@ -287,7 +287,7 @@ internal class UtbetalingDTOTest {
                 ),
             ),
         )
-        val actual = utbetalingsvedtak.toDTO(null)
+        val actual = utbetalingsvedtak.utbetaling.toDTO(null)
         actual.shouldEqualJson(
             """
             {
@@ -386,7 +386,7 @@ internal class UtbetalingDTOTest {
                 ),
             ),
         )
-        val actual = utbetalingsvedtak.toDTO(null)
+        val actual = utbetalingsvedtak.utbetaling.toDTO(null)
         actual.shouldEqualJson(
             """
             {
@@ -489,7 +489,7 @@ internal class UtbetalingDTOTest {
                 ),
             ),
         )
-        val actual = utbetalingsvedtak.toDTO(null)
+        val actual = utbetalingsvedtak.utbetaling.toDTO(null)
         actual.shouldEqualJson(
             """
             {

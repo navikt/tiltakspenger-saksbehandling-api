@@ -293,10 +293,8 @@ class RammevedtakPostgresRepo(
         }
 
         private fun Row.toVedtak(session: Session): Rammevedtak {
-            val id = VedtakId.fromString(string("id"))
-
             return Rammevedtak(
-                id = id,
+                id = VedtakId.fromString(string("id")),
                 sakId = SakId.fromString(string("sak_id")),
                 behandling =
                 BehandlingPostgresRepo.hentOrNull(
@@ -313,7 +311,6 @@ class RammevedtakPostgresRepo(
                 sendtTilDatadeling = localDateTimeOrNull("sendt_til_datadeling"),
                 brevJson = stringOrNull("brev_json"),
                 opprettet = localDateTime("opprettet"),
-                utbetaling = null, // TODO: something
             )
         }
     }
