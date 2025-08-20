@@ -52,6 +52,7 @@ data class Revurdering(
     override val resultat: RevurderingResultat,
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
+    override val utbetaling: BehandlingUtbetaling?,
 ) : Behandling {
 
     override val barnetillegg: Barnetillegg? = when (resultat) {
@@ -81,48 +82,33 @@ data class Revurdering(
         }
     }
 
-    val utbetaling: Innvilgelse.Utbetaling? by lazy {
-        when (resultat) {
-            is Innvilgelse -> resultat.utbetaling
-            is Stans -> null
-        }
-    }
-
     init {
         super.init()
 
+        when (status) {
+            KLAR_TIL_BESLUTNING,
+            UNDER_BESLUTNING,
+            VEDTATT,
+            -> validerResultat()
+
+            UNDER_AUTOMATISK_BEHANDLING,
+            KLAR_TIL_BEHANDLING,
+            UNDER_BEHANDLING,
+            AVBRUTT,
+            -> Unit
+        }
+    }
+
+    private fun validerResultat() {
         when (resultat) {
-            is Innvilgelse -> when (status) {
-                KLAR_TIL_BESLUTNING,
-                UNDER_BESLUTNING,
-                VEDTATT,
-                -> resultat.valider(virkningsperiode)
-
-                UNDER_AUTOMATISK_BEHANDLING,
-                KLAR_TIL_BEHANDLING,
-                UNDER_BEHANDLING,
-                AVBRUTT,
-                -> Unit
-            }
-
-            is Stans -> when (status) {
-                KLAR_TIL_BESLUTNING,
-                UNDER_BESLUTNING,
-                VEDTATT,
-                -> resultat.valider()
-
-                UNDER_AUTOMATISK_BEHANDLING,
-                KLAR_TIL_BEHANDLING,
-                UNDER_BEHANDLING,
-                AVBRUTT,
-                -> Unit
-            }
+            is Innvilgelse -> resultat.valider(virkningsperiode)
+            is Stans -> resultat.valider()
         }
     }
 
     fun oppdaterInnvilgelse(
         kommando: OppdaterRevurderingKommando.Innvilgelse,
-        utbetaling: Innvilgelse.Utbetaling?,
+        utbetaling: BehandlingUtbetaling?,
         clock: Clock,
     ): Either<KanIkkeOppdatereBehandling, Revurdering> {
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
@@ -134,6 +120,7 @@ data class Revurdering(
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             virkningsperiode = kommando.innvilgelsesperiode,
+            utbetaling = utbetaling,
             resultat = this.resultat.copy(
                 valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
                     tiltaksdeltakelser = kommando.tiltaksdeltakelser,
@@ -141,9 +128,10 @@ data class Revurdering(
                 ),
                 barnetillegg = kommando.barnetillegg,
                 antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
-                utbetaling = utbetaling,
             ),
-        ).right()
+        ).also {
+            it.validerResultat()
+        }.right()
     }
 
     fun oppdaterStans(
@@ -223,7 +211,6 @@ data class Revurdering(
                     barnetillegg = null,
                     // TODO John + Anders: Siden vi ikke har en virkningsperiode på dette tidspunktet, gir det ikke noen mening og sette antallDagerPerMeldeperiode
                     antallDagerPerMeldeperiode = null,
-                    utbetaling = null,
                 ),
             )
         }
@@ -258,6 +245,7 @@ data class Revurdering(
                 avbrutt = null,
                 ventestatus = Ventestatus(),
                 begrunnelseVilkårsvurdering = null,
+                utbetaling = null,
             )
         }
     }

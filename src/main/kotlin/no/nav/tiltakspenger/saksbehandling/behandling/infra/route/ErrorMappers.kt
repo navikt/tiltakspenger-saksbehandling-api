@@ -20,10 +20,4 @@ internal fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusC
         "Innvilgelsesperioden overlapper med en eller flere utbetalingsperioder",
         "innvilgelsesperioden_overlapper_med_utbetalingsperiode",
     )
-
-    KanIkkeOppdatereBehandling.StøtterIkkeTilbakekreving,
-    -> HttpStatusCode.BadRequest to ErrorJson(
-        "Vi støtter ikke tilbakekreving enda",
-        "støtter_ikke_tilbakekreving",
-    )
 }

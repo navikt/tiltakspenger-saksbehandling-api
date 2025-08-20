@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse.Utbetaling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnBarnetilleggBeløp
@@ -31,9 +31,9 @@ data class BeløpFørOgNå(
     val nå: Int,
 )
 
-fun Utbetaling.tilDTO(
+fun BehandlingUtbetaling.tilDTO(
     meldeperiodeBeregninger: MeldeperiodeBeregninger,
-    utbetalingsvedtak: Utbetalingsvedtak,
+    utbetalingsvedtak: Utbetalingsvedtak?,
 ): BehandlingUtbetalingDTO {
     val forrigeBeregninger: List<MeldeperiodeBeregning> =
         beregning.beregninger.map { meldeperiodeBeregninger.sisteBeregningFør(it.id, it.kjedeId)!! }
@@ -41,7 +41,7 @@ fun Utbetaling.tilDTO(
     return BehandlingUtbetalingDTO(
         navkontor = navkontor.kontornummer,
         navkontorNavn = navkontor.kontornavn,
-        status = utbetalingsvedtak.status.toUtbetalingsstatusDTO(),
+        status = utbetalingsvedtak?.status.toUtbetalingsstatusDTO(),
         beregninger = beregning.beregninger.map { it.tilMeldeperiodeBeregningDTO() },
         beregningerSummert = BeregningerSummertDTO(
             totalt = BeløpFørOgNå(

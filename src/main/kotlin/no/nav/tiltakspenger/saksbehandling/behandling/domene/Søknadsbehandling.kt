@@ -14,8 +14,11 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -56,6 +59,7 @@ data class Søknadsbehandling(
     val automatiskSaksbehandlet: Boolean,
     val manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
 ) : Behandling {
+    override val utbetaling = null
 
     override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
         get() = when (resultat) {
@@ -85,6 +89,21 @@ data class Søknadsbehandling(
     init {
         super.init()
 
+        when (status) {
+            KLAR_TIL_BESLUTNING,
+            UNDER_BESLUTNING,
+            VEDTATT,
+            -> validerResultat()
+
+            UNDER_AUTOMATISK_BEHANDLING,
+            KLAR_TIL_BEHANDLING,
+            UNDER_BEHANDLING,
+            AVBRUTT,
+            -> Unit
+        }
+    }
+
+    private fun validerResultat() {
         when (resultat) {
             is SøknadsbehandlingResultat.Innvilgelse -> resultat.valider(virkningsperiode)
             is SøknadsbehandlingResultat.Avslag -> Unit
@@ -107,7 +126,9 @@ data class Søknadsbehandling(
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             resultat = resultat,
             automatiskSaksbehandlet = kommando.automatiskSaksbehandlet,
-        ).right()
+        ).also {
+            it.validerResultat()
+        }.right()
     }
 
     fun tilManuellBehandling(

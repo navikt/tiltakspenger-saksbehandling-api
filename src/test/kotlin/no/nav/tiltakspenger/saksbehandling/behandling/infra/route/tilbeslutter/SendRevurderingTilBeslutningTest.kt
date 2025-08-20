@@ -85,7 +85,6 @@ class SendRevurderingTilBeslutningTest {
                     AntallDagerForMeldeperiode.default,
                     revurderingInnvilgelsesperiode,
                 ),
-                utbetaling = null,
             )
 
             revurdering.virkningsperiode shouldBe revurderingInnvilgelsesperiode

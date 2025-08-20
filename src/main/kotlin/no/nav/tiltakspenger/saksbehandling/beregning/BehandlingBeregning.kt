@@ -12,4 +12,11 @@ data class BehandlingBeregning(
 
         super.init()
     }
+
+    fun finnBeløpDiff(meldeperiodeBeregninger: MeldeperiodeBeregninger): Int {
+        val forrigeBeregninger: List<MeldeperiodeBeregning> =
+            beregninger.mapNotNull { meldeperiodeBeregninger.sisteBeregningFør(it.id, it.kjedeId) }
+
+        return beregninger.beregnTotalBeløp() - forrigeBeregninger.beregnTotalBeløp()
+    }
 }

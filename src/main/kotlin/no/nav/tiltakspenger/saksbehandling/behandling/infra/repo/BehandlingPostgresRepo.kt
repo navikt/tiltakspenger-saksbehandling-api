@@ -17,13 +17,13 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat.Innvilgelse.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
@@ -413,15 +413,6 @@ class BehandlingPostgresRepo(
                                 ?.toValgteTiltaksdeltakelser(saksopplysninger),
                             barnetillegg = stringOrNull("barnetillegg")?.toBarnetillegg(),
                             antallDagerPerMeldeperiode = stringOrNull("antall_dager_per_meldeperiode")?.toAntallDagerForMeldeperiode(),
-                            utbetaling = stringOrNull("beregning")?.let {
-                                Utbetaling(
-                                    beregning = BehandlingBeregning(it.tilMeldeperiodeBeregningerFraBehandling(id)),
-                                    navkontor = Navkontor(
-                                        kontornummer = string("navkontor"),
-                                        kontornavn = stringOrNull("navkontor_navn"),
-                                    ),
-                                )
-                            },
                         )
                     }
 
@@ -446,6 +437,15 @@ class BehandlingPostgresRepo(
                         avbrutt = avbrutt,
                         ventestatus = ventestatus,
                         resultat = resultat,
+                        utbetaling = stringOrNull("beregning")?.let {
+                            BehandlingUtbetaling(
+                                beregning = BehandlingBeregning(it.tilMeldeperiodeBeregningerFraBehandling(id)),
+                                navkontor = Navkontor(
+                                    kontornummer = string("navkontor"),
+                                    kontornavn = stringOrNull("navkontor_navn"),
+                                ),
+                            )
+                        },
                     )
                 }
             }
@@ -686,6 +686,9 @@ private fun Behandling.tilDbParams(): Map<String, Any?> {
         "soknad_id" to søknadId,
         "automatisk_saksbehandlet" to automatiskSaksbehandlet,
         "manuelt_behandles_grunner" to manueltBehandlesGrunner?.toDbJson(),
+        "beregning" to this.utbetaling?.beregning?.tilBeregningerDbJson(),
+        "navkontor" to this.utbetaling?.navkontor?.kontornummer,
+        "navkontor_navn" to this.utbetaling?.navkontor?.kontornavn,
         *this.resultat.tilDbParams(),
     )
 }
@@ -699,14 +702,6 @@ private fun BehandlingResultat?.tilDbParams(): Array<Pair<String, Any?>> = when 
         "barnetillegg" to this.barnetillegg?.toDbJson(),
         "valgte_tiltaksdeltakelser" to this.valgteTiltaksdeltakelser?.toDbJson(),
         "antall_dager_per_meldeperiode" to this.antallDagerPerMeldeperiode?.toDbJson(),
-        *when (this) {
-            is SøknadsbehandlingResultat.Innvilgelse -> emptyArray()
-            is RevurderingResultat.Innvilgelse -> arrayOf(
-                "beregning" to this.utbetaling?.beregning?.tilBeregningerDbJson(),
-                "navkontor" to this.utbetaling?.navkontor?.kontornummer,
-                "navkontor_navn" to this.utbetaling?.navkontor?.kontornavn,
-            )
-        },
     )
 
     is RevurderingResultat.Stans -> arrayOf(

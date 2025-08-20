@@ -34,7 +34,7 @@ sealed interface BehandlingResultat {
             }
 
             require(antallDagerPerMeldeperiode?.totalPeriode == virkningsperiode) {
-                "Innvilgelsesperioden ($virkningsperiode) må være lik som antallDagerPerMeldeperiode sin totale periode($antallDagerPerMeldeperiode)"
+                "Innvilgelsesperioden ($virkningsperiode) må være lik som antallDagerPerMeldeperiode sin totale periode (${antallDagerPerMeldeperiode!!.totalPeriode})"
             }
         }
     }
