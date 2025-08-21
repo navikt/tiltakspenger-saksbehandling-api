@@ -31,7 +31,7 @@ jobs:
           DEPENDENCY_NAME: ${{ steps.metadata.outputs.dependency-names }}
           VERSION_CHANGE: "${{ steps.metadata.outputs.previous-version }} -> ${{ steps.metadata.outputs.new-version }}"
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: 21
