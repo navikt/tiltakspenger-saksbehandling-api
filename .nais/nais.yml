@@ -76,6 +76,8 @@ spec:
           namespace: poao
         - application: logging
           namespace: nais-system
+        - application: populasjonstilgangskontroll
+          namespace: tilgangsmaskin
       external:
         - host: {{ urlPdl }}
         - host: {{ urlPdlPip }}
