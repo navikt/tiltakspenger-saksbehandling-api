@@ -19,11 +19,10 @@ data class Forsøkshistorikk(
 
     fun inkrementer(clock: Clock): Forsøkshistorikk {
         val nå = LocalDateTime.now(clock)
-        val forrigeForsøk = this.forrigeForsøk ?: nå
         val oppdatertAntallForsøk = antallForsøk + 1
-        val nesteForsøk = forrigeForsøk.shouldRetry(oppdatertAntallForsøk, clock).second
+        val nesteForsøk = nå.shouldRetry(oppdatertAntallForsøk, clock).second
         return Forsøkshistorikk(
-            forrigeForsøk = forrigeForsøk,
+            forrigeForsøk = nå,
             antallForsøk = oppdatertAntallForsøk,
             nesteForsøk = nesteForsøk,
         )
