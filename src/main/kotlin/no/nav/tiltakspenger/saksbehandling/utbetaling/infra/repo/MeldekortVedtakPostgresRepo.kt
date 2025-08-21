@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtakslist
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
@@ -265,6 +266,7 @@ internal class MeldekortVedtakPostgresRepo(
             val journalføringstidspunkt = localDateTimeOrNull("journalføringstidspunkt")
             val opprettet = localDateTime("opprettet")
             val status = stringOrNull("status").toUtbetalingsstatus()
+            val utbetalingId = stringOrNull("utbetaling_id")?.let { UtbetalingId.fromString(it) }
 
             val meldekortId = MeldekortId.fromString(string("meldekort_id"))
 
@@ -280,16 +282,17 @@ internal class MeldekortVedtakPostgresRepo(
 
             return MeldekortVedtak(
                 id = vedtakId,
+                utbetalingId = utbetalingId ?: UtbetalingId.fromString("utbetaling_01J94XH6CKY0SZ5FBEE6YZG8S6"),
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
                 journalpostId = journalpostId,
                 journalføringstidspunkt = journalføringstidspunkt,
                 opprettet = opprettet,
-                forrigeUtbetalingVedtakId = forrigeUtbetalingVedtakId,
                 sendtTilUtbetaling = sendtTilUtbetaling,
                 status = status,
                 meldekortBehandling = meldekortbehandling,
+                forrigeUtbetalingVedtakId = forrigeUtbetalingVedtakId,
             )
         }
     }

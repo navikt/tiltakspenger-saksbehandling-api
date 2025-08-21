@@ -25,6 +25,7 @@ data class MeldekortVedtak(
     override val sakId: SakId,
     override val journalpostId: JournalpostId?,
     override val journalføringstidspunkt: LocalDateTime?,
+    val utbetalingId: UtbetalingId,
     val saksnummer: Saksnummer,
     val fnr: Fnr,
     val meldekortBehandling: MeldekortBehandling.Behandlet,
@@ -43,7 +44,7 @@ data class MeldekortVedtak(
 
     override val utbetaling: Utbetaling by lazy {
         Utbetaling(
-            id = UtbetalingId.random(),
+            id = utbetalingId,
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -53,9 +54,9 @@ data class MeldekortVedtak(
             beregning = meldekortBehandling.beregning,
             brukerNavkontor = meldekortBehandling.navkontor,
             vedtakId = id,
-            forrigeUtbetalingVedtakId = forrigeUtbetalingVedtakId,
             sendtTilUtbetaling = sendtTilUtbetaling,
             status = status,
+            forrigeUtbetalingVedtakId = forrigeUtbetalingVedtakId,
         )
     }
 
@@ -85,9 +86,10 @@ fun MeldekortBehandling.Behandlet.opprettVedtak(
         journalpostId = null,
         journalføringstidspunkt = null,
         meldekortBehandling = this,
-        forrigeUtbetalingVedtakId = forrigeUtbetaling?.vedtakId,
         sendtTilUtbetaling = null,
         status = null,
+        utbetalingId = UtbetalingId.random(),
+        forrigeUtbetalingVedtakId = forrigeUtbetaling?.vedtakId,
     )
 }
 
