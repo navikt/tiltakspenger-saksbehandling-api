@@ -41,10 +41,10 @@ data class Utbetaling(
     val beregning: UtbetalingBeregning,
     val brukerNavkontor: Navkontor,
     val vedtakId: VedtakId,
-    val forrigeUtbetalingVedtakId: VedtakId?,
     val opprettet: LocalDateTime,
     val saksbehandler: String,
     val beslutter: String,
+    val forrigeUtbetalingVedtakId: VedtakId?,
     val sendtTilUtbetaling: LocalDateTime?,
     val status: Utbetalingsstatus?,
 ) {
