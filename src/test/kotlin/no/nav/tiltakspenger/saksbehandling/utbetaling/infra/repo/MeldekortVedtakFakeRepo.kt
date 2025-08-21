@@ -23,7 +23,7 @@ import java.time.temporal.ChronoUnit
 class MeldekortVedtakFakeRepo : MeldekortVedtakRepo {
     private val data = Atomic(mutableMapOf<VedtakId, MeldekortVedtak>())
 
-    override fun lagre(vedtak: MeldekortVedtak, context: TransactionContext?) {
+    override fun opprett(vedtak: MeldekortVedtak, context: TransactionContext?) {
         data.get()[vedtak.id] = vedtak
     }
 

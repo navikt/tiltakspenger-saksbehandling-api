@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import java.time.LocalDateTime
 
@@ -13,7 +14,7 @@ interface UtbetalingRepo {
     fun lagre(utbetaling: Utbetaling, context: TransactionContext? = null)
 
     fun markerSendtTilUtbetaling(
-        vedtakId: VedtakId,
+        utbetalingId: UtbetalingId,
         tidspunkt: LocalDateTime,
         utbetalingsrespons: SendtUtbetaling,
     )
@@ -25,7 +26,7 @@ interface UtbetalingRepo {
 
     fun hentUtbetalingJsonForVedtakId(vedtakId: VedtakId): String?
 
-    fun hentUtbetalingsvedtakForUtsjekk(limit: Int = 10): List<MeldekortVedtak>
+    fun hentForUtsjekk(limit: Int = 10): List<MeldekortVedtak>
 
     fun oppdaterUtbetalingsstatus(
         vedtakId: VedtakId,

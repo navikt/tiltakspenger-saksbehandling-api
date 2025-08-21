@@ -25,7 +25,7 @@ class SakFakeRepo(
     private val rammevedtakRepo: RammevedtakFakeRepo,
     private val meldekortBehandlingRepo: MeldekortBehandlingFakeRepo,
     private val meldeperiodeRepo: MeldeperiodeFakeRepo,
-    private val utbetalingsvedtakRepo: MeldekortVedtakFakeRepo,
+    private val meldekortVedtakRepo: MeldekortVedtakFakeRepo,
     private val søknadFakeRepo: SøknadFakeRepo,
 ) : SakRepo {
     val data = Atomic(mutableMapOf<SakId, Sak>())
@@ -57,7 +57,7 @@ class SakFakeRepo(
             behandlinger = behandlinger,
             vedtaksliste = rammevedtakRepo.hentForSakId(sakId),
             meldekortBehandlinger = meldekortBehandlinger,
-            meldekortVedtaksliste = utbetalingsvedtakRepo.hentForSakId(sakId),
+            meldekortVedtaksliste = meldekortVedtakRepo.hentForSakId(sakId),
             meldeperiodeKjeder = meldeperiodeRepo.hentForSakId(sakId),
             soknader = soknader,
         )

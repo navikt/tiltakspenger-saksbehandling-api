@@ -28,30 +28,30 @@ class MeldekortVedtakRepoImplTest {
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
-            val utbetalingsvedtakRepo = testDataHelper.meldekortVedtakRepo as MeldekortVedtakPostgresRepo
-            val utbetalingsvedtak = meldekort.opprettVedtak(sak.saksnummer, sak.fnr, null, fixedClock)
+            val meldekortVedtakRepo = testDataHelper.meldekortVedtakRepo as MeldekortVedtakPostgresRepo
+            val meldekortVedtak = meldekort.opprettVedtak(sak.saksnummer, sak.fnr, null, fixedClock)
             // Utbetaling
-            utbetalingsvedtakRepo.lagre(utbetalingsvedtak)
-            utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk() shouldBe listOf(utbetalingsvedtak)
-            utbetalingsvedtakRepo.markerSendtTilUtbetaling(
-                vedtakId = utbetalingsvedtak.id,
+            meldekortVedtakRepo.opprett(meldekortVedtak)
+            meldekortVedtakRepo.hentUtbetalingsvedtakForUtsjekk() shouldBe listOf(meldekortVedtak)
+            meldekortVedtakRepo.markerSendtTilUtbetaling(
+                vedtakId = meldekortVedtak.id,
                 tidspunkt = tidspunkt,
                 utbetalingsrespons = SendtUtbetaling("myReq", "myRes", 202),
             )
-            utbetalingsvedtakRepo.hentUtbetalingJsonForVedtakId(utbetalingsvedtak.id) shouldBe "myReq"
-            utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk() shouldBe emptyList()
+            meldekortVedtakRepo.hentUtbetalingJsonForVedtakId(meldekortVedtak.id) shouldBe "myReq"
+            meldekortVedtakRepo.hentUtbetalingsvedtakForUtsjekk() shouldBe emptyList()
 
             // Journalføring
             val oppdatertMedUtbetalingsdata = testDataHelper.sessionFactory.withSession { session ->
                 MeldekortVedtakPostgresRepo.hentForSakId(sak.id, session)
             }
-            utbetalingsvedtakRepo.hentDeSomSkalJournalføres() shouldBe oppdatertMedUtbetalingsdata
-            utbetalingsvedtakRepo.markerJournalført(
-                vedtakId = utbetalingsvedtak.id,
+            meldekortVedtakRepo.hentDeSomSkalJournalføres() shouldBe oppdatertMedUtbetalingsdata
+            meldekortVedtakRepo.markerJournalført(
+                vedtakId = meldekortVedtak.id,
                 journalpostId = JournalpostId("123"),
                 tidspunkt = tidspunkt,
             )
-            utbetalingsvedtakRepo.hentDeSomSkalJournalføres() shouldBe emptyList()
+            meldekortVedtakRepo.hentDeSomSkalJournalføres() shouldBe emptyList()
         }
     }
 
@@ -65,7 +65,7 @@ class MeldekortVedtakRepoImplTest {
             val utbetalingsvedtakRepo = testDataHelper.meldekortVedtakRepo as MeldekortVedtakPostgresRepo
             // Utbetaling
             val utbetalingsvedtak = meldekort.opprettVedtak(sak.saksnummer, sak.fnr, null, fixedClock)
-            utbetalingsvedtakRepo.lagre(utbetalingsvedtak)
+            utbetalingsvedtakRepo.opprett(utbetalingsvedtak)
 
             utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk() shouldBe listOf(utbetalingsvedtak)
             utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(
@@ -87,7 +87,7 @@ class MeldekortVedtakRepoImplTest {
             val utbetalingsvedtakRepo = testDataHelper.meldekortVedtakRepo as MeldekortVedtakPostgresRepo
             // Utbetaling
             val utbetalingsvedtak = meldekort.opprettVedtak(sak.saksnummer, sak.fnr, null, fixedClock)
-            utbetalingsvedtakRepo.lagre(utbetalingsvedtak)
+            utbetalingsvedtakRepo.opprett(utbetalingsvedtak)
             val sendtTilUtbetalingTidspunkt = nå(fixedClock.plus(1, ChronoUnit.MICROS))
             utbetalingsvedtakRepo.markerSendtTilUtbetaling(
                 vedtakId = utbetalingsvedtak.id,

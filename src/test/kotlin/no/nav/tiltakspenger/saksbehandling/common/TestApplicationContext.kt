@@ -47,6 +47,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.Tiltaksdeltag
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortVedtakFakeRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFakeClient
@@ -79,7 +80,8 @@ class TestApplicationContext(
     private val meldekortBehandlingFakeRepo = MeldekortBehandlingFakeRepo()
     private val meldeperiodeFakeRepo = MeldeperiodeFakeRepo()
     private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
-    private val utbetalingsvedtakFakeRepo = MeldekortVedtakFakeRepo()
+    private val meldekortVedtakFakeRepo = MeldekortVedtakFakeRepo()
+    private val utbetalingFakeRepo = UtbetalingFakeRepo()
     private val behandlingFakeRepo = BehandlingFakeRepo()
     private val søknadFakeRepo = SøknadFakeRepo(behandlingFakeRepo)
     private val tiltaksdeltagelseFakeKlient = TiltaksdeltagelseFakeKlient(søknadRepo = søknadFakeRepo)
@@ -91,7 +93,8 @@ class TestApplicationContext(
     private val journalførFakeRammevedtaksbrevKlient = JournalførFakeRammevedtaksbrevKlient(journalpostIdGenerator)
     private val dokumentdistribusjonsFakeKlient = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
     private val meldekortApiFakeKlient = MeldekortApiFakeKlient()
-    private val benkOversiktFakeRepo = BenkOversiktFakeRepo(søknadFakeRepo, behandlingFakeRepo, meldekortBehandlingFakeRepo)
+    private val benkOversiktFakeRepo =
+        BenkOversiktFakeRepo(søknadFakeRepo, behandlingFakeRepo, meldekortBehandlingFakeRepo)
 
     val jwtGenerator = JwtGenerator()
 
@@ -119,7 +122,7 @@ class TestApplicationContext(
             rammevedtakRepo = rammevedtakFakeRepo,
             meldekortBehandlingRepo = meldekortBehandlingFakeRepo,
             meldeperiodeRepo = meldeperiodeFakeRepo,
-            utbetalingsvedtakRepo = utbetalingsvedtakFakeRepo,
+            meldekortVedtakRepo = meldekortVedtakFakeRepo,
             søknadFakeRepo = søknadFakeRepo,
         )
 
@@ -188,7 +191,7 @@ class TestApplicationContext(
             MeldekortContext(
                 sessionFactory = sessionFactory,
                 sakService = sakContext.sakService,
-                meldekortVedtakRepo = utbetalingsvedtakFakeRepo,
+                meldekortVedtakRepo = meldekortVedtakFakeRepo,
                 statistikkStønadRepo = statistikkStønadFakeRepo,
                 texasClient = texasClient,
                 navkontorService = navkontorService,
@@ -201,6 +204,7 @@ class TestApplicationContext(
             override val meldeperiodeRepo = meldeperiodeFakeRepo
             override val brukersMeldekortRepo = brukersMeldekortFakeRepo
             override val meldekortApiHttpClient = meldekortApiFakeKlient
+            override val utbetalingRepo = utbetalingFakeRepo
         }
     }
 
@@ -253,7 +257,7 @@ class TestApplicationContext(
             navkontorService = navkontorService,
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
-            override val meldekortVedtakRepo = utbetalingsvedtakFakeRepo
+            override val meldekortVedtakRepo = meldekortVedtakFakeRepo
         }
     }
 }
