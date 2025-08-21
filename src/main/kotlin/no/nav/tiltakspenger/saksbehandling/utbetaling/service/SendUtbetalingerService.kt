@@ -26,14 +26,20 @@ class SendUtbetalingerService(
                         utbetalingsvedtak.forrigeUtbetalingsvedtakId?.let { forrigeUtbetalingsvedtakId ->
                             utbetalingsvedtakRepo.hentUtbetalingJsonForVedtakId(forrigeUtbetalingsvedtakId)
                         }
-                    utbetalingsklient.iverksett(utbetalingsvedtak, forrigeUtbetalingJson, correlationId).onRight {
-                        logger.info { "Utbetaling iverksatt for vedtak ${utbetalingsvedtak.id}" }
-                        utbetalingsvedtakRepo.markerSendtTilUtbetaling(utbetalingsvedtak.id, nå(clock), it)
-                        logger.info { "Utbetaling markert som utbetalt for vedtak ${utbetalingsvedtak.id}" }
-                    }.onLeft {
-                        logger.error { "Utbetaling kunne ikke iverksettes. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
-                        utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(utbetalingsvedtak.id, it)
-                    }
+
+                    utbetalingsklient.iverksett(utbetalingsvedtak, forrigeUtbetalingJson, correlationId)
+                        .onRight {
+                            logger.info { "Utbetaling iverksatt for vedtak ${utbetalingsvedtak.id}" }
+                            utbetalingsvedtakRepo.markerSendtTilUtbetaling(utbetalingsvedtak.id, nå(clock), it)
+                            logger.info { "Utbetaling markert som utbetalt for vedtak ${utbetalingsvedtak.id}" }
+                        }
+                        .onLeft {
+                            logger.error { "Utbetaling kunne ikke iverksettes. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
+                            utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(
+                                vedtakId = utbetalingsvedtak.id,
+                                utbetalingsrespons = it,
+                            )
+                        }
                 }.onLeft {
                     logger.error(it) { "Ukjent feil skjedde under iverksetting av utbetaling. Saksnummer: ${utbetalingsvedtak.saksnummer}, sakId: ${utbetalingsvedtak.sakId}, utbetalingsvedtakId: ${utbetalingsvedtak.id}" }
                 }

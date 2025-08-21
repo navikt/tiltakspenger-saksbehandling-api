@@ -47,14 +47,16 @@ internal class UtbetalingsvedtakPostgresRepo(
                             opprettet,
                             forrige_vedtak_id,
                             meldekort_id,
-                            behandling_id
+                            behandling_id,
+                            status_metadata
                         ) values (
                             :id,
                             :sak_id,
                             :opprettet,
                             :forrige_vedtak_id,
                             :meldekort_id,
-                            :behandling_id
+                            :behandling_id,
+                            to_jsonb(:status_metadata::jsonb)
                         )
                     """.trimIndent(),
                     mapOf(
@@ -66,6 +68,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                             is BeregningKilde.Behandling -> "behandling_id" to vedtak.beregningKilde.id.toString()
                             is BeregningKilde.Meldekort -> "meldekort_id" to vedtak.beregningKilde.id.toString()
                         },
+                        "status_metadata" to vedtak.statusMetadata?.toDbJson(),
                     ),
                 ).asUpdate,
             )
@@ -242,7 +245,8 @@ internal class UtbetalingsvedtakPostgresRepo(
                             from utbetalingsvedtak u 
                             join sak s on s.id = u.sak_id 
                             where (u.status is null or u.status IN ('IKKE_PÅBEGYNT', 'SENDT_TIL_OPPDRAG')) and u.sendt_til_utbetaling_tidspunkt is not null
-                            order by u.opprettet
+                                and (u.status_metadata->>'nesteForsøk')::timestamptz <= now()
+                            order by (u.status_metadata->>'antall_forsøk')::int, u.opprettet
                             limit :limit
                     """.trimIndent(),
                     mapOf("limit" to limit),
@@ -295,6 +299,7 @@ internal class UtbetalingsvedtakPostgresRepo(
             val journalføringstidspunkt = localDateTimeOrNull("journalføringstidspunkt")
             val opprettet = localDateTime("opprettet")
             val status = stringOrNull("status").toUtbetalingsstatus()
+            val statusMetadata = string("status_metadata").toForsøkshistorikk()
 
             // En (og bare en) av meldekort_id eller behandling_id er alltid non-null
             val beregningKilde =
@@ -326,6 +331,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                         journalføringstidspunkt = journalføringstidspunkt,
                         opprettet = opprettet,
                         status = status,
+                        statusMetadata = statusMetadata,
                         beregning = meldekortbehandling.beregning,
                         saksbehandler = meldekortbehandling.saksbehandler!!,
                         beslutter = meldekortbehandling.beslutter!!,
@@ -367,6 +373,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                         journalføringstidspunkt = journalføringstidspunkt,
                         opprettet = opprettet,
                         status = status,
+                        statusMetadata = statusMetadata,
                         saksbehandler = behandling.saksbehandler!!,
                         beslutter = behandling.beslutter!!,
                         beregning = utbetaling.beregning,

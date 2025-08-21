@@ -7,6 +7,8 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk.Companion.opprett
+import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
@@ -33,7 +35,10 @@ class UtbetalingsvedtakFakeRepo : UtbetalingsvedtakRepo {
         data.get()[vedtakId] = data.get()[vedtakId]!!.copy(sendtTilUtbetaling = tidspunkt)
     }
 
-    override fun lagreFeilResponsFraUtbetaling(vedtakId: VedtakId, utbetalingsrespons: KunneIkkeUtbetale) {
+    override fun lagreFeilResponsFraUtbetaling(
+        vedtakId: VedtakId,
+        utbetalingsrespons: KunneIkkeUtbetale,
+    ) {
         data.get()[vedtakId] = data.get()[vedtakId]!!.copy(sendtTilUtbetaling = null)
     }
 
@@ -83,9 +88,10 @@ class UtbetalingsvedtakFakeRepo : UtbetalingsvedtakRepo {
                 vedtakId = it.value.id,
                 opprettet = it.value.opprettet,
                 sendtTilUtbetalingstidspunkt = it.value.sendtTilUtbetaling!!,
-                forsøkshistorikk = Forsøkshistorikk(
+                forsøkshistorikk = opprett(
                     forrigeForsøk = it.value.sendtTilUtbetaling!!.plus(1, ChronoUnit.MICROS),
                     antallForsøk = 1,
+                    clock = fixedClock,
                 ),
             )
         }
