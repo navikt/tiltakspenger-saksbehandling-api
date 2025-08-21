@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
-import arrow.core.toNonEmptyListOrThrow
+import arrow.core.NonEmptyList
+import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
@@ -22,20 +23,14 @@ import java.time.LocalDate
 fun Sak.beregnRevurderingInnvilgelse(
     kommando: OppdaterRevurderingKommando.Innvilgelse,
 ): BehandlingBeregning? {
-    val nyeBeregninger: List<MeldeperiodeBeregning> = beregnMeldeperioderPåNytt(kommando)
-
-    if (nyeBeregninger.isEmpty()) {
-        return null
+    return beregnMeldeperioderPåNytt(kommando)?.let {
+        BehandlingBeregning(beregninger = it)
     }
-
-    return BehandlingBeregning(
-        beregninger = nyeBeregninger.toNonEmptyListOrThrow(),
-    )
 }
 
 private fun Sak.beregnMeldeperioderPåNytt(
     kommando: OppdaterRevurderingKommando.Innvilgelse,
-): List<MeldeperiodeBeregning> {
+): NonEmptyList<MeldeperiodeBeregning>? {
     val behandlingId = kommando.behandlingId
     val behandling = hentBehandling(behandlingId)
 
@@ -61,44 +56,51 @@ private fun Sak.beregnMeldeperioderPåNytt(
             }
         }
 
-    return tidligereBeregninger.mapNotNull { beregning ->
-        val eksisterendeDager = beregning.dager
+    val (nyeBeregninger, forrigeBeregninger) =
+        tidligereBeregninger.fold(emptyList<MeldeperiodeBeregning>() to emptyList<MeldeperiodeBeregning>()) { acc, beregning ->
+            val eksisterendeDager = beregning.dager
 
-        val nyeDager = eksisterendeDager.map { dag ->
-            val dato = dag.dato
-            val reduksjon = dag.reduksjon
+            val nyeDager = eksisterendeDager.map { dag ->
+                val dato = dag.dato
+                val reduksjon = dag.reduksjon
 
-            val antallBarn = antallBarnForDato(dato)
+                val antallBarn = antallBarnForDato(dato)
 
-            val tiltakstype: TiltakstypeSomGirRett by lazy {
-                tiltakstypeForDato(dato)
+                val tiltakstype: TiltakstypeSomGirRett by lazy {
+                    tiltakstypeForDato(dato)
+                }
+
+                when (dag) {
+                    is DeltattMedLønnITiltaket -> DeltattMedLønnITiltaket.create(dato, tiltakstype, antallBarn)
+                    is DeltattUtenLønnITiltaket -> DeltattUtenLønnITiltaket.create(dato, tiltakstype, antallBarn)
+                    is SykBruker -> SykBruker.create(dato, reduksjon, tiltakstype, antallBarn)
+                    is SyktBarn -> SyktBarn.create(dato, reduksjon, tiltakstype, antallBarn)
+                    is FraværAnnet -> FraværAnnet.create(dato, tiltakstype, antallBarn)
+                    is FraværGodkjentAvNav -> FraværGodkjentAvNav.create(dato, tiltakstype, antallBarn)
+                    is IkkeBesvart -> IkkeBesvart.create(dato, tiltakstype, antallBarn)
+                    is IkkeDeltatt -> IkkeDeltatt.create(dato, tiltakstype, antallBarn)
+                    is IkkeRettTilTiltakspenger -> IkkeRettTilTiltakspenger(dato)
+                }
             }
 
-            when (dag) {
-                is DeltattMedLønnITiltaket -> DeltattMedLønnITiltaket.create(dato, tiltakstype, antallBarn)
-                is DeltattUtenLønnITiltaket -> DeltattUtenLønnITiltaket.create(dato, tiltakstype, antallBarn)
-                is SykBruker -> SykBruker.create(dato, reduksjon, tiltakstype, antallBarn)
-                is SyktBarn -> SyktBarn.create(dato, reduksjon, tiltakstype, antallBarn)
-                is FraværAnnet -> FraværAnnet.create(dato, tiltakstype, antallBarn)
-                is FraværGodkjentAvNav -> FraværGodkjentAvNav.create(dato, tiltakstype, antallBarn)
-                is IkkeBesvart -> IkkeBesvart.create(dato, tiltakstype, antallBarn)
-                is IkkeDeltatt -> IkkeDeltatt.create(dato, tiltakstype, antallBarn)
-                is IkkeRettTilTiltakspenger -> IkkeRettTilTiltakspenger(dato)
+            if (nyeDager == eksisterendeDager) {
+                return@fold acc
             }
+
+            val nyBeregning = MeldeperiodeBeregning(
+                id = BeregningId.random(),
+                dager = nyeDager,
+                meldekortId = beregning.meldekortId,
+                kjedeId = beregning.kjedeId,
+                beregningKilde = BeregningKilde.Behandling(behandlingId),
+            )
+
+            acc.first.plus(nyBeregning) to acc.second.plus(beregning)
         }
 
-        if (nyeDager == eksisterendeDager) {
-            return@mapNotNull null
-        }
-
-        val nyBeregning = MeldeperiodeBeregning(
-            id = BeregningId.random(),
-            dager = nyeDager,
-            meldekortId = beregning.meldekortId,
-            kjedeId = beregning.kjedeId,
-            beregningKilde = BeregningKilde.Behandling(behandlingId),
-        )
-
-        nyBeregning
+    if (nyeBeregninger.beregnTotalBeløp() == forrigeBeregninger.beregnTotalBeløp()) {
+        return null
     }
+
+    return nyeBeregninger.toNonEmptyListOrNull()
 }

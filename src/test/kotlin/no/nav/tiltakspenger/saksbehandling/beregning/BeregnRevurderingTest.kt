@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -9,6 +10,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -21,6 +23,8 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.leggTilMel
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyOpprettetRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySakMedVedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Satser
 import org.junit.jupiter.api.Test
@@ -32,7 +36,10 @@ class BeregnRevurderingTest {
 
     private val sats2025 = Satser.sats(1.januar(2025))
 
-    private fun sakMedRevurdering(antallBarnFraSøknad: Int = 0): Pair<Sak, Revurdering> {
+    private fun sakMedRevurdering(
+        antallBarnFraSøknad: Int = 0,
+        tiltakskodeForRevurdering: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
+    ): Pair<Sak, Revurdering> {
         val (sak) = nySakMedVedtak(
             virkningsperiode = virkningsperiodeSøknadsbehandling,
             barnetillegg = if (antallBarnFraSøknad > 0) {
@@ -50,6 +57,17 @@ class BeregnRevurderingTest {
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
             virkningsperiode = virkningsperiodeRevurdering,
+            hentSaksopplysninger = {
+                saksopplysninger(
+                    fom = it.fraOgMed,
+                    tom = it.tilOgMed,
+                    tiltaksdeltagelse = tiltaksdeltagelse(
+                        typeKode = tiltakskodeForRevurdering,
+                        fom = it.fraOgMed,
+                        tom = it.tilOgMed,
+                    ),
+                )
+            },
         )
 
         return sak.copy(
@@ -82,12 +100,15 @@ class BeregnRevurderingTest {
     }
 
     @Test
-    fun `Skal beregne utbetaling for revurdering når en legger til barn`() {
+    fun `Skal beregne etterbetaling for revurdering når en legger til barn`() {
         val (sak, revurdering) = sakMedRevurdering()
 
         val (sakMedMeldekortBehandlinger, meldekortBehandling) = sak.leggTilMeldekortBehandletAutomatisk(
             periode = sak.meldeperiodeKjeder.first().periode,
         )
+
+        val beløpFørRevurdering =
+            sakMedMeldekortBehandlinger.meldeperiodeBeregninger.gjeldendeBeregninger.beregnTotalBeløp()
 
         val kommando = tilBeslutningKommando(
             revurdering = revurdering,
@@ -97,15 +118,49 @@ class BeregnRevurderingTest {
             ),
         )
 
-        val beregning = sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando)
+        val nyBeregning = sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando)
 
-        beregning.shouldBeInstanceOf<BehandlingBeregning>()
-        beregning.size shouldBe 1
+        nyBeregning.shouldNotBeNull()
+        nyBeregning.size shouldBe 1
 
         // 8 dager med rett i første meldeperiode for dette vedtaket
-        beregning.barnetilleggBeløp shouldBe sats2025.satsBarnetillegg * 8
+        nyBeregning.barnetilleggBeløp shouldBe sats2025.satsBarnetillegg * 8
+        nyBeregning.totalBeløp shouldBe meldekortBehandling.beregning.totalBeløp + nyBeregning.barnetilleggBeløp
 
-        beregning.totalBeløp shouldBe meldekortBehandling.beregning.totalBeløp + beregning.barnetilleggBeløp
+        nyBeregning.totalBeløp - beløpFørRevurdering shouldBe (sats2025.satsBarnetillegg * 8)
+    }
+
+    @Test
+    fun `Skal beregne tilbakekreving for revurdering når en fjerner barn`() {
+        val (sak, revurdering) = sakMedRevurdering(
+            antallBarnFraSøknad = 2,
+        )
+
+        val (sakMedMeldekortBehandlinger, meldekortBehandling) = sak.leggTilMeldekortBehandletAutomatisk(
+            periode = sak.meldeperiodeKjeder.first().periode,
+        )
+
+        val beløpFørRevurdering =
+            sakMedMeldekortBehandlinger.meldeperiodeBeregninger.gjeldendeBeregninger.beregnTotalBeløp()
+
+        val kommando = tilBeslutningKommando(
+            revurdering = revurdering,
+            barnetillegg = barnetillegg(
+                periode = virkningsperiodeRevurdering,
+                antallBarn = AntallBarn(1),
+            ),
+        )
+
+        val nyBeregning = sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando)
+
+        nyBeregning.shouldBeInstanceOf<BehandlingBeregning>()
+        nyBeregning.size shouldBe 1
+
+        // 8 dager med rett i første meldeperiode for dette vedtaket
+        nyBeregning.barnetilleggBeløp shouldBe sats2025.satsBarnetillegg * 8
+        nyBeregning.totalBeløp shouldBe meldekortBehandling.beregning.totalBeløp - sats2025.satsBarnetillegg * 8
+
+        nyBeregning.totalBeløp - beløpFørRevurdering shouldBe -(sats2025.satsBarnetillegg * 8)
     }
 
     @Test
@@ -120,8 +175,25 @@ class BeregnRevurderingTest {
     }
 
     @Test
-    fun `Skal ikke returnere beregning dersom det ikke er endringer i utbetaling`() {
+    fun `Skal ikke returnere ny beregning dersom det ikke er endringer i beregningen`() {
         val (sak, revurdering) = sakMedRevurdering()
+
+        val (sakMedMeldekortBehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
+            periode = sak.meldeperiodeKjeder.first().periode,
+        )
+
+        val kommando = tilBeslutningKommando(
+            revurdering = revurdering,
+        )
+
+        sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando).shouldBeNull()
+    }
+
+    @Test
+    fun `Skal ikke returnere beregning dersom det kun er endring i tiltakstype`() {
+        val (sak, revurdering) = sakMedRevurdering(
+            tiltakskodeForRevurdering = TiltakstypeSomGirRett.ARBEIDSTRENING,
+        )
 
         val (sakMedMeldekortBehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
             periode = sak.meldeperiodeKjeder.first().periode,

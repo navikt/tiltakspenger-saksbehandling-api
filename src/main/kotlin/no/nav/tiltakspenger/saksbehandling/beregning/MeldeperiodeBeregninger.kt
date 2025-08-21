@@ -12,8 +12,8 @@ import java.time.LocalDateTime
 private typealias BeregningMedIverksattTidspunkt = Pair<MeldeperiodeBeregning, LocalDateTime>
 
 data class MeldeperiodeBeregninger(
-    val meldekortBehandlinger: MeldekortBehandlinger,
-    val behandlinger: Behandlinger,
+    private val meldekortBehandlinger: MeldekortBehandlinger,
+    private val behandlinger: Behandlinger,
 ) {
     private val godkjenteMeldekort: List<MeldekortBehandling.Behandlet> = meldekortBehandlinger.godkjenteMeldekort
         .sortedBy { it.iverksattTidspunkt }
@@ -45,6 +45,10 @@ data class MeldeperiodeBeregninger(
 
     val sisteBeregningPerKjede: Map<MeldeperiodeKjedeId, MeldeperiodeBeregning> by lazy {
         beregningerPerKjede.entries.associate { it.key to it.value.last() }
+    }
+
+    val gjeldendeBeregninger: List<MeldeperiodeBeregning> by lazy {
+        sisteBeregningPerKjede.values.toList()
     }
 
     fun sisteBeregningFør(beregningId: BeregningId, kjedeId: MeldeperiodeKjedeId): MeldeperiodeBeregning? {
