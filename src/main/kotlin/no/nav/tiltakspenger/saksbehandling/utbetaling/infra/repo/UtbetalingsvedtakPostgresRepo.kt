@@ -178,8 +178,7 @@ internal class UtbetalingsvedtakPostgresRepo(
                               and parent.sak_id = u.sak_id
                             where u.sendt_til_utbetaling_tidspunkt is null
                               and (u.forrige_vedtak_id is null or (parent.sendt_til_utbetaling_tidspunkt is not null and parent.status IN ('OK','OK_UTEN_UTBETALING')))
-                              and (u.status_metadata->>'nesteForsøk')::timestamptz <= now()
-                            order by (u.status_metadata->>'antall_forsøk')::int, u.opprettet
+                            order by u.opprettet
                             limit :limit
                     """.trimIndent(),
                     mapOf("limit" to limit),
@@ -246,7 +245,8 @@ internal class UtbetalingsvedtakPostgresRepo(
                             from utbetalingsvedtak u 
                             join sak s on s.id = u.sak_id 
                             where (u.status is null or u.status IN ('IKKE_PÅBEGYNT', 'SENDT_TIL_OPPDRAG')) and u.sendt_til_utbetaling_tidspunkt is not null
-                            order by u.opprettet
+                                and (u.status_metadata->>'nesteForsøk')::timestamptz <= now()
+                            order by (u.status_metadata->>'antall_forsøk')::int, u.opprettet
                             limit :limit
                     """.trimIndent(),
                     mapOf("limit" to limit),
