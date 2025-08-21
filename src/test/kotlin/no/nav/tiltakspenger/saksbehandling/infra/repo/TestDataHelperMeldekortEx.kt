@@ -181,7 +181,7 @@ internal fun TestDataHelper.persisterIverksattMeldekortbehandling(
     )
 
     meldekortRepo.oppdater(iverksattMeldekortBehandling)
-    meldekortVedtakRepo.lagre(meldekortVedtak)
+    meldekortVedtakRepo.opprett(meldekortVedtak)
 
     return sakRepo.hentForSakId(sakMedMeldekortbehandlingTilBeslutning.id)!! to meldekortVedtak
 }

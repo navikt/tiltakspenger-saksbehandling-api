@@ -17,7 +17,7 @@ CREATE TABLE utbetaling
 );
 
 ALTER TABLE meldekortvedtak
-    ADD COLUMN IF NOT EXISTS utbetaling_id VARCHAR NULL references utbetaling (id);
+    ADD COLUMN IF NOT EXISTS utbetaling_id VARCHAR NULL references utbetaling (id) DEFERRABLE INITIALLY DEFERRED;
 
 ALTER TABLE rammevedtak
-    ADD COLUMN IF NOT EXISTS utbetaling_id VARCHAR NULL references utbetaling (id);
+    ADD COLUMN IF NOT EXISTS utbetaling_id VARCHAR NULL references utbetaling (id) DEFERRABLE INITIALLY DEFERRED;

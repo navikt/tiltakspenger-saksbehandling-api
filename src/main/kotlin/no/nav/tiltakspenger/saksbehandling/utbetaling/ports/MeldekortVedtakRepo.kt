@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import java.time.LocalDateTime
 
 interface MeldekortVedtakRepo {
-    fun lagre(vedtak: MeldekortVedtak, context: TransactionContext? = null)
+    fun opprett(vedtak: MeldekortVedtak, context: TransactionContext? = null)
 
     fun markerSendtTilUtbetaling(
         vedtakId: VedtakId,

@@ -30,7 +30,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortBehandli
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.OvertaMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 
@@ -64,6 +66,11 @@ open class MeldekortContext(
             sessionFactory = sessionFactory as PostgresSessionFactory,
         )
     }
+    open val utbetalingRepo: UtbetalingRepo by lazy {
+        UtbetalingPostgresRepo(
+            sessionFactory = sessionFactory as PostgresSessionFactory,
+        )
+    }
 
     val iverksettMeldekortService by lazy {
         IverksettMeldekortService(
@@ -73,6 +80,7 @@ open class MeldekortContext(
             sessionFactory = sessionFactory,
             sakService = sakService,
             meldekortVedtakRepo = meldekortVedtakRepo,
+            utbetalingRepo = utbetalingRepo,
             statistikkStønadRepo = statistikkStønadRepo,
             clock = clock,
             oppgaveKlient = oppgaveKlient,
@@ -100,6 +108,7 @@ open class MeldekortContext(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakRepo = sakRepo,
             meldekortVedtakRepo = meldekortVedtakRepo,
+            utbetalingRepo = utbetalingRepo,
             statistikkStønadRepo = statistikkStønadRepo,
             navkontorService = navkontorService,
             sessionFactory = sessionFactory,
