@@ -71,7 +71,6 @@ class UtbetalingsvedtakRepoImplTest {
             utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(
                 vedtakId = utbetalingsvedtak.id,
                 utbetalingsrespons = KunneIkkeUtbetale("myFailedReq", "myFailedRes", 409),
-                forsøkshistorikk = utbetalingsvedtak.statusMetadata,
             )
             utbetalingsvedtakRepo.hentUtbetalingJsonForVedtakId(utbetalingsvedtak.id) shouldBe "myFailedReq"
             utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk() shouldBe listOf(utbetalingsvedtak)

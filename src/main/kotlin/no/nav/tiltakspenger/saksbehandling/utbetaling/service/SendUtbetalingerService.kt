@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.backoff.shouldRetry
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
@@ -23,14 +22,6 @@ class SendUtbetalingerService(
             utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk().forEach { utbetalingsvedtak ->
                 val correlationId = CorrelationId.generate()
                 Either.catch {
-                    val forrigeForsøk = utbetalingsvedtak.statusMetadata.forrigeForsøk
-                    val antallForsøk = utbetalingsvedtak.statusMetadata.antallForsøk
-                    val kanPrøvePåNyttNå = forrigeForsøk.shouldRetry(antallForsøk, clock).first
-
-                    if (!kanPrøvePåNyttNå) {
-                        return@forEach
-                    }
-
                     val forrigeUtbetalingJson =
                         utbetalingsvedtak.forrigeUtbetalingsvedtakId?.let { forrigeUtbetalingsvedtakId ->
                             utbetalingsvedtakRepo.hentUtbetalingJsonForVedtakId(forrigeUtbetalingsvedtakId)
@@ -47,7 +38,6 @@ class SendUtbetalingerService(
                             utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(
                                 vedtakId = utbetalingsvedtak.id,
                                 utbetalingsrespons = it,
-                                forsøkshistorikk = utbetalingsvedtak.statusMetadata.inkrementer(clock),
                             )
                         }
                 }.onLeft {

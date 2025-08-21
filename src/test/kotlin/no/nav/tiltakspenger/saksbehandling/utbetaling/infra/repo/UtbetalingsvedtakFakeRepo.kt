@@ -38,12 +38,8 @@ class UtbetalingsvedtakFakeRepo : UtbetalingsvedtakRepo {
     override fun lagreFeilResponsFraUtbetaling(
         vedtakId: VedtakId,
         utbetalingsrespons: KunneIkkeUtbetale,
-        forsøkshistorikk: Forsøkshistorikk,
     ) {
-        data.get()[vedtakId] = data.get()[vedtakId]!!.copy(
-            sendtTilUtbetaling = null,
-            statusMetadata = opprett(clock = fixedClock),
-        )
+        data.get()[vedtakId] = data.get()[vedtakId]!!.copy(sendtTilUtbetaling = null)
     }
 
     override fun markerJournalført(

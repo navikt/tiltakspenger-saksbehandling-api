@@ -9,7 +9,7 @@ import java.time.LocalDateTime
  * Brukes for debug, logging eller for å begrense antall forsøk.
  */
 data class Forsøkshistorikk(
-    val forrigeForsøk: LocalDateTime,
+    val forrigeForsøk: LocalDateTime?,
     val nesteForsøk: LocalDateTime,
     val antallForsøk: Long,
 ) {
@@ -18,12 +18,14 @@ data class Forsøkshistorikk(
     }
 
     fun inkrementer(clock: Clock): Forsøkshistorikk {
+        val nå = LocalDateTime.now(clock)
+        val forrigeForsøk = this.forrigeForsøk ?: nå
         val oppdatertAntallForsøk = antallForsøk + 1
         val nesteForsøk = forrigeForsøk.shouldRetry(oppdatertAntallForsøk, clock).second
         return Forsøkshistorikk(
-            forrigeForsøk = LocalDateTime.now(clock),
-            nesteForsøk = nesteForsøk,
+            forrigeForsøk = forrigeForsøk,
             antallForsøk = oppdatertAntallForsøk,
+            nesteForsøk = nesteForsøk,
         )
     }
 
@@ -34,7 +36,7 @@ data class Forsøkshistorikk(
             clock: Clock,
         ): Forsøkshistorikk {
             val nå = LocalDateTime.now(clock)
-            val forrigeForsøk = forrigeForsøk ?: nå
+            val forrigeForsøk = forrigeForsøk
             val nesteForsøk = forrigeForsøk?.shouldRetry(antallForsøk, clock)?.second ?: nå
             return Forsøkshistorikk(
                 forrigeForsøk = forrigeForsøk,

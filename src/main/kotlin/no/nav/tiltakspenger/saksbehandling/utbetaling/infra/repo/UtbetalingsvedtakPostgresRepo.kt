@@ -103,7 +103,6 @@ internal class UtbetalingsvedtakPostgresRepo(
     override fun lagreFeilResponsFraUtbetaling(
         vedtakId: VedtakId,
         utbetalingsrespons: KunneIkkeUtbetale,
-        forsøkshistorikk: Forsøkshistorikk,
     ) {
         sessionFactory.withSession { session ->
             session.run(
@@ -111,14 +110,12 @@ internal class UtbetalingsvedtakPostgresRepo(
                     //language=SQL
                     """
                         update utbetalingsvedtak
-                        set utbetaling_metadata = to_jsonb(:utbetaling_metadata::jsonb),
-                            status_metadata = to_jsonb(:status_metadata::jsonb)
+                        set utbetaling_metadata = to_jsonb(:metadata::jsonb)
                         where id = :id
                     """.trimIndent(),
                     mapOf(
                         "id" to vedtakId.toString(),
-                        "utbetaling_metadata" to utbetalingsrespons.toJson(),
-                        "status_metadata" to forsøkshistorikk.toDbJson(),
+                        "metadata" to utbetalingsrespons.toJson(),
                     ),
                 ).asUpdate,
             )

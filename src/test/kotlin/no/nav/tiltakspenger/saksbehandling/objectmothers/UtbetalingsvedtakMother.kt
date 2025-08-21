@@ -3,7 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.plus
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -14,10 +16,12 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingType
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 interface UtbetalingsvedtakMother : MotherOfAllMothers {
 
@@ -63,6 +67,24 @@ interface UtbetalingsvedtakMother : MotherOfAllMothers {
             automatiskBehandlet = false,
             erKorrigering = meldekortBehandling.type == MeldekortBehandlingType.KORRIGERING,
             begrunnelse = meldekortBehandling.begrunnelse?.verdi,
+        )
+    }
+
+    fun utbetalingDetSkalHentesStatusFor(
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
+        vedtakId: VedtakId = VedtakId.random(),
+        sakId: SakId = SakId.random(),
+        opprettet: LocalDateTime = nå(clock),
+        sendtTilUtbetalingstidspunkt: LocalDateTime = nå(fixedClock.plus(1, ChronoUnit.SECONDS)),
+        forsøkshistorikk: Forsøkshistorikk? = Forsøkshistorikk.opprett(clock = clock),
+    ): UtbetalingDetSkalHentesStatusFor {
+        return UtbetalingDetSkalHentesStatusFor(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            vedtakId = vedtakId,
+            opprettet = opprettet,
+            sendtTilUtbetalingstidspunkt = sendtTilUtbetalingstidspunkt,
+            forsøkshistorikk = forsøkshistorikk,
         )
     }
 }

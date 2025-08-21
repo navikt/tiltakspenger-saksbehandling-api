@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.backoff.shouldRetry
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
@@ -26,6 +27,16 @@ class OppdaterUtbetalingsstatusService(
     suspend fun oppdaterUtbetalingsstatus() {
         Either.catch {
             utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor().forEach {
+                it.forsøkshistorikk?.let { forsøkshistorikk ->
+                    val (forrigeForsøk, _, antallForsøk) = forsøkshistorikk
+                    forrigeForsøk?.let { forrigeForsøk ->
+                        val kanPrøvePåNyttNå = forrigeForsøk.shouldRetry(antallForsøk, clock).first
+                        if (!kanPrøvePåNyttNå) {
+                            return@forEach
+                        }
+                    }
+                }
+
                 oppdaterEnkel(it)
             }
         }.onLeft {
@@ -38,12 +49,15 @@ class OppdaterUtbetalingsstatusService(
     private suspend fun oppdaterEnkel(utbetaling: UtbetalingDetSkalHentesStatusFor) {
         Either.catch {
             utbetalingsklient.hentUtbetalingsstatus(utbetaling).onRight {
-                utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
-                    utbetaling.vedtakId,
-                    it,
-                    utbetaling.forsøkshistorikk ?: Forsøkshistorikk.opprett(clock = clock),
-                )
+                val forsøkshistorikk = if (it.erOK()) {
+                    utbetaling.forsøkshistorikk
+                } else {
+                    utbetaling.forsøkshistorikk?.inkrementer(clock)
+                } ?: Forsøkshistorikk.opprett(clock = clock)
+
+                utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(utbetaling.vedtakId, it, forsøkshistorikk)
                 logger.info { "Oppdatert utbetalingsstatus til $it. Kontekst: $utbetaling" }
+
                 if (it == Utbetalingsstatus.FeiletMotOppdrag) {
                     logger.error { "Utbetaling $utbetaling feilet mot oppdrag med status $it. Dette må følges opp manuelt. Denne blir ikke prøvd på nytt." }
                     MetricRegister.UTBETALING_FEILET.inc()

@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import java.time.LocalDateTime
 
 private data class ForsøkshistorikkDbJson(
-    val forrigeForsøk: String,
+    val forrigeForsøk: String?,
     val nesteForsøk: String,
     val antallForsøk: Long,
 )
@@ -14,7 +14,7 @@ private data class ForsøkshistorikkDbJson(
 fun Forsøkshistorikk.toDbJson(): String {
     return serialize(
         ForsøkshistorikkDbJson(
-            forrigeForsøk = forrigeForsøk.toString(),
+            forrigeForsøk = forrigeForsøk?.toString(),
             nesteForsøk = nesteForsøk.toString(),
             antallForsøk = antallForsøk,
         ),
@@ -24,7 +24,7 @@ fun Forsøkshistorikk.toDbJson(): String {
 fun String.toForsøkshistorikk(): Forsøkshistorikk {
     val db = deserialize<ForsøkshistorikkDbJson>(this)
     return Forsøkshistorikk(
-        forrigeForsøk = LocalDateTime.parse(db.forrigeForsøk),
+        forrigeForsøk = db.forrigeForsøk?.let { LocalDateTime.parse(db.forrigeForsøk) },
         nesteForsøk = LocalDateTime.parse(db.nesteForsøk),
         antallForsøk = db.antallForsøk,
     )
