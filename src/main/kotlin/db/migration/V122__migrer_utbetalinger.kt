@@ -20,9 +20,9 @@ import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import java.time.LocalDateTime
 
-data class VedtakRow(
+data class UtbetalingsvedtakRow(
     val sakId: SakId,
-    val meldekortVedtakId: VedtakId?,
+    val vedtakId: VedtakId,
     val rammevedtakId: VedtakId?,
     val forrigeUtbetalingVedtakId: VedtakId?,
     val sendtTilUtbetaling: LocalDateTime?,
@@ -31,26 +31,27 @@ data class VedtakRow(
     val utbetalingsrespons: String?,
 )
 
-class V121__migrer_utbetalinger : BaseJavaMigration() {
+class V122__migrer_utbetalinger : BaseJavaMigration() {
     override fun migrate(context: Context) {
         val logger = KotlinLogging.logger {}
         val dataSource = context.configuration.dataSource
         val sessionFactory = PostgresSessionFactory(dataSource, SessionCounter(logger))
 
         sessionFactory.withTransactionContext { tx ->
-            val meldekortvedtak: List<VedtakRow> = tx.withSession { session ->
+            val utbetalingsvedtak: List<UtbetalingsvedtakRow> = tx.withSession { session ->
                 session.run(
                     sqlQuery(
                         """
-                            select u.*, s.id as sak_id, s.fnr 
-                            from meldekortvedtak u 
-                            join sak s on s.id = u.sak_id
+                            select mv.*, r.id as rammevedtak_id, s.fnr 
+                            from meldekortvedtak mv 
+                            join sak s on s.id = mv.sak_id
+                            left join rammevedtak r on r.behandling_id = mv.behandling_id
                         """,
                     ).map { row ->
-                        VedtakRow(
+                        UtbetalingsvedtakRow(
                             sakId = SakId.fromString(row.string("sak_id")),
-                            meldekortVedtakId = VedtakId.fromString(row.string("id")),
-                            rammevedtakId = null,
+                            vedtakId = VedtakId.fromString(row.string("id")),
+                            rammevedtakId = row.stringOrNull("rammevedtak_id")?.let { VedtakId.fromString(it) },
                             forrigeUtbetalingVedtakId = row.stringOrNull("forrige_vedtak_id")
                                 ?.let { VedtakId.fromString(it) },
                             sendtTilUtbetaling = row.localDateTimeOrNull("sendt_til_utbetaling_tidspunkt"),
@@ -62,12 +63,42 @@ class V121__migrer_utbetalinger : BaseJavaMigration() {
                 )
             }
 
-            logger.info { "Fant ${meldekortvedtak.size} meldekortvedtak" }
+            logger.info { "Fant ${utbetalingsvedtak.size} utbetalingsvedtak" }
+
+            tx.withSession { session ->
+                utbetalingsvedtak.forEach { vedtak ->
+                    val utbetalingId = UtbetalingId.random()
+
+                    val erRammevedtak = vedtak.rammevedtakId != null
+
+                    opprettUtbetaling(
+                        utbetalingId = utbetalingId,
+                        sakId = vedtak.sakId,
+                        meldekortVedtakId = if (erRammevedtak) null else vedtak.vedtakId,
+                        rammevedtakId = vedtak.rammevedtakId,
+                        forrigeUtbetalingVedtakId = vedtak.forrigeUtbetalingVedtakId,
+                        sendtTilUtbetaling = vedtak.sendtTilUtbetaling,
+                        status = vedtak.status,
+                        metadata = vedtak.metadata,
+                        utbetalingsrespons = vedtak.utbetalingsrespons,
+                        session = session,
+                    )
+
+                    if (erRammevedtak) {
+                        settRammevedtakUtbetaling(vedtak.rammevedtakId, utbetalingId, session)
+                        logger.info { "Oppdaterte rammevedtake ${vedtak.rammevedtakId} med utbetaling $utbetalingId" }
+                    } else {
+                        settMeldekortVedtakUtbetaling(vedtak.vedtakId, utbetalingId, session)
+                        logger.info { "Oppdaterte meldekortvedtaket ${vedtak.vedtakId} med utbetaling $utbetalingId" }
+                    }
+
+                }
+            }
         }
     }
 
     private fun settMeldekortVedtakUtbetaling(
-        meldekortVedtakId: VedtakId,
+        vedtakId: VedtakId,
         utbetalingId: UtbetalingId,
         session: Session,
     ) {
@@ -78,7 +109,25 @@ class V121__migrer_utbetalinger : BaseJavaMigration() {
                         set utbetaling_id = :utbetaling_id
                         where id = :id
                     """,
-                "id" to meldekortVedtakId.toString(),
+                "id" to vedtakId.toString(),
+                "utbetaling_id" to utbetalingId.toString(),
+            ).asUpdate,
+        )
+    }
+
+    private fun settRammevedtakUtbetaling(
+        vedtakId: VedtakId,
+        utbetalingId: UtbetalingId,
+        session: Session,
+    ) {
+        session.run(
+            sqlQuery(
+                """
+                        update rammevedtak
+                        set utbetaling_id = :utbetaling_id
+                        where id = :id
+                    """,
+                "id" to vedtakId.toString(),
                 "utbetaling_id" to utbetalingId.toString(),
             ).asUpdate,
         )
