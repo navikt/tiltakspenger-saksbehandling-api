@@ -30,7 +30,7 @@ interface SimuleringMother {
     ): SimuleringMedMetadata {
         return SimuleringMedMetadata(
             simulering = simulering,
-            originalJson = originalJson,
+            originalResponseBody = originalJson,
         )
     }
 
@@ -136,6 +136,6 @@ fun Sak.genererSimuleringFraBeregning(
                 totalBeløp = simuleringForMeldeperioder.sumOf { it.nyUtbetaling },
             )
         },
-        originalJson = "{}",
+        originalResponseBody = "{}",
     )
 }
