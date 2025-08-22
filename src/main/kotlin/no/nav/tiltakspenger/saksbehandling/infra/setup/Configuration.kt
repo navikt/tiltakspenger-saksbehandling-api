@@ -95,6 +95,8 @@ object Configuration {
                 "NAIS_TOKEN_ENDPOINT" to "http://localhost:7165/api/v1/token",
                 "NAIS_TOKEN_INTROSPECTION_ENDPOINT" to "http://localhost:7165/api/v1/introspect",
                 "NAIS_TOKEN_EXCHANGE_ENDPOINT" to "http://localhost:7165/api/v1/token/exchange",
+                "TILGANGSMASKINEN_URL" to "http://host.docker.internal:8091",
+                "TILGANGSMASKINEN_SCOPE" to "localhost",
             ),
         )
 
@@ -137,6 +139,8 @@ object Configuration {
                 "IDENTHENDELSE_TOPIC" to "tpts.identhendelse-v1",
                 "SOKOS_UTBETALDATA_SCOPE" to "dev-fss:okonomi:sokos-utbetaldata",
                 "SOKOS_UTBETALDATA_URL" to "https://sokos-utbetaldata.dev-fss-pub.nais.io",
+                "TILGANGSMASKINEN_URL" to "http://populasjonstilgangskontroll.tilgangsmaskin",
+                "TILGANGSMASKINEN_SCOPE" to "dev-gcp:tilgangsmaskin:populasjonstilgangskontroll",
             ),
         )
     private val prodProperties =
@@ -178,6 +182,8 @@ object Configuration {
                 "IDENTHENDELSE_TOPIC" to "tpts.identhendelse-v1",
                 "SOKOS_UTBETALDATA_SCOPE" to "prod-fss:okonomi:sokos-utbetaldata",
                 "SOKOS_UTBETALDATA_URL" to "https://sokos-utbetaldata.prod-fss-pub.nais.io",
+                "TILGANGSMASKINEN_URL" to "http://populasjonstilgangskontroll.tilgangsmaskin",
+                "TILGANGSMASKINEN_SCOPE" to "prod-gcp:tilgangsmaskin:populasjonstilgangskontroll",
             ),
         )
 
@@ -250,6 +256,9 @@ object Configuration {
     val veilarboppfolgingUrl: String by lazy { config()[Key("VEILARBOPPFOLGING_URL", stringType)] }
     val oppgaveUrl: String by lazy { config()[Key("OPPGAVE_URL", stringType)] }
     val sokosUtbetaldataUrl: String by lazy { config()[Key("SOKOS_UTBETALDATA_URL", stringType)] }
+
+    val tilgangsmaskinenUrl: String by lazy { config()[Key("TILGANGSMASKINEN_URL", stringType)] }
+    val tilgangsmaskinenScope: String by lazy { config()[Key("TILGANGSMASKINEN_SCOPE", stringType)] }
 
     val arenaTiltaksdeltakerTopic: String by lazy { config()[Key("ARENA_TILTAKSDELTAKER_TOPIC", stringType)] }
     val kometTiltaksdeltakerTopic: String by lazy { config()[Key("KOMET_TILTAKSDELTAKER_TOPIC", stringType)] }

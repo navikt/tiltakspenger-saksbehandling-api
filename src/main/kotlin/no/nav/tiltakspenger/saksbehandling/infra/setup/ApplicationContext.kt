@@ -9,6 +9,9 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasHttpClient
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinClient
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinHttpClient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.AvbrytSøknadOgBehandlingContext
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
@@ -70,6 +73,20 @@ open class ApplicationContext(
             introspectionUrl = Configuration.naisTokenIntrospectionEndpoint,
             tokenUrl = Configuration.naisTokenEndpoint,
             tokenExchangeUrl = Configuration.tokenExchangeEndpoint,
+        )
+    }
+
+    open val tilgangsmaskinClient: TilgangsmaskinClient by lazy {
+        TilgangsmaskinHttpClient(
+            baseUrl = Configuration.tilgangsmaskinenUrl,
+            scope = Configuration.tilgangsmaskinenScope,
+            texasClient = texasClient,
+        )
+    }
+
+    open val tilgangskontrollService: TilgangskontrollService by lazy {
+        TilgangskontrollService(
+            tilgangsmaskinClient = tilgangsmaskinClient,
         )
     }
 
