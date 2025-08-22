@@ -55,7 +55,7 @@ class OppdaterUtbetalingsstatusService(
                     utbetaling.forsøkshistorikk?.inkrementer(clock)
                 } ?: Forsøkshistorikk.opprett(clock = clock)
 
-                utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(utbetaling.vedtakId, it, forsøkshistorikk)
+                meldekortVedtakRepo.oppdaterUtbetalingsstatus(utbetaling.vedtakId, it, forsøkshistorikk)
                 logger.info { "Oppdatert utbetalingsstatus til $it. Kontekst: $utbetaling" }
 
                 if (it == Utbetalingsstatus.FeiletMotOppdrag) {

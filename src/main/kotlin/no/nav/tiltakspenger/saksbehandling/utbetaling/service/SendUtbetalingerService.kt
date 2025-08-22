@@ -26,7 +26,7 @@ class SendUtbetalingerService(
                         meldekortVedtak.utbetaling.forrigeUtbetalingVedtakId?.let { forrigeUtbetalingVedtakId ->
                             meldekortVedtakRepo.hentUtbetalingJsonForVedtakId(forrigeUtbetalingVedtakId)
                         }
-                    utbetalingsklient.iverksett(meldekortVedtak.utbetaling, forrigeUtbetalingJson, correlationId).onRight {
+                    utbetalingsklient.iverksett(meldekortVedtak, forrigeUtbetalingJson, correlationId).onRight {
                         logger.info { "Utbetaling iverksatt for vedtak ${meldekortVedtak.id}" }
                         meldekortVedtakRepo.markerSendtTilUtbetaling(meldekortVedtak.id, nå(clock), it)
                         logger.info { "Utbetaling markert som utbetalt for vedtak ${meldekortVedtak.id}" }
