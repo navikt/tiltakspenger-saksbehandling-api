@@ -13,13 +13,15 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 interface MeldekortVedtakMother : MotherOfAllMothers {
 
-    fun utbetalingsvedtak(
+    fun meldekortVedtak(
         id: VedtakId = VedtakId.random(),
         utbetalingId: UtbetalingId = UtbetalingId.random(),
         sakId: SakId = SakId.random(),
@@ -51,10 +53,21 @@ interface MeldekortVedtakMother : MotherOfAllMothers {
             meldekortBehandling = meldekortBehandling,
             journalpostId = journalpostId,
             journalføringstidspunkt = journalføringstidspunkt,
-            forrigeUtbetalingVedtakId = forrigeUtbetalingVedtakId,
-            sendtTilUtbetaling = sendtTilUtbetaling,
-            utbetalingId = utbetalingId,
-            status = null,
+            utbetaling = Utbetaling(
+                id = utbetalingId,
+                sendtTilUtbetaling = sendtTilUtbetaling,
+                status = status,
+                forrigeUtbetalingVedtakId = forrigeUtbetalingVedtakId,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                beregning = meldekortBehandling.beregning,
+                brukerNavkontor = meldekortBehandling.navkontor,
+                vedtakId = id,
+                opprettet = opprettet,
+                saksbehandler = meldekortBehandling.saksbehandler!!,
+                beslutter = meldekortBehandling.beslutter!!,
+            ),
         )
     }
 

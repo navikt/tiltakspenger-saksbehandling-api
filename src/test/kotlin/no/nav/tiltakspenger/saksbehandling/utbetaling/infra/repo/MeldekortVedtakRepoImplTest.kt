@@ -29,7 +29,7 @@ class MeldekortVedtakRepoImplTest {
                 deltakelseTom = 2.april(2023),
             )
             val meldekortVedtakRepo = testDataHelper.meldekortVedtakRepo as MeldekortVedtakPostgresRepo
-            val meldekortVedtak = meldekort.opprettVedtak(sak.saksnummer, sak.fnr, null, fixedClock)
+            val meldekortVedtak = meldekort.opprettVedtak(null, fixedClock)
             // Utbetaling
             meldekortVedtakRepo.opprett(meldekortVedtak)
             meldekortVedtakRepo.hentUtbetalingsvedtakForUtsjekk() shouldBe listOf(meldekortVedtak)
@@ -64,7 +64,7 @@ class MeldekortVedtakRepoImplTest {
             )
             val utbetalingsvedtakRepo = testDataHelper.meldekortVedtakRepo as MeldekortVedtakPostgresRepo
             // Utbetaling
-            val utbetalingsvedtak = meldekort.opprettVedtak(sak.saksnummer, sak.fnr, null, fixedClock)
+            val utbetalingsvedtak = meldekort.opprettVedtak(null, fixedClock)
             utbetalingsvedtakRepo.opprett(utbetalingsvedtak)
 
             utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk() shouldBe listOf(utbetalingsvedtak)
@@ -86,7 +86,7 @@ class MeldekortVedtakRepoImplTest {
             )
             val utbetalingsvedtakRepo = testDataHelper.meldekortVedtakRepo as MeldekortVedtakPostgresRepo
             // Utbetaling
-            val utbetalingsvedtak = meldekort.opprettVedtak(sak.saksnummer, sak.fnr, null, fixedClock)
+            val utbetalingsvedtak = meldekort.opprettVedtak(null, fixedClock)
             utbetalingsvedtakRepo.opprett(utbetalingsvedtak)
             val sendtTilUtbetalingTidspunkt = nå(fixedClock.plus(1, ChronoUnit.MICROS))
             utbetalingsvedtakRepo.markerSendtTilUtbetaling(

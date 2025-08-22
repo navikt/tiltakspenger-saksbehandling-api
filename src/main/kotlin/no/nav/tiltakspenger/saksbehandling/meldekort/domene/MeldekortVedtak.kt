@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkUtbetalingDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
 import java.time.Clock
 import java.time.LocalDateTime
@@ -23,73 +22,67 @@ data class MeldekortVedtak(
     override val id: VedtakId,
     override val opprettet: LocalDateTime,
     override val sakId: SakId,
+    override val saksnummer: Saksnummer,
     override val journalpostId: JournalpostId?,
     override val journalføringstidspunkt: LocalDateTime?,
-    val utbetalingId: UtbetalingId,
-    val saksnummer: Saksnummer,
-    val fnr: Fnr,
+    override val fnr: Fnr,
+    override val utbetaling: Utbetaling,
     val meldekortBehandling: MeldekortBehandling.Behandlet,
-    val forrigeUtbetalingVedtakId: VedtakId?,
-    val sendtTilUtbetaling: LocalDateTime?,
-    val status: Utbetalingsstatus?,
 ) : Vedtak {
+
+    override val saksbehandler: String = meldekortBehandling.saksbehandler!!
+    override val beslutter: String = meldekortBehandling.beslutter!!
+
     val meldekortId: MeldekortId = meldekortBehandling.id
     val automatiskBehandlet: Boolean = meldekortBehandling is MeldekortBehandletAutomatisk
     val erKorrigering: Boolean = meldekortBehandling.type == MeldekortBehandlingType.KORRIGERING
     val begrunnelse: String? = meldekortBehandling.begrunnelse?.verdi
     val rammevedtak: List<VedtakId> = meldekortBehandling.rammevedtak
-    val saksbehandler: String = meldekortBehandling.saksbehandler!!
-    val beslutter: String = meldekortBehandling.beslutter!!
     val beregningsperiode: Periode = meldekortBehandling.beregning.periode
-
-    override val utbetaling: Utbetaling by lazy {
-        Utbetaling(
-            id = utbetalingId,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            fnr = fnr,
-            opprettet = opprettet,
-            saksbehandler = saksbehandler,
-            beslutter = beslutter,
-            beregning = meldekortBehandling.beregning,
-            brukerNavkontor = meldekortBehandling.navkontor,
-            vedtakId = id,
-            sendtTilUtbetaling = sendtTilUtbetaling,
-            status = status,
-            forrigeUtbetalingVedtakId = forrigeUtbetalingVedtakId,
-        )
-    }
 
     override val antallDagerPerMeldeperiode: Int = meldekortBehandling.meldeperiode.maksAntallDagerForMeldeperiode
 
     init {
-        require(id == utbetaling.vedtakId) {
-            "Utbetalingen på meldekortvedtaket tilhørte et annet vedtak - forventet $id, fant ${utbetaling.vedtakId}"
-        }
+        require(id == utbetaling.vedtakId)
+        require(sakId == utbetaling.sakId)
+        require(fnr == utbetaling.fnr)
+        require(saksbehandler == utbetaling.saksbehandler)
+        require(beslutter == utbetaling.beslutter)
     }
 }
 
 fun MeldekortBehandling.Behandlet.opprettVedtak(
-    saksnummer: Saksnummer,
-    fnr: Fnr,
     forrigeUtbetaling: Utbetaling?,
     clock: Clock,
 ): MeldekortVedtak {
     val vedtakId = VedtakId.random()
 
+    val utbetaling = Utbetaling(
+        id = UtbetalingId.random(),
+        vedtakId = vedtakId,
+        sakId = this.sakId,
+        saksnummer = this.saksnummer,
+        fnr = this.fnr,
+        opprettet = this.opprettet,
+        saksbehandler = this.saksbehandler!!,
+        beslutter = this.beslutter!!,
+        beregning = this.beregning,
+        brukerNavkontor = this.navkontor,
+        sendtTilUtbetaling = null,
+        status = null,
+        forrigeUtbetalingVedtakId = forrigeUtbetaling?.vedtakId,
+    )
+
     return MeldekortVedtak(
         id = vedtakId,
         opprettet = nå(clock),
         sakId = this.sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
+        saksnummer = this.saksnummer,
+        fnr = this.fnr,
         journalpostId = null,
         journalføringstidspunkt = null,
         meldekortBehandling = this,
-        sendtTilUtbetaling = null,
-        status = null,
-        utbetalingId = UtbetalingId.random(),
-        forrigeUtbetalingVedtakId = forrigeUtbetaling?.vedtakId,
+        utbetaling = utbetaling,
     )
 }
 

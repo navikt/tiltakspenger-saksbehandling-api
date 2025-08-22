@@ -19,22 +19,22 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
 
 class UtbetalingFakeKlient(
     private val sakFakeRepo: SakRepo,
 ) : Utbetalingsklient {
     override suspend fun iverksett(
-        utbetaling: Utbetaling,
+        vedtak: Vedtak,
         forrigeUtbetalingJson: String?,
         correlationId: CorrelationId,
     ): Either<KunneIkkeUtbetale, SendtUtbetaling> {
-        val response = SendtUtbetaling("request - ${utbetaling.vedtakId}", "response - ${utbetaling.vedtakId}", responseStatus = 202)
+        val response = SendtUtbetaling("request - ${vedtak.id}", "response - ${vedtak.id}", responseStatus = 202)
         return response.right()
     }
 

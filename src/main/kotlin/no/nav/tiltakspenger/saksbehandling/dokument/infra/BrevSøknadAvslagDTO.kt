@@ -83,8 +83,8 @@ internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
     }
 
     val brukersNavn = hentBrukersNavn(this.fnr)
-    val saksbehandlersNavn = hentSaksbehandlersNavn(this.saksbehandlerNavIdent)
-    val besluttersNavn = hentSaksbehandlersNavn(this.beslutterNavIdent)
+    val saksbehandlersNavn = hentSaksbehandlersNavn(this.saksbehandler)
+    val besluttersNavn = hentSaksbehandlersNavn(this.beslutter)
 
     val harSøktBarnetillegg = behandling.søknad.barnetillegg.isNotEmpty()
     return BrevSøknadAvslagDTO(

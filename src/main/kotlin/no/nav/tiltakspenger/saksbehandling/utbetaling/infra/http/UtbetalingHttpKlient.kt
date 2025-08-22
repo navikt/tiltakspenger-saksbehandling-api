@@ -27,12 +27,12 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbet
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
+import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
 import no.nav.utsjekk.kontrakter.iverksett.IverksettStatus
 import java.net.URI
 import java.net.http.HttpClient
@@ -64,21 +64,21 @@ class UtbetalingHttpKlient(
     private val iverksettUri = URI.create("$baseUrl/api/iverksetting/v2")
 
     override suspend fun iverksett(
-        utbetaling: Utbetaling,
+        vedtak: Vedtak,
         forrigeUtbetalingJson: String?,
         correlationId: CorrelationId,
     ): Either<KunneIkkeUtbetale, SendtUtbetaling> {
         return withContext(Dispatchers.IO) {
             Either.catch {
                 val token = getToken()
-                val jsonPayload = utbetaling.toDTO(forrigeUtbetalingJson)
+                val jsonPayload = vedtak.toDTO(forrigeUtbetalingJson)
                 val request = createIverksettRequest(correlationId, jsonPayload, token.token)
 
                 val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
                 val jsonResponse = httpResponse.body()
                 mapIverksettStatus(
                     status = httpResponse.statusCode(),
-                    utbetaling = utbetaling,
+                    vedtak = vedtak,
                     request = jsonPayload,
                     response = jsonResponse,
                     token = token,
@@ -86,7 +86,7 @@ class UtbetalingHttpKlient(
             }.mapLeft {
                 // Either.catch slipper igjennom CancellationException som er ønskelig.
                 log.error(it) {
-                    "Ukjent feil ved utsjekk for utbetalingsvedtak ${utbetaling.vedtakId}. Saksnummer ${utbetaling.saksnummer}, sakId: ${utbetaling.sakId}"
+                    "Ukjent feil ved utsjekk for utbetalingsvedtak ${vedtak.id}. Saksnummer ${vedtak.saksnummer}, sakId: ${vedtak.sakId}"
                 }
                 KunneIkkeUtbetale()
             }.flatten()
@@ -248,12 +248,12 @@ class UtbetalingHttpKlient(
 
 private fun mapIverksettStatus(
     status: Int,
-    utbetaling: Utbetaling,
+    vedtak: Vedtak,
     request: String,
     response: String,
     token: AccessToken,
 ): Either<KunneIkkeUtbetale, SendtUtbetaling> {
-    val vedtakId = utbetaling.vedtakId
+    val vedtakId = vedtak.id
 
     when (status) {
         202 -> {

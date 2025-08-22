@@ -101,8 +101,6 @@ class AutomatiskMeldekortBehandlingService(
         }
 
         val meldekortvedtak = meldekortBehandling.opprettVedtak(
-            saksnummer = sak.saksnummer,
-            fnr = sak.fnr,
             forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
             clock = clock,
         )

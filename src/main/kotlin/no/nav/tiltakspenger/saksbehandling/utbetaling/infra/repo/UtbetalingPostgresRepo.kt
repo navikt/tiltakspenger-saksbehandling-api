@@ -1,12 +1,16 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
+import kotliquery.Row
 import kotliquery.Session
+import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
@@ -61,7 +65,7 @@ class UtbetalingPostgresRepo(
         TODO("Not yet implemented")
     }
 
-    override fun hentForUtsjekk(limit: Int): List<U> {
+    override fun hentForUtsjekk(limit: Int): List<Utbetaling> {
         TODO("Not yet implemented")
     }
 
@@ -79,6 +83,32 @@ class UtbetalingPostgresRepo(
     }
 
     companion object {
+        fun hent(id: UtbetalingId, session: Session) {
+            session.run(
+                sqlQuery(
+                    """
+                    select 
+                        u.*,
+                        u.rammevedtak_id as vedtak_id,
+                        u.meldekortvedtak_id as vedtak_id,
+                        s.saksnummer,
+                        s.fnr,
+                        COALESCE(b.beregning, mb.beregninger)
+                    from utbetaling u 
+                    join sak s on s.id = u.sak_id
+                    left join rammevedtak r on u.rammevedtak_id = r.id
+                    left join meldekortvedtak m on u.meldekortvedtak_id = m.id
+                    left join meldekortbehandling mb on mb.id = m.meldekort_id
+                    left join behandling b on b.id = r.behandling_id
+                    where u.id = :id 
+                """,
+                    "id" to id.toString(),
+                ).map {
+                    it.tilUtbetaling()
+                }.asSingle,
+            )
+        }
+
         fun lagre(utbetaling: Utbetaling, session: Session) {
             session.run(
                 sqlQuery(
@@ -111,6 +141,24 @@ class UtbetalingPostgresRepo(
                         is BeregningKilde.Meldekort -> "meldekortvedtak_id" to utbetaling.vedtakId.toString()
                     },
                 ).asUpdate,
+            )
+        }
+
+        private fun Row.tilUtbetaling(): Utbetaling {
+            return Utbetaling(
+                id = UtbetalingId.fromString(string("id")),
+                vedtakId = VedtakId.fromString(string("vedtak_id")),
+                sakId = SakId.fromString(string("sak_id")),
+                saksnummer = Saksnummer(string("saksnummer")),
+                fnr = Fnr.fromString(string("fnr")),
+                brukerNavkontor = TODO(),
+                opprettet = TODO(),
+                saksbehandler = TODO(),
+                beslutter = TODO(),
+                beregning = TODO(),
+                forrigeUtbetalingVedtakId = TODO(),
+                sendtTilUtbetaling = TODO(),
+                status = TODO(),
             )
         }
     }

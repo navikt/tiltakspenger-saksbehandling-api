@@ -35,15 +35,15 @@ data class UtbetalingId private constructor(
  */
 data class Utbetaling(
     val id: UtbetalingId,
+    val vedtakId: VedtakId,
     val sakId: SakId,
     val saksnummer: Saksnummer,
     val fnr: Fnr,
-    val beregning: UtbetalingBeregning,
     val brukerNavkontor: Navkontor,
-    val vedtakId: VedtakId,
     val opprettet: LocalDateTime,
     val saksbehandler: String,
     val beslutter: String,
+    val beregning: UtbetalingBeregning,
     val forrigeUtbetalingVedtakId: VedtakId?,
     val sendtTilUtbetaling: LocalDateTime?,
     val status: Utbetalingsstatus?,

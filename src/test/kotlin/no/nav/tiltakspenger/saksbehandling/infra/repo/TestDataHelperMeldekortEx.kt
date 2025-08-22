@@ -174,8 +174,6 @@ internal fun TestDataHelper.persisterIverksattMeldekortbehandling(
             .iverksettMeldekort(beslutter, clock).getOrFail()
 
     val meldekortVedtak = iverksattMeldekortBehandling.opprettVedtak(
-        saksnummer = sakMedMeldekortbehandlingTilBeslutning.saksnummer,
-        fnr = sakMedMeldekortbehandlingTilBeslutning.fnr,
         forrigeUtbetaling = sakMedMeldekortbehandlingTilBeslutning.utbetalinger.lastOrNull(),
         clock = clock,
     )

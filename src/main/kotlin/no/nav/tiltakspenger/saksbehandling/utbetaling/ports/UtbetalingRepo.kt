@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.ports
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
@@ -26,7 +25,7 @@ interface UtbetalingRepo {
 
     fun hentUtbetalingJsonForVedtakId(vedtakId: VedtakId): String?
 
-    fun hentForUtsjekk(limit: Int = 10): List<MeldekortVedtak>
+    fun hentForUtsjekk(limit: Int = 10): List<Utbetaling>
 
     fun oppdaterUtbetalingsstatus(
         vedtakId: VedtakId,

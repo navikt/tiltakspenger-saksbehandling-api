@@ -53,8 +53,8 @@ internal suspend fun Rammevedtak.toInnvilgetSøknadsbrev(
         vedtaksdato = vedtaksdato,
         tilleggstekst = tilleggstekst,
         fnr = fnr,
-        saksbehandlerNavIdent = saksbehandlerNavIdent,
-        beslutterNavIdent = beslutterNavIdent,
+        saksbehandlerNavIdent = saksbehandler,
+        beslutterNavIdent = beslutter,
         innvilgelsesperiode = this.periode,
         saksnummer = saksnummer,
         // finnes ikke noe forhåndsvisning for rammevedtak

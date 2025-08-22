@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
@@ -54,7 +55,7 @@ internal class MeldekortVedtakPostgresRepo(
                         )
                     """,
                         "id" to vedtak.id.toString(),
-                        "utbetaling_id" to vedtak.utbetalingId.toString(),
+                        "utbetaling_id" to vedtak.utbetaling.id.toString(),
                         "sak_id" to vedtak.sakId.toString(),
                         "opprettet" to vedtak.opprettet,
                         "meldekort_id" to vedtak.utbetaling.beregningKilde.id.toString(),
@@ -300,10 +301,21 @@ internal class MeldekortVedtakPostgresRepo(
                 journalføringstidspunkt = journalføringstidspunkt,
                 opprettet = opprettet,
                 meldekortBehandling = meldekortbehandling,
-                utbetalingId = utbetalingId,
-                sendtTilUtbetaling = sendtTilUtbetaling,
-                status = status,
-                forrigeUtbetalingVedtakId = forrigeUtbetalingVedtakId,
+                utbetaling = Utbetaling(
+                    id = utbetalingId,
+                    sendtTilUtbetaling = sendtTilUtbetaling,
+                    status = status,
+                    forrigeUtbetalingVedtakId = forrigeUtbetalingVedtakId,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    beregning = meldekortbehandling.beregning,
+                    brukerNavkontor = meldekortbehandling.navkontor,
+                    vedtakId = vedtakId,
+                    opprettet = opprettet,
+                    saksbehandler = meldekortbehandling.saksbehandler!!,
+                    beslutter = meldekortbehandling.beslutter!!,
+                ),
             )
         }
     }

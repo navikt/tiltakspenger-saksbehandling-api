@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
@@ -25,7 +24,7 @@ class UtbetalingFakeRepo : UtbetalingRepo {
     }
 
     override fun markerSendtTilUtbetaling(
-        vedtakId: VedtakId,
+        utbetalingId: UtbetalingId,
         tidspunkt: LocalDateTime,
         utbetalingsrespons: SendtUtbetaling,
     ) {
@@ -43,7 +42,7 @@ class UtbetalingFakeRepo : UtbetalingRepo {
         TODO("Not yet implemented")
     }
 
-    override fun hentForUtsjekk(limit: Int): List<MeldekortVedtak> {
+    override fun hentForUtsjekk(limit: Int): List<Utbetaling> {
         TODO("Not yet implemented")
     }
 
