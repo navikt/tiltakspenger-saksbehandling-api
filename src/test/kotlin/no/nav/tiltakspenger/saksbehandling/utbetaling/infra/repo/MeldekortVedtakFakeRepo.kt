@@ -90,11 +90,8 @@ class MeldekortVedtakFakeRepo : MeldekortVedtakRepo {
                 vedtakId = it.value.id,
                 opprettet = it.value.opprettet,
                 sendtTilUtbetalingstidspunkt = it.value.utbetaling.sendtTilUtbetaling!!,
-                forsøkshistorikk = Forsøkshistorikk(
-                    forrigeForsøk = it.value.utbetaling.sendtTilUtbetaling!!.plus(1, ChronoUnit.MICROS),
-                sendtTilUtbetalingstidspunkt = it.value.sendtTilUtbetaling!!,
                 forsøkshistorikk = opprett(
-                    forrigeForsøk = it.value.sendtTilUtbetaling!!.plus(1, ChronoUnit.MICROS),
+                    forrigeForsøk = it.value.utbetaling.sendtTilUtbetaling!!.plus(1, ChronoUnit.MICROS),
                     antallForsøk = 1,
                     clock = fixedClock,
                 ),

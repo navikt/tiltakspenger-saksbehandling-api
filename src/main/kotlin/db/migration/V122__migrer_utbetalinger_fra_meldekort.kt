@@ -30,7 +30,7 @@ data class MeldekortVedtakRow(
     val utbetalingsrespons: String?,
 )
 
-class V120__migrer_utbetalinger_fra_meldekort : BaseJavaMigration() {
+class V122__migrer_utbetalinger_fra_meldekort : BaseJavaMigration() {
     override fun migrate(context: Context) {
         val logger = KotlinLogging.logger {}
         val dataSource = context.configuration.dataSource

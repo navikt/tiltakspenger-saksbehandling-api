@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
