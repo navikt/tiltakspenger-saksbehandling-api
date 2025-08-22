@@ -11,7 +11,7 @@ class MeldekortVedtakDTOTest {
 
     @Test
     fun `kan serialiseres`() = runTest {
-        val utbetalingsvedtak = ObjectMother.utbetalingsvedtak()
+        val utbetalingsvedtak = ObjectMother.meldekortVedtak()
         val tiltaksdeltagelser = listOf(ObjectMother.tiltaksdeltagelse())
 
         utbetalingsvedtak.toJsonRequest(

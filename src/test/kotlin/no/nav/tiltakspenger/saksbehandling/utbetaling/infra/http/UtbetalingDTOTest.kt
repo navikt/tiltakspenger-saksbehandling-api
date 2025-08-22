@@ -23,7 +23,7 @@ internal class UtbetalingDTOTest {
         val id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
-        val utbetalingsvedtak = ObjectMother.utbetalingsvedtak(
+        val utbetalingsvedtak = ObjectMother.meldekortVedtak(
             fnr = fnr,
             id = id,
             saksnummer = saksnummer,
@@ -82,7 +82,7 @@ internal class UtbetalingDTOTest {
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val utbetalingsvedtak = ObjectMother.utbetalingsvedtak(
+        val utbetalingsvedtak = ObjectMother.meldekortVedtak(
             periode = periode,
             fnr = fnr,
             id = id,
@@ -176,7 +176,7 @@ internal class UtbetalingDTOTest {
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val utbetalingsvedtak = ObjectMother.utbetalingsvedtak(
+        val utbetalingsvedtak = ObjectMother.meldekortVedtak(
             periode = periode,
             fnr = fnr,
             id = id,
@@ -270,7 +270,7 @@ internal class UtbetalingDTOTest {
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val utbetalingsvedtak = ObjectMother.utbetalingsvedtak(
+        val utbetalingsvedtak = ObjectMother.meldekortVedtak(
             periode = periode,
             fnr = fnr,
             id = id,
@@ -365,7 +365,7 @@ internal class UtbetalingDTOTest {
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val utbetalingsvedtak = ObjectMother.utbetalingsvedtak(
+        val utbetalingsvedtak = ObjectMother.meldekortVedtak(
             periode = periode,
             fnr = fnr,
             id = id,
@@ -464,7 +464,7 @@ internal class UtbetalingDTOTest {
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val utbetalingsvedtak = ObjectMother.utbetalingsvedtak(
+        val utbetalingsvedtak = ObjectMother.meldekortVedtak(
             periode = periode,
             fnr = fnr,
             id = id,

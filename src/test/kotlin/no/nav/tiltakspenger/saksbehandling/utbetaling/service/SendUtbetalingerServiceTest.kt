@@ -30,7 +30,7 @@ internal class SendUtbetalingerServiceTest {
 
     @Test
     fun `utbetaling blir iverksatt og markert som sendt til utbetaling`() = runTest {
-        val utbetalingsvedtak = ObjectMother.utbetalingsvedtak()
+        val utbetalingsvedtak = ObjectMother.meldekortVedtak()
 
         every { meldekortVedtakRepo.hentUtbetalingsvedtakForUtsjekk() } returns listOf(utbetalingsvedtak)
         val sendtUtbetaling = SendtUtbetaling("req", "res", 202)
@@ -50,7 +50,7 @@ internal class SendUtbetalingerServiceTest {
 
     @Test
     fun `feilrespons fra utbetaling lagres`() = runTest {
-        val utbetalingsvedtak = ObjectMother.utbetalingsvedtak()
+        val utbetalingsvedtak = ObjectMother.meldekortVedtak()
 
         every { meldekortVedtakRepo.hentUtbetalingsvedtakForUtsjekk() } returns listOf(utbetalingsvedtak)
         val kunneIkkeUtbetale = KunneIkkeUtbetale("req", "res", 409)

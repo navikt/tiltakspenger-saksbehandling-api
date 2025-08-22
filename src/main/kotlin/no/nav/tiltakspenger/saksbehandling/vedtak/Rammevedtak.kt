@@ -48,10 +48,11 @@ data class Rammevedtak(
 ) : Vedtak,
     Periodiserbar {
 
-    val fnr: Fnr = behandling.fnr
-    val saksnummer: Saksnummer = behandling.saksnummer
-    val saksbehandlerNavIdent: String = behandling.saksbehandler!!
-    val beslutterNavIdent: String = behandling.beslutter!!
+    override val fnr: Fnr = behandling.fnr
+    override val saksnummer: Saksnummer = behandling.saksnummer
+    override val saksbehandler: String = behandling.saksbehandler!!
+    override val beslutter: String = behandling.beslutter!!
+
     val utfallsperioder: SammenhengendePeriodisering<Utfallsperiode> by lazy { behandling.utfallsperioder!! }
 
     /** Vil være null dersom bruker ikke har rett på barnetillegg  */

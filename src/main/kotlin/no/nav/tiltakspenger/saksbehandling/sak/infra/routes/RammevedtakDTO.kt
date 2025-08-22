@@ -43,8 +43,8 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
             Vedtakstype.STANS -> VedtakstypeDTO.STANS
         },
         periode = periode.toDTO(),
-        saksbehandler = saksbehandlerNavIdent,
-        beslutter = beslutterNavIdent,
+        saksbehandler = saksbehandler,
+        beslutter = beslutter,
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         barnetillegg = barnetillegg?.toBarnetilleggDTO(),
     )
