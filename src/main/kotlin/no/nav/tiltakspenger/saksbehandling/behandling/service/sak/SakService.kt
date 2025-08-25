@@ -9,9 +9,9 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppretteBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -27,7 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 class SakService(
     private val sakRepo: SakRepo,
     private val personService: PersonService,
-    private val poaoTilgangKlient: PoaoTilgangKlient,
+    private val fellesSkjermingsklient: FellesSkjermingsklient,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -92,7 +92,8 @@ class SakService(
     ): Either<KunneIkkeHenteEnkelPerson, EnkelPersonMedSkjerming> {
         // Merk at denne IKKE skal sjekke tilgang til person, siden informasjonen skal vise til saksbehandleren, slik at hen skjønner at hen ikke kan behandle denne saken uten de riktige rollene.
         val fnr = sakRepo.hentFnrForSakId(sakId)!!
-        val erSkjermet = poaoTilgangKlient.erSkjermet(fnr, correlationId)
+        val erSkjermet = fellesSkjermingsklient.erSkjermetPerson(fnr, correlationId)
+            .getOrElse { return KunneIkkeHenteEnkelPerson.FeilVedKallMotSkjerming.left() }
         val person = personService.hentEnkelPersonFnr(fnr)
             .getOrElse { return KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl.left() }
         val personMedSkjerming =

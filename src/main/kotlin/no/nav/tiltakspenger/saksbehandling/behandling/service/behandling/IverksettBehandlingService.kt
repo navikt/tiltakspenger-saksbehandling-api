@@ -75,7 +75,6 @@ class IverksettBehandlingService(
 
         val sakStatistikk = statistikkSakService.genererStatistikkForRammevedtak(
             rammevedtak = vedtak,
-            behandlingId = behandlingId,
         )
         val stønadStatistikk = genererStønadsstatistikkForRammevedtak(vedtak)
 

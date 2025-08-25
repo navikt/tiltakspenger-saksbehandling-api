@@ -70,8 +70,6 @@ spec:
         - application: tiltakspenger-meldekort-api
         - application: utsjekk
           namespace: helved
-        - application: poao-tilgang
-          namespace: poao
         - application: veilarboppfolging
           namespace: poao
         - application: logging
@@ -80,7 +78,6 @@ spec:
           namespace: tilgangsmaskin
       external:
         - host: {{ urlPdl }}
-        - host: {{ urlPdlPip }}
         - host: {{ urlSkjerming }}
         - host: {{ urlJoark }}
         - host: {{ urlDokdist }}

@@ -8,7 +8,6 @@ val felleslibVersion = "0.0.564"
 val mockkVersion = "1.14.5"
 val ktorVersion = "3.2.3"
 val testContainersVersion = "1.21.3"
-val poaoTilgangVersjon = "2025.07.04_08.56-814fa50f6740"
 val iverksettVersjon = "1.0_20241213145703_7ff5f9c"
 val confluentVersion = "8.0.0"
 val avroVersion = "1.12.0"
@@ -83,9 +82,6 @@ dependencies {
 
     // Helved/Utsjekk/Utbetaling
     implementation("no.nav.utsjekk.kontrakter:iverksett:$iverksettVersjon")
-
-    //POAO tilgang
-    implementation("no.nav.poao-tilgang:client:$poaoTilgangVersjon")
 
     // Avro
     implementation("io.confluent:kafka-avro-serializer:$confluentVersion")

@@ -2,11 +2,8 @@ package no.nav.tiltakspenger.saksbehandling
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
-import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
-import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringServiceImpl
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.auth.infra.PoaoTilgangskontrollFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeClient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
@@ -38,7 +35,6 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingKl
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
-import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeAdressebeskyttelseKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
@@ -87,9 +83,7 @@ class LocalApplicationContext(
     private val journalførFakeMeldekortKlient = JournalførFakeMeldekortKlient(journalpostIdGenerator)
     private val journalførFakeRammevedtaksbrevKlient = JournalførFakeRammevedtaksbrevKlient(journalpostIdGenerator)
     private val dokumentdistribusjonsklientFakeKlient = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
-    private val fellesFakeAdressebeskyttelseKlient = FellesFakeAdressebeskyttelseKlient()
     private val fellesFakeSkjermingsklient = FellesFakeSkjermingsklient()
-    private val poaoTilgangskontrollFake = PoaoTilgangskontrollFake()
     private val tilgangsmaskinFakeClient = TilgangsmaskinFakeClient()
 
     private val søknadId: SøknadId = SøknadId.fromString("soknad_01HSTRQBRM443VGB4WA822TE01")
@@ -126,11 +120,7 @@ class LocalApplicationContext(
     override val personContext =
         object : PersonContext(sessionFactory, texasClient) {
             override val personKlient = personFakeKlient
-            override val tilgangsstyringService = TilgangsstyringServiceImpl(
-                fellesPersonTilgangsstyringsklient = fellesFakeAdressebeskyttelseKlient,
-                skjermingClient = fellesFakeSkjermingsklient,
-            )
-            override val poaoTilgangKlient = poaoTilgangskontrollFake
+            override val fellesSkjermingsklient = fellesFakeSkjermingsklient
             override val navIdentClient = if (usePdfGen) FakeNavIdentClient() else super.navIdentClient
         }
 
@@ -164,7 +154,7 @@ class LocalApplicationContext(
         object : SakContext(
             sessionFactory = sessionFactory,
             personService = personContext.personService,
-            poaoTilgangKlient = personContext.poaoTilgangKlient,
+            fellesSkjermingsklient = personContext.fellesSkjermingsklient,
             profile = profile,
             clock = clock,
         ) {}
@@ -267,9 +257,7 @@ class LocalApplicationContext(
         personopplysningerForBruker: PersonopplysningerSøker,
     ) {
         fellesFakeSkjermingsklient.leggTil(fnr = fnr, skjermet = false)
-        fellesFakeAdressebeskyttelseKlient.leggTil(fnr = fnr, gradering = listOf(AdressebeskyttelseGradering.UGRADERT))
         personFakeKlient.leggTilPersonopplysning(fnr = fnr, personopplysninger = personopplysningerForBruker)
-        poaoTilgangskontrollFake.leggTil(fnr = fnr, skjermet = false)
         tilgangsmaskinFakeClient.leggTil(fnr = fnr, harTilgang = true)
     }
 }
