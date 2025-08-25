@@ -37,6 +37,10 @@ fun Route.hentPersonRoute(
                             melding = "Feil ved kall mot PDL",
                             kode = "feil_ved_kall_mot_pdl",
                         )
+                        KunneIkkeHenteEnkelPerson.FeilVedKallMotSkjerming -> call.respond500InternalServerError(
+                            melding = "Feil ved kall mot skjermingstjenesten",
+                            kode = "feil_ved_kall_mot_skjerming",
+                        )
                     }
                 },
                 { personopplysninger ->

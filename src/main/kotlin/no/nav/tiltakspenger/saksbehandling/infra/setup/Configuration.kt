@@ -54,12 +54,8 @@ object Configuration {
                 "ROLE_STRENGT_FORTROLIG" to "5ef775f2-61f8-4283-bf3d-8d03f428aa14",
                 "ROLE_SKJERMING" to "dbe4ad45-320b-4e9a-aaa1-73cca4ee124d",
                 "ROLE_DRIFT" to "c511113e-5b22-49e7-b9c4-eeb23b01f518",
-                "POAO_TILGANG_URL" to "http://host.docker.internal:8091",
-                "POAO_TILGANG_SCOPE" to "localhost",
                 "PDL_SCOPE" to "localhost",
                 "PDL_ENDPOINT_URL" to "http://host.docker.internal:8091/graphql",
-                "PDL_PIP_SCOPE" to "localhost",
-                "PDL_PIP_ENDPOINT_URL" to "http://host.docker.internal:8091/tilgangstyring",
                 "SKJERMING_SCOPE" to "localhost",
                 "SKJERMING_URL" to "http://host.docker.internal:8091",
                 "TILTAK_SCOPE" to "localhost",
@@ -106,8 +102,6 @@ object Configuration {
                 "application.profile" to Profile.DEV.toString(),
                 "PDL_SCOPE" to "dev-fss:pdl:pdl-api",
                 "PDL_ENDPOINT_URL" to "https://pdl-api.dev-fss-pub.nais.io/graphql",
-                "PDL_PIP_SCOPE" to "dev-fss:pdl:pdl-pip-api",
-                "PDL_PIP_ENDPOINT_URL" to "https://pdl-pip-api.dev-fss-pub.nais.io",
                 "SKJERMING_SCOPE" to "dev-gcp:nom:skjermede-personer-pip",
                 "SKJERMING_URL" to "https://skjermede-personer-pip.intern.dev.nav.no",
                 "TILTAK_SCOPE" to "dev-gcp:tpts:tiltakspenger-tiltak",
@@ -120,8 +114,6 @@ object Configuration {
                 "DOKDIST_URL" to "https://dokdistfordeling.dev-fss-pub.nais.io",
                 "PDFGEN_SCOPE" to "dev-gcp:tpts:tiltakspenger-pdfgen",
                 "PDFGEN_URL" to "http://tiltakspenger-pdfgen",
-                "POAO_TILGANG_URL" to "http://poao-tilgang.poao",
-                "POAO_TILGANG_SCOPE" to "dev-gcp:poao:poao-tilgang",
                 "MICROSOFT_SCOPE" to "https://graph.microsoft.com/.default",
                 "MICROSOFT_URL" to "graph.microsoft.com/v1.0",
                 "DATADELING_SCOPE" to "dev-gcp:tpts:tiltakspenger-datadeling",
@@ -149,8 +141,6 @@ object Configuration {
                 "application.profile" to Profile.PROD.toString(),
                 "PDL_SCOPE" to "prod-fss:pdl:pdl-api",
                 "PDL_ENDPOINT_URL" to "https://pdl-api.prod-fss-pub.nais.io/graphql",
-                "PDL_PIP_SCOPE" to "prod-fss:pdl:pdl-pip-api",
-                "PDL_PIP_ENDPOINT_URL" to "https://pdl-pip-api.prod-fss-pub.nais.io",
                 "SKJERMING_SCOPE" to "prod-gcp:nom:skjermede-personer-pip",
                 "SKJERMING_URL" to "https://skjermede-personer-pip.intern.nav.no",
                 "TILTAK_SCOPE" to "prod-gcp:tpts:tiltakspenger-tiltak",
@@ -163,8 +153,6 @@ object Configuration {
                 "DOKDIST_URL" to "https://dokdistfordeling.prod-fss-pub.nais.io",
                 "PDFGEN_SCOPE" to "prod-gcp:tpts:tiltakspenger-pdfgen",
                 "PDFGEN_URL" to "http://tiltakspenger-pdfgen",
-                "POAO_TILGANG_URL" to "http://poao-tilgang.poao",
-                "POAO_TILGANG_SCOPE" to "prod-gcp:poao:poao-tilgang",
                 "MICROSOFT_SCOPE" to "https://graph.microsoft.com/.default",
                 "MICROSOFT_URL" to "graph.microsoft.com/v1.0",
                 "DATADELING_SCOPE" to "prod-gcp:tpts:tiltakspenger-datadeling",
@@ -227,12 +215,10 @@ object Configuration {
     val tokenExchangeEndpoint: String by lazy { config()[Key("NAIS_TOKEN_EXCHANGE_ENDPOINT", stringType)] }
 
     val pdlScope: String by lazy { config()[Key("PDL_SCOPE", stringType)] }
-    val pdlPipScope: String by lazy { config()[Key("PDL_PIP_SCOPE", stringType)] }
     val skjermingScope: String by lazy { config()[Key("SKJERMING_SCOPE", stringType)] }
     val tiltakScope: String by lazy { config()[Key("TILTAK_SCOPE", stringType)] }
     val joarkScope: String by lazy { config()[Key("JOARK_SCOPE", stringType)] }
     val dokdistScope: String by lazy { config()[Key("DOKDIST_SCOPE", stringType)] }
-    val poaoTilgangScope: String by lazy { config()[Key("POAO_TILGANG_SCOPE", stringType)] }
     val utbetalingScope: String by lazy { config()[Key("UTBETALING_SCOPE", stringType)] }
     val microsoftScope: String by lazy { config()[Key("MICROSOFT_SCOPE", stringType)] }
     val datadelingScope: String by lazy { config()[Key("DATADELING_SCOPE", stringType)] }
@@ -242,13 +228,11 @@ object Configuration {
     val sokosUtbetaldataScope: String by lazy { config()[Key("SOKOS_UTBETALDATA_SCOPE", stringType)] }
 
     val pdlUrl by lazy { config()[Key("PDL_ENDPOINT_URL", stringType)] }
-    val pdlPipUrl by lazy { config()[Key("PDL_PIP_ENDPOINT_URL", stringType)] }
     val skjermingUrl: String by lazy { config()[Key("SKJERMING_URL", stringType)] }
     val tiltakUrl: String by lazy { config()[Key("TILTAK_URL", stringType)] }
     val joarkUrl: String by lazy { config()[Key("JOARK_URL", stringType)] }
     val dokdistUrl: String by lazy { config()[Key("DOKDIST_URL", stringType)] }
     val pdfgenUrl: String by lazy { config()[Key("PDFGEN_URL", stringType)] }
-    val poaoTilgangUrl: String by lazy { config()[Key("POAO_TILGANG_URL", stringType)] }
     val utbetalingUrl: String by lazy { config()[Key("UTBETALING_URL", stringType)] }
     val microsoftUrl: String by lazy { config()[Key("MICROSOFT_URL", stringType)] }
     val datadelingUrl: String by lazy { config()[Key("DATADELING_URL", stringType)] }

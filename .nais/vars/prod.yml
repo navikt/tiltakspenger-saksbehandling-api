@@ -7,7 +7,6 @@ ingress:
 cluster: prod-gcp
 tenant: nav.no
 urlPdl: pdl-api.prod-fss-pub.nais.io
-urlPdlPip: pdl-pip-api.prod-fss-pub.nais.io
 urlSkjerming: skjermede-personer-pip.intern.nav.no
 urlJoark: dokarkiv.prod-fss-pub.nais.io
 urlDokdist: dokdistfordeling.prod-fss-pub.nais.io

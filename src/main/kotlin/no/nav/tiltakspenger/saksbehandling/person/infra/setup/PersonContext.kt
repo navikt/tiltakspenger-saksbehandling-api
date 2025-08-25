@@ -2,14 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.person.infra.setup
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringServiceImpl
+import no.nav.tiltakspenger.libs.personklient.skjerming.FellesHttpSkjermingsklient
+import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
-import no.nav.tiltakspenger.saksbehandling.auth.infra.PoaoTilgangClient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.PersonRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
@@ -29,24 +27,16 @@ open class PersonContext(
             getToken = { texasClient.getSystemToken(Configuration.pdlScope, IdentityProvider.AZUREAD) },
         )
     }
-    open val tilgangsstyringService: TilgangsstyringService by lazy {
-        TilgangsstyringServiceImpl.create(
-            getPdlPipToken = { texasClient.getSystemToken(Configuration.pdlPipScope, IdentityProvider.AZUREAD) },
-            pdlPipBaseUrl = Configuration.pdlPipUrl,
-            skjermingBaseUrl = Configuration.skjermingUrl,
-            getSkjermingToken = { texasClient.getSystemToken(Configuration.skjermingScope, IdentityProvider.AZUREAD) },
+    open val fellesSkjermingsklient: FellesSkjermingsklient by lazy {
+        FellesHttpSkjermingsklient(
+            endepunkt = Configuration.skjermingUrl,
+            getToken = { texasClient.getSystemToken(Configuration.skjermingScope, IdentityProvider.AZUREAD) },
         )
     }
     open val navIdentClient: NavIdentClient by lazy {
         MicrosoftGraphApiClient(
             getToken = { texasClient.getSystemToken(Configuration.microsoftScope, IdentityProvider.AZUREAD, rewriteAudienceTarget = false) },
             baseUrl = Configuration.microsoftUrl,
-        )
-    }
-    open val poaoTilgangKlient: PoaoTilgangKlient by lazy {
-        PoaoTilgangClient(
-            baseUrl = Configuration.poaoTilgangUrl,
-            getToken = { texasClient.getSystemToken(Configuration.poaoTilgangScope, IdentityProvider.AZUREAD) },
         )
     }
     open val personRepo: PersonRepo by lazy {
