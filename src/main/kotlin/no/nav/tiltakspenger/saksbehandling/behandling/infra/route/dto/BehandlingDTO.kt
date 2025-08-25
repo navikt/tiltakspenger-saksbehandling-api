@@ -163,7 +163,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(): SøknadsbehandlingDTO {
 
 fun Revurdering.tilRevurderingDTO(
     meldeperiodeBeregninger: MeldeperiodeBeregninger,
-    utbetalingsvedtak: Utbetaling?,
+    utbetalingFraVedtak: Utbetaling?,
 ): RevurderingDTO {
     return RevurderingDTO(
         id = this.id.toString(),
@@ -186,7 +186,7 @@ fun Revurdering.tilRevurderingDTO(
         antallDagerPerMeldeperiode = null,
         barnetillegg = null,
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
-        utbetaling = utbetaling?.tilDTO(meldeperiodeBeregninger, utbetalingsvedtak),
+        utbetaling = utbetaling?.tilDTO(meldeperiodeBeregninger, utbetalingFraVedtak),
     ).let {
         when (resultat) {
             is RevurderingResultat.Stans -> it.copy(

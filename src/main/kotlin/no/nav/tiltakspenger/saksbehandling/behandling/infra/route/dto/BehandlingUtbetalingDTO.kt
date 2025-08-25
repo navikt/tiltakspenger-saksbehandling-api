@@ -33,7 +33,7 @@ data class BeløpFørOgNå(
 
 fun BehandlingUtbetaling.tilDTO(
     meldeperiodeBeregninger: MeldeperiodeBeregninger,
-    utbetalingsvedtak: Utbetaling?,
+    utbetalingFraVedtak: Utbetaling?,
 ): BehandlingUtbetalingDTO {
     val forrigeBeregninger: List<MeldeperiodeBeregning> =
         beregning.beregninger.map { meldeperiodeBeregninger.sisteBeregningFør(it.id, it.kjedeId)!! }
@@ -41,7 +41,7 @@ fun BehandlingUtbetaling.tilDTO(
     return BehandlingUtbetalingDTO(
         navkontor = navkontor.kontornummer,
         navkontorNavn = navkontor.kontornavn,
-        status = utbetalingsvedtak?.status.toUtbetalingsstatusDTO(),
+        status = utbetalingFraVedtak?.status.toUtbetalingsstatusDTO(),
         beregninger = beregning.beregninger.map { it.tilMeldeperiodeBeregningDTO() },
         beregningerSummert = BeregningerSummertDTO(
             totalt = BeløpFørOgNå(

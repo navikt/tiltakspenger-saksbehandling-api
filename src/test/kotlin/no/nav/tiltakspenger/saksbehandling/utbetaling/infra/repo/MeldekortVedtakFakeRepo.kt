@@ -12,11 +12,12 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtakslist
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
 import java.time.LocalDateTime
 
-class MeldekortVedtakFakeRepo : MeldekortVedtakRepo {
+class MeldekortVedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : MeldekortVedtakRepo {
     private val data = Atomic(mutableMapOf<VedtakId, MeldekortVedtak>())
 
     override fun lagre(vedtak: MeldekortVedtak, context: TransactionContext?) {
         data.get()[vedtak.id] = vedtak
+        utbetalingRepo.lagre(vedtak.utbetaling, context)
     }
 
     override fun markerJournalført(

@@ -15,12 +15,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.sak.utfallsperioder
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -37,7 +39,7 @@ data class Rammevedtak(
     override val periode: Periode,
     override val journalpostId: JournalpostId?,
     override val journalføringstidspunkt: LocalDateTime?,
-    override val utbetaling: Utbetaling? = null,
+    override val utbetaling: Utbetaling?,
     val behandling: Behandling,
     val vedtaksdato: LocalDate?,
     val vedtakstype: Vedtakstype,
@@ -81,10 +83,30 @@ fun Sak.opprettVedtak(
     require(behandling.status == Behandlingsstatus.VEDTATT) { "Krever behandlingsstatus VEDTATT når vi skal opprette et vedtak." }
 
     val vedtakId = VedtakId.random()
+    val opprettet = nå(clock)
+
+    val utbetaling: Utbetaling? = behandling.utbetaling?.let {
+        Utbetaling(
+            id = UtbetalingId.random(),
+            vedtakId = vedtakId,
+            sakId = this.id,
+            saksnummer = this.saksnummer,
+            fnr = this.fnr,
+            brukerNavkontor = it.navkontor,
+            opprettet = opprettet,
+            saksbehandler = behandling.saksbehandler!!,
+            beslutter = behandling.beslutter!!,
+            beregning = it.beregning,
+            forrigeUtbetalingId = this.utbetalinger.lastOrNull()?.id,
+            sendtTilUtbetaling = null,
+            status = null,
+            statusMetadata = Forsøkshistorikk.opprett(clock = clock),
+        )
+    }
 
     val vedtak = Rammevedtak(
         id = vedtakId,
-        opprettet = nå(clock),
+        opprettet = opprettet,
         sakId = this.id,
         behandling = behandling,
         vedtaksdato = null,
@@ -96,6 +118,7 @@ fun Sak.opprettVedtak(
         distribusjonstidspunkt = null,
         sendtTilDatadeling = null,
         brevJson = null,
+        utbetaling = utbetaling,
     )
 
     val oppdatertSak = this.copy(vedtaksliste = this.vedtaksliste.leggTilVedtak(vedtak))

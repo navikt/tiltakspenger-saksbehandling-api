@@ -12,8 +12,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.LocalDate
@@ -39,6 +42,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         distribusjonstidspunkt: LocalDateTime? = null,
         sendtTilDatadeling: LocalDateTime? = null,
         brevJson: String? = null,
+        forrigeUtbetalingId: UtbetalingId? = null,
     ) = Rammevedtak(
         id = id,
         opprettet = opprettet,
@@ -53,6 +57,11 @@ interface RammevedtakMother : MotherOfAllMothers {
         distribusjonstidspunkt = distribusjonstidspunkt,
         sendtTilDatadeling = sendtTilDatadeling,
         brevJson = brevJson,
+        utbetaling = behandling.tilRammevedtakUtbetaling(
+            vedtakId = id,
+            opprettet = opprettet,
+            forrigeUtbetalingId = forrigeUtbetalingId,
+        ),
     )
 
     fun nyRammevedtakInnvilgelse(
@@ -131,4 +140,25 @@ interface RammevedtakMother : MotherOfAllMothers {
         sendtTilDatadeling = sendtTilDatadeling,
         brevJson = brevJson,
     )
+
+    fun Behandling.tilRammevedtakUtbetaling(vedtakId: VedtakId, opprettet: LocalDateTime, forrigeUtbetalingId: UtbetalingId? = null): Utbetaling? {
+        return this.utbetaling?.let {
+            Utbetaling(
+                id = UtbetalingId.random(),
+                vedtakId = vedtakId,
+                sakId = this.sakId,
+                saksnummer = this.saksnummer,
+                fnr = this.fnr,
+                brukerNavkontor = it.navkontor,
+                opprettet = opprettet,
+                saksbehandler = this.saksbehandler!!,
+                beslutter = this.beslutter!!,
+                beregning = it.beregning,
+                forrigeUtbetalingId = forrigeUtbetalingId,
+                sendtTilUtbetaling = null,
+                status = null,
+                statusMetadata = Forsøkshistorikk.opprett(clock = clock),
+            )
+        }
+    }
 }

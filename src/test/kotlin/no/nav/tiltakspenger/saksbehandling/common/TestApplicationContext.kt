@@ -74,14 +74,14 @@ class TestApplicationContext(
 
     val tilgangsmaskinFakeClient = TilgangsmaskinFakeTestClient()
 
-    private val rammevedtakFakeRepo = RammevedtakFakeRepo()
+    private val utbetalingFakeRepo = UtbetalingFakeRepo()
+    private val rammevedtakFakeRepo = RammevedtakFakeRepo(utbetalingFakeRepo)
+    private val meldekortVedtakFakeRepo = MeldekortVedtakFakeRepo(utbetalingFakeRepo)
     private val statistikkStønadFakeRepo = StatistikkStønadFakeRepo()
     private val statistikkSakFakeRepo = StatistikkSakFakeRepo()
     private val meldekortBehandlingFakeRepo = MeldekortBehandlingFakeRepo()
     private val meldeperiodeFakeRepo = MeldeperiodeFakeRepo()
     private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
-    private val meldekortVedtakFakeRepo = MeldekortVedtakFakeRepo()
-    private val utbetalingFakeRepo = UtbetalingFakeRepo()
     private val behandlingFakeRepo = BehandlingFakeRepo()
     private val søknadFakeRepo = SøknadFakeRepo(behandlingFakeRepo)
     private val tiltaksdeltagelseFakeKlient = TiltaksdeltagelseFakeKlient(søknadRepo = søknadFakeRepo)
