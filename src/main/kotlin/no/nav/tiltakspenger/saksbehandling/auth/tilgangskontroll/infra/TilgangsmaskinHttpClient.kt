@@ -78,7 +78,7 @@ class TilgangsmaskinHttpClient(
         val status = httpResponse.statusCode()
         if (status == 207) {
             val jsonResponse = httpResponse.body()
-            objectMapper.readValue<TilgangBulkResponse>(jsonResponse)
+            return objectMapper.readValue<TilgangBulkResponse>(jsonResponse)
         }
         if (status == 413) {
             throw RuntimeException("Forsøkte å sjekke tilgang for flere enn 1000 identer")
