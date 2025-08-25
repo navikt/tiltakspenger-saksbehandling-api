@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import java.time.Clock
 import java.time.LocalDateTime
@@ -18,7 +18,7 @@ import java.time.temporal.ChronoUnit
  * Oppdaterer status på utbetalinger.
  */
 class OppdaterUtbetalingsstatusService(
-    private val meldekortVedtakRepo: MeldekortVedtakRepo,
+    private val utbetalingRepo: UtbetalingRepo,
     private val utbetalingsklient: Utbetalingsklient,
     private val clock: Clock,
 ) {
@@ -26,7 +26,7 @@ class OppdaterUtbetalingsstatusService(
 
     suspend fun oppdaterUtbetalingsstatus() {
         Either.catch {
-            meldekortVedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor().forEach {
+            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor().forEach {
                 it.forsøkshistorikk?.let { forsøkshistorikk ->
                     val (forrigeForsøk, _, antallForsøk) = forsøkshistorikk
                     forrigeForsøk?.let { forrigeForsøk ->
@@ -55,7 +55,7 @@ class OppdaterUtbetalingsstatusService(
                     utbetaling.forsøkshistorikk?.inkrementer(clock)
                 } ?: Forsøkshistorikk.opprett(clock = clock)
 
-                meldekortVedtakRepo.oppdaterUtbetalingsstatus(utbetaling.vedtakId, it, forsøkshistorikk)
+                utbetalingRepo.oppdaterUtbetalingsstatus(utbetaling.utbetalingId, it, forsøkshistorikk)
                 logger.info { "Oppdatert utbetalingsstatus til $it. Kontekst: $utbetaling" }
 
                 if (it == Utbetalingsstatus.FeiletMotOppdrag) {

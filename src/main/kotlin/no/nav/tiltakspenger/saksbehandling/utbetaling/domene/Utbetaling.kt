@@ -31,7 +31,7 @@ data class UtbetalingId private constructor(
 }
 
 /**
- * @property forrigeUtbetalingVedtakId er null for første utbetaling i en sak.
+ * @property forrigeUtbetalingId er null for første utbetaling i en sak.
  */
 data class Utbetaling(
     val id: UtbetalingId,
@@ -44,7 +44,7 @@ data class Utbetaling(
     val saksbehandler: String,
     val beslutter: String,
     val beregning: UtbetalingBeregning,
-    val forrigeUtbetalingVedtakId: VedtakId?,
+    val forrigeUtbetalingId: UtbetalingId?,
     val sendtTilUtbetaling: LocalDateTime?,
     val status: Utbetalingsstatus?,
 ) {

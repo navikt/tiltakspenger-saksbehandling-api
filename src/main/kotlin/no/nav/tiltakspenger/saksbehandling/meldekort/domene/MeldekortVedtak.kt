@@ -70,7 +70,7 @@ fun MeldekortBehandling.Behandlet.opprettVedtak(
         brukerNavkontor = this.navkontor,
         sendtTilUtbetaling = null,
         status = null,
-        forrigeUtbetalingVedtakId = forrigeUtbetaling?.vedtakId,
+        forrigeUtbetalingId = forrigeUtbetaling?.id,
     )
 
     return MeldekortVedtak(

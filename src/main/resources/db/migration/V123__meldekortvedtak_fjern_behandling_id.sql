@@ -1,6 +1,9 @@
 ALTER TABLE meldekortvedtak
     DROP CONSTRAINT IF EXISTS meldekort_eller_behandling_kilde;
 
+ALTER TABLE meldekortvedtak
+    DROP CONSTRAINT IF EXISTS utbetalingsvedtak_forrige_vedtak_id_fkey;
+
 DELETE FROM meldekortvedtak WHERE id in (
     SELECT id from meldekortvedtak where behandling_id is not null order by opprettet
     );
