@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk.Companion.opprett
+import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
@@ -9,11 +11,14 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingResponse
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import kotlin.collections.set
 
 class UtbetalingFakeRepo : UtbetalingRepo {
     private val data = arrow.atomic.Atomic(mutableMapOf<UtbetalingId, Utbetaling>())
+    private val response = arrow.atomic.Atomic(mutableMapOf<UtbetalingId, UtbetalingResponse>())
 
     override fun lagre(
         utbetaling: Utbetaling,
@@ -27,22 +32,23 @@ class UtbetalingFakeRepo : UtbetalingRepo {
         tidspunkt: LocalDateTime,
         utbetalingsrespons: SendtUtbetaling,
     ) {
-        TODO("Not yet implemented")
+        data.get()[utbetalingId] = data.get()[utbetalingId]!!.copy(sendtTilUtbetaling = tidspunkt)
+        response.get()[utbetalingId] = utbetalingsrespons
     }
 
     override fun lagreFeilResponsFraUtbetaling(
         utbetalingId: UtbetalingId,
         utbetalingsrespons: KunneIkkeUtbetale,
     ) {
-        TODO("Not yet implemented")
+        response.get()[utbetalingId] = utbetalingsrespons
     }
 
-    override fun hentUtbetalingJson(utbetalingId: UtbetalingId): String? {
-        TODO("Not yet implemented")
+    override fun hentUtbetalingJson(utbetalingId: UtbetalingId): String {
+        return "fake-utbetaling-json"
     }
 
     override fun hentForUtsjekk(limit: Int): List<Utbetaling> {
-        TODO("Not yet implemented")
+        return data.get().values.filter { it.sendtTilUtbetaling == null }.take(limit)
     }
 
     override fun oppdaterUtbetalingsstatus(
@@ -51,10 +57,30 @@ class UtbetalingFakeRepo : UtbetalingRepo {
         metadata: Forsøkshistorikk,
         context: TransactionContext?,
     ) {
-        TODO("Not yet implemented")
+        data.get()[utbetalingId] = data.get()[utbetalingId]!!.copy(status = status)
     }
 
     override fun hentDeSomSkalHentesUtbetalingsstatusFor(limit: Int): List<UtbetalingDetSkalHentesStatusFor> {
-        TODO("Not yet implemented")
+        return data.get().values.filter {
+            it.status in listOf(
+                null,
+                Utbetalingsstatus.IkkePåbegynt,
+                Utbetalingsstatus.SendtTilOppdrag,
+            ) &&
+                it.sendtTilUtbetaling != null
+        }.take(limit).map {
+            UtbetalingDetSkalHentesStatusFor(
+                utbetalingId = it.id,
+                sakId = it.sakId,
+                saksnummer = it.saksnummer,
+                opprettet = it.opprettet,
+                sendtTilUtbetalingstidspunkt = it.sendtTilUtbetaling!!,
+                forsøkshistorikk = opprett(
+                    forrigeForsøk = it.sendtTilUtbetaling.plus(1, ChronoUnit.MICROS),
+                    antallForsøk = 1,
+                    clock = fixedClock,
+                ),
+            )
+        }
     }
 }

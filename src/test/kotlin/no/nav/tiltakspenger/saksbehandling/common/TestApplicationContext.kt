@@ -257,6 +257,7 @@ class TestApplicationContext(
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
             override val meldekortVedtakRepo = meldekortVedtakFakeRepo
+            override val utbetalingRepo = utbetalingFakeRepo
         }
     }
 }

@@ -33,8 +33,8 @@ data class Utbetalinger(
         if (verdi.isNotEmpty()) {
             require(
                 verdi.zipWithNext()
-                    .all { (a, b) -> a.vedtakId == b.forrigeUtbetalingId },
-            ) { "Utbetalingene må være lenket via vedtakene, men var ${verdi.map { it.vedtakId to it.forrigeUtbetalingId }}" }
+                    .all { (a, b) -> a.id == b.forrigeUtbetalingId },
+            ) { "Utbetalingene må lenke til forrige utbetaling, men var ${verdi.map { it.vedtakId to it.forrigeUtbetalingId }}" }
 
             require(verdi.first().forrigeUtbetalingId == null) {
                 "Første 'forrigeUtbetalingId' må være null, men var ${verdi.first().forrigeUtbetalingId}"

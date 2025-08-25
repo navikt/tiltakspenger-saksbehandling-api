@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -21,11 +22,13 @@ internal class UtbetalingDTOTest {
     fun `uten barnetillegg`() {
         val fnr = Fnr.fromString("09863149336")
         val id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
+        val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val utbetalingsvedtak = ObjectMother.meldekortVedtak(
             fnr = fnr,
             id = id,
+            utbetalingId = utbetalingId,
             saksnummer = saksnummer,
             opprettet = opprettet,
         )
@@ -33,7 +36,7 @@ internal class UtbetalingDTOTest {
             """
             {
               "sakId": "202410011001",
-              "behandlingId": "0SZ5FBEE6YZG8S6",
+              "behandlingId": "Z73MKA2083E4WDE",
               "iverksettingId": null,
               "personident": {
                 "verdi": "09863149336"
@@ -79,6 +82,7 @@ internal class UtbetalingDTOTest {
     fun `barnetillegg 1 barn hele perioden`() {
         val fnr = Fnr.fromString("09863149336")
         val id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
+        val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
@@ -86,6 +90,7 @@ internal class UtbetalingDTOTest {
             periode = periode,
             fnr = fnr,
             id = id,
+            utbetalingId = utbetalingId,
             saksnummer = saksnummer,
             opprettet = opprettet,
             barnetilleggsPerioder = ObjectMother.barnetilleggsPerioder(
@@ -103,7 +108,7 @@ internal class UtbetalingDTOTest {
             """
             {
               "sakId": "202410011001",
-              "behandlingId": "0SZ5FBEE6YZG8S6",
+              "behandlingId": "Z73MKA2083E4WDE",
               "iverksettingId": null,
               "personident": {
                 "verdi": "09863149336"
@@ -173,6 +178,7 @@ internal class UtbetalingDTOTest {
     fun `barnetillegg 2 barn hele perioden`() {
         val fnr = Fnr.fromString("09863149336")
         val id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
+        val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
@@ -180,6 +186,7 @@ internal class UtbetalingDTOTest {
             periode = periode,
             fnr = fnr,
             id = id,
+            utbetalingId = utbetalingId,
             saksnummer = saksnummer,
             opprettet = opprettet,
             barnetilleggsPerioder = ObjectMother.barnetilleggsPerioder(
@@ -197,7 +204,7 @@ internal class UtbetalingDTOTest {
             """
             {
               "sakId": "202410011001",
-              "behandlingId": "0SZ5FBEE6YZG8S6",
+              "behandlingId": "Z73MKA2083E4WDE",
               "iverksettingId": null,
               "personident": {
                 "verdi": "09863149336"
@@ -267,6 +274,7 @@ internal class UtbetalingDTOTest {
     fun `barnetillegg 1 barn første uke og 2 barn andre uke`() {
         val fnr = Fnr.fromString("09863149336")
         val id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
+        val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
@@ -274,6 +282,7 @@ internal class UtbetalingDTOTest {
             periode = periode,
             fnr = fnr,
             id = id,
+            utbetalingId = utbetalingId,
             saksnummer = saksnummer,
             opprettet = opprettet,
             barnetilleggsPerioder = SammenhengendePeriodisering(
@@ -292,7 +301,7 @@ internal class UtbetalingDTOTest {
             """
             {
               "sakId": "202410011001",
-              "behandlingId": "0SZ5FBEE6YZG8S6",
+              "behandlingId": "Z73MKA2083E4WDE",
               "iverksettingId": null,
               "personident": {
                 "verdi": "09863149336"
@@ -362,6 +371,7 @@ internal class UtbetalingDTOTest {
     fun `0 barn på starten og slutten av meldeperioden`() {
         val fnr = Fnr.fromString("09863149336")
         val id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
+        val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
@@ -369,6 +379,7 @@ internal class UtbetalingDTOTest {
             periode = periode,
             fnr = fnr,
             id = id,
+            utbetalingId = utbetalingId,
             saksnummer = saksnummer,
             opprettet = opprettet,
             barnetilleggsPerioder = SammenhengendePeriodisering(
@@ -391,7 +402,7 @@ internal class UtbetalingDTOTest {
             """
             {
               "sakId": "202410011001",
-              "behandlingId": "0SZ5FBEE6YZG8S6",
+              "behandlingId": "Z73MKA2083E4WDE",
               "iverksettingId": null,
               "personident": {
                 "verdi": "09863149336"
@@ -461,13 +472,15 @@ internal class UtbetalingDTOTest {
     fun `0 barn midt i en uke`() {
         val fnr = Fnr.fromString("09863149336")
         val id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
+        val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val utbetalingsvedtak = ObjectMother.meldekortVedtak(
+        val meldekortVedtak = ObjectMother.meldekortVedtak(
             periode = periode,
             fnr = fnr,
             id = id,
+            utbetalingId = utbetalingId,
             saksnummer = saksnummer,
             opprettet = opprettet,
             barnetilleggsPerioder = SammenhengendePeriodisering(
@@ -489,12 +502,12 @@ internal class UtbetalingDTOTest {
                 ),
             ),
         )
-        val actual = utbetalingsvedtak.utbetaling.toDTO(null)
+        val actual = meldekortVedtak.utbetaling.toDTO(null)
         actual.shouldEqualJson(
             """
             {
               "sakId": "202410011001",
-              "behandlingId": "0SZ5FBEE6YZG8S6",
+              "behandlingId": "Z73MKA2083E4WDE",
               "iverksettingId": null,
               "personident": {
                 "verdi": "09863149336"
