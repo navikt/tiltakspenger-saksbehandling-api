@@ -8,13 +8,13 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 
 class SimulerService(
     private val utbetalingsklient: Utbetalingsklient,
     private val navkontorService: NavkontorService,
-    private val meldekortVedtakRepo: MeldekortVedtakRepo,
+    private val utbetalingRepo: UtbetalingRepo,
 ) {
     /**
      * Skal kun brukes fra en annen service.
@@ -33,7 +33,7 @@ class SimulerService(
             behandling = behandling,
             brukersNavkontor = if (brukersNavkontor != null) brukersNavkontor() else navkontorService.hentOppfolgingsenhet(behandling.fnr),
             forrigeUtbetalingJson = forrigeUtbetaling?.let {
-                meldekortVedtakRepo.hentUtbetalingJsonForVedtakId(it.vedtakId)
+                utbetalingRepo.hentUtbetalingJson(it.id)
             },
             forrigeVedtakId = forrigeUtbetaling?.vedtakId,
             meldeperiodeKjeder = meldeperiodeKjeder,

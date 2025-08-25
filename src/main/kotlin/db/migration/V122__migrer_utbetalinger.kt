@@ -21,10 +21,11 @@ import org.flywaydb.core.api.migration.Context
 import java.time.LocalDateTime
 
 data class UtbetalingsvedtakRow(
+    val utbetalingId: UtbetalingId,
     val sakId: SakId,
     val vedtakId: VedtakId,
     val rammevedtakId: VedtakId?,
-    val forrigeUtbetalingVedtakId: VedtakId?,
+    val forrigeVedtakId: VedtakId?,
     val sendtTilUtbetaling: LocalDateTime?,
     val status: Utbetalingsstatus?,
     val metadata: Forsøkshistorikk?,
@@ -38,7 +39,7 @@ class V122__migrer_utbetalinger : BaseJavaMigration() {
         val sessionFactory = PostgresSessionFactory(dataSource, SessionCounter(logger))
 
         sessionFactory.withTransactionContext { tx ->
-            val utbetalingsvedtak: List<UtbetalingsvedtakRow> = tx.withSession { session ->
+            val tidligereUtbetalingsvedtak: List<UtbetalingsvedtakRow> = tx.withSession { session ->
                 session.run(
                     sqlQuery(
                         """
@@ -49,10 +50,11 @@ class V122__migrer_utbetalinger : BaseJavaMigration() {
                         """,
                     ).map { row ->
                         UtbetalingsvedtakRow(
+                            utbetalingId = UtbetalingId.random(),
                             sakId = SakId.fromString(row.string("sak_id")),
                             vedtakId = VedtakId.fromString(row.string("id")),
                             rammevedtakId = row.stringOrNull("rammevedtak_id")?.let { VedtakId.fromString(it) },
-                            forrigeUtbetalingVedtakId = row.stringOrNull("forrige_vedtak_id")
+                            forrigeVedtakId = row.stringOrNull("forrige_vedtak_id")
                                 ?.let { VedtakId.fromString(it) },
                             sendtTilUtbetaling = row.localDateTimeOrNull("sendt_til_utbetaling_tidspunkt"),
                             status = row.stringOrNull("status")?.toUtbetalingsstatus(),
@@ -63,20 +65,28 @@ class V122__migrer_utbetalinger : BaseJavaMigration() {
                 )
             }
 
-            logger.info { "Fant ${utbetalingsvedtak.size} utbetalingsvedtak" }
+            logger.info { "Fant ${tidligereUtbetalingsvedtak.size} tidligere utbetalingsvedtak" }
 
             tx.withSession { session ->
-                utbetalingsvedtak.forEach { vedtak ->
-                    val utbetalingId = UtbetalingId.random()
-
+                tidligereUtbetalingsvedtak.forEach { vedtak ->
                     val erRammevedtak = vedtak.rammevedtakId != null
+                    val utbetalingId = vedtak.utbetalingId
+
+                    val forrigeVedtak = vedtak.forrigeVedtakId?.let { forrigeVedtakId ->
+                        val forrigeVedtak = tidligereUtbetalingsvedtak.find { it.vedtakId == forrigeVedtakId }
+                        requireNotNull(forrigeVedtak) {
+                            "Fant ikke forrige vedtak $forrigeVedtakId for $vedtak"
+                        }
+
+                        forrigeVedtak
+                    }
 
                     opprettUtbetaling(
                         utbetalingId = utbetalingId,
                         sakId = vedtak.sakId,
                         meldekortVedtakId = if (erRammevedtak) null else vedtak.vedtakId,
                         rammevedtakId = vedtak.rammevedtakId,
-                        forrigeUtbetalingVedtakId = vedtak.forrigeUtbetalingVedtakId,
+                        forrigeUtbetalingId = forrigeVedtak?.utbetalingId,
                         sendtTilUtbetaling = vedtak.sendtTilUtbetaling,
                         status = vedtak.status,
                         metadata = vedtak.metadata,
@@ -138,7 +148,7 @@ class V122__migrer_utbetalinger : BaseJavaMigration() {
         sakId: SakId,
         meldekortVedtakId: VedtakId?,
         rammevedtakId: VedtakId?,
-        forrigeUtbetalingVedtakId: VedtakId?,
+        forrigeUtbetalingId: UtbetalingId?,
         sendtTilUtbetaling: LocalDateTime?,
         status: Utbetalingsstatus?,
         metadata: Forsøkshistorikk?,
@@ -153,7 +163,7 @@ class V122__migrer_utbetalinger : BaseJavaMigration() {
                             sak_id,
                             meldekortvedtak_id,
                             rammevedtak_id,
-                            forrige_utbetaling_vedtak_id,
+                            forrige_utbetaling_id,
                             sendt_til_utbetaling_tidspunkt,
                             status,
                             status_metadata,          
@@ -163,7 +173,7 @@ class V122__migrer_utbetalinger : BaseJavaMigration() {
                             :sak_id,
                             :meldekortvedtak_id,
                             :rammevedtak_id,
-                            :forrige_utbetaling_vedtak_id,
+                            :forrige_utbetaling_id,
                             :sendt_til_utbetaling_tidspunkt,
                             :status,
                             to_jsonb(:status_metadata::jsonb), 
@@ -174,7 +184,7 @@ class V122__migrer_utbetalinger : BaseJavaMigration() {
                 "sak_id" to sakId.toString(),
                 "meldekortvedtak_id" to meldekortVedtakId?.toString(),
                 "rammevedtak_id" to rammevedtakId?.toString(),
-                "forrige_utbetaling_vedtak_id" to forrigeUtbetalingVedtakId?.toString(),
+                "forrige_utbetaling_id" to forrigeUtbetalingId?.toString(),
                 "sendt_til_utbetaling_tidspunkt" to sendtTilUtbetaling,
                 "status" to status.toString(),
                 "status_metadata" to metadata?.toDbJson(),

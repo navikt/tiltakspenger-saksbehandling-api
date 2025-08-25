@@ -12,7 +12,9 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortVedtakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.JournalførMeldekortVedtakService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsstatusService
@@ -41,16 +43,21 @@ open class UtbetalingContext(
             sessionFactory as PostgresSessionFactory,
         )
     }
+    open val utbetalingRepo: UtbetalingRepo by lazy {
+        UtbetalingPostgresRepo(
+            sessionFactory as PostgresSessionFactory,
+        )
+    }
     open val simulerService: SimulerService by lazy {
         SimulerService(
-            meldekortVedtakRepo = meldekortVedtakRepo,
+            utbetalingRepo = utbetalingRepo,
             navkontorService = navkontorService,
             utbetalingsklient = utbetalingsklient,
         )
     }
     val sendUtbetalingerService: SendUtbetalingerService by lazy {
         SendUtbetalingerService(
-            meldekortVedtakRepo = meldekortVedtakRepo,
+            utbetalingRepo = utbetalingRepo,
             utbetalingsklient = utbetalingsklient,
             clock = clock,
         )
@@ -68,7 +75,7 @@ open class UtbetalingContext(
 
     val oppdaterUtbetalingsstatusService by lazy {
         OppdaterUtbetalingsstatusService(
-            meldekortVedtakRepo = meldekortVedtakRepo,
+            utbetalingRepo = utbetalingRepo,
             utbetalingsklient = utbetalingsklient,
             clock = clock,
         )

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDateTime
 
 data class UtbetalingDetSkalHentesStatusFor(
+    val utbetalingId: UtbetalingId,
     val sakId: SakId,
     val saksnummer: Saksnummer,
     val vedtakId: VedtakId,

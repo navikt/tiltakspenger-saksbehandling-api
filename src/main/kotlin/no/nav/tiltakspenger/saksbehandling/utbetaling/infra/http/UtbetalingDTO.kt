@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
-import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
 import no.nav.utsjekk.kontrakter.felles.Personident
 import no.nav.utsjekk.kontrakter.felles.Satstype
 import no.nav.utsjekk.kontrakter.felles.StønadTypeTiltakspenger
@@ -23,11 +22,9 @@ import kotlin.collections.fold
 /**
  * @param forrigeUtbetalingJson Forrige utbetaling vi sendte til helved. Siden vi må sende alle utbetalinger på nytt, må vi sende med alle utbetalinger vi har sendt tidligere.
  */
-fun Vedtak.toDTO(
+fun Utbetaling.toDTO(
     forrigeUtbetalingJson: String?,
 ): String {
-    val utbetaling = utbetaling as Utbetaling
-
     return IverksettV2Dto(
         sakId = saksnummer.toString(),
         // Brukes som dedupliseringsnøkkel av helved dersom iverksettingId er null.
@@ -40,12 +37,12 @@ fun Vedtak.toDTO(
             vedtakstidspunkt = opprettet,
             saksbehandlerId = saksbehandler,
             beslutterId = beslutter,
-            utbetalinger = utbetaling.beregning.tilUtbetalingerDTO(
-                brukersNavkontor = utbetaling.brukerNavkontor,
+            utbetalinger = beregning.tilUtbetalingerDTO(
+                brukersNavkontor = brukerNavkontor,
                 forrigeUtbetalingJson = forrigeUtbetalingJson,
             ),
         ),
-        forrigeIverksetting = utbetaling.forrigeUtbetalingVedtakId?.let { ForrigeIverksettingV2Dto(behandlingId = it.uuidPart()) },
+        forrigeIverksetting = forrigeUtbetalingId?.let { ForrigeIverksettingV2Dto(behandlingId = it.uuidPart()) },
     ).let { serialize(it) }
 }
 
