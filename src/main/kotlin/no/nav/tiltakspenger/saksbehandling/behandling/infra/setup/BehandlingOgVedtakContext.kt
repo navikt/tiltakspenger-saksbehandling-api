@@ -38,7 +38,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
 import java.time.Clock
@@ -65,7 +65,7 @@ open class BehandlingOgVedtakContext(
     clock: Clock,
     sokosUtbetaldataClient: SokosUtbetaldataClient,
     navkontorService: NavkontorService,
-    utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
+    meldekortVedtakRepo: MeldekortVedtakRepo,
 ) {
     open val rammevedtakRepo: RammevedtakRepo by lazy { RammevedtakPostgresRepo(sessionFactory as PostgresSessionFactory) }
     open val behandlingRepo: BehandlingRepo by lazy {
@@ -138,7 +138,6 @@ open class BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
             statistikkSakRepo = statistikkSakRepo,
             statistikkStønadRepo = statistikkStønadRepo,
-            utbetalingsvedtakRepo = utbetalingsvedtakRepo,
             sakService = sakService,
             clock = clock,
             statistikkSakService = statistikkSakService,

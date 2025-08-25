@@ -12,15 +12,15 @@ import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 internal class SendUtbetalingerServiceTest {
-    private val utbetalingsvedtakRepo = mockk<UtbetalingsvedtakRepo>()
+    private val utbetalingRepo = mockk<UtbetalingRepo>()
     private val utbetalingsklient = mockk<Utbetalingsklient>()
-    private val sendUtbetalingerService = SendUtbetalingerService(utbetalingsvedtakRepo, utbetalingsklient, fixedClock)
+    private val sendUtbetalingerService = SendUtbetalingerService(utbetalingRepo, utbetalingsklient, fixedClock)
 
     @BeforeEach
     fun setup() {
@@ -29,18 +29,18 @@ internal class SendUtbetalingerServiceTest {
 
     @Test
     fun `utbetaling blir iverksatt og markert som sendt til utbetaling`() = runTest {
-        val utbetalingsvedtak = ObjectMother.utbetalingsvedtak()
+        val utbetaling = ObjectMother.utbetaling()
 
-        every { utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk() } returns listOf(utbetalingsvedtak)
+        every { utbetalingRepo.hentForUtsjekk() } returns listOf(utbetaling)
         val sendtUtbetaling = SendtUtbetaling("req", "res", 202)
         coEvery { utbetalingsklient.iverksett(any(), any(), any()) } returns Either.Right(sendtUtbetaling)
-        justRun { utbetalingsvedtakRepo.markerSendtTilUtbetaling(utbetalingsvedtak.id, any(), sendtUtbetaling) }
+        justRun { utbetalingRepo.markerSendtTilUtbetaling(utbetaling.id, any(), sendtUtbetaling) }
 
         sendUtbetalingerService.send()
 
         verify(exactly = 1) {
-            utbetalingsvedtakRepo.markerSendtTilUtbetaling(
-                utbetalingsvedtak.id,
+            utbetalingRepo.markerSendtTilUtbetaling(
+                utbetaling.id,
                 any(),
                 sendtUtbetaling,
             )
@@ -49,14 +49,14 @@ internal class SendUtbetalingerServiceTest {
 
     @Test
     fun `feilrespons fra utbetaling lagres`() = runTest {
-        val utbetalingsvedtak = ObjectMother.utbetalingsvedtak()
+        val utbetaling = ObjectMother.utbetaling()
 
-        every { utbetalingsvedtakRepo.hentUtbetalingsvedtakForUtsjekk() } returns listOf(utbetalingsvedtak)
+        every { utbetalingRepo.hentForUtsjekk() } returns listOf(utbetaling)
         val kunneIkkeUtbetale = KunneIkkeUtbetale("req", "res", 409)
         coEvery { utbetalingsklient.iverksett(any(), any(), any()) } returns Either.Left(kunneIkkeUtbetale)
         justRun {
-            utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(
-                vedtakId = utbetalingsvedtak.id,
+            utbetalingRepo.lagreFeilResponsFraUtbetaling(
+                utbetalingId = utbetaling.id,
                 utbetalingsrespons = kunneIkkeUtbetale,
             )
         }
@@ -64,8 +64,8 @@ internal class SendUtbetalingerServiceTest {
         sendUtbetalingerService.send()
 
         verify(exactly = 1) {
-            utbetalingsvedtakRepo.lagreFeilResponsFraUtbetaling(
-                vedtakId = utbetalingsvedtak.id,
+            utbetalingRepo.lagreFeilResponsFraUtbetaling(
+                utbetalingId = utbetaling.id,
                 utbetalingsrespons = kunneIkkeUtbetale,
             )
         }

@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Sa
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySøknad
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
@@ -35,7 +36,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.virkningsp
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
@@ -57,10 +57,10 @@ interface SakMother {
         behandlinger = behandlinger,
         vedtaksliste = Vedtaksliste.empty(),
         meldekortBehandlinger = MeldekortBehandlinger.empty(),
-        utbetalinger = Utbetalinger(emptyList()),
         meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
         brukersMeldekort = emptyList(),
         soknader = søknader,
+        meldekortVedtaksliste = MeldekortVedtaksliste.empty(),
     )
 
     fun sakMedOpprettetBehandling(
@@ -161,10 +161,10 @@ interface SakMother {
             behandlinger = Behandlinger(søknadsbehandling),
             vedtaksliste = Vedtaksliste.empty(),
             meldekortBehandlinger = MeldekortBehandlinger.empty(),
-            utbetalinger = Utbetalinger(emptyList()),
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             soknader = listOf(søknad),
+            meldekortVedtaksliste = MeldekortVedtaksliste.empty(),
         ) to søknadsbehandling
     }
 
@@ -217,10 +217,10 @@ interface SakMother {
             behandlinger = Behandlinger(søknadsbehandling),
             vedtaksliste = Vedtaksliste.empty(),
             meldekortBehandlinger = MeldekortBehandlinger.empty(),
-            utbetalinger = Utbetalinger(emptyList()),
             meldeperiodeKjeder = MeldeperiodeKjeder(emptyList()),
             brukersMeldekort = emptyList(),
             soknader = listOf(søknad),
+            meldekortVedtaksliste = MeldekortVedtaksliste.empty(),
         ) to søknadsbehandling
     }
 

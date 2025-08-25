@@ -14,22 +14,24 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeIverksetteMel
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilStatistikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.opprettUtbetalingsvedtak
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.tilStatistikk
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import java.time.Clock
 
 class IverksettMeldekortService(
     val sakService: SakService,
     val meldekortBehandlingRepo: MeldekortBehandlingRepo,
+    val utbetalingRepo: UtbetalingRepo,
     val meldeperiodeRepo: MeldeperiodeRepo,
     val brukersMeldekortRepo: BrukersMeldekortRepo,
     val sessionFactory: SessionFactory,
-    private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
+    private val meldekortVedtakRepo: MeldekortVedtakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
     private val clock: Clock,
     private val oppgaveKlient: OppgaveKlient,
@@ -59,22 +61,20 @@ class IverksettMeldekortService(
 
         return meldekortBehandling.iverksettMeldekort(kommando.beslutter, clock).map { iverksattMeldekortbehandling ->
             val eksisterendeUtbetalingsvedtak = sak.utbetalinger
-            val utbetalingsvedtak = iverksattMeldekortbehandling.opprettUtbetalingsvedtak(
-                saksnummer = sak.saksnummer,
-                fnr = sak.fnr,
-                forrigeUtbetalingsvedtak = eksisterendeUtbetalingsvedtak.lastOrNull(),
+            val meldekortVedtak = iverksattMeldekortbehandling.opprettVedtak(
+                forrigeUtbetaling = eksisterendeUtbetalingsvedtak.lastOrNull(),
                 clock = clock,
             )
-            val utbetalingsstatistikk = utbetalingsvedtak.tilStatistikk()
+            val utbetalingsstatistikk = meldekortVedtak.tilStatistikk()
 
             sessionFactory.withTransactionContext { tx ->
                 meldekortBehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)
-                utbetalingsvedtakRepo.lagre(utbetalingsvedtak, tx)
+                meldekortVedtakRepo.lagre(meldekortVedtak, tx)
                 statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             }
             ferdigstillOppgave(meldeperiode.id, meldekortId)
             sak.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
-                .leggTilUtbetalingsvedtak(utbetalingsvedtak) to iverksattMeldekortbehandling
+                .leggTilMeldekortVedtak(meldekortVedtak) to iverksattMeldekortbehandling
         }
     }
 

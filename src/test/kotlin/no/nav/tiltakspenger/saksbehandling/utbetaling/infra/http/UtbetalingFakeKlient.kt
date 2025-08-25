@@ -2,7 +2,6 @@
 
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 
-import arrow.atomic.Atomic
 import arrow.core.Either
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -15,9 +14,9 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
@@ -25,16 +24,16 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 class UtbetalingFakeKlient(
     private val sakFakeRepo: SakRepo,
 ) : Utbetalingsklient {
-    private val utbetalinger = Atomic(mutableMapOf<VedtakId, Utbetaling>())
-
     override suspend fun iverksett(
-        vedtak: Utbetalingsvedtak,
+        utbetaling: Utbetaling,
         forrigeUtbetalingJson: String?,
         correlationId: CorrelationId,
     ): Either<KunneIkkeUtbetale, SendtUtbetaling> {
-        val response = SendtUtbetaling("request - ${vedtak.id}", "response - ${vedtak.id}", responseStatus = 202)
-        val utbetaling = Utbetaling(vedtak, correlationId, response)
-        utbetalinger.get()[vedtak.id] = utbetaling
+        val response = SendtUtbetaling(
+            utbetaling.toDTO(forrigeUtbetalingJson),
+            "response - ${utbetaling.id}",
+            responseStatus = 202,
+        )
         return response.right()
     }
 
@@ -54,9 +53,4 @@ class UtbetalingFakeKlient(
         val sak = sakFakeRepo.hentForSakId(behandling.sakId)!!
         return sak.genererSimuleringFraBeregning(behandling).right()
     }
-    data class Utbetaling(
-        val vedtak: Utbetalingsvedtak,
-        val correlationId: CorrelationId,
-        val sendtUtbetaling: SendtUtbetaling,
-    )
 }

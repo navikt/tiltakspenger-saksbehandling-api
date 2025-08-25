@@ -88,7 +88,7 @@ sealed interface MeldekortBehandling {
 
     val avbrutt: Avbrutt?
 
-    val rammevedtak: List<VedtakId>? get() = meldeperiode.rammevedtak?.verdier?.distinct()
+    val rammevedtak: List<VedtakId>? get() = meldeperiode.rammevedtak.verdier.distinct()
 
     /** Merk at statusen [IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den brukes ifm stans. */
     fun erÅpen(): Boolean = !erAvsluttet
@@ -152,6 +152,7 @@ sealed interface MeldekortBehandling {
         override val beløpTotal: Int get() = beregning.totalBeløp
         override val ordinærBeløp: Int get() = beregning.ordinærBeløp
         override val barnetilleggBeløp: Int get() = beregning.barnetilleggBeløp
+        override val rammevedtak: List<VedtakId> get() = super.rammevedtak!!
 
         /**
          *  Perioden for beregningen av meldekortet.

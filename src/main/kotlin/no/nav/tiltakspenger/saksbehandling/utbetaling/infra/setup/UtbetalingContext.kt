@@ -11,10 +11,12 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortK
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingsvedtakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortVedtakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
-import no.nav.tiltakspenger.saksbehandling.utbetaling.service.JournalførUtbetalingsvedtakService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.JournalførMeldekortVedtakService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsstatusService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SendUtbetalingerService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
@@ -36,28 +38,33 @@ open class UtbetalingContext(
             getToken = { texasClient.getSystemToken(Configuration.utbetalingScope, IdentityProvider.AZUREAD) },
         )
     }
-    open val utbetalingsvedtakRepo: UtbetalingsvedtakRepo by lazy {
-        UtbetalingsvedtakPostgresRepo(
+    open val meldekortVedtakRepo: MeldekortVedtakRepo by lazy {
+        MeldekortVedtakPostgresRepo(
+            sessionFactory as PostgresSessionFactory,
+        )
+    }
+    open val utbetalingRepo: UtbetalingRepo by lazy {
+        UtbetalingPostgresRepo(
             sessionFactory as PostgresSessionFactory,
         )
     }
     open val simulerService: SimulerService by lazy {
         SimulerService(
-            utbetalingsvedtakRepo = utbetalingsvedtakRepo,
+            utbetalingRepo = utbetalingRepo,
             navkontorService = navkontorService,
             utbetalingsklient = utbetalingsklient,
         )
     }
     val sendUtbetalingerService: SendUtbetalingerService by lazy {
         SendUtbetalingerService(
-            utbetalingsvedtakRepo = utbetalingsvedtakRepo,
+            utbetalingRepo = utbetalingRepo,
             utbetalingsklient = utbetalingsklient,
             clock = clock,
         )
     }
-    val journalførUtbetalingsvedtakService by lazy {
-        JournalførUtbetalingsvedtakService(
-            utbetalingsvedtakRepo = utbetalingsvedtakRepo,
+    val journalførMeldekortVedtakService by lazy {
+        JournalførMeldekortVedtakService(
+            meldekortVedtakRepo = meldekortVedtakRepo,
             journalførMeldekortKlient = journalførMeldekortKlient,
             genererVedtaksbrevForUtbetalingKlient = genererVedtaksbrevForUtbetalingKlient,
             navIdentClient = navIdentClient,
@@ -68,7 +75,7 @@ open class UtbetalingContext(
 
     val oppdaterUtbetalingsstatusService by lazy {
         OppdaterUtbetalingsstatusService(
-            utbetalingsvedtakRepo = utbetalingsvedtakRepo,
+            utbetalingRepo = utbetalingRepo,
             utbetalingsklient = utbetalingsklient,
             clock = clock,
         )
