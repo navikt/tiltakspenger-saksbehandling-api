@@ -4,7 +4,6 @@ import no.nav.tiltakspenger.libs.auth.test.core.JwtGenerator
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
-import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeClient
@@ -34,7 +33,6 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.Veilarbo
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
-import no.nav.tiltakspenger.saksbehandling.person.infra.http.TilgangsstyringFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonFakeRepo
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakFakeRepo
@@ -87,7 +85,6 @@ class TestApplicationContext(
     private val tiltaksdeltagelseFakeKlient = TiltaksdeltagelseFakeKlient(søknadRepo = søknadFakeRepo)
     private val sokosUtbetaldataFakeClient = SokosUtbetaldataFakeClient()
     private val personFakeKlient = PersonFakeKlient(clock)
-    private val tilgangsstyringFakeKlient = TilgangsstyringFakeKlient()
     private val genererFakeVedtaksbrevForUtbetalingKlient = GenererFakeVedtaksbrevForUtbetalingKlient()
     private val genererFakseVedtaksrevForInnvilgelseKlient = GenererFakeVedtaksbrevKlient()
     private val journalførFakeMeldekortKlient = JournalførFakeMeldekortKlient(journalpostIdGenerator)
@@ -106,10 +103,6 @@ class TestApplicationContext(
         tiltaksdeltagelse: Tiltaksdeltagelse,
     ) {
         personFakeKlient.leggTilPersonopplysning(fnr = fnr, personopplysninger = personopplysningerForBruker)
-        tilgangsstyringFakeKlient.lagre(
-            fnr = fnr,
-            adressebeskyttelseGradering = listOf(AdressebeskyttelseGradering.UGRADERT),
-        )
         tiltaksdeltagelseFakeKlient.lagre(fnr = fnr, tiltaksdeltagelse = tiltaksdeltagelse)
         tilgangsmaskinFakeClient.leggTil(fnr, true)
     }
@@ -153,7 +146,7 @@ class TestApplicationContext(
     }
 
     override val statistikkContext by lazy {
-        object : StatistikkContext(sessionFactory, tilgangsstyringFakeKlient, gitHash, clock) {
+        object : StatistikkContext(sessionFactory, personFakeKlient, gitHash, clock) {
             override val statistikkStønadRepo = statistikkStønadFakeRepo
             override val statistikkSakRepo = statistikkSakFakeRepo
         }
