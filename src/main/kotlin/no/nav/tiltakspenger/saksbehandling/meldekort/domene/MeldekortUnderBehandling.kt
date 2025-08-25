@@ -160,8 +160,6 @@ data class MeldekortUnderBehandling(
     }
 
     private fun validerSaksbehandlerOgTilstand(saksbehandler: Saksbehandler): Either<TilgangEllerTilstandsfeil, Unit> {
-        krevSaksbehandlerRolle(saksbehandler)
-
         require(saksbehandler.navIdent == this.saksbehandler)
         if (this.status != UNDER_BEHANDLING) {
             throw IllegalStateException("Status må være UNDER_BEHANDLING. Kan ikke oppdatere meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler.")
@@ -260,7 +258,6 @@ data class MeldekortUnderBehandling(
         begrunnelse: String,
         tidspunkt: LocalDateTime,
     ): Either<KanIkkeAvbryteMeldekortBehandling, MeldekortBehandling> {
-        krevSaksbehandlerRolle(avbruttAv)
         require(this.status == UNDER_BEHANDLING) {
             return KanIkkeAvbryteMeldekortBehandling.MåVæreUnderBehandling.left()
         }

@@ -37,6 +37,7 @@ fun Route.routes(
             oppdaterBehandlingService = applicationContext.behandlingContext.oppdaterBehandlingService,
             settBehandlingPåVentService = applicationContext.behandlingContext.settBehandlingPåVentService,
             gjenopptaBehandlingService = applicationContext.behandlingContext.gjenopptaBehandlingService,
+            tilgangskontrollService = applicationContext.tilgangskontrollService,
         )
         hentBenkRoute(
             benkOversiktService = applicationContext.benkOversiktContext.benkOversiktService,
@@ -50,6 +51,7 @@ fun Route.routes(
             auditService = applicationContext.personContext.auditService,
             avbrytSøknadOgBehandlingService = applicationContext.avbrytSøknadOgBehandlingContext.avsluttSøknadOgBehandlingService,
             clock = applicationContext.clock,
+            tilgangskontrollService = applicationContext.tilgangskontrollService,
         )
         meldekortRoutes(
             iverksettMeldekortService = applicationContext.meldekortContext.iverksettMeldekortService,
@@ -65,6 +67,7 @@ fun Route.routes(
             sendMeldekortTilBeslutterService = applicationContext.meldekortContext.sendMeldekortTilBeslutterService,
             avbrytMeldekortBehandlingService = applicationContext.meldekortContext.avbrytMeldekortBehandlingService,
             clock = applicationContext.clock,
+            tilgangskontrollService = applicationContext.tilgangskontrollService,
         )
         mottaSøknadRoute(
             applicationContext.søknadContext.søknadService,

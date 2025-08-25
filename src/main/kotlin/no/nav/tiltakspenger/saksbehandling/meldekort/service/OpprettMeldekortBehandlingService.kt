@@ -5,7 +5,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
@@ -31,9 +30,8 @@ class OpprettMeldekortBehandlingService(
         kjedeId: MeldeperiodeKjedeId,
         sakId: SakId,
         saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
     ): Either<KanIkkeOppretteMeldekortBehandling, Sak> {
-        val sak = sakService.sjekkTilgangOgHentForSakId(sakId, saksbehandler, correlationId)
+        val sak = sakService.hentForSakId(sakId)
 
         val navkontor = Either.catch {
             navkontorService.hentOppfolgingsenhet(sak.fnr)

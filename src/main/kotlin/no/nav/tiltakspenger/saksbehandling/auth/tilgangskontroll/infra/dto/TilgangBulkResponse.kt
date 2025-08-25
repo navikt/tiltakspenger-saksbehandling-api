@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra
+package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto
 
 data class TilgangBulkResponse(
     val ansattId: String,

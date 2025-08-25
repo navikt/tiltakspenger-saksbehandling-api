@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeOppdatereMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
@@ -44,13 +43,10 @@ class OppdaterMeldekortService(
     }
 
     // TODO jah: Kopiert til [SendMeldekortTilBeslutterService] - lage noe felles?
-    private suspend fun hentSak(
+    private fun hentSak(
         kommando: OppdaterMeldekortKommando,
     ): Sak {
-        krevSaksbehandlerRolle(kommando.saksbehandler)
-
-        // Denne sjekker at saksbehandler har tilgang til personen og at den har en av rollene SAKSBEHANDLER eller BESLUTTER
-        val sak = sakService.sjekkTilgangOgHentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
+        val sak = sakService.hentForSakId(kommando.sakId)
 
         val meldekortbehandling = sak.hentMeldekortBehandling(kommando.meldekortId)!!
         val meldeperiode = meldekortbehandling.meldeperiode

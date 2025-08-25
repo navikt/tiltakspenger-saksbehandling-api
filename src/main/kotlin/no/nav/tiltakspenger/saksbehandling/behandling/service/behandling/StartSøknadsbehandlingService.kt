@@ -28,7 +28,7 @@ class StartSøknadsbehandlingService(
         soknad: Søknad,
         correlationId: CorrelationId,
     ): Søknadsbehandling {
-        val sak = sakService.hentSakForIdAvSystembruker(soknad.sakId)
+        val sak = sakService.hentForSakId(soknad.sakId)
         val behandling = Søknadsbehandling.opprettAutomatiskBehandling(
             sak = sak,
             søknad = soknad,

@@ -7,6 +7,8 @@ import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringSer
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.auth.infra.PoaoTilgangskontrollFake
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeClient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
@@ -88,6 +90,7 @@ class LocalApplicationContext(
     private val fellesFakeAdressebeskyttelseKlient = FellesFakeAdressebeskyttelseKlient()
     private val fellesFakeSkjermingsklient = FellesFakeSkjermingsklient()
     private val poaoTilgangskontrollFake = PoaoTilgangskontrollFake()
+    private val tilgangsmaskinFakeClient = TilgangsmaskinFakeClient()
 
     private val søknadId: SøknadId = SøknadId.fromString("soknad_01HSTRQBRM443VGB4WA822TE01")
     private val fnr: Fnr = Fnr.fromString("50218274152")
@@ -109,6 +112,13 @@ class LocalApplicationContext(
 
     override val veilarboppfolgingKlient: VeilarboppfolgingKlient by lazy {
         VeilarboppfolgingFakeKlient()
+    }
+
+    override val tilgangskontrollService: TilgangskontrollService by lazy {
+        TilgangskontrollService(
+            tilgangsmaskinClient = tilgangsmaskinFakeClient,
+            sakService = sakContext.sakService,
+        )
     }
 
     override val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingKlient) }
@@ -154,7 +164,6 @@ class LocalApplicationContext(
         object : SakContext(
             sessionFactory = sessionFactory,
             personService = personContext.personService,
-            tilgangsstyringService = personContext.tilgangsstyringService,
             poaoTilgangKlient = personContext.poaoTilgangKlient,
             profile = profile,
             clock = clock,
@@ -165,10 +174,8 @@ class LocalApplicationContext(
         object : MeldekortContext(
             sessionFactory = sessionFactory,
             sakService = sakContext.sakService,
-            tilgangsstyringService = personContext.tilgangsstyringService,
             utbetalingsvedtakRepo = utbetalingContext.utbetalingsvedtakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
-            personService = personContext.personService,
             texasClient = texasClient,
             navkontorService = navkontorService,
             oppgaveKlient = oppgaveKlient,
@@ -206,7 +213,6 @@ class LocalApplicationContext(
             genererVedtaksbrevForAvslagKlient = genererFakeVedtaksbrevForAvslagKlient,
             genererVedtaksbrevForStansKlient = genererFakeVedtaksbrevForStansKlient,
             personService = personContext.personService,
-            tilgangsstyringService = personContext.tilgangsstyringService,
             dokumentdistribusjonsklient = dokumentdistribusjonsklientFakeKlient,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
@@ -264,5 +270,6 @@ class LocalApplicationContext(
         fellesFakeAdressebeskyttelseKlient.leggTil(fnr = fnr, gradering = listOf(AdressebeskyttelseGradering.UGRADERT))
         personFakeKlient.leggTilPersonopplysning(fnr = fnr, personopplysninger = personopplysningerForBruker)
         poaoTilgangskontrollFake.leggTil(fnr = fnr, skjermet = false)
+        tilgangsmaskinFakeClient.leggTil(fnr = fnr, harTilgang = true)
     }
 }

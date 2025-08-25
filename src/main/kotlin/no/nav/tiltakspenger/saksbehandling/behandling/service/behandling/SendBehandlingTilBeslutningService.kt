@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import java.time.Clock
@@ -25,12 +24,8 @@ class SendBehandlingTilBeslutningService(
     suspend fun sendTilBeslutning(
         kommando: SendBehandlingTilBeslutningKommando,
     ): Either<KanIkkeSendeTilBeslutter, Pair<Sak, Behandling>> {
-        krevSaksbehandlerRolle(kommando.saksbehandler)
-
         val sak = sakService.hentForSakId(
             sakId = kommando.sakId,
-            saksbehandler = kommando.saksbehandler,
-            correlationId = kommando.correlationId,
         )
 
         val behandling = sak.hentBehandling(kommando.behandlingId)

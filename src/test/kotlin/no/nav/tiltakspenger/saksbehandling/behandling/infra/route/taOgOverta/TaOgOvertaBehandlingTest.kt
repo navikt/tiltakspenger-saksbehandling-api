@@ -6,6 +6,7 @@ import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
+import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -24,6 +25,7 @@ internal class TaOgOvertaBehandlingTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    configureExceptions()
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
@@ -60,6 +62,7 @@ internal class TaOgOvertaBehandlingTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    configureExceptions()
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }

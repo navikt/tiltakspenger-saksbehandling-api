@@ -26,10 +26,8 @@ class StartRevurderingService(
     suspend fun startRevurdering(
         kommando: StartRevurderingKommando,
     ): Pair<Sak, Revurdering> {
-        val (sakId, correlationId, saksbehandler) = kommando
-
-        // Denne sjekker tilgang til person og at saksbehandler har rollen SAKSBEHANDLER eller BESLUTTER.
-        val sak = sakService.sjekkTilgangOgHentForSakId(sakId, saksbehandler, correlationId)
+        val (sakId, _, _) = kommando
+        val sak = sakService.hentForSakId(sakId)
 
         val (oppdatertSak, revurdering) = sak.startRevurdering(
             kommando = kommando,

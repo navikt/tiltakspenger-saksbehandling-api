@@ -30,8 +30,7 @@ class ForhåndsvisVedtaksbrevService(
     suspend fun forhåndsvisVedtaksbrev(
         kommando: ForhåndsvisVedtaksbrevKommando,
     ): PdfA {
-        // hentForSakId sjekker tilgang til person og sak.
-        val sak = sakService.sjekkTilgangOgHentForSakId(kommando.sakId, kommando.saksbehandler, kommando.correlationId)
+        val sak = sakService.hentForSakId(kommando.sakId)
         val behandling = sak.hentBehandling(kommando.behandlingId)!!
         val virkningsperiode = when (behandling.status) {
             Behandlingsstatus.KLAR_TIL_BEHANDLING,

@@ -8,21 +8,14 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
-import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppretteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.PoaoTilgangKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
-import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
-import no.nav.tiltakspenger.saksbehandling.felles.krevHentEllerOpprettSakRollen
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.felles.krevTilgangTilPerson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPersonMedSkjerming
@@ -34,22 +27,14 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 class SakService(
     private val sakRepo: SakRepo,
     private val personService: PersonService,
-    private val tilgangsstyringService: TilgangsstyringService,
     private val poaoTilgangKlient: PoaoTilgangKlient,
 ) {
     val logger = KotlinLogging.logger { }
 
-    /**
-     * Validerer at systembruker har rollen HENT_ELLER_OPPRETT_SAK.
-     * @throws TilgangException dersom systembruker mangler tilgangen HENT_ELLER_OPPRETT_SAK
-     */
     fun hentEllerOpprettSak(
         fnr: Fnr,
-        systembruker: Systembruker,
         correlationId: CorrelationId,
     ): Sak {
-        krevHentEllerOpprettSakRollen(systembruker)
-
         val saker = sakRepo.hentForFnr(fnr)
         if (saker.size > 1) {
             throw IllegalStateException("Vi støtter ikke flere saker per søker i piloten. correlationId: $correlationId")
@@ -75,88 +60,27 @@ class SakService(
         return sak
     }
 
-    /**
-     * Validerer at saksbehandler har tilgang til person og at saksbehandler har SAKSBEHANDLER eller BESLUTTER-rollen.
-     * @throws TilgangException dersom saksbehandler ikke har tilgang til saken.
-     * @throws IkkeFunnetException dersom vi ikke fant saken.
-     */
-    suspend fun hentForSaksnummer(
-        saksnummer: Saksnummer,
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
-    ): Sak {
-        krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
-        val sak = sakRepo.hentForSaksnummer(saksnummer)
-            ?: throw IkkeFunnetException("Fant ikke sak med saksnummer $saksnummer")
-        tilgangsstyringService.krevTilgangTilPerson(saksbehandler, sak.fnr, correlationId)
-        return sak
-    }
-
-    /**
-     * Validerer at systembruker har rollen HENT_ELLER_OPPRETT_SAK.
-     * @throws IkkeFunnetException dersom vi ikke fant saken.
-     * @throws TilgangException dersom systembruker mangler tilgangen HENT_ELLER_OPPRETT_SAK
-     */
     fun hentForSaksnummer(
         saksnummer: Saksnummer,
-        systembruker: Systembruker,
     ): Sak {
-        krevHentEllerOpprettSakRollen(systembruker)
-
         return sakRepo.hentForSaksnummer(saksnummer)
             ?: throw IkkeFunnetException("Fant ikke sak med saksnummer $saksnummer")
     }
 
-    /**
-     * Validerer at saksbehandler har tilgang til person og at saksbehandler har SAKSBEHANDLER eller BESLUTTER-rollen.
-     * @throws TilgangException dersom saksbehandler ikke har tilgang til saken.
-     * @return null dersom vi ikke fant saken.
-     */
-    suspend fun hentForFnr(
+    fun hentForFnr(
         fnr: Fnr,
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
     ): Sak? {
-        krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
-
         val saker = sakRepo.hentForFnr(fnr)
         if (saker.saker.isEmpty()) return null
 
         val sak = saker.single()
-        tilgangsstyringService.krevTilgangTilPerson(saksbehandler, sak.fnr, correlationId)
-
         return sak
     }
 
-    /** Skal kun brukes av systembruker. */
-    fun hentSakForIdAvSystembruker(
+    fun hentForSakId(
         sakId: SakId,
     ): Sak {
         return sakRepo.hentForSakId(sakId) ?: throw IkkeFunnetException("Fant ikke sak med sakId $sakId")
-    }
-
-    suspend fun hentForSakId(
-        sakId: SakId,
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
-    ): Sak {
-        val sak = sakRepo.hentForSakId(sakId) ?: throw IkkeFunnetException("Fant ikke sak med sakId $sakId")
-        tilgangsstyringService.krevTilgangTilPerson(saksbehandler, sak.fnr, correlationId)
-        return sak
-    }
-
-    /**
-     * Sjekker tilgang til person og at saksbehandler har SAKSBEHANDLER eller BESLUTTER-rollen.
-     * @throws IkkeFunnetException dersom vi ikke fant saken.
-     * @throws TilgangException dersom saksbehandler ikke har tilgang til saken.
-     * */
-    suspend fun sjekkTilgangOgHentForSakId(
-        sakId: SakId,
-        saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
-    ): Sak {
-        krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
-        return hentForSakId(sakId, saksbehandler, correlationId)
     }
 
     /**
@@ -164,10 +88,8 @@ class SakService(
      */
     suspend fun hentEnkelPersonForSakId(
         sakId: SakId,
-        saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): Either<KunneIkkeHenteEnkelPerson, EnkelPersonMedSkjerming> {
-        krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
         // Merk at denne IKKE skal sjekke tilgang til person, siden informasjonen skal vise til saksbehandleren, slik at hen skjønner at hen ikke kan behandle denne saken uten de riktige rollene.
         val fnr = sakRepo.hentFnrForSakId(sakId)!!
         val erSkjermet = poaoTilgangKlient.erSkjermet(fnr, correlationId)
@@ -179,6 +101,14 @@ class SakService(
                 erSkjermet,
             )
         return personMedSkjerming.right()
+    }
+
+    fun hentFnrForSakId(sakId: SakId): Fnr {
+        return sakRepo.hentFnrForSakId(sakId) ?: throw IkkeFunnetException("Fant ikke sak med sakId $sakId")
+    }
+
+    fun hentFnrForSaksnummer(saksnummer: Saksnummer): Fnr {
+        return sakRepo.hentFnrForSaksnummer(saksnummer) ?: throw IkkeFunnetException("Fant ikke sak med saksnummer $saksnummer")
     }
 
     fun oppdaterSkalSendesTilMeldekortApi(

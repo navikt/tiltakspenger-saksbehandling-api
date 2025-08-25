@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 
 import arrow.core.nonEmptyListOf
+import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -17,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingIdReturnerRespons
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingInnvilgelseTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingStansTilBeslutningForBehandlingId
@@ -161,6 +163,39 @@ internal class IverksettRevurderingTest {
             )
             taBehanding(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
             iverksettForBehandlingId(tac, sak.id, revurdering.id)
+        }
+    }
+
+    @Test
+    fun `må være beslutter for å iverksette revurdering`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, søknadsbehandling, revurdering) = startRevurderingStans(tac)
+
+            oppdaterBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
+                    begrunnelseVilkårsvurdering = null,
+                    fritekstTilVedtaksbrev = null,
+                    valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
+                    stansFraOgMed = søknadsbehandling.virkningsperiode!!.fraOgMed,
+                ),
+                forventetStatus = HttpStatusCode.OK,
+            )
+
+            sendRevurderingStansTilBeslutningForBehandlingId(
+                tac,
+                sak.id,
+                revurdering.id,
+            )
+            taBehanding(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+            iverksettForBehandlingIdReturnerRespons(
+                tac,
+                sak.id,
+                revurdering.id,
+                beslutter = ObjectMother.saksbehandler(),
+            ).status shouldBe HttpStatusCode.Forbidden
         }
     }
 }

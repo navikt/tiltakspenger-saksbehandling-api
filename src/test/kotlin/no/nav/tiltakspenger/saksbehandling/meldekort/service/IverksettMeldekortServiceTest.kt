@@ -24,7 +24,6 @@ internal class IverksettMeldekortServiceTest {
             meldekortContext.taMeldekortBehandlingService.taMeldekortBehandling(
                 meldekortId = sak.meldekortBehandlinger[1].id,
                 saksbehandler = ObjectMother.beslutter(),
-                correlationId = CorrelationId.generate(),
             )
             meldekortContext.iverksettMeldekortService.iverksettMeldekort(
                 IverksettMeldekortKommando(

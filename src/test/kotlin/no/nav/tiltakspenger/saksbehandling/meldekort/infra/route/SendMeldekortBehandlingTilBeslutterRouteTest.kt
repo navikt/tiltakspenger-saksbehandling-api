@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasIntrospectionResponse
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
@@ -42,6 +43,7 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
         val sakId = SakId.random()
         val meldekortId = MeldekortId.random()
         val texasClient = mockk<TexasClient>()
+        val tilgangskontrollService = mockk<TilgangskontrollService>(relaxed = true)
         val saksbehandler = ObjectMother.saksbehandler()
         val auditService = mockk<AuditService>()
         val sendMeldekortTilBeslutterService = mockk<SendMeldekortTilBeslutterService>()
@@ -80,6 +82,7 @@ internal class SendMeldekortBehandlingTilBeslutterRouteTest {
                                 auditService = auditService,
                                 sendMeldekortTilBeslutterService = sendMeldekortTilBeslutterService,
                                 clock = fixedClock,
+                                tilgangskontrollService = tilgangskontrollService,
                             )
                         }
                     }

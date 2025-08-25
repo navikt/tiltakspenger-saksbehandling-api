@@ -12,6 +12,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.getSystemBrukerMapper
+import no.nav.tiltakspenger.saksbehandling.felles.krevHentEllerOpprettSakRollen
+import no.nav.tiltakspenger.saksbehandling.felles.krevLagreSoknadRollen
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
@@ -25,14 +27,15 @@ fun Route.mottaSøknadRoute(
 ) {
     post(SØKNAD_PATH) {
         logger.debug { "Mottatt ny søknad på '$SØKNAD_PATH' -  Prøver deserialisere og lagre." }
-        val systembruker = (call.systembruker(getSystemBrukerMapper()) ?: return@post) as Systembruker
+        val systembruker = call.systembruker(getSystemBrukerMapper()) as? Systembruker ?: return@post
         val søknadDTO = call.receive<SøknadDTO>()
         logger.debug { "Deserialisert søknad OK med id ${søknadDTO.søknadId}" }
+        krevHentEllerOpprettSakRollen(systembruker)
+        krevLagreSoknadRollen(systembruker)
         val sak = sakService.hentForSaksnummer(
             Saksnummer(
                 søknadDTO.saksnummer,
             ),
-            systembruker,
         )
         // Oppretter søknad og lagrer den med kobling til angitt sak
         søknadService.nySøknad(
@@ -41,7 +44,6 @@ fun Route.mottaSøknadRoute(
                 innhentet = søknadDTO.opprettet,
                 sak = sak,
             ),
-            systembruker = systembruker,
         )
         MetricRegister.MOTTATT_SOKNAD.inc()
         call.respond(message = "OK", status = HttpStatusCode.OK)

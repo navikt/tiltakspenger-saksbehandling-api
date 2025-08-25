@@ -89,4 +89,35 @@ class IverksettSøknadsbehandlingTest {
             )
         }
     }
+
+    @Test
+    fun `iverksett - ikke tilgang hvis beslutter ikke har beslutter-rolle`() = runTest {
+        withTestApplicationContext { tac ->
+            val saksbehandler = saksbehandler()
+            val beslutter = ObjectMother.beslutter()
+            val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac, saksbehandler = saksbehandler)
+            val behandlingId = behandling.id
+            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+                it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+                it.saksbehandler shouldBe saksbehandler.navIdent
+                it.beslutter shouldBe null
+            }
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
+                tac,
+                sak.id,
+                behandlingId,
+                saksbehandler,
+            )
+            taBehanding(tac, sak.id, behandlingId, beslutter)
+
+            val response = iverksettForBehandlingIdReturnerRespons(
+                tac,
+                sak.id,
+                behandlingId,
+                saksbehandler,
+            )
+
+            response.status shouldBe HttpStatusCode.Forbidden
+        }
+    }
 }

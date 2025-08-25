@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -10,13 +11,16 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniter
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.KunneIkkeAvbryteSøknadOgBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSaksnummer
@@ -27,13 +31,17 @@ fun Route.avbrytSøknadOgBehandling(
     auditService: AuditService,
     avbrytSøknadOgBehandlingService: AvbrytSøknadOgBehandlingService,
     clock: Clock,
+    tilgangskontrollService: TilgangskontrollService,
 ) {
     val logger = KotlinLogging.logger {}
     post("$SAK_PATH/{saksnummer}/avbryt-aktiv-behandling") {
         logger.debug { "Mottatt post-request på $SAK_PATH/{saksnummer}/avbryt-aktiv-behandling - Prøver å avslutte søknad og behandling" }
+        val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSaksnummer { saksnummer ->
             call.withBody<AvsluttSøknadOgBehandlingBody> { body ->
+                krevSaksbehandlerRolle(saksbehandler)
+                tilgangskontrollService.harTilgangTilPersonForSaksnummer(saksnummer, saksbehandler, token)
                 avbrytSøknadOgBehandlingService.avbrytSøknadOgBehandling(
                     body.toCommand(
                         saksnummer = saksnummer,

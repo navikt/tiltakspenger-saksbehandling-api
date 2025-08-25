@@ -38,7 +38,6 @@ import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
-import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
@@ -500,9 +499,8 @@ fun TestApplicationContext.nySøknad(
         sakId = sak.id,
         saksnummer = sak.saksnummer,
     ),
-    systembruker: Systembruker = ObjectMother.systembrukerLagreSoknad(),
 ): Søknad {
-    this.søknadContext.søknadService.nySøknad(søknad, systembruker)
+    this.søknadContext.søknadService.nySøknad(søknad)
     this.leggTilPerson(fnr, personopplysningerForBrukerFraPdl, tiltaksdeltagelse ?: søknad.tiltak.toTiltak())
     return søknad
 }
@@ -641,10 +639,8 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
         ),
     )
 
-    return this.sakContext.sakService.sjekkTilgangOgHentForSakId(
+    return this.sakContext.sakService.hentForSakId(
         sakMedSøknadsbehandling.id,
-        saksbehandler,
-        correlationId = correlationId,
     )
 }
 
@@ -653,7 +649,6 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
-    correlationId: CorrelationId = CorrelationId.generate(),
     resultat: SøknadsbehandlingType,
     antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
         AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
@@ -673,12 +668,9 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
         vilkårsvurdert.id,
         vilkårsvurdert.behandlinger.singleOrNullOrThrow()!!.id,
         beslutter,
-        correlationId = correlationId,
     )
-    return this.sakContext.sakService.sjekkTilgangOgHentForSakId(
+    return this.sakContext.sakService.hentForSakId(
         vilkårsvurdert.id,
-        saksbehandler,
-        correlationId = correlationId,
     )
 }
 
@@ -687,7 +679,6 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
-    correlationId: CorrelationId = CorrelationId.generate(),
     resultat: SøknadsbehandlingType,
     antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
         AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
@@ -708,13 +699,10 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
     tac.behandlingContext.iverksettBehandlingService.iverksett(
         behandlingId = underBeslutning.behandlinger.singleOrNullOrThrow()!!.id,
         beslutter = beslutter,
-        correlationId = correlationId,
         sakId = underBeslutning.id,
     )
-    return this.sakContext.sakService.sjekkTilgangOgHentForSakId(
+    return this.sakContext.sakService.hentForSakId(
         underBeslutning.id,
-        saksbehandler,
-        correlationId = correlationId,
     )
 }
 
@@ -724,7 +712,6 @@ suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
     clock: Clock = fixedClock,
-    correlationId: CorrelationId = CorrelationId.generate(),
     resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
     antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
         AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
@@ -737,7 +724,6 @@ suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
         fnr = fnr,
         saksbehandler = saksbehandler,
         beslutter = beslutter,
-        correlationId = correlationId,
         resultat = resultat,
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
         barnetillegg = barnetillegg,
@@ -753,7 +739,6 @@ suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
-    correlationId: CorrelationId = CorrelationId.generate(),
 ): Sak {
     val tac = this
     val sak = søknadssbehandlingIverksatt(
@@ -767,12 +752,9 @@ suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
         sakId = sak.id,
         kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
         saksbehandler = saksbehandler,
-        correlationId = correlationId,
     )
-    return this.sakContext.sakService.sjekkTilgangOgHentForSakId(
+    return this.sakContext.sakService.hentForSakId(
         sak.id,
-        saksbehandler,
-        correlationId = correlationId,
     )
 }
 
@@ -781,7 +763,6 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
-    correlationId: CorrelationId = CorrelationId.generate(),
 ): Sak {
     val tac = this
     val sak = meldekortBehandlingOpprettet(
@@ -795,7 +776,7 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
             saksbehandler,
         ),
     )
-    return this.sakContext.sakService.sjekkTilgangOgHentForSakId(sak.id, saksbehandler, correlationId = correlationId)
+    return this.sakContext.sakService.hentForSakId(sak.id)
 }
 
 /**
@@ -818,7 +799,6 @@ suspend fun TestApplicationContext.førsteMeldekortIverksatt(
     tac.meldekortContext.taMeldekortBehandlingService.taMeldekortBehandling(
         meldekortId = sak.meldekortBehandlinger.first().id,
         saksbehandler = beslutter,
-        correlationId = correlationId,
     )
     tac.meldekortContext.iverksettMeldekortService.iverksettMeldekort(
         IverksettMeldekortKommando(
@@ -830,7 +810,7 @@ suspend fun TestApplicationContext.førsteMeldekortIverksatt(
     )
     // Emulerer at jobben kjører
     tac.utbetalingContext.sendUtbetalingerService.send()
-    return this.sakContext.sakService.sjekkTilgangOgHentForSakId(sak.id, saksbehandler, correlationId = correlationId)
+    return this.sakContext.sakService.hentForSakId(sak.id)
 }
 
 suspend fun TestApplicationContext.andreMeldekortIverksatt(
@@ -838,7 +818,6 @@ suspend fun TestApplicationContext.andreMeldekortIverksatt(
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
     beslutter: Saksbehandler = beslutter(),
-    correlationId: CorrelationId = CorrelationId.generate(),
 ): Sak {
     val tac = this
     val sak = førsteMeldekortIverksatt(
@@ -852,10 +831,9 @@ suspend fun TestApplicationContext.andreMeldekortIverksatt(
         sakId = sak.id,
         kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
         saksbehandler = saksbehandler,
-        correlationId = correlationId,
     )
 
-    return this.sakContext.sakService.sjekkTilgangOgHentForSakId(sak.id, saksbehandler, correlationId = correlationId)
+    return this.sakContext.sakService.hentForSakId(sak.id)
 }
 
 fun Behandling.tilBeslutning(

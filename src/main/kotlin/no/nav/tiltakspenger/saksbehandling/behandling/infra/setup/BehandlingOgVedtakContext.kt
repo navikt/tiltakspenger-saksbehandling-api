@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.setup
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
@@ -57,7 +56,6 @@ open class BehandlingOgVedtakContext(
     genererVedtaksbrevForInnvilgelseKlient: GenererVedtaksbrevForInnvilgelseKlient,
     genererVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient,
     genererVedtaksbrevForStansKlient: GenererVedtaksbrevForStansKlient,
-    tilgangsstyringService: TilgangsstyringService,
     personService: PersonService,
     dokumentdistribusjonsklient: Dokumentdistribusjonsklient,
     navIdentClient: NavIdentClient,
@@ -79,7 +77,6 @@ open class BehandlingOgVedtakContext(
         BehandlingService(
             behandlingRepo = behandlingRepo,
             sessionFactory = sessionFactory,
-            tilgangsstyringService = tilgangsstyringService,
             clock = clock,
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,

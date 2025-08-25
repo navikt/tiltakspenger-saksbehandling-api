@@ -5,8 +5,6 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
-import no.nav.tiltakspenger.saksbehandling.felles.krevLagreSoknadRollen
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 
 class SøknadService(
@@ -17,8 +15,7 @@ class SøknadService(
     private val log = KotlinLogging.logger {}
 
     /** Skal i førsteomgang kun brukes til digitale søknader. Dersom en saksbehandler skal registere en papirsøknad må vi ha en egen funksjon som sjekker tilgang.*/
-    fun nySøknad(søknad: Søknad, systembruker: Systembruker) {
-        krevLagreSoknadRollen(systembruker)
+    fun nySøknad(søknad: Søknad) {
         sessionFactory.withTransactionContext { tx ->
             søknadRepo.lagre(søknad, tx)
             sakService.oppdaterSkalSendesTilMeldekortApi(

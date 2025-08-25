@@ -4,6 +4,7 @@ import arrow.core.Tuple4
 import io.kotest.assertions.withClue
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
 import io.ktor.http.path
@@ -62,6 +63,26 @@ interface BehandleSøknadPåNyttBuilder {
             ) {}
             val behandlingId = BehandlingId.fromString(JSONObject(bodyAsText).getString("id"))
             return tac.behandlingContext.behandlingRepo.hent(behandlingId) to bodyAsText
+        }
+    }
+
+    suspend fun ApplicationTestBuilder.startBehandlingAvSøknadPåNyttForSøknadId(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        søknadId: SøknadId,
+        saksbehandler: Saksbehandler,
+    ): HttpStatusCode {
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler()
+        tac.texasClient.leggTilBruker(jwt, saksbehandler)
+        defaultRequest(
+            HttpMethod.Post,
+            url {
+                protocol = URLProtocol.HTTPS
+                path("/sak/$sakId/soknad/$søknadId/behandling/ny-behandling")
+            },
+            jwt = jwt,
+        ).apply {
+            return status
         }
     }
 }

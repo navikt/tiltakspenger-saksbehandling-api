@@ -25,7 +25,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -193,7 +192,6 @@ data class Søknadsbehandling(
             correlationId: CorrelationId,
             clock: Clock,
         ): Either<KanIkkeOppretteBehandling, Søknadsbehandling> {
-            krevSaksbehandlerRolle(saksbehandler)
             val opprettet = nå(clock)
 
             val saksopplysninger = hentSaksopplysninger(
