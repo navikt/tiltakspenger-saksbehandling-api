@@ -94,7 +94,6 @@ class MeldekortBehandlingRepoImplTest {
                 val (oppdatertMeldekortBehandling, simulering) = meldekortBehandling.oppdater(
                     beregn = {
                         ObjectMother.meldekortBeregning(
-                            sakId = sak.id,
                             startDato = meldekortBehandling.periode.fraOgMed,
                             meldekortId = meldekortBehandling.id,
                             maksDagerMedTiltakspengerForPeriode = meldekortBehandling.meldeperiode.maksAntallDagerForMeldeperiode,

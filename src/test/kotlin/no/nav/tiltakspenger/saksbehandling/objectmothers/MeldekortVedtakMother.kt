@@ -3,9 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.common.plus
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -17,12 +15,10 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletMa
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 
 interface MeldekortVedtakMother : MotherOfAllMothers {
 
@@ -41,7 +37,7 @@ interface MeldekortVedtakMother : MotherOfAllMothers {
             periode = periode,
             barnetilleggsPerioder = barnetilleggsPerioder,
         ),
-        forrigeUtbetalingId: VedtakId? = null,
+        forrigeUtbetalingId: UtbetalingId? = null,
         sendtTilUtbetaling: LocalDateTime? = null,
         journalpostId: JournalpostId? = null,
         journalføringstidspunkt: LocalDateTime? = null,
@@ -72,25 +68,8 @@ interface MeldekortVedtakMother : MotherOfAllMothers {
                 opprettet = opprettet,
                 saksbehandler = meldekortBehandling.saksbehandler!!,
                 beslutter = meldekortBehandling.beslutter!!,
+                statusMetadata = statusMetadata,
             ),
-        )
-    }
-
-    fun utbetalingDetSkalHentesStatusFor(
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
-        vedtakId: VedtakId = VedtakId.random(),
-        sakId: SakId = SakId.random(),
-        opprettet: LocalDateTime = nå(clock),
-        sendtTilUtbetalingstidspunkt: LocalDateTime = nå(fixedClock.plus(1, ChronoUnit.SECONDS)),
-        forsøkshistorikk: Forsøkshistorikk? = Forsøkshistorikk.opprett(clock = clock),
-    ): UtbetalingDetSkalHentesStatusFor {
-        return UtbetalingDetSkalHentesStatusFor(
-            sakId = sakId,
-            saksnummer = saksnummer,
-            vedtakId = vedtakId,
-            opprettet = opprettet,
-            sendtTilUtbetalingstidspunkt = sendtTilUtbetalingstidspunkt,
-            forsøkshistorikk = forsøkshistorikk,
         )
     }
 }

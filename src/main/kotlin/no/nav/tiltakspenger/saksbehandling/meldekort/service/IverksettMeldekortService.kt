@@ -69,7 +69,7 @@ class IverksettMeldekortService(
 
             sessionFactory.withTransactionContext { tx ->
                 meldekortBehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)
-                meldekortVedtakRepo.opprett(meldekortVedtak, tx)
+                meldekortVedtakRepo.lagre(meldekortVedtak, tx)
                 statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             }
             ferdigstillOppgave(meldeperiode.id, meldekortId)

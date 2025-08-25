@@ -24,7 +24,7 @@ class MeldekortVedtakPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : MeldekortVedtakRepo {
 
-    override fun opprett(vedtak: MeldekortVedtak, context: TransactionContext?) {
+    override fun lagre(vedtak: MeldekortVedtak, context: TransactionContext?) {
         sessionFactory.withSession(context) { session ->
             // Må lagre vedtaket og utbetalingen i en transaksjon med deferred constraint pga sirkulære referanser
             session.transaction { tx ->
@@ -80,40 +80,14 @@ class MeldekortVedtakPostgresRepo(
         }
     }
 
-//    override fun hentUtbetalingsvedtakForUtsjekk(limit: Int): List<MeldekortVedtak> {
-//        return sessionFactory.withSession { session ->
-//            session.run(
-//                queryOf(
-//                    //language=SQL
-//                    """
-//                            select v.*, u.forrige_utbetaling_vedtak_id, u.status, u.sendt_til_utbetaling_tidspunkt, s.saksnummer, s.fnr
-//                            from meldekortvedtak v
-//                            join sak s on s.id = v.sak_id
-//                            join utbetaling u on u.id = v.utbetaling_id
-//                            left join meldekortvedtak parent on parent.id = u.forrige_utbetaling_vedtak_id
-//                              and parent.sak_id = u.sak_id
-//                            where u.sendt_til_utbetaling_tidspunkt is null
-//                              and (u.forrige_utbetaling_vedtak_id is null or (parent.sendt_til_utbetaling_tidspunkt is not null and parent.status IN ('OK','OK_UTEN_UTBETALING')))
-//                            order by v.opprettet
-//                            limit :limit
-//                    """.trimIndent(),
-//                    mapOf("limit" to limit),
-//                ).map { row ->
-//                    row.toVedtak(session)
-//                }.asList,
-//            )
-//        }
-//    }
-
     override fun hentDeSomSkalJournalføres(limit: Int): List<MeldekortVedtak> {
         return sessionFactory.withSession { session ->
             session.run(
                 sqlQuery(
                     """
-                            select v.*, u.forrige_utbetaling_vedtak_id, u.status, u.sendt_til_utbetaling_tidspunkt, s.saksnummer, s.fnr 
+                            select v.*, s.saksnummer, s.fnr 
                             from meldekortvedtak v
                             join sak s on s.id = v.sak_id
-                            join utbetaling u on u.id = v.utbetaling_id 
                             where v.journalpost_id is null
                             limit :limit
                     """,
@@ -125,43 +99,14 @@ class MeldekortVedtakPostgresRepo(
         }
     }
 
-//    override fun hentDeSomSkalHentesUtbetalingsstatusFor(limit: Int): List<UtbetalingDetSkalHentesStatusFor> {
-//        return sessionFactory.withSession { session ->
-//            session.run(
-//                sqlQuery(
-//                    """
-//                        select v.*, u.forrige_utbetaling_vedtak_id, u.status, u.sendt_til_utbetaling_tidspunkt, s.saksnummer, s.fnr
-//                        from meldekortvedtak v
-//                        join sak s on s.id = v.sak_id
-//                        join utbetaling u on u.id = v.utbetaling_id
-//                        where (u.status is null or u.status IN ('IKKE_PÅBEGYNT', 'SENDT_TIL_OPPDRAG')) and u.sendt_til_utbetaling_tidspunkt is not null
-//                        order by v.opprettet
-//                        limit :limit
-//                    """,
-//                    "limit" to limit,
-//                ).map { row ->
-//                    UtbetalingDetSkalHentesStatusFor(
-//                        saksnummer = Saksnummer(row.string("saksnummer")),
-//                        sakId = SakId.fromString(row.string("sak_id")),
-//                        vedtakId = VedtakId.fromString(row.string("id")),
-//                        opprettet = row.localDateTime("opprettet"),
-//                        sendtTilUtbetalingstidspunkt = row.localDateTime("sendt_til_utbetaling_tidspunkt"),
-//                        forsøkshistorikk = row.stringOrNull("status_metadata")?.toForsøkshistorikk(),
-//                    )
-//                }.asList,
-//            )
-//        }
-//    }
-
     companion object {
         fun hentForSakId(sakId: SakId, session: Session): MeldekortVedtaksliste {
             return session.run(
                 sqlQuery(
                     """
-                        select v.*, u.forrige_utbetaling_vedtak_id, u.status, u.sendt_til_utbetaling_tidspunkt, s.saksnummer, s.fnr 
+                        select v.*, s.saksnummer, s.fnr 
                         from meldekortvedtak v
                         join sak s on s.id = v.sak_id
-                        join utbetaling u on u.id = v.utbetaling_id 
                         where v.sak_id = :sak_id 
                         order by v.opprettet
                     """,

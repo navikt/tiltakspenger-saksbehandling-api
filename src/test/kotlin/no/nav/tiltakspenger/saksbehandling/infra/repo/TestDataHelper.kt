@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadPo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortVedtakPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import javax.sql.DataSource
@@ -46,6 +47,7 @@ internal class TestDataHelper(
     val personhendelseRepository = PersonhendelseRepository(sessionFactory)
     val identhendelseRepository = IdenthendelseRepository(sessionFactory)
     val benkOversiktRepo = BenkOversiktPostgresRepo(sessionFactory)
+    val utbetalingRepo = UtbetalingPostgresRepo(sessionFactory)
 }
 
 private val dbManager = TestDatabaseManager()

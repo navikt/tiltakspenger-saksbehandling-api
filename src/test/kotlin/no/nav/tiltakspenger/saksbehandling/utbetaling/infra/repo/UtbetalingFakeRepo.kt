@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
@@ -32,13 +31,13 @@ class UtbetalingFakeRepo : UtbetalingRepo {
     }
 
     override fun lagreFeilResponsFraUtbetaling(
-        vedtakId: VedtakId,
+        utbetalingId: UtbetalingId,
         utbetalingsrespons: KunneIkkeUtbetale,
     ) {
         TODO("Not yet implemented")
     }
 
-    override fun hentUtbetalingJsonForVedtakId(vedtakId: VedtakId): String? {
+    override fun hentUtbetalingJson(utbetalingId: UtbetalingId): String? {
         TODO("Not yet implemented")
     }
 
@@ -47,7 +46,7 @@ class UtbetalingFakeRepo : UtbetalingRepo {
     }
 
     override fun oppdaterUtbetalingsstatus(
-        vedtakId: VedtakId,
+        utbetalingId: UtbetalingId,
         status: Utbetalingsstatus,
         metadata: Forsøkshistorikk,
         context: TransactionContext?,
