@@ -129,8 +129,18 @@ private data class SimuleringEndringDbJson(
 
 internal fun SimuleringMedMetadata.toDbJson(): String {
     return SimuleringDbJson(
-        simulering = simulering.toDbJson(),
+        simulering = simulering.toSimuleringEndringDbJson(),
         type = when (simulering) {
+            is Simulering.Endring -> Type.ENDRING
+            Simulering.IngenEndring -> Type.INGEN_ENDRING
+        },
+    ).let { serialize(it) }
+}
+
+internal fun Simulering.toDbJson(): String {
+    return SimuleringDbJson(
+        simulering = this.toSimuleringEndringDbJson(),
+        type = when (this) {
             is Simulering.Endring -> Type.ENDRING
             Simulering.IngenEndring -> Type.INGEN_ENDRING
         },
@@ -141,7 +151,7 @@ internal fun String.toSimuleringFraDbJson(hentMeldeperiodekjederForSakId: Meldep
     return deserialize<SimuleringDbJson>(this).toDomain(hentMeldeperiodekjederForSakId)
 }
 
-private fun Simulering.toDbJson(): SimuleringEndringDbJson? {
+private fun Simulering.toSimuleringEndringDbJson(): SimuleringEndringDbJson? {
     return when (this) {
         is Simulering.Endring -> toDbJson()
         Simulering.IngenEndring -> null

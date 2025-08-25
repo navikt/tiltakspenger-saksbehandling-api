@@ -2,10 +2,14 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.ports
 
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
@@ -25,7 +29,12 @@ interface Utbetalingsklient {
     ): Either<KunneIkkeHenteUtbetalingsstatus, Utbetalingsstatus>
 
     suspend fun simuler(
-        behandling: MeldekortBehandling,
+        sakId: SakId,
+        saksnummer: Saksnummer,
+        behandlingId: Ulid,
+        fnr: Fnr,
+        saksbehandler: String,
+        beregning: UtbetalingBeregning,
         brukersNavkontor: Navkontor,
         forrigeUtbetalingJson: String?,
         forrigeVedtakId: VedtakId?,

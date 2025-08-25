@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereBehandling
@@ -18,6 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 
 class OppdaterBehandlingService(
@@ -25,6 +29,8 @@ class OppdaterBehandlingService(
     private val behandlingRepo: BehandlingRepo,
     private val navkontorService: NavkontorService,
     private val clock: Clock,
+    private val simulerService: SimulerService,
+    private val sessionFactory: SessionFactory,
 ) {
 
     suspend fun oppdater(kommando: OppdaterBehandlingKommando): Either<KanIkkeOppdatereBehandling, Pair<Sak, Behandling>> {
@@ -44,14 +50,16 @@ class OppdaterBehandlingService(
         }
 
         return when (kommando) {
-            is OppdaterSøknadsbehandlingKommando -> sak.oppdaterSøknadsbehandling(kommando)
+            is OppdaterSøknadsbehandlingKommando -> sak.oppdaterSøknadsbehandling(kommando).map { it to null }
             is OppdaterRevurderingKommando -> sak.oppdaterRevurdering(kommando)
-        }.map {
-            val oppdatertSak = sak.oppdaterBehandling(it)
+        }.map { (behandling, simulering) ->
+            val oppdatertSak = sak.oppdaterBehandling(behandling)
 
-            behandlingRepo.lagre(it)
-
-            oppdatertSak to it
+            sessionFactory.withTransactionContext { tx ->
+                behandlingRepo.lagre(behandling, tx)
+                behandlingRepo.oppdaterSimuleringMetadata(behandling.id, simulering?.originalResponseBody, tx)
+            }
+            oppdatertSak to behandling
         }
     }
 
@@ -71,23 +79,31 @@ class OppdaterBehandlingService(
 
     private suspend fun Sak.oppdaterRevurdering(
         kommando: OppdaterRevurderingKommando,
-    ): Either<KanIkkeOppdatereBehandling, Revurdering> {
+    ): Either<KanIkkeOppdatereBehandling, Pair<Revurdering, SimuleringMedMetadata?>> {
         val behandling = this.hentBehandling(kommando.behandlingId) as Revurdering
 
         return when (kommando) {
             is Innvilgelse -> {
-                val utbetaling = beregnRevurderingInnvilgelse(kommando)?.let {
+                val (utbetaling, simuleringMedMetadata) = beregnRevurderingInnvilgelse(kommando)?.let {
+                    val navkontor = navkontorService.hentOppfolgingsenhet(this.fnr)
+                    val simuleringMedMetadata = simulerService.simulerRevurdering(
+                        behandling = behandling,
+                        beregning = it,
+                        forrigeUtbetaling = this.utbetalinger.lastOrNull(),
+                        meldeperiodeKjeder = this.meldeperiodeKjeder,
+                    ) { navkontor }.getOrElse { null }
+
                     BehandlingUtbetaling(
                         beregning = it,
-                        navkontor = navkontorService.hentOppfolgingsenhet(this.fnr),
-                    )
-                }
-
+                        navkontor = navkontor,
+                        simulering = simuleringMedMetadata?.simulering,
+                    ) to simuleringMedMetadata
+                } ?: (null to null)
                 behandling.oppdaterInnvilgelse(
                     kommando = kommando,
                     utbetaling = utbetaling,
                     clock = clock,
-                )
+                ).map { it to simuleringMedMetadata }
             }
 
             is Stans -> {
@@ -97,7 +113,7 @@ class OppdaterBehandlingService(
                     kommando = kommando,
                     sisteDagSomGirRett = sisteDagSomGirRett!!,
                     clock = clock,
-                )
+                ).map { it to null }
             }
         }
     }

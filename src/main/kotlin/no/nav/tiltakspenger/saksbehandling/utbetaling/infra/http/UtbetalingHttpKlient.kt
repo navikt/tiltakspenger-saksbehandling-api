@@ -11,12 +11,16 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
@@ -164,18 +168,28 @@ class UtbetalingHttpKlient(
      * Nåværende versjon: https://helved-docs.intern.dev.nav.no/v2/doc/simulering
      */
     override suspend fun simuler(
-        behandling: MeldekortBehandling,
+        sakId: SakId,
+        saksnummer: Saksnummer,
+        behandlingId: Ulid,
+        fnr: Fnr,
+        saksbehandler: String,
+        beregning: UtbetalingBeregning,
         brukersNavkontor: Navkontor,
         forrigeUtbetalingJson: String?,
         forrigeVedtakId: VedtakId?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         return withContext(Dispatchers.IO) {
-            val sakId = behandling.sakId
-            val saksnummer = behandling.saksnummer
-            val behandlingId = behandling.id
+            val sakId = sakId
+            val saksnummer = saksnummer
+            val behandlingId = behandlingId
             val path = "$baseUrl/api/simulering/v2"
-            val jsonPayload = behandling.toSimuleringRequest(
+            val jsonPayload = toSimuleringRequest(
+                saksnummer = saksnummer,
+                behandlingId = behandlingId,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                beregning = beregning,
                 brukersNavkontor = brukersNavkontor,
                 forrigeUtbetalingJson = forrigeUtbetalingJson,
                 forrigeVedtakId = forrigeVedtakId,
