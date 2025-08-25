@@ -58,10 +58,6 @@ object Configuration {
                 "POAO_TILGANG_SCOPE" to "localhost",
                 "PDL_SCOPE" to "localhost",
                 "PDL_ENDPOINT_URL" to "http://host.docker.internal:8091/graphql",
-                "PDL_PIP_SCOPE" to "localhost",
-                "PDL_PIP_ENDPOINT_URL" to "http://host.docker.internal:8091/tilgangstyring",
-                "SKJERMING_SCOPE" to "localhost",
-                "SKJERMING_URL" to "http://host.docker.internal:8091",
                 "TILTAK_SCOPE" to "localhost",
                 "TILTAK_URL" to "http://host.docker.internal:8091",
                 "UTBETALING_SCOPE" to "localhost",
@@ -106,10 +102,6 @@ object Configuration {
                 "application.profile" to Profile.DEV.toString(),
                 "PDL_SCOPE" to "dev-fss:pdl:pdl-api",
                 "PDL_ENDPOINT_URL" to "https://pdl-api.dev-fss-pub.nais.io/graphql",
-                "PDL_PIP_SCOPE" to "dev-fss:pdl:pdl-pip-api",
-                "PDL_PIP_ENDPOINT_URL" to "https://pdl-pip-api.dev-fss-pub.nais.io",
-                "SKJERMING_SCOPE" to "dev-gcp:nom:skjermede-personer-pip",
-                "SKJERMING_URL" to "https://skjermede-personer-pip.intern.dev.nav.no",
                 "TILTAK_SCOPE" to "dev-gcp:tpts:tiltakspenger-tiltak",
                 "TILTAK_URL" to "http://tiltakspenger-tiltak",
                 "UTBETALING_SCOPE" to "dev-gcp:helved:utsjekk",
@@ -149,10 +141,6 @@ object Configuration {
                 "application.profile" to Profile.PROD.toString(),
                 "PDL_SCOPE" to "prod-fss:pdl:pdl-api",
                 "PDL_ENDPOINT_URL" to "https://pdl-api.prod-fss-pub.nais.io/graphql",
-                "PDL_PIP_SCOPE" to "prod-fss:pdl:pdl-pip-api",
-                "PDL_PIP_ENDPOINT_URL" to "https://pdl-pip-api.prod-fss-pub.nais.io",
-                "SKJERMING_SCOPE" to "prod-gcp:nom:skjermede-personer-pip",
-                "SKJERMING_URL" to "https://skjermede-personer-pip.intern.nav.no",
                 "TILTAK_SCOPE" to "prod-gcp:tpts:tiltakspenger-tiltak",
                 "TILTAK_URL" to "http://tiltakspenger-tiltak",
                 "UTBETALING_SCOPE" to "prod-gcp:helved:utsjekk",
@@ -227,8 +215,6 @@ object Configuration {
     val tokenExchangeEndpoint: String by lazy { config()[Key("NAIS_TOKEN_EXCHANGE_ENDPOINT", stringType)] }
 
     val pdlScope: String by lazy { config()[Key("PDL_SCOPE", stringType)] }
-    val pdlPipScope: String by lazy { config()[Key("PDL_PIP_SCOPE", stringType)] }
-    val skjermingScope: String by lazy { config()[Key("SKJERMING_SCOPE", stringType)] }
     val tiltakScope: String by lazy { config()[Key("TILTAK_SCOPE", stringType)] }
     val joarkScope: String by lazy { config()[Key("JOARK_SCOPE", stringType)] }
     val dokdistScope: String by lazy { config()[Key("DOKDIST_SCOPE", stringType)] }
@@ -242,8 +228,6 @@ object Configuration {
     val sokosUtbetaldataScope: String by lazy { config()[Key("SOKOS_UTBETALDATA_SCOPE", stringType)] }
 
     val pdlUrl by lazy { config()[Key("PDL_ENDPOINT_URL", stringType)] }
-    val pdlPipUrl by lazy { config()[Key("PDL_PIP_ENDPOINT_URL", stringType)] }
-    val skjermingUrl: String by lazy { config()[Key("SKJERMING_URL", stringType)] }
     val tiltakUrl: String by lazy { config()[Key("TILTAK_URL", stringType)] }
     val joarkUrl: String by lazy { config()[Key("JOARK_URL", stringType)] }
     val dokdistUrl: String by lazy { config()[Key("DOKDIST_URL", stringType)] }

@@ -1,30 +1,24 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.behandling
 
-import arrow.core.getOrElse
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.SøknadId
-import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
-import no.nav.tiltakspenger.libs.person.harStrengtFortroligAdresse
-import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 
 class StatistikkSakService(
-    private val tilgangsstyringService: TilgangsstyringService,
+    private val personKlient: PersonKlient,
     private val gitHash: String,
     private val clock: Clock,
 ) {
     suspend fun genererStatistikkForSøknadsbehandling(
         behandling: Søknadsbehandling,
-        søknadId: SøknadId,
     ): StatistikkSakDTO {
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
-            gjelderKode6 = gjelderKode6(behandling.fnr, "SøknadId: $søknadId"),
+            gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
             hendelse = "opprettet_behandling",
@@ -36,7 +30,7 @@ class StatistikkSakService(
     ): StatistikkSakDTO {
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
-            gjelderKode6 = gjelderKode6(behandling.fnr, "BehandlingId: ${behandling.id}"),
+            gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
             hendelse = "opprettet_revurdering",
@@ -45,11 +39,10 @@ class StatistikkSakService(
 
     suspend fun genererStatistikkForRammevedtak(
         rammevedtak: Rammevedtak,
-        behandlingId: BehandlingId,
     ): StatistikkSakDTO {
         return genererSaksstatistikkForRammevedtak(
             vedtak = rammevedtak,
-            gjelderKode6 = gjelderKode6(rammevedtak.fnr, "BehandlingId: $behandlingId"),
+            gjelderKode6 = gjelderKode6(rammevedtak.fnr),
             versjon = gitHash,
             clock = clock,
         )
@@ -60,7 +53,7 @@ class StatistikkSakService(
     ): StatistikkSakDTO {
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
-            gjelderKode6 = gjelderKode6(behandling.fnr, "BehandlingId: ${behandling.id}"),
+            gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
             hendelse = "sendt_til_beslutter",
@@ -72,7 +65,7 @@ class StatistikkSakService(
     ): StatistikkSakDTO {
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
-            gjelderKode6 = gjelderKode6(behandling.fnr, "BehandlingId: ${behandling.id}"),
+            gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
             hendelse = "underkjent_behandling",
@@ -84,7 +77,7 @@ class StatistikkSakService(
     ): StatistikkSakDTO {
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
-            gjelderKode6 = gjelderKode6(behandling.fnr, "BehandlingId: ${behandling.id}"),
+            gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
             hendelse = "oppdatert_saksbehandler_beslutter",
@@ -96,7 +89,7 @@ class StatistikkSakService(
     ): StatistikkSakDTO {
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
-            gjelderKode6 = gjelderKode6(behandling.fnr, "BehandlingId: ${behandling.id}"),
+            gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
             hendelse = "avsluttet_behandling",
@@ -108,7 +101,7 @@ class StatistikkSakService(
     ): StatistikkSakDTO {
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
-            gjelderKode6 = gjelderKode6(behandling.fnr, "BehandlingId: ${behandling.id}"),
+            gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
             hendelse = "behandling_satt_på_vent",
@@ -120,7 +113,7 @@ class StatistikkSakService(
     ): StatistikkSakDTO {
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
-            gjelderKode6 = gjelderKode6(behandling.fnr, "BehandlingId: ${behandling.id}"),
+            gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
             hendelse = "behandling_gjenopptatt",
@@ -129,27 +122,18 @@ class StatistikkSakService(
 
     suspend fun genererStatistikkForSøknadSomBehandlesPåNytt(
         behandling: Søknadsbehandling,
-        søknadId: SøknadId,
     ): StatistikkSakDTO {
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
-            gjelderKode6 = gjelderKode6(behandling.fnr, "SøknadId: $søknadId"),
+            gjelderKode6 = gjelderKode6(behandling.fnr),
             versjon = gitHash,
             clock = clock,
             hendelse = "søknad_behandlet_på_nytt",
         )
     }
 
-    private suspend fun gjelderKode6(fnr: Fnr, sporingsinformasjon: String): Boolean {
-        val adressebeskyttelseGradering: List<AdressebeskyttelseGradering>? =
-            tilgangsstyringService.adressebeskyttelseEnkel(fnr)
-                .getOrElse {
-                    throw IllegalArgumentException(
-                        "Kunne ikke hente adressebeskyttelsegradering for person. $sporingsinformasjon",
-                    )
-                }
-        require(adressebeskyttelseGradering != null) { "Fant ikke adressebeskyttelse for person. $sporingsinformasjon" }
-
-        return adressebeskyttelseGradering.harStrengtFortroligAdresse()
+    private suspend fun gjelderKode6(fnr: Fnr): Boolean {
+        val person = personKlient.hentEnkelPerson(fnr)
+        return person.strengtFortrolig || person.strengtFortroligUtland
     }
 }
