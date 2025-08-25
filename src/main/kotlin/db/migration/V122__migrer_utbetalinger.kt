@@ -47,12 +47,18 @@ class V122__migrer_utbetalinger : BaseJavaMigration() {
                             from meldekortvedtak mv 
                             join sak s on s.id = mv.sak_id
                             left join rammevedtak r on r.behandling_id = mv.behandling_id
+                            order by mv.opprettet
                         """,
                     ).map { row ->
+                        val vedtakId = VedtakId.fromString(row.string("id"))
+                        // uuid-delen av vedtak-iden brukes som id for å kjede utbetalingene på en sak av helved.
+                        // Beholder den her for ikke å bryte eksisterende kjeder
+                        val utbetalingId = UtbetalingId.fromString("utbetaling_${vedtakId.ulidPart()}")
+
                         UtbetalingsvedtakRow(
-                            utbetalingId = UtbetalingId.random(),
+                            utbetalingId = utbetalingId,
                             sakId = SakId.fromString(row.string("sak_id")),
-                            vedtakId = VedtakId.fromString(row.string("id")),
+                            vedtakId = vedtakId,
                             rammevedtakId = row.stringOrNull("rammevedtak_id")?.let { VedtakId.fromString(it) },
                             forrigeVedtakId = row.stringOrNull("forrige_vedtak_id")
                                 ?.let { VedtakId.fromString(it) },
@@ -96,7 +102,7 @@ class V122__migrer_utbetalinger : BaseJavaMigration() {
 
                     if (erRammevedtak) {
                         settRammevedtakUtbetaling(vedtak.rammevedtakId, utbetalingId, session)
-                        logger.info { "Oppdaterte rammevedtake ${vedtak.rammevedtakId} med utbetaling $utbetalingId" }
+                        logger.info { "Oppdaterte rammevedtaket ${vedtak.rammevedtakId} med utbetaling $utbetalingId" }
                     } else {
                         settMeldekortVedtakUtbetaling(vedtak.vedtakId, utbetalingId, session)
                         logger.info { "Oppdaterte meldekortvedtaket ${vedtak.vedtakId} med utbetaling $utbetalingId" }
