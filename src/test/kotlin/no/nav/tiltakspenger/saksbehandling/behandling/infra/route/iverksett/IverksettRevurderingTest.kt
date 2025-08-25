@@ -16,7 +16,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRe
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.antallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltagelseDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingIdReturnerRespons
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
@@ -70,17 +72,10 @@ internal class IverksettRevurderingTest {
                 revurderingVirkningsperiode = revurderingInnvilgelsesperiode,
             )
 
-            val tiltaksdeltagelse = revurdering.saksopplysninger.tiltaksdeltagelser.single()
-
             val barnetillegg = barnetillegg(
                 begrunnelse = BegrunnelseVilkårsvurdering("barnetillegg begrunnelse"),
                 periode = revurderingInnvilgelsesperiode,
                 antallBarn = AntallBarn(1),
-            )
-
-            val antallDager = SammenhengendePeriodisering(
-                AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-                revurderingInnvilgelsesperiode,
             )
 
             oppdaterBehandling(
@@ -90,15 +85,12 @@ internal class IverksettRevurderingTest {
                 oppdaterBehandlingDTO = OppdaterRevurderingDTO.Innvilgelse(
                     fritekstTilVedtaksbrev = "ny brevtekst",
                     begrunnelseVilkårsvurdering = "ny begrunnelse",
-                    valgteTiltaksdeltakelser = listOf(
-                        TiltaksdeltakelsePeriodeDTO(
-                            eksternDeltagelseId = tiltaksdeltagelse.eksternDeltagelseId,
-                            periode = tiltaksdeltagelse.periode!!.toDTO(),
-                        ),
-                    ),
+                    valgteTiltaksdeltakelser = revurdering.tiltaksdeltagelseDTO(),
                     innvilgelsesperiode = revurderingInnvilgelsesperiode.toDTO(),
                     barnetillegg = barnetillegg.toBarnetilleggDTO(),
-                    antallDagerPerMeldeperiodeForPerioder = antallDager.toDTO(),
+                    antallDagerPerMeldeperiodeForPerioder = revurdering.antallDagerPerMeldeperiodeDTO(
+                        revurderingInnvilgelsesperiode,
+                    ),
                 ),
             )
 

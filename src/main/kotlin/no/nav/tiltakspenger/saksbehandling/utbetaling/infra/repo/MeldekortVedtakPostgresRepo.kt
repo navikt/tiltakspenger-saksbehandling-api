@@ -25,13 +25,12 @@ class MeldekortVedtakPostgresRepo(
 ) : MeldekortVedtakRepo {
 
     override fun lagre(vedtak: MeldekortVedtak, context: TransactionContext?) {
-        sessionFactory.withSession(context) { session ->
+        sessionFactory.withTransaction(context) { tx ->
             // Må lagre vedtaket og utbetalingen i en transaksjon med deferred constraint pga sirkulære referanser
-            session.transaction { tx ->
-                tx.run(queryOf("SET CONSTRAINTS meldekortvedtak_utbetaling_id_fkey DEFERRED").asExecute)
-                tx.run(
-                    sqlQuery(
-                        """
+            tx.run(queryOf("SET CONSTRAINTS meldekortvedtak_utbetaling_id_fkey DEFERRED").asExecute)
+            tx.run(
+                sqlQuery(
+                    """
                         insert into meldekortvedtak (
                             id,
                             utbetaling_id,
@@ -46,15 +45,14 @@ class MeldekortVedtakPostgresRepo(
                             :meldekort_id
                         )
                     """,
-                        "id" to vedtak.id.toString(),
-                        "utbetaling_id" to vedtak.utbetaling.id.toString(),
-                        "sak_id" to vedtak.sakId.toString(),
-                        "opprettet" to vedtak.opprettet,
-                        "meldekort_id" to vedtak.utbetaling.beregningKilde.id.toString(),
-                    ).asUpdate,
-                )
-                UtbetalingPostgresRepo.lagre(vedtak.utbetaling, tx)
-            }
+                    "id" to vedtak.id.toString(),
+                    "utbetaling_id" to vedtak.utbetaling.id.toString(),
+                    "sak_id" to vedtak.sakId.toString(),
+                    "opprettet" to vedtak.opprettet,
+                    "meldekort_id" to vedtak.utbetaling.beregningKilde.id.toString(),
+                ).asUpdate,
+            )
+            UtbetalingPostgresRepo.lagre(vedtak.utbetaling, tx)
         }
     }
 

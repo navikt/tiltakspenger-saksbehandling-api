@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.objectmothers.andreMeldekortIverksatt
+import no.nav.tiltakspenger.saksbehandling.objectmothers.andreMeldekortOpprettet
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilSendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortVedtakFakeRepo
 import org.junit.jupiter.api.Test
@@ -16,7 +16,7 @@ internal class IverksettMeldekortServiceTest {
     @Test
     fun `neste utbetaling peker på forrige`() = runTest {
         with(TestApplicationContext()) {
-            val sak = this.andreMeldekortIverksatt()
+            val sak = this.andreMeldekortOpprettet()
             val sakId = sak.id
             meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
                 sak.meldekortBehandlinger[1].tilSendMeldekortTilBeslutterKommando(ObjectMother.saksbehandler()),

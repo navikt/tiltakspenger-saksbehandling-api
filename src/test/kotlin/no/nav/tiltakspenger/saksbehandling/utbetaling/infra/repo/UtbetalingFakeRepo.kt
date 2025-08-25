@@ -43,8 +43,8 @@ class UtbetalingFakeRepo : UtbetalingRepo {
         response.get()[utbetalingId] = utbetalingsrespons
     }
 
-    override fun hentUtbetalingJson(utbetalingId: UtbetalingId): String {
-        return "fake-utbetaling-json"
+    override fun hentUtbetalingJson(utbetalingId: UtbetalingId): String? {
+        return response.get()[utbetalingId]?.request
     }
 
     override fun hentForUtsjekk(limit: Int): List<Utbetaling> {

@@ -43,9 +43,13 @@ data class Sak(
     val brukersMeldekort: List<BrukersMeldekort>,
     val soknader: List<Søknad>,
 ) {
-    val utbetalinger: Utbetalinger = Utbetalinger(
-        vedtaksliste.utbetalinger.plus(meldekortVedtaksliste.utbetalinger),
-    )
+    val utbetalinger: Utbetalinger by lazy {
+        Utbetalinger(
+            vedtaksliste.utbetalinger
+                .plus(meldekortVedtaksliste.utbetalinger)
+                .sortedBy { it.opprettet },
+        )
+    }
 
     val meldeperiodeBeregninger: MeldeperiodeBeregninger by lazy {
         MeldeperiodeBeregninger(
