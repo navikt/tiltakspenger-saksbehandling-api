@@ -39,6 +39,7 @@ class StartSøknadsbehandlingService(
 
         val statistikk = statistikkSakService.genererStatistikkForSøknadsbehandling(
             behandling = behandling,
+            søknadId = soknad.id,
         )
 
         sessionFactory.withTransactionContext { tx ->

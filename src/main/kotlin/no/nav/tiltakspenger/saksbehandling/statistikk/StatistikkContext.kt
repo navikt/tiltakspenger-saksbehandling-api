@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.statistikk
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
-import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadPostgresRepo
@@ -12,7 +12,7 @@ import java.time.Clock
 
 open class StatistikkContext(
     sessionFactory: SessionFactory,
-    personKlient: PersonKlient,
+    tilgangsstyringService: TilgangsstyringService,
     gitHash: String,
     clock: Clock,
 ) {
@@ -21,7 +21,7 @@ open class StatistikkContext(
 
     val statistikkSakService: StatistikkSakService by lazy {
         StatistikkSakService(
-            personKlient = personKlient,
+            tilgangsstyringService = tilgangsstyringService,
             gitHash = gitHash,
             clock = clock,
         )

@@ -67,10 +67,12 @@ class BehandleSøknadPåNyttService(
 
         val opprettetBehandlingStatistikk = statistikkSakService.genererStatistikkForSøknadsbehandling(
             behandling = søknadsbehandling,
+            søknadId = søknadId,
         )
 
         val opprettetBehandlingPåNyttStatistikk = statistikkSakService.genererStatistikkForSøknadSomBehandlesPåNytt(
             behandling = søknadsbehandling,
+            søknadId = søknadId,
         )
 
         sessionFactory.withTransactionContext { tx ->

@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.person.infra.setup
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
+import no.nav.tiltakspenger.libs.personklient.tilgangsstyring.TilgangsstyringServiceImpl
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
@@ -25,6 +27,14 @@ open class PersonContext(
         PersonHttpklient(
             endepunkt = Configuration.pdlUrl,
             getToken = { texasClient.getSystemToken(Configuration.pdlScope, IdentityProvider.AZUREAD) },
+        )
+    }
+    open val tilgangsstyringService: TilgangsstyringService by lazy {
+        TilgangsstyringServiceImpl.create(
+            getPdlPipToken = { texasClient.getSystemToken(Configuration.pdlPipScope, IdentityProvider.AZUREAD) },
+            pdlPipBaseUrl = Configuration.pdlPipUrl,
+            skjermingBaseUrl = Configuration.skjermingUrl,
+            getSkjermingToken = { texasClient.getSystemToken(Configuration.skjermingScope, IdentityProvider.AZUREAD) },
         )
     }
     open val navIdentClient: NavIdentClient by lazy {
