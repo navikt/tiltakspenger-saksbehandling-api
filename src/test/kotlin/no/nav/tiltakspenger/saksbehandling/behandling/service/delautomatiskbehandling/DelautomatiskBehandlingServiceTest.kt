@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -37,6 +38,7 @@ class DelautomatiskBehandlingServiceTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    configureExceptions()
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
@@ -76,6 +78,7 @@ class DelautomatiskBehandlingServiceTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    configureExceptions()
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
@@ -126,6 +129,7 @@ class DelautomatiskBehandlingServiceTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    configureExceptions()
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
@@ -156,6 +160,7 @@ class DelautomatiskBehandlingServiceTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    configureExceptions()
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }

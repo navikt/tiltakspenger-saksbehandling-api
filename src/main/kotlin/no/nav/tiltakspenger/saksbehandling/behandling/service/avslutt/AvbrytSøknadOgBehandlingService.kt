@@ -26,13 +26,9 @@ class AvbrytSøknadOgBehandlingService(
 ) {
 
     suspend fun avbrytSøknadOgBehandling(command: AvbrytSøknadOgBehandlingCommand): Either<KunneIkkeAvbryteSøknadOgBehandling, Sak> {
-        // Validerer at saksbehandler har tilgang til person og at saksbehandler har SAKSBEHANDLER eller BESLUTTER-rollen.
         val sak = sakService.hentForSaksnummer(
             saksnummer = command.saksnummer,
-            saksbehandler = command.avsluttetAv,
-            correlationId = command.correlationId,
         )
-        // Validerer saksbehandler
         val (oppdatertSak, avbruttSøknad, avbruttBehandling) = sak.avbrytSøknadOgBehandling(
             command = command,
             avbruttTidspunkt = LocalDateTime.now(),

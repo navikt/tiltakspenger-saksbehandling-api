@@ -1,31 +1,22 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.felles.krevTilgangTilPerson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 
 class TaMeldekortBehandlingService(
-    private val tilgangsstyringService: TilgangsstyringService,
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
 ) {
     val logger = KotlinLogging.logger { }
 
-    suspend fun taMeldekortBehandling(
+    fun taMeldekortBehandling(
         meldekortId: MeldekortId,
         saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
     ): MeldekortBehandling {
         val meldekortBehandling = meldekortBehandlingRepo.hent(meldekortId)!!
-        tilgangsstyringService.krevTilgangTilPerson(saksbehandler, meldekortBehandling.fnr, correlationId)
-
-        krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
 
         return meldekortBehandling.taMeldekortBehandling(saksbehandler).also {
             when (it.status) {

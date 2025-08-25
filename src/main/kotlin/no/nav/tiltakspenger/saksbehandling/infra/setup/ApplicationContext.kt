@@ -87,6 +87,7 @@ open class ApplicationContext(
     open val tilgangskontrollService: TilgangskontrollService by lazy {
         TilgangskontrollService(
             tilgangsmaskinClient = tilgangsmaskinClient,
+            sakService = sakContext.sakService,
         )
     }
 
@@ -240,7 +241,6 @@ open class ApplicationContext(
     open val sakContext by lazy {
         SakContext(
             sessionFactory = sessionFactory,
-            tilgangsstyringService = personContext.tilgangsstyringService,
             poaoTilgangKlient = personContext.poaoTilgangKlient,
             personService = personContext.personService,
             profile = profile,
@@ -263,10 +263,8 @@ open class ApplicationContext(
         MeldekortContext(
             sessionFactory = sessionFactory,
             sakService = sakContext.sakService,
-            tilgangsstyringService = personContext.tilgangsstyringService,
             utbetalingsvedtakRepo = utbetalingContext.utbetalingsvedtakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
-            personService = personContext.personService,
             texasClient = texasClient,
             navkontorService = navkontorService,
             oppgaveKlient = oppgaveKlient,
@@ -286,7 +284,6 @@ open class ApplicationContext(
             genererVedtaksbrevForInnvilgelseKlient = dokumentContext.genererVedtaksbrevForInnvilgelseKlient,
             genererVedtaksbrevForAvslagKlient = dokumentContext.genererVedtaksbrevForAvslagKlient,
             genererVedtaksbrevForStansKlient = dokumentContext.genererVedtaksbrevForStansKlient,
-            tilgangsstyringService = personContext.tilgangsstyringService,
             dokumentdistribusjonsklient = dokumentContext.dokumentdistribusjonsklient,
             personService = personContext.personService,
             navIdentClient = personContext.navIdentClient,
@@ -302,7 +299,7 @@ open class ApplicationContext(
     open val benkOversiktContext by lazy {
         BenkOversiktContext(
             sessionFactory = sessionFactory,
-            tilgangsstyringService = personContext.tilgangsstyringService,
+            tilgangskontrollService = tilgangskontrollService,
         )
     }
 

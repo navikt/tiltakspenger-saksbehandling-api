@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.BehandlingId
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
@@ -21,13 +20,10 @@ class GjenopptaBehandlingService(
         sakId: SakId,
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
     ): Pair<Sak, Behandling> {
         val (sak, behandling) = behandlingService.hentSakOgBehandling(
             sakId = sakId,
             behandlingId = behandlingId,
-            saksbehandler = saksbehandler,
-            correlationId = correlationId,
         )
 
         return behandling.gjenoppta(

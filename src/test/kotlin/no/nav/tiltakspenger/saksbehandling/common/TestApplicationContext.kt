@@ -6,6 +6,8 @@ import no.nav.tiltakspenger.libs.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.person.AdressebeskyttelseGradering
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeClient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
@@ -71,6 +73,8 @@ class TestApplicationContext(
     @Suppress("MemberVisibilityCanBePrivate")
     val distribusjonIdGenerator = DistribusjonIdGenerator()
 
+    val tilgangsmaskinFakeClient = TilgangsmaskinFakeClient()
+
     private val rammevedtakFakeRepo = RammevedtakFakeRepo()
     private val statistikkStønadFakeRepo = StatistikkStønadFakeRepo()
     private val statistikkSakFakeRepo = StatistikkSakFakeRepo()
@@ -107,6 +111,7 @@ class TestApplicationContext(
             adressebeskyttelseGradering = listOf(AdressebeskyttelseGradering.UGRADERT),
         )
         tiltaksdeltagelseFakeKlient.lagre(fnr = fnr, tiltaksdeltagelse = tiltaksdeltagelse)
+        tilgangsmaskinFakeClient.leggTil(fnr, true)
     }
 
     private val saksoversiktFakeRepo =
@@ -169,7 +174,6 @@ class TestApplicationContext(
         object : SakContext(
             sessionFactory = sessionFactory,
             personService = personContext.personService,
-            tilgangsstyringService = tilgangsstyringFakeKlient,
             poaoTilgangKlient = personContext.poaoTilgangKlient,
             profile = Profile.LOCAL,
             clock = clock,
@@ -178,6 +182,12 @@ class TestApplicationContext(
             override val benkOversiktRepo = saksoversiktFakeRepo
         }
     }
+
+    override val tilgangskontrollService = TilgangskontrollService(
+        tilgangsmaskinClient = tilgangsmaskinFakeClient,
+        sakService = sakContext.sakService,
+    )
+
     private val utbetalingFakeKlient = UtbetalingFakeKlient(sakContext.sakRepo as SakFakeRepo)
 
     override val meldekortContext by lazy {
@@ -185,10 +195,8 @@ class TestApplicationContext(
             MeldekortContext(
                 sessionFactory = sessionFactory,
                 sakService = sakContext.sakService,
-                tilgangsstyringService = tilgangsstyringFakeKlient,
                 utbetalingsvedtakRepo = utbetalingsvedtakFakeRepo,
                 statistikkStønadRepo = statistikkStønadFakeRepo,
-                personService = personContext.personService,
                 texasClient = texasClient,
                 navkontorService = navkontorService,
                 oppgaveKlient = oppgaveKlient,
@@ -215,7 +223,6 @@ class TestApplicationContext(
             genererVedtaksbrevForAvslagKlient = genererFakseVedtaksrevForInnvilgelseKlient,
             genererVedtaksbrevForStansKlient = genererFakseVedtaksrevForInnvilgelseKlient,
             personService = personContext.personService,
-            tilgangsstyringService = tilgangsstyringFakeKlient,
             dokumentdistribusjonsklient = dokumentdistribusjonsFakeKlient,
             navIdentClient = personContext.navIdentClient,
             sakService = sakContext.sakService,
@@ -234,7 +241,7 @@ class TestApplicationContext(
     override val benkOversiktContext by lazy {
         object : BenkOversiktContext(
             sessionFactory = sessionFactory,
-            tilgangsstyringService = tilgangsstyringFakeKlient,
+            tilgangskontrollService = tilgangskontrollService,
         ) {
             override val benkOversiktRepo = benkOversiktFakeRepo
         }

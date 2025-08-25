@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRe
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
+import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -91,6 +92,7 @@ class GenererMeldeperioderSakIT {
             testApplication {
                 application {
                     jacksonSerialization()
+                    configureExceptions()
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
@@ -123,6 +125,7 @@ class GenererMeldeperioderSakIT {
             testApplication {
                 application {
                     jacksonSerialization()
+                    configureExceptions()
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
@@ -148,6 +151,7 @@ class GenererMeldeperioderSakIT {
             testApplication {
                 application {
                     jacksonSerialization()
+                    configureExceptions()
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
@@ -174,6 +178,7 @@ class GenererMeldeperioderSakIT {
             testApplication {
                 application {
                     jacksonSerialization()
+                    configureExceptions()
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }
@@ -221,6 +226,7 @@ class GenererMeldeperioderSakIT {
             testApplication {
                 application {
                     jacksonSerialization()
+                    configureExceptions()
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }

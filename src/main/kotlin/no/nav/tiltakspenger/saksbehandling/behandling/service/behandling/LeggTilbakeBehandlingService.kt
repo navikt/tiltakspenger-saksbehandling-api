@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.BehandlingId
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -10,7 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 
@@ -27,15 +25,10 @@ class LeggTilbakeBehandlingService(
         sakId: SakId,
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
-        correlationId: CorrelationId,
     ): Pair<Sak, Behandling> {
-        krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
-
         val (sak, behandling) = behandlingService.hentSakOgBehandling(
             sakId = sakId,
             behandlingId = behandlingId,
-            saksbehandler = saksbehandler,
-            correlationId = correlationId,
         )
 
         return behandling.leggTilbakeBehandling(saksbehandler).let {

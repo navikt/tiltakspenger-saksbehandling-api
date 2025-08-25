@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 
 import io.ktor.server.routing.Route
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.forhåndsvisVedtaksbrevRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.iverksettBehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.underkjennBehandlingRoute
@@ -34,19 +35,20 @@ fun Route.behandlingRoutes(
     oppdaterBehandlingService: OppdaterBehandlingService,
     settBehandlingPåVentService: SettBehandlingPåVentService,
     gjenopptaBehandlingService: GjenopptaBehandlingService,
+    tilgangskontrollService: TilgangskontrollService,
 ) {
-    hentBehandlingRoute(behandlingService, auditService)
-    behandleSøknadPåNyttRoute(behandleSøknadPåNyttService, auditService)
-    oppdaterSaksopplysningerRoute(auditService, oppdaterSaksopplysningerService)
-    iverksettBehandlingRoute(iverksettBehandlingService, auditService)
-    sendBehandlingTilBeslutningRoute(sendBehandlingTilBeslutningService, auditService)
-    forhåndsvisVedtaksbrevRoute(auditService, forhåndsvisVedtaksbrevService)
-    startRevurderingRoute(startRevurderingService, auditService)
-    taBehandlingRoute(auditService, taBehandlingService)
-    underkjennBehandlingRoute(auditService, behandlingService)
-    overtaBehandlingRoute(overtaBehandlingService, auditService)
-    leggTilbakeBehandlingRoute(auditService, leggTilbakeBehandlingService)
-    oppdaterBehandlingRoute(oppdaterBehandlingService, auditService)
-    settBehandlingPåVentRoute(auditService, settBehandlingPåVentService)
-    gjenopptaBehandling(auditService, gjenopptaBehandlingService)
+    hentBehandlingRoute(behandlingService, auditService, tilgangskontrollService)
+    behandleSøknadPåNyttRoute(behandleSøknadPåNyttService, auditService, tilgangskontrollService)
+    oppdaterSaksopplysningerRoute(auditService, oppdaterSaksopplysningerService, tilgangskontrollService)
+    iverksettBehandlingRoute(iverksettBehandlingService, auditService, tilgangskontrollService)
+    sendBehandlingTilBeslutningRoute(sendBehandlingTilBeslutningService, auditService, tilgangskontrollService)
+    forhåndsvisVedtaksbrevRoute(auditService, forhåndsvisVedtaksbrevService, tilgangskontrollService)
+    startRevurderingRoute(startRevurderingService, auditService, tilgangskontrollService)
+    taBehandlingRoute(auditService, taBehandlingService, tilgangskontrollService)
+    underkjennBehandlingRoute(auditService, behandlingService, tilgangskontrollService)
+    overtaBehandlingRoute(overtaBehandlingService, auditService, tilgangskontrollService)
+    leggTilbakeBehandlingRoute(auditService, leggTilbakeBehandlingService, tilgangskontrollService)
+    oppdaterBehandlingRoute(oppdaterBehandlingService, auditService, tilgangskontrollService)
+    settBehandlingPåVentRoute(auditService, settBehandlingPåVentService, tilgangskontrollService)
+    gjenopptaBehandling(auditService, gjenopptaBehandlingService, tilgangskontrollService)
 }

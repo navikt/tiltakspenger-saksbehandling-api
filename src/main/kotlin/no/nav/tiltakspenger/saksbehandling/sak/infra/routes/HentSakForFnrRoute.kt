@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -12,11 +13,14 @@ import no.nav.tiltakspenger.libs.common.UgyldigFnrException
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
 import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
+import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
@@ -26,11 +30,13 @@ fun Route.hentSakForFnrRoute(
     sakService: SakService,
     auditService: AuditService,
     clock: Clock,
+    tilgangskontrollService: TilgangskontrollService,
 ) {
     val logger = KotlinLogging.logger {}
 
     post(SAK_PATH) {
         logger.debug { "Mottatt post-request på $SAK_PATH" }
+        val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withBody<FnrDTO> { body ->
             val fnr = Either.catch { Fnr.fromString(body.fnr) }.getOrElse {
@@ -48,8 +54,10 @@ fun Route.hentSakForFnrRoute(
                 return@withBody
             }
             val correlationId = call.correlationId()
+            krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
+            tilgangskontrollService.harTilgangTilPerson(fnr, token, saksbehandler)
 
-            sakService.hentForFnr(fnr, saksbehandler, correlationId).also {
+            sakService.hentForFnr(fnr).also {
                 auditService.logMedBrukerId(
                     brukerId = fnr,
                     navIdent = saksbehandler.navIdent,

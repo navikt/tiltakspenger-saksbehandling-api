@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SAK_PATH
@@ -26,7 +27,8 @@ fun Route.hentPersonRoute(
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@get
         call.withSakId { sakId ->
             val correlationId = call.correlationId()
-            sakService.hentEnkelPersonForSakId(sakId, saksbehandler, correlationId).map {
+            krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
+            sakService.hentEnkelPersonForSakId(sakId, correlationId).map {
                 it.toEnkelPersonDTO()
             }.fold(
                 {

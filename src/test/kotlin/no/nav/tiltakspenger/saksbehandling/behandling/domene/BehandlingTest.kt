@@ -3,12 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 import arrow.core.left
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.enUkeEtterFixedClock
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -154,15 +152,6 @@ class BehandlingTest {
 
     @Nested
     inner class ValiderKanOppdatereTest {
-        @Test
-        fun `kaster tilgangsexception dersom saksbehandler ikke er saksbehandler`() {
-            assertThrows<TilgangException> {
-                val saksbehandler = ObjectMother.saksbehandler(roller = Saksbehandlerroller(emptyList()))
-                val behandling = ObjectMother.nyOpprettetSøknadsbehandling()
-                behandling.validerKanOppdatere(saksbehandler)
-            }
-        }
-
         @Test
         fun `returnerer left dersom utdøvende saksbehandler ikke eier behandlingen`() {
             val søknadsbehandling = ObjectMother.nyOpprettetSøknadsbehandling()

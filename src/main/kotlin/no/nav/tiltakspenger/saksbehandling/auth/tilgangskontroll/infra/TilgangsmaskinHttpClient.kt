@@ -10,6 +10,9 @@ import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistTilgangResponse
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.PersonRequestItem
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangBulkResponse
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -75,7 +78,7 @@ class TilgangsmaskinHttpClient(
         val status = httpResponse.statusCode()
         if (status == 207) {
             val jsonResponse = httpResponse.body()
-            objectMapper.readValue<TilgangBulkResponse>(jsonResponse)
+            return objectMapper.readValue<TilgangBulkResponse>(jsonResponse)
         }
         if (status == 413) {
             throw RuntimeException("Forsøkte å sjekke tilgang for flere enn 1000 identer")

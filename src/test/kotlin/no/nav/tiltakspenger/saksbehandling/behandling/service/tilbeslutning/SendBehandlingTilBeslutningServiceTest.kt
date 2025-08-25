@@ -43,8 +43,6 @@ class SendBehandlingTilBeslutningServiceTest {
 
             val oppdatertSak = tac.sakContext.sakService.hentForSakId(
                 sak.id,
-                saksbehandler = saksbehandler,
-                correlationId = CorrelationId.generate(),
             )
 
             oppdatertBehandling.status shouldBe Behandlingsstatus.KLAR_TIL_BESLUTNING
@@ -90,8 +88,6 @@ class SendBehandlingTilBeslutningServiceTest {
 
             val oppdatertSak = tac.sakContext.sakService.hentForSakId(
                 sak.id,
-                saksbehandler = saksbehandler,
-                correlationId = CorrelationId.generate(),
             )
 
             innvilgetBehandlingSendtTilBeslutning.status shouldBe Behandlingsstatus.KLAR_TIL_BESLUTNING

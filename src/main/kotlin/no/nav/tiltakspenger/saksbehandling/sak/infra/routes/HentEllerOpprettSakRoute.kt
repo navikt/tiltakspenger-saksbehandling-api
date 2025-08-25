@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.texas.systembruker
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.getSystemBrukerMapper
+import no.nav.tiltakspenger.saksbehandling.felles.krevHentEllerOpprettSakRollen
 
 const val SAKSNUMMER_PATH = "/saksnummer"
 
@@ -22,11 +23,11 @@ fun Route.hentEllerOpprettSakRoute(
 
     post(SAKSNUMMER_PATH) {
         logger.debug { "Mottatt kall på '$SAKSNUMMER_PATH' - henter eller oppretter sak." }
-        val systembruker = call.systembruker(getSystemBrukerMapper()) ?: return@post
+        val systembruker = call.systembruker(getSystemBrukerMapper()) as? Systembruker ?: return@post
+        krevHentEllerOpprettSakRollen(systembruker)
         val fnr = call.receive<FnrDTO>().fnr
         val sak = sakService.hentEllerOpprettSak(
             fnr = Fnr.fromString(fnr),
-            systembruker = systembruker as Systembruker,
             correlationId = CorrelationId.generate(),
         )
         call.respond(message = SaksnummerResponse(saksnummer = sak.saksnummer.verdi), status = HttpStatusCode.OK)

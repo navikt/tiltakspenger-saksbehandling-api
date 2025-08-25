@@ -3,9 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.BehandlingId
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
@@ -49,17 +47,12 @@ class IverksettBehandlingService(
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
 ) {
-
-    private val logger = KotlinLogging.logger {}
-
     suspend fun iverksett(
         behandlingId: BehandlingId,
         beslutter: Saksbehandler,
-        correlationId: CorrelationId,
         sakId: SakId,
     ): Either<KanIkkeIverksetteBehandling, Pair<Sak, Behandling>> {
-        // Denne sjekker at saksbehandler har tilgang til personen og en av rollene SAKSBEHANDLER eller BESLUTTER.
-        val sak = sakService.sjekkTilgangOgHentForSakId(sakId, beslutter, correlationId)
+        val sak = sakService.hentForSakId(sakId)
         val behandling = sak.hentBehandling(behandlingId)!!
 
         if (behandling.beslutter != beslutter.navIdent) {

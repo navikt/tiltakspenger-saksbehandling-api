@@ -1,14 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.felles
 
-import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.GenerellSystembruker
 import no.nav.tiltakspenger.libs.common.GenerellSystembrukerrolle
 import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
-import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.saksbehandling.auth.systembrukerMapper
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
@@ -77,21 +74,6 @@ fun krevEnAvRollene(saksbehandler: Saksbehandler, krevEnAvRollene: Saksbehandler
 fun krevEnAvRollene(saksbehandler: Saksbehandler, krevEnAvRollene: List<Saksbehandlerrolle>) {
     if (krevEnAvRollene.none { saksbehandler.roller.contains(it) }) {
         throw TilgangException(saksbehandler, krevEnAvRollene)
-    }
-}
-
-suspend fun TilgangsstyringService.krevTilgangTilPerson(
-    saksbehandler: Saksbehandler,
-    fnr: Fnr,
-    correlationId: CorrelationId,
-    msg: String? = null,
-) {
-    harTilgangTilPerson(fnr, saksbehandler.roller, correlationId).onLeft {
-        throw TilgangException("Klarte ikke gjøre tilgangskontroll for saksbehandler ${saksbehandler.navIdent}${if (msg != null) ". $msg" else ""}")
-    }.onRight {
-        if (!it) {
-            throw TilgangException("Saksbehandler ${saksbehandler.navIdent} har ikke tilgang til person${if (msg != null) ". $msg" else ""}")
-        }
     }
 }
 

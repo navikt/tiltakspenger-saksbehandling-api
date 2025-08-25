@@ -25,7 +25,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
-import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
@@ -471,9 +470,6 @@ sealed interface Behandling {
     }
 
     fun validerKanOppdatere(saksbehandler: Saksbehandler): Either<KanIkkeOppdatereBehandling, Unit> {
-        if (!saksbehandler.erSaksbehandler()) {
-            throw TilgangException("Saksbehandler ${saksbehandler.navIdent} mangler rollen SAKSBEHANDLER - sakId=$sakId, behandlingId=$id")
-        }
         if (this.saksbehandler != null && this.saksbehandler != saksbehandler.navIdent) {
             return KanIkkeOppdatereBehandling.BehandlingenEiesAvAnnenSaksbehandler(this.saksbehandler!!).left()
         }
@@ -485,9 +481,6 @@ sealed interface Behandling {
     }
 
     fun validerKanSendeTilBeslutning(saksbehandler: Saksbehandler): Either<KanIkkeSendeTilBeslutter, Unit> {
-        if (!saksbehandler.erSaksbehandler()) {
-            throw TilgangException("Saksbehandler ${saksbehandler.navIdent} mangler rollen SAKSBEHANDLER - sakId=$sakId, behandlingId=$id")
-        }
         if (this.saksbehandler != null && this.saksbehandler != saksbehandler.navIdent) {
             return KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(this.saksbehandler!!).left()
         }

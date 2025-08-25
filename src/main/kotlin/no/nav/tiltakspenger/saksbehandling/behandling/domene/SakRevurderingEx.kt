@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDate
@@ -16,7 +15,6 @@ suspend fun Sak.startRevurdering(
     clock: Clock,
     hentSaksopplysninger: HentSaksopplysninger,
 ): Pair<Sak, Revurdering> {
-    krevSaksbehandlerRolle(kommando.saksbehandler)
     val revurdering = when (kommando.revurderingType) {
         RevurderingType.STANS -> startRevurderingStans(
             saksbehandler = kommando.saksbehandler,

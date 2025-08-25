@@ -1,36 +1,34 @@
 package no.nav.tiltakspenger.saksbehandling.benk.service
 
-import arrow.core.getOrElse
-import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
-import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 
 class BenkOversiktService(
-    private val tilgangsstyringService: TilgangsstyringService,
     private val benkOversiktRepo: BenkOversiktRepo,
+    private val tilgangskontrollService: TilgangskontrollService,
 ) {
     val logger = KotlinLogging.logger { }
 
     suspend fun hentBenkOversikt(
         command: HentÅpneBehandlingerCommand,
+        saksbehandlerToken: String,
+        saksbehandler: Saksbehandler,
     ): BenkOversikt {
-        krevSaksbehandlerEllerBeslutterRolle(command.saksbehandler)
         val benkOversikt = benkOversiktRepo.hentÅpneBehandlinger(command)
 
         if (benkOversikt.isEmpty()) return benkOversikt
-        val tilganger = tilgangsstyringService.harTilgangTilPersoner(
-            fnrListe = benkOversikt.fødselsnummere().toNonEmptyListOrNull()!!,
-            roller = command.saksbehandler.roller,
-            correlationId = command.correlationId,
-        ).getOrElse { throw IllegalStateException("Feil ved henting av tilganger") }
+        val tilganger = tilgangskontrollService.harTilgangTilPersoner(
+            fnrs = benkOversikt.fødselsnummere(),
+            saksbehandlerToken = saksbehandlerToken,
+            saksbehandler = saksbehandler,
+        )
         return filtrerIkkeTilgang(benkOversikt, tilganger, command.saksbehandler, logger)
     }
 }

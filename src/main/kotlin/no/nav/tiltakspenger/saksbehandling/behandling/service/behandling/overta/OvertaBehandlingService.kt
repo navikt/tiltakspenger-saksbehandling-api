@@ -21,13 +21,11 @@ class OvertaBehandlingService(
 ) {
 
     suspend fun overta(kommando: OvertaBehandlingKommando): Either<KunneIkkeOvertaBehandling, Pair<Sak, Behandling>> {
-        val (sakId, behandlingId, overtarFra, saksbehandler, correlationId) = kommando
+        val (sakId, behandlingId, overtarFra, saksbehandler, _) = kommando
 
         val (sak, behandling) = behandlingService.hentSakOgBehandling(
             sakId = sakId,
             behandlingId = behandlingId,
-            saksbehandler = saksbehandler,
-            correlationId = correlationId,
         )
 
         return behandling.overta(saksbehandler, clock).map {

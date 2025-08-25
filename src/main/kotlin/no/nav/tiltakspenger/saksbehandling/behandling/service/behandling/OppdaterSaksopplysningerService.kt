@@ -25,8 +25,7 @@ class OppdaterSaksopplysningerService(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
     ): Either<KunneIkkeOppdatereSaksopplysninger, Pair<Sak, Behandling>> {
-        // Denne sjekker tilgang til person og rollene SAKSBEHANDLER eller BESLUTTER.
-        val sak = sakService.sjekkTilgangOgHentForSakId(sakId, saksbehandler, correlationId)
+        val sak = sakService.hentForSakId(sakId)
         val behandling = sak.hentBehandling(behandlingId)!!
         val oppdaterteSaksopplysninger: Saksopplysninger = hentSaksopplysingerService.hentSaksopplysningerFraRegistre(
             fnr = sak.fnr,
@@ -42,7 +41,6 @@ class OppdaterSaksopplysningerService(
             },
         )
 
-        // Denne validerer saksbehandler
         return behandling.oppdaterSaksopplysninger(saksbehandler, oppdaterteSaksopplysninger).map {
             val oppdatertSak = sak.oppdaterBehandling(it)
 

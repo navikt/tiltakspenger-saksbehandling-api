@@ -30,11 +30,10 @@ internal fun Route.mottaMeldekortRoutes(
 
     post(PATH) {
         logger.debug { "Mottatt post-request på $PATH" }
-        val systembruker = call.systembruker(getSystemBrukerMapper()) ?: return@post
+        val systembruker = call.systembruker(getSystemBrukerMapper()) as? Systembruker ?: return@post
         call.withBody<BrukerutfyltMeldekortDTO> { meldekort ->
             logger.info { "Mottatt meldekort fra bruker: ${meldekort.id} - meldeperiode: ${meldekort.meldeperiodeId}" }
-
-            krevLagreMeldekortRollen(systembruker as Systembruker)
+            krevLagreMeldekortRollen(systembruker)
             mottaBrukerutfyltMeldekortService.mottaBrukerutfyltMeldekort(meldekort.toDomain()).onRight {
                 call.respond(HttpStatusCode.OK)
             }.onLeft {

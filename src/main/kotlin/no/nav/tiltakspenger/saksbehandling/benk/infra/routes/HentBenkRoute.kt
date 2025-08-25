@@ -2,11 +2,13 @@ package no.nav.tiltakspenger.saksbehandling.benk.infra.routes
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragBenktype
@@ -18,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerComm
 import no.nav.tiltakspenger.saksbehandling.benk.domene.ÅpneBehandlingerFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.service.BenkOversiktService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
 
@@ -54,10 +57,14 @@ fun Route.hentBenkRoute(
 
     post(PATH) {
         logger.debug { "Mottatt get-request på $PATH for å hente alle behandlinger på benken" }
+        val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
+        krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
         call.withBody<HentBenkOversiktBody> {
             benkOversiktService.hentBenkOversikt(
                 command = it.toCommand(saksbehandler, call.correlationId()),
+                saksbehandlerToken = token,
+                saksbehandler = saksbehandler,
             ).also {
                 call.respond(status = HttpStatusCode.OK, it.toDTO())
             }

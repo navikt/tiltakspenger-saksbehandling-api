@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForAvslagDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
+import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.forhåndsvisVedtaksbrevForBehandlingId
@@ -24,6 +25,7 @@ internal class ForhåndsvisAvslagVedtaksbrevTest {
             testApplication {
                 application {
                     jacksonSerialization()
+                    configureExceptions()
                     setupAuthentication(texasClient)
                     routing { routes(tac) }
                 }

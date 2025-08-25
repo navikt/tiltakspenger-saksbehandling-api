@@ -22,7 +22,6 @@ fun nySøknadForFnr(
     return runBlocking {
         val sak = applicationContext.sakContext.sakService.hentEllerOpprettSak(
             fnr,
-            ObjectMother.systembrukerHentEllerOpprettSak(),
             CorrelationId.generate(),
         )
         val søknad = ObjectMother.nySøknad(
@@ -34,7 +33,6 @@ fun nySøknadForFnr(
         )
         applicationContext.søknadContext.søknadService.nySøknad(
             søknad = søknad,
-            systembruker = ObjectMother.systembrukerLagreSoknad(),
         )
 
         sak.saksnummer
@@ -51,7 +49,6 @@ fun nySakMedNySøknad(
     return runBlocking {
         val sak = applicationContext.sakContext.sakService.hentEllerOpprettSak(
             Fnr.random(),
-            ObjectMother.systembrukerHentEllerOpprettSak(),
             CorrelationId.generate(),
         )
         val søknad = ObjectMother.nySøknad(
@@ -63,7 +60,6 @@ fun nySakMedNySøknad(
         )
         applicationContext.søknadContext.søknadService.nySøknad(
             søknad = søknad,
-            systembruker = ObjectMother.systembrukerLagreSoknad(),
         )
         sak.saksnummer
     }

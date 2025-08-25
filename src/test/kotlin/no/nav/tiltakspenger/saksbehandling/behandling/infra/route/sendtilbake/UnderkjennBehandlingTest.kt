@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.infra.route.routes
+import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
 import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -28,6 +29,7 @@ class UnderkjennBehandlingTest {
                 testApplication {
                     application {
                         jacksonSerialization()
+                        configureExceptions()
                         setupAuthentication(texasClient)
                         routing { routes(tac) }
                     }
@@ -60,6 +62,7 @@ class UnderkjennBehandlingTest {
                 testApplication {
                     application {
                         jacksonSerialization()
+                        configureExceptions()
                         setupAuthentication(texasClient)
                         routing { routes(tac) }
                     }

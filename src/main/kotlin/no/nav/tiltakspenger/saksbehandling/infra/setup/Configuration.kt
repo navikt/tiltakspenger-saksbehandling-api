@@ -140,7 +140,7 @@ object Configuration {
                 "SOKOS_UTBETALDATA_SCOPE" to "dev-fss:okonomi:sokos-utbetaldata",
                 "SOKOS_UTBETALDATA_URL" to "https://sokos-utbetaldata.dev-fss-pub.nais.io",
                 "TILGANGSMASKINEN_URL" to "http://populasjonstilgangskontroll.tilgangsmaskin",
-                "TILGANGSMASKINEN_SCOPE" to "dev-gcp:tilgangsmaskin:populasjonstilgangskontroll",
+                "TILGANGSMASKINEN_SCOPE" to "api://dev-gcp.tilgangsmaskin.populasjonstilgangskontroll/.default",
             ),
         )
     private val prodProperties =
@@ -183,7 +183,7 @@ object Configuration {
                 "SOKOS_UTBETALDATA_SCOPE" to "prod-fss:okonomi:sokos-utbetaldata",
                 "SOKOS_UTBETALDATA_URL" to "https://sokos-utbetaldata.prod-fss-pub.nais.io",
                 "TILGANGSMASKINEN_URL" to "http://populasjonstilgangskontroll.tilgangsmaskin",
-                "TILGANGSMASKINEN_SCOPE" to "prod-gcp:tilgangsmaskin:populasjonstilgangskontroll",
+                "TILGANGSMASKINEN_SCOPE" to "api://prod-gcp.tilgangsmaskin.populasjonstilgangskontroll/.default",
             ),
         )
 

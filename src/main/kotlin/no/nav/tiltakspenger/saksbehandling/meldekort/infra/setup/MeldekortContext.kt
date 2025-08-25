@@ -2,13 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.libs.personklient.pdl.TilgangsstyringService
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiHttpClient
@@ -39,12 +37,9 @@ import java.time.Clock
 /**
  * Åpen så den kan overstyres i test
  */
-@Suppress("unused")
 open class MeldekortContext(
     sessionFactory: SessionFactory,
     sakService: SakService,
-    tilgangsstyringService: TilgangsstyringService,
-    personService: PersonService,
     utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
     statistikkStønadRepo: StatistikkStønadRepo,
     texasClient: TexasClient,
@@ -137,28 +132,24 @@ open class MeldekortContext(
     val underkjennMeldekortBehandlingService by lazy {
         UnderkjennMeldekortBehandlingService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
-            tilgangsstyringService = tilgangsstyringService,
             clock = clock,
         )
     }
 
     val overtaMeldekortBehandlingService by lazy {
         OvertaMeldekortBehandlingService(
-            tilgangsstyringService = tilgangsstyringService,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
         )
     }
 
     val taMeldekortBehandlingService by lazy {
         TaMeldekortBehandlingService(
-            tilgangsstyringService = tilgangsstyringService,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
         )
     }
 
     val leggTilbakeMeldekortBehandlingService by lazy {
         LeggTilbakeMeldekortBehandlingService(
-            tilgangsstyringService = tilgangsstyringService,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
         )
     }
@@ -174,7 +165,6 @@ open class MeldekortContext(
 
     val avbrytMeldekortBehandlingService by lazy {
         AvbrytMeldekortBehandlingService(
-            tilgangsstyringService = tilgangsstyringService,
             meldekortBehandlingRepo = meldekortBehandlingRepo,
         )
     }

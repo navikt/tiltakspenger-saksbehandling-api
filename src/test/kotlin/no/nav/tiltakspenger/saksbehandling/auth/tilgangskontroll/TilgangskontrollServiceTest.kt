@@ -2,34 +2,47 @@ package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll
 
 import arrow.core.left
 import arrow.core.right
+import io.kotest.assertions.throwables.shouldNotThrow
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.AvvistTilgangResponse
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangBulkResponse
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinClient
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistTilgangResponse
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangBulkResponse
+import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
+import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import org.junit.jupiter.api.Test
 
 class TilgangskontrollServiceTest {
     private val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
-    private val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient)
+    private val sakService = mockk<SakService>()
+    private val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, sakService)
     private val fnr = Fnr.random()
     private val fnr2 = Fnr.random()
     private val fnrs = listOf(fnr, fnr2)
+    private val saksbehandler = ObjectMother.saksbehandler()
+    private val sakId = SakId.random()
+    private val saksnummer = Saksnummer.genererSaknummer(løpenr = "0001")
 
     @Test
-    fun `harTilgangTilPerson - har tilgang - returnerer true`() = runTest {
+    fun `harTilgangTilPerson - har tilgang - kaster ikke feil`() = runTest {
         coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns true.right()
 
-        tilgangskontrollService.harTilgangTilPerson(fnr, "token").getOrNull() shouldBe true
+        shouldNotThrow<TilgangException> {
+            tilgangskontrollService.harTilgangTilPerson(fnr, "token", saksbehandler)
+        }
     }
 
     @Test
-    fun `harTilgangTilPerson - har ikke tilgang - returnerer AvvistTilgang`() = runTest {
+    fun `harTilgangTilPerson - har ikke tilgang - kaster TilgangException`() = runTest {
         coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns AvvistTilgangResponse(
             type = "https://confluence.adeo.no/display/TM/Tilgangsmaskin+API+og+regelsett",
             title = "AVVIST_STRENGT_FORTROLIG_ADRESSE",
@@ -39,19 +52,110 @@ class TilgangskontrollServiceTest {
             begrunnelse = "Du har ikke tilgang til brukere med strengt fortrolig adresse",
         ).left()
 
-        tilgangskontrollService.harTilgangTilPerson(fnr, "token")
-            .leftOrNull() shouldBe IkkeTilgangDetaljer.AvvistTilgang(
-            regel = "AVVIST_STRENGT_FORTROLIG_ADRESSE",
-            begrunnelse = "Du har ikke tilgang til brukere med strengt fortrolig adresse",
-        )
+        shouldThrow<TilgangException> {
+            tilgangskontrollService.harTilgangTilPerson(fnr, "token", saksbehandler)
+        }
     }
 
     @Test
-    fun `harTilgangTilPerson - kaster feil - returnerer UkjentFeil`() = runTest {
+    fun `harTilgangTilPerson - kaster feil - kaster TilgangException`() = runTest {
         coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } throws RuntimeException("feilmelding")
 
-        tilgangskontrollService.harTilgangTilPerson(fnr, "token")
-            .leftOrNull() shouldBe IkkeTilgangDetaljer.UkjentFeil("feilmelding")
+        shouldThrow<TilgangException> {
+            tilgangskontrollService.harTilgangTilPerson(fnr, "token", saksbehandler)
+        }
+    }
+
+    @Test
+    fun `harTilgangTilPersonForSakId - har tilgang - kaster ikke feil`() = runTest {
+        coEvery { sakService.hentFnrForSakId(sakId) } returns fnr
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns true.right()
+
+        shouldNotThrow<TilgangException> {
+            tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, "token")
+        }
+    }
+
+    @Test
+    fun `harTilgangTilPersonForSakId - har ikke tilgang - kaster TilgangException`() = runTest {
+        coEvery { sakService.hentFnrForSakId(sakId) } returns fnr
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns AvvistTilgangResponse(
+            type = "https://confluence.adeo.no/display/TM/Tilgangsmaskin+API+og+regelsett",
+            title = "AVVIST_STRENGT_FORTROLIG_ADRESSE",
+            status = 403,
+            brukerIdent = fnr.verdi,
+            navIdent = "Z12345",
+            begrunnelse = "Du har ikke tilgang til brukere med strengt fortrolig adresse",
+        ).left()
+
+        shouldThrow<TilgangException> {
+            tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, "token")
+        }
+    }
+
+    @Test
+    fun `harTilgangTilPersonForSakId - kaster feil - kaster TilgangException`() = runTest {
+        coEvery { sakService.hentFnrForSakId(sakId) } returns fnr
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } throws RuntimeException("feilmelding")
+
+        shouldThrow<TilgangException> {
+            tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, "token")
+        }
+    }
+
+    @Test
+    fun `harTilgangTilPersonForSakId - fant ikke sak - kaster TilgangException`() = runTest {
+        coEvery { sakService.hentFnrForSakId(sakId) } throws IkkeFunnetException("Fant ikke sak med sakId $sakId")
+
+        shouldThrow<TilgangException> {
+            tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, "token")
+        }
+    }
+
+    @Test
+    fun `harTilgangTilPersonForSaksnummer - har tilgang - kaster ikke feil`() = runTest {
+        coEvery { sakService.hentFnrForSaksnummer(saksnummer) } returns fnr
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns true.right()
+
+        shouldNotThrow<TilgangException> {
+            tilgangskontrollService.harTilgangTilPersonForSaksnummer(saksnummer, saksbehandler, "token")
+        }
+    }
+
+    @Test
+    fun `harTilgangTilPersonForSaksnummer - har ikke tilgang - kaster TilgangException`() = runTest {
+        coEvery { sakService.hentFnrForSaksnummer(saksnummer) } returns fnr
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns AvvistTilgangResponse(
+            type = "https://confluence.adeo.no/display/TM/Tilgangsmaskin+API+og+regelsett",
+            title = "AVVIST_STRENGT_FORTROLIG_ADRESSE",
+            status = 403,
+            brukerIdent = fnr.verdi,
+            navIdent = "Z12345",
+            begrunnelse = "Du har ikke tilgang til brukere med strengt fortrolig adresse",
+        ).left()
+
+        shouldThrow<TilgangException> {
+            tilgangskontrollService.harTilgangTilPersonForSaksnummer(saksnummer, saksbehandler, "token")
+        }
+    }
+
+    @Test
+    fun `harTilgangTilPersonForSaksnummer - kaster feil - kaster TilgangException`() = runTest {
+        coEvery { sakService.hentFnrForSaksnummer(saksnummer) } returns fnr
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } throws RuntimeException("feilmelding")
+
+        shouldThrow<TilgangException> {
+            tilgangskontrollService.harTilgangTilPersonForSaksnummer(saksnummer, saksbehandler, "token")
+        }
+    }
+
+    @Test
+    fun `harTilgangTilPersonForSaksnummer - fant ikke sak - kaster TilgangException`() = runTest {
+        coEvery { sakService.hentFnrForSaksnummer(saksnummer) } throws IkkeFunnetException("Fant ikke sak med saksnummer $saksnummer")
+
+        shouldThrow<TilgangException> {
+            tilgangskontrollService.harTilgangTilPersonForSaksnummer(saksnummer, saksbehandler, "token")
+        }
     }
 
     @Test
@@ -78,19 +182,19 @@ class TilgangskontrollServiceTest {
             ),
         )
 
-        val tilgangsmap = tilgangskontrollService.harTilgangTilPersoner(fnrs, "token").getOrNull()
+        val tilgangsmap = tilgangskontrollService.harTilgangTilPersoner(fnrs, "token", saksbehandler)
 
-        tilgangsmap shouldNotBe null
-        tilgangsmap!!.size shouldBe 2
+        tilgangsmap.size shouldBe 2
         tilgangsmap[fnr] shouldBe true
         tilgangsmap[fnr2] shouldBe false
     }
 
     @Test
-    fun `harTilgangTilPersoner - kaster feil - returnerer UkjentFeil`() = runTest {
+    fun `harTilgangTilPersoner - kaster feil - kaster TilgangException`() = runTest {
         coEvery { tilgangsmaskinClient.harTilgangTilPersoner(fnrs, any()) } throws RuntimeException("feilmelding")
 
-        tilgangskontrollService.harTilgangTilPersoner(fnrs, "token")
-            .leftOrNull() shouldBe IkkeTilgangDetaljer.UkjentFeil("feilmelding")
+        shouldThrow<TilgangException> {
+            tilgangskontrollService.harTilgangTilPersoner(fnrs, "token", saksbehandler)
+        }
     }
 }

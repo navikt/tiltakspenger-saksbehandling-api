@@ -104,7 +104,6 @@ data class MeldekortBehandletManuelt(
         beslutter: Saksbehandler,
         clock: Clock,
     ): Either<KanIkkeIverksetteMeldekort, MeldekortBehandletManuelt> {
-        krevBeslutterRolle(beslutter)
         if (saksbehandler == beslutter.navIdent) {
             return KanIkkeIverksetteMeldekort.SaksbehandlerOgBeslutterKanIkkeVæreLik.left()
         }

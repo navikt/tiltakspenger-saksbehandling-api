@@ -13,7 +13,9 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import io.ktor.server.util.url
+import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.fixedClock
@@ -22,6 +24,7 @@ import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasIntrospectionResponse
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.configureExceptions
 import no.nav.tiltakspenger.saksbehandling.infra.setup.jacksonSerialization
@@ -38,6 +41,7 @@ class ExceptionHandlingTest {
         val texasClientMock = mockk<TexasClient>()
         val sakService = mockk<SakService>()
         val auditServiceMock = mockk<AuditService>()
+        val tilgangskontrollService = mockk<TilgangskontrollService>()
         val beslutter = ObjectMother.beslutter()
         runTest {
             coEvery { texasClientMock.introspectToken(any(), IdentityProvider.AZUREAD) } returns TexasIntrospectionResponse(
@@ -52,7 +56,8 @@ class ExceptionHandlingTest {
                     "preferred_username" to beslutter.epost,
                 ),
             )
-            coEvery { sakService.hentForFnr(any(), any(), any()) } throws IllegalStateException("Wuzza")
+            coEvery { tilgangskontrollService.harTilgangTilPerson(any(), any(), any()) } just Runs
+            coEvery { sakService.hentForFnr(any()) } throws IllegalStateException("Wuzza")
 
             val exceptedStatusCode = HttpStatusCode.Companion.InternalServerError
             val expectedBody =
@@ -74,6 +79,7 @@ class ExceptionHandlingTest {
                                 sakService = sakService,
                                 auditService = auditServiceMock,
                                 clock = fixedClock,
+                                tilgangskontrollService = tilgangskontrollService,
                             )
                         }
                     }
