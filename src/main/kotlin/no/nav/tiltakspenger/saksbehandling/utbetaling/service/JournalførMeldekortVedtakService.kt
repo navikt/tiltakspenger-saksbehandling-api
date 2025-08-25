@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
 import java.time.Clock
 
 /**
- * Har ansvar for å generere pdf og sende utbetalingsvedtak til journalføring.
+ * Har ansvar for å generere pdf og sende meldekortvedtak til journalføring.
  * Denne er kun ment og kalles fra en jobb.
  */
 class JournalførMeldekortVedtakService(
@@ -33,7 +33,7 @@ class JournalførMeldekortVedtakService(
             meldekortVedtakRepo.hentDeSomSkalJournalføres().forEach { meldekortVedtak ->
                 val correlationId = CorrelationId.generate()
                 log.info {
-                    "Journalfører utbetalingsvedtak. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, utbetalingsvedtakId: ${meldekortVedtak.id}"
+                    "Journalfører meldekortvedtak. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, meldekortvedtakId: ${meldekortVedtak.id}"
                 }
 
                 Either.catch {
@@ -48,7 +48,7 @@ class JournalførMeldekortVedtakService(
                     val tiltak = sak.vedtaksliste.hentTiltaksdataForPeriode(meldekortVedtak.beregningsperiode)
 
                     require(tiltak.isNotEmpty()) {
-                        "Forventet at et det skal finnes tiltaksdeltagelse for utbetalingsvedtaksperioden"
+                        "Forventet at et det skal finnes tiltaksdeltagelse for meldekortvedtaksperioden"
                     }
 
                     // TODO: tilpass pdfgen-template for å ikke vise saksbehandler/beslutter ved automatisk behandling
@@ -66,21 +66,21 @@ class JournalførMeldekortVedtakService(
                             hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                             tiltaksdeltagelser = tiltak,
                         ).getOrElse { return@forEach }
-                    log.info { "Pdf generert for utbetalingsvedtak. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, utbetalingsvedtakId: ${meldekortVedtak.id}" }
+                    log.info { "Pdf generert for meldekortvedtak. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, meldekortvedtakId: ${meldekortVedtak.id}" }
                     val journalpostId = journalførMeldekortKlient.journalførMeldekortBehandling(
                         meldekortBehandling = sak.hentMeldekortBehandling(meldekortVedtak.meldekortId)!!,
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
                     )
-                    log.info { "utbetalingsvedtak journalført. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, utbetalingsvedtakId: ${meldekortVedtak.id}. JournalpostId: $journalpostId" }
+                    log.info { "Meldekortvedtak journalført. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, meldekortvedtakId: ${meldekortVedtak.id}. JournalpostId: $journalpostId" }
                     meldekortVedtakRepo.markerJournalført(meldekortVedtak.id, journalpostId, nå(clock))
-                    log.info { "Utbetalingsvedtak markert som journalført. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, utbetalingsvedtakId: ${meldekortVedtak.id}. JournalpostId: $journalpostId" }
+                    log.info { "Meldekortvedtak markert som journalført. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, meldekortvedtakId: ${meldekortVedtak.id}. JournalpostId: $journalpostId" }
                 }.onLeft {
-                    log.error(it) { "Ukjent feil skjedde under generering av brev og journalføring av utbetalingsvedtak. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, utbetalingsvedtakId: ${meldekortVedtak.id}" }
+                    log.error(it) { "Ukjent feil skjedde under generering av brev og journalføring av meldekortvedtak. Saksnummer: ${meldekortVedtak.saksnummer}, sakId: ${meldekortVedtak.sakId}, meldekortvedtakId: ${meldekortVedtak.id}" }
                 }
             }
         }.onLeft {
-            log.error(it) { "Ukjent feil skjedde under journalføring av utbetalingsvedtak." }
+            log.error(it) { "Ukjent feil skjedde under journalføring av meldekortvedtak." }
         }
     }
 }

@@ -15,7 +15,7 @@ import java.time.LocalDateTime
 class MeldekortVedtakFakeRepo : MeldekortVedtakRepo {
     private val data = Atomic(mutableMapOf<VedtakId, MeldekortVedtak>())
 
-    override fun opprett(vedtak: MeldekortVedtak, context: TransactionContext?) {
+    override fun lagre(vedtak: MeldekortVedtak, context: TransactionContext?) {
         data.get()[vedtak.id] = vedtak
     }
 

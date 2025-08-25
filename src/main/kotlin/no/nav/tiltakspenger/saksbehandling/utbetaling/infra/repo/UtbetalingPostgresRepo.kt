@@ -105,15 +105,12 @@ class UtbetalingPostgresRepo(
                 queryOf(
                     //language=SQL
                     """
-                            select v.*, u.forrige_utbetaling_id, u.status, u.sendt_til_utbetaling_tidspunkt, s.saksnummer, s.fnr 
-                            from meldekortvedtak v
-                            join sak s on s.id = v.sak_id
-                            join utbetaling u on u.id = v.utbetaling_id 
+                            select u.* from utbetaling_full u
                             left join utbetaling parent on parent.id = u.forrige_utbetaling_id
                               and parent.sak_id = u.sak_id
                             where u.sendt_til_utbetaling_tidspunkt is null
                               and (u.forrige_utbetaling_id is null or (parent.sendt_til_utbetaling_tidspunkt is not null and parent.status IN ('OK','OK_UTEN_UTBETALING')))
-                            order by v.opprettet
+                            order by u.opprettet
                             limit :limit
                     """.trimIndent(),
                     mapOf("limit" to limit),
@@ -150,12 +147,10 @@ class UtbetalingPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                        select v.*, u.forrige_utbetaling_id, u.status, u.sendt_til_utbetaling_tidspunkt, s.saksnummer, s.fnr 
-                        from meldekortvedtak v
-                        join sak s on s.id = v.sak_id
-                        join utbetaling u on u.id = v.utbetaling_id  
-                        where (u.status is null or u.status IN ('IKKE_PÅBEGYNT', 'SENDT_TIL_OPPDRAG')) and u.sendt_til_utbetaling_tidspunkt is not null
-                        order by v.opprettet
+                        select * from utbetaling_full
+                        where (status is null or status IN ('IKKE_PÅBEGYNT', 'SENDT_TIL_OPPDRAG')) and sendt_til_utbetaling_tidspunkt is not null
+                            and (status_metadata->>'nesteForsøk')::timestamptz <= now()
+                        order by (status_metadata->>'antall_forsøk')::int, opprettet
                         limit :limit
                     """,
                     "limit" to limit,
@@ -164,10 +159,9 @@ class UtbetalingPostgresRepo(
                         utbetalingId = UtbetalingId.fromString(row.string("id")),
                         saksnummer = Saksnummer(row.string("saksnummer")),
                         sakId = SakId.fromString(row.string("sak_id")),
-                        vedtakId = VedtakId.fromString(row.string("id")),
                         opprettet = row.localDateTime("opprettet"),
                         sendtTilUtbetalingstidspunkt = row.localDateTime("sendt_til_utbetaling_tidspunkt"),
-                        forsøkshistorikk = row.stringOrNull("status_metadata")?.toForsøkshistorikk(),
+                        forsøkshistorikk = row.string("status_metadata").toForsøkshistorikk(),
                     )
                 }.asList,
             )
@@ -179,20 +173,8 @@ class UtbetalingPostgresRepo(
             return session.run(
                 sqlQuery(
                     """
-                    select 
-                        u.*,
-                        u.rammevedtak_id as vedtak_id,
-                        u.meldekortvedtak_id as vedtak_id,
-                        s.saksnummer,
-                        s.fnr,
-                        COALESCE(b.beregning, mb.beregninger)
-                    from utbetaling u 
-                    join sak s on s.id = u.sak_id
-                    left join rammevedtak r on u.rammevedtak_id = r.id
-                    left join meldekortvedtak m on u.meldekortvedtak_id = m.id
-                    left join meldekortbehandling mb on mb.id = m.meldekort_id
-                    left join behandling b on b.id = r.behandling_id
-                    where u.id = :id 
+                    select * from utbetaling_full
+                    where id = :id 
                 """,
                     "id" to id.toString(),
                 ).map {
@@ -212,7 +194,8 @@ class UtbetalingPostgresRepo(
                             meldekortvedtak_id,
                             forrige_utbetaling_id,
                             sendt_til_utbetaling_tidspunkt,
-                            status
+                            status,
+                            status_metadata
                         ) values(
                             :id,
                             :sak_id,
@@ -220,14 +203,16 @@ class UtbetalingPostgresRepo(
                             :meldekortvedtak_id,
                             :forrige_utbetaling_id,
                             :sendt_til_utbetaling_tidspunkt,
-                            :status
+                            :status,
+                            to_jsonb(:status_metadata::jsonb)
                         )
                     """,
                     "id" to utbetaling.id.toString(),
                     "sak_id" to utbetaling.sakId.toString(),
                     "forrige_utbetaling_id" to utbetaling.forrigeUtbetalingId?.toString(),
                     "sendt_til_utbetaling_tidspunkt" to utbetaling.sendtTilUtbetaling?.toString(),
-                    "status" to utbetaling.status.toString(),
+                    "status" to utbetaling.status?.toString(),
+                    "status_metadata" to utbetaling.statusMetadata.toDbJson(),
                     when (utbetaling.beregningKilde) {
                         is BeregningKilde.Behandling -> "rammevedtak_id" to utbetaling.vedtakId.toString()
                         is BeregningKilde.Meldekort -> "meldekortvedtak_id" to utbetaling.vedtakId.toString()
@@ -237,19 +222,30 @@ class UtbetalingPostgresRepo(
         }
 
         private fun Row.tilUtbetaling(): Utbetaling {
+            val id = UtbetalingId.fromString(string("id"))
+
+            val meldekortVedtakId = stringOrNull("meldekortvedtak_id")
+            val rammevedtakId = stringOrNull("rammevedtak_id")
+
+            require((meldekortVedtakId != null).xor(rammevedtakId != null)) {
+                "VedtakId for meldekortvedtak ELLER rammevedtak må være satt - Utbetalingen $id hadde $meldekortVedtakId / $rammevedtakId"
+            }
+
             val beregningJson = string("beregning")
 
-            val beregning: UtbetalingBeregning = stringOrNull("meldekort_id")?.let {
-                val meldekortId = MeldekortId.fromString(it)
-                MeldekortBeregning(beregningJson.tilMeldeperiodeBeregningerFraMeldekort(meldekortId))
+            val vedtakIdOgBeregning: Pair<VedtakId, UtbetalingBeregning> = meldekortVedtakId?.let {
+                val vedtakId = VedtakId.fromString(it)
+                val meldekortId = MeldekortId.fromString(string("meldekort_id"))
+                vedtakId to MeldekortBeregning(beregningJson.tilMeldeperiodeBeregningerFraMeldekort(meldekortId))
             } ?: run {
+                val vedtakId = VedtakId.fromString(rammevedtakId!!)
                 val behandlingId = BehandlingId.fromString(string("behandling_id"))
-                BehandlingBeregning(beregningJson.tilMeldeperiodeBeregningerFraBehandling(behandlingId))
+                vedtakId to BehandlingBeregning(beregningJson.tilMeldeperiodeBeregningerFraBehandling(behandlingId))
             }
 
             return Utbetaling(
                 id = UtbetalingId.fromString(string("id")),
-                vedtakId = VedtakId.fromString(string("vedtak_id")),
+                vedtakId = vedtakIdOgBeregning.first,
                 sakId = SakId.fromString(string("sak_id")),
                 saksnummer = Saksnummer(string("saksnummer")),
                 fnr = Fnr.fromString(string("fnr")),
@@ -260,11 +256,12 @@ class UtbetalingPostgresRepo(
                 opprettet = localDateTime("opprettet"),
                 saksbehandler = string("saksbehandler"),
                 beslutter = string("beslutter"),
-                beregning = beregning,
+                beregning = vedtakIdOgBeregning.second,
                 forrigeUtbetalingId = stringOrNull("forrige_utbetaling_id")
                     ?.let { UtbetalingId.fromString(it) },
                 sendtTilUtbetaling = localDateTimeOrNull("sendt_til_utbetaling_tidspunkt"),
                 status = stringOrNull("status")?.toUtbetalingsstatus(),
+                statusMetadata = string("status_metadata").toForsøkshistorikk(),
             )
         }
     }

@@ -123,7 +123,7 @@ class AutomatiskMeldekortBehandlingService(
 
         sessionFactory.withTransactionContext { tx ->
             meldekortBehandlingRepo.lagre(meldekortBehandling, simulering, tx)
-            meldekortVedtakRepo.opprett(meldekortvedtak, tx)
+            meldekortVedtakRepo.lagre(meldekortvedtak, tx)
             statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                 meldekortId = meldekortId,

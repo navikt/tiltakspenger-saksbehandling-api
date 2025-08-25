@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import java.time.LocalDateTime
 
 interface MeldekortVedtakRepo {
-    fun opprett(vedtak: MeldekortVedtak, context: TransactionContext? = null)
+    fun lagre(vedtak: MeldekortVedtak, context: TransactionContext? = null)
 
     fun markerJournalført(
         vedtakId: VedtakId,

@@ -11,17 +11,17 @@ import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 class OppdaterUtbetalingsstatusServiceTest {
-    private val utbetalingsvedtakRepo = mockk<UtbetalingsvedtakRepo>()
+    private val utbetalingRepo = mockk<UtbetalingRepo>()
     private val utbetalingsklient = mockk<Utbetalingsklient>()
     private val sendUtbetalingerService =
-        OppdaterUtbetalingsstatusService(utbetalingsvedtakRepo, utbetalingsklient, fixedClock)
+        OppdaterUtbetalingsstatusService(utbetalingRepo, utbetalingsklient, fixedClock)
 
     @BeforeEach
     fun setup() {
@@ -31,36 +31,36 @@ class OppdaterUtbetalingsstatusServiceTest {
     @Test
     fun `innhenting av status som ikke har fått ok etter mange forsøk blir ikke forsøkt på nytt med en gang`() =
         runTest {
-            val utbetalingsvedtak = ObjectMother.utbetalingDetSkalHentesStatusFor(
+            val utbetaling = ObjectMother.utbetalingDetSkalHentesStatusFor(
                 forsøkshistorikk = Forsøkshistorikk.opprett(
                     antallForsøk = 10,
                     forrigeForsøk = LocalDateTime.now(fixedClock).minusHours(23),
                     clock = fixedClock,
                 ),
             )
-            every { utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() } returns listOf(utbetalingsvedtak)
+            every { utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() } returns listOf(utbetaling)
 
             sendUtbetalingerService.oppdaterUtbetalingsstatus()
 
-            coVerify(exactly = 1) { utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() }
+            coVerify(exactly = 1) { utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() }
             coVerify(exactly = 0) { utbetalingsklient.hentUtbetalingsstatus(any()) }
-            coVerify(exactly = 0) { utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(any(), any(), any()) }
+            coVerify(exactly = 0) { utbetalingRepo.oppdaterUtbetalingsstatus(any(), any(), any()) }
         }
 
     @Test
     fun `innhenting av status som ikke har fått ok etter mange forsøkblir forsøkt på nytt etter en stund`() = runTest {
-        val utbetalingsvedtak = ObjectMother.utbetalingDetSkalHentesStatusFor(
+        val utbetaling = ObjectMother.utbetalingDetSkalHentesStatusFor(
             forsøkshistorikk = Forsøkshistorikk.opprett(
                 antallForsøk = 10,
                 forrigeForsøk = LocalDateTime.now(fixedClock).minusHours(25),
                 clock = fixedClock,
             ),
         )
-        every { utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() } returns listOf(utbetalingsvedtak)
+        every { utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() } returns listOf(utbetaling)
         coEvery { utbetalingsklient.hentUtbetalingsstatus(any()) } returns Either.Right(Utbetalingsstatus.Ok)
         coEvery {
-            utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
-                utbetalingsvedtak.vedtakId,
+            utbetalingRepo.oppdaterUtbetalingsstatus(
+                utbetaling.utbetalingId,
                 Utbetalingsstatus.Ok,
                 any(),
             )
@@ -68,11 +68,11 @@ class OppdaterUtbetalingsstatusServiceTest {
 
         sendUtbetalingerService.oppdaterUtbetalingsstatus()
 
-        coVerify(exactly = 1) { utbetalingsvedtakRepo.hentDeSomSkalHentesUtbetalingsstatusFor() }
-        coVerify(exactly = 1) { utbetalingsklient.hentUtbetalingsstatus(utbetalingsvedtak) }
+        coVerify(exactly = 1) { utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() }
+        coVerify(exactly = 1) { utbetalingsklient.hentUtbetalingsstatus(utbetaling) }
         coVerify(exactly = 1) {
-            utbetalingsvedtakRepo.oppdaterUtbetalingsstatus(
-                utbetalingsvedtak.vedtakId,
+            utbetalingRepo.oppdaterUtbetalingsstatus(
+                utbetaling.utbetalingId,
                 Utbetalingsstatus.Ok,
                 any(),
             )

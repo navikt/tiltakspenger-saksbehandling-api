@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkUtbetalingDTO
@@ -56,6 +57,7 @@ fun MeldekortBehandling.Behandlet.opprettVedtak(
     clock: Clock,
 ): MeldekortVedtak {
     val vedtakId = VedtakId.random()
+    val opprettet = nå(clock)
 
     val utbetaling = Utbetaling(
         id = UtbetalingId.random(),
@@ -63,7 +65,7 @@ fun MeldekortBehandling.Behandlet.opprettVedtak(
         sakId = this.sakId,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
-        opprettet = this.opprettet,
+        opprettet = opprettet,
         saksbehandler = this.saksbehandler!!,
         beslutter = this.beslutter!!,
         beregning = this.beregning,
@@ -71,11 +73,12 @@ fun MeldekortBehandling.Behandlet.opprettVedtak(
         sendtTilUtbetaling = null,
         status = null,
         forrigeUtbetalingId = forrigeUtbetaling?.id,
+        statusMetadata = Forsøkshistorikk.opprett(clock = clock),
     )
 
     return MeldekortVedtak(
         id = vedtakId,
-        opprettet = nå(clock),
+        opprettet = opprettet,
         sakId = this.sakId,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
