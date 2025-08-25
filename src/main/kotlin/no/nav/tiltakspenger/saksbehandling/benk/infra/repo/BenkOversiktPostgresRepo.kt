@@ -98,34 +98,55 @@ class BenkOversiktPostgresRepo(
                                    where m.avbrutt is null
                                      and m.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING',
                                                       'UNDER_BESLUTNING')),
-     åpneMeldekortTilBehandling as (SELECT s.id                  as sakId,
-                                           s.fnr                 as fnr,
-                                           s.saksnummer          as saksnummer,
-                                           mbr.mottatt           as startet,
-                                           'INNSENDT_MELDEKORT'  as behandlingstype,
-                                           'KLAR_TIL_BEHANDLING' as status,
-                                           null                  as saksbehandler,
-                                           null                  as beslutter,
-                                           null                  as erSattPåVent,
-                                           null::timestamp with time zone as sist_endret
-                                    FROM meldekort_bruker mbr
-                                             JOIN sak s ON mbr.sak_id = s.id
-                                             left join meldekortbehandling mbh1
-                                                       on mbh1.sak_id = s.id and (mbh1.brukers_meldekort_id = mbr.id OR
-                                                                                  mbh1.meldeperiode_kjede_id =
-                                                                                  mbr.meldeperiode_kjede_id)
-                                    WHERE behandles_automatisk = false
-                                      and (
-                                        mbh1.id is null
-                                            or
-                                        exists (SELECT 1
-                                                FROM meldekortbehandling mbh
-                                                WHERE mbh.sak_id = s.id
-                                                  AND mbh.avbrutt IS NULL
-                                                  AND (mbh.brukers_meldekort_id = mbr.id OR
-                                                       mbh.meldeperiode_kjede_id = mbr.meldeperiode_kjede_id)
-                                                  AND mbh.iverksatt_tidspunkt is not null
-                                                  AND mbr.mottatt > mbh.iverksatt_tidspunkt))),
+åpneMeldekortTilBehandling AS (
+/* 
+ * meldekortMetadata er en hjelpe-tabell som vi bruker for å finne riktig behandlingstype, og
+ * for at vi ikke skal gi ut 'duplikate' rader til benken
+ */
+WITH meldekortMetadata AS (
+    SELECT 
+        mbr.sak_id AS sakId,
+        mbr.meldeperiode_kjede_id AS kjedeId,
+        COUNT(*) OVER (PARTITION BY mbr.sak_id, mbr.meldeperiode_kjede_id) AS antallInnsendteMeldekort,
+        mbr.id AS meldekortId,
+        ROW_NUMBER() OVER (PARTITION BY mbr.sak_id, mbr.meldeperiode_kjede_id ORDER BY mbr.mottatt DESC) AS sisteMeldekortNr
+    FROM meldekort_bruker mbr
+)
+SELECT s.id AS sakId,
+       s.fnr AS fnr,
+       s.saksnummer AS saksnummer,
+       mbr.mottatt AS startet,
+       CASE 
+           WHEN cte.sisteMeldekortNr = cte.antallInnsendteMeldekort AND cte.sakId = mbr.sak_id AND cte.meldekortId = mbr.id 
+               THEN 'INNSENDT_MELDEKORT'
+           ELSE 'KORRIGERT_MELDEKORT'
+       END AS behandlingstype,
+       'KLAR_TIL_BEHANDLING' AS status,
+       NULL AS saksbehandler,
+       NULL AS beslutter,
+       NULL AS erSattPåVent,
+       NULL::timestamp with time zone AS sist_endret
+FROM meldekort_bruker mbr
+JOIN sak s ON mbr.sak_id = s.id
+JOIN meldekortMetadata cte ON mbr.id = cte.meldekortId AND mbr.sak_id = cte.sakId
+LEFT JOIN meldekortbehandling mbh1
+       ON mbh1.sak_id = s.id
+       AND (mbh1.brukers_meldekort_id = mbr.id OR mbh1.meldeperiode_kjede_id = mbr.meldeperiode_kjede_id)
+WHERE behandles_automatisk = false
+  AND cte.sisteMeldekortNr = 1
+  AND (
+        mbh1.id IS NULL
+        OR EXISTS (
+            SELECT 1
+            FROM meldekortbehandling mbh
+            WHERE mbh.sak_id = s.id
+              AND mbh.avbrutt IS NULL
+              AND (mbh.brukers_meldekort_id = mbr.id OR mbh.meldeperiode_kjede_id = mbr.meldeperiode_kjede_id)
+              AND mbh.iverksatt_tidspunkt IS NOT NULL
+              AND mbr.mottatt > mbh.iverksatt_tidspunkt
+        )
+      )
+),
      slåttSammen AS (select *
                      from åpneSøknaderUtenBehandling
                      union all
@@ -162,7 +183,7 @@ and (
                     mapOf(
                         "limit" to 500,
                         "behandlingstype" to if (command.åpneBehandlingerFiltrering.behandlingstype == null) {
-                            arrayOf("INNSENDT_MELDEKORT", "SØKNADSBEHANDLING", "REVURDERING", "MELDEKORTBEHANDLING")
+                            arrayOf("KORRIGERT_MELDEKORT", "INNSENDT_MELDEKORT", "SØKNADSBEHANDLING", "REVURDERING", "MELDEKORTBEHANDLING")
                         } else {
                             command.åpneBehandlingerFiltrering.behandlingstype.map { it.toString() }.toTypedArray()
                         },
@@ -218,11 +239,12 @@ and (
     }
 }
 
-private enum class BehandlingssammendragTypeDb {
+enum class BehandlingssammendragTypeDb {
     SØKNADSBEHANDLING,
     REVURDERING,
     MELDEKORTBEHANDLING,
     INNSENDT_MELDEKORT,
+    KORRIGERT_MELDEKORT,
     ;
 
     fun toDomain(): BehandlingssammendragType = when (this) {
@@ -230,14 +252,15 @@ private enum class BehandlingssammendragTypeDb {
         REVURDERING -> BehandlingssammendragType.REVURDERING
         MELDEKORTBEHANDLING -> BehandlingssammendragType.MELDEKORTBEHANDLING
         INNSENDT_MELDEKORT -> BehandlingssammendragType.INNSENDT_MELDEKORT
+        KORRIGERT_MELDEKORT -> BehandlingssammendragType.KORRIGERT_MELDEKORT
     }
 }
 
-private fun BenkSorteringKolonne.toDbString(): String =
+fun BenkSorteringKolonne.toDbString(): String =
     when (this) {
         BenkSorteringKolonne.STARTET -> "startet"
         BenkSorteringKolonne.SIST_ENDRET -> "sist_endret"
     }
 
-private fun String.toBehandlingssammendragStatus(): BehandlingssammendragStatus =
+fun String.toBehandlingssammendragStatus(): BehandlingssammendragStatus =
     BehandlingssammendragStatus.valueOf(this)

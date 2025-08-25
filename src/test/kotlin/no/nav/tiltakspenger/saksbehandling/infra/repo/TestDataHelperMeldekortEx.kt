@@ -30,6 +30,7 @@ import java.time.LocalDateTime
 
 internal fun TestDataHelper.persisterBrukersMeldekort(
     sak: Sak? = null,
+    // Første kall kan være null - alle påfølgende kall må ha med meldeperiode
     meldeperiode: Meldeperiode? = null,
     periode: Periode = Periode(
         2.januar(2023),
@@ -46,8 +47,7 @@ internal fun TestDataHelper.persisterBrukersMeldekort(
 ): Pair<Sak, BrukersMeldekort> {
     val generertSak = genererSak(sak)
 
-    // TODO - single vil mest sannsynlig kunne feile hvis man gjenbruker sak
-    val valgtMeldeperiode = meldeperiode ?: generertSak.meldeperiodeKjeder.single().hentSisteMeldeperiode()
+    val valgtMeldeperiode = meldeperiode ?: generertSak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
 
     val brukersMeldekort = ObjectMother.brukersMeldekort(
         id = MeldekortId.random(),

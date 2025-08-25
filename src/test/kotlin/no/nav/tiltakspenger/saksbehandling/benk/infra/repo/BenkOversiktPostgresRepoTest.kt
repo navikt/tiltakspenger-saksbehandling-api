@@ -8,6 +8,8 @@ import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
+import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.zoneIdOslo
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragBenktype
@@ -211,6 +213,68 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = ObjectMother.beslutter().navIdent,
                     sistEndret = revurderingUnderBeslutning.sistEndret,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `henter meldekort som er klar til behandling`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val (sak1, _) = testDataHelper.persisterBrukersMeldekort(
+                periode = Periode(2.januar(2023), 29.januar(2023)),
+            )
+            val (sak1MedKorrigering, andreMeldekortSak1) = testDataHelper.persisterBrukersMeldekort(
+                sak = sak1,
+                meldeperiode = sak1.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+            )
+            val (sak1MedMeldekortForEnAnnenPeriode, tredjeMeldekortSak1) = testDataHelper.persisterBrukersMeldekort(
+                sak = sak1MedKorrigering,
+                meldeperiode = sak1.meldeperiodeKjeder.last().hentSisteMeldeperiode(),
+            )
+            val (sak2, førsteMeldekortSak2) = testDataHelper.persisterBrukersMeldekort()
+
+            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+
+            totalAntall shouldBe 3
+            actual.size shouldBe 3
+
+            actual.let {
+                it.first() shouldBe Behandlingssammendrag(
+                    sakId = sak1MedKorrigering.id,
+                    fnr = sak1MedKorrigering.fnr,
+                    saksnummer = sak1MedKorrigering.saksnummer,
+                    startet = andreMeldekortSak1.mottatt,
+                    kravtidspunkt = null,
+                    behandlingstype = BehandlingssammendragType.KORRIGERT_MELDEKORT,
+                    status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
+                    saksbehandler = null,
+                    beslutter = null,
+                    sistEndret = null,
+                )
+                it[1] shouldBe Behandlingssammendrag(
+                    sakId = sak1MedMeldekortForEnAnnenPeriode.id,
+                    fnr = sak1MedMeldekortForEnAnnenPeriode.fnr,
+                    saksnummer = sak1MedMeldekortForEnAnnenPeriode.saksnummer,
+                    startet = tredjeMeldekortSak1.mottatt,
+                    kravtidspunkt = null,
+                    behandlingstype = BehandlingssammendragType.INNSENDT_MELDEKORT,
+                    status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
+                    saksbehandler = null,
+                    beslutter = null,
+                    sistEndret = null,
+                )
+                it.last() shouldBe Behandlingssammendrag(
+                    sakId = sak2.id,
+                    fnr = sak2.fnr,
+                    saksnummer = sak2.saksnummer,
+                    startet = førsteMeldekortSak2.mottatt,
+                    kravtidspunkt = null,
+                    behandlingstype = BehandlingssammendragType.INNSENDT_MELDEKORT,
+                    status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
+                    saksbehandler = null,
+                    beslutter = null,
+                    sistEndret = null,
                 )
             }
         }
