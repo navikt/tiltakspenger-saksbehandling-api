@@ -230,7 +230,7 @@ open class ApplicationContext(
     open val statistikkContext by lazy {
         StatistikkContext(
             sessionFactory,
-            personContext.personKlient,
+            personContext.tilgangsstyringService,
             gitHash,
             clock,
         )
