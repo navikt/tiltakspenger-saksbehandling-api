@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 internal class IverksettMeldekortServiceTest {
 
     @Test
-    fun `neste utbetalingsvedtak peker på forrige`() = runTest {
+    fun `neste utbetaling peker på forrige`() = runTest {
         with(TestApplicationContext()) {
             val sak = this.andreMeldekortIverksatt()
             val sakId = sak.id
@@ -36,7 +36,7 @@ internal class IverksettMeldekortServiceTest {
             (utbetalingContext.meldekortVedtakRepo as MeldekortVedtakFakeRepo).hentForSakId(sakId).let {
                 it.size shouldBe 2
                 it[0].utbetaling.forrigeUtbetalingId shouldBe null
-                it[1].utbetaling.forrigeUtbetalingId shouldBe it[0].id
+                it[1].utbetaling.forrigeUtbetalingId shouldBe it[0].utbetaling.id
             }
         }
     }

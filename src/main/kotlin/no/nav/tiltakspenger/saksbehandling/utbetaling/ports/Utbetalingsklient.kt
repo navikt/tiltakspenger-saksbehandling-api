@@ -44,14 +44,20 @@ interface Utbetalingsklient {
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata>
 }
 
+sealed interface UtbetalingResponse {
+    val request: String?
+    val response: String?
+    val responseStatus: Int?
+}
+
 class KunneIkkeUtbetale(
-    val request: String? = null,
-    val response: String? = null,
-    val responseStatus: Int? = null,
-)
+    override val request: String? = null,
+    override val response: String? = null,
+    override val responseStatus: Int? = null,
+) : UtbetalingResponse
 
 data class SendtUtbetaling(
-    val request: String,
-    val response: String,
-    val responseStatus: Int,
-)
+    override val request: String,
+    override val response: String,
+    override val responseStatus: Int,
+) : UtbetalingResponse

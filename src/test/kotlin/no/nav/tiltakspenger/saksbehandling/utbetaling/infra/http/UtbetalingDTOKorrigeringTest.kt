@@ -12,22 +12,25 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-internal class UtbetalingDTOKorrigeringTest {
-    val fnr = Fnr.fromString("09863149336")
-    val sakId = SakId.random()
-    val saksnummer = Saksnummer("202410011001")
-    val førstePeriode = Periode(
+class UtbetalingDTOKorrigeringTest {
+    private val fnr = Fnr.fromString("09863149336")
+    private val sakId = SakId.random()
+    private val saksnummer = Saksnummer("202410011001")
+    private val førstePeriode = Periode(
         LocalDate.of(2025, 1, 6),
         LocalDate.of(2025, 1, 19),
     )
+    private val korrigertUtbetalingId = UtbetalingId.fromString("utbetaling_01JKFNA9HS7W9ESTJY73NQ6ZE9")
 
     private fun lagUtbetalingsVedtak(
         id: VedtakId,
+        utbetalingId: UtbetalingId = UtbetalingId.random(),
         meldekortId: MeldekortId,
         periode: Periode,
         opprettet: LocalDateTime,
@@ -37,6 +40,7 @@ internal class UtbetalingDTOKorrigeringTest {
         fnr = fnr,
         saksnummer = saksnummer,
         id = id,
+        utbetalingId = utbetalingId,
         opprettet = opprettet,
         meldekortBehandling = ObjectMother.meldekortBehandletManuelt(
             sakId = sakId,
@@ -71,6 +75,7 @@ internal class UtbetalingDTOKorrigeringTest {
 
         val korrigertUtbetalingsvedtak = lagUtbetalingsVedtak(
             id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S7"),
+            utbetalingId = korrigertUtbetalingId,
             meldekortId = korrigertMeldekortId,
             opprettet = LocalDateTime.parse("2025-01-19T00:00:00.000001"),
             periode = førstePeriode,
@@ -110,7 +115,7 @@ internal class UtbetalingDTOKorrigeringTest {
             """
             {
               "sakId": "202410011001",
-              "behandlingId": "0SZ5FBEE6YZG8S7",
+              "behandlingId": "W9ESTJY73NQ6ZE9",
               "iverksettingId": null,
               "personident": {
                 "verdi": "09863149336"
@@ -215,6 +220,7 @@ internal class UtbetalingDTOKorrigeringTest {
 
         val korrigertUtbetalingsvedtak = lagUtbetalingsVedtak(
             id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S8"),
+            utbetalingId = korrigertUtbetalingId,
             meldekortId = korrigertMeldekortId,
             periode = førstePeriode,
             opprettet = LocalDateTime.parse("2025-01-26T00:00:00.000001"),
@@ -229,7 +235,7 @@ internal class UtbetalingDTOKorrigeringTest {
             """
             {
               "sakId": "202410011001",
-              "behandlingId": "0SZ5FBEE6YZG8S8",
+              "behandlingId": "W9ESTJY73NQ6ZE9",
               "iverksettingId": null,
               "personident": {
                 "verdi": "09863149336"
@@ -317,6 +323,7 @@ internal class UtbetalingDTOKorrigeringTest {
 
         val korrigertUtbetalingsvedtak = lagUtbetalingsVedtak(
             id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S7"),
+            utbetalingId = korrigertUtbetalingId,
             meldekortId = korrigertMeldekortId,
             opprettet = LocalDateTime.parse("2025-01-19T00:00:00.000001"),
             periode = førstePeriode,
@@ -356,7 +363,7 @@ internal class UtbetalingDTOKorrigeringTest {
             """
             {
               "sakId": "202410011001",
-              "behandlingId": "0SZ5FBEE6YZG8S7",
+              "behandlingId": "W9ESTJY73NQ6ZE9",
               "iverksettingId": null,
               "personident": {
                 "verdi": "09863149336"
@@ -406,6 +413,7 @@ internal class UtbetalingDTOKorrigeringTest {
 
         val korrigertUtbetalingsvedtak = lagUtbetalingsVedtak(
             id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S7"),
+            utbetalingId = korrigertUtbetalingId,
             meldekortId = korrigertMeldekortId,
             opprettet = LocalDateTime.parse("2025-01-19T00:00:00.000001"),
             periode = førstePeriode,
@@ -445,7 +453,7 @@ internal class UtbetalingDTOKorrigeringTest {
             """
             {
               "sakId": "202410011001",
-              "behandlingId": "0SZ5FBEE6YZG8S7",
+              "behandlingId": "W9ESTJY73NQ6ZE9",
               "iverksettingId": null,
               "personident": {
                 "verdi": "09863149336"
