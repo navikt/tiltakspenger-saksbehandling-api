@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.ports
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
@@ -17,14 +16,18 @@ interface BehandlingRepo {
         transactionContext: TransactionContext? = null,
     )
 
+    fun oppdaterSimuleringMetadata(
+        behandlingId: BehandlingId,
+        originalResponseBody: String?,
+        sessionContext: SessionContext,
+    )
+
     fun hent(
         behandlingId: BehandlingId,
         sessionContext: SessionContext? = null,
     ): Behandling
 
     fun hentAlleForFnr(fnr: Fnr): List<Behandling>
-
-    fun hentForSøknadId(søknadId: SøknadId): List<Behandling>
 
     fun hentSøknadsbehandlingerTilDatadeling(limit: Int = 10): List<Behandling>
 

@@ -1,9 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 
+import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.utsjekk.kontrakter.iverksett.ForrigeIverksettingV2Dto
 import no.nav.utsjekk.kontrakter.iverksett.UtbetalingV2Dto
 
@@ -20,18 +23,23 @@ private data class SimuleringRequestDTO(
     val forrigeIverksetting: ForrigeIverksettingV2Dto?,
 )
 
-fun MeldekortBehandling.toSimuleringRequest(
+fun toSimuleringRequest(
+    saksnummer: Saksnummer,
+    behandlingId: Ulid,
+    fnr: Fnr,
+    saksbehandler: String,
+    beregning: UtbetalingBeregning,
     brukersNavkontor: Navkontor,
     forrigeUtbetalingJson: String?,
     forrigeVedtakId: VedtakId?,
 ): String {
     return SimuleringRequestDTO(
-        sakId = this.saksnummer.toString(),
+        sakId = saksnummer.toString(),
         // Merk at vi ikke har vedtakId på dette tidspunktet, så behandlingId får være dekkende.
-        behandlingId = this.id.uuidPart(),
-        personident = this.fnr.verdi,
-        saksbehandlerId = this.saksbehandler!!,
-        utbetalinger = this.beregning!!.tilUtbetalingerDTO(
+        behandlingId = behandlingId.uuidPart(),
+        personident = fnr.verdi,
+        saksbehandlerId = saksbehandler,
+        utbetalinger = beregning.tilUtbetalingerDTO(
             brukersNavkontor = brukersNavkontor,
             forrigeUtbetalingJson = forrigeUtbetalingJson,
         ),

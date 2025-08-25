@@ -35,6 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehand
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -200,6 +201,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         },
         barnetillegg: Barnetillegg? = null,
         beregning: BehandlingBeregning? = null,
+        simulering: Simulering? = null,
     ): Revurdering {
         val kommando = OppdaterRevurderingKommando.Innvilgelse(
             sakId = sakId,
@@ -231,6 +233,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                 BehandlingUtbetaling(
                     beregning = beregning,
                     navkontor = navkontor,
+                    simulering = simulering,
                 )
             },
         ).getOrFail().tilBeslutning(saksbehandler = saksbehandler, clock = clock) as Revurdering

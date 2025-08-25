@@ -6,6 +6,7 @@ import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
@@ -79,11 +80,24 @@ interface SimuleringMother {
 /**
  * Ment brukt både når man kjører lokalt og i testene for å lage litt mer realistiske testdata.
  */
-fun Sak.genererSimuleringFraBeregning(
+fun Sak.genererSimuleringFraMeldekortBehandling(
     behandling: MeldekortBehandling,
     meldeperiodeKjeder: MeldeperiodeKjeder = this.meldeperiodeKjeder,
 ): SimuleringMedMetadata {
-    val simuleringForMeldeperioder = behandling.beregning!!.beregninger.map { beregningEtter ->
+    return genererSimuleringFraBeregning(
+        beregning = behandling.beregning!!,
+        meldeperiodeKjeder = meldeperiodeKjeder,
+    )
+}
+
+/**
+ * Ment brukt både når man kjører lokalt og i testene for å lage litt mer realistiske testdata.
+ */
+fun Sak.genererSimuleringFraBeregning(
+    beregning: UtbetalingBeregning,
+    meldeperiodeKjeder: MeldeperiodeKjeder = this.meldeperiodeKjeder,
+): SimuleringMedMetadata {
+    val simuleringForMeldeperioder = beregning.beregninger.map { beregningEtter ->
         val beregningFør = this.meldeperiodeBeregninger.sisteBeregningFør(
             beregningEtter.id,
             beregningEtter.kjedeId,
