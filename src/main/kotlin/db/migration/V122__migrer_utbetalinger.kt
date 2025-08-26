@@ -161,7 +161,7 @@ class V122__migrer_utbetalinger : BaseJavaMigration() {
                         :opprettet,
                         :meldekort_id,
                         :journalpost_id,
-                        :journalføringstidspunkt
+                        :journalforingstidspunkt
                     )
                     """,
                 "id" to vedtakId.toString(),
@@ -170,7 +170,7 @@ class V122__migrer_utbetalinger : BaseJavaMigration() {
                 "opprettet" to opprettet,
                 "meldekort_id" to meldekortId.toString(),
                 "journalpost_id" to journalpostId?.toString(),
-                "journalføringstidspunkt" to journalføringstidspunkt,
+                "journalforingstidspunkt" to journalføringstidspunkt,
             ).asUpdate,
         )
     }
