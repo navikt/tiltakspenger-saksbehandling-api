@@ -7,7 +7,7 @@ søknadstiltakz AS (DELETE FROM søknadstiltak WHERE søknad_id IN (SELECT id FR
 rammevedtakz AS (DELETE FROM rammevedtak WHERE sak_id IN (SELECT id FROM sakz)),
 meldekortz AS (DELETE FROM meldekortbehandling WHERE sak_id IN (SELECT id FROM sakz)),
 meldekort_brukerz AS (DELETE from meldekort_bruker mb WHERE sak_id IN (SELECT id FROM sakz)),
-utbetalingsvedtakz AS (DELETE FROM utbetalingsvedtak WHERE sak_id IN (SELECT id FROM sakz)),
+meldekortvedtakz AS (DELETE FROM meldekortvedtak WHERE sak_id IN (SELECT id FROM sakz)),
 meldekortbehandlingz AS (DELETE from meldekortbehandling mb where sak_id IN (SELECT id FROM sakz)),
 meldeperiode AS (delete from meldeperiode m WHERE sak_id IN (SELECT id FROM sakz)),
 statistikk_utbetalingz AS (DELETE FROM statistikk_utbetaling WHERE sak_id IN (SELECT id FROM sakz)),

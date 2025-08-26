@@ -10,10 +10,13 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
@@ -207,26 +210,13 @@ class RammevedtakPostgresRepo(
     ) {
         sessionFactory.withTransaction(context) { tx ->
             lagreVedtak(vedtak, tx)
+            vedtak.utbetaling?.let {
+                UtbetalingPostgresRepo.lagre(it, tx)
+            }
         }
     }
 
     companion object {
-        fun hentForBehandlingId(
-            behandlingId: BehandlingId,
-            session: Session,
-        ): Rammevedtak? {
-            return session.run(
-                queryOf(
-                    "select * from rammevedtak where behandling_id = :id",
-                    mapOf(
-                        "id" to behandlingId.toString(),
-                    ),
-                ).map { row ->
-                    row.toVedtak(session)
-                }.asSingle,
-            )
-        }
-
         fun hentForSakId(
             sakId: SakId,
             session: Session,
@@ -243,17 +233,18 @@ class RammevedtakPostgresRepo(
             ).let { Vedtaksliste(it) }
         }
 
-        internal fun lagreVedtak(
+        private fun lagreVedtak(
             vedtak: Rammevedtak,
             session: Session,
         ) {
             session.run(
-                queryOf(
+                sqlQuery(
                     """
                     insert into rammevedtak (
                         id, 
                         sak_id, 
-                        behandling_id, 
+                        behandling_id,
+                        utbetaling_id,
                         vedtakstype, 
                         vedtaksdato, 
                         fra_og_med, 
@@ -265,7 +256,8 @@ class RammevedtakPostgresRepo(
                     ) values (
                         :id, 
                         :sak_id, 
-                        :behandling_id, 
+                        :behandling_id,
+                        :utbetaling_id,
                         :vedtakstype, 
                         :vedtaksdato, 
                         :fra_og_med, 
@@ -275,27 +267,29 @@ class RammevedtakPostgresRepo(
                         :opprettet,
                         :brev_json
                     )
-                    """.trimIndent(),
-                    mapOf(
-                        "id" to vedtak.id.toString(),
-                        "sak_id" to vedtak.sakId.toString(),
-                        "behandling_id" to vedtak.behandling.id.toString(),
-                        "vedtakstype" to vedtak.vedtakstype.toString(),
-                        "vedtaksdato" to vedtak.vedtaksdato,
-                        "fra_og_med" to vedtak.periode.fraOgMed,
-                        "til_og_med" to vedtak.periode.tilOgMed,
-                        "saksbehandler" to vedtak.saksbehandlerNavIdent,
-                        "beslutter" to vedtak.beslutterNavIdent,
-                        "opprettet" to vedtak.opprettet,
-                    ),
+                    """,
+                    "id" to vedtak.id.toString(),
+                    "sak_id" to vedtak.sakId.toString(),
+                    "behandling_id" to vedtak.behandling.id.toString(),
+                    "utbetaling_id" to vedtak.utbetaling?.id?.toString(),
+                    "vedtakstype" to vedtak.vedtakstype.toString(),
+                    "vedtaksdato" to vedtak.vedtaksdato,
+                    "fra_og_med" to vedtak.periode.fraOgMed,
+                    "til_og_med" to vedtak.periode.tilOgMed,
+                    "saksbehandler" to vedtak.saksbehandler,
+                    "beslutter" to vedtak.beslutter,
+                    "opprettet" to vedtak.opprettet,
                 ).asUpdate,
             )
         }
 
         private fun Row.toVedtak(session: Session): Rammevedtak {
-            val id = VedtakId.fromString(string("id"))
+            val utbetaling = stringOrNull("utbetaling_id")?.let {
+                UtbetalingPostgresRepo.hent(UtbetalingId.fromString(it), session)
+            }
+
             return Rammevedtak(
-                id = id,
+                id = VedtakId.fromString(string("id")),
                 sakId = SakId.fromString(string("sak_id")),
                 behandling =
                 BehandlingPostgresRepo.hentOrNull(
@@ -312,6 +306,7 @@ class RammevedtakPostgresRepo(
                 sendtTilDatadeling = localDateTimeOrNull("sendt_til_datadeling"),
                 brevJson = stringOrNull("brev_json"),
                 opprettet = localDateTime("opprettet"),
+                utbetaling = utbetaling,
             )
         }
     }

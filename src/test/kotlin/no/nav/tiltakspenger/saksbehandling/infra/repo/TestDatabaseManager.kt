@@ -87,7 +87,8 @@ internal class TestDatabaseManager {
                   tiltaksdeltaker_kafka,
                   personhendelse,
                   identhendelse,
-                  utbetalingsvedtak,
+                  meldekortvedtak,
+                  utbetaling,
                   statistikk_utbetaling,
                   statistikk_stonad,
                   statistikk_sak,
@@ -99,7 +100,8 @@ internal class TestDatabaseManager {
                   sak,
                   søknadstiltak,
                   søknad_barnetillegg,
-                  søknad
+                  søknad,
+                  utbetalingsvedtak
                 """.trimIndent(),
             ).asUpdate,
         )

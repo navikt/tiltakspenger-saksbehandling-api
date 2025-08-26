@@ -20,11 +20,12 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAu
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import java.time.Clock
 import java.time.LocalDate
@@ -36,12 +37,20 @@ data class Sak(
     val saksnummer: Saksnummer,
     val behandlinger: Behandlinger,
     val vedtaksliste: Vedtaksliste,
+    val meldekortVedtaksliste: MeldekortVedtaksliste,
     val meldekortBehandlinger: MeldekortBehandlinger,
     val meldeperiodeKjeder: MeldeperiodeKjeder,
     val brukersMeldekort: List<BrukersMeldekort>,
-    val utbetalinger: Utbetalinger,
     val soknader: List<Søknad>,
 ) {
+    val utbetalinger: Utbetalinger by lazy {
+        Utbetalinger(
+            vedtaksliste.utbetalinger
+                .plus(meldekortVedtaksliste.utbetalinger)
+                .sortedBy { it.opprettet },
+        )
+    }
+
     val meldeperiodeBeregninger: MeldeperiodeBeregninger by lazy {
         MeldeperiodeBeregninger(
             meldekortBehandlinger = meldekortBehandlinger,
@@ -189,8 +198,8 @@ data class Sak(
         return this.copy(meldekortBehandlinger = this.meldekortBehandlinger.oppdaterMeldekortbehandling(behandling))
     }
 
-    fun leggTilUtbetalingsvedtak(utbetalingsvedtak: Utbetalingsvedtak): Sak {
-        return this.copy(utbetalinger = this.utbetalinger.leggTil(utbetalingsvedtak))
+    fun leggTilMeldekortVedtak(meldekortVedtak: MeldekortVedtak): Sak {
+        return this.copy(meldekortVedtaksliste = this.meldekortVedtaksliste.leggTil(meldekortVedtak))
     }
 
     fun oppdaterBehandling(behandling: Behandling): Sak {

@@ -1,42 +1,33 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.ports
 
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
-import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDateTime
 
-interface UtbetalingsvedtakRepo {
-    fun lagre(vedtak: Utbetalingsvedtak, context: TransactionContext? = null)
+interface UtbetalingRepo {
+    fun lagre(utbetaling: VedtattUtbetaling, context: TransactionContext? = null)
 
     fun markerSendtTilUtbetaling(
-        vedtakId: VedtakId,
+        utbetalingId: UtbetalingId,
         tidspunkt: LocalDateTime,
         utbetalingsrespons: SendtUtbetaling,
     )
 
     fun lagreFeilResponsFraUtbetaling(
-        vedtakId: VedtakId,
+        utbetalingId: UtbetalingId,
         utbetalingsrespons: KunneIkkeUtbetale,
     )
 
-    fun markerJournalført(
-        vedtakId: VedtakId,
-        journalpostId: JournalpostId,
-        tidspunkt: LocalDateTime,
-    )
+    fun hentUtbetalingJson(utbetalingId: UtbetalingId): String?
 
-    fun hentUtbetalingJsonForVedtakId(vedtakId: VedtakId): String?
-
-    fun hentUtbetalingsvedtakForUtsjekk(limit: Int = 10): List<Utbetalingsvedtak>
-
-    fun hentDeSomSkalJournalføres(limit: Int = 10): List<Utbetalingsvedtak>
+    fun hentForUtsjekk(limit: Int = 10): List<VedtattUtbetaling>
 
     fun oppdaterUtbetalingsstatus(
-        vedtakId: VedtakId,
+        utbetalingId: UtbetalingId,
         status: Utbetalingsstatus,
         metadata: Forsøkshistorikk,
         context: TransactionContext? = null,

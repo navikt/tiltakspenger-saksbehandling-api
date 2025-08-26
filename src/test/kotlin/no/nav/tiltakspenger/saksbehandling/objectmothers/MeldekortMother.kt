@@ -152,7 +152,6 @@ interface MeldekortMother : MotherOfAllMothers {
         meldekortperiodeBeregning: MeldekortBeregning =
             meldekortBeregning(
                 meldekortId = id,
-                sakId = sakId,
                 startDato = meldeperiode.periode.fraOgMed,
                 barnetilleggsPerioder = barnetilleggsPerioder,
             ),
@@ -328,7 +327,6 @@ interface MeldekortMother : MotherOfAllMothers {
      * @param startDato Må starte på en mandag.
      */
     fun meldekortBeregning(
-        sakId: SakId = SakId.random(),
         startDato: LocalDate = LocalDate.of(2023, 1, 2),
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(
             Periode(startDato, startDato.plusDays(13)),

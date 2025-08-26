@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.utsjekk.kontrakter.felles.Personident
 import no.nav.utsjekk.kontrakter.felles.Satstype
 import no.nav.utsjekk.kontrakter.felles.StønadTypeTiltakspenger
@@ -22,7 +22,7 @@ import kotlin.collections.fold
 /**
  * @param forrigeUtbetalingJson Forrige utbetaling vi sendte til helved. Siden vi må sende alle utbetalinger på nytt, må vi sende med alle utbetalinger vi har sendt tidligere.
  */
-fun Utbetalingsvedtak.toDTO(
+fun VedtattUtbetaling.toDTO(
     forrigeUtbetalingJson: String?,
 ): String {
     return IverksettV2Dto(
@@ -42,7 +42,7 @@ fun Utbetalingsvedtak.toDTO(
                 forrigeUtbetalingJson = forrigeUtbetalingJson,
             ),
         ),
-        forrigeIverksetting = forrigeUtbetalingsvedtakId?.let { ForrigeIverksettingV2Dto(behandlingId = it.uuidPart()) },
+        forrigeIverksetting = forrigeUtbetalingId?.let { ForrigeIverksettingV2Dto(behandlingId = it.uuidPart()) },
     ).let { serialize(it) }
 }
 

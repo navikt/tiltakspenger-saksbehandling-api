@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
@@ -52,6 +53,9 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -59,6 +63,24 @@ import java.time.LocalDateTime
 interface BehandlingMother : MotherOfAllMothers {
     /** Felles default vurderingsperiode for testdatatypene */
     fun virkningsperiode() = 1.januar(2023) til 31.mars(2023)
+
+    fun Behandling.tiltaksdeltagelseDTO(): List<TiltaksdeltakelsePeriodeDTO> {
+        val tiltaksdeltagelse = this.saksopplysninger.tiltaksdeltagelser.single()
+
+        return listOf(
+            TiltaksdeltakelsePeriodeDTO(
+                eksternDeltagelseId = tiltaksdeltagelse.eksternDeltagelseId,
+                periode = tiltaksdeltagelse.periode!!.toDTO(),
+            ),
+        )
+    }
+
+    fun Behandling.antallDagerPerMeldeperiodeDTO(periode: Periode, antallDager: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE): List<AntallDagerPerMeldeperiodeDTO> {
+        return SammenhengendePeriodisering(
+            AntallDagerForMeldeperiode(antallDager),
+            periode,
+        ).toDTO()
+    }
 
     fun godkjentAttestering(beslutter: Saksbehandler = beslutter()): Attestering =
         Attestering(
@@ -813,7 +835,7 @@ suspend fun TestApplicationContext.førsteMeldekortIverksatt(
     return this.sakContext.sakService.hentForSakId(sak.id)
 }
 
-suspend fun TestApplicationContext.andreMeldekortIverksatt(
+suspend fun TestApplicationContext.andreMeldekortOpprettet(
     periode: Periode = ObjectMother.virkningsperiode(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),

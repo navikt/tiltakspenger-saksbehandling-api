@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletMa
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toUtbetalingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.SimuleringDTO
@@ -43,10 +43,10 @@ data class MeldekortBehandlingDTO(
 )
 
 fun MeldekortBehandling.tilMeldekortBehandlingDTO(
-    utbetalingsvedtak: Utbetalingsvedtak? = null,
+    vedtak: MeldekortVedtak? = null,
 ): MeldekortBehandlingDTO {
-    require(status != MeldekortBehandlingStatus.GODKJENT || utbetalingsvedtak != null) {
-        "Utbetalingsvedtak må være satt for godkjente meldekortbehandlinger. sakId ${this.sakId}, behandlingId: $id"
+    require(status != MeldekortBehandlingStatus.GODKJENT || vedtak != null) {
+        "Meldekortvedtak må være satt for godkjente meldekortbehandlinger. sakId ${this.sakId}, behandlingId: $id"
     }
 
     return MeldekortBehandlingDTO(
@@ -56,7 +56,7 @@ fun MeldekortBehandling.tilMeldekortBehandlingDTO(
         saksbehandler = saksbehandler,
         beslutter = beslutter,
         opprettet = opprettet,
-        godkjentTidspunkt = utbetalingsvedtak?.opprettet ?: iverksattTidspunkt,
+        godkjentTidspunkt = vedtak?.opprettet ?: iverksattTidspunkt,
         status = this.toStatusDTO(),
         erAvsluttet = erAvsluttet,
         navkontor = navkontor.kontornummer,
@@ -64,7 +64,7 @@ fun MeldekortBehandling.tilMeldekortBehandlingDTO(
         begrunnelse = begrunnelse?.verdi,
         type = type.tilDTO(),
         attesteringer = attesteringer.toAttesteringDTO(),
-        utbetalingsstatus = utbetalingsvedtak?.status?.toUtbetalingsstatusDTO() ?: this.tilUtbetalingsstatusDto(),
+        utbetalingsstatus = vedtak?.utbetaling?.status?.toUtbetalingsstatusDTO() ?: this.tilUtbetalingsstatusDto(),
         periode = periode.toDTO(),
         dager = dager.tilMeldekortDagerDTO(),
         beregning = beregning?.tilMeldekortBeregningDTO(),

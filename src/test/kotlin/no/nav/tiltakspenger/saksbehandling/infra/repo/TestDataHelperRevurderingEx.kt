@@ -6,9 +6,16 @@ import arrow.core.nonEmptyListOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
@@ -16,7 +23,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKom
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
+import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.felles.Attestering
+import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.navkontor
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -189,4 +200,78 @@ internal fun TestDataHelper.persisterAvbruttRevurdering(
 
     behandlingRepo.lagre(avbruttRevurdering)
     return Pair(sakRepo.hentForSakId(sakMedOpprettetRevurdering.id)!!, opprettetRevurdering)
+}
+
+internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
+    sak: Sak? = null,
+    saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+    beslutter: Saksbehandler = ObjectMother.beslutter(),
+    begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("TestDataHelper.persisterRevurderingTilBeslutning"),
+    innvilgelsesperiode: Periode? = null,
+    barnetillegg: Barnetillegg? = null,
+    clock: Clock = this.clock,
+    genererSak: (Sak?) -> Pair<Sak, Revurdering> = { s ->
+        this.persisterOpprettetRevurdering(
+            sak = s,
+            revurderingType = RevurderingType.INNVILGELSE,
+        )
+    },
+): Pair<Sak, Revurdering> {
+    val (sakMedRevurdering, revurdering) = genererSak(sak)
+
+    val periode = innvilgelsesperiode ?: Periode(
+        sakMedRevurdering.førsteDagSomGirRett!!,
+        sakMedRevurdering.sisteDagSomGirRett!!,
+    )
+
+    val kommando = OppdaterRevurderingKommando.Innvilgelse(
+        sakId = sakMedRevurdering.id,
+        behandlingId = revurdering.id,
+        saksbehandler = saksbehandler,
+        correlationId = CorrelationId.generate(),
+        begrunnelseVilkårsvurdering = begrunnelse,
+        fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("TestDataHelper.persisterRevurderingTilBeslutning"),
+        innvilgelsesperiode = periode,
+        tiltaksdeltakelser = listOf(
+            Pair(
+                periode,
+                revurdering.saksopplysninger.tiltaksdeltagelser.first().eksternDeltagelseId,
+            ),
+        ),
+        antallDagerPerMeldeperiode = SammenhengendePeriodisering(
+            AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
+            periode,
+        ),
+        barnetillegg = barnetillegg,
+    )
+
+    val utbetaling = sakMedRevurdering.beregnRevurderingInnvilgelse(kommando)
+
+    return runBlocking {
+        revurdering.oppdaterInnvilgelse(
+            kommando = kommando,
+            clock = clock,
+            utbetaling = utbetaling?.let {
+                BehandlingUtbetaling(
+                    beregning = it,
+                    navkontor = navkontor(),
+                    simulering = null,
+                )
+            },
+        )
+    }.getOrNull()!!.tilBeslutning().taBehandling(
+        saksbehandler = beslutter,
+    ).iverksett(
+        utøvendeBeslutter = beslutter,
+        attestering = Attestering(
+            status = Attesteringsstatus.GODKJENT,
+            begrunnelse = null,
+            beslutter = beslutter.navIdent,
+            tidspunkt = nå(clock),
+        ),
+        clock = clock,
+    ).let {
+        behandlingRepo.lagre(it)
+        sakRepo.hentForSakId(sakMedRevurdering.id)!! to it as Revurdering
+    }
 }

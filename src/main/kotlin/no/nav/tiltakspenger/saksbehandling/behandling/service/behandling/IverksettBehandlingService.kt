@@ -26,9 +26,6 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDT
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.genererStønadsstatistikkForRammevedtak
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.opprettUtbetalingsvedtak
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.tilStatistikk
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingsvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettVedtak
@@ -42,7 +39,6 @@ class IverksettBehandlingService(
     private val sessionFactory: SessionFactory,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
-    private val utbetalingsvedtakRepo: UtbetalingsvedtakRepo,
     private val sakService: SakService,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
@@ -136,13 +132,6 @@ class IverksettBehandlingService(
         val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) =
             this.meldekortBehandlinger.oppdaterMedNyeKjeder(oppdatertSak.meldeperiodeKjeder, tiltakstypeperioder, clock)
 
-        val utbetalingsvedtak = vedtak.beregning?.run {
-            vedtak.opprettUtbetalingsvedtak(
-                forrigeUtbetalingsvedtak = utbetalinger.lastOrNull(),
-                clock = clock,
-            )
-        }
-
         // journalføring og dokumentdistribusjon skjer i egen jobb
         sessionFactory.withTransactionContext { tx ->
             behandlingRepo.lagre(vedtak.behandling, tx)
@@ -157,11 +146,6 @@ class IverksettBehandlingService(
             meldeperiodeRepo.lagre(oppdaterteMeldeperioder, tx)
             // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.
             oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, null, tx) }
-
-            utbetalingsvedtak?.also {
-                utbetalingsvedtakRepo.lagre(it, tx)
-                statistikkStønadRepo.lagre(it.tilStatistikk(), tx)
-            }
         }
         return oppdatertSak.copy(meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
     }

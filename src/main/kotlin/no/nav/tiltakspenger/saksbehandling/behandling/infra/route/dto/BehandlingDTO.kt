@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallD
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toTiltaksdeltakelsePeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsvedtak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDateTime
 
 sealed interface BehandlingDTO {
@@ -111,7 +111,7 @@ fun Sak.tilBehandlingDTO(behandlingId: BehandlingId): BehandlingDTO {
     return when (behandling) {
         is Revurdering -> behandling.tilRevurderingDTO(
             meldeperiodeBeregninger,
-            utbetalinger.hentUtbetalingForBehandling(behandlingId),
+            utbetalinger.hentUtbetaling(behandlingId),
         )
 
         is Søknadsbehandling -> behandling.tilSøknadsbehandlingDTO()
@@ -163,7 +163,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(): SøknadsbehandlingDTO {
 
 fun Revurdering.tilRevurderingDTO(
     meldeperiodeBeregninger: MeldeperiodeBeregninger,
-    utbetalingsvedtak: Utbetalingsvedtak?,
+    utbetalingFraVedtak: VedtattUtbetaling?,
 ): RevurderingDTO {
     return RevurderingDTO(
         id = this.id.toString(),
@@ -186,7 +186,7 @@ fun Revurdering.tilRevurderingDTO(
         antallDagerPerMeldeperiode = null,
         barnetillegg = null,
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
-        utbetaling = utbetaling?.tilDTO(meldeperiodeBeregninger, utbetalingsvedtak),
+        utbetaling = utbetaling?.tilDTO(meldeperiodeBeregninger, utbetalingFraVedtak),
     ).let {
         when (resultat) {
             is RevurderingResultat.Stans -> it.copy(

@@ -7,17 +7,17 @@ import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
-class UtbetalingsvedtakDTOTest {
+class MeldekortVedtakDTOTest {
 
     @Test
     fun `kan serialiseres`() = runTest {
-        val utbetalingsvedtak = ObjectMother.utbetalingsvedtak()
+        val utbetalingsvedtak = ObjectMother.meldekortVedtak()
         val tiltaksdeltagelser = listOf(ObjectMother.tiltaksdeltagelse())
 
         utbetalingsvedtak.toJsonRequest(
             hentSaksbehandlersNavn = { "Saksbehandler Navn" },
             tiltaksdeltagelser = Tiltaksdeltagelser(tiltaksdeltagelser),
-            sammenlign = { sammenlign(utbetalingsvedtak.beregning.beregninger.first()) },
+            sammenlign = { sammenlign(utbetalingsvedtak.utbetaling.beregning.beregninger.first()) },
         )
     }
 
