@@ -39,9 +39,9 @@ class SimulerService(
             beregning = behandling.beregning!!,
             brukersNavkontor = if (brukersNavkontor != null) brukersNavkontor() else navkontorService.hentOppfolgingsenhet(behandling.fnr),
             forrigeUtbetalingJson = forrigeUtbetaling?.let {
-                utbetalingsvedtakRepo.hentUtbetalingJsonForVedtakId(it.id)
+                utbetalingRepo.hentUtbetalingJson(it.id)
             },
-            forrigeVedtakId = forrigeUtbetaling?.id,
+            forrigeUtbetalingId = forrigeUtbetaling?.id,
             meldeperiodeKjeder = meldeperiodeKjeder,
         )
     }
@@ -55,7 +55,7 @@ class SimulerService(
     suspend fun simulerRevurdering(
         behandling: Revurdering,
         beregning: BehandlingBeregning,
-        forrigeUtbetaling: Utbetalingsvedtak?,
+        forrigeUtbetaling: Utbetaling?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
         brukersNavkontor: (suspend () -> Navkontor)?,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
@@ -70,7 +70,7 @@ class SimulerService(
             forrigeUtbetalingJson = forrigeUtbetaling?.let {
                 utbetalingRepo.hentUtbetalingJson(it.id)
             },
-            forrigeVedtakId = forrigeUtbetaling?.vedtakId,
+            forrigeUtbetalingId = forrigeUtbetaling?.id,
             meldeperiodeKjeder = meldeperiodeKjeder,
         )
     }

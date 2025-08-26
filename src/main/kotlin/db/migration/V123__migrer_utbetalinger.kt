@@ -32,7 +32,7 @@ data class UtbetalingsvedtakRow(
     val utbetalingsrespons: String?,
 )
 
-class V122__migrer_utbetalinger : BaseJavaMigration() {
+class V123__migrer_utbetalinger : BaseJavaMigration() {
     override fun migrate(context: Context) {
         val logger = KotlinLogging.logger {}
         val dataSource = context.configuration.dataSource

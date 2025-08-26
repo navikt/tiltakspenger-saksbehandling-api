@@ -2,11 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Ulid
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.utsjekk.kontrakter.iverksett.ForrigeIverksettingV2Dto
 import no.nav.utsjekk.kontrakter.iverksett.UtbetalingV2Dto
 
@@ -31,7 +31,7 @@ fun toSimuleringRequest(
     beregning: UtbetalingBeregning,
     brukersNavkontor: Navkontor,
     forrigeUtbetalingJson: String?,
-    forrigeVedtakId: VedtakId?,
+    forrigeUtbetalingId: UtbetalingId?,
 ): String {
     return SimuleringRequestDTO(
         sakId = saksnummer.toString(),
@@ -43,6 +43,6 @@ fun toSimuleringRequest(
             brukersNavkontor = brukersNavkontor,
             forrigeUtbetalingJson = forrigeUtbetalingJson,
         ),
-        forrigeIverksetting = forrigeVedtakId?.uuidPart()?.let { ForrigeIverksettingV2Dto(it) },
+        forrigeIverksetting = forrigeUtbetalingId?.uuidPart()?.let { ForrigeIverksettingV2Dto(it) },
     ).let { serialize(it) }
 }

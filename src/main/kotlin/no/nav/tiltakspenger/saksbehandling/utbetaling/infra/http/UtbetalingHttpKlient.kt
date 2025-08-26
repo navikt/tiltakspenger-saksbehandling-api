@@ -14,12 +14,9 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Ulid
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -29,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
@@ -180,7 +178,7 @@ class UtbetalingHttpKlient(
         beregning: UtbetalingBeregning,
         brukersNavkontor: Navkontor,
         forrigeUtbetalingJson: String?,
-        forrigeVedtakId: VedtakId?,
+        forrigeUtbetalingId: UtbetalingId?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         return withContext(Dispatchers.IO) {
@@ -196,7 +194,7 @@ class UtbetalingHttpKlient(
                 beregning = beregning,
                 brukersNavkontor = brukersNavkontor,
                 forrigeUtbetalingJson = forrigeUtbetalingJson,
-                forrigeVedtakId = forrigeVedtakId,
+                forrigeUtbetalingId = forrigeUtbetalingId,
             )
             Either.catch {
                 val token = getToken().token

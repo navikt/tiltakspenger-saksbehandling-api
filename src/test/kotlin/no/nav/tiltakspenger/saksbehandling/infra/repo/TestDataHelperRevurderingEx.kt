@@ -255,6 +255,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
                 BehandlingUtbetaling(
                     beregning = it,
                     navkontor = navkontor(),
+                    simulering = null,
                 )
             },
         )

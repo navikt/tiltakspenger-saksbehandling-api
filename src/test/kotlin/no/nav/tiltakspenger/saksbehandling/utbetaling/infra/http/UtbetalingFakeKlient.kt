@@ -8,10 +8,8 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Ulid
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.genererSimuleringFraBeregning
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -21,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
@@ -57,7 +56,7 @@ class UtbetalingFakeKlient(
         beregning: UtbetalingBeregning,
         brukersNavkontor: Navkontor,
         forrigeUtbetalingJson: String?,
-        forrigeVedtakId: VedtakId?,
+        forrigeUtbetalingId: UtbetalingId?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         val sak = sakFakeRepo.hentForSakId(sakId)!!
