@@ -17,7 +17,7 @@ import java.time.Clock
 import java.time.LocalDateTime
 
 /**
- * @param opprettet Tidspunktet vi instansierte og persisterte dette utbetalingsvedtaket første gangen. Dette har ingenting med vedtaksbrevet å gjøre.
+ * @param opprettet Tidspunktet vi instansierte og persisterte dette vedtaket første gangen. Dette har ingenting med vedtaksbrevet å gjøre.
  * */
 data class MeldekortVedtak(
     override val id: VedtakId,
@@ -47,8 +47,10 @@ data class MeldekortVedtak(
         require(id == utbetaling.vedtakId)
         require(sakId == utbetaling.sakId)
         require(fnr == utbetaling.fnr)
+        require(opprettet == utbetaling.opprettet)
         require(saksbehandler == utbetaling.saksbehandler)
         require(beslutter == utbetaling.beslutter)
+        require(meldekortBehandling.id == utbetaling.beregningKilde.id)
     }
 }
 
@@ -89,6 +91,7 @@ fun MeldekortBehandling.Behandlet.opprettVedtak(
     )
 }
 
+// TODO abn: generer utbetaling-statistikk fra utbetalingen, når denne iverksettes
 fun MeldekortVedtak.tilStatistikk(): StatistikkUtbetalingDTO =
     StatistikkUtbetalingDTO(
         // TODO post-mvp jah: Vi sender uuid-delen av denne til helved som behandlingId som mappes videre til OS/UR i feltet 'henvisning'.

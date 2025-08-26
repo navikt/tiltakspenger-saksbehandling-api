@@ -146,12 +146,6 @@ class IverksettBehandlingService(
             meldeperiodeRepo.lagre(oppdaterteMeldeperioder, tx)
             // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.
             oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, null, tx) }
-
-//            utbetalingsvedtak?.also {
-//                utbetalingsvedtakRepo.lagre(it, tx)
-//                // TODO: generer statistikk når utbetalingen iverksettes
-//                // statistikkStønadRepo.lagre(it.tilStatistikk(), tx)
-//            }
         }
         return oppdatertSak.copy(meldekortBehandlinger = oppdaterteMeldekortbehandlinger)
     }

@@ -28,7 +28,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * @param opprettet Tidspunktet vi instansierte og persisterte dette utbetalingsvedtaket første gangen. Dette har ingenting med vedtaksbrevet å gjøre.
+ * @param opprettet Tidspunktet vi instansierte og persisterte dette vedtaket første gangen. Dette har ingenting med vedtaksbrevet å gjøre.
  * @param periode Stansperiode eller innvilgelsesperiode (ikke nødvendigvis det samme som vurderingsperiode.)
  * @param vedtaksdato Datoen vi bruker i brevet. Lagres samtidig som vi genererer og journalfører brevet. Vil være null fram til dette.
  */
@@ -67,6 +67,16 @@ data class Rammevedtak(
         require(behandling.erVedtatt) { "Kan ikke lage vedtak for behandling som ikke er vedtatt. BehandlingId: ${behandling.id}" }
         require(sakId == behandling.sakId) { "SakId i vedtak og behandling må være lik. SakId: $sakId, BehandlingId: ${behandling.id}" }
         require(periode == behandling.virkningsperiode) { "Periode i vedtak og behandling må være lik. Periode: $periode, BehandlingId: ${behandling.id}" }
+
+        utbetaling?.also {
+            require(id == it.vedtakId)
+            require(sakId == it.sakId)
+            require(fnr == it.fnr)
+            require(opprettet == it.opprettet)
+            require(saksbehandler == it.saksbehandler)
+            require(beslutter == it.beslutter)
+            require(behandling.id == it.beregningKilde.id)
+        }
     }
 }
 

@@ -31,19 +31,19 @@ class MeldekortVedtakPostgresRepo(
             tx.run(
                 sqlQuery(
                     """
-                        insert into meldekortvedtak (
-                            id,
-                            utbetaling_id,
-                            sak_id,
-                            opprettet,
-                            meldekort_id
-                        ) values (
-                            :id,
-                            :utbetaling_id,
-                            :sak_id,
-                            :opprettet,
-                            :meldekort_id
-                        )
+                    insert into meldekortvedtak (
+                        id,
+                        utbetaling_id,
+                        sak_id,
+                        opprettet,
+                        meldekort_id
+                    ) values (
+                        :id,
+                        :utbetaling_id,
+                        :sak_id,
+                        :opprettet,
+                        :meldekort_id
+                    )
                     """,
                     "id" to vedtak.id.toString(),
                     "utbetaling_id" to vedtak.utbetaling.id.toString(),
@@ -65,10 +65,10 @@ class MeldekortVedtakPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                        update meldekortvedtak 
-                        set journalpost_id = :journalpost_id,
-                        journalføringstidspunkt = :tidspunkt
-                        where id = :id
+                    update meldekortvedtak 
+                    set journalpost_id = :journalpost_id,
+                    journalføringstidspunkt = :tidspunkt
+                    where id = :id
                     """,
                     "id" to vedtakId.toString(),
                     "journalpost_id" to journalpostId.toString(),
@@ -83,11 +83,11 @@ class MeldekortVedtakPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                            select v.*, s.saksnummer, s.fnr 
-                            from meldekortvedtak v
-                            join sak s on s.id = v.sak_id
-                            where v.journalpost_id is null
-                            limit :limit
+                    select v.*, s.saksnummer, s.fnr 
+                    from meldekortvedtak v
+                    join sak s on s.id = v.sak_id
+                    where v.journalpost_id is null
+                    limit :limit
                     """,
                     "limit" to limit,
                 ).map { row ->
@@ -102,11 +102,11 @@ class MeldekortVedtakPostgresRepo(
             return session.run(
                 sqlQuery(
                     """
-                        select v.*, s.saksnummer, s.fnr 
-                        from meldekortvedtak v
-                        join sak s on s.id = v.sak_id
-                        where v.sak_id = :sak_id 
-                        order by v.opprettet
+                    select v.*, s.saksnummer, s.fnr 
+                    from meldekortvedtak v
+                    join sak s on s.id = v.sak_id
+                    where v.sak_id = :sak_id 
+                    order by v.opprettet
                     """,
                     "sak_id" to sakId.toString(),
                 ).map { row ->

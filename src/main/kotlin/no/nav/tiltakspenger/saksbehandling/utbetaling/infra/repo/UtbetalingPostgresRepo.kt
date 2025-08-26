@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
 import kotliquery.Row
 import kotliquery.Session
-import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -52,10 +51,10 @@ class UtbetalingPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                        update utbetaling
-                        set sendt_til_utbetaling_tidspunkt = :tidspunkt, 
-                            utbetaling_metadata = to_jsonb(:metadata::jsonb)
-                        where id = :id
+                    update utbetaling
+                    set sendt_til_utbetaling_tidspunkt = :tidspunkt, 
+                        utbetaling_metadata = to_jsonb(:metadata::jsonb)
+                    where id = :id
                     """,
                     "id" to utbetalingId.toString(),
                     "tidspunkt" to tidspunkt,
@@ -73,9 +72,9 @@ class UtbetalingPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                        update utbetaling
-                        set utbetaling_metadata = to_jsonb(:metadata::jsonb)
-                        where id = :id
+                    update utbetaling
+                    set utbetaling_metadata = to_jsonb(:metadata::jsonb)
+                    where id = :id
                     """,
                     "id" to utbetalingId.toString(),
                     "metadata" to utbetalingsrespons.toJson(),
@@ -89,9 +88,9 @@ class UtbetalingPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                        select (utbetaling_metadata->>'request') as req 
-                        from utbetaling 
-                        where id = :id
+                    select (utbetaling_metadata->>'request') as req 
+                    from utbetaling 
+                    where id = :id
                     """,
                     "id" to utbetalingId.toString(),
                 ).map { it.stringOrNull("req") }.asSingle,
@@ -102,18 +101,17 @@ class UtbetalingPostgresRepo(
     override fun hentForUtsjekk(limit: Int): List<Utbetaling> {
         return sessionFactory.withSession { session ->
             session.run(
-                queryOf(
-                    //language=SQL
+                sqlQuery(
                     """
-                            select u.* from utbetaling_full u
-                            left join utbetaling parent on parent.id = u.forrige_utbetaling_id
-                              and parent.sak_id = u.sak_id
-                            where u.sendt_til_utbetaling_tidspunkt is null
-                              and (u.forrige_utbetaling_id is null or (parent.sendt_til_utbetaling_tidspunkt is not null and parent.status IN ('OK','OK_UTEN_UTBETALING')))
-                            order by u.opprettet
-                            limit :limit
+                    select u.* from utbetaling_full u
+                    left join utbetaling parent on parent.id = u.forrige_utbetaling_id
+                      and parent.sak_id = u.sak_id
+                    where u.sendt_til_utbetaling_tidspunkt is null
+                      and (u.forrige_utbetaling_id is null or (parent.sendt_til_utbetaling_tidspunkt is not null and parent.status IN ('OK','OK_UTEN_UTBETALING')))
+                    order by u.opprettet
+                    limit :limit
                     """.trimIndent(),
-                    mapOf("limit" to limit),
+                    "limit" to limit,
                 ).map { it.tilUtbetaling() }.asList,
             )
         }
@@ -129,10 +127,10 @@ class UtbetalingPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                        update utbetaling
-                        set status = :status,
-                        status_metadata = to_jsonb(:status_metadata::jsonb)
-                        where id = :id
+                    update utbetaling
+                    set status = :status,
+                    status_metadata = to_jsonb(:status_metadata::jsonb)
+                    where id = :id
                     """,
                     "id" to utbetalingId.toString(),
                     "status" to status.toDbType(),
@@ -147,11 +145,11 @@ class UtbetalingPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                        select * from utbetaling_full
-                        where (status is null or status IN ('IKKE_PÅBEGYNT', 'SENDT_TIL_OPPDRAG')) and sendt_til_utbetaling_tidspunkt is not null
-                            and (status_metadata->>'nesteForsøk')::timestamptz <= now()
-                        order by (status_metadata->>'antall_forsøk')::int, opprettet
-                        limit :limit
+                    select * from utbetaling_full
+                    where (status is null or status IN ('IKKE_PÅBEGYNT', 'SENDT_TIL_OPPDRAG')) and sendt_til_utbetaling_tidspunkt is not null
+                        and (status_metadata->>'nesteForsøk')::timestamptz <= now()
+                    order by (status_metadata->>'antall_forsøk')::int, opprettet
+                    limit :limit
                     """,
                     "limit" to limit,
                 ).map { row ->
@@ -173,8 +171,8 @@ class UtbetalingPostgresRepo(
             return session.run(
                 sqlQuery(
                     """
-                    select * from utbetaling_full
-                    where id = :id 
+                select * from utbetaling_full
+                where id = :id 
                 """,
                     "id" to id.toString(),
                 ).map {
@@ -187,25 +185,25 @@ class UtbetalingPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                        insert into utbetaling (
-                            id,
-                            sak_id,
-                            rammevedtak_id,
-                            meldekortvedtak_id,
-                            forrige_utbetaling_id,
-                            sendt_til_utbetaling_tidspunkt,
-                            status,
-                            status_metadata
-                        ) values(
-                            :id,
-                            :sak_id,
-                            :rammevedtak_id,
-                            :meldekortvedtak_id,
-                            :forrige_utbetaling_id,
-                            :sendt_til_utbetaling_tidspunkt,
-                            :status,
-                            to_jsonb(:status_metadata::jsonb)
-                        )
+                    insert into utbetaling (
+                        id,
+                        sak_id,
+                        rammevedtak_id,
+                        meldekortvedtak_id,
+                        forrige_utbetaling_id,
+                        sendt_til_utbetaling_tidspunkt,
+                        status,
+                        status_metadata
+                    ) values(
+                        :id,
+                        :sak_id,
+                        :rammevedtak_id,
+                        :meldekortvedtak_id,
+                        :forrige_utbetaling_id,
+                        :sendt_til_utbetaling_tidspunkt,
+                        :status,
+                        to_jsonb(:status_metadata::jsonb)
+                    )
                     """,
                     "id" to utbetaling.id.toString(),
                     "sak_id" to utbetaling.sakId.toString(),
