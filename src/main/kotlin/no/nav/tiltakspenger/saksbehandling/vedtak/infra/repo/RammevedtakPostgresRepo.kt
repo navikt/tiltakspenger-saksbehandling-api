@@ -257,7 +257,7 @@ class RammevedtakPostgresRepo(
                         :id, 
                         :sak_id, 
                         :behandling_id,
-                        :utbetaling_ud,
+                        :utbetaling_id,
                         :vedtakstype, 
                         :vedtaksdato, 
                         :fra_og_med, 
