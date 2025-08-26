@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeClient
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeTestClient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
@@ -71,7 +71,7 @@ class TestApplicationContext(
     @Suppress("MemberVisibilityCanBePrivate")
     val distribusjonIdGenerator = DistribusjonIdGenerator()
 
-    val tilgangsmaskinFakeClient = TilgangsmaskinFakeClient()
+    val tilgangsmaskinFakeClient = TilgangsmaskinFakeTestClient()
 
     private val rammevedtakFakeRepo = RammevedtakFakeRepo()
     private val statistikkStønadFakeRepo = StatistikkStønadFakeRepo()
