@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
@@ -38,9 +39,12 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toDbJson
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringFraDbJson
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 
@@ -75,22 +79,6 @@ class BehandlingPostgresRepo(
         }
     }
 
-    override fun hentForSøknadId(søknadId: SøknadId): List<Behandling> =
-        sessionFactory.withSession { session ->
-            session.run(
-                // TODO gå via soknad_id
-                sqlQuery(
-                    """
-                    select b.*, sak.saksnummer, sak.fnr
-                    from behandling b
-                    join sak on sak.id = b.sak_id
-                    where b.soknad_id = :id
-                    """.trimIndent(),
-                    "id" to søknadId.toString(),
-                ).map { it.toBehandling(session) }.asList,
-            )
-        }
-
     override fun lagre(
         behandling: Behandling,
         transactionContext: TransactionContext?,
@@ -103,6 +91,28 @@ class BehandlingPostgresRepo(
             } else {
                 oppdaterBehandling(sistEndret, behandling, tx)
             }
+        }
+    }
+
+    /**
+     * Siden vi ikke er interessert i og hente ut metadataene igjen, er dette en egen funksjon.
+     * Denne blir kalt samtidig som [lagre] i en og samme transaksjon, så vi trenger ikke mutere sist_endret her.
+     */
+    override fun oppdaterSimuleringMetadata(
+        behandlingId: BehandlingId,
+        originalResponseBody: String?,
+        sessionContext: SessionContext,
+    ) {
+        sessionContext.withSession { session ->
+            session.run(
+                queryOf(
+                    """update behandling set simulering_metadata = :simulering_metadata where id = :id""",
+                    mapOf(
+                        "id" to behandlingId.toString(),
+                        "simulering_metadata" to originalResponseBody,
+                    ),
+                ).asUpdate,
+            )
         }
     }
 
@@ -444,6 +454,12 @@ class BehandlingPostgresRepo(
                                     kontornummer = string("navkontor"),
                                     kontornavn = stringOrNull("navkontor_navn"),
                                 ),
+                                simulering = stringOrNull("simulering")?.toSimuleringFraDbJson(
+                                    MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(
+                                        sakId = sakId,
+                                        session = session,
+                                    ),
+                                ),
                             )
                         },
                     )
@@ -487,6 +503,7 @@ class BehandlingPostgresRepo(
                 automatisk_saksbehandlet,
                 manuelt_behandles_grunner,
                 beregning,
+                simulering,
                 navkontor,
                 navkontor_navn
             ) values (
@@ -522,6 +539,7 @@ class BehandlingPostgresRepo(
                 :automatisk_saksbehandlet,
                 to_jsonb(:manuelt_behandles_grunner::jsonb),
                 to_jsonb(:beregning::jsonb),
+                to_jsonb(:simulering::jsonb),
                 :navkontor,
                 :navkontor_navn
             )
@@ -559,6 +577,8 @@ class BehandlingPostgresRepo(
                 automatisk_saksbehandlet = :automatisk_saksbehandlet,
                 manuelt_behandles_grunner = to_jsonb(:manuelt_behandles_grunner::jsonb),
                 beregning = to_jsonb(:beregning::jsonb),
+                simulering = to_jsonb(:simulering::jsonb),
+                simulering_metadata = CASE WHEN :simulering::varchar IS NULL THEN NULL ELSE simulering_metadata END,
                 navkontor = :navkontor,
                 navkontor_navn = :navkontor_navn                
             where id = :id and sist_endret = :sist_endret_old
@@ -687,6 +707,7 @@ private fun Behandling.tilDbParams(): Map<String, Any?> {
         "automatisk_saksbehandlet" to automatiskSaksbehandlet,
         "manuelt_behandles_grunner" to manueltBehandlesGrunner?.toDbJson(),
         "beregning" to this.utbetaling?.beregning?.tilBeregningerDbJson(),
+        "simulering" to this.utbetaling?.simulering?.toDbJson(),
         "navkontor" to this.utbetaling?.navkontor?.kontornummer,
         "navkontor_navn" to this.utbetaling?.navkontor?.kontornavn,
         *this.resultat.tilDbParams(),

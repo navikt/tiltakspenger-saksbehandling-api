@@ -6,12 +6,16 @@ import arrow.atomic.Atomic
 import arrow.core.Either
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.genererSimuleringFraBeregning
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
@@ -45,15 +49,21 @@ class UtbetalingFakeKlient(
     }
 
     override suspend fun simuler(
-        behandling: MeldekortBehandling,
+        sakId: SakId,
+        saksnummer: Saksnummer,
+        behandlingId: Ulid,
+        fnr: Fnr,
+        saksbehandler: String,
+        beregning: UtbetalingBeregning,
         brukersNavkontor: Navkontor,
         forrigeUtbetalingJson: String?,
         forrigeVedtakId: VedtakId?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
-        val sak = sakFakeRepo.hentForSakId(behandling.sakId)!!
-        return sak.genererSimuleringFraBeregning(behandling).right()
+        val sak = sakFakeRepo.hentForSakId(sakId)!!
+        return sak.genererSimuleringFraBeregning(beregning = beregning).right()
     }
+
     data class Utbetaling(
         val vedtak: Utbetalingsvedtak,
         val correlationId: CorrelationId,

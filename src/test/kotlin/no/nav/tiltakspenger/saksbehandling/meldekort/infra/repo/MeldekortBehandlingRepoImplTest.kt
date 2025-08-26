@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingB
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettManuellMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.objectmothers.genererSimuleringFraBeregning
+import no.nav.tiltakspenger.saksbehandling.objectmothers.genererSimuleringFraMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilOppdaterMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import org.junit.jupiter.api.Test
@@ -40,7 +40,7 @@ class MeldekortBehandlingRepoImplTest {
                 periode = sak.meldeperiodeKjeder.first().first().periode,
                 begrunnelse = MeldekortBehandlingBegrunnelse("begrunnelse"),
             ).let {
-                val simuleringMedMetadata = sak.genererSimuleringFraBeregning(it)
+                val simuleringMedMetadata = sak.genererSimuleringFraMeldekortBehandling(it)
                 val medSimulering = it.copy(simulering = simuleringMedMetadata.simulering)
                 meldekortRepo.lagre(medSimulering, simuleringMedMetadata)
                 medSimulering

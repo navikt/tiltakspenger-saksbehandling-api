@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -19,7 +21,6 @@ class SimulerService(
     /**
      * Skal kun brukes fra en annen service.
      * Dersom kommandoen er trigget av en saksbehandler, forventer vi at saksbehandler har tilgang til person.
-     * Lag egen funksjon for revurderinger (typisk opphør av utbetalte perioder / endring av barnetillegg)
      *
      * @param forrigeUtbetaling er null dersom det ikke finnes en tidligere utbetaling
      */
@@ -30,7 +31,41 @@ class SimulerService(
         brukersNavkontor: (suspend () -> Navkontor)?,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         return utbetalingsklient.simuler(
-            behandling = behandling,
+            sakId = behandling.sakId,
+            saksnummer = behandling.saksnummer,
+            behandlingId = behandling.id,
+            fnr = behandling.fnr,
+            saksbehandler = behandling.saksbehandler!!,
+            beregning = behandling.beregning!!,
+            brukersNavkontor = if (brukersNavkontor != null) brukersNavkontor() else navkontorService.hentOppfolgingsenhet(behandling.fnr),
+            forrigeUtbetalingJson = forrigeUtbetaling?.let {
+                utbetalingsvedtakRepo.hentUtbetalingJsonForVedtakId(it.id)
+            },
+            forrigeVedtakId = forrigeUtbetaling?.id,
+            meldeperiodeKjeder = meldeperiodeKjeder,
+        )
+    }
+
+    /**
+     * Skal kun brukes fra en annen service.
+     * Dersom kommandoen er trigget av en saksbehandler, forventer vi at saksbehandler har tilgang til person.
+     *
+     * @param forrigeUtbetaling er null dersom det ikke finnes en tidligere utbetaling
+     */
+    suspend fun simulerRevurdering(
+        behandling: Revurdering,
+        beregning: BehandlingBeregning,
+        forrigeUtbetaling: Utbetalingsvedtak?,
+        meldeperiodeKjeder: MeldeperiodeKjeder,
+        brukersNavkontor: (suspend () -> Navkontor)?,
+    ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
+        return utbetalingsklient.simuler(
+            sakId = behandling.sakId,
+            saksnummer = behandling.saksnummer,
+            behandlingId = behandling.id,
+            fnr = behandling.fnr,
+            saksbehandler = behandling.saksbehandler!!,
+            beregning = beregning,
             brukersNavkontor = if (brukersNavkontor != null) brukersNavkontor() else navkontorService.hentOppfolgingsenhet(behandling.fnr),
             forrigeUtbetalingJson = forrigeUtbetaling?.let {
                 utbetalingsvedtakRepo.hentUtbetalingJsonForVedtakId(it.id)

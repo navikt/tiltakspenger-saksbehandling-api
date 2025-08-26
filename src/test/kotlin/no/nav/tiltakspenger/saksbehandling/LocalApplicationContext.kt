@@ -212,6 +212,7 @@ class LocalApplicationContext(
             sokosUtbetaldataClient = sokosUtbetaldataClient,
             navkontorService = navkontorService,
             utbetalingsvedtakRepo = utbetalingContext.utbetalingsvedtakRepo,
+            simulerService = utbetalingContext.simulerService,
         ) {}
     }
     override val utbetalingContext by lazy {

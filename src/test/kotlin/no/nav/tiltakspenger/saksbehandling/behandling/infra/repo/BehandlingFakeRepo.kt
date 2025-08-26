@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
@@ -30,6 +29,14 @@ class BehandlingFakeRepo : BehandlingRepo {
         data.get()[behandling.id] = behandling
     }
 
+    override fun oppdaterSimuleringMetadata(
+        behandlingId: BehandlingId,
+        originalResponseBody: String?,
+        sessionContext: SessionContext,
+    ) {
+        // No-op
+    }
+
     override fun hent(
         behandlingId: BehandlingId,
         sessionContext: SessionContext?,
@@ -38,11 +45,6 @@ class BehandlingFakeRepo : BehandlingRepo {
     }
 
     override fun hentAlleForFnr(fnr: Fnr): List<Behandling> = data.get().values.filter { it.fnr == fnr }
-
-    override fun hentForSøknadId(søknadId: SøknadId): List<Søknadsbehandling> =
-        data.get().values
-            .filterIsInstance<Søknadsbehandling>()
-            .filter { it.søknad.id == søknadId }
 
     override fun hentSøknadsbehandlingerTilDatadeling(limit: Int): List<Behandling> {
         return data.get().values.filter {
