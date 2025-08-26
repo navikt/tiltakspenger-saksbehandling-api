@@ -103,7 +103,7 @@ class BrukersMeldekortPostgresRepo(
     override fun hentForMeldeperiodeId(
         meldeperiodeId: MeldeperiodeId,
         sessionContext: SessionContext?,
-    ): BrukersMeldekort? {
+    ): List<BrukersMeldekort> {
         return sessionFactory.withSession(sessionContext) { session ->
             hentForMeldeperiodeId(meldeperiodeId, session)
         }
@@ -204,7 +204,7 @@ class BrukersMeldekortPostgresRepo(
         fun hentForMeldeperiodeId(
             meldeperiodeId: MeldeperiodeId,
             session: Session,
-        ): BrukersMeldekort? {
+        ): List<BrukersMeldekort> {
             return session.run(
                 sqlQuery(
                     """
@@ -213,7 +213,7 @@ class BrukersMeldekortPostgresRepo(
                     where m.meldeperiode_id = :meldeperiode_id
                     """,
                     "meldeperiode_id" to meldeperiodeId.toString(),
-                ).map { row -> fromRow(row, session) }.asSingle,
+                ).map { row -> fromRow(row, session) }.asList,
             )
         }
 

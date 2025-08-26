@@ -33,7 +33,7 @@ interface BrukersMeldekortRepo {
     fun hentForMeldeperiodeId(
         meldeperiodeId: MeldeperiodeId,
         sessionContext: SessionContext? = null,
-    ): BrukersMeldekort?
+    ): List<BrukersMeldekort>
 
     fun hentMeldekortSomDetSkalOpprettesOppgaveFor(
         sessionContext: SessionContext? = null,

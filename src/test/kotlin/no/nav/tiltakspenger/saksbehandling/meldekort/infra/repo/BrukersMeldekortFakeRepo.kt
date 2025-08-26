@@ -53,8 +53,8 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
     override fun hentForMeldeperiodeId(
         meldeperiodeId: MeldeperiodeId,
         sessionContext: SessionContext?,
-    ): BrukersMeldekort? {
-        return data.get().values.find { it.meldeperiodeId == meldeperiodeId }
+    ): List<BrukersMeldekort> {
+        return data.get().values.filter { it.meldeperiodeId == meldeperiodeId }
     }
 
     override fun hentMeldekortSomDetSkalOpprettesOppgaveFor(sessionContext: SessionContext?): List<BrukersMeldekort> {

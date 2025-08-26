@@ -83,9 +83,11 @@ class IverksettMeldekortService(
         meldekortId: MeldekortId,
     ) {
         val brukersMeldekort = brukersMeldekortRepo.hentForMeldeperiodeId(meldeperiodeId)
-        brukersMeldekort?.oppgaveId?.let { id ->
-            log.info { "Ferdigstiller oppgave med id $id for meldekort med meldekortId $meldekortId" }
-            oppgaveKlient.ferdigstillOppgave(id)
+        brukersMeldekort.forEach {
+            it.oppgaveId?.also { id ->
+                log.info { "Ferdigstiller oppgave med id $id for meldekort med meldekortId $meldekortId" }
+                oppgaveKlient.ferdigstillOppgave(id)
+            }
         }
     }
 }
