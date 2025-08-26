@@ -5,22 +5,22 @@ import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.periodisering.Periode
 
 data class Utbetalinger(
-    val verdi: List<Utbetaling>,
-) : List<Utbetaling> by verdi {
+    val verdi: List<VedtattUtbetaling>,
+) : List<VedtattUtbetaling> by verdi {
 
-    private val utbetalingerMap: Map<Ulid, Utbetaling> by lazy {
+    private val utbetalingerMap: Map<Ulid, VedtattUtbetaling> by lazy {
         verdi.associateBy { it.beregningKilde.id }
     }
 
-    fun hentUtbetaling(id: BehandlingId): Utbetaling? {
+    fun hentUtbetaling(id: BehandlingId): VedtattUtbetaling? {
         return utbetalingerMap[id]
     }
 
-    fun leggTil(utbetaling: Utbetaling): Utbetalinger {
+    fun leggTil(utbetaling: VedtattUtbetaling): Utbetalinger {
         return Utbetalinger((verdi + utbetaling).sortedBy { it.opprettet })
     }
 
-    fun hentUtbetalingerFraPeriode(periode: Periode): List<Utbetaling> {
+    fun hentUtbetalingerFraPeriode(periode: Periode): List<VedtattUtbetaling> {
         return verdi.filter { periode.overlapperMed(it.periode) }
     }
 

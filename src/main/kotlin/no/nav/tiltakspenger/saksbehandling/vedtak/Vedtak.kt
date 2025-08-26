@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDateTime
 
 /**
@@ -21,7 +21,7 @@ interface Vedtak {
     val beslutter: String
     val journalpostId: JournalpostId?
     val journalføringstidspunkt: LocalDateTime?
-    val utbetaling: Utbetaling?
+    val utbetaling: VedtattUtbetaling?
 
     // TODO post-mvp jah: Dette er nok en forenkling, siden må kunne anta at antallDagerForMeldeperiode forandrer seg innenfor et vedtak.
     val antallDagerPerMeldeperiode: Int

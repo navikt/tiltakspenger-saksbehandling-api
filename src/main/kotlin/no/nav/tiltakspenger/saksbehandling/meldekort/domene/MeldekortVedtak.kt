@@ -10,8 +10,8 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkUtbetalingDTO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
 import java.time.Clock
 import java.time.LocalDateTime
@@ -27,7 +27,7 @@ data class MeldekortVedtak(
     override val journalpostId: JournalpostId?,
     override val journalføringstidspunkt: LocalDateTime?,
     override val fnr: Fnr,
-    override val utbetaling: Utbetaling,
+    override val utbetaling: VedtattUtbetaling,
     val meldekortBehandling: MeldekortBehandling.Behandlet,
 ) : Vedtak {
 
@@ -51,17 +51,18 @@ data class MeldekortVedtak(
         require(saksbehandler == utbetaling.saksbehandler)
         require(beslutter == utbetaling.beslutter)
         require(meldekortBehandling.id == utbetaling.beregningKilde.id)
+        require(meldekortBehandling.beregning == utbetaling.beregning)
     }
 }
 
 fun MeldekortBehandling.Behandlet.opprettVedtak(
-    forrigeUtbetaling: Utbetaling?,
+    forrigeUtbetaling: VedtattUtbetaling?,
     clock: Clock,
 ): MeldekortVedtak {
     val vedtakId = VedtakId.random()
     val opprettet = nå(clock)
 
-    val utbetaling = Utbetaling(
+    val utbetaling = VedtattUtbetaling(
         id = UtbetalingId.random(),
         vedtakId = vedtakId,
         sakId = this.sakId,

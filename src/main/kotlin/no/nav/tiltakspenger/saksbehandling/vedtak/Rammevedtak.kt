@@ -21,8 +21,8 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.sak.utfallsperioder
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -39,7 +39,7 @@ data class Rammevedtak(
     override val periode: Periode,
     override val journalpostId: JournalpostId?,
     override val journalføringstidspunkt: LocalDateTime?,
-    override val utbetaling: Utbetaling?,
+    override val utbetaling: VedtattUtbetaling?,
     val behandling: Behandling,
     val vedtaksdato: LocalDate?,
     val vedtakstype: Vedtakstype,
@@ -95,8 +95,8 @@ fun Sak.opprettVedtak(
     val vedtakId = VedtakId.random()
     val opprettet = nå(clock)
 
-    val utbetaling: Utbetaling? = behandling.utbetaling?.let {
-        Utbetaling(
+    val utbetaling: VedtattUtbetaling? = behandling.utbetaling?.let {
+        VedtattUtbetaling(
             id = UtbetalingId.random(),
             vedtakId = vedtakId,
             sakId = this.id,

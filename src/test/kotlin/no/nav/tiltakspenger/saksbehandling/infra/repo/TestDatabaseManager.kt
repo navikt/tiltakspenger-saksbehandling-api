@@ -100,7 +100,8 @@ internal class TestDatabaseManager {
                   sak,
                   søknadstiltak,
                   søknad_barnetillegg,
-                  søknad
+                  søknad,
+                  utbetalingsvedtak
                 """.trimIndent(),
             ).asUpdate,
         )

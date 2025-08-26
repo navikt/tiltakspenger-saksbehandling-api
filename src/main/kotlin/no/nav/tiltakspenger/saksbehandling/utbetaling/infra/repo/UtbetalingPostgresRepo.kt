@@ -21,10 +21,10 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toForsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
@@ -34,7 +34,7 @@ class UtbetalingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : UtbetalingRepo {
     override fun lagre(
-        utbetaling: Utbetaling,
+        utbetaling: VedtattUtbetaling,
         context: TransactionContext?,
     ) {
         sessionFactory.withSession(context) { session ->
@@ -98,7 +98,7 @@ class UtbetalingPostgresRepo(
         }
     }
 
-    override fun hentForUtsjekk(limit: Int): List<Utbetaling> {
+    override fun hentForUtsjekk(limit: Int): List<VedtattUtbetaling> {
         return sessionFactory.withSession { session ->
             session.run(
                 sqlQuery(
@@ -167,7 +167,7 @@ class UtbetalingPostgresRepo(
     }
 
     companion object {
-        fun hent(id: UtbetalingId, session: Session): Utbetaling? {
+        fun hent(id: UtbetalingId, session: Session): VedtattUtbetaling? {
             return session.run(
                 sqlQuery(
                     """
@@ -181,7 +181,7 @@ class UtbetalingPostgresRepo(
             )
         }
 
-        fun lagre(utbetaling: Utbetaling, session: Session) {
+        fun lagre(utbetaling: VedtattUtbetaling, session: Session) {
             session.run(
                 sqlQuery(
                     """
@@ -193,7 +193,8 @@ class UtbetalingPostgresRepo(
                         forrige_utbetaling_id,
                         sendt_til_utbetaling_tidspunkt,
                         status,
-                        status_metadata
+                        status_metadata,
+                        opprettet
                     ) values(
                         :id,
                         :sak_id,
@@ -202,7 +203,8 @@ class UtbetalingPostgresRepo(
                         :forrige_utbetaling_id,
                         :sendt_til_utbetaling_tidspunkt,
                         :status,
-                        to_jsonb(:status_metadata::jsonb)
+                        to_jsonb(:status_metadata::jsonb),
+                        :opprettet
                     )
                     """,
                     "id" to utbetaling.id.toString(),
@@ -211,6 +213,7 @@ class UtbetalingPostgresRepo(
                     "sendt_til_utbetaling_tidspunkt" to utbetaling.sendtTilUtbetaling?.toString(),
                     "status" to utbetaling.status?.toString(),
                     "status_metadata" to utbetaling.statusMetadata.toDbJson(),
+                    "opprettet" to utbetaling.opprettet,
                     when (utbetaling.beregningKilde) {
                         is BeregningKilde.Behandling -> "rammevedtak_id" to utbetaling.vedtakId.toString()
                         is BeregningKilde.Meldekort -> "meldekortvedtak_id" to utbetaling.vedtakId.toString()
@@ -219,7 +222,7 @@ class UtbetalingPostgresRepo(
             )
         }
 
-        private fun Row.tilUtbetaling(): Utbetaling {
+        private fun Row.tilUtbetaling(): VedtattUtbetaling {
             val id = UtbetalingId.fromString(string("id"))
 
             val meldekortVedtakId = stringOrNull("meldekortvedtak_id")
@@ -241,7 +244,7 @@ class UtbetalingPostgresRepo(
                 vedtakId to BehandlingBeregning(beregningJson.tilMeldeperiodeBeregningerFraBehandling(behandlingId))
             }
 
-            return Utbetaling(
+            return VedtattUtbetaling(
                 id = UtbetalingId.fromString(string("id")),
                 vedtakId = vedtakIdOgBeregning.first,
                 sakId = SakId.fromString(string("sak_id")),

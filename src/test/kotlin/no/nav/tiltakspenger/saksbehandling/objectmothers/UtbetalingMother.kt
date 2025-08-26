@@ -31,10 +31,10 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.navkontor
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -61,8 +61,8 @@ interface UtbetalingMother : MotherOfAllMothers {
         sendtTilUtbetaling: LocalDateTime? = null,
         status: Utbetalingsstatus? = null,
         statusMetadata: Forsøkshistorikk = Forsøkshistorikk.opprett(clock = clock),
-    ): Utbetaling {
-        return Utbetaling(
+    ): VedtattUtbetaling {
+        return VedtattUtbetaling(
             id = id,
             vedtakId = vedtakId,
             sakId = sakId,

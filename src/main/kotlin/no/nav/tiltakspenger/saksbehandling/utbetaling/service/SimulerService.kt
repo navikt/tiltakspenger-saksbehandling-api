@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 
@@ -26,7 +26,7 @@ class SimulerService(
      */
     suspend fun simulerMeldekort(
         behandling: MeldekortBehandling,
-        forrigeUtbetaling: Utbetaling?,
+        forrigeUtbetaling: VedtattUtbetaling?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
         brukersNavkontor: (suspend () -> Navkontor)?,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
@@ -55,7 +55,7 @@ class SimulerService(
     suspend fun simulerRevurdering(
         behandling: Revurdering,
         beregning: BehandlingBeregning,
-        forrigeUtbetaling: Utbetaling?,
+        forrigeUtbetaling: VedtattUtbetaling?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
         brukersNavkontor: (suspend () -> Navkontor)?,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {

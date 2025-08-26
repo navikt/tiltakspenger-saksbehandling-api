@@ -4,10 +4,10 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk.Companion.opprett
 import no.nav.tiltakspenger.saksbehandling.fixedClock
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
@@ -17,11 +17,11 @@ import java.time.temporal.ChronoUnit
 import kotlin.collections.set
 
 class UtbetalingFakeRepo : UtbetalingRepo {
-    private val data = arrow.atomic.Atomic(mutableMapOf<UtbetalingId, Utbetaling>())
+    private val data = arrow.atomic.Atomic(mutableMapOf<UtbetalingId, VedtattUtbetaling>())
     private val response = arrow.atomic.Atomic(mutableMapOf<UtbetalingId, UtbetalingResponse>())
 
     override fun lagre(
-        utbetaling: Utbetaling,
+        utbetaling: VedtattUtbetaling,
         context: TransactionContext?,
     ) {
         data.get()[utbetaling.id] = utbetaling
@@ -47,7 +47,7 @@ class UtbetalingFakeRepo : UtbetalingRepo {
         return response.get()[utbetalingId]?.request
     }
 
-    override fun hentForUtsjekk(limit: Int): List<Utbetaling> {
+    override fun hentForUtsjekk(limit: Int): List<VedtattUtbetaling> {
         return data.get().values.filter { it.sendtTilUtbetaling == null }.take(limit)
     }
 

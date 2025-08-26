@@ -33,8 +33,9 @@ data class UtbetalingId private constructor(
 
 /**
  * @property forrigeUtbetalingId er null for første utbetaling i en sak.
+ * @property opprettet tidspunktet der vedtaket/utbetalingen ble opprettet
  */
-data class Utbetaling(
+data class VedtattUtbetaling(
     val id: UtbetalingId,
     val vedtakId: VedtakId,
     val sakId: SakId,

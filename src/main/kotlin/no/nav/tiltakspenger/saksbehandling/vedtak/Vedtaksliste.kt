@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDate
 
 data class Vedtaksliste(
@@ -30,7 +30,7 @@ data class Vedtaksliste(
         value.any { it.behandling is Søknadsbehandling && it.vedtakstype == Vedtakstype.INNVILGELSE }
     }
 
-    val utbetalinger: List<Utbetaling> by lazy {
+    val utbetalinger: List<VedtattUtbetaling> by lazy {
         value.mapNotNull { it.utbetaling }
     }
 

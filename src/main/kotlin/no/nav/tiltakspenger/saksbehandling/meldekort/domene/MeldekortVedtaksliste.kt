@@ -1,11 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 
 data class MeldekortVedtaksliste(val verdi: List<MeldekortVedtak>) : List<MeldekortVedtak> by verdi {
 
-    val utbetalinger: List<Utbetaling> by lazy {
+    val utbetalinger: List<VedtattUtbetaling> by lazy {
         verdi.map { it.utbetaling }
     }
 

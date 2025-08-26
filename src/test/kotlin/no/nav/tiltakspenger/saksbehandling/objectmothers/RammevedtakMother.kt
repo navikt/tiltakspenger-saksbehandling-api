@@ -15,8 +15,8 @@ import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.LocalDate
@@ -141,9 +141,9 @@ interface RammevedtakMother : MotherOfAllMothers {
         brevJson = brevJson,
     )
 
-    fun Behandling.tilRammevedtakUtbetaling(vedtakId: VedtakId, opprettet: LocalDateTime, forrigeUtbetalingId: UtbetalingId? = null): Utbetaling? {
+    fun Behandling.tilRammevedtakUtbetaling(vedtakId: VedtakId, opprettet: LocalDateTime, forrigeUtbetalingId: UtbetalingId? = null): VedtattUtbetaling? {
         return this.utbetaling?.let {
-            Utbetaling(
+            VedtattUtbetaling(
                 id = UtbetalingId.random(),
                 vedtakId = vedtakId,
                 sakId = this.sakId,

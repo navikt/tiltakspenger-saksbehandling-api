@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallD
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toTiltaksdeltakelsePeriodeDTO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDateTime
 
 sealed interface BehandlingDTO {
@@ -163,7 +163,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(): SøknadsbehandlingDTO {
 
 fun Revurdering.tilRevurderingDTO(
     meldeperiodeBeregninger: MeldeperiodeBeregninger,
-    utbetalingFraVedtak: Utbetaling?,
+    utbetalingFraVedtak: VedtattUtbetaling?,
 ): RevurderingDTO {
     return RevurderingDTO(
         id = this.id.toString(),
