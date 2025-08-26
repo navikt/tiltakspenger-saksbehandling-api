@@ -209,8 +209,6 @@ class RammevedtakPostgresRepo(
         context: TransactionContext?,
     ) {
         sessionFactory.withTransaction(context) { tx ->
-            // Må lagre vedtaket og utbetalingen i en transaksjon med deferred constraint pga sirkulære referanser
-            tx.run(queryOf("SET CONSTRAINTS rammevedtak_utbetaling_id_fkey DEFERRED").asExecute)
             lagreVedtak(vedtak, tx)
             vedtak.utbetaling?.let {
                 UtbetalingPostgresRepo.lagre(it, tx)
