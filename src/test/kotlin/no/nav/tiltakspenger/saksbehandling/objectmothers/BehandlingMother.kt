@@ -802,7 +802,7 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
 }
 
 /**
- * Genererer også utbetalingsvedtak, men sender ikke til utbetaling.
+ * Genererer og sender også utbetaling for meldekortet
  */
 suspend fun TestApplicationContext.førsteMeldekortIverksatt(
     periode: Periode = ObjectMother.virkningsperiode(),

@@ -25,14 +25,14 @@ internal class UtbetalingDTOTest {
         val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
-        val utbetalingsvedtak = ObjectMother.meldekortVedtak(
+        val meldekortVedtak = ObjectMother.meldekortVedtak(
             fnr = fnr,
             id = id,
             utbetalingId = utbetalingId,
             saksnummer = saksnummer,
             opprettet = opprettet,
         )
-        utbetalingsvedtak.utbetaling.toDTO(null).shouldEqualJson(
+        meldekortVedtak.utbetaling.toDTO(null).shouldEqualJson(
             """
             {
               "sakId": "202410011001",
@@ -86,7 +86,7 @@ internal class UtbetalingDTOTest {
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val utbetalingsvedtak = ObjectMother.meldekortVedtak(
+        val meldekortVedtak = ObjectMother.meldekortVedtak(
             periode = periode,
             fnr = fnr,
             id = id,
@@ -98,12 +98,12 @@ internal class UtbetalingDTOTest {
                 antallBarn = AntallBarn(1),
             ),
         )
-        utbetalingsvedtak.utbetaling.beregning.dager.map { it.beregningsdag }.forEach {
+        meldekortVedtak.utbetaling.beregning.dager.map { it.beregningsdag }.forEach {
             withClue("Beregningsdag $it") {
                 if (it!!.beløp > 0) it.beløpBarnetillegg shouldBe 52
             }
         }
-        val actual = utbetalingsvedtak.utbetaling.toDTO(null)
+        val actual = meldekortVedtak.utbetaling.toDTO(null)
         actual.shouldEqualJson(
             """
             {
@@ -182,7 +182,7 @@ internal class UtbetalingDTOTest {
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val utbetalingsvedtak = ObjectMother.meldekortVedtak(
+        val meldekortVedtak = ObjectMother.meldekortVedtak(
             periode = periode,
             fnr = fnr,
             id = id,
@@ -194,12 +194,12 @@ internal class UtbetalingDTOTest {
                 antallBarn = AntallBarn(2),
             ),
         )
-        utbetalingsvedtak.utbetaling.beregning.dager.map { it.beregningsdag }.forEach {
+        meldekortVedtak.utbetaling.beregning.dager.map { it.beregningsdag }.forEach {
             withClue("Beregningsdag $it") {
                 if (it!!.beløp > 0) it.beløpBarnetillegg shouldBe 104
             }
         }
-        val actual = utbetalingsvedtak.utbetaling.toDTO(null)
+        val actual = meldekortVedtak.utbetaling.toDTO(null)
         actual.shouldEqualJson(
             """
             {
@@ -278,7 +278,7 @@ internal class UtbetalingDTOTest {
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val utbetalingsvedtak = ObjectMother.meldekortVedtak(
+        val meldekortVedtak = ObjectMother.meldekortVedtak(
             periode = periode,
             fnr = fnr,
             id = id,
@@ -296,7 +296,7 @@ internal class UtbetalingDTOTest {
                 ),
             ),
         )
-        val actual = utbetalingsvedtak.utbetaling.toDTO(null)
+        val actual = meldekortVedtak.utbetaling.toDTO(null)
         actual.shouldEqualJson(
             """
             {
@@ -375,7 +375,7 @@ internal class UtbetalingDTOTest {
         val saksnummer = Saksnummer("202410011001")
         val opprettet = LocalDateTime.parse("2024-10-01T22:46:14.614465")
         val periode = Periode(2.januar(2023), 15.januar(2023))
-        val utbetalingsvedtak = ObjectMother.meldekortVedtak(
+        val meldekortVedtak = ObjectMother.meldekortVedtak(
             periode = periode,
             fnr = fnr,
             id = id,
@@ -397,7 +397,7 @@ internal class UtbetalingDTOTest {
                 ),
             ),
         )
-        val actual = utbetalingsvedtak.utbetaling.toDTO(null)
+        val actual = meldekortVedtak.utbetaling.toDTO(null)
         actual.shouldEqualJson(
             """
             {
