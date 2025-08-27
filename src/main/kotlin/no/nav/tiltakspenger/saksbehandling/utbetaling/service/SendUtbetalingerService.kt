@@ -34,7 +34,7 @@ class SendUtbetalingerService(
                         utbetalingRepo.markerSendtTilUtbetaling(utbetaling.id, nå(clock), it)
                         logger.info { "Utbetaling markert som utbetalt for utbetaling ${utbetaling.id}" }
 
-                        statistikkStønadRepo.lagre(utbetaling.tilStatistikk())
+                        statistikkStønadRepo.lagre(utbetaling.tilStatistikk(clock))
                     }.onLeft {
                         logger.error { "Utbetaling kunne ikke iverksettes. Saksnummer: ${utbetaling.saksnummer}, sakId: ${utbetaling.sakId}, utbetalingId: ${utbetaling.id}" }
                         utbetalingRepo.lagreFeilResponsFraUtbetaling(utbetaling.id, it)

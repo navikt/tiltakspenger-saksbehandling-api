@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -24,7 +25,7 @@ data class StatistikkUtbetalingDTO(
     val brukerId: String,
 )
 
-fun VedtattUtbetaling.tilStatistikk(): StatistikkUtbetalingDTO =
+fun VedtattUtbetaling.tilStatistikk(clock: Clock): StatistikkUtbetalingDTO =
     StatistikkUtbetalingDTO(
         // TODO post-mvp jah: Vi sender uuid-delen av denne til helved som behandlingId som mappes videre til OS/UR i feltet 'henvisning'.
         id = this.id.toString(),
@@ -38,7 +39,7 @@ fun VedtattUtbetaling.tilStatistikk(): StatistikkUtbetalingDTO =
         gyldigTilDatoPostering = this.periode.tilOgMed,
         utbetalingId = this.id.uuidPart(),
         vedtakId = listOf(this.vedtakId.toString()),
-        opprettet = LocalDateTime.now(),
-        sistEndret = LocalDateTime.now(),
+        opprettet = LocalDateTime.now(clock),
+        sistEndret = LocalDateTime.now(clock),
         brukerId = this.fnr.verdi,
     )

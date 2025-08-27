@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.tilStatistikk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
@@ -33,11 +34,13 @@ internal class SendUtbetalingerServiceTest {
     @Test
     fun `utbetaling blir iverksatt og markert som sendt til utbetaling`() = runTest {
         val utbetaling = ObjectMother.utbetaling()
+        val statistikk = utbetaling.tilStatistikk(fixedClock)
 
         every { utbetalingRepo.hentForUtsjekk() } returns listOf(utbetaling)
         val sendtUtbetaling = SendtUtbetaling("req", "res", 202)
         coEvery { utbetalingsklient.iverksett(any(), any(), any()) } returns Either.Right(sendtUtbetaling)
         justRun { utbetalingRepo.markerSendtTilUtbetaling(utbetaling.id, any(), sendtUtbetaling) }
+        justRun { statistikkStønadRepo.lagre(statistikk) }
 
         sendUtbetalingerService.send()
 
@@ -47,6 +50,10 @@ internal class SendUtbetalingerServiceTest {
                 any(),
                 sendtUtbetaling,
             )
+        }
+
+        verify(exactly = 1) {
+            statistikkStønadRepo.lagre(statistikk)
         }
     }
 
