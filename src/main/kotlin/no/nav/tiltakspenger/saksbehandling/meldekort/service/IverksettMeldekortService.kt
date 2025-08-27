@@ -60,9 +60,8 @@ class IverksettMeldekortService(
         }
 
         return meldekortBehandling.iverksettMeldekort(kommando.beslutter, clock).map { iverksattMeldekortbehandling ->
-            val eksisterendeUtbetalingsvedtak = sak.utbetalinger
             val meldekortVedtak = iverksattMeldekortbehandling.opprettVedtak(
-                forrigeUtbetaling = eksisterendeUtbetalingsvedtak.lastOrNull(),
+                forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
                 clock = clock,
             )
             val utbetalingsstatistikk = meldekortVedtak.tilStatistikk()

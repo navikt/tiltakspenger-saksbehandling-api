@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 
 interface GenererVedtaksbrevForUtbetalingKlient {
     suspend fun genererMeldekortVedtakBrev(
-        utbetalingsvedtak: MeldekortVedtak,
+        meldekortVedtak: MeldekortVedtak,
         tiltaksdeltagelser: Tiltaksdeltagelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,

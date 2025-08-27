@@ -115,7 +115,7 @@ class AutomatiskMeldekortBehandlingService(
         Either.catch {
             sak.leggTilMeldekortVedtak(meldekortvedtak)
         }.onLeft {
-            logger.error(it) { "Utbetalingsvedtak for automatisk behandling av brukers meldekort $meldekortId kunne ikke legges til sak $sakId" }
+            logger.error(it) { "Vedtak for automatisk behandling av brukers meldekort $meldekortId kunne ikke legges til sak $sakId" }
             return BrukersMeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK.left()
         }
 

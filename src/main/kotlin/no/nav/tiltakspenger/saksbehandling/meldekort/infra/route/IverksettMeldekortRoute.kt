@@ -42,22 +42,15 @@ fun Route.iverksettMeldekortRoute(
                 val correlationId = call.correlationId()
                 krevBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-                val utbetalingsvedtak = iverksettMeldekortService.iverksettMeldekort(
+
+                iverksettMeldekortService.iverksettMeldekort(
                     IverksettMeldekortKommando(
                         meldekortId = meldekortId,
                         beslutter = saksbehandler,
                         sakId = sakId,
                         correlationId = correlationId,
                     ),
-                )
-                auditService.logMedMeldekortId(
-                    meldekortId = meldekortId,
-                    navIdent = saksbehandler.navIdent,
-                    action = AuditLogEvent.Action.UPDATE,
-                    contextMessage = "Iverksetter meldekort",
-                    correlationId = correlationId,
-                )
-                utbetalingsvedtak.fold(
+                ).fold(
                     {
                         when (it) {
                             is SaksbehandlerOgBeslutterKanIkkeVæreLik -> call.respond400BadRequest(
@@ -75,7 +68,16 @@ fun Route.iverksettMeldekortRoute(
                             )
                         }
                     },
-                    { call.respond(HttpStatusCode.OK, it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock)) },
+                    {
+                        auditService.logMedMeldekortId(
+                            meldekortId = meldekortId,
+                            navIdent = saksbehandler.navIdent,
+                            action = AuditLogEvent.Action.UPDATE,
+                            contextMessage = "Iverksetter meldekort",
+                            correlationId = correlationId,
+                        )
+                        call.respond(HttpStatusCode.OK, it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock))
+                    },
                 )
             }
         }
