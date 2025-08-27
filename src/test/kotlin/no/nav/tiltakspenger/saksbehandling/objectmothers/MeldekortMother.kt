@@ -91,7 +91,7 @@ interface MeldekortMother : MotherOfAllMothers {
         saksbehandler: String? = "saksbehandler",
         beslutter: String = "beslutter",
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
-        status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.GODKJENT,
+        status: MeldekortBehandlingStatus = MeldekortBehandlingStatus.UNDER_BEHANDLING,
         navkontor: Navkontor = ObjectMother.navkontor(),
         opprettet: LocalDateTime = nå(clock),
         antallDagerForPeriode: Int = 10,

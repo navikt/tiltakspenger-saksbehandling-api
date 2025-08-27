@@ -48,10 +48,16 @@ data class MeldekortBehandlinger(
         behandledeMeldekortPerKjede.values.map { it.last() }
     }
 
-    /** Under behandling er ikke-avsluttede meldekortbehandlinger som ikke er til beslutning. */
+    /** meldekort med status UNDER_BEHANDLING */
     val meldekortUnderBehandling: MeldekortUnderBehandling? by lazy {
-        verdi.filterIsInstance<MeldekortUnderBehandling>().singleOrNullOrThrow()
+        verdi.filter { it.status == MeldekortBehandlingStatus.UNDER_BEHANDLING }
+            .singleOrNullOrThrow() as MeldekortUnderBehandling?
     }
+
+    // meldekort behandlinger som har status KLAR_TIL_BEHANDLING er av klassen MeldekortUnderBehandling
+    @Suppress("UNCHECKED_CAST")
+    val meldekortBehandlingerSomErLagtTilbake: List<MeldekortUnderBehandling> =
+        verdi.filter { it.status == MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING } as List<MeldekortUnderBehandling>
 
     private val meldekortUnderBeslutning: MeldekortBehandletManuelt? by lazy {
         behandledeMeldekort.filter {
@@ -179,9 +185,19 @@ data class MeldekortBehandlinger(
                 "Meldekortperiodene må være sammenhengende og sortert, men var ${verdi.map { it.periode }}"
             }
         }
-        require(verdi.count { it is MeldekortUnderBehandling } <= 1) {
+        require(
+            verdi.filter { it.status == MeldekortBehandlingStatus.UNDER_BEHANDLING }
+                .count { it is MeldekortUnderBehandling } <= 1,
+        ) {
             "Kun ett meldekort på saken kan være i tilstanden 'under behandling'"
         }
+
+        this.verdi.groupBy { it.kjedeId }.entries.forEach { (kjedeId, meldekortbehandlinger) ->
+            require(meldekortbehandlinger.count { it.status == MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING } <= 1) {
+                "Det kan ikke være mer enn ett meldekort som er lagt tilbake for hver kjede. Dette skjedde for kjedeId $kjedeId."
+            }
+        }
+
         require(verdi.map { it.sakId }.distinct().size <= 1) {
             "Alle meldekortperioder må tilhøre samme sak."
         }

@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AVBRUTT
@@ -328,16 +329,45 @@ data class MeldekortUnderBehandling(
         require(ikkeRettTilTiltakspengerTidspunkt == null) {
             "Behandlinger der det ikke er rett til tiltakspenger skal ikke være under behandling"
         }
+
+        require(status == UNDER_BEHANDLING || status == KLAR_TIL_BEHANDLING) {
+            "Status på meldekort under behandling må være UNDER_BEHANDLING eller KLAR_TIL_BEHANDLING"
+        }
     }
 }
 
+sealed interface SkalLagreEllerOppdatere {
+    object Lagre : SkalLagreEllerOppdatere
+    object Oppdatere : SkalLagreEllerOppdatere
+}
+
+/**
+ * SkalLagreEllerOppdatere er en workaround for å vite hvilket database kall vi skal bruke.
+ */
 fun Sak.opprettManuellMeldekortBehandling(
     kjedeId: MeldeperiodeKjedeId,
     navkontor: Navkontor,
     saksbehandler: Saksbehandler,
     clock: Clock,
-): Pair<Sak, MeldekortUnderBehandling> {
+): Triple<Sak, MeldekortUnderBehandling, SkalLagreEllerOppdatere> {
     validerOpprettMeldekortBehandling(kjedeId)
+
+    val meldekortSomErLagtTilbake =
+        this.meldekortBehandlinger.meldekortBehandlingerSomErLagtTilbake.singleOrNullOrThrow {
+            it.kjedeId == kjedeId
+        }
+    if (meldekortSomErLagtTilbake != null) {
+        val oppdatertBehandling = meldekortSomErLagtTilbake.copy(
+            saksbehandler = saksbehandler.navIdent,
+            status = UNDER_BEHANDLING,
+        )
+
+        return Triple(
+            this.oppdaterMeldekortbehandling(oppdatertBehandling),
+            oppdatertBehandling,
+            SkalLagreEllerOppdatere.Oppdatere,
+        )
+    }
 
     val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
 
@@ -345,10 +375,8 @@ fun Sak.opprettManuellMeldekortBehandling(
     val type =
         if (behandlingerForKjede.isEmpty()) MeldekortBehandlingType.FØRSTE_BEHANDLING else MeldekortBehandlingType.KORRIGERING
 
-    val meldekortId = MeldekortId.random()
-
     return MeldekortUnderBehandling(
-        id = meldekortId,
+        id = MeldekortId.random(),
         sakId = this.id,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
@@ -367,6 +395,6 @@ fun Sak.opprettManuellMeldekortBehandling(
         dager = meldeperiode.tilMeldekortDager(),
         status = UNDER_BEHANDLING,
     ).let {
-        this.leggTilMeldekortbehandling(it) to it
+        Triple(this.leggTilMeldekortbehandling(it), it, SkalLagreEllerOppdatere.Lagre)
     }
 }
