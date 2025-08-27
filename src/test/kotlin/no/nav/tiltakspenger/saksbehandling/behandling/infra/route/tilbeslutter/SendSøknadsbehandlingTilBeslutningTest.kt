@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter
 
+import io.github.oshai.kotlinlogging.KotlinLogging
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.statement.bodyAsText
@@ -8,9 +10,11 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
@@ -81,6 +85,49 @@ class SendSøknadsbehandlingTilBeslutningTest {
                     saksbehandler.navIdent,
                 ),
             )
+        }
+    }
+
+    @Test
+    fun `kan ikke sende til beslutter hvis resultat er oppdatert til ikke valgt`() {
+        withTestApplicationContext { tac ->
+            val saksbehandler = saksbehandler()
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
+                tac,
+                saksbehandler = saksbehandler,
+            )
+
+            val behandlingId = behandling.id
+
+            oppdaterBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandlingId,
+                oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.IkkeValgtResultat(
+                    fritekstTilVedtaksbrev = "ny brevtekst",
+                    begrunnelseVilkårsvurdering = "ny begrunnelse",
+                ),
+            )
+
+            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+                it.resultat.shouldBeNull()
+            }
+
+            sendSøknadsbehandlingTilBeslutningReturnerRespons(
+                tac,
+                sak.id,
+                behandlingId,
+                saksbehandler,
+            ).also {
+                val logger = KotlinLogging.logger { }
+                logger.info { it }
+
+                it.status shouldBe HttpStatusCode.InternalServerError
+            }
+
+            tac.behandlingContext.behandlingRepo.hent(behandlingId).also {
+                it.status shouldBe Behandlingsstatus.UNDER_BEHANDLING
+            }
         }
     }
 }

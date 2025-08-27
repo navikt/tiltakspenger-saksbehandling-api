@@ -14,13 +14,15 @@ enum class BehandlingResultatDTO {
     AVSLAG,
     STANS,
     REVURDERING_INNVILGELSE,
+    IKKE_VALGT,
     ;
 
-    fun toDomain(): BehandlingResultatType = when (this) {
+    fun toDomain(): BehandlingResultatType? = when (this) {
         INNVILGELSE -> SøknadsbehandlingType.INNVILGELSE
         AVSLAG -> SøknadsbehandlingType.AVSLAG
         STANS -> RevurderingType.STANS
         REVURDERING_INNVILGELSE -> RevurderingType.INNVILGELSE
+        IKKE_VALGT -> null
     }
 }
 

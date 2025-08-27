@@ -23,10 +23,9 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.Tiltaks
 @JsonSubTypes(
     JsonSubTypes.Type(value = OppdaterSøknadsbehandlingDTO.Innvilgelse::class, name = "INNVILGELSE"),
     JsonSubTypes.Type(value = OppdaterSøknadsbehandlingDTO.Avslag::class, name = "AVSLAG"),
+    JsonSubTypes.Type(value = OppdaterSøknadsbehandlingDTO.IkkeValgtResultat::class, name = "IKKE_VALGT"),
 )
 sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
-    val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>
-
     override fun tilDomene(
         sakId: SakId,
         behandlingId: BehandlingId,
@@ -37,7 +36,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
     data class Innvilgelse(
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
-        override val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
+        val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
         val innvilgelsesperiode: PeriodeDTO,
         val barnetillegg: BarnetilleggDTO?,
         val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>? = listOf(
@@ -62,8 +61,8 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
-                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { BegrunnelseVilkårsvurdering(saniter(it)) },
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.tilFritekstVedtaksbrev(),
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.tilBegrunnelseVilkårsvurdering(),
                 innvilgelsesperiode = innvilgelsesperiode,
                 barnetillegg = barnetillegg?.tilBarnetillegg(innvilgelsesperiode),
                 tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
@@ -83,7 +82,6 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
     data class Avslag(
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
-        override val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
         val avslagsgrunner: List<ValgtHjemmelForAvslagDTO>,
     ) : OppdaterSøknadsbehandlingDTO {
         override val resultat: BehandlingResultatDTO = BehandlingResultatDTO.AVSLAG
@@ -99,13 +97,40 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
                 correlationId = correlationId,
-                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev(saniter(it)) },
-                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { BegrunnelseVilkårsvurdering(saniter(it)) },
-                tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
-                    Pair(it.periode.toDomain(), it.eksternDeltagelseId)
-                },
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.tilFritekstVedtaksbrev(),
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.tilBegrunnelseVilkårsvurdering(),
                 avslagsgrunner = avslagsgrunner.toAvslagsgrunnlag(),
             )
         }
     }
+
+    data class IkkeValgtResultat(
+        override val fritekstTilVedtaksbrev: String?,
+        override val begrunnelseVilkårsvurdering: String?,
+
+    ) : OppdaterSøknadsbehandlingDTO {
+        override val resultat = null
+
+        override fun tilDomene(
+            sakId: SakId,
+            behandlingId: BehandlingId,
+            saksbehandler: Saksbehandler,
+            correlationId: CorrelationId,
+        ): OppdaterSøknadsbehandlingKommando {
+            return OppdaterSøknadsbehandlingKommando.IkkeValgtResultat(
+                sakId = sakId,
+                behandlingId = behandlingId,
+                saksbehandler = saksbehandler,
+                correlationId = correlationId,
+                fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.tilFritekstVedtaksbrev(),
+                begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.tilBegrunnelseVilkårsvurdering(),
+            )
+        }
+    }
 }
+
+private fun String.tilFritekstVedtaksbrev(): FritekstTilVedtaksbrev =
+    FritekstTilVedtaksbrev(saniter(this))
+
+private fun String.tilBegrunnelseVilkårsvurdering(): BegrunnelseVilkårsvurdering =
+    BegrunnelseVilkårsvurdering(saniter(this))

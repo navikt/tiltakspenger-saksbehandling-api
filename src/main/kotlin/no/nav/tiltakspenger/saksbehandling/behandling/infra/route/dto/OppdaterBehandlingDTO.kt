@@ -12,11 +12,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingK
 @JsonSubTypes(
     JsonSubTypes.Type(value = OppdaterSøknadsbehandlingDTO.Innvilgelse::class, name = "INNVILGELSE"),
     JsonSubTypes.Type(value = OppdaterSøknadsbehandlingDTO.Avslag::class, name = "AVSLAG"),
+    JsonSubTypes.Type(value = OppdaterSøknadsbehandlingDTO.IkkeValgtResultat::class, name = "IKKE_VALGT"),
     JsonSubTypes.Type(value = OppdaterRevurderingDTO.Innvilgelse::class, name = "REVURDERING_INNVILGELSE"),
     JsonSubTypes.Type(value = OppdaterRevurderingDTO.Stans::class, name = "STANS"),
 )
 sealed interface OppdaterBehandlingDTO {
-    val resultat: BehandlingResultatDTO
+    val resultat: BehandlingResultatDTO?
     val fritekstTilVedtaksbrev: String?
     val begrunnelseVilkårsvurdering: String?
 

@@ -236,7 +236,6 @@ interface BehandlingMother : MotherOfAllMothers {
                     correlationId = CorrelationId.generate(),
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                    tiltaksdeltakelser = valgteTiltaksdeltakelser,
                     avslagsgrunner = avslagsgrunner!!,
                 )
             },
@@ -646,7 +645,6 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
                 correlationId = correlationId,
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                tiltaksdeltakelser = tiltaksdeltakelser,
                 avslagsgrunner = avslagsgrunner!!,
             )
         },

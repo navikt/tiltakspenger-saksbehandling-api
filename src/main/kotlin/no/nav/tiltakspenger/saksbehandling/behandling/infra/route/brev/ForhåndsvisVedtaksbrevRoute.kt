@@ -59,6 +59,11 @@ private data class Body(
         saksbehandler: Saksbehandler,
     ): ForhåndsvisVedtaksbrevKommando {
         val virkningsperiode = virkningsperiode?.toDomain()
+        val resultat = resultat.toDomain()
+
+        requireNotNull(resultat) {
+            "Behandlingen må ha et valgt resultat for å generere brev"
+        }
 
         return ForhåndsvisVedtaksbrevKommando(
             fritekstTilVedtaksbrev = FritekstTilVedtaksbrev(saniter(fritekst)),
@@ -70,7 +75,7 @@ private data class Body(
             valgteHjemler = valgteHjemler?.toDomain(),
             stansDato = stansDato,
             barnetillegg = barnetillegg?.let { it.tilPeriodisering() as IkkeTomPeriodisering },
-            resultat = resultat.toDomain(),
+            resultat = resultat,
             avslagsgrunner = this.avslagsgrunner?.toAvslagsgrunnlag(),
         )
     }

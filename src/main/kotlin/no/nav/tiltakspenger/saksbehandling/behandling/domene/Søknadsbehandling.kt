@@ -19,6 +19,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.U
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus.VEDTATT
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat.Avslag
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat.Innvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -62,15 +64,15 @@ data class Søknadsbehandling(
 
     override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
         get() = when (resultat) {
-            is SøknadsbehandlingResultat.Avslag -> null
-            is SøknadsbehandlingResultat.Innvilgelse -> resultat.antallDagerPerMeldeperiode
+            is Avslag -> null
+            is Innvilgelse -> resultat.antallDagerPerMeldeperiode
             null -> null
         }
 
     override val barnetillegg: Barnetillegg?
         get() = when (resultat) {
-            is SøknadsbehandlingResultat.Avslag -> null
-            is SøknadsbehandlingResultat.Innvilgelse -> resultat.barnetillegg
+            is Avslag -> null
+            is Innvilgelse -> resultat.barnetillegg
             null -> null
         }
 
@@ -78,8 +80,8 @@ data class Søknadsbehandling(
         virkningsperiode?.let { SammenhengendePeriodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, it) }
 
     override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (resultat) {
-        is SøknadsbehandlingResultat.Avslag -> null
-        is SøknadsbehandlingResultat.Innvilgelse -> resultat.valgteTiltaksdeltakelser
+        is Avslag -> null
+        is Innvilgelse -> resultat.valgteTiltaksdeltakelser
         null -> null
     }
 
@@ -104,8 +106,8 @@ data class Søknadsbehandling(
 
     private fun validerResultat() {
         when (resultat) {
-            is SøknadsbehandlingResultat.Innvilgelse -> resultat.valider(virkningsperiode)
-            is SøknadsbehandlingResultat.Avslag -> Unit
+            is Innvilgelse -> resultat.valider(virkningsperiode)
+            is Avslag -> Unit
             null -> Unit
         }
     }
@@ -116,7 +118,27 @@ data class Søknadsbehandling(
     ): Either<KanIkkeOppdatereBehandling, Søknadsbehandling> {
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
 
-        val (virkningsperiode, resultat) = virkningsperiodeOgResultat(kommando)
+        val virkningsperiode = when (kommando) {
+            is OppdaterSøknadsbehandlingKommando.Avslag -> this.søknad.tiltaksdeltagelseperiodeDetErSøktOm()
+            is OppdaterSøknadsbehandlingKommando.Innvilgelse -> kommando.innvilgelsesperiode
+            is OppdaterSøknadsbehandlingKommando.IkkeValgtResultat -> null
+        }
+
+        val resultat = when (kommando) {
+            is OppdaterSøknadsbehandlingKommando.Avslag -> {
+                Avslag(avslagsgrunner = kommando.avslagsgrunner)
+            }
+
+            is OppdaterSøknadsbehandlingKommando.Innvilgelse -> {
+                Innvilgelse(
+                    valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
+                    barnetillegg = kommando.barnetillegg,
+                    antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
+                )
+            }
+
+            is OppdaterSøknadsbehandlingKommando.IkkeValgtResultat -> null
+        }
 
         return this.copy(
             sistEndret = nå(clock),
@@ -159,28 +181,6 @@ data class Søknadsbehandling(
                 begrunnelse = begrunnelse,
             ),
         )
-    }
-
-    private fun virkningsperiodeOgResultat(kommando: OppdaterSøknadsbehandlingKommando): Pair<Periode, SøknadsbehandlingResultat> {
-        val virkningsperiode = when (kommando) {
-            is OppdaterSøknadsbehandlingKommando.Avslag -> this.søknad.tiltaksdeltagelseperiodeDetErSøktOm()
-            is OppdaterSøknadsbehandlingKommando.Innvilgelse -> kommando.innvilgelsesperiode
-        }
-
-        val resultat: SøknadsbehandlingResultat = when (kommando) {
-            is OppdaterSøknadsbehandlingKommando.Avslag -> {
-                SøknadsbehandlingResultat.Avslag(avslagsgrunner = kommando.avslagsgrunner)
-            }
-
-            is OppdaterSøknadsbehandlingKommando.Innvilgelse -> {
-                SøknadsbehandlingResultat.Innvilgelse(
-                    valgteTiltaksdeltakelser = kommando.valgteTiltaksdeltakelser(this),
-                    barnetillegg = kommando.barnetillegg,
-                    antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
-                )
-            }
-        }
-        return virkningsperiode to resultat
     }
 
     companion object {

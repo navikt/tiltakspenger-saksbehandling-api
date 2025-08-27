@@ -40,6 +40,30 @@ import org.junit.jupiter.api.Test
 
 class OppdaterBehandlingRouteTest {
     @Test
+    fun `kan oppdatere uten valgt resultat`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+
+            oppdaterBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.IkkeValgtResultat(
+                    fritekstTilVedtaksbrev = "ny brevtekst",
+                    begrunnelseVilkårsvurdering = "ny begrunnelse",
+                ),
+            )
+
+            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(behandling.id)
+
+            oppdatertBehandling.resultat.shouldBeNull()
+            oppdatertBehandling.virkningsperiode.shouldBeNull()
+            oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
+            oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
+        }
+    }
+
+    @Test
     fun `kan oppdatere innvilget søknadsbehandling`() {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
@@ -93,8 +117,6 @@ class OppdaterBehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
-            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.first()
-
             oppdaterBehandling(
                 tac = tac,
                 sakId = sak.id,
@@ -102,12 +124,6 @@ class OppdaterBehandlingRouteTest {
                 oppdaterBehandlingDTO = OppdaterSøknadsbehandlingDTO.Avslag(
                     fritekstTilVedtaksbrev = "ny brevtekst",
                     begrunnelseVilkårsvurdering = "ny begrunnelse",
-                    valgteTiltaksdeltakelser = listOf(
-                        TiltaksdeltakelsePeriodeDTO(
-                            eksternDeltagelseId = tiltaksdeltagelse.eksternDeltagelseId,
-                            periode = tiltaksdeltagelse.periode!!.toDTO(),
-                        ),
-                    ),
                     avslagsgrunner = listOf(ValgtHjemmelForAvslagDTO.DeltarIkkePåArbeidsmarkedstiltak),
                 ),
             )

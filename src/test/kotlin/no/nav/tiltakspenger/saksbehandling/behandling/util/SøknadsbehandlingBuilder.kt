@@ -170,12 +170,6 @@ interface SøknadsbehandlingBuilder {
                 correlationId = CorrelationId.generate(),
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                tiltaksdeltakelser = listOf(
-                    Pair(
-                        virkningsperiode,
-                        behandling.saksopplysninger.tiltaksdeltagelser[0].eksternDeltagelseId,
-                    ),
-                ),
                 automatiskSaksbehandlet = false,
                 avslagsgrunner = avslagsgrunner,
             ),

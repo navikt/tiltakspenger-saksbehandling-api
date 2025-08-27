@@ -145,7 +145,6 @@ interface SakMother {
                                 saksbehandler = saksbehandler,
                                 fritekstTilVedtaksbrev = null,
                                 begrunnelseVilkårsvurdering = null,
-                                tiltaksdeltakelser = valgteTiltaksdeltakelser,
                                 avslagsgrunner = avslagsgrunner!!,
                             )
                         },
@@ -302,9 +301,6 @@ interface SakMother {
                 saksbehandler = saksbehandler,
                 fritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nySakMedAvslagsvedtak"),
                 begrunnelseVilkårsvurdering = null,
-                tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltagelser.map {
-                    Pair(virkningsperiode, it.eksternDeltagelseId)
-                }.toList(),
                 avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
             ),
             clock = clock,

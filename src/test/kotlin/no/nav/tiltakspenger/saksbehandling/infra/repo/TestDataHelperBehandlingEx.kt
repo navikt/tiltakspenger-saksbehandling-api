@@ -245,7 +245,6 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
                         correlationId = correlationId,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                        tiltaksdeltakelser = tiltaksdeltakelser,
                         avslagsgrunner = avslagsgrunner!!,
                     )
                 },

@@ -115,8 +115,10 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
 fun BehandlingResultatDTO.tilRevurderingType(): RevurderingType = when (this) {
     BehandlingResultatDTO.REVURDERING_INNVILGELSE -> RevurderingType.INNVILGELSE
     BehandlingResultatDTO.STANS -> RevurderingType.STANS
+
     BehandlingResultatDTO.AVSLAG,
     BehandlingResultatDTO.INNVILGELSE,
+    BehandlingResultatDTO.IKKE_VALGT,
     -> throw IllegalStateException("Ugyldig type for revurdering $this")
 }
 
