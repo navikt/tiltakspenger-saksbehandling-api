@@ -192,7 +192,6 @@ class TestApplicationContext(
                 sessionFactory = sessionFactory,
                 sakService = sakContext.sakService,
                 meldekortVedtakRepo = meldekortVedtakFakeRepo,
-                statistikkStønadRepo = statistikkStønadFakeRepo,
                 texasClient = texasClient,
                 navkontorService = navkontorService,
                 oppgaveKlient = oppgaveKlient,
@@ -255,6 +254,7 @@ class TestApplicationContext(
             sakRepo = sakContext.sakRepo,
             clock = clock,
             navkontorService = navkontorService,
+            statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
             override val meldekortVedtakRepo = meldekortVedtakFakeRepo

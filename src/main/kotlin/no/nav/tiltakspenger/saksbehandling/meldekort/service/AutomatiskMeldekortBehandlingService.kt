@@ -8,18 +8,15 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettAutomatiskMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilStatistikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 
@@ -28,8 +25,6 @@ class AutomatiskMeldekortBehandlingService(
     private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
     private val sakRepo: SakRepo,
     private val meldekortVedtakRepo: MeldekortVedtakRepo,
-    private val utbetalingRepo: UtbetalingRepo,
-    private val statistikkStønadRepo: StatistikkStønadRepo,
     private val navkontorService: NavkontorService,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
@@ -119,12 +114,9 @@ class AutomatiskMeldekortBehandlingService(
             return BrukersMeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK.left()
         }
 
-        val utbetalingsstatistikk = meldekortvedtak.tilStatistikk()
-
         sessionFactory.withTransactionContext { tx ->
             meldekortBehandlingRepo.lagre(meldekortBehandling, simulering, tx)
             meldekortVedtakRepo.lagre(meldekortvedtak, tx)
-            statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
                 meldekortId = meldekortId,
                 status = BrukersMeldekortBehandletAutomatiskStatus.BEHANDLET,

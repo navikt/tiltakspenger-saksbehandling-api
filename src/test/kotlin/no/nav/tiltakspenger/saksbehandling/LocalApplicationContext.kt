@@ -165,7 +165,6 @@ class LocalApplicationContext(
             sessionFactory = sessionFactory,
             sakService = sakContext.sakService,
             meldekortVedtakRepo = utbetalingContext.meldekortVedtakRepo,
-            statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             texasClient = texasClient,
             navkontorService = navkontorService,
             oppgaveKlient = oppgaveKlient,
@@ -225,6 +224,7 @@ class LocalApplicationContext(
             navIdentClient = personContext.navIdentClient,
             clock = clock,
             navkontorService = navkontorService,
+            statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
         }

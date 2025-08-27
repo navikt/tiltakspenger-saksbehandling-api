@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
@@ -31,6 +32,7 @@ open class UtbetalingContext(
     sakRepo: SakRepo,
     clock: Clock,
     navkontorService: NavkontorService,
+    statistikkStønadRepo: StatistikkStønadRepo,
 ) {
     open val utbetalingsklient: Utbetalingsklient by lazy {
         UtbetalingHttpKlient(
@@ -59,6 +61,7 @@ open class UtbetalingContext(
         SendUtbetalingerService(
             utbetalingRepo = utbetalingRepo,
             utbetalingsklient = utbetalingsklient,
+            statistikkStønadRepo = statistikkStønadRepo,
             clock = clock,
         )
     }

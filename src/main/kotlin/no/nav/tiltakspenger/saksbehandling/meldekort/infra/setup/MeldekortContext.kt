@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiHttpClient
@@ -43,7 +42,6 @@ open class MeldekortContext(
     sessionFactory: SessionFactory,
     sakService: SakService,
     meldekortVedtakRepo: MeldekortVedtakRepo,
-    statistikkStønadRepo: StatistikkStønadRepo,
     texasClient: TexasClient,
     navkontorService: NavkontorService,
     oppgaveKlient: OppgaveKlient,
@@ -81,7 +79,6 @@ open class MeldekortContext(
             sakService = sakService,
             meldekortVedtakRepo = meldekortVedtakRepo,
             utbetalingRepo = utbetalingRepo,
-            statistikkStønadRepo = statistikkStønadRepo,
             clock = clock,
             oppgaveKlient = oppgaveKlient,
         )
@@ -108,8 +105,6 @@ open class MeldekortContext(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             sakRepo = sakRepo,
             meldekortVedtakRepo = meldekortVedtakRepo,
-            utbetalingRepo = utbetalingRepo,
-            statistikkStønadRepo = statistikkStønadRepo,
             navkontorService = navkontorService,
             sessionFactory = sessionFactory,
             clock = clock,

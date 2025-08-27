@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkUtbetalingDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
@@ -91,24 +90,3 @@ fun MeldekortBehandling.Behandlet.opprettVedtak(
         utbetaling = utbetaling,
     )
 }
-
-// TODO abn: generer utbetaling-statistikk fra utbetalingen, når denne iverksettes
-fun MeldekortVedtak.tilStatistikk(): StatistikkUtbetalingDTO =
-    StatistikkUtbetalingDTO(
-        // TODO post-mvp jah: Vi sender uuid-delen av denne til helved som behandlingId som mappes videre til OS/UR i feltet 'henvisning'.
-        id = this.id.toString(),
-        sakId = this.sakId.toString(),
-        saksnummer = this.saksnummer.toString(),
-        ordinærBeløp = this.utbetaling.ordinærBeløp,
-        barnetilleggBeløp = this.utbetaling.barnetilleggBeløp,
-        totalBeløp = this.utbetaling.totalBeløp,
-        // TODO post-mvp jah: Vi oppretter vedtaket før og statistikken før vi sender til helved/utbetaling. Bør vi opprette statistikken etter vi har sendt til helved/utbetaling?
-        posteringDato = this.opprettet.toLocalDate(),
-        gyldigFraDatoPostering = this.utbetaling.periode.fraOgMed,
-        gyldigTilDatoPostering = this.utbetaling.periode.tilOgMed,
-        utbetalingId = this.id.uuidPart(),
-        vedtakId = rammevedtak.map { it.toString() },
-        opprettet = LocalDateTime.now(),
-        sistEndret = LocalDateTime.now(),
-        brukerId = this.fnr.verdi,
-    )

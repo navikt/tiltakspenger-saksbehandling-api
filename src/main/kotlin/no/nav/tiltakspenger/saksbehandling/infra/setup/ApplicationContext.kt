@@ -257,6 +257,7 @@ open class ApplicationContext(
             sakRepo = sakContext.sakRepo,
             clock = clock,
             navkontorService = navkontorService,
+            statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
         )
     }
     open val meldekortContext by lazy {
@@ -264,7 +265,6 @@ open class ApplicationContext(
             sessionFactory = sessionFactory,
             sakService = sakContext.sakService,
             meldekortVedtakRepo = utbetalingContext.meldekortVedtakRepo,
-            statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
             texasClient = texasClient,
             navkontorService = navkontorService,
             oppgaveKlient = oppgaveKlient,

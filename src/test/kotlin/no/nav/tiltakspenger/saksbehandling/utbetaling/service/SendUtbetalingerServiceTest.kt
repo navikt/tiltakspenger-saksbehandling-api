@@ -9,6 +9,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
@@ -20,7 +21,9 @@ import org.junit.jupiter.api.Test
 internal class SendUtbetalingerServiceTest {
     private val utbetalingRepo = mockk<UtbetalingRepo>()
     private val utbetalingsklient = mockk<Utbetalingsklient>()
-    private val sendUtbetalingerService = SendUtbetalingerService(utbetalingRepo, utbetalingsklient, fixedClock)
+    private val statistikkStønadRepo = mockk<StatistikkStønadRepo>()
+    private val sendUtbetalingerService =
+        SendUtbetalingerService(utbetalingRepo, utbetalingsklient, statistikkStønadRepo, fixedClock)
 
     @BeforeEach
     fun setup() {

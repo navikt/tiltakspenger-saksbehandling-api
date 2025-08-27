@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeIverksetteMeldekort
@@ -15,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletMa
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilStatistikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
@@ -32,7 +30,6 @@ class IverksettMeldekortService(
     val brukersMeldekortRepo: BrukersMeldekortRepo,
     val sessionFactory: SessionFactory,
     private val meldekortVedtakRepo: MeldekortVedtakRepo,
-    private val statistikkStønadRepo: StatistikkStønadRepo,
     private val clock: Clock,
     private val oppgaveKlient: OppgaveKlient,
 ) {
@@ -64,12 +61,10 @@ class IverksettMeldekortService(
                 forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
                 clock = clock,
             )
-            val utbetalingsstatistikk = meldekortVedtak.tilStatistikk()
 
             sessionFactory.withTransactionContext { tx ->
                 meldekortBehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)
                 meldekortVedtakRepo.lagre(meldekortVedtak, tx)
-                statistikkStønadRepo.lagre(utbetalingsstatistikk, tx)
             }
             ferdigstillOppgave(meldeperiode.id, meldekortId)
             sak.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
