@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -119,9 +118,6 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 behandlingId,
                 saksbehandler,
             ).also {
-                val logger = KotlinLogging.logger { }
-                logger.info { it }
-
                 it.status shouldBe HttpStatusCode.InternalServerError
             }
 
