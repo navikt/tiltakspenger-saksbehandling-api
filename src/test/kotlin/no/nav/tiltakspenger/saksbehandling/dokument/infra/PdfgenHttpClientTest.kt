@@ -13,7 +13,7 @@ class PdfgenHttpClientTest {
     fun genererMeldekortPdf() {
         runTest {
             val utbetalingsvedtak = ObjectMother.meldekortVedtak()
-            PdfgenHttpClient("unused").genererUtbetalingsvedtak(
+            PdfgenHttpClient("unused").genererMeldekortVedtakBrev(
                 utbetalingsvedtak,
                 tiltaksdeltagelser = Tiltaksdeltagelser(listOf(ObjectMother.tiltaksdeltagelse())),
                 sammenligning = { sammenlign(utbetalingsvedtak.utbetaling.beregning.beregninger.first()) },

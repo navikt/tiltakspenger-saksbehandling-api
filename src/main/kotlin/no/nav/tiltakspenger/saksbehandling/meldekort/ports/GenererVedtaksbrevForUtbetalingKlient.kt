@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 
 interface GenererVedtaksbrevForUtbetalingKlient {
-    suspend fun genererUtbetalingsvedtak(
+    suspend fun genererMeldekortVedtakBrev(
         utbetalingsvedtak: MeldekortVedtak,
         tiltaksdeltagelser: Tiltaksdeltagelser,
         hentSaksbehandlersNavn: suspend (String) -> String,

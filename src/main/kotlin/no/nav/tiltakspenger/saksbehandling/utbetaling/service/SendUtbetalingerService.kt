@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import java.time.Clock
 
 /**
- * Har ansvar for å sende klare utbetalingsvedtak til helved utsjekk.
+ * Har ansvar for å sende klare utbetalinger til helved utsjekk.
  */
 class SendUtbetalingerService(
     private val utbetalingRepo: UtbetalingRepo,
@@ -30,11 +30,11 @@ class SendUtbetalingerService(
                         utbetalingRepo.markerSendtTilUtbetaling(utbetaling.id, nå(clock), it)
                         logger.info { "Utbetaling markert som utbetalt for utbetaling ${utbetaling.id}" }
                     }.onLeft {
-                        logger.error { "Utbetaling kunne ikke iverksettes. Saksnummer: ${utbetaling.saksnummer}, sakId: ${utbetaling.sakId}, utbetalingsvedtakId: ${utbetaling.id}" }
+                        logger.error { "Utbetaling kunne ikke iverksettes. Saksnummer: ${utbetaling.saksnummer}, sakId: ${utbetaling.sakId}, utbetalingId: ${utbetaling.id}" }
                         utbetalingRepo.lagreFeilResponsFraUtbetaling(utbetaling.id, it)
                     }
                 }.onLeft {
-                    logger.error(it) { "Ukjent feil skjedde under iverksetting av utbetaling. Saksnummer: ${utbetaling.saksnummer}, sakId: ${utbetaling.sakId}, utbetalingsvedtakId: ${utbetaling.id}" }
+                    logger.error(it) { "Ukjent feil skjedde under iverksetting av utbetaling. Saksnummer: ${utbetaling.saksnummer}, sakId: ${utbetaling.sakId}, utbetalingId: ${utbetaling.id}" }
                 }
             }
         }.onLeft {

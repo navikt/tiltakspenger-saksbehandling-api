@@ -60,7 +60,7 @@ class JournalførMeldekortVedtakService(
                         }
 
                     val pdfOgJson =
-                        genererVedtaksbrevForUtbetalingKlient.genererUtbetalingsvedtak(
+                        genererVedtaksbrevForUtbetalingKlient.genererMeldekortVedtakBrev(
                             meldekortVedtak,
                             sammenligning = sammenligning,
                             hentSaksbehandlersNavn = hentSaksbehandlersNavn,

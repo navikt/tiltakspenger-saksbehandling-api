@@ -69,7 +69,7 @@ private data class MeldekortVedtakDTO(
     )
 }
 
-// TODO: må tilpasses utbetalingsvedtak fra revurdering
+// TODO: må tilpasses utbetalinger fra revurdering
 suspend fun MeldekortVedtak.toJsonRequest(
     hentSaksbehandlersNavn: suspend (String) -> String,
     tiltaksdeltagelser: Tiltaksdeltagelser,

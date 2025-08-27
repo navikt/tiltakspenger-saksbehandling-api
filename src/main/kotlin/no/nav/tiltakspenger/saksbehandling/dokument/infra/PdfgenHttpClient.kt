@@ -64,7 +64,7 @@ internal class PdfgenHttpClient(
 
     private val vedtakInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakInnvilgelse")
     private val vedtakAvslagUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakAvslag")
-    private val utbetalingsvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/utbetalingsvedtak")
+    private val meldekortVedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/utbetalingsvedtak")
     private val stansvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/stansvedtak")
     private val revurderingInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
 
@@ -172,22 +172,22 @@ internal class PdfgenHttpClient(
         )
     }
 
-    override suspend fun genererUtbetalingsvedtak(
-        utbetalingsvedtak: MeldekortVedtak,
+    override suspend fun genererMeldekortVedtakBrev(
+        meldekortVedtak: MeldekortVedtak,
         tiltaksdeltagelser: Tiltaksdeltagelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
-                utbetalingsvedtak.toJsonRequest(
+                meldekortVedtak.toJsonRequest(
                     hentSaksbehandlersNavn,
                     tiltaksdeltagelser,
                     sammenligning,
                 )
             },
-            errorContext = "SakId: ${utbetalingsvedtak.sakId}, saksnummer: ${utbetalingsvedtak.saksnummer}, vedtakId: ${utbetalingsvedtak.id}",
-            uri = utbetalingsvedtakUri,
+            errorContext = "SakId: ${meldekortVedtak.sakId}, saksnummer: ${meldekortVedtak.saksnummer}, vedtakId: ${meldekortVedtak.id}",
+            uri = meldekortVedtakUri,
         )
     }
 
