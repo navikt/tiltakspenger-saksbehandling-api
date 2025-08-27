@@ -27,6 +27,7 @@ enum class Ytelsetype(val tekstverdi: String) {
     SYKEPENGER("Sykepenger"),
     SYKEPENGERREFARBGIV("Sykepenger refusjon arbeidsgiver"),
     TJENESTEPENSJON("Tjenestepensjon"),
+    TILTAKSPENGER("Tiltakspenger"),
     UFOREPENSJON("Uførepensjon"),
     UFORETRYGD("Uføretrygd"),
     UTDANNINGSSTONAD("Utdanningsstønad"),
