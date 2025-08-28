@@ -33,7 +33,7 @@ private fun Rammevedtak.toJournalpostRequest(
         kanal = kanal,
         avsenderMottaker = avsenderMottaker,
         bruker = JoarkRequest.Bruker(this.fnr.verdi),
-        sak = JoarkRequest.Sak.Fagsak(this.saksnummer.toString()),
+        sak = JoarkRequest.JoarkSak.Fagsak(this.saksnummer.toString()),
         dokumenter = listOf(
             JoarkRequest.JournalpostDokument(
                 tittel = tittel,

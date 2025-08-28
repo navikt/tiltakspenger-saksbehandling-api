@@ -55,7 +55,7 @@ class SimulerService(
     suspend fun simulerRevurdering(
         behandling: Revurdering,
         beregning: BehandlingBeregning,
-        forrigeUtbetaling: VedtattUtbetaling?,
+        forrigeUtbetaling: Utbetaling?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
         brukersNavkontor: (suspend () -> Navkontor)?,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {

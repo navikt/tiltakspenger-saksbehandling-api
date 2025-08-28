@@ -39,12 +39,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
         val innvilgelsesperiode: PeriodeDTO,
         val barnetillegg: BarnetilleggDTO?,
-        val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>? = listOf(
-            AntallDagerPerMeldeperiodeDTO(
-                periode = innvilgelsesperiode,
-                antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-            ),
-        ),
+        val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>,
     ) : OppdaterSøknadsbehandlingDTO {
         override val resultat: BehandlingResultatDTO = BehandlingResultatDTO.INNVILGELSE
 
@@ -68,13 +63,12 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
                     Pair(it.periode.toDomain(), it.eksternDeltagelseId)
                 },
-                antallDagerPerMeldeperiode =
-                antallDagerPerMeldeperiodeForPerioder?.map {
+                antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder.map {
                     PeriodeMedVerdi(
                         AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
                         it.periode.toDomain(),
                     )
-                }?.tilSammenhengendePeriodisering(),
+                }.tilSammenhengendePeriodisering(),
             )
         }
     }
@@ -108,7 +102,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
 
-    ) : OppdaterSøknadsbehandlingDTO {
+        ) : OppdaterSøknadsbehandlingDTO {
         override val resultat = null
 
         override fun tilDomene(

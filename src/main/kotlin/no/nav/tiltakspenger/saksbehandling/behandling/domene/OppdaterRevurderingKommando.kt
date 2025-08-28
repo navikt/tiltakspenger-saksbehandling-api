@@ -27,7 +27,12 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         val valgteHjemler: NonEmptyList<ValgtHjemmelForStans>,
         val stansFraOgMed: LocalDate,
-    ) : OppdaterRevurderingKommando
+    ) : OppdaterRevurderingKommando {
+        override val innvilgelsesperiode = null
+        override val barnetillegg = null
+        override val antallDagerPerMeldeperiode = null
+        override val tiltaksdeltakelser = null
+    }
 
     data class Innvilgelse(
         override val sakId: SakId,
@@ -36,9 +41,9 @@ sealed interface OppdaterRevurderingKommando : OppdaterBehandlingKommando {
         override val correlationId: CorrelationId,
         override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-        val innvilgelsesperiode: Periode,
-        val tiltaksdeltakelser: List<Pair<Periode, String>>,
-        val barnetillegg: Barnetillegg?,
-        val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>,
+        override val innvilgelsesperiode: Periode,
+        override val tiltaksdeltakelser: List<Pair<Periode, String>>,
+        override val barnetillegg: Barnetillegg?,
+        override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>,
     ) : OppdaterRevurderingKommando
 }

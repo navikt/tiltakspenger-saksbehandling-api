@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKom
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.startRevurdering
-import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -245,7 +245,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
         barnetillegg = barnetillegg,
     )
 
-    val utbetaling = sakMedRevurdering.beregnRevurderingInnvilgelse(kommando)
+    val utbetaling = sakMedRevurdering.beregnInnvilgelse(kommando)
 
     return runBlocking {
         revurdering.oppdaterInnvilgelse(

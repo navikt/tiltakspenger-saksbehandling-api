@@ -10,15 +10,18 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD_BEHANDLES_MANUELT_GRUNN
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD_BEHANDLET_DELVIS_AUTOMATISK
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD_IKKE_BEHANDLET_AUTOMATISK
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
@@ -47,7 +50,7 @@ class DelautomatiskBehandlingService(
         }
     }
 
-    private suspend fun sendTilBeslutning(behandling: Søknadsbehandling, correlationId: CorrelationId) {
+    private suspend fun Sak.sendTilBeslutning(behandling: Søknadsbehandling, correlationId: CorrelationId) {
         val oppdaterKommando = OppdaterSøknadsbehandlingKommando.Innvilgelse(
             sakId = behandling.sakId,
             behandlingId = behandling.id,
@@ -62,7 +65,23 @@ class DelautomatiskBehandlingService(
             automatiskSaksbehandlet = true,
         )
 
-        val oppdatertBehandling = behandling.oppdater(oppdaterKommando, clock).getOrElse {
+        val (utbetaling, simuleringMedMetadata) = this.beregnInnvilgelse(kommando)?.let {
+            val navkontor = navkontorService.hentOppfolgingsenhet(sak.fnr)
+            val simuleringMedMetadata = simulerService.simulerRevurdering(
+                behandling = behandling,
+                beregning = it,
+                forrigeUtbetaling = this.utbetalinger.lastOrNull(),
+                meldeperiodeKjeder = this.meldeperiodeKjeder,
+            ) { navkontor }.getOrElse { null }
+
+            BehandlingUtbetaling(
+                beregning = it,
+                navkontor = navkontor,
+                simulering = simuleringMedMetadata?.simulering,
+            ) to simuleringMedMetadata
+        } ?: (null to null)
+
+        val oppdatertBehandling = behandling.oppdater(oppdaterKommando, clock, utbetaling).getOrElse {
             throw IllegalStateException("Kunne ikke oppdatere behandling med id ${behandling.id} fordi: ${it::class.simpleName}")
         }
 

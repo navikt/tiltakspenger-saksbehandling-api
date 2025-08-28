@@ -32,7 +32,7 @@ internal data class JoarkRequest(
     val journalfoerendeEnhet: String = "9999",
     val avsenderMottaker: AvsenderMottaker?,
     val bruker: Bruker,
-    val sak: Sak?,
+    val sak: JoarkSak?,
     val dokumenter: List<JournalpostDokument>,
     val eksternReferanseId: String,
 ) {
@@ -57,7 +57,7 @@ internal data class JoarkRequest(
         val idType: String = "FNR",
     )
 
-    sealed class Sak {
+    sealed class JoarkSak {
         data class Fagsak(
             /**
              * Iden til fagsaken i fagsystemet (altså ikke applikasjonen SAK).
@@ -70,7 +70,7 @@ internal data class JoarkRequest(
              * GENERELL_SAK skal kun brukes for dokumenter som ikke tilhører en konkret fagsak i et fagsystem. Generell sak kan ses på som brukerens "mappe" på et gitt tema.
              */
             val sakstype: String = "FAGSAK",
-        ) : Sak()
+        ) : JoarkSak()
     }
 
     data class Bruker(

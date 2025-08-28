@@ -118,7 +118,7 @@ class BeregnRevurderingTest {
             ),
         )
 
-        val nyBeregning = sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando)
+        val nyBeregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(kommando)
 
         nyBeregning.shouldNotBeNull()
         nyBeregning.size shouldBe 1
@@ -151,7 +151,7 @@ class BeregnRevurderingTest {
             ),
         )
 
-        val nyBeregning = sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando)
+        val nyBeregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(kommando)
 
         nyBeregning.shouldBeInstanceOf<BehandlingBeregning>()
         nyBeregning.size shouldBe 1
@@ -171,7 +171,7 @@ class BeregnRevurderingTest {
             revurdering = revurdering,
         )
 
-        sak.beregnRevurderingInnvilgelse(kommando).shouldBeNull()
+        sak.beregnInnvilgelse(kommando).shouldBeNull()
     }
 
     @Test
@@ -186,7 +186,7 @@ class BeregnRevurderingTest {
             revurdering = revurdering,
         )
 
-        sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando).shouldBeNull()
+        sakMedMeldekortBehandlinger.beregnInnvilgelse(kommando).shouldBeNull()
     }
 
     @Test
@@ -203,6 +203,6 @@ class BeregnRevurderingTest {
             revurdering = revurdering,
         )
 
-        sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando).shouldBeNull()
+        sakMedMeldekortBehandlinger.beregnInnvilgelse(kommando).shouldBeNull()
     }
 }

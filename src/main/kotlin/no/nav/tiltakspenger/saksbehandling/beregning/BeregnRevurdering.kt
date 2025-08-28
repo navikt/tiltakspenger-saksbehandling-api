@@ -5,7 +5,7 @@ import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket
@@ -20,8 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.lang.IllegalStateException
 import java.time.LocalDate
 
-fun Sak.beregnRevurderingInnvilgelse(
-    kommando: OppdaterRevurderingKommando.Innvilgelse,
+fun Sak.beregnInnvilgelse(
+    kommando: OppdaterBehandlingKommando,
 ): BehandlingBeregning? {
     return beregnMeldeperioderPåNytt(kommando)?.let {
         BehandlingBeregning(beregninger = it)
@@ -29,7 +29,7 @@ fun Sak.beregnRevurderingInnvilgelse(
 }
 
 private fun Sak.beregnMeldeperioderPåNytt(
-    kommando: OppdaterRevurderingKommando.Innvilgelse,
+    kommando: OppdaterBehandlingKommando,
 ): NonEmptyList<MeldeperiodeBeregning>? {
     val behandlingId = kommando.behandlingId
     val behandling = hentBehandling(behandlingId)
@@ -38,7 +38,7 @@ private fun Sak.beregnMeldeperioderPåNytt(
         "Behandlingen må være en revurdering av innvilgelse for å kunne beregnes"
     }
 
-    val tidligereBeregninger = meldeperiodeBeregninger.sisteBeregningerForPeriode(kommando.innvilgelsesperiode)
+    val tidligereBeregninger = meldeperiodeBeregninger.sisteBeregningerForPeriode(kommando.innvilgelsesperiode!!)
 
     val antallBarnForDato: (dato: LocalDate) -> AntallBarn =
         kommando.barnetillegg?.periodisering?.let {
