@@ -5,9 +5,13 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
+import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import java.time.Clock
@@ -20,14 +24,24 @@ class StartSøknadsbehandlingService(
     private val hentSaksopplysingerService: HentSaksopplysingerService,
     private val clock: Clock,
     private val statistikkSakService: StatistikkSakService,
+    private val personKlient: PersonKlient,
+    private val oppgaveKlient: OppgaveKlient,
 ) {
-
     val logger = KotlinLogging.logger {}
 
     suspend fun opprettAutomatiskSoknadsbehandling(
         soknad: Søknad,
         correlationId: CorrelationId,
     ): Søknadsbehandling {
+        val pdlPerson = personKlient.hentEnkelPerson(soknad.fnr)
+        if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland) {
+            logger.info { "Person har adressebeskyttelse, oppretter oppgave" }
+            oppgaveKlient.opprettOppgave(
+                fnr = soknad.fnr,
+                journalpostId = JournalpostId(soknad.journalpostId),
+                oppgavebehov = Oppgavebehov.NY_SOKNAD,
+            )
+        }
         val sak = sakService.hentForSakId(soknad.sakId)
         val behandling = Søknadsbehandling.opprettAutomatiskBehandling(
             sak = sak,

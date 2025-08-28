@@ -65,6 +65,17 @@ data class OpprettOppgaveRequest(
             behandlesAvApplikasjon = BEHANDLES_AV_APPLIKASJON,
             oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_HENVENDELSE.value,
         )
+
+        fun opprettOppgaveRequestForSoknad(
+            fnr: Fnr,
+            journalpostId: JournalpostId,
+        ) = OpprettOppgaveRequest(
+            personident = fnr.verdi,
+            journalpostId = journalpostId.toString(),
+            beskrivelse = "Ny søknad om tiltakspenger. Behandles i ny løsning.",
+            behandlesAvApplikasjon = null,
+            oppgavetype = OppgaveType.OPPGAVETYPE_BEHANDLE_SAK.value,
+        )
     }
 }
 

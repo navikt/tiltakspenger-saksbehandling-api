@@ -48,6 +48,12 @@ class OppgaveHttpClient(
                     journalpostId = journalpostId,
                 )
             }
+            Oppgavebehov.NY_SOKNAD -> {
+                OpprettOppgaveRequest.opprettOppgaveRequestForSoknad(
+                    fnr = fnr,
+                    journalpostId = journalpostId,
+                )
+            }
 
             else -> {
                 logger.error { "Ukjent oppgavebehov for oppgave med journalpost: ${oppgavebehov.name}" }

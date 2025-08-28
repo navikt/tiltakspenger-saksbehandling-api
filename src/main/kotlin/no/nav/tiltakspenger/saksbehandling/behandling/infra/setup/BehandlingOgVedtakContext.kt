@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevFo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførRammevedtaksbrevKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRepo
@@ -35,10 +36,10 @@ import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonskli
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
+import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
@@ -66,8 +67,9 @@ open class BehandlingOgVedtakContext(
     clock: Clock,
     sokosUtbetaldataClient: SokosUtbetaldataClient,
     navkontorService: NavkontorService,
-    meldekortVedtakRepo: MeldekortVedtakRepo,
     simulerService: SimulerService,
+    personKlient: PersonKlient,
+    oppgaveKlient: OppgaveKlient,
 ) {
     open val rammevedtakRepo: RammevedtakRepo by lazy { RammevedtakPostgresRepo(sessionFactory as PostgresSessionFactory) }
     open val behandlingRepo: BehandlingRepo by lazy {
@@ -94,6 +96,8 @@ open class BehandlingOgVedtakContext(
             hentSaksopplysingerService = hentSaksopplysingerService,
             clock = clock,
             statistikkSakService = statistikkSakService,
+            personKlient = personKlient,
+            oppgaveKlient = oppgaveKlient,
         )
     }
     val delautomatiskBehandlingService: DelautomatiskBehandlingService by lazy {
