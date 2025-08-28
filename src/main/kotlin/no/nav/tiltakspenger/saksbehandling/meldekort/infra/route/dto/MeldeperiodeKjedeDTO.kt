@@ -57,7 +57,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
     return MeldeperiodeKjedeDTO(
         id = meldeperiodeKjede.kjedeId.toString(),
         periode = meldeperiodeKjede.periode.toDTO(),
-        status = toMeldeperiodeKjedeStatusDTO(kjedeId, clock, brukersMeldekort.isNotEmpty()),
+        status = toMeldeperiodeKjedeStatusDTO(kjedeId, clock),
         periodeMedÅpenBehandling = this.meldekortBehandlinger.åpenMeldekortBehandling?.periode?.toDTO(),
         tiltaksnavn = this.vedtaksliste
             .valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode)

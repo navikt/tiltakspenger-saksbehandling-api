@@ -21,7 +21,7 @@ import java.time.LocalDate
  * Merk at [verdi] inneholder alle meldekortbehandlinger, inkludert de som er avbrutt, og bør ikke brukes direkte!
  */
 data class MeldekortBehandlinger(
-    val verdi: List<MeldekortBehandling>,
+    private val verdi: List<MeldekortBehandling>,
 ) : List<MeldekortBehandling> by verdi {
 
     val log = KotlinLogging.logger { }
@@ -48,15 +48,9 @@ data class MeldekortBehandlinger(
         behandledeMeldekortPerKjede.values.map { it.last() }
     }
 
-    /** Under behandling er ikke-avsluttede meldekortbehandlinger som ikke er til beslutning. */
+    /** meldekort med status UNDER_BEHANDLING */
     val meldekortUnderBehandling: MeldekortUnderBehandling? by lazy {
-        verdi.filterIsInstance<MeldekortUnderBehandling>().singleOrNullOrThrow()
-    }
-
-    private val meldekortUnderBeslutning: MeldekortBehandletManuelt? by lazy {
-        behandledeMeldekort.filter {
-            it.status == MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
-        }.singleOrNullOrThrow() as MeldekortBehandletManuelt?
+        verdi.singleOrNullOrThrow { it.status == MeldekortBehandlingStatus.UNDER_BEHANDLING } as MeldekortUnderBehandling?
     }
 
     val godkjenteMeldekort: List<MeldekortBehandling.Behandlet> by lazy {
@@ -76,7 +70,7 @@ data class MeldekortBehandlinger(
     }
 
     /** Meldekort som er under behandling eller venter på beslutning */
-    val åpenMeldekortBehandling: MeldekortBehandling? by lazy { meldekortUnderBehandling ?: meldekortUnderBeslutning }
+    val åpenMeldekortBehandling: MeldekortBehandling? by lazy { this.singleOrNullOrThrow { it.erÅpen() } }
 
     suspend fun oppdaterMeldekort(
         kommando: OppdaterMeldekortKommando,
@@ -179,9 +173,11 @@ data class MeldekortBehandlinger(
                 "Meldekortperiodene må være sammenhengende og sortert, men var ${verdi.map { it.periode }}"
             }
         }
-        require(verdi.count { it is MeldekortUnderBehandling } <= 1) {
-            "Kun ett meldekort på saken kan være i tilstanden 'under behandling'"
+
+        require(verdi.count { it.erÅpen() } <= 1) {
+            "Kun ett meldekort på saken kan være åpen om gangen"
         }
+
         require(verdi.map { it.sakId }.distinct().size <= 1) {
             "Alle meldekortperioder må tilhøre samme sak."
         }
@@ -189,9 +185,6 @@ data class MeldekortBehandlinger(
             require(it.size == it.distinct().size) {
                 "Meldekort må ha unik id"
             }
-        }
-        require(meldekortUnderBehandling == null || meldekortUnderBeslutning == null) {
-            "Kan ikke ha meldekort både under behandling og under beslutning"
         }
     }
 

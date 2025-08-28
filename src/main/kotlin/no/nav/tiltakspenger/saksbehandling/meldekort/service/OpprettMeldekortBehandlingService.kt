@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SkalLagreEllerOppdatere
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettManuellMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
@@ -43,7 +44,7 @@ class OpprettMeldekortBehandlingService(
             return KanIkkeOppretteMeldekortBehandling.HenteNavkontorFeilet.left()
         }
 
-        val (oppdatertSak, meldekortBehandling) = Either.catch {
+        val (oppdatertSak, meldekortBehandling, skalLagreEllerOppdatere) = Either.catch {
             sak.opprettManuellMeldekortBehandling(
                 kjedeId = kjedeId,
                 navkontor = navkontor,
@@ -56,8 +57,14 @@ class OpprettMeldekortBehandlingService(
             return KanIkkeOppretteMeldekortBehandling.KanIkkeOpprettePåKjede.left()
         }
 
-        sessionFactory.withTransactionContext { tx ->
-            meldekortBehandlingRepo.lagre(meldekortBehandling, null, tx)
+        when (skalLagreEllerOppdatere) {
+            SkalLagreEllerOppdatere.Lagre -> sessionFactory.withTransactionContext { tx ->
+                meldekortBehandlingRepo.lagre(meldekortBehandling, null, tx)
+            }
+
+            SkalLagreEllerOppdatere.Oppdatere -> sessionFactory.withTransactionContext { tx ->
+                meldekortBehandlingRepo.oppdater(meldekortBehandling, null, tx)
+            }
         }
 
         logger.info { "Opprettet behandling ${meldekortBehandling.id} på meldeperiode kjede $kjedeId for sak $sakId" }

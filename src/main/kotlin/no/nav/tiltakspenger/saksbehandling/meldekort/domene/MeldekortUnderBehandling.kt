@@ -328,16 +328,50 @@ data class MeldekortUnderBehandling(
         require(ikkeRettTilTiltakspengerTidspunkt == null) {
             "Behandlinger der det ikke er rett til tiltakspenger skal ikke være under behandling"
         }
+
+        require(status == UNDER_BEHANDLING || status == KLAR_TIL_BEHANDLING) {
+            "Status på meldekort under behandling må være UNDER_BEHANDLING eller KLAR_TIL_BEHANDLING"
+        }
     }
 }
 
+sealed interface SkalLagreEllerOppdatere {
+    object Lagre : SkalLagreEllerOppdatere
+    object Oppdatere : SkalLagreEllerOppdatere
+}
+
+/**
+ * SkalLagreEllerOppdatere er en workaround for å vite hvilket database kall vi skal bruke.
+ */
 fun Sak.opprettManuellMeldekortBehandling(
     kjedeId: MeldeperiodeKjedeId,
     navkontor: Navkontor,
     saksbehandler: Saksbehandler,
     clock: Clock,
-): Pair<Sak, MeldekortUnderBehandling> {
+): Triple<Sak, MeldekortUnderBehandling, SkalLagreEllerOppdatere> {
     validerOpprettMeldekortBehandling(kjedeId)
+
+    val åpenMeldekortBehandling = this.meldekortBehandlinger.åpenMeldekortBehandling
+
+    if (åpenMeldekortBehandling != null) {
+        if (kjedeId == åpenMeldekortBehandling.kjedeId) {
+            if (åpenMeldekortBehandling.status == KLAR_TIL_BEHANDLING) {
+                val oppdatertBehandling = (åpenMeldekortBehandling as MeldekortUnderBehandling).copy(
+                    saksbehandler = saksbehandler.navIdent,
+                    status = UNDER_BEHANDLING,
+                )
+
+                return Triple(
+                    this.oppdaterMeldekortbehandling(oppdatertBehandling),
+                    oppdatertBehandling,
+                    SkalLagreEllerOppdatere.Oppdatere,
+                )
+            } else {
+                throw IllegalStateException("Det finnes allerede en åpen meldekortbehandling på kjede $kjedeId med status ${åpenMeldekortBehandling.status}. Skal ikke ha mulighet til å prøve å opprette en ny behandling")
+            }
+        }
+        throw IllegalStateException("Det finnes allerede en åpen meldekortbehandling på saken med id ${åpenMeldekortBehandling.id}. Kun en åpen meldekortbehandling er tillatt per sak.")
+    }
 
     val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
 
@@ -345,10 +379,8 @@ fun Sak.opprettManuellMeldekortBehandling(
     val type =
         if (behandlingerForKjede.isEmpty()) MeldekortBehandlingType.FØRSTE_BEHANDLING else MeldekortBehandlingType.KORRIGERING
 
-    val meldekortId = MeldekortId.random()
-
     return MeldekortUnderBehandling(
-        id = meldekortId,
+        id = MeldekortId.random(),
         sakId = this.id,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
@@ -367,6 +399,6 @@ fun Sak.opprettManuellMeldekortBehandling(
         dager = meldeperiode.tilMeldekortDager(),
         status = UNDER_BEHANDLING,
     ).let {
-        this.leggTilMeldekortbehandling(it) to it
+        Triple(this.leggTilMeldekortbehandling(it), it, SkalLagreEllerOppdatere.Lagre)
     }
 }
