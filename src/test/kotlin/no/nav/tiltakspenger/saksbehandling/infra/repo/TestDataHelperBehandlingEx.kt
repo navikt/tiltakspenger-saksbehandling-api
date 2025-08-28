@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo
 
 import arrow.core.NonEmptySet
+import arrow.core.Tuple4
 import arrow.core.nonEmptySetOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -26,6 +27,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -192,9 +195,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     correlationId: CorrelationId = CorrelationId.generate(),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
     resultat: SøknadsbehandlingType = SøknadsbehandlingType.INNVILGELSE,
-    /**
-     * Brukt for å styre meldeperiode generering
-     */
+    /** Brukt for å styre meldeperiode generering */
     clock: Clock = this.clock,
     antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
         AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
@@ -249,6 +250,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
                     )
                 },
                 clock = clock,
+                utbetaling = null,
             ).getOrFail()
 
     val søknadsbehandlingKlarTilBeslutning = oppdatertSøknadsbehandling.tilBeslutning(
@@ -539,6 +541,9 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
     return Triple(sakMedVedtak, vedtak, oppdatertSøknadsbehandling)
 }
 
+/**
+ * Persisterer behandlingen, rammevedtaket og utbetalingen
+ */
 internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
@@ -573,7 +578,7 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
             saksnummer = sak.saksnummer,
         ),
     clock: Clock = this.clock,
-): Triple<Sak, MeldekortBehandletManuelt, Rammevedtak> {
+): Tuple4<Sak, Rammevedtak, MeldekortVedtak, MeldekortBehandletManuelt> {
     val (sak, rammevedtak) = persisterIverksattSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,
@@ -596,8 +601,10 @@ internal fun TestDataHelper.persisterRammevedtakMedBehandletMeldekort(
         meldeperiode = meldeperioder.first(),
         periode = meldeperioder.first().periode,
     )
+    val meldekortVedtak = behandletMeldekort.opprettVedtak(sak.utbetalinger.lastOrNull(), clock)
     meldekortRepo.lagre(behandletMeldekort, null)
-    return Triple(sakRepo.hentForSakId(sakId)!!, behandletMeldekort, rammevedtak)
+    meldekortVedtakRepo.lagre(meldekortVedtak)
+    return Tuple4(sakRepo.hentForSakId(sakId)!!, rammevedtak, meldekortVedtak, behandletMeldekort)
 }
 
 internal fun TestDataHelper.persisterRammevedtakAvslag(

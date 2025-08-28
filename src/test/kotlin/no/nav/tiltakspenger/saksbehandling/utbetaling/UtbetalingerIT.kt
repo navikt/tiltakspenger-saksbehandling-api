@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juli
 import no.nav.tiltakspenger.libs.dato.november
+import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.toDTO
@@ -19,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetille
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltagelseDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksatt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingInnvilgelseTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingForSakId
@@ -28,6 +30,7 @@ import no.nav.utsjekk.kontrakter.iverksett.IverksettV2Dto
 import org.junit.jupiter.api.Test
 
 class UtbetalingerIT {
+    // 7. juli 2025 er en lørdag.
     private val virkningsperiode = Periode(7.juli(2025), 30.november(2025))
     private val satser2025 = sats(1.januar(2025))
 
@@ -89,6 +92,50 @@ class UtbetalingerIT {
                 val iverksettDto = deserialize<IverksettV2Dto>(json)
                 iverksettDto.vedtak.utbetalinger.first().beløp.toInt() shouldBe satser2025.sats
                 iverksettDto.vedtak.utbetalinger.last().beløp.toInt() shouldBe satser2025.satsBarnetillegg * 2
+            }
+        }
+    }
+
+    @Test
+    fun `Skal etterbetale ved søknadsbehandling som legger til barn`() {
+        withTestApplicationContext { tac ->
+            val førsteSøknadsperiode = Periode(1.september(2025), 14.september(2025))
+            val andreSøknadsperiode = Periode(7.september(2025), 28.september(2025))
+            val sak = tac.førsteMeldekortIverksatt(
+                periode = førsteSøknadsperiode,
+                fnr = Fnr.fromString("12345678911"),
+            )
+            val (oppdatertSak, _, andreSøknadsbehandling, _) = iverksettSøknadsbehandling(
+                tac = tac,
+                virkningsperiode = andreSøknadsperiode,
+                sakId = sak.id,
+                barnetillegg = barnetillegg(periode = andreSøknadsperiode, antallBarn = AntallBarn(1)),
+                tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+                    eksternTiltaksdeltagelseId = "TA99999",
+                    fom = andreSøknadsperiode.fraOgMed,
+                    tom = andreSøknadsperiode.tilOgMed,
+                ),
+            )
+
+            oppdatertSak.utbetalinger shouldBe listOf(
+                oppdatertSak.meldekortVedtaksliste.first().utbetaling,
+                oppdatertSak.vedtaksliste.last().utbetaling,
+            )
+
+            val revurderingUtbetalingId = oppdatertSak.vedtaksliste.last().utbetaling!!.id
+
+            val utbetalinger = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.utbetalinger
+            utbetalinger.size shouldBe 2
+            utbetalinger[0].beregning.totalBeløp shouldBe satser2025.sats * 10
+            utbetalinger[1].beregning.totalBeløp shouldBe satser2025.sats * 10 + satser2025.satsBarnetillegg * 5
+
+            tac.utbetalingContext.sendUtbetalingerService.send()
+
+            tac.utbetalingContext.utbetalingRepo.hentForUtsjekk().size shouldBe 0
+            tac.utbetalingContext.utbetalingRepo.hentUtbetalingJson(revurderingUtbetalingId)!!.let { json ->
+                val iverksettDto = deserialize<IverksettV2Dto>(json)
+                iverksettDto.vedtak.utbetalinger.first().beløp.toInt() shouldBe satser2025.sats
+                iverksettDto.vedtak.utbetalinger.last().beløp.toInt() shouldBe satser2025.satsBarnetillegg
             }
         }
     }

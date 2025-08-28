@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.libs.periodisering.tilSammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
@@ -39,12 +38,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
         val innvilgelsesperiode: PeriodeDTO,
         val barnetillegg: BarnetilleggDTO?,
-        val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>? = listOf(
-            AntallDagerPerMeldeperiodeDTO(
-                periode = innvilgelsesperiode,
-                antallDagerPerMeldeperiode = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-            ),
-        ),
+        val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>,
     ) : OppdaterSøknadsbehandlingDTO {
         override val resultat: BehandlingResultatDTO = BehandlingResultatDTO.INNVILGELSE
 
@@ -68,13 +62,12 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
                     Pair(it.periode.toDomain(), it.eksternDeltagelseId)
                 },
-                antallDagerPerMeldeperiode =
-                antallDagerPerMeldeperiodeForPerioder?.map {
+                antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder.map {
                     PeriodeMedVerdi(
                         AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),
                         it.periode.toDomain(),
                     )
-                }?.tilSammenhengendePeriodisering(),
+                }.tilSammenhengendePeriodisering(),
             )
         }
     }

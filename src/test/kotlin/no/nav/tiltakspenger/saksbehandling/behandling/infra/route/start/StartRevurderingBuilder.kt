@@ -38,7 +38,7 @@ interface StartRevurderingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
     ): Tuple4<Sak, Søknad, Søknadsbehandling, Revurdering> {
-        val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(tac, virkningsperiode = virkningsperiode)
+        val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(tac = tac, virkningsperiode = virkningsperiode)
         val revurdering = startRevurderingForSakId(tac, sak.id, RevurderingType.STANS)
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
         return Tuple4(
@@ -88,13 +88,14 @@ interface StartRevurderingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         type: RevurderingType,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Revurdering {
-        val jwt = tac.jwtGenerator.createJwtForSaksbehandler()
-        tac.texasClient.leggTilBruker(jwt, ObjectMother.saksbehandler())
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
+        tac.texasClient.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
-            HttpMethod.Companion.Post,
+            HttpMethod.Post,
             url {
-                protocol = URLProtocol.Companion.HTTPS
+                protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/revurdering/start")
             },
             jwt = jwt,
@@ -106,9 +107,9 @@ interface StartRevurderingBuilder {
                 withClue(
                     "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
                 ) {
-                    status shouldBe HttpStatusCode.Companion.OK
+                    status shouldBe HttpStatusCode.OK
                 }
-                val revurderingId = BehandlingId.Companion.fromString(JSONObject(bodyAsText).getString("id"))
+                val revurderingId = BehandlingId.fromString(JSONObject(bodyAsText).getString("id"))
                 return tac.behandlingContext.behandlingRepo.hent(revurderingId) as Revurdering
             }
     }

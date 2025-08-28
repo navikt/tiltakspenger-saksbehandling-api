@@ -162,7 +162,7 @@ fun String.tilMeldeperiodeBeregningerFraMeldekort(meldekortId: MeldekortId): Non
             id = BeregningId(it.beregningId),
             kjedeId = MeldeperiodeKjedeId(it.kjedeId),
             meldekortId = MeldekortId.fromString(it.meldekortId),
-            beregningKilde = BeregningKilde.Meldekort(meldekortId),
+            beregningKilde = BeregningKilde.BeregningKildeMeldekort(meldekortId),
             dager = it.dager.map { dag -> dag.tilMeldeperiodeBeregningDag() }.toNonEmptyListOrNull()!!,
         )
     }.toNonEmptyListOrNull()!!
@@ -173,7 +173,7 @@ fun String.tilMeldeperiodeBeregningerFraBehandling(behandlingId: BehandlingId): 
             id = BeregningId(it.beregningId),
             kjedeId = MeldeperiodeKjedeId(it.kjedeId),
             meldekortId = MeldekortId.fromString(it.meldekortId),
-            beregningKilde = BeregningKilde.Behandling(behandlingId),
+            beregningKilde = BeregningKilde.BeregningKildeBehandling(behandlingId),
             dager = it.dager.map { dag -> dag.tilMeldeperiodeBeregningDag() }.toNonEmptyListOrNull()!!,
         )
     }.toNonEmptyListOrNull()!!

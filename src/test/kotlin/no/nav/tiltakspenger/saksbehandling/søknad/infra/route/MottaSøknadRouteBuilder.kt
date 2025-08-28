@@ -12,35 +12,55 @@ import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltakskilde
 
 /**
  * Gir mulighet til å motta en søknad via endepunktene våre.
  */
 interface MottaSøknadRouteBuilder {
 
+    suspend fun ApplicationTestBuilder.opprettSøknadPåSakId(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        søknadId: SøknadId = SøknadId.random(),
+        deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+            fom = deltakelsesperiode.fraOgMed,
+            tom = deltakelsesperiode.tilOgMed,
+            eksternTiltaksdeltagelseId = "ABC1234",
+        ),
+    ): Pair<Sak, Søknad> {
+        val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+        val saksnummer = hentEllerOpprettSak(tac, sak.fnr)
+        mottaSøknad(tac, sak.fnr, saksnummer, søknadId, deltakelsesperiode, tiltaksdeltagelse)
+        val oppdatertSak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
+        return oppdatertSak to oppdatertSak.soknader.single { it.id == søknadId }
+    }
+
     suspend fun ApplicationTestBuilder.opprettSakOgSøknad(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
         søknadId: SøknadId = SøknadId.random(),
         deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+            fom = deltakelsesperiode.fraOgMed,
+            tom = deltakelsesperiode.tilOgMed,
+        ),
     ): Pair<Sak, Søknad> {
         val saksnummer = hentEllerOpprettSak(tac, fnr)
-        mottaSøknad(tac, fnr, saksnummer, søknadId, deltakelsesperiode)
+        mottaSøknad(tac, fnr, saksnummer, søknadId, deltakelsesperiode, tiltaksdeltagelse)
         val sak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
         return sak to sak.soknader.single { it.id == søknadId }
     }
@@ -51,6 +71,10 @@ interface MottaSøknadRouteBuilder {
         saksnummer: Saksnummer,
         søknadId: SøknadId = SøknadId.random(),
         deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+            fom = deltakelsesperiode.fraOgMed,
+            tom = deltakelsesperiode.tilOgMed,
+        ),
     ) {
         val jwt = tac.jwtGenerator.createJwtForSystembruker(
             roles = listOf("hent_eller_opprett_sak", "lagre_soknad"),
@@ -70,6 +94,7 @@ interface MottaSøknadRouteBuilder {
                     fnr = fnr.verdi,
                     søknadId = søknadId.toString(),
                     deltakelsesperiode = deltakelsesperiode,
+                    tiltaksdeltagelse = tiltaksdeltagelse,
                 ),
             )
         }.apply {
@@ -87,19 +112,7 @@ interface MottaSøknadRouteBuilder {
             tac.leggTilPerson(
                 fnr = fnr,
                 personopplysningerForBruker = personopplysningerForBrukerFraPdl,
-                tiltaksdeltagelse = Tiltaksdeltagelse(
-                    eksternDeltagelseId = "TA12345",
-                    gjennomføringId = null,
-                    typeNavn = "Testnavn",
-                    typeKode = TiltakstypeSomGirRett.JOBBKLUBB,
-                    rettPåTiltakspenger = true,
-                    deltagelseFraOgMed = deltakelsesperiode.fraOgMed,
-                    deltagelseTilOgMed = deltakelsesperiode.tilOgMed,
-                    deltakelseStatus = TiltakDeltakerstatus.Deltar,
-                    deltakelseProsent = 100.0f,
-                    antallDagerPerUke = 5.0f,
-                    kilde = Tiltakskilde.Arena,
-                ),
+                tiltaksdeltagelse = tiltaksdeltagelse,
             )
         }
     }
@@ -110,6 +123,7 @@ interface MottaSøknadRouteBuilder {
         journalpostId: String = "123456789",
         fnr: String = Fnr.random().toString(),
         deltakelsesperiode: Periode = Periode(1.april(2025), 10.april(2025)),
+        tiltaksdeltagelse: Tiltaksdeltagelse,
     ): String {
         return """
         {
@@ -122,10 +136,10 @@ interface MottaSøknadRouteBuilder {
               "etternavn": "HOFTE"
             },
             "tiltak": {
-              "id": "TA12345",
+              "id": "${tiltaksdeltagelse.eksternDeltagelseId}",
               "arrangør": "Testarrangør",
-              "typeKode": "Annen utdanning",
-              "typeNavn": "Annen utdanning",
+              "typeKode": "${tiltaksdeltagelse.typeKode}",
+              "typeNavn": "${tiltaksdeltagelse.typeNavn}",
               "deltakelseFom": "${deltakelsesperiode.fraOgMed}",
               "deltakelseTom": "${deltakelsesperiode.tilOgMed}"
             },

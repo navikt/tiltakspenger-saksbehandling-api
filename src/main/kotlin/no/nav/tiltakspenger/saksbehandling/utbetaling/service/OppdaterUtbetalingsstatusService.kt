@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.backoff.shouldRetry
-import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
@@ -52,8 +51,8 @@ class OppdaterUtbetalingsstatusService(
                 val forsøkshistorikk = if (it.erOK()) {
                     utbetaling.forsøkshistorikk
                 } else {
-                    utbetaling.forsøkshistorikk?.inkrementer(clock)
-                } ?: Forsøkshistorikk.opprett(clock = clock)
+                    utbetaling.forsøkshistorikk.inkrementer(clock)
+                }
 
                 utbetalingRepo.oppdaterUtbetalingsstatus(utbetaling.utbetalingId, it, forsøkshistorikk)
                 logger.info { "Oppdatert utbetalingsstatus til $it. Kontekst: $utbetaling" }

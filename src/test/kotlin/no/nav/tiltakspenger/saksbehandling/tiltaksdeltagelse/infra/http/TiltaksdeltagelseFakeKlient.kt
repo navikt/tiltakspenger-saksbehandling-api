@@ -25,7 +25,24 @@ class TiltaksdeltagelseFakeKlient(private val søknadRepo: SøknadRepo) : Tiltak
         fnr: Fnr,
         tiltaksdeltagelse: Tiltaksdeltagelse,
     ) {
-        data.get()[fnr] = Tiltaksdeltagelser(listOf(tiltaksdeltagelse))
+        val current = data.get()[fnr]
+        if (current == null) {
+            data.get()[fnr] = Tiltaksdeltagelser(listOf(tiltaksdeltagelse))
+            return
+        }
+        data.get()[fnr] = if (current.getTiltaksdeltagelse(tiltaksdeltagelse.eksternDeltagelseId) != null) {
+            Tiltaksdeltagelser(
+                current.map {
+                    if (it.eksternDeltagelseId == tiltaksdeltagelse.eksternDeltagelseId) {
+                        tiltaksdeltagelse
+                    } else {
+                        it
+                    }
+                },
+            )
+        } else {
+            Tiltaksdeltagelser(current + tiltaksdeltagelse)
+        }
     }
 
     private fun hentTiltaksdeltagelseFraSøknad(fnr: Fnr): Tiltaksdeltagelser {

@@ -18,7 +18,7 @@ class RammevedtakPostgresRepoTest {
     @Test
     fun `henter vedtak for datadeling`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val (_, _, rammevedtak) = testDataHelper.persisterRammevedtakMedBehandletMeldekort()
+            val (_, rammevedtak, _, _) = testDataHelper.persisterRammevedtakMedBehandletMeldekort()
             testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling() shouldBe listOf(rammevedtak)
         }
     }
@@ -53,15 +53,17 @@ class RammevedtakPostgresRepoTest {
                 testDataHelper.behandlingRepo.lagre(vedtak.behandling, tx)
                 testDataHelper.vedtakRepo.lagre(vedtak, tx)
             }
+            val finalSak = testDataHelper.sakRepo.hentForSakId(sak.id)!!
 
             val vedtakFraDb = testDataHelper.vedtakRepo.hentForVedtakId(vedtak.id)
-            val utbetalinger = testDataHelper.utbetalingRepo.hentForUtsjekk()
+            val utbetalinger = finalSak.utbetalinger
 
-            utbetalinger.size shouldBe 1
+            // Første utbetalingen er meldekortbehandlingen, andre er revurderingen av rammevedtaket
+            utbetalinger.size shouldBe 2
 
             vedtakFraDb shouldBe vedtak
 
-            vedtakFraDb!!.utbetaling!!.id shouldBe utbetalinger.first().id
+            vedtakFraDb!!.utbetaling!!.id shouldBe utbetalinger.last().id
         }
     }
 }

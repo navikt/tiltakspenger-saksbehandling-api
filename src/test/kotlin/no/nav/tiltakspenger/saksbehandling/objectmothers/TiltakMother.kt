@@ -16,6 +16,37 @@ import java.util.UUID
 
 interface TiltakMother {
 
+    /**
+     * Dupliserer dene med [tiltaksdeltagelse] for å være bakoverkompabilitet med tester som bruker tac
+     */
+    fun tiltaksdeltagelseTac(
+        eksternTiltaksdeltagelseId: String = "TA12345",
+        typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.JOBBKLUBB,
+        typeNavn: String = "Testnavn",
+        eksternTiltaksgjennomføringsId: String? = null,
+        fom: LocalDate,
+        tom: LocalDate,
+        status: TiltakDeltakerstatus = Deltar,
+        dagerPrUke: Float? = 5F,
+        prosent: Float? = 100F,
+        rettPåTiltakspenger: Boolean = true,
+        kilde: Tiltakskilde = Tiltakskilde.Arena,
+    ): Tiltaksdeltagelse {
+        return Tiltaksdeltagelse(
+            eksternDeltagelseId = eksternTiltaksdeltagelseId,
+            gjennomføringId = eksternTiltaksgjennomføringsId,
+            typeKode = typeKode,
+            typeNavn = typeNavn,
+            rettPåTiltakspenger = rettPåTiltakspenger,
+            deltagelseFraOgMed = fom,
+            deltagelseTilOgMed = tom,
+            deltakelseStatus = status,
+            deltakelseProsent = prosent,
+            kilde = kilde,
+            antallDagerPerUke = dagerPrUke,
+        )
+    }
+
     fun tiltaksdeltagelse(
         eksternTiltaksdeltagelseId: String = UUID.randomUUID().toString(),
         typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,

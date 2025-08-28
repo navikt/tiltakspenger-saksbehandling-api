@@ -110,6 +110,10 @@ class TestApplicationContext(
         tilgangsmaskinFakeClient.leggTil(fnr, true)
     }
 
+    fun leggTilTiltaksdeltagelse(fnr: Fnr, tiltaksdeltagelse: Tiltaksdeltagelse) {
+        tiltaksdeltagelseFakeKlient.lagre(fnr = fnr, tiltaksdeltagelse = tiltaksdeltagelse)
+    }
+
     private val saksoversiktFakeRepo =
         BenkOversiktFakeRepo(
             søknadFakeRepo = søknadFakeRepo,

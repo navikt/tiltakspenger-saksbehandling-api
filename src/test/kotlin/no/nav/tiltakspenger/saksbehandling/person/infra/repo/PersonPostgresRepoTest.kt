@@ -28,7 +28,7 @@ class PersonPostgresRepoTest {
                 deltakelseFom = innvilgelsesperiode.fraOgMed,
                 deltakelseTom = innvilgelsesperiode.tilOgMed,
             ).also {
-                val (sak, meldekortbehandling) = it
+                val (sak, _, _, meldekortbehandling) = it
                 testDataHelper.personRepo.hentFnrForMeldekortId(meldekortbehandling.id) shouldBe sak.fnr
             }
         }

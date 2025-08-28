@@ -68,6 +68,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKom
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -260,10 +261,16 @@ interface MeldekortMother : MotherOfAllMothers {
             barnetilleggsPerioder = barnetilleggsperioder,
             navkontor = navkontor,
             meldeperiode = meldeperiodeKjeder.hentMeldeperiode(periode)!!,
-
+        )
+        val vedtak = meldekortBehandling.opprettVedtak(
+            forrigeUtbetaling = utbetalinger.lastOrNull(),
+            clock = clock,
         )
 
-        return this.copy(meldekortBehandlinger = meldekortBehandlinger.leggTil(meldekortBehandling)) to meldekortBehandling
+        return this.copy(
+            meldekortBehandlinger = meldekortBehandlinger.leggTil(meldekortBehandling),
+            meldekortVedtaksliste = this.meldekortVedtaksliste.leggTil(vedtak),
+        ) to meldekortBehandling
     }
 
     fun BrukersMeldekort.tilMeldekortBeregning(
@@ -278,7 +285,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     id = BeregningId.random(),
                     kjedeId = kjedeId,
                     meldekortId = meldekortBehandlingId,
-                    beregningKilde = BeregningKilde.Meldekort(meldekortBehandlingId),
+                    beregningKilde = BeregningKilde.BeregningKildeMeldekort(meldekortBehandlingId),
                     dager = tilMeldekortDager().map {
                         val dato = it.dato
                         val antallBarn: AntallBarn by lazy {
@@ -348,7 +355,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     id = BeregningId.random(),
                     kjedeId = kjedeId,
                     meldekortId = meldekortId,
-                    beregningKilde = BeregningKilde.Meldekort(meldekortId),
+                    beregningKilde = BeregningKilde.BeregningKildeMeldekort(meldekortId),
                     dager = beregningDager,
                 ),
             ),

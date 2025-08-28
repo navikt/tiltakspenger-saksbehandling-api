@@ -56,7 +56,7 @@ private data class BeregnMeldekort(
     /** Returnerer beregnede dager fra kommando, og evt nye beregninger for påfølgende meldeperioder på saken */
     fun beregn(): NonEmptyList<MeldeperiodeBeregning> {
         val meldeperiodeSomBeregnesFraOgMed = meldeperiodeSomBeregnes.first().dato
-        val kilde = BeregningKilde.Meldekort(meldekortIdSomBeregnes)
+        val kilde = BeregningKilde.BeregningKildeMeldekort(meldekortIdSomBeregnes)
 
         return meldekortBehandlinger.sisteBehandledeMeldekortPerKjede
             .filterNot { it.kjedeId == meldeperiodeSomBeregnes.meldeperiode.kjedeId }

@@ -2,11 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.beregning
 
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
-import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.overlapper
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Syk.SykBruker
@@ -17,44 +17,43 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Ik
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import java.lang.IllegalStateException
 import java.time.LocalDate
 
-fun Sak.beregnRevurderingInnvilgelse(
-    kommando: OppdaterRevurderingKommando.Innvilgelse,
+/**
+ * @param behandlingId Søknadsbehandling eller revurdering.
+ * @param virkningsperiode innvilgelseperiode ved innvilgelse (søknadsbehandling/endrings-revurdering). Stansperiode ved stans.
+ * @param barnetillegg Kan være null dersom det ikke er noe barnetillegg.
+ */
+fun Sak.beregnInnvilgelse(
+    behandlingId: BehandlingId,
+    virkningsperiode: Periode,
+    barnetillegg: Barnetillegg?,
 ): BehandlingBeregning? {
-    return beregnMeldeperioderPåNytt(kommando)?.let {
+    return beregnMeldeperioderPåNytt(
+        behandlingId = behandlingId,
+        virkningsperiode = virkningsperiode,
+        barnetillegg = barnetillegg,
+    )?.let {
         BehandlingBeregning(beregninger = it)
     }
 }
 
 private fun Sak.beregnMeldeperioderPåNytt(
-    kommando: OppdaterRevurderingKommando.Innvilgelse,
+    behandlingId: BehandlingId,
+    virkningsperiode: Periode,
+    barnetillegg: Barnetillegg?,
 ): NonEmptyList<MeldeperiodeBeregning>? {
-    val behandlingId = kommando.behandlingId
-    val behandling = hentBehandling(behandlingId)
-
-    require(behandling?.resultat is RevurderingResultat.Innvilgelse) {
-        "Behandlingen må være en revurdering av innvilgelse for å kunne beregnes"
+    if (!this.utbetalinger.perioder.overlapper(virkningsperiode)) {
+        // Hvis vi ikke har utbetalt noe i denne perioden, trenger vi ikke beregne/simulere.
+        return null
     }
 
-    val tidligereBeregninger = meldeperiodeBeregninger.sisteBeregningerForPeriode(kommando.innvilgelsesperiode)
+    val tidligereBeregninger = this.meldeperiodeBeregninger.sisteBeregningerForPeriode(virkningsperiode)
 
     val antallBarnForDato: (dato: LocalDate) -> AntallBarn =
-        kommando.barnetillegg?.periodisering?.let {
+        barnetillegg?.periodisering?.let {
             { dato -> it.hentVerdiForDag(dato) ?: AntallBarn.ZERO }
         } ?: { AntallBarn.ZERO }
-
-    val tiltakstypeForDato: (dato: LocalDate) -> TiltakstypeSomGirRett =
-        kommando.tiltaksdeltakelser.tilPeriodisering().let { tiltaksdeltakelser ->
-            { dato ->
-                val deltagelseId = tiltaksdeltakelser.hentVerdiForDag(dato)
-                    ?: throw IllegalStateException("Ingen tiltaksdeltagelse var satt for $dato")
-
-                behandling.saksopplysninger.getTiltaksdeltagelse(deltagelseId)?.typeKode
-                    ?: throw IllegalStateException("Fant ikke tiltaksdeltagelse i saksopplysninger for $deltagelseId")
-            }
-        }
 
     val (nyeBeregninger, forrigeBeregninger) =
         tidligereBeregninger.fold(emptyList<MeldeperiodeBeregning>() to emptyList<MeldeperiodeBeregning>()) { acc, beregning ->
@@ -66,19 +65,17 @@ private fun Sak.beregnMeldeperioderPåNytt(
 
                 val antallBarn = antallBarnForDato(dato)
 
-                val tiltakstype: TiltakstypeSomGirRett by lazy {
-                    tiltakstypeForDato(dato)
-                }
-
+                // Vi bruker den tidligere beregningen sin tiltakstype (OS har uansett ikke støtte for å endre den for utbetalte dager) og helved sender den ikke videre i disse tilfellen.
+                // Husk og oppdater denne dersom OS + helved legger in støtte for det.
                 when (dag) {
-                    is DeltattMedLønnITiltaket -> DeltattMedLønnITiltaket.create(dato, tiltakstype, antallBarn)
-                    is DeltattUtenLønnITiltaket -> DeltattUtenLønnITiltaket.create(dato, tiltakstype, antallBarn)
-                    is SykBruker -> SykBruker.create(dato, reduksjon, tiltakstype, antallBarn)
-                    is SyktBarn -> SyktBarn.create(dato, reduksjon, tiltakstype, antallBarn)
-                    is FraværAnnet -> FraværAnnet.create(dato, tiltakstype, antallBarn)
-                    is FraværGodkjentAvNav -> FraværGodkjentAvNav.create(dato, tiltakstype, antallBarn)
-                    is IkkeBesvart -> IkkeBesvart.create(dato, tiltakstype, antallBarn)
-                    is IkkeDeltatt -> IkkeDeltatt.create(dato, tiltakstype, antallBarn)
+                    is DeltattMedLønnITiltaket -> DeltattMedLønnITiltaket.create(dato, dag.tiltakstype, antallBarn)
+                    is DeltattUtenLønnITiltaket -> DeltattUtenLønnITiltaket.create(dato, dag.tiltakstype, antallBarn)
+                    is SykBruker -> SykBruker.create(dato, reduksjon, dag.tiltakstype, antallBarn)
+                    is SyktBarn -> SyktBarn.create(dato, reduksjon, dag.tiltakstype, antallBarn)
+                    is FraværAnnet -> FraværAnnet.create(dato, dag.tiltakstype, antallBarn)
+                    is FraværGodkjentAvNav -> FraværGodkjentAvNav.create(dato, dag.tiltakstype, antallBarn)
+                    is IkkeBesvart -> IkkeBesvart.create(dato, dag.tiltakstype, antallBarn)
+                    is IkkeDeltatt -> IkkeDeltatt.create(dato, dag.tiltakstype, antallBarn)
                     is IkkeRettTilTiltakspenger -> IkkeRettTilTiltakspenger(dato)
                 }
             }
@@ -92,7 +89,7 @@ private fun Sak.beregnMeldeperioderPåNytt(
                 dager = nyeDager,
                 meldekortId = beregning.meldekortId,
                 kjedeId = beregning.kjedeId,
-                beregningKilde = BeregningKilde.Behandling(behandlingId),
+                beregningKilde = BeregningKilde.BeregningKildeBehandling(behandlingId),
             )
 
             acc.first.plus(nyBeregning) to acc.second.plus(beregning)

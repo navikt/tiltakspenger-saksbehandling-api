@@ -149,6 +149,7 @@ interface SakMother {
                             )
                         },
                         clock = clock,
+                        utbetaling = null,
                     ).getOrFail()
                 }
             }
@@ -260,6 +261,7 @@ interface SakMother {
                 ),
             ),
             clock = clock,
+            utbetaling = null,
         ).getOrFail().tilBeslutning(
             saksbehandler = saksbehandler,
             clock = clock,
@@ -304,6 +306,7 @@ interface SakMother {
                 avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
             ),
             clock = clock,
+            utbetaling = null,
         ).getOrFail().tilBeslutning(
             saksbehandler = saksbehandler,
             clock = clock,

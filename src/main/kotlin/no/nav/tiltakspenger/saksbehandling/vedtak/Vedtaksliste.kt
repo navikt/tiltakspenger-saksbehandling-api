@@ -159,6 +159,9 @@ data class Vedtaksliste(
         value.map { it.id }.let {
             require(it.size == it.distinct().size) { "Vedtakene må ha unike IDer men var: $it" }
         }
+        value.map { it.behandling.id }.let {
+            require(it.size == it.distinct().size) { "Behandlingene må ha unike IDer men var: $it" }
+        }
         value.zipWithNext().forEach {
             require(it.first.opprettet.isBefore(it.second.opprettet)) { "Vedtakene må være sortert på opprettet-tidspunkt, men var: ${value.map { it.opprettet }}" }
         }

@@ -8,7 +8,7 @@ data class BehandlingBeregning(
     List<MeldeperiodeBeregning> by beregninger {
 
     init {
-        require(beregninger.all { it.beregningKilde is BeregningKilde.Behandling })
+        require(beregninger.all { it.beregningKilde is BeregningKilde.BeregningKildeBehandling })
 
         super.init()
     }

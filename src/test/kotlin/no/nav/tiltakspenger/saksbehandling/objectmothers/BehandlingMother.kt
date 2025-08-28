@@ -240,6 +240,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 )
             },
             clock = clock,
+            utbetaling = null,
         ).getOrFail()
     }
 

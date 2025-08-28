@@ -4,7 +4,6 @@ import arrow.core.nonEmptySetOf
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
@@ -53,7 +52,6 @@ class SendBehandlingTilBeslutningServiceTest {
     @Test
     fun `kan innvilge selv om det en behandling med periode som tilstøter eller overlapper`() {
         withTestApplicationContext { tac ->
-            val clock = TikkendeKlokke()
             val saksbehandler = saksbehandler()
             val fnr = Fnr.fromString("12345678911")
 
@@ -61,7 +59,7 @@ class SendBehandlingTilBeslutningServiceTest {
                 tac = tac,
                 fnr = fnr,
                 saksbehandler = saksbehandler,
-                clock = clock,
+                clock = tac.clock,
             )
 
             val behandlingMedAvslag = ObjectMother.oppdatertSøknadsbehandling(
@@ -70,7 +68,7 @@ class SendBehandlingTilBeslutningServiceTest {
                 fnr = fnr,
                 resultat = SøknadsbehandlingType.AVSLAG,
                 avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
-                clock = clock,
+                clock = tac.clock,
             )
 
             tac.behandlingContext.behandlingRepo.lagre(behandlingMedAvslag)
