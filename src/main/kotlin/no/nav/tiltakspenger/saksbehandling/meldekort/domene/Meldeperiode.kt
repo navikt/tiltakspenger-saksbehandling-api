@@ -47,7 +47,13 @@ data class Meldeperiode(
          * Må oppdaters dersom det kommer nytt felt som vi har lyst å sammenligne på,
          * men er bedre at det ikke opprettes nye meldeperioder
          */
-        return this.kjedeId == meldeperiode.kjedeId && this.sakId == meldeperiode.sakId && this.saksnummer == meldeperiode.saksnummer && this.fnr == meldeperiode.fnr && this.periode == meldeperiode.periode && this.maksAntallDagerForMeldeperiode == meldeperiode.maksAntallDagerForMeldeperiode && this.girRett == meldeperiode.girRett
+        return this.kjedeId == meldeperiode.kjedeId &&
+            this.sakId == meldeperiode.sakId &&
+            this.saksnummer == meldeperiode.saksnummer &&
+            this.fnr == meldeperiode.fnr &&
+            this.periode == meldeperiode.periode &&
+            this.maksAntallDagerForMeldeperiode == meldeperiode.maksAntallDagerForMeldeperiode &&
+            this.girRett == meldeperiode.girRett
     }
 
     override fun compareTo(other: Meldeperiode): Int {
@@ -69,7 +75,22 @@ data class Meldeperiode(
     }
 
     override fun toString(): String {
-        return "Meldeperiode(id=$id, kjedeId=$kjedeId, versjon=$versjon, periode=$periode, opprettet=$opprettet, sakId=$sakId, saksnummer=$saksnummer, fnr=*****, maksAntallDagerForMeldeperiode=$maksAntallDagerForMeldeperiode, girRett=$girRett, rammevedtak=$rammevedtak)"
+        return """
+            Meldeperiode(
+                id=$id,
+                kjedeId=$kjedeId,
+                versjon=$versjon,
+                periode=$periode,
+                opprettet=$opprettet,
+                sakId=$sakId,
+                saksnummer=$saksnummer,
+                fnr=$fnr,
+                maksAntallDagerForMeldeperiode=$maksAntallDagerForMeldeperiode,
+                antallDagerSomGirRett=$antallDagerSomGirRett,
+                girRett=$girRett,
+                rammevedtak=$rammevedtak
+            )
+        """.trimIndent()
     }
 
     companion object {
