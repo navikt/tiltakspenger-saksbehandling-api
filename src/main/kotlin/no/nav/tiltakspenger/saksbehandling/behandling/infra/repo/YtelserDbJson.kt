@@ -27,7 +27,7 @@ data class YtelserDbJson(
     ) {
         fun toDomain(): Ytelse {
             return Ytelse(
-                ytelsetype = Ytelsetype.valueOf(ytelsetype),
+                ytelsetype = Ytelsetype.entries.single { it.tekstverdi == ytelsetype },
                 perioder = perioder.map { it.toDomain() },
             )
         }
