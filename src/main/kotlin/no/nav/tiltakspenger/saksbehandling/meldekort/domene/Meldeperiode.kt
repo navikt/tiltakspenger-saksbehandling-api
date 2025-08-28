@@ -84,7 +84,7 @@ data class Meldeperiode(
                 opprettet=$opprettet,
                 sakId=$sakId,
                 saksnummer=$saksnummer,
-                fnr=$fnr,
+                fnr=*****,
                 maksAntallDagerForMeldeperiode=$maksAntallDagerForMeldeperiode,
                 antallDagerSomGirRett=$antallDagerSomGirRett,
                 girRett=$girRett,
