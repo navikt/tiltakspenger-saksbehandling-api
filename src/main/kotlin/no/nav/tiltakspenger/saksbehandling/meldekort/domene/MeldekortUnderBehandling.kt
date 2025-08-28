@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
-import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus.AVBRUTT
@@ -352,21 +351,26 @@ fun Sak.opprettManuellMeldekortBehandling(
 ): Triple<Sak, MeldekortUnderBehandling, SkalLagreEllerOppdatere> {
     validerOpprettMeldekortBehandling(kjedeId)
 
-    val meldekortSomErLagtTilbake =
-        this.meldekortBehandlinger.meldekortBehandlingerSomErLagtTilbake.singleOrNullOrThrow {
-            it.kjedeId == kjedeId
-        }
-    if (meldekortSomErLagtTilbake != null) {
-        val oppdatertBehandling = meldekortSomErLagtTilbake.copy(
-            saksbehandler = saksbehandler.navIdent,
-            status = UNDER_BEHANDLING,
-        )
+    val åpenMeldekortBehandling = this.meldekortBehandlinger.åpenMeldekortBehandling
 
-        return Triple(
-            this.oppdaterMeldekortbehandling(oppdatertBehandling),
-            oppdatertBehandling,
-            SkalLagreEllerOppdatere.Oppdatere,
-        )
+    if (åpenMeldekortBehandling != null) {
+        if (kjedeId == åpenMeldekortBehandling.kjedeId) {
+            if (åpenMeldekortBehandling.status == KLAR_TIL_BEHANDLING) {
+                val oppdatertBehandling = (åpenMeldekortBehandling as MeldekortUnderBehandling).copy(
+                    saksbehandler = saksbehandler.navIdent,
+                    status = UNDER_BEHANDLING,
+                )
+
+                return Triple(
+                    this.oppdaterMeldekortbehandling(oppdatertBehandling),
+                    oppdatertBehandling,
+                    SkalLagreEllerOppdatere.Oppdatere,
+                )
+            } else {
+                throw IllegalStateException("Det finnes allerede en åpen meldekortbehandling på kjede $kjedeId med status ${åpenMeldekortBehandling.status}. Skal ikke ha mulighet til å prøve å opprette en ny behandling")
+            }
+        }
+        throw IllegalStateException("Det finnes allerede en åpen meldekortbehandling på saken med id ${åpenMeldekortBehandling.id}. Kun en åpen meldekortbehandling er tillatt per sak.")
     }
 
     val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)

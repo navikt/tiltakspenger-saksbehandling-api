@@ -169,7 +169,7 @@ fun Sak.validerOpprettMeldekortBehandling(kjedeId: MeldeperiodeKjedeId) {
 
     val åpenBehandling = this.meldekortBehandlinger.åpenMeldekortBehandling
 
-    if (åpenBehandling != null) {
+    if (åpenBehandling != null && åpenBehandling.kjedeId != kjedeId) {
         throw IllegalStateException(
             "Kan ikke opprette ny meldekortbehandling dersom en behandling er åpen på saken - ${åpenBehandling.id} er åpen på ${this.id}",
         )
