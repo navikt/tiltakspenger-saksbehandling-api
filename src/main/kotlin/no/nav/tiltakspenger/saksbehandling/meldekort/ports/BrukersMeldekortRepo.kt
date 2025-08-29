@@ -6,17 +6,10 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
-import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 
 interface BrukersMeldekortRepo {
     fun lagre(
         brukersMeldekort: BrukersMeldekort,
-        sessionContext: SessionContext? = null,
-    )
-
-    fun oppdaterOppgaveId(
-        meldekortId: MeldekortId,
-        oppgaveId: OppgaveId,
         sessionContext: SessionContext? = null,
     )
 
@@ -32,10 +25,6 @@ interface BrukersMeldekortRepo {
 
     fun hentForMeldeperiodeId(
         meldeperiodeId: MeldeperiodeId,
-        sessionContext: SessionContext? = null,
-    ): List<BrukersMeldekort>
-
-    fun hentMeldekortSomDetSkalOpprettesOppgaveFor(
         sessionContext: SessionContext? = null,
     ): List<BrukersMeldekort>
 
