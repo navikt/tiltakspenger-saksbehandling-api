@@ -198,6 +198,7 @@ class TestApplicationContext(
                 sakRepo = sakContext.sakRepo,
                 clock = clock,
                 simulerService = utbetalingContext.simulerService,
+                personKlient = personContext.personKlient,
             ) {
             override val meldekortBehandlingRepo = meldekortBehandlingFakeRepo
             override val meldeperiodeRepo = meldeperiodeFakeRepo

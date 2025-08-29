@@ -271,6 +271,7 @@ open class ApplicationContext(
             sakRepo = sakContext.sakRepo,
             clock = clock,
             simulerService = utbetalingContext.simulerService,
+            personKlient = personContext.personKlient,
         )
     }
     open val behandlingContext by lazy {
