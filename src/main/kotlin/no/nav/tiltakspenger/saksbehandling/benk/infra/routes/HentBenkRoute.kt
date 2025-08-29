@@ -32,7 +32,7 @@ fun Route.hentBenkRoute(
     val logger = KotlinLogging.logger {}
 
     data class HentBenkOversiktBody(
-        val benktype: String?,
+        val benktype: List<String>?,
         val behandlingstype: List<String>?,
         val status: List<String>? = null,
         val identer: List<String>? = null,
@@ -43,8 +43,7 @@ fun Route.hentBenkRoute(
         fun toCommand(saksbehandler: Saksbehandler, correlationId: CorrelationId): HentÅpneBehandlingerCommand =
             HentÅpneBehandlingerCommand(
                 åpneBehandlingerFiltrering = ÅpneBehandlingerFiltrering(
-                    benktype = benktype?.let { BehandlingssammendragBenktype.valueOf(it) }
-                        ?: BehandlingssammendragBenktype.KLAR,
+                    benktype = benktype?.let { it.map { BehandlingssammendragBenktype.valueOf(it) } },
                     behandlingstype = behandlingstype?.map { BehandlingssammendragType.valueOf(it) },
                     status = status?.map { BehandlingssammendragStatus.valueOf(it) },
                     identer = identer,
@@ -90,6 +89,7 @@ private fun Behandlingssammendrag.toDTO() = BehandlingssammendragDTO(
     saksbehandler = saksbehandler,
     beslutter = beslutter,
     sistEndret = sistEndret?.toString(),
+    erSattPåVent = erSattPåVent,
 )
 
 private fun BehandlingssammendragStatus.toBehandlingssammendragStatusDto(): BehandlingssammendragStatusDto =

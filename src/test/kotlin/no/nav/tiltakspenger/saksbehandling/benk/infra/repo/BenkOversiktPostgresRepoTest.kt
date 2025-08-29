@@ -45,7 +45,7 @@ import java.time.Clock
 
 class BenkOversiktPostgresRepoTest {
     private fun newCommand(
-        benktype: BehandlingssammendragBenktype = BehandlingssammendragBenktype.KLAR,
+        benktype: List<BehandlingssammendragBenktype>? = null,
         behandlingstype: List<BehandlingssammendragType>? = null,
         status: List<BehandlingssammendragStatus>? = null,
         saksbehandlere: List<String>? = null,
@@ -82,6 +82,7 @@ class BenkOversiktPostgresRepoTest {
                 status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
                 saksbehandler = null,
                 beslutter = null,
+                erSattPåVent = false,
             )
         }
     }
@@ -132,6 +133,7 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
                     sistEndret = opprettetBehandling.sistEndret,
+                    erSattPåVent = false,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakKlarTilBeslutning.id,
@@ -144,6 +146,7 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
                     sistEndret = klarTilBeslutning.sistEndret,
+                    erSattPåVent = false,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakUnderBeslutning.id,
@@ -156,6 +159,7 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = ObjectMother.beslutter().navIdent,
                     sistEndret = underBeslutning.sistEndret,
+                    erSattPåVent = false,
                 )
             }
         }
@@ -189,6 +193,7 @@ class BenkOversiktPostgresRepoTest {
                     beslutter = null,
                     kravtidspunkt = null,
                     sistEndret = opprettetRevurdering.sistEndret,
+                    erSattPåVent = false,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakRevurderingTilBeslutning.id,
@@ -201,6 +206,7 @@ class BenkOversiktPostgresRepoTest {
                     beslutter = null,
                     kravtidspunkt = null,
                     sistEndret = revurderingTilBeslutning.sistEndret,
+                    erSattPåVent = false,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakMedRevurderingUnderBeslutning.id,
@@ -213,6 +219,7 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = ObjectMother.beslutter().navIdent,
                     sistEndret = revurderingUnderBeslutning.sistEndret,
+                    erSattPåVent = false,
                 )
             }
         }
@@ -251,6 +258,7 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = null,
                     beslutter = null,
                     sistEndret = null,
+                    erSattPåVent = false,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sak1MedMeldekortForEnAnnenPeriode.id,
@@ -263,6 +271,7 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = null,
                     beslutter = null,
                     sistEndret = null,
+                    erSattPåVent = false,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sak2.id,
@@ -275,6 +284,7 @@ class BenkOversiktPostgresRepoTest {
                     saksbehandler = null,
                     beslutter = null,
                     sistEndret = null,
+                    erSattPåVent = false,
                 )
             }
         }
@@ -305,6 +315,7 @@ class BenkOversiktPostgresRepoTest {
                     status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
                     saksbehandler = null,
                     beslutter = null,
+                    erSattPåVent = false,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakMedOpprettetMeldekortBehandling.id,
@@ -316,6 +327,7 @@ class BenkOversiktPostgresRepoTest {
                     status = BehandlingssammendragStatus.UNDER_BEHANDLING,
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
+                    erSattPåVent = false,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakMedMeldekortbehandlingTilBeslutning.id,
@@ -327,6 +339,7 @@ class BenkOversiktPostgresRepoTest {
                     status = BehandlingssammendragStatus.KLAR_TIL_BESLUTNING,
                     saksbehandler = ObjectMother.saksbehandler().navIdent,
                     beslutter = null,
+                    erSattPåVent = false,
                 )
             }
         }
@@ -480,18 +493,53 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
-    fun `kan filtrere på behandlinger som er satt på vent`() {
+    fun `henter både behandlinger som er klar og på vent`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val beslutter = ObjectMother.beslutter("Z111111")
 
             testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
+            val (_, behandling) = testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
+            val oppdatertBehandling = behandling.settPåVent(beslutter, "Venter på AAP søknad", Clock.system(zoneIdOslo))
+            testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
+
+            val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+
+            totalAntall shouldBe 2
+            behandlingssamendrag.size shouldBe 2
+        }
+    }
+
+    @Test
+    fun `henter både behandlinger som er klar`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val beslutter = ObjectMother.beslutter("Z111111")
+
             testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
             val (_, behandling) = testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
             val oppdatertBehandling = behandling.settPåVent(beslutter, "Venter på AAP søknad", Clock.system(zoneIdOslo))
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
 
             val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
-                newCommand(benktype = BehandlingssammendragBenktype.VENTER),
+                newCommand(benktype = listOf(BehandlingssammendragBenktype.KLAR)),
+            )
+
+            totalAntall shouldBe 1
+            behandlingssamendrag.size shouldBe 1
+        }
+    }
+
+    @Test
+    fun `kan filtrere på behandlinger som er satt på vent`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val beslutter = ObjectMother.beslutter("Z111111")
+
+            testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
+            val (_, behandling) = testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
+            val oppdatertBehandling = behandling.settPåVent(beslutter, "Venter på AAP søknad", Clock.system(zoneIdOslo))
+            testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
+
+            val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(benktype = listOf(BehandlingssammendragBenktype.VENTER)),
             )
 
             totalAntall shouldBe 1
