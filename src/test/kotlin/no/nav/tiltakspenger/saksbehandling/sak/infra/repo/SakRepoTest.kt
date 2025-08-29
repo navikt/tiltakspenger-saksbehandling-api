@@ -22,7 +22,7 @@ internal class SakRepoTest {
 
             hentetSak.behandlinger.behandlinger shouldBe emptyList()
             hentetSak.vedtaksliste.value shouldBe emptyList()
-            hentetSak.meldekortBehandlinger.verdi shouldBe emptyList()
+            hentetSak.meldekortBehandlinger shouldBe emptyList()
             hentetSak.meldeperiodeKjeder.sisteMeldeperiodePerKjede shouldBe emptyList()
             hentetSak.brukersMeldekort shouldBe emptyList()
             hentetSak.utbetalinger.verdi shouldBe emptyList()

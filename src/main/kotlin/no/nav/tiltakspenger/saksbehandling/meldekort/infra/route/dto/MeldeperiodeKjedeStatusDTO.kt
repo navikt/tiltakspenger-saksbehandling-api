@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
+import java.time.LocalDateTime
 
 enum class MeldeperiodeKjedeStatusDTO {
     AVVENTER_MELDEKORT,
@@ -16,26 +17,46 @@ enum class MeldeperiodeKjedeStatusDTO {
     IKKE_RETT_TIL_TILTAKSPENGER,
     IKKE_KLAR_TIL_BEHANDLING,
     AVBRUTT,
+    KORRIGERT_MELDEKORT,
 }
 
-fun Sak.toMeldeperiodeKjedeStatusDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock, finnesMeldekortFraBruker: Boolean): MeldeperiodeKjedeStatusDTO {
-    // denne vil ikke inkludere avbrutte
-    this.hentSisteMeldekortBehandlingForKjede(kjedeId)?.also {
-        return when (it.status) {
-            MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
-            MeldekortBehandlingStatus.UNDER_BEHANDLING -> MeldeperiodeKjedeStatusDTO.UNDER_BEHANDLING
-            MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BESLUTNING
-            MeldekortBehandlingStatus.UNDER_BESLUTNING -> MeldeperiodeKjedeStatusDTO.UNDER_BESLUTNING
-            MeldekortBehandlingStatus.GODKJENT -> MeldeperiodeKjedeStatusDTO.GODKJENT
-            MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
-            MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> MeldeperiodeKjedeStatusDTO.AUTOMATISK_BEHANDLET
-            MeldekortBehandlingStatus.AVBRUTT -> MeldeperiodeKjedeStatusDTO.AVBRUTT
+fun Sak.toMeldeperiodeKjedeStatusDTO(
+    kjedeId: MeldeperiodeKjedeId,
+    clock: Clock,
+): MeldeperiodeKjedeStatusDTO {
+    val brukersMeldekort = this.brukersMeldekort.filter { it.kjedeId == kjedeId }.sortedBy { it.mottatt }
+    val sisteInnsendteMeldekort = brukersMeldekort.maxByOrNull { it.mottatt }
+    val sisteMeldekortBehandling =
+        this.meldekortBehandlinger.filter { it.kjedeId == kjedeId }.maxByOrNull { it.opprettet }
+
+    if (sisteInnsendteMeldekort != null || sisteMeldekortBehandling != null) {
+        if ((sisteInnsendteMeldekort?.mottatt ?: LocalDateTime.MIN) > sisteMeldekortBehandling?.opprettet) {
+            return if (brukersMeldekort.size == 1) {
+                MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
+            } else {
+                MeldeperiodeKjedeStatusDTO.KORRIGERT_MELDEKORT
+            }
+        }
+
+        sisteMeldekortBehandling!!.let {
+            return when (it.status) {
+                MeldekortBehandlingStatus.UNDER_BEHANDLING -> MeldeperiodeKjedeStatusDTO.UNDER_BEHANDLING
+                MeldekortBehandlingStatus.UNDER_BESLUTNING -> MeldeperiodeKjedeStatusDTO.UNDER_BESLUTNING
+                MeldekortBehandlingStatus.GODKJENT -> MeldeperiodeKjedeStatusDTO.GODKJENT
+                MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> MeldeperiodeKjedeStatusDTO.AUTOMATISK_BEHANDLET
+                MeldekortBehandlingStatus.AVBRUTT -> MeldeperiodeKjedeStatusDTO.AVBRUTT
+                MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
+                MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BESLUTNING
+                MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
+            }
         }
     }
 
-    // Alt under her betyr at det ikke finnes en meldekortbehandling
-
     val meldeperiode = this.hentSisteMeldeperiodeForKjede(kjedeId)
+
+    if (meldeperiode.girIngenDagerRett()) {
+        return MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
+    }
 
     val forrigeKjede = this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
 
@@ -51,10 +72,9 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock,
     val kanBehandles =
         meldeperiode.erKlarTilUtfylling(clock) && (forrigeKjede == null || forrigeBehandling?.erGodkjentEllerIkkeRett == true)
 
-    return when {
-        meldeperiode.girIngenDagerRett() -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
-        finnesMeldekortFraBruker -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
-        kanBehandles -> MeldeperiodeKjedeStatusDTO.AVVENTER_MELDEKORT
-        else -> MeldeperiodeKjedeStatusDTO.IKKE_KLAR_TIL_BEHANDLING
+    if (kanBehandles) {
+        return MeldeperiodeKjedeStatusDTO.AVVENTER_MELDEKORT
     }
+
+    return MeldeperiodeKjedeStatusDTO.IKKE_KLAR_TIL_BEHANDLING
 }
