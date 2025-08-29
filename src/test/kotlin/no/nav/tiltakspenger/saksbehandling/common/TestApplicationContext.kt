@@ -227,8 +227,9 @@ class TestApplicationContext(
             statistikkSakService = statistikkContext.statistikkSakService,
             sokosUtbetaldataClient = sokosUtbetaldataFakeClient,
             navkontorService = navkontorService,
-            meldekortVedtakRepo = utbetalingContext.meldekortVedtakRepo,
             simulerService = utbetalingContext.simulerService,
+            personKlient = personContext.personKlient,
+            oppgaveKlient = oppgaveKlient,
         ) {
             override val rammevedtakRepo = rammevedtakFakeRepo
             override val behandlingRepo = behandlingFakeRepo

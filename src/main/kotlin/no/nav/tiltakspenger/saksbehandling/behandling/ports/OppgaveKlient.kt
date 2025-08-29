@@ -21,4 +21,5 @@ enum class Oppgavebehov {
     NYTT_MELDEKORT,
     FATT_BARN,
     DOED,
+    NY_SOKNAD,
 }

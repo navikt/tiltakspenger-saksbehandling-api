@@ -293,8 +293,9 @@ open class ApplicationContext(
             statistikkSakService = statistikkContext.statistikkSakService,
             sokosUtbetaldataClient = sokosUtbetaldataClient,
             navkontorService = navkontorService,
-            meldekortVedtakRepo = utbetalingContext.meldekortVedtakRepo,
             simulerService = utbetalingContext.simulerService,
+            personKlient = personContext.personKlient,
+            oppgaveKlient = oppgaveKlient,
         )
     }
     open val benkOversiktContext by lazy {
