@@ -43,5 +43,5 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     sisteDagSomGirRett = sisteDagSomGirRett,
     søknader = soknader.toSøknadDTO(),
     behandlinger = this.tilBehandlingerDTO(),
-    tidslinje = vedtaksliste.tidslinje.verdier.map { it.tilRammevedtakDTO() },
+    tidslinje = vedtaksliste.tidslinje.perioderMedVerdi.map { it.tilPeriodisertRammevedtakDTO() },
 )
