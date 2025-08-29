@@ -58,20 +58,6 @@ data class Vedtaksliste(
         }.toTidslinje()
     }
 
-    /**
-     * En tidslinje som inneholder alle vedtak
-     */
-    val vedtakshistorikk: Periodisering<Rammevedtak> by lazy {
-        value.filter {
-            when (it.vedtakstype) {
-                Vedtakstype.INNVILGELSE,
-                Vedtakstype.STANS,
-                -> true
-
-                Vedtakstype.AVSLAG -> false
-            }
-        }.toTidslinje()
-    }
     val erInnvilgelseSammenhengende by lazy { innvilgetTidslinje.erSammenhengende }
 
     /** Nåtilstand. Sakens totale vedtaksperioder. Vil kunne ha hull dersom det f.eks. er opphold mellom 2 tiltaksdeltagelsesperioder. Avslag og delvis avslag vil ikke være med her. */
