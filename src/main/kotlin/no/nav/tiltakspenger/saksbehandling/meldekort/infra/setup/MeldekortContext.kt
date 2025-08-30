@@ -21,7 +21,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.AvbrytMeldekortBeha
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppgaveMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutterService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendTilMeldekortApiService
@@ -29,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortBehandli
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.OvertaMeldekortBehandlingService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
+import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
@@ -48,6 +48,7 @@ open class MeldekortContext(
     sakRepo: SakRepo,
     clock: Clock,
     simulerService: SimulerService,
+    personKlient: PersonKlient,
 ) {
     open val meldekortBehandlingRepo: MeldekortBehandlingRepo by lazy {
         MeldekortBehandlingPostgresRepo(
@@ -74,13 +75,11 @@ open class MeldekortContext(
         IverksettMeldekortService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             meldeperiodeRepo = meldeperiodeRepo,
-            brukersMeldekortRepo = brukersMeldekortRepo,
             sessionFactory = sessionFactory,
             sakService = sakService,
             meldekortVedtakRepo = meldekortVedtakRepo,
             utbetalingRepo = utbetalingRepo,
             clock = clock,
-            oppgaveKlient = oppgaveKlient,
         )
     }
     val oppdaterMeldekortService by lazy {
@@ -109,6 +108,8 @@ open class MeldekortContext(
             sessionFactory = sessionFactory,
             clock = clock,
             simulerService = simulerService,
+            personKlient = personKlient,
+            oppgaveKlient = oppgaveKlient,
         )
     }
 
@@ -122,14 +123,6 @@ open class MeldekortContext(
         SendTilMeldekortApiService(
             sakRepo = sakRepo,
             meldekortApiHttpClient = meldekortApiHttpClient,
-        )
-    }
-
-    val oppgaveMeldekortService by lazy {
-        OppgaveMeldekortService(
-            oppgaveKlient = oppgaveKlient,
-            sakRepo = sakRepo,
-            brukersMeldekortRepo = brukersMeldekortRepo,
         )
     }
 

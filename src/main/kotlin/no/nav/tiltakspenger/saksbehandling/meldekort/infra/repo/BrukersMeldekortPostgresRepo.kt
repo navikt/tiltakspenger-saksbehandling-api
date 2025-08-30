@@ -65,26 +65,6 @@ class BrukersMeldekortPostgresRepo(
         }
     }
 
-    override fun oppdaterOppgaveId(
-        meldekortId: MeldekortId,
-        oppgaveId: OppgaveId,
-        sessionContext: SessionContext?,
-    ) {
-        sessionFactory.withSession(sessionContext) { session ->
-            session.run(
-                sqlQuery(
-                    """
-                update meldekort_bruker 
-                    set oppgave_id = :oppgave_id
-                where id = :id
-                """,
-                    "id" to meldekortId.toString(),
-                    "oppgave_id" to oppgaveId.toString(),
-                ).asUpdate,
-            )
-        }
-    }
-
     override fun hentForSakId(
         sakId: SakId,
         sessionContext: SessionContext?,
@@ -148,22 +128,6 @@ class BrukersMeldekortPostgresRepo(
                     "behandlet_automatisk_status" to status.tilDb(),
                     "behandles_automatisk" to behandlesAutomatisk,
                 ).asUpdate,
-            )
-        }
-    }
-
-    override fun hentMeldekortSomDetSkalOpprettesOppgaveFor(sessionContext: SessionContext?): List<BrukersMeldekort> {
-        return sessionFactory.withSession(sessionContext) { session ->
-            session.run(
-                sqlQuery(
-                    """
-                    select *
-                        from meldekort_bruker 
-                    where journalpost_id is not null
-                    and oppgave_id is null
-                    and behandles_automatisk is false
-                    """,
-                ).map { row -> fromRow(row, session) }.asList,
             )
         }
     }

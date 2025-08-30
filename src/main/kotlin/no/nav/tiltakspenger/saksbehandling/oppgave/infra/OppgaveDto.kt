@@ -62,7 +62,7 @@ data class OpprettOppgaveRequest(
             personident = fnr.verdi,
             journalpostId = journalpostId.toString(),
             beskrivelse = "Nytt meldekort for tiltakspenger. Behandles i ny løsning.",
-            behandlesAvApplikasjon = BEHANDLES_AV_APPLIKASJON,
+            behandlesAvApplikasjon = null,
             oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_HENVENDELSE.value,
         )
 

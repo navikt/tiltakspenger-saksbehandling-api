@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
-import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
@@ -8,10 +7,9 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
-import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 
 class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFakeRepo) : BrukersMeldekortRepo {
-    private val data = Atomic(mutableMapOf<MeldekortId, BrukersMeldekort>())
+    private val data = arrow.atomic.Atomic(mutableMapOf<MeldekortId, BrukersMeldekort>())
 
     override fun lagre(brukersMeldekort: BrukersMeldekort, sessionContext: SessionContext?) {
         val meldeperiode = meldeperiodeFakeRepo.hentForMeldeperiodeId(brukersMeldekort.meldeperiodeId)
@@ -32,14 +30,6 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
         )
     }
 
-    override fun oppdaterOppgaveId(
-        meldekortId: MeldekortId,
-        oppgaveId: OppgaveId,
-        sessionContext: SessionContext?,
-    ) {
-        data.get()[meldekortId] = data.get()[meldekortId]!!.copy(oppgaveId = oppgaveId)
-    }
-
     override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): List<BrukersMeldekort> {
         return data.get().values.filter {
             it.sakId == sakId
@@ -55,10 +45,6 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
         sessionContext: SessionContext?,
     ): List<BrukersMeldekort> {
         return data.get().values.filter { it.meldeperiodeId == meldeperiodeId }
-    }
-
-    override fun hentMeldekortSomDetSkalOpprettesOppgaveFor(sessionContext: SessionContext?): List<BrukersMeldekort> {
-        return data.get().values.filter { it.oppgaveId == null }
     }
 
     override fun hentMeldekortSomSkalBehandlesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
