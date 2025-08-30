@@ -99,6 +99,7 @@ class BenkOversiktFakeRepo(
                 beslutter = behandling.beslutter,
                 sakId = behandling.sakId,
                 kravtidspunkt = if (behandling.behandlingstype == Behandlingstype.SØKNADSBEHANDLING) behandling.opprettet else null,
+                erSattPåVent = behandling.ventestatus.erSattPåVent,
             )
         }
     }
@@ -114,6 +115,7 @@ class BenkOversiktFakeRepo(
             beslutter = null,
             sakId = søknad.sakId,
             kravtidspunkt = søknad.opprettet,
+            erSattPåVent = false,
         )
     }
 
@@ -143,6 +145,7 @@ class BenkOversiktFakeRepo(
                 status = it.status.toBehandlingssamendragStatus(),
                 saksbehandler = it.saksbehandler,
                 beslutter = it.beslutter,
+                erSattPåVent = false,
             )
         }
     }

@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSorteringKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
+import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 data class BehandlingssamendragMedCount(
@@ -117,7 +118,7 @@ SELECT s.id AS sakId,
        s.saksnummer AS saksnummer,
        mbr.mottatt AS startet,
        CASE 
-           WHEN cte.sisteMeldekortNr = cte.antallInnsendteMeldekort AND cte.sakId = mbr.sak_id AND cte.meldekortId = mbr.id 
+           WHEN mdk.sisteMeldekortNr = mdk.antallInnsendteMeldekort AND mdk.sakId = mbr.sak_id AND mdk.meldekortId = mbr.id 
                THEN 'INNSENDT_MELDEKORT'
            ELSE 'KORRIGERT_MELDEKORT'
        END AS behandlingstype,
@@ -128,12 +129,12 @@ SELECT s.id AS sakId,
        NULL::timestamp with time zone AS sist_endret
 FROM meldekort_bruker mbr
 JOIN sak s ON mbr.sak_id = s.id
-JOIN meldekortMetadata cte ON mbr.id = cte.meldekortId AND mbr.sak_id = cte.sakId
+JOIN meldekortMetadata mdk ON mbr.id = mdk.meldekortId AND mbr.sak_id = mdk.sakId
 LEFT JOIN meldekortbehandling mbh1
        ON mbh1.sak_id = s.id
        AND (mbh1.brukers_meldekort_id = mbr.id OR mbh1.meldeperiode_kjede_id = mbr.meldeperiode_kjede_id)
 WHERE behandles_automatisk = false
-  AND cte.sisteMeldekortNr = 1
+  AND mdk.sisteMeldekortNr = 1
   AND (
         mbh1.id IS NULL
         OR EXISTS (
@@ -174,8 +175,12 @@ where behandlingstype = any (:behandlingstype)
     end
   )
 and (
-    ((erSattPåVent is null or erSattPåVent != 'true') and :benktype::text != 'VENTER')
-        or (erSattPåVent = 'true' and :benktype::text = 'VENTER')
+  case
+    when :benktype::text[] is null then true
+    when 'KLAR' = any(:benktype::text[]) and (erSattPåVent is null or erSattPåVent != 'true') then true
+    when 'VENTER' = any(:benktype::text[]) and erSattPåVent = 'true' then true
+    else false
+  end
 )
                     order by ${command.sortering.kolonne.toDbString()} ${command.sortering.retning}
                     limit :limit;
@@ -198,7 +203,11 @@ and (
                             command.åpneBehandlingerFiltrering.status.map { it.toString() }.toTypedArray()
                         },
                         "identer" to command.åpneBehandlingerFiltrering.identer?.toTypedArray(),
-                        "benktype" to command.åpneBehandlingerFiltrering.benktype.toString().uppercase(),
+                        "benktype" to if (command.åpneBehandlingerFiltrering.benktype == null) {
+                            arrayOf("KLAR", "VENTER")
+                        } else {
+                            command.åpneBehandlingerFiltrering.benktype.map { it.toString() }.toTypedArray()
+                        },
                     ),
                 ).map { row ->
                     val sakId = SakId.fromString(row.string("sakId"))
@@ -212,6 +221,7 @@ and (
                     val beslutter = row.stringOrNull("beslutter")
                     val sistEndret = row.localDateTimeOrNull("sist_endret")
                     val count = row.int("total_count")
+                    val erSattPåVent = row.booleanOrNull("erSattPåVent") == true
 
                     BehandlingssamendragMedCount(
                         Behandlingssammendrag(
@@ -225,6 +235,7 @@ and (
                             saksbehandler = saksbehandler,
                             beslutter = beslutter,
                             sistEndret = sistEndret,
+                            erSattPåVent = erSattPåVent,
                         ),
                         totalAntall = count,
                     )

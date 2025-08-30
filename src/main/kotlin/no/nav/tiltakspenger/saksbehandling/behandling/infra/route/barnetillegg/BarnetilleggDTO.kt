@@ -27,7 +27,7 @@ data class BarnetilleggPeriodeDTO(
 )
 
 fun Barnetillegg.toBarnetilleggDTO(): BarnetilleggDTO = BarnetilleggDTO(
-    perioder = periodisering.perioderMedVerdi.filter { it.verdi.value > 0 }.map {
+    perioder = periodisering.perioderMedVerdi.map {
         BarnetilleggPeriodeDTO(
             antallBarn = it.verdi.value,
             periode = it.periode.toDTO(),

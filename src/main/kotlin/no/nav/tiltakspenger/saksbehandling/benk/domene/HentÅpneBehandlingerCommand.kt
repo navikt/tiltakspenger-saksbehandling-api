@@ -12,7 +12,7 @@ data class HentÅpneBehandlingerCommand(
 ) : ServiceCommand
 
 data class ÅpneBehandlingerFiltrering(
-    val benktype: BehandlingssammendragBenktype = BehandlingssammendragBenktype.KLAR,
+    val benktype: List<BehandlingssammendragBenktype>?,
     val behandlingstype: List<BehandlingssammendragType>?,
     val status: List<BehandlingssammendragStatus>?,
     val identer: List<String>?,

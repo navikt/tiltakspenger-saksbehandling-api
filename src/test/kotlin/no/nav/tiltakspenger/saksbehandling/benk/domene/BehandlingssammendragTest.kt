@@ -26,6 +26,7 @@ class BehandlingssammendragTest {
                 status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
                 saksbehandler = "saksbehandler",
                 beslutter = "beslutter",
+                erSattPåVent = false,
             )
         }
 
@@ -40,6 +41,7 @@ class BehandlingssammendragTest {
                 status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
                 saksbehandler = "saksbehandler",
                 beslutter = "beslutter",
+                erSattPåVent = false,
             )
         }
     }
@@ -57,6 +59,7 @@ class BehandlingssammendragTest {
                 status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
                 saksbehandler = "saksbehandler",
                 beslutter = "beslutter",
+                erSattPåVent = false,
             )
         }
 
@@ -71,6 +74,7 @@ class BehandlingssammendragTest {
                 status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
                 saksbehandler = "saksbehandler",
                 beslutter = "beslutter",
+                erSattPåVent = false,
             )
         }
     }
