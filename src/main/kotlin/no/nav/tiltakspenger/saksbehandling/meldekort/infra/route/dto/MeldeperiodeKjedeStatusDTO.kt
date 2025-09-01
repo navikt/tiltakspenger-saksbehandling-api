@@ -4,7 +4,6 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
-import java.time.LocalDateTime
 
 enum class MeldeperiodeKjedeStatusDTO {
     AVVENTER_MELDEKORT,
@@ -29,26 +28,27 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(
     val sisteMeldekortBehandling =
         this.meldekortBehandlinger.filter { it.kjedeId == kjedeId }.maxByOrNull { it.opprettet }
 
-    if (sisteInnsendteMeldekort != null || sisteMeldekortBehandling != null) {
-        if ((sisteInnsendteMeldekort?.mottatt ?: LocalDateTime.MIN) > sisteMeldekortBehandling?.opprettet) {
-            return if (brukersMeldekort.size == 1) {
-                MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
-            } else {
-                MeldeperiodeKjedeStatusDTO.KORRIGERT_MELDEKORT
-            }
-        }
+    val harMottattMeldekortEtterSisteBehandling =
+        sisteInnsendteMeldekort != null && (sisteMeldekortBehandling == null || sisteInnsendteMeldekort.mottatt > sisteMeldekortBehandling.opprettet)
 
-        sisteMeldekortBehandling!!.let {
-            return when (it.status) {
-                MeldekortBehandlingStatus.UNDER_BEHANDLING -> MeldeperiodeKjedeStatusDTO.UNDER_BEHANDLING
-                MeldekortBehandlingStatus.UNDER_BESLUTNING -> MeldeperiodeKjedeStatusDTO.UNDER_BESLUTNING
-                MeldekortBehandlingStatus.GODKJENT -> MeldeperiodeKjedeStatusDTO.GODKJENT
-                MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> MeldeperiodeKjedeStatusDTO.AUTOMATISK_BEHANDLET
-                MeldekortBehandlingStatus.AVBRUTT -> MeldeperiodeKjedeStatusDTO.AVBRUTT
-                MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
-                MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BESLUTNING
-                MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
-            }
+    if (harMottattMeldekortEtterSisteBehandling) {
+        return if (brukersMeldekort.size == 1) {
+            MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
+        } else {
+            MeldeperiodeKjedeStatusDTO.KORRIGERT_MELDEKORT
+        }
+    }
+
+    if (sisteMeldekortBehandling != null) {
+        return when (sisteMeldekortBehandling.status) {
+            MeldekortBehandlingStatus.UNDER_BEHANDLING -> MeldeperiodeKjedeStatusDTO.UNDER_BEHANDLING
+            MeldekortBehandlingStatus.UNDER_BESLUTNING -> MeldeperiodeKjedeStatusDTO.UNDER_BESLUTNING
+            MeldekortBehandlingStatus.GODKJENT -> MeldeperiodeKjedeStatusDTO.GODKJENT
+            MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> MeldeperiodeKjedeStatusDTO.AUTOMATISK_BEHANDLET
+            MeldekortBehandlingStatus.AVBRUTT -> MeldeperiodeKjedeStatusDTO.AVBRUTT
+            MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
+            MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BESLUTNING
+            MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
         }
     }
 
