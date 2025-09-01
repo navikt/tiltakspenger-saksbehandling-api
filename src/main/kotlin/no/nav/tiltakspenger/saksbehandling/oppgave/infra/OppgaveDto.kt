@@ -60,7 +60,7 @@ data class OpprettOppgaveRequest(
         ) = OpprettOppgaveRequest(
             personident = fnr.verdi,
             journalpostId = null,
-            beskrivelse = "Mottaker av tiltakspenger har fått strengt fortrolig adresse og har en åpen tiltakspengesak som må følges opp.",
+            beskrivelse = "Mottaker av tiltakspenger har fått strengt fortrolig adresse og har en åpen tiltakspengesak som må følges opp i ny løsning.",
             behandlesAvApplikasjon = null,
             oppgavetype = OppgaveType.OPPGAVETYPE_BEHANDLE_SAK.value,
         )
