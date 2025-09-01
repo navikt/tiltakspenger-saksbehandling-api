@@ -55,6 +55,16 @@ data class OpprettOppgaveRequest(
             oppgavetype = OppgaveType.OPPGAVETYPE_VURDER_KONSEKVENS_FOR_YTELSE.value,
         )
 
+        fun opprettOppgaveRequestForAdressebeskyttelse(
+            fnr: Fnr,
+        ) = OpprettOppgaveRequest(
+            personident = fnr.verdi,
+            journalpostId = null,
+            beskrivelse = "Mottaker av tiltakspenger har fått strengt fortrolig adresse og har en åpen tiltakspengesak som må følges opp.",
+            behandlesAvApplikasjon = null,
+            oppgavetype = OppgaveType.OPPGAVETYPE_BEHANDLE_SAK.value,
+        )
+
         fun opprettOppgaveRequestForMeldekort(
             fnr: Fnr,
             journalpostId: JournalpostId,

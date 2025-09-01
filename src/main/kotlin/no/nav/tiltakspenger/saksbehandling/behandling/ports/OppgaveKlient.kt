@@ -22,4 +22,5 @@ enum class Oppgavebehov {
     FATT_BARN,
     DOED,
     NY_SOKNAD,
+    ADRESSEBESKYTTELSE,
 }
