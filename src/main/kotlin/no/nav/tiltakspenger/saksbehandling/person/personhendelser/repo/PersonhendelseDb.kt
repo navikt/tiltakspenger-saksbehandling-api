@@ -18,7 +18,9 @@ data class PersonhendelseDb(
     val sakId: SakId,
     val oppgaveId: OppgaveId?,
     val oppgaveSistSjekket: LocalDateTime?,
-)
+) {
+    fun gjelderAdressebeskyttelse() = opplysningstype == Opplysningstype.ADRESSEBESKYTTELSE_V1
+}
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 sealed interface PersonhendelseType {
@@ -29,5 +31,9 @@ sealed interface PersonhendelseType {
     data class ForelderBarnRelasjon(
         val relatertPersonsIdent: String,
         val minRolleForPerson: String,
+    ) : PersonhendelseType
+
+    data class Adressebeskyttelse(
+        val gradering: String,
     ) : PersonhendelseType
 }

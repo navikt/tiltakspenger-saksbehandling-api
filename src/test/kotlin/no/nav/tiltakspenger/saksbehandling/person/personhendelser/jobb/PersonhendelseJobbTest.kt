@@ -7,12 +7,14 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.person.pdl.leesah.adressebeskyttelse.Gradering
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -223,6 +225,103 @@ class PersonhendelseJobbTest {
                 personhendelseFraDb.oppgaveId shouldBe oppgaveId
 
                 coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.FATT_BARN) }
+            }
+        }
+    }
+
+    @Test
+    fun `opprettOppgaveForPersonhendelser - har vedtak nå, adressebeskyttelse - oppretter ikke oppgave`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val personhendelseRepository = testDataHelper.personhendelseRepository
+                val sakRepo = testDataHelper.sakRepo
+                val personhendelseJobb =
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient)
+                val id = UUID.randomUUID()
+                val fnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = fnr)
+                val deltakelseFom = LocalDate.now().minusMonths(3)
+                val deltakelsesTom = LocalDate.now().plusWeeks(2)
+                testDataHelper.persisterIverksattSøknadsbehandling(
+                    sakId = sak.id,
+                    fnr = fnr,
+                    deltakelseFom = deltakelseFom,
+                    deltakelseTom = deltakelsesTom,
+                    sak = sak,
+                    søknad = ObjectMother.nySøknad(
+                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                        søknadstiltak = ObjectMother.søknadstiltak(
+                            deltakelseFom = deltakelseFom,
+                            deltakelseTom = deltakelsesTom,
+                        ),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                    ),
+                )
+                val personhendelseDb = getPersonhendelseDb(
+                    id = id,
+                    fnr = fnr,
+                    opplysningstype = Opplysningstype.ADRESSEBESKYTTELSE_V1,
+                    personhendelseType = PersonhendelseType.Adressebeskyttelse(Gradering.STRENGT_FORTROLIG.name),
+                    sakId = sak.id,
+                )
+                personhendelseRepository.lagre(personhendelseDb)
+
+                personhendelseJobb.opprettOppgaveForPersonhendelser()
+
+                personhendelseRepository.hent(fnr) shouldBe emptyList()
+
+                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
+            }
+        }
+    }
+
+    @Test
+    fun `opprettOppgaveForPersonhendelser - har åpen behandling, adressebeskyttelse - oppretter oppgave`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val personhendelseRepository = testDataHelper.personhendelseRepository
+                val sakRepo = testDataHelper.sakRepo
+                val personhendelseJobb =
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient)
+                val id = UUID.randomUUID()
+                val fnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = fnr)
+                val deltakelseFom = LocalDate.now().minusMonths(3)
+                val deltakelsesTom = LocalDate.now().plusWeeks(2)
+                testDataHelper.persisterOpprettetSøknadsbehandling(
+                    sakId = sak.id,
+                    fnr = fnr,
+                    deltakelseFom = deltakelseFom,
+                    deltakelseTom = deltakelsesTom,
+                    sak = sak,
+                    søknad = ObjectMother.nySøknad(
+                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                        søknadstiltak = ObjectMother.søknadstiltak(
+                            deltakelseFom = deltakelseFom,
+                            deltakelseTom = deltakelsesTom,
+                        ),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                    ),
+                )
+                val personhendelseDb = getPersonhendelseDb(
+                    id = id,
+                    fnr = fnr,
+                    opplysningstype = Opplysningstype.ADRESSEBESKYTTELSE_V1,
+                    personhendelseType = PersonhendelseType.Adressebeskyttelse(Gradering.STRENGT_FORTROLIG.name),
+                    sakId = sak.id,
+                )
+                personhendelseRepository.lagre(personhendelseDb)
+
+                personhendelseJobb.opprettOppgaveForPersonhendelser()
+
+                val personhendelser = personhendelseRepository.hent(fnr)
+                personhendelser.size shouldBe 1
+                val personhendelseFraDb = personhendelser.first()
+                personhendelseFraDb.oppgaveId shouldBe oppgaveId
+
+                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.ADRESSEBESKYTTELSE) }
             }
         }
     }

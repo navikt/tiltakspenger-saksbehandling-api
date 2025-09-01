@@ -84,6 +84,7 @@ class OppgaveHttpClient(
 
             Oppgavebehov.FATT_BARN -> OpprettOppgaveRequest.opprettOppgaveRequestForFattBarn(fnr)
             Oppgavebehov.DOED -> OpprettOppgaveRequest.opprettOppgaveRequestForDoedsfall(fnr)
+            Oppgavebehov.ADRESSEBESKYTTELSE -> OpprettOppgaveRequest.opprettOppgaveRequestForAdressebeskyttelse(fnr)
 
             else -> {
                 logger.error { "Ukjent oppgavebehov for oppgave uten journalpost og duplikatkontroll: ${oppgavebehov.name}" }

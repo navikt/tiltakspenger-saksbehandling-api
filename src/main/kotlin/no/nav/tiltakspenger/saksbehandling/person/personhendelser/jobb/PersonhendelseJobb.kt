@@ -23,7 +23,9 @@ class PersonhendelseJobb(
             try {
                 val sakId = personhendelse.sakId
                 val sak = sakRepo.hentForSakId(sakId)!!
-                if (mottarTiltakspengerNaEllerIFremtiden(sak)) {
+                if ((!personhendelse.gjelderAdressebeskyttelse() && mottarTiltakspengerNaEllerIFremtiden(sak)) ||
+                    (personhendelse.gjelderAdressebeskyttelse() && harApenBehandling(sak))
+                ) {
                     log.info { "Oppretter oppgave for hendelse med id ${personhendelse.hendelseId}" }
                     val oppgaveId = oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                         fnr = sak.fnr,
@@ -33,7 +35,7 @@ class PersonhendelseJobb(
                     log.info { "Lagret oppgaveId $oppgaveId for personhendelse med hendelsesId ${personhendelse.hendelseId}" }
                 } else {
                     personhendelseRepository.slett(personhendelse.id)
-                    log.info { "Bruker mottar ikke tiltakspenger, slettet personhendelse med hendelsesId ${personhendelse.hendelseId}" }
+                    log.info { "Skal ikke opprette oppgave, slettet personhendelse med hendelsesId ${personhendelse.hendelseId}" }
                 }
             } catch (e: Exception) {
                 log.error(e) { "Noe gikk galt ved behandling av personhendelse med id ${personhendelse.id}" }
@@ -71,10 +73,14 @@ class PersonhendelseJobb(
         sak.vedtaksliste.harInnvilgetTiltakspengerPaDato(dato) ||
             sak.vedtaksliste.harInnvilgetTiltakspengerEtterDato(dato)
 
+    private fun harApenBehandling(sak: Sak): Boolean =
+        sak.behandlinger.hentÅpneBehandlinger().isNotEmpty()
+
     private fun PersonhendelseDb.finnOppgavebehov() =
         when (opplysningstype) {
             Opplysningstype.FORELDERBARNRELASJON_V1 -> Oppgavebehov.FATT_BARN
             Opplysningstype.DOEDSFALL_V1 -> Oppgavebehov.DOED
+            Opplysningstype.ADRESSEBESKYTTELSE_V1 -> Oppgavebehov.ADRESSEBESKYTTELSE
             else -> throw IllegalArgumentException("Skal ikke opprette oppgave for opplysningstype $opplysningstype")
         }
 }

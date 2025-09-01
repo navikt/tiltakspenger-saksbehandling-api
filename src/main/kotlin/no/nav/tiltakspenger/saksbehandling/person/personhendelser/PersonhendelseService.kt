@@ -44,17 +44,21 @@ class PersonhendelseService(
                 val saker = sakRepo.hentForFnr(fnr)
                 if (saker.saker.isNotEmpty()) {
                     val sak = saker.saker.single()
+                    val lagredeHendelser = personhendelseRepository.hent(fnr)
+                    if (lagredeHendelser.find { it.opplysningstype.name == personhendelse.opplysningstype } != null) {
+                        log.info { "Har allerede lagret hendelse av samme type for fnr, hendelsesId ${personhendelse.hendelseId}, ignorerer" }
+                        return
+                    }
                     if (personhendelse.opplysningstype == Opplysningstype.ADRESSEBESKYTTELSE_V1.name) {
-                        behandleAdressebeskyttelse(fnr, sak.id, personhendelse)
-                    } else {
-                        val lagredeHendelser = personhendelseRepository.hent(fnr)
-                        if (lagredeHendelser.find { it.opplysningstype.name == personhendelse.opplysningstype } != null) {
-                            log.info { "Har allerede lagret hendelse av samme type for fnr, hendelsesId ${personhendelse.hendelseId}, ignorerer" }
+                        log.info { "Håndterer hendelse om adressebeskyttelse med hendelsesId ${personhendelse.hendelseId}" }
+                        if (!harKode6(fnr)) {
+                            log.info { "Har ikke kode 6, hendelsesId ${personhendelse.hendelseId}, ignorerer" }
                             return
                         }
-                        personhendelseRepository.lagre(personhendelse.toPersonhendelseDb(fnr, sak.id))
-                        log.info { "Lagret hendelse for hendelseId ${personhendelse.hendelseId}" }
+                        oppdaterStatistikk(sak.id, personhendelse)
                     }
+                    personhendelseRepository.lagre(personhendelse.toPersonhendelseDb(fnr, sak.id))
+                    log.info { "Lagret hendelse for hendelseId ${personhendelse.hendelseId}" }
                 }
             }
         } catch (e: Exception) {
@@ -63,18 +67,18 @@ class PersonhendelseService(
         }
     }
 
-    private suspend fun behandleAdressebeskyttelse(
-        fnr: Fnr,
+    private fun oppdaterStatistikk(
         sakId: SakId,
         personhendelse: Personhendelse,
     ) {
-        log.info { "Håndterer hendelse om adressebeskyttelse med hendelsesId ${personhendelse.hendelseId}" }
+        log.info { "Person har adressebeskyttelse, oppdaterer statistikktabeller. HendelseId ${personhendelse.hendelseId}" }
+        statistikkSakRepo.oppdaterAdressebeskyttelse(sakId)
+        log.info { "Har oppdatert statistikktabell for personhendelse med hendelseId ${personhendelse.hendelseId}" }
+    }
+
+    private suspend fun harKode6(fnr: Fnr): Boolean {
         val pdlPerson = personKlient.hentEnkelPerson(fnr)
-        if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland) {
-            log.info { "Person har adressebeskyttelse, oppdaterer. HendelseId ${personhendelse.hendelseId}" }
-            statistikkSakRepo.oppdaterAdressebeskyttelse(sakId)
-            log.info { "Har oppdatert statistikktabell for personhendelse med hendelseId ${personhendelse.hendelseId}" }
-        }
+        return pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland
     }
 
     private fun Personhendelse.toPersonhendelseDb(fnr: Fnr, sakId: SakId): PersonhendelseDb {
@@ -99,6 +103,10 @@ class PersonhendelseService(
             PersonhendelseType.ForelderBarnRelasjon(
                 relatertPersonsIdent = forelderBarnRelasjon.relatertPersonsIdent,
                 minRolleForPerson = forelderBarnRelasjon.minRolleForPerson,
+            )
+        } else if (adressebeskyttelse != null) {
+            PersonhendelseType.Adressebeskyttelse(
+                gradering = adressebeskyttelse.gradering.name,
             )
         } else {
             throw IllegalArgumentException("Ukjent hendelse for hendelseid $hendelseId og opplysningstype $opplysningstype")

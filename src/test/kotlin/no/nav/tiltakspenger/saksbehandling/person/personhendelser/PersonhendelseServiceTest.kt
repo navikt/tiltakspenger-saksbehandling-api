@@ -175,7 +175,7 @@ class PersonhendelseServiceTest {
     }
 
     @Test
-    fun `behandlePersonhendelse - adressebeskyttelse, finnes sak, adressebeskyttet i PDL - oppdaterer`() {
+    fun `behandlePersonhendelse - adressebeskyttelse, finnes sak, adressebeskyttet i PDL - oppdaterer og lagrer`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -219,7 +219,19 @@ class PersonhendelseServiceTest {
 
                 personhendelseService.behandlePersonhendelse(personhendelse)
 
-                personhendelseRepository.hent(fnr) shouldBe emptyList()
+                val personhendelser = personhendelseRepository.hent(fnr)
+                personhendelser.size shouldBe 1
+                val personhendelseDb = personhendelser.first()
+                personhendelseDb.fnr shouldBe fnr
+                personhendelseDb.hendelseId shouldBe personhendelse.hendelseId
+                personhendelseDb.opplysningstype shouldBe Opplysningstype.ADRESSEBESKYTTELSE_V1
+                personhendelseDb.personhendelseType shouldBe PersonhendelseType.Adressebeskyttelse(
+                    "STRENGT_FORTROLIG",
+                )
+                personhendelseDb.sakId shouldBe sak.id
+                personhendelseDb.oppgaveId shouldBe null
+                personhendelseDb.oppgaveSistSjekket shouldBe null
+
                 val statistikkSakDTO = statistikkSakRepo.hent(sak.id).first()
                 statistikkSakDTO.fnr shouldBe fnr.verdi
                 statistikkSakDTO.opprettetAv shouldBe "-5"
