@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.maksAntallDager
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.LocalDate
@@ -40,7 +41,8 @@ fun Rammevedtak.toDatadelingJson(): String {
         saksnummer = this.saksnummer.verdi,
         fom = periode.fraOgMed,
         tom = periode.tilOgMed,
-        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+        // TODO abn: sett en periodisering istedenfor bare maks. Evt fjern dersom denne ikke deles med noen.
+        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.maksAntallDager(),
         rettighet = when (this.vedtakstype) {
             Vedtakstype.INNVILGELSE -> {
                 if (barnetillegg != null) {

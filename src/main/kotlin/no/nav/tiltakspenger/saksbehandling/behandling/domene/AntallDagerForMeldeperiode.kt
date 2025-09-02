@@ -29,3 +29,7 @@ fun Periodisering<AntallDagerForMeldeperiode>.finnAntallDagerForMeldeperiode(per
     periode.validerMeldeperiode()
     return this.overlappendePeriode(periode).perioderMedVerdi.map { it.verdi }.maxOfOrNull { it }
 }
+
+fun Periodisering<AntallDagerForMeldeperiode>?.maksAntallDager(): Int {
+    return this?.verdier?.maxBy { it.value }?.value ?: 0
+}

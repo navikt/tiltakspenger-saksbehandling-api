@@ -100,54 +100,53 @@ class BenkOversiktPostgresRepo(
                                      and m.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING',
                                                       'UNDER_BESLUTNING')),
 åpneMeldekortTilBehandling AS (
-/* 
+/*
  * meldekortMetadata er en hjelpe-tabell som vi bruker for å finne riktig behandlingstype, og
  * for at vi ikke skal gi ut 'duplikate' rader til benken
  */
-WITH meldekortMetadata AS (
-    SELECT 
-        mbr.sak_id AS sakId,
-        mbr.meldeperiode_kjede_id AS kjedeId,
-        COUNT(*) OVER (PARTITION BY mbr.sak_id, mbr.meldeperiode_kjede_id) AS antallInnsendteMeldekort,
-        mbr.id AS meldekortId,
-        ROW_NUMBER() OVER (PARTITION BY mbr.sak_id, mbr.meldeperiode_kjede_id ORDER BY mbr.mottatt DESC) AS sisteMeldekortNr
-    FROM meldekort_bruker mbr
-)
-SELECT s.id AS sakId,
-       s.fnr AS fnr,
-       s.saksnummer AS saksnummer,
-       mbr.mottatt AS startet,
-       CASE 
-           WHEN mdk.sisteMeldekortNr = mdk.antallInnsendteMeldekort AND mdk.sakId = mbr.sak_id AND mdk.meldekortId = mbr.id 
-               THEN 'INNSENDT_MELDEKORT'
-           ELSE 'KORRIGERT_MELDEKORT'
-       END AS behandlingstype,
-       'KLAR_TIL_BEHANDLING' AS status,
-       NULL AS saksbehandler,
-       NULL AS beslutter,
-       NULL AS erSattPåVent,
-       NULL::timestamp with time zone AS sist_endret
-FROM meldekort_bruker mbr
-JOIN sak s ON mbr.sak_id = s.id
-JOIN meldekortMetadata mdk ON mbr.id = mdk.meldekortId AND mbr.sak_id = mdk.sakId
-LEFT JOIN meldekortbehandling mbh1
-       ON mbh1.sak_id = s.id
-       AND (mbh1.brukers_meldekort_id = mbr.id OR mbh1.meldeperiode_kjede_id = mbr.meldeperiode_kjede_id)
-WHERE behandles_automatisk = false
-  AND mdk.sisteMeldekortNr = 1
-  AND (
-        mbh1.id IS NULL
-        OR EXISTS (
-            SELECT 1
-            FROM meldekortbehandling mbh
-            WHERE mbh.sak_id = s.id
-              AND mbh.avbrutt IS NULL
-              AND (mbh.brukers_meldekort_id = mbr.id OR mbh.meldeperiode_kjede_id = mbr.meldeperiode_kjede_id)
-              AND mbh.iverksatt_tidspunkt IS NOT NULL
-              AND mbr.mottatt > mbh.iverksatt_tidspunkt
-        )
-      )
-),
+         WITH meldekortMetadata AS (SELECT mbr.sak_id                                                                          AS sakId,
+                                           mbr.meldeperiode_kjede_id                                                           AS kjedeId,
+                                           COUNT(*) OVER (PARTITION BY mbr.sak_id, mbr.meldeperiode_kjede_id)                  AS antallInnsendteMeldekort,
+                                           mbr.id                                                                              AS meldekortId,
+                                           ROW_NUMBER()
+                                           OVER (PARTITION BY mbr.sak_id, mbr.meldeperiode_kjede_id ORDER BY mbr.mottatt DESC) AS sisteMeldekortNr
+                                    FROM meldekort_bruker mbr),
+        /*
+        Hjelpe-tabell for å finne siste iverksatte meldekortbehandling på en sak/kjede - dette er for å vite om et meldekort er potensielt tatt stilling til
+         */
+              sisteMeldekortBehandlingForKjede AS (SELECT sak_id,
+                                                          meldeperiode_kjede_id,
+                                                          MAX(mbh.iverksatt_tidspunkt) AS iverksatt_tidspunkt
+                                                   FROM meldekortbehandling mbh
+                                                            join sak s on mbh.sak_id = s.id
+                                                   WHERE mbh.avbrutt IS NULL
+                                                   group by sak_id, meldeperiode_kjede_id)
+         SELECT s.id                           AS sakId,
+                s.fnr                          AS fnr,
+                s.saksnummer                   AS saksnummer,
+                mbr.mottatt                    AS startet,
+                CASE
+                    WHEN mdk.sisteMeldekortNr = mdk.antallInnsendteMeldekort AND mdk.sakId = mbr.sak_id AND
+                         mdk.meldekortId = mbr.id
+                        THEN 'INNSENDT_MELDEKORT'
+                    ELSE 'KORRIGERT_MELDEKORT'
+                    END                        AS behandlingstype,
+                'KLAR_TIL_BEHANDLING'          AS status,
+                NULL                           AS saksbehandler,
+                NULL                           AS beslutter,
+                NULL                           AS erSattPåVent,
+                NULL::timestamp with time zone AS sist_endret
+         FROM meldekort_bruker mbr
+                  JOIN sak s ON mbr.sak_id = s.id
+                  JOIN meldekortMetadata mdk ON mbr.id = mdk.meldekortId AND mbr.sak_id = mdk.sakId
+                  LEFT JOIN sisteMeldekortBehandlingForKjede smbh
+                            ON smbh.sak_id = s.id AND smbh.meldeperiode_kjede_id = mbr.meldeperiode_kjede_id
+         WHERE behandles_automatisk = false
+           AND mdk.sisteMeldekortNr = 1
+      AND (
+        smbh.iverksatt_tidspunkt IS NULL
+            OR mbr.mottatt > smbh.iverksatt_tidspunkt
+        )),
      slåttSammen AS (select *
                      from åpneSøknaderUtenBehandling
                      union all

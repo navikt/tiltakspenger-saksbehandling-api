@@ -48,7 +48,7 @@ class BehandlingService(
         return Pair(sak, behandling)
     }
 
-    suspend fun sendTilbakeTilSaksbehandler(
+    suspend fun underkjennBehandling(
         sakId: SakId,
         behandlingId: BehandlingId,
         beslutter: Saksbehandler,
@@ -68,7 +68,7 @@ class BehandlingService(
         )
 
         // Denne validerer saksbehandler
-        return behandling.sendTilbakeTilBehandling(beslutter, attestering).let {
+        return behandling.underkjenn(beslutter, attestering).let {
             val statistikk = statistikkSakService.genererStatistikkForUnderkjennBehandling(it)
             sessionFactory.withTransactionContext { tx ->
                 behandlingRepo.lagre(it, tx)

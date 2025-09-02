@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.GenerellSystembrukerroller
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
+import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.zoneIdOslo
@@ -228,9 +229,7 @@ class BenkOversiktPostgresRepoTest {
     @Test
     fun `henter meldekort som er klar til behandling`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val (sak1, _) = testDataHelper.persisterBrukersMeldekort(
-                periode = Periode(2.januar(2023), 29.januar(2023)),
-            )
+            val (sak1, _) = testDataHelper.persisterBrukersMeldekort(periode = Periode(2.januar(2023), 29.januar(2023)))
             val (sak1MedKorrigering, andreMeldekortSak1) = testDataHelper.persisterBrukersMeldekort(
                 sak = sak1,
                 meldeperiode = sak1.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
@@ -342,6 +341,54 @@ class BenkOversiktPostgresRepoTest {
                     erSattPåVent = false,
                 )
             }
+        }
+    }
+
+    @Test
+    fun `henter ikke meldekort som har mottatt tidspunkt som er mindre enn siste meldekort behandling`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val periode = Periode(4.august(2025), 17.august(2025))
+            val (sakMedInnsendtBrukersMeldekort, brukersMeldekort) = testDataHelper.persisterBrukersMeldekort(
+                periode = periode,
+            )
+            val (sakMedIverksattMeldekortBehandling, _) = testDataHelper.persisterIverksattMeldekortbehandling(
+                sak = sakMedInnsendtBrukersMeldekort,
+                periode = brukersMeldekort.periode,
+            )
+            val (sakMedKorrigertMeldekort, korrigertMeldekort) = testDataHelper.persisterBrukersMeldekort(
+                sak = sakMedIverksattMeldekortBehandling,
+                periode = periode,
+            )
+
+            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+
+            totalAntall shouldBe 1
+            actual shouldBe listOf(
+                Behandlingssammendrag(
+                    sakId = sakMedKorrigertMeldekort.id,
+                    fnr = sakMedKorrigertMeldekort.fnr,
+                    saksnummer = sakMedKorrigertMeldekort.saksnummer,
+                    startet = korrigertMeldekort.mottatt,
+                    kravtidspunkt = null,
+                    behandlingstype = BehandlingssammendragType.KORRIGERT_MELDEKORT,
+                    status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
+                    saksbehandler = null,
+                    beslutter = null,
+                    sistEndret = null,
+                    erSattPåVent = false,
+                ),
+            )
+
+            testDataHelper.persisterIverksattMeldekortbehandling(
+                sak = sakMedInnsendtBrukersMeldekort,
+                periode = brukersMeldekort.periode,
+            )
+
+            val (actualEtterIverksettingIgjen, totalAntallEtterIverksettingIgjen) =
+                testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+
+            totalAntallEtterIverksettingIgjen shouldBe 0
+            actualEtterIverksettingIgjen shouldBe emptyList()
         }
     }
 

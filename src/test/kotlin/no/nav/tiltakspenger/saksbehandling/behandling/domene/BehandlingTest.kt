@@ -123,8 +123,8 @@ class BehandlingTest {
         }
 
         @Test
-        fun `kan ikke overta dersom det er mindre enn 1 time siden noe er blitt gjort`() {
-            val clock = Clock.fixed(Instant.parse("2025-07-01T12:00:00Z"), ZoneOffset.UTC)
+        fun `kan ikke overta dersom det er mindre enn 1 minutt siden noe er blitt gjort`() {
+            val clock = Clock.fixed(Instant.parse("2025-07-01T12:29:01Z"), ZoneOffset.UTC)
             val behandling = ObjectMother.nyOpprettetSøknadsbehandling(clock = clock)
             val annenSaksbehandler = ObjectMother.saksbehandler(navIdent = "annenSaksbehandler")
 

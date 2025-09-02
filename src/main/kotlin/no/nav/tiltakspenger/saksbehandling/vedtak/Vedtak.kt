@@ -22,7 +22,4 @@ interface Vedtak {
     val journalpostId: JournalpostId?
     val journalføringstidspunkt: LocalDateTime?
     val utbetaling: VedtattUtbetaling?
-
-    // TODO post-mvp jah: Dette er nok en forenkling, siden må kunne anta at antallDagerForMeldeperiode forandrer seg innenfor et vedtak.
-    val antallDagerPerMeldeperiode: Int
 }
