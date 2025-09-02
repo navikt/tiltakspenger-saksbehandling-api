@@ -40,7 +40,7 @@ data class MeldekortVedtak(
     val rammevedtak: List<VedtakId> = meldekortBehandling.rammevedtak
     val beregningsperiode: Periode = meldekortBehandling.beregning.periode
 
-    override val antallDagerPerMeldeperiode: Int = meldekortBehandling.meldeperiode.maksAntallDagerForMeldeperiode
+    val antallDagerPerMeldeperiode: Int = meldekortBehandling.meldeperiode.maksAntallDagerForMeldeperiode
 
     init {
         require(id == utbetaling.vedtakId)

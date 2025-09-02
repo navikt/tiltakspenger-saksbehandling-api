@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.maksAntallDager
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
@@ -56,7 +57,8 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
         gjeldendePeriode = periodeDTO,
         saksbehandler = saksbehandler,
         beslutter = beslutter,
-        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+        // TODO: sett en periodisering istedenfor bare maks
+        antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.maksAntallDager(),
         barnetillegg = barnetillegg?.toBarnetilleggDTO(),
     )
 }
