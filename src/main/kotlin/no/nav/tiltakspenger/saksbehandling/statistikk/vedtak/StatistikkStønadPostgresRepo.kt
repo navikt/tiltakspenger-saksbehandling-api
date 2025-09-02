@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRep
 import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import org.intellij.lang.annotations.Language
 import java.time.Clock
+import java.time.LocalDateTime
 
 class StatistikkStønadPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -96,6 +97,7 @@ class StatistikkStønadPostgresRepo(
                     "opprettet" to dto.opprettet,
                     "sist_endret" to dto.sistEndret,
                     "bruker_id" to dto.brukerId,
+                    "meldeperioder" to toPGObject(dto.meldeperioder),
                 ),
             ).asUpdate,
         )
@@ -120,11 +122,12 @@ class StatistikkStønadPostgresRepo(
         tx.run(
             queryOf(
                 """
-                        update statistikk_stonad set bruker_id = :nytt_fnr where bruker_id = :gammelt_fnr
+                        update statistikk_stonad set bruker_id = :nytt_fnr, sist_endret = :sist_endret where bruker_id = :gammelt_fnr
                 """.trimIndent(),
                 mapOf(
                     "nytt_fnr" to nyttFnr.verdi,
                     "gammelt_fnr" to gammeltFnr.verdi,
+                    "sist_endret" to LocalDateTime.now(),
                 ),
             ).asUpdate,
         )
@@ -138,11 +141,12 @@ class StatistikkStønadPostgresRepo(
         tx.run(
             queryOf(
                 """
-                    update statistikk_utbetaling set bruker_id = :nytt_fnr where bruker_id = :gammelt_fnr
+                    update statistikk_utbetaling set bruker_id = :nytt_fnr, sist_endret = :sist_endret where bruker_id = :gammelt_fnr
                 """.trimIndent(),
                 mapOf(
                     "nytt_fnr" to nyttFnr.verdi,
                     "gammelt_fnr" to gammeltFnr.verdi,
+                    "sist_endret" to LocalDateTime.now(),
                 ),
             ).asUpdate,
         )
@@ -238,7 +242,8 @@ class StatistikkStønadPostgresRepo(
         vedtak_id,
         opprettet,
         sist_endret,
-        bruker_id
+        bruker_id,
+        meldeperioder
         ) values (
         :id,
         :sakId,
@@ -253,7 +258,8 @@ class StatistikkStønadPostgresRepo(
         :vedtak_id,
         :opprettet,
         :sist_endret,
-        :bruker_id
+        :bruker_id,
+        :meldeperioder
         )
         """.trimIndent()
 

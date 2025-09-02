@@ -39,6 +39,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakFakeRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortFakeRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
@@ -79,6 +80,7 @@ class TestApplicationContext(
     private val meldekortVedtakFakeRepo = MeldekortVedtakFakeRepo(utbetalingFakeRepo)
     private val statistikkStønadFakeRepo = StatistikkStønadFakeRepo()
     private val statistikkSakFakeRepo = StatistikkSakFakeRepo()
+    private val statistikkMeldekortFakeRepo = StatistikkMeldekortFakeRepo()
     private val meldekortBehandlingFakeRepo = MeldekortBehandlingFakeRepo()
     private val meldeperiodeFakeRepo = MeldeperiodeFakeRepo()
     private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
@@ -152,6 +154,7 @@ class TestApplicationContext(
         object : StatistikkContext(sessionFactory, personFakeKlient, gitHash, clock) {
             override val statistikkStønadRepo = statistikkStønadFakeRepo
             override val statistikkSakRepo = statistikkSakFakeRepo
+            override val statistikkMeldekortRepo = statistikkMeldekortFakeRepo
         }
     }
 
@@ -199,6 +202,7 @@ class TestApplicationContext(
                 clock = clock,
                 simulerService = utbetalingContext.simulerService,
                 personKlient = personContext.personKlient,
+                statistikkMeldekortRepo = statistikkContext.statistikkMeldekortRepo,
             ) {
             override val meldekortBehandlingRepo = meldekortBehandlingFakeRepo
             override val meldeperiodeRepo = meldeperiodeFakeRepo

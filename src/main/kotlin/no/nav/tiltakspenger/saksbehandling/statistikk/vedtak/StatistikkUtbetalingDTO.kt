@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.vedtak
 
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.Clock
 import java.time.LocalDate
@@ -23,7 +24,16 @@ data class StatistikkUtbetalingDTO(
     val opprettet: LocalDateTime?,
     val sistEndret: LocalDateTime?,
     val brukerId: String,
-)
+    val meldeperioder: List<StatistikkMeldeperiode>,
+) {
+    data class StatistikkMeldeperiode(
+        val meldeperiodeKjedeId: String,
+        val meldekortbehandlingId: String,
+        val ordinarBelop: Int,
+        val barnetilleggBelop: Int,
+        val totalBelop: Int,
+    )
+}
 
 fun VedtattUtbetaling.tilStatistikk(clock: Clock): StatistikkUtbetalingDTO =
     StatistikkUtbetalingDTO(
@@ -42,4 +52,16 @@ fun VedtattUtbetaling.tilStatistikk(clock: Clock): StatistikkUtbetalingDTO =
         opprettet = LocalDateTime.now(clock),
         sistEndret = LocalDateTime.now(clock),
         brukerId = this.fnr.verdi,
+        meldeperioder = this.beregning.beregninger.toList().map {
+            it.toStatistikkMeldeperiode()
+        },
+    )
+
+private fun MeldeperiodeBeregning.toStatistikkMeldeperiode() =
+    StatistikkUtbetalingDTO.StatistikkMeldeperiode(
+        meldeperiodeKjedeId = this.kjedeId.toString(),
+        meldekortbehandlingId = this.meldekortId.toString(),
+        ordinarBelop = this.ordinærBeløp,
+        barnetilleggBelop = this.barnetilleggBeløp,
+        totalBelop = this.totalBeløp,
     )

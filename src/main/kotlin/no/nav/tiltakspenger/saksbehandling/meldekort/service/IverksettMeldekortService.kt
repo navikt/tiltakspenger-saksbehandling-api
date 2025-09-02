@@ -13,6 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.tilStatistikkMeldekortDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import java.time.Clock
@@ -25,6 +27,7 @@ class IverksettMeldekortService(
     val sessionFactory: SessionFactory,
     private val meldekortVedtakRepo: MeldekortVedtakRepo,
     private val clock: Clock,
+    private val statistikkMeldekortRepo: StatistikkMeldekortRepo,
 ) {
     fun iverksettMeldekort(
         kommando: IverksettMeldekortKommando,
@@ -56,6 +59,7 @@ class IverksettMeldekortService(
             sessionFactory.withTransactionContext { tx ->
                 meldekortBehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)
                 meldekortVedtakRepo.lagre(meldekortVedtak, tx)
+                statistikkMeldekortRepo.lagre(iverksattMeldekortbehandling.tilStatistikkMeldekortDTO(), tx)
             }
             sak.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
                 .leggTilMeldekortVedtak(meldekortVedtak) to iverksattMeldekortbehandling

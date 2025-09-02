@@ -57,6 +57,7 @@ class IdenthendelseJobbTest {
                 val søknadRepo = testDataHelper.søknadRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
                 val statistikkStønadRepo = testDataHelper.statistikkStønadRepo
+                val statistikkMeldekortRepo = testDataHelper.statistikkMeldekortRepo
                 val identhendelseJobb = IdenthendelseJobb(
                     identhendelseRepository = identhendelseRepository,
                     identhendelseKafkaProducer = identhendelseKafkaProducer,
@@ -64,6 +65,7 @@ class IdenthendelseJobbTest {
                     søknadRepo = søknadRepo,
                     statistikkSakRepo = statistikkSakRepo,
                     statistikkStønadRepo = statistikkStønadRepo,
+                    statistikkMeldekortRepo = statistikkMeldekortRepo,
                     sessionFactory = testDataHelper.sessionFactory,
                 )
                 val gammeltFnr = Fnr.random()
@@ -147,6 +149,7 @@ class IdenthendelseJobbTest {
                 val søknadRepo = testDataHelper.søknadRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
                 val statistikkStønadRepo = testDataHelper.statistikkStønadRepo
+                val statistikkMeldekortRepo = testDataHelper.statistikkMeldekortRepo
                 val identhendelseJobb = IdenthendelseJobb(
                     identhendelseRepository = identhendelseRepository,
                     identhendelseKafkaProducer = identhendelseKafkaProducer,
@@ -154,6 +157,7 @@ class IdenthendelseJobbTest {
                     søknadRepo = søknadRepo,
                     statistikkSakRepo = statistikkSakRepo,
                     statistikkStønadRepo = statistikkStønadRepo,
+                    statistikkMeldekortRepo = statistikkMeldekortRepo,
                     sessionFactory = testDataHelper.sessionFactory,
                 )
                 val gammeltFnr = Fnr.random()
@@ -232,6 +236,7 @@ class IdenthendelseJobbTest {
                 val søknadRepo = testDataHelper.søknadRepo
                 val statistikkSakRepo = testDataHelper.statistikkSakRepo
                 val statistikkStønadRepo = testDataHelper.statistikkStønadRepo
+                val statistikkMeldekortRepo = testDataHelper.statistikkMeldekortRepo
                 val identhendelseJobb = IdenthendelseJobb(
                     identhendelseRepository = identhendelseRepository,
                     identhendelseKafkaProducer = identhendelseKafkaProducer,
@@ -239,6 +244,7 @@ class IdenthendelseJobbTest {
                     søknadRepo = søknadRepo,
                     statistikkSakRepo = statistikkSakRepo,
                     statistikkStønadRepo = statistikkStønadRepo,
+                    statistikkMeldekortRepo = statistikkMeldekortRepo,
                     sessionFactory = testDataHelper.sessionFactory,
                 )
                 val gammeltFnr = Fnr.random()

@@ -212,6 +212,7 @@ open class ApplicationContext(
             søknadRepo = søknadContext.søknadRepo,
             statistikkSakRepo = statistikkContext.statistikkSakRepo,
             statistikkStønadRepo = statistikkContext.statistikkStønadRepo,
+            statistikkMeldekortRepo = statistikkContext.statistikkMeldekortRepo,
             sessionFactory = sessionFactory,
         )
     }
@@ -272,6 +273,7 @@ open class ApplicationContext(
             clock = clock,
             simulerService = utbetalingContext.simulerService,
             personKlient = personContext.personKlient,
+            statistikkMeldekortRepo = statistikkContext.statistikkMeldekortRepo,
         )
     }
     open val behandlingContext by lazy {

@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.Identhend
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseKafkaProducer
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseDb
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseRepository
+import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortRepo
 
 class IdenthendelseJobb(
     private val identhendelseRepository: IdenthendelseRepository,
@@ -19,6 +20,7 @@ class IdenthendelseJobb(
     private val søknadRepo: SøknadRepo,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val statistikkStønadRepo: StatistikkStønadRepo,
+    private val statistikkMeldekortRepo: StatistikkMeldekortRepo,
     private val sessionFactory: SessionFactory,
 
 ) {
@@ -55,6 +57,7 @@ class IdenthendelseJobb(
             søknadRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
             statistikkSakRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
             statistikkStønadRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
+            statistikkMeldekortRepo.oppdaterFnr(gammeltFnr = gammeltFnr, nyttFnr = nyttFnr, tx)
         }
     }
 
