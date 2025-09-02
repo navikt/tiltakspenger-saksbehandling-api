@@ -7,6 +7,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRep
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
+import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadPostgresRepo
 import java.time.Clock
 
@@ -18,6 +20,7 @@ open class StatistikkContext(
 ) {
     open val statistikkSakRepo: StatistikkSakRepo by lazy { StatistikkSakPostgresRepo(sessionFactory as PostgresSessionFactory) }
     open val statistikkStønadRepo: StatistikkStønadRepo by lazy { StatistikkStønadPostgresRepo(sessionFactory as PostgresSessionFactory, clock) }
+    open val statistikkMeldekortRepo: StatistikkMeldekortRepo by lazy { StatistikkMeldekortPostgresRepo(sessionFactory as PostgresSessionFactory) }
 
     val statistikkSakService: StatistikkSakService by lazy {
         StatistikkSakService(

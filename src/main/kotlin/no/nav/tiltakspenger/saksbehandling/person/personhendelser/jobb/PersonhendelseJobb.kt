@@ -81,6 +81,5 @@ class PersonhendelseJobb(
             Opplysningstype.FORELDERBARNRELASJON_V1 -> Oppgavebehov.FATT_BARN
             Opplysningstype.DOEDSFALL_V1 -> Oppgavebehov.DOED
             Opplysningstype.ADRESSEBESKYTTELSE_V1 -> Oppgavebehov.ADRESSEBESKYTTELSE
-            else -> throw IllegalArgumentException("Skal ikke opprette oppgave for opplysningstype $opplysningstype")
         }
 }

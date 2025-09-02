@@ -22,6 +22,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRe
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.tilStatistikkMeldekortDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortVedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
@@ -37,6 +39,7 @@ class AutomatiskMeldekortBehandlingService(
     private val simulerService: SimulerService,
     private val personKlient: PersonKlient,
     private val oppgaveKlient: OppgaveKlient,
+    private val statistikkMeldekortRepo: StatistikkMeldekortRepo,
 ) {
     val logger = KotlinLogging.logger { }
 
@@ -132,6 +135,7 @@ class AutomatiskMeldekortBehandlingService(
                 behandlesAutomatisk = true,
                 tx,
             )
+            statistikkMeldekortRepo.lagre(meldekortBehandling.tilStatistikkMeldekortDTO(clock), tx)
         }
 
         return meldekortBehandling.right()
