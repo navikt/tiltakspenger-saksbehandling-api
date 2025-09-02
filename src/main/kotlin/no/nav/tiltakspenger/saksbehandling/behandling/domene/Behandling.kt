@@ -405,7 +405,7 @@ sealed interface Behandling {
      * Hvis saken har blitt behandlet automatisk fjernes automatisk saksbehandler og flagget som sier at
      * den har blitt behandlet automatisk ved underkjenning.
      */
-    fun sendTilbakeTilBehandling(
+    fun underkjenn(
         utøvendeBeslutter: Saksbehandler,
         attestering: Attestering,
     ): Behandling {

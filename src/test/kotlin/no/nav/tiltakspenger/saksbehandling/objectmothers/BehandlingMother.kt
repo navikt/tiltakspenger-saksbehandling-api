@@ -389,7 +389,7 @@ interface BehandlingMother : MotherOfAllMothers {
             oppgaveId = oppgaveId,
             resultat = resultat,
             clock = clock,
-        ).sendTilbakeTilBehandling(
+        ).underkjenn(
             utøvendeBeslutter = utdøvendeBeslutter,
             attestering = Attestering(
                 id = AttesteringId.random(),

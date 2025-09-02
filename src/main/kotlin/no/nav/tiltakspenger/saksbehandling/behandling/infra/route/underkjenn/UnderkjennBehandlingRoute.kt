@@ -45,7 +45,7 @@ fun Route.underkjennBehandlingRoute(
                     val correlationId = call.correlationId()
                     krevBeslutterRolle(saksbehandler)
                     tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-                    behandlingService.sendTilbakeTilSaksbehandler(
+                    behandlingService.underkjennBehandling(
                         sakId = sakId,
                         behandlingId = behandlingId,
                         beslutter = saksbehandler,
