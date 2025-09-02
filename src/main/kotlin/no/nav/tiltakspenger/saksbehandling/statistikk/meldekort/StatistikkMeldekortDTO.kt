@@ -1,9 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.meldekort
 
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -46,7 +48,7 @@ data class StatistikkMeldekortDTO(
     }
 }
 
-fun MeldekortBehandling.Behandlet.tilStatistikkMeldekortDTO(): StatistikkMeldekortDTO =
+fun MeldekortBehandling.Behandlet.tilStatistikkMeldekortDTO(clock: Clock): StatistikkMeldekortDTO =
     StatistikkMeldekortDTO(
         meldeperiodeKjedeId = kjedeId.toString(),
         sakId = sakId.toString(),
@@ -59,7 +61,7 @@ fun MeldekortBehandling.Behandlet.tilStatistikkMeldekortDTO(): StatistikkMeldeko
         tilOgMed = tilOgMed,
         meldekortdager = dager.verdi.map { it.tilStatistikkMeldekortDag() },
         opprettet = opprettet,
-        sistEndret = LocalDateTime.now(),
+        sistEndret = nå(clock),
     )
 
 fun MeldekortDag.tilStatistikkMeldekortDag(): StatistikkMeldekortDTO.StatistikkMeldekortDag {

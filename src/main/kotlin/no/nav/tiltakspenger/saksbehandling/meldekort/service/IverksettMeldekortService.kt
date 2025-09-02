@@ -59,7 +59,7 @@ class IverksettMeldekortService(
             sessionFactory.withTransactionContext { tx ->
                 meldekortBehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)
                 meldekortVedtakRepo.lagre(meldekortVedtak, tx)
-                statistikkMeldekortRepo.lagre(iverksattMeldekortbehandling.tilStatistikkMeldekortDTO(), tx)
+                statistikkMeldekortRepo.lagre(iverksattMeldekortbehandling.tilStatistikkMeldekortDTO(clock), tx)
             }
             sak.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
                 .leggTilMeldekortVedtak(meldekortVedtak) to iverksattMeldekortbehandling

@@ -135,7 +135,7 @@ class AutomatiskMeldekortBehandlingService(
                 behandlesAutomatisk = true,
                 tx,
             )
-            statistikkMeldekortRepo.lagre(meldekortBehandling.tilStatistikkMeldekortDTO(), tx)
+            statistikkMeldekortRepo.lagre(meldekortBehandling.tilStatistikkMeldekortDTO(clock), tx)
         }
 
         return meldekortBehandling.right()
