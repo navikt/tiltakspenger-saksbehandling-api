@@ -47,7 +47,6 @@ internal class IverksettRevurderingTest {
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
                     stansFraOgMed = søknadsbehandling.virkningsperiode!!.fraOgMed,
                 ),
-                forventetStatus = HttpStatusCode.OK,
             )
 
             sendRevurderingStansTilBeslutningForBehandlingId(
@@ -173,7 +172,6 @@ internal class IverksettRevurderingTest {
                     valgteHjemler = nonEmptyListOf(ValgtHjemmelForStansDTO.Alder),
                     stansFraOgMed = søknadsbehandling.virkningsperiode!!.fraOgMed,
                 ),
-                forventetStatus = HttpStatusCode.OK,
             )
 
             sendRevurderingStansTilBeslutningForBehandlingId(

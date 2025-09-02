@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
@@ -34,15 +35,21 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSø
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 
 /**
  * Gjelder for både søknadsbehandling og revurdering.
  */
 interface IverksettBehandlingBuilder {
 
-    /** Oppretter ny sak, søknad og behandling. */
+    /**
+     * Oppretter kun ny sak hvis sakId er null. Oppretter alltid ny søknad med søknadsbehandling.
+     *
+     * @param fnr ignoreres hvis sakId er satt
+     * */
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandling(
         tac: TestApplicationContext,
+        sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
         virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
@@ -51,13 +58,21 @@ interface IverksettBehandlingBuilder {
             AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             virkningsperiode,
         ),
+        barnetillegg: Barnetillegg? = null,
+        tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+            fom = virkningsperiode.fraOgMed,
+            tom = virkningsperiode.tilOgMed,
+        ),
     ): Tuple4<Sak, Søknad, Søknadsbehandling, String> {
         val (sak, søknad, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(
             tac = tac,
+            sakId = sakId,
             fnr = fnr,
             virkningsperiode = virkningsperiode,
             resultat = resultat,
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+            barnetillegg = barnetillegg,
+            tiltaksdeltagelse = tiltaksdeltagelse,
         )
         taBehanding(tac, sak.id, behandlingId, beslutter)
         val (oppdatertSak, oppdatertBehandling, jsonResponse) = iverksettForBehandlingId(

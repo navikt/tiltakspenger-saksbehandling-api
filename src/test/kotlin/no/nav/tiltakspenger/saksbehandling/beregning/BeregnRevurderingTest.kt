@@ -118,7 +118,11 @@ class BeregnRevurderingTest {
             ),
         )
 
-        val nyBeregning = sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando)
+        val nyBeregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(
+            behandlingId = kommando.behandlingId,
+            virkningsperiode = kommando.innvilgelsesperiode,
+            barnetillegg = kommando.barnetillegg,
+        )
 
         nyBeregning.shouldNotBeNull()
         nyBeregning.size shouldBe 1
@@ -151,7 +155,11 @@ class BeregnRevurderingTest {
             ),
         )
 
-        val nyBeregning = sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando)
+        val nyBeregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(
+            behandlingId = kommando.behandlingId,
+            virkningsperiode = kommando.innvilgelsesperiode,
+            barnetillegg = kommando.barnetillegg,
+        )
 
         nyBeregning.shouldBeInstanceOf<BehandlingBeregning>()
         nyBeregning.size shouldBe 1
@@ -171,7 +179,11 @@ class BeregnRevurderingTest {
             revurdering = revurdering,
         )
 
-        sak.beregnRevurderingInnvilgelse(kommando).shouldBeNull()
+        sak.beregnInnvilgelse(
+            behandlingId = kommando.behandlingId,
+            virkningsperiode = kommando.innvilgelsesperiode,
+            barnetillegg = kommando.barnetillegg,
+        ).shouldBeNull()
     }
 
     @Test
@@ -186,7 +198,11 @@ class BeregnRevurderingTest {
             revurdering = revurdering,
         )
 
-        sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando).shouldBeNull()
+        sakMedMeldekortBehandlinger.beregnInnvilgelse(
+            behandlingId = kommando.behandlingId,
+            virkningsperiode = kommando.innvilgelsesperiode,
+            barnetillegg = kommando.barnetillegg,
+        ).shouldBeNull()
     }
 
     @Test
@@ -203,6 +219,10 @@ class BeregnRevurderingTest {
             revurdering = revurdering,
         )
 
-        sakMedMeldekortBehandlinger.beregnRevurderingInnvilgelse(kommando).shouldBeNull()
+        sakMedMeldekortBehandlinger.beregnInnvilgelse(
+            behandlingId = kommando.behandlingId,
+            virkningsperiode = kommando.innvilgelsesperiode,
+            barnetillegg = kommando.barnetillegg,
+        ).shouldBeNull()
     }
 }

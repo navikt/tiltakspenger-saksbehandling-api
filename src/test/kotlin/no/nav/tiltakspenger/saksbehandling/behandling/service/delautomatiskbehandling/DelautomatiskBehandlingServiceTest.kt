@@ -134,9 +134,9 @@ class DelautomatiskBehandlingServiceTest {
                     routing { routes(tac) }
                 }
                 val fnr = Fnr.random()
-                opprettSøknadsbehandlingKlarTilBehandling(tac, fnr)
+                opprettSøknadsbehandlingKlarTilBehandling(tac, fnr = fnr)
 
-                val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac, fnr)
+                val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac, fnr = fnr)
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
                     it.status shouldBe Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                     it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
@@ -194,7 +194,7 @@ class DelautomatiskBehandlingServiceTest {
                     (it as Søknadsbehandling).søknad.kvp.erJa() shouldBe true
                     it.søknad.institusjon.erJa() shouldBe true
                 }
-                opprettSøknadsbehandlingKlarTilBehandling(tac, sak.fnr)
+                opprettSøknadsbehandlingKlarTilBehandling(tac, fnr = sak.fnr)
 
                 tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
 

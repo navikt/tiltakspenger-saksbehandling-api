@@ -9,9 +9,9 @@ sealed interface BeregningKilde {
 
     /** @param id Id for meldekort-behandlingen som utløste denne beregningen. Denne kan være ulik [MeldeperiodeBeregning.meldekortId] for beregninger som er et resultat av en korrigering som påvirket en påfølgende meldeperiode.
      * */
-    data class Meldekort(override val id: MeldekortId) : BeregningKilde
+    data class BeregningKildeMeldekort(override val id: MeldekortId) : BeregningKilde
 
     /** @param id Id for behandlingen/revurderingen som utløste denne beregningen.
      * */
-    data class Behandling(override val id: BehandlingId) : BeregningKilde
+    data class BeregningKildeBehandling(override val id: BehandlingId) : BeregningKilde
 }

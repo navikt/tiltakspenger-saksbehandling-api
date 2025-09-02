@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereBehandling.BehandlingenEiesAvAnnenSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Innvilgelse
@@ -17,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.validerStansDato
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
@@ -34,86 +35,92 @@ class OppdaterBehandlingService(
 ) {
 
     suspend fun oppdater(kommando: OppdaterBehandlingKommando): Either<KanIkkeOppdatereBehandling, Pair<Sak, Behandling>> {
-        val sak = sakService.hentForSakId(
-            sakId = kommando.sakId,
-        )
-
-        val behandling = sak.hentBehandling(kommando.behandlingId)
-
-        requireNotNull(behandling) {
-            "Fant ikke behandlingen ${kommando.behandlingId} på sak ${kommando.sakId}"
-        }
+        val sak: Sak = sakService.hentForSakId(kommando.sakId)
+        val behandling: Behandling = sak.hentBehandling(kommando.behandlingId)!!
 
         if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {
-            return KanIkkeOppdatereBehandling.BehandlingenEiesAvAnnenSaksbehandler(eiesAvSaksbehandler = behandling.saksbehandler)
-                .left()
+            return BehandlingenEiesAvAnnenSaksbehandler(behandling.saksbehandler).left()
         }
+        val (utbetaling, simuleringMedMetadata) = sak.beregnOgSimulerHvisAktuelt(kommando, behandling)
 
         return when (kommando) {
-            is OppdaterSøknadsbehandlingKommando -> sak.oppdaterSøknadsbehandling(kommando).map { it to null }
-            is OppdaterRevurderingKommando -> sak.oppdaterRevurdering(kommando)
-        }.map { (behandling, simulering) ->
-            val oppdatertSak = sak.oppdaterBehandling(behandling)
+            is OppdaterSøknadsbehandlingKommando -> sak.oppdaterSøknadsbehandling(kommando, utbetaling)
+            is OppdaterRevurderingKommando -> sak.oppdaterRevurdering(kommando, utbetaling)
+        }.map { oppdatertBehandling: Behandling ->
+            val oppdatertSak = sak.oppdaterBehandling(oppdatertBehandling)
 
             sessionFactory.withTransactionContext { tx ->
-                behandlingRepo.lagre(behandling, tx)
-                behandlingRepo.oppdaterSimuleringMetadata(behandling.id, simulering?.originalResponseBody, tx)
+                behandlingRepo.lagre(oppdatertBehandling, tx)
+                behandlingRepo.oppdaterSimuleringMetadata(
+                    oppdatertBehandling.id,
+                    simuleringMedMetadata?.originalResponseBody,
+                    tx,
+                )
             }
-            oppdatertSak to behandling
+            oppdatertSak to oppdatertBehandling
         }
+    }
+
+    suspend fun Sak.beregnOgSimulerHvisAktuelt(
+        kommando: OppdaterBehandlingKommando,
+        behandling: Behandling,
+    ): Pair<BehandlingUtbetaling?, SimuleringMedMetadata?> {
+        val innvilgelsesperiode = kommando.innvilgelsesperiode ?: return (null to null)
+        return this.beregnInnvilgelse(
+            behandlingId = kommando.behandlingId,
+            virkningsperiode = innvilgelsesperiode,
+            barnetillegg = kommando.barnetillegg,
+        )?.let {
+            val navkontor = navkontorService.hentOppfolgingsenhet(this.fnr)
+            val simuleringMedMetadata = simulerService.simulerSøknadsbehandlingEllerRevurdering(
+                // Merk at behandlingen vi sender inn her er som den kom fra basen. Kanskje vi heller bare skal sende inn od, sakId, fnr og saksnummer?
+                behandling = behandling,
+                beregning = it,
+                forrigeUtbetaling = this.utbetalinger.lastOrNull(),
+                meldeperiodeKjeder = this.meldeperiodeKjeder,
+                saksbehandler = kommando.saksbehandler.navIdent,
+            ) { navkontor }.getOrElse { null }
+
+            BehandlingUtbetaling(
+                beregning = it,
+                navkontor = navkontor,
+                simulering = simuleringMedMetadata?.simulering,
+            ) to simuleringMedMetadata
+        } ?: (null to null)
     }
 
     private fun Sak.oppdaterSøknadsbehandling(
         kommando: OppdaterSøknadsbehandlingKommando,
+        utbetaling: BehandlingUtbetaling?,
     ): Either<KanIkkeOppdatereBehandling, Søknadsbehandling> {
-        kommando.asInnvilgelseOrNull()?.takeIf {
-            this.utbetalinger.hentUtbetalingerFraPeriode(it.innvilgelsesperiode).isNotEmpty()
-        }?.let {
-            return KanIkkeOppdatereBehandling.InnvilgelsesperiodenOverlapperMedUtbetaltPeriode.left()
-        }
+        val søknadsbehandling: Søknadsbehandling = this.hentBehandling(kommando.behandlingId) as Søknadsbehandling
 
-        val behandling = this.hentBehandling(kommando.behandlingId) as Søknadsbehandling
-
-        return behandling.oppdater(kommando, clock)
+        return søknadsbehandling.oppdater(kommando, clock, utbetaling)
     }
 
-    private suspend fun Sak.oppdaterRevurdering(
+    private fun Sak.oppdaterRevurdering(
         kommando: OppdaterRevurderingKommando,
-    ): Either<KanIkkeOppdatereBehandling, Pair<Revurdering, SimuleringMedMetadata?>> {
-        val behandling = this.hentBehandling(kommando.behandlingId) as Revurdering
+        utbetaling: BehandlingUtbetaling?,
+    ): Either<KanIkkeOppdatereBehandling, Revurdering> {
+        val revurdering: Revurdering = this.hentBehandling(kommando.behandlingId) as Revurdering
 
         return when (kommando) {
             is Innvilgelse -> {
-                val (utbetaling, simuleringMedMetadata) = beregnRevurderingInnvilgelse(kommando)?.let {
-                    val navkontor = navkontorService.hentOppfolgingsenhet(this.fnr)
-                    val simuleringMedMetadata = simulerService.simulerRevurdering(
-                        behandling = behandling,
-                        beregning = it,
-                        forrigeUtbetaling = this.utbetalinger.lastOrNull(),
-                        meldeperiodeKjeder = this.meldeperiodeKjeder,
-                    ) { navkontor }.getOrElse { null }
-
-                    BehandlingUtbetaling(
-                        beregning = it,
-                        navkontor = navkontor,
-                        simulering = simuleringMedMetadata?.simulering,
-                    ) to simuleringMedMetadata
-                } ?: (null to null)
-                behandling.oppdaterInnvilgelse(
+                revurdering.oppdaterInnvilgelse(
                     kommando = kommando,
                     utbetaling = utbetaling,
                     clock = clock,
-                ).map { it to simuleringMedMetadata }
+                )
             }
 
             is Stans -> {
                 validerStansDato(kommando.stansFraOgMed)
 
-                behandling.oppdaterStans(
+                revurdering.oppdaterStans(
                     kommando = kommando,
                     sisteDagSomGirRett = sisteDagSomGirRett!!,
                     clock = clock,
-                ).map { it to null }
+                )
             }
         }
     }

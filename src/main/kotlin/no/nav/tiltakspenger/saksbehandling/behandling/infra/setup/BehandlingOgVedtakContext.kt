@@ -106,6 +106,9 @@ open class BehandlingOgVedtakContext(
             statistikkSakService = statistikkSakService,
             statistikkSakRepo = statistikkSakRepo,
             sessionFactory = sessionFactory,
+            sakService = sakService,
+            navkontorService = navkontorService,
+            simulerService = simulerService,
             clock = clock,
         )
     }

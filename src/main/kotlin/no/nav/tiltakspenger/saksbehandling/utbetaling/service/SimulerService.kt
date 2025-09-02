@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
@@ -23,6 +23,7 @@ class SimulerService(
      * Dersom kommandoen er trigget av en saksbehandler, forventer vi at saksbehandler har tilgang til person.
      *
      * @param forrigeUtbetaling er null dersom det ikke finnes en tidligere utbetaling
+     * @param behandling Forventer at behandling.beregning og behandling.saksbehandler er oppdatert
      */
     suspend fun simulerMeldekort(
         behandling: MeldekortBehandling,
@@ -52,11 +53,12 @@ class SimulerService(
      *
      * @param forrigeUtbetaling er null dersom det ikke finnes en tidligere utbetaling
      */
-    suspend fun simulerRevurdering(
-        behandling: Revurdering,
+    suspend fun simulerSøknadsbehandlingEllerRevurdering(
+        behandling: Behandling,
         beregning: BehandlingBeregning,
         forrigeUtbetaling: VedtattUtbetaling?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
+        saksbehandler: String,
         brukersNavkontor: (suspend () -> Navkontor)?,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         return utbetalingsklient.simuler(
@@ -64,7 +66,7 @@ class SimulerService(
             saksnummer = behandling.saksnummer,
             behandlingId = behandling.id,
             fnr = behandling.fnr,
-            saksbehandler = behandling.saksbehandler!!,
+            saksbehandler = saksbehandler,
             beregning = beregning,
             brukersNavkontor = if (brukersNavkontor != null) brukersNavkontor() else navkontorService.hentOppfolgingsenhet(behandling.fnr),
             forrigeUtbetalingJson = forrigeUtbetaling?.let {

@@ -59,8 +59,8 @@ data class Søknadsbehandling(
     val søknad: Søknad,
     val automatiskSaksbehandlet: Boolean,
     val manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
+    override val utbetaling: BehandlingUtbetaling?,
 ) : Behandling {
-    override val utbetaling = null
 
     override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
         get() = when (resultat) {
@@ -112,9 +112,13 @@ data class Søknadsbehandling(
         }
     }
 
+    /**
+     * @param utbetaling null dersom avslag eller dersom behandlingen ikke fører til en beregning.
+     */
     fun oppdater(
         kommando: OppdaterSøknadsbehandlingKommando,
         clock: Clock,
+        utbetaling: BehandlingUtbetaling?,
     ): Either<KanIkkeOppdatereBehandling, Søknadsbehandling> {
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
 
@@ -147,6 +151,7 @@ data class Søknadsbehandling(
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             resultat = resultat,
             automatiskSaksbehandlet = kommando.automatiskSaksbehandlet,
+            utbetaling = utbetaling,
         ).also {
             it.validerResultat()
         }.right()
@@ -230,6 +235,7 @@ data class Søknadsbehandling(
                 begrunnelseVilkårsvurdering = null,
                 automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),
+                utbetaling = null,
             ).right()
         }
 
@@ -272,6 +278,7 @@ data class Søknadsbehandling(
                 begrunnelseVilkårsvurdering = null,
                 automatiskSaksbehandlet = false,
                 manueltBehandlesGrunner = emptyList(),
+                utbetaling = null,
             )
         }
     }

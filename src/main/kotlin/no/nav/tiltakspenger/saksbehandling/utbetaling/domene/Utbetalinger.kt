@@ -3,10 +3,18 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.leggSammen
 
 data class Utbetalinger(
     val verdi: List<VedtattUtbetaling>,
 ) : List<VedtattUtbetaling> by verdi {
+
+    /**
+     * Kan inneholde hull, men ikke overlapp.
+     */
+    val perioder: List<Periode> by lazy {
+        verdi.map { it.periode }.leggSammen(godtaOverlapp = true)
+    }
 
     private val utbetalingerMap: Map<Ulid, VedtattUtbetaling> by lazy {
         verdi.associateBy { it.beregningKilde.id }

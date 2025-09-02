@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakMedBehandletMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
@@ -22,16 +21,13 @@ class UtbetalingRepoImplTest {
     fun `kan lagre og hente utbetaling fra meldekortvedtak`() {
         val tidspunkt = nå(fixedClock)
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val (_, meldekort) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
+            val (_, _, meldekortVedtak, _) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
-            val meldekortVedtakRepo = testDataHelper.meldekortVedtakRepo
             val utbetalingRepo = testDataHelper.utbetalingRepo
 
-            val meldekortVedtak = meldekort.opprettVedtak(null, fixedClock)
             val utbetaling = meldekortVedtak.utbetaling
-            meldekortVedtakRepo.lagre(meldekortVedtak)
 
             utbetalingRepo.hentForUtsjekk() shouldBe listOf(utbetaling)
             utbetalingRepo.markerSendtTilUtbetaling(
@@ -47,17 +43,13 @@ class UtbetalingRepoImplTest {
     @Test
     fun `kan lagre feil ved utbetaling fra meldekortvedtak`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val (_, meldekort) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
+            val (_, _, meldekortvedtak, _) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
-            val meldekortVedtakRepo = testDataHelper.meldekortVedtakRepo
             val utbetalingRepo = testDataHelper.utbetalingRepo
 
-            // Utbetaling
-            val meldekortvedtak = meldekort.opprettVedtak(null, fixedClock)
             val utbetaling = meldekortvedtak.utbetaling
-            meldekortVedtakRepo.lagre(meldekortvedtak)
 
             utbetalingRepo.hentForUtsjekk() shouldBe listOf(utbetaling)
             utbetalingRepo.lagreFeilResponsFraUtbetaling(
@@ -72,17 +64,13 @@ class UtbetalingRepoImplTest {
     @Test
     fun utbetalingsstatus() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val (sak, meldekort) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
+            val (sak, _, meldekortVedtak, _) = testDataHelper.persisterRammevedtakMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
-            val meldekortVedtakRepo = testDataHelper.meldekortVedtakRepo
             val utbetalingRepo = testDataHelper.utbetalingRepo
 
-            // Utbetaling
-            val meldekortVedtak = meldekort.opprettVedtak(null, fixedClock)
             val utbetaling = meldekortVedtak.utbetaling
-            meldekortVedtakRepo.lagre(meldekortVedtak)
 
             val sendtTilUtbetalingTidspunkt = nå(fixedClock.plus(1, ChronoUnit.MICROS))
             utbetalingRepo.markerSendtTilUtbetaling(
@@ -117,7 +105,9 @@ class UtbetalingRepoImplTest {
                 antallForsøk = 0,
                 clock = fixedClock,
             )
-            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe expected(forsøkshistorikk = forsøk0)
+            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor().also {
+                it shouldBe expected(forsøkshistorikk = it.first().forsøkshistorikk)
+            }
             val forsøk1 = Forsøkshistorikk.opprett(
                 forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(1, ChronoUnit.MICROS),
                 antallForsøk = 1,

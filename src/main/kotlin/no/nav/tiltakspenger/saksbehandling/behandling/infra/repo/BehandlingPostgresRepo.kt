@@ -406,6 +406,21 @@ class BehandlingPostgresRepo(
                         resultat = resultat,
                         automatiskSaksbehandlet = automatiskSaksbehandlet,
                         manueltBehandlesGrunner = manueltBehandlesGrunner,
+                        utbetaling = stringOrNull("beregning")?.let {
+                            BehandlingUtbetaling(
+                                beregning = BehandlingBeregning(it.tilMeldeperiodeBeregningerFraBehandling(id)),
+                                navkontor = Navkontor(
+                                    kontornummer = string("navkontor"),
+                                    kontornavn = stringOrNull("navkontor_navn"),
+                                ),
+                                simulering = stringOrNull("simulering")?.toSimuleringFraDbJson(
+                                    MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(
+                                        sakId = sakId,
+                                        session = session,
+                                    ),
+                                ),
+                            )
+                        },
                     )
                 }
 

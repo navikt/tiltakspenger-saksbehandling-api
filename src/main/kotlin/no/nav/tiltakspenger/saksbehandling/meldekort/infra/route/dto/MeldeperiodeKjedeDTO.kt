@@ -34,7 +34,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
 
     // TODO: denne bør skrives om litt, bør ikke gå via beregningene her
     val korrigering = meldeperiodeBeregninger.sisteBeregningPerKjede[kjedeId]?.let {
-        if (it.beregningKilde !is BeregningKilde.Meldekort) {
+        if (it.beregningKilde !is BeregningKilde.BeregningKildeMeldekort) {
             return@let null
         }
 

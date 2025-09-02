@@ -120,7 +120,6 @@ data class Revurdering(
             begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             virkningsperiode = kommando.innvilgelsesperiode,
-            utbetaling = utbetaling,
             resultat = this.resultat.copy(
                 valgteTiltaksdeltakelser = ValgteTiltaksdeltakelser.periodiser(
                     tiltaksdeltakelser = kommando.tiltaksdeltakelser,
@@ -129,6 +128,7 @@ data class Revurdering(
                 barnetillegg = kommando.barnetillegg,
                 antallDagerPerMeldeperiode = kommando.antallDagerPerMeldeperiode,
             ),
+            utbetaling = utbetaling,
         ).also {
             it.validerResultat()
         }.right()

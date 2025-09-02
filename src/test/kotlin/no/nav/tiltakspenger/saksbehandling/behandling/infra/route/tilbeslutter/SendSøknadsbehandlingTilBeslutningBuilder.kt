@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
@@ -30,12 +31,14 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 
 interface SendSøknadsbehandlingTilBeslutningBuilder {
 
-    /** Oppretter ny sak, søknad og behandling. */
+    /** Oppretter ny sak (hvis sakId er null), søknad og behandling. */
     suspend fun ApplicationTestBuilder.sendSøknadsbehandlingTilBeslutning(
         tac: TestApplicationContext,
+        sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
         virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
@@ -44,14 +47,22 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
             AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             virkningsperiode,
         ),
+        barnetillegg: Barnetillegg? = null,
+        tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
+            fom = virkningsperiode.fraOgMed,
+            tom = virkningsperiode.tilOgMed,
+        ),
     ): Tuple4<Sak, Søknad, BehandlingId, String> {
         val (sak, søknad, behandling) = when (resultat) {
             SøknadsbehandlingType.INNVILGELSE -> opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
                 tac = tac,
+                sakId = sakId,
                 fnr = fnr,
                 virkningsperiode = virkningsperiode,
                 saksbehandler = saksbehandler,
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                barnetillegg = barnetillegg,
+                tiltaksdeltagelse = tiltaksdeltagelse,
             )
 
             SøknadsbehandlingType.AVSLAG -> opprettSøknadsbehandlingUnderBehandlingMedAvslag(

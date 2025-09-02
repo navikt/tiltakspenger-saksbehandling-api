@@ -10,18 +10,24 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD_BEHANDLES_MANUELT_GRUNN
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD_BEHANDLET_DELVIS_AUTOMATISK
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD_IKKE_BEHANDLET_AUTOMATISK
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 
 class DelautomatiskBehandlingService(
@@ -29,6 +35,9 @@ class DelautomatiskBehandlingService(
     private val statistikkSakService: StatistikkSakService,
     private val statistikkSakRepo: StatistikkSakRepo,
     private val sessionFactory: SessionFactory,
+    private val sakService: SakService,
+    private val navkontorService: NavkontorService,
+    private val simulerService: SimulerService,
     private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger {}
@@ -38,7 +47,8 @@ class DelautomatiskBehandlingService(
 
         if (manueltBehandlesGrunner.isEmpty()) {
             log.info { "Kan behandle behandling med id ${behandling.id} automatisk, sender til beslutning, correlationId $correlationId" }
-            sendTilBeslutning(behandling, correlationId)
+            val sak = sakService.hentForSakId(behandling.sakId)
+            sak.sendTilBeslutning(behandling, correlationId)
             SOKNAD_BEHANDLET_DELVIS_AUTOMATISK.inc()
         } else {
             log.info { "Kan ikke behandle behandling med id ${behandling.id} automatisk, sender til manuell behandling, correlationId $correlationId" }
@@ -47,29 +57,55 @@ class DelautomatiskBehandlingService(
         }
     }
 
-    private suspend fun sendTilBeslutning(behandling: Søknadsbehandling, correlationId: CorrelationId) {
+    private suspend fun Sak.sendTilBeslutning(behandling: Søknadsbehandling, correlationId: CorrelationId) {
+        val innvilgelsesperiode = behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm()
+        val barnetillegg = utledBarnetillegg(behandling)
+        val tiltaksdeltakelser = utledTiltaksdeltakelser(behandling)
+        val saksbehandler = AUTOMATISK_SAKSBEHANDLER
         val oppdaterKommando = OppdaterSøknadsbehandlingKommando.Innvilgelse(
             sakId = behandling.sakId,
             behandlingId = behandling.id,
-            saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+            saksbehandler = saksbehandler,
             correlationId = correlationId,
             fritekstTilVedtaksbrev = null,
             begrunnelseVilkårsvurdering = null,
-            innvilgelsesperiode = behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
-            barnetillegg = utledBarnetillegg(behandling),
-            tiltaksdeltakelser = utledTiltaksdeltakelser(behandling),
+            innvilgelsesperiode = innvilgelsesperiode,
+            barnetillegg = barnetillegg,
+            // Kommentar jah: Det føles litt vondt og gjenbruke denne kommandoen for det tilfellet her. For automatisk behandling krever vi at det er 1 søknad for 1 tiltak og saksopplysningene bare har funnet en tiltaksdeltagelse.
+            tiltaksdeltakelser = tiltaksdeltakelser,
             antallDagerPerMeldeperiode = utledAntallDagerPerMeldeperiode(behandling),
             automatiskSaksbehandlet = true,
         )
 
-        val oppdatertBehandling = behandling.oppdater(oppdaterKommando, clock).getOrElse {
+        val (utbetaling, simuleringMedMetadata) = this.beregnInnvilgelse(
+            behandlingId = behandling.id,
+            virkningsperiode = innvilgelsesperiode,
+            barnetillegg = barnetillegg,
+        )?.let {
+            val navkontor = navkontorService.hentOppfolgingsenhet(this.fnr)
+            val simuleringMedMetadata = simulerService.simulerSøknadsbehandlingEllerRevurdering(
+                behandling = behandling,
+                beregning = it,
+                forrigeUtbetaling = this.utbetalinger.lastOrNull(),
+                meldeperiodeKjeder = this.meldeperiodeKjeder,
+                saksbehandler = saksbehandler.navIdent,
+            ) { navkontor }.getOrElse { null }
+
+            BehandlingUtbetaling(
+                beregning = it,
+                navkontor = navkontor,
+                simulering = simuleringMedMetadata?.simulering,
+            ) to simuleringMedMetadata
+        } ?: (null to null)
+
+        val oppdatertBehandling = behandling.oppdater(oppdaterKommando, clock, utbetaling).getOrElse {
             throw IllegalStateException("Kunne ikke oppdatere behandling med id ${behandling.id} fordi: ${it::class.simpleName}")
         }
 
         val tilBeslutningKommando = SendBehandlingTilBeslutningKommando(
             sakId = behandling.sakId,
             behandlingId = behandling.id,
-            saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+            saksbehandler = saksbehandler,
             correlationId = correlationId,
         )
 
@@ -79,6 +115,7 @@ class DelautomatiskBehandlingService(
             val statistikk = statistikkSakService.genererStatistikkForSendTilBeslutter(it)
             sessionFactory.withTransactionContext { tx ->
                 behandlingRepo.lagre(it, tx)
+                behandlingRepo.oppdaterSimuleringMetadata(it.id, simuleringMedMetadata?.originalResponseBody, tx)
                 statistikkSakRepo.lagre(statistikk, tx)
             }
         }

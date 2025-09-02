@@ -14,7 +14,7 @@ data class MeldekortBeregning(
     val dagerFraMeldekortet by lazy { beregningForMeldekortetsPeriode.dager }
 
     init {
-        require(beregninger.all { it.beregningKilde is BeregningKilde.Meldekort })
+        require(beregninger.all { it.beregningKilde is BeregningKilde.BeregningKildeMeldekort })
 
         super.init()
     }

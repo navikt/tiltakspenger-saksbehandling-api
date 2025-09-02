@@ -53,7 +53,7 @@ class SokosUtbetaldataHttpClient(
         val jsonPayload = serialize(
             HentUtbetalingsinformasjonRequest(
                 ident = fnr.verdi,
-                periode = UtbetalingDto.Periode(
+                periode = UtbetalingDto.UtbetalingsperiodeDto(
                     fom = periode.fraOgMed,
                     tom = periode.tilOgMed,
                 ),

@@ -34,7 +34,11 @@ class ToBehandlingerIT {
                     val fnr = Fnr.random()
                     val førsteVirkningsperiode = Periode(1.mars(2024), 15.mars(2024))
                     val andreVirkningsperiode = Periode(16.april(2024), 21.april(2024))
-                    val (sak) = this.iverksettSøknadsbehandling(tac, fnr, førsteVirkningsperiode)
+                    val (sak) = this.iverksettSøknadsbehandling(
+                        tac,
+                        fnr = fnr,
+                        virkningsperiode = førsteVirkningsperiode,
+                    )
 
                     sak.let {
                         it.soknader.size shouldBe 1
@@ -42,7 +46,11 @@ class ToBehandlingerIT {
                         it.meldeperiodeKjeder.size shouldBe 2
                     }
 
-                    val (sakEtterAndreSøknadsbehandling) = this.iverksettSøknadsbehandling(tac, fnr, andreVirkningsperiode)
+                    val (sakEtterAndreSøknadsbehandling) = this.iverksettSøknadsbehandling(
+                        tac,
+                        fnr = fnr,
+                        virkningsperiode = andreVirkningsperiode,
+                    )
 
                     sakEtterAndreSøknadsbehandling.let {
                         it.soknader.size shouldBe 2

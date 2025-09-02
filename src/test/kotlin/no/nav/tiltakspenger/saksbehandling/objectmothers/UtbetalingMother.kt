@@ -42,7 +42,7 @@ import java.time.temporal.ChronoUnit
 interface UtbetalingMother : MotherOfAllMothers {
 
     fun utbetaling(
-        beregningKilde: BeregningKilde = BeregningKilde.Meldekort(
+        beregningKilde: BeregningKilde = BeregningKilde.BeregningKildeMeldekort(
             id = MeldekortId.random(),
         ),
         id: UtbetalingId = UtbetalingId.random(),
@@ -82,7 +82,7 @@ interface UtbetalingMother : MotherOfAllMothers {
 
     fun utbetalingBeregning(
         meldekortId: MeldekortId = MeldekortId.random(),
-        beregningKilde: BeregningKilde = BeregningKilde.Meldekort(meldekortId),
+        beregningKilde: BeregningKilde = BeregningKilde.BeregningKildeMeldekort(meldekortId),
         startDato: LocalDate = LocalDate.of(2023, 1, 2),
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(
             Periode(startDato, startDato.plusDays(13)),
@@ -108,10 +108,10 @@ interface UtbetalingMother : MotherOfAllMothers {
         )
 
         return when (beregningKilde) {
-            is BeregningKilde.Behandling -> BehandlingBeregning(
+            is BeregningKilde.BeregningKildeBehandling -> BehandlingBeregning(
                 beregninger = beregninger,
             )
-            is BeregningKilde.Meldekort -> MeldekortBeregning(
+            is BeregningKilde.BeregningKildeMeldekort -> MeldekortBeregning(
                 beregninger = beregninger,
             )
         }

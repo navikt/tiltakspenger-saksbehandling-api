@@ -34,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
 import org.junit.jupiter.api.Test
@@ -247,7 +248,12 @@ class OppdaterBehandlingRouteTest {
                     ),
                     innvilgelsesperiode = tiltaksdeltakelsePeriode.minusFraOgMed(7).toDTO(),
                     barnetillegg = null,
-                    antallDagerPerMeldeperiodeForPerioder = null,
+                    antallDagerPerMeldeperiodeForPerioder = listOf(
+                        AntallDagerPerMeldeperiodeDTO(
+                            periode = tiltaksdeltakelsePeriode.toDTO(),
+                            antallDagerPerMeldeperiode = 10,
+                        ),
+                    ),
                 ),
                 forventetStatus = HttpStatusCode.InternalServerError,
             )
