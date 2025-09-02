@@ -570,7 +570,6 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldeperiodeSomBeregnes = dager,
                     barnetilleggsPerioder = barnetilleggsPerioder,
                     tiltakstypePerioder = tiltakstypePerioder,
-                    meldekortBehandlinger = meldekortBehandlinger,
                     meldeperiodeBeregninger = MeldeperiodeBeregninger(meldekortBehandlinger, Behandlinger.empty()),
                 )
             },
@@ -654,7 +653,6 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldeperiodeSomBeregnes = dager,
                     barnetilleggsPerioder = barnetilleggsPerioder,
                     tiltakstypePerioder = tiltakstypePerioder,
-                    meldekortBehandlinger = this,
                     meldeperiodeBeregninger = MeldeperiodeBeregninger(this, Behandlinger.empty()),
                 )
             },

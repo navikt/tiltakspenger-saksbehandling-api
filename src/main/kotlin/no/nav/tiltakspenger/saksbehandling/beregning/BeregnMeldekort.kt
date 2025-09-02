@@ -15,8 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fr
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
@@ -38,7 +36,6 @@ private const val DAGER_KARANTENE = 16L - 1
 private data class BeregnMeldekort(
     val meldekortIdSomBeregnes: MeldekortId,
     val meldeperiodeSomBeregnes: MeldekortDager,
-    val meldekortBehandlinger: MeldekortBehandlinger,
     val barnetilleggsPerioder: Periodisering<AntallBarn>,
     val tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
     val meldeperiodeBeregninger: MeldeperiodeBeregninger,
@@ -58,12 +55,12 @@ private data class BeregnMeldekort(
         val meldeperiodeSomBeregnesFraOgMed = meldeperiodeSomBeregnes.first().dato
         val kilde = BeregningKilde.BeregningKildeMeldekort(meldekortIdSomBeregnes)
 
-        return meldekortBehandlinger.sisteBehandledeMeldekortPerKjede
+        return meldeperiodeBeregninger.gjeldendeBeregninger
             .filterNot { it.kjedeId == meldeperiodeSomBeregnes.meldeperiode.kjedeId }
             .partition { it.periode.fraOgMed < meldeperiodeSomBeregnesFraOgMed }
-            .let { (tidligereMeldekort, påfølgendeMeldekort) ->
+            .let { (tidligereBeregninger, påfølgendeBeregninger) ->
                 /** Kjør gjennom tidligere meldekort for å sette riktig state for sykedager før vi gjør beregninger på aktuelle meldekort */
-                tidligereMeldekort.forEach { beregnEksisterendeMeldekort(it) }
+                tidligereBeregninger.forEach { beregnPåNytt(it) }
 
                 nonEmptyListOf(
                     MeldeperiodeBeregning(
@@ -77,13 +74,12 @@ private data class BeregnMeldekort(
                     /** Dersom meldekort-behandlingen er en korrigering tilbake i tid, kan utbetalinger for påfølgende meldekort potensielt
                      *  endres som følge av sykedager reglene.
                      * */
-                    påfølgendeMeldekort.mapNotNull { meldekort ->
-                        val kjedeId = meldekort.kjedeId
+                    påfølgendeBeregninger.mapNotNull { beregning ->
+                        val kjedeId = beregning.kjedeId
 
-                        val beregnedeDager = beregnEksisterendeMeldekort(meldekort)
-                        val forrigeBeregning = meldeperiodeBeregninger.sisteBeregningPerKjede[kjedeId]
+                        val nyeBeregnedeDager = beregnPåNytt(beregning)
 
-                        if (beregnedeDager == forrigeBeregning?.dager) {
+                        if (nyeBeregnedeDager == beregning.dager) {
                             return@mapNotNull null
                         }
 
@@ -91,18 +87,18 @@ private data class BeregnMeldekort(
                             id = BeregningId.random(),
                             kjedeId = kjedeId,
                             beregningKilde = kilde,
-                            meldekortId = meldekort.id,
-                            dager = beregnedeDager,
+                            meldekortId = beregning.meldekortId,
+                            dager = nyeBeregnedeDager,
                         )
                     },
                 )
             }
     }
 
-    private fun beregnEksisterendeMeldekort(meldekort: MeldekortBehandling.Behandlet): NonEmptyList<MeldeperiodeBeregningDag> {
-        return meldekort.beregning.dagerFraMeldekortet.map {
+    private fun beregnPåNytt(beregning: MeldeperiodeBeregning): NonEmptyList<MeldeperiodeBeregningDag> {
+        return beregning.dager.map {
             beregnDag(
-                meldekort.id,
+                beregning.meldekortId,
                 it.dato,
                 it.tilMeldekortDagStatus(),
             ) { it.tiltakstype }
@@ -447,7 +443,6 @@ fun Sak.beregn(
         meldeperiodeSomBeregnes = meldeperiodeSomBeregnes,
         barnetilleggsPerioder = this.barnetilleggsperioder,
         tiltakstypePerioder = this.tiltakstypeperioder,
-        meldekortBehandlinger = meldekortBehandlinger,
         meldeperiodeBeregninger = meldeperiodeBeregninger,
     )
 }
@@ -457,7 +452,6 @@ fun beregn(
     meldeperiodeSomBeregnes: MeldekortDager,
     barnetilleggsPerioder: Periodisering<AntallBarn>,
     tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
-    meldekortBehandlinger: MeldekortBehandlinger,
     meldeperiodeBeregninger: MeldeperiodeBeregninger,
 ): NonEmptyList<MeldeperiodeBeregning> {
     return BeregnMeldekort(
@@ -465,7 +459,6 @@ fun beregn(
         meldeperiodeSomBeregnes = meldeperiodeSomBeregnes,
         barnetilleggsPerioder = barnetilleggsPerioder,
         tiltakstypePerioder = tiltakstypePerioder,
-        meldekortBehandlinger = meldekortBehandlinger,
         meldeperiodeBeregninger = meldeperiodeBeregninger,
     ).beregn()
 }
