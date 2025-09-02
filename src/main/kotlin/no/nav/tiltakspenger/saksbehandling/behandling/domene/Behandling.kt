@@ -227,8 +227,17 @@ sealed interface Behandling {
                 require(this.saksbehandler == null) { "Saksbehandler skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
 
                 when (this) {
-                    is Søknadsbehandling -> this.copy(saksbehandler = saksbehandler.navIdent, status = UNDER_BEHANDLING)
-                    is Revurdering -> this.copy(saksbehandler = saksbehandler.navIdent, status = UNDER_BEHANDLING)
+                    is Søknadsbehandling -> this.copy(
+                        saksbehandler = saksbehandler.navIdent,
+                        beslutter = if (saksbehandler.navIdent == beslutter) null else beslutter,
+                        status = UNDER_BEHANDLING,
+                    )
+
+                    is Revurdering -> this.copy(
+                        saksbehandler = saksbehandler.navIdent,
+                        beslutter = if (saksbehandler.navIdent == beslutter) null else beslutter,
+                        status = UNDER_BEHANDLING,
+                    )
                 }
             }
 
@@ -257,10 +266,10 @@ sealed interface Behandling {
 
     /** Saksbehandler/beslutter overtar behandlingen. */
     fun overta(saksbehandler: Saksbehandler, clock: Clock): Either<KunneIkkeOvertaBehandling, Behandling> {
-        val nåTidMinus1Time = LocalDateTime.now(clock).minusHours(1)
-        val erSistEndretMindreEnn1TimeSiden = this.sistEndret.isAfter(nåTidMinus1Time)
+        val nåTidMinus1Minutt = LocalDateTime.now(clock).minusMinutes(1)
+        val erSistEndretMindreEnn1MinuttSiden = this.sistEndret.isAfter(nåTidMinus1Minutt)
 
-        if (erSistEndretMindreEnn1TimeSiden) {
+        if (erSistEndretMindreEnn1MinuttSiden) {
             return KunneIkkeOvertaBehandling.BehandlingenErUnderAktivBehandling.left()
         }
 
