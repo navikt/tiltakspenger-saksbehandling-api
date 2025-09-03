@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
@@ -69,17 +68,6 @@ data class Revurdering(
     override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (resultat) {
         is Innvilgelse -> resultat.valgteTiltaksdeltakelser
         is Stans -> null
-    }
-
-    override val utfallsperioder: SammenhengendePeriodisering<Utfallsperiode>? by lazy {
-        if (virkningsperiode == null) {
-            return@lazy null
-        }
-
-        when (resultat) {
-            is Innvilgelse -> SammenhengendePeriodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, virkningsperiode)
-            is Stans -> SammenhengendePeriodisering(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, virkningsperiode)
-        }
     }
 
     init {

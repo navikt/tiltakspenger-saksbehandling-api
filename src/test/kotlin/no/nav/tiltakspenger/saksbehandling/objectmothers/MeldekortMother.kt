@@ -44,7 +44,6 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Ik
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
 import no.nav.tiltakspenger.saksbehandling.beregning.beregn
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
-import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
@@ -454,10 +453,6 @@ interface MeldekortMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         meldeperioder: NonEmptyList<NonEmptyList<Dager.Dag>>,
-        utfallsperioder: Periodisering<Utfallsperiode> = Periodisering(
-            initiellVerdi = Utfallsperiode.RETT_TIL_TILTAKSPENGER,
-            totalPeriode = vurderingsperiode,
-        ),
         navkontor: Navkontor = ObjectMother.navkontor(),
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
         begrunnelse: MeldekortBehandlingBegrunnelse? = null,

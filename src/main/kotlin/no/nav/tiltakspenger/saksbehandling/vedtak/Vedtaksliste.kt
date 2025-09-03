@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnAntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
-import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
@@ -72,7 +71,7 @@ data class Vedtaksliste(
         tidslinje.filter { it.verdi.vedtakstype == Vedtakstype.INNVILGELSE }
     }
 
-    /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
+    /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den første innvilget dagen. */
     val førsteDagSomGirRett: LocalDate? by lazy {
         innvilgelsesperioder.minOfOrNull { it.fraOgMed }
     }
@@ -80,22 +79,6 @@ data class Vedtaksliste(
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
     val sisteDagSomGirRett: LocalDate? by lazy {
         innvilgelsesperioder.maxOfOrNull { it.tilOgMed }
-    }
-
-    /**
-     * Innvilget->Stans eksempel:
-     * Vedtak 1: 01.01.2021 - 04.01.2021 (oppfylt/innvilget)
-     * Vedtak 2: 03.01.2021 - 04.01.2021 (ikke oppfylt/stans)
-     * Utfallsperioder: 01.01.2021 - 02.01.2021 Oppfylt (fra vedtak 1)
-     *                  03.01.2021 - 04.01.2021 Ikke Oppfylt (fra vedtak 2)
-     */
-    val utfallsperioder: Periodisering<Utfallsperiode> by lazy {
-        tidslinje.flatMapPeriodisering { it.verdi.utfallsperioder }
-    }
-
-    /** Dersom vi ikke har en verdi for deler av [periode], fyller vi den ut med [Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER] */
-    fun utfallForPeriode(periode: Periode): Periodisering<Utfallsperiode> {
-        return utfallsperioder.overlappendePeriode(periode).utvid(Utfallsperiode.IKKE_RETT_TIL_TILTAKSPENGER, periode)
     }
 
     /**

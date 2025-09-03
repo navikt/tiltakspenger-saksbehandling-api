@@ -25,7 +25,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.He
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -75,9 +74,6 @@ data class Søknadsbehandling(
             is Innvilgelse -> resultat.barnetillegg
             null -> null
         }
-
-    override val utfallsperioder: SammenhengendePeriodisering<Utfallsperiode>? =
-        virkningsperiode?.let { SammenhengendePeriodisering(Utfallsperiode.RETT_TIL_TILTAKSPENGER, it) }
 
     override val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser? = when (resultat) {
         is Avslag -> null
