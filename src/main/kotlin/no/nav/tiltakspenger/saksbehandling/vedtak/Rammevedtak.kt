@@ -17,11 +17,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
-import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.sak.utfallsperioder
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.Clock
@@ -55,8 +53,6 @@ data class Rammevedtak(
     override val saksnummer: Saksnummer = behandling.saksnummer
     override val saksbehandler: String = behandling.saksbehandler!!
     override val beslutter: String = behandling.beslutter!!
-
-    val utfallsperioder: SammenhengendePeriodisering<Utfallsperiode> by lazy { behandling.utfallsperioder!! }
 
     /** Vil være null dersom bruker ikke har rett på barnetillegg  */
     val barnetillegg: Barnetillegg? by lazy { behandling.barnetillegg }
@@ -152,11 +148,10 @@ fun Sak.utledVedtakstype(behandling: Behandling): Vedtakstype {
                 is RevurderingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
                 is RevurderingResultat.Stans -> {
                     val revurderingTilOgmed = behandling.virkningsperiode!!.tilOgMed
-                    val sakTilOgMed = this.utfallsperioder().totalPeriode.tilOgMed
                     val sisteUtbetalteMeldekortDag = this.sisteUtbetalteMeldekortDag()
 
-                    check(revurderingTilOgmed == sakTilOgMed) {
-                        "Kan ikke lage stansvedtak for revurdering - revurderingens tilOgMed ($revurderingTilOgmed) må være lik sakens tilOgMed ($sakTilOgMed)"
+                    check(revurderingTilOgmed == sisteDagSomGirRett) {
+                        "Kan ikke lage stansvedtak for revurdering - revurderingens tilOgMed ($revurderingTilOgmed) må være lik sakens tilOgMed ($sisteDagSomGirRett)"
                     }
 
                     check(sisteUtbetalteMeldekortDag == null || sisteUtbetalteMeldekortDag < behandling.virkningsperiode.fraOgMed) {

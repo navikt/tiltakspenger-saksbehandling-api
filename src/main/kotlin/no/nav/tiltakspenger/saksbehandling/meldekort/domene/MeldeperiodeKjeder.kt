@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.overlapperIkke
-import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
@@ -157,23 +156,22 @@ data class MeldeperiodeKjeder(
                 nærmesteMeldeperiode = nærmesteMeldeperiode.nesteMeldeperiode()
                 continue
             }
-
-            val utfallsperioder = vedtaksliste.utfallForPeriode(nærmesteMeldeperiode)
-            val utfallsperiodeCount = nærmesteMeldeperiode.tilDager().count {
-                (utfallsperioder.hentVerdiForDag(it) == Utfallsperiode.RETT_TIL_TILTAKSPENGER)
-            }
+            val girRett = nærmesteMeldeperiode.tilDager()
+                .associateWith { vedtaksliste.harInnvilgetTiltakspengerPaDato(it) }
+            val antallDagerSomGirRettForNærmesteMeldeperiode = girRett.count { it.value }
 
             val antallDagerForMeldeperiodeFraBehandling =
                 vedtaksliste.antallDagerForMeldeperiode(nærmesteMeldeperiode)?.value ?: 0
             val antallDagerSomGirRettForMeldePeriode =
-                min(utfallsperiodeCount, antallDagerForMeldeperiodeFraBehandling)
+                min(antallDagerSomGirRettForNærmesteMeldeperiode, antallDagerForMeldeperiodeFraBehandling)
 
             val kjede = this.hentMeldeperiodeKjedeForPeriode(nærmesteMeldeperiode)
             val versjon = kjede?.nesteVersjon() ?: HendelseVersjon.ny()
             // Hvis den er lik den forrige meldeperioden, blir den ikke lagt til
+
             val potensiellNyMeldeperiode = Meldeperiode.opprettMeldeperiode(
                 periode = nærmesteMeldeperiode,
-                utfallsperioder = utfallsperioder,
+                girRett = girRett,
                 fnr = vedtaksliste.fnr!!,
                 saksnummer = vedtaksliste.saksnummer!!,
                 sakId = vedtaksliste.sakId!!,

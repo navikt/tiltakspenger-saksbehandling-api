@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
@@ -65,7 +64,7 @@ sealed interface Behandling {
 
     val valgteTiltaksdeltakelser: ValgteTiltaksdeltakelser?
     val barnetillegg: Barnetillegg?
-    val utfallsperioder: SammenhengendePeriodisering<Utfallsperiode>?
+
     val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
 
     val behandlingstype: Behandlingstype

@@ -9,8 +9,6 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.saksbehandling.felles.Utfallsperiode
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
 import java.time.DayOfWeek
@@ -96,7 +94,7 @@ data class Meldeperiode(
     companion object {
         fun opprettMeldeperiode(
             periode: Periode,
-            utfallsperioder: Periodisering<Utfallsperiode>,
+            girRett: Map<LocalDate, Boolean>,
             fnr: Fnr,
             saksnummer: Saksnummer,
             sakId: SakId,
@@ -115,9 +113,7 @@ data class Meldeperiode(
                 periode = periode,
                 opprettet = nå(clock),
                 versjon = versjon,
-                girRett = periode.tilDager().associateWith {
-                    (utfallsperioder.hentVerdiForDag(it) == Utfallsperiode.RETT_TIL_TILTAKSPENGER)
-                },
+                girRett = girRett,
                 rammevedtak = rammevedtak,
             )
 
