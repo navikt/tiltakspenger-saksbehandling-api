@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -17,8 +16,6 @@ data class MeldekortDager(
     val verdi: List<MeldekortDag>,
     val meldeperiode: Meldeperiode,
 ) : List<MeldekortDag> by verdi {
-
-    val log = KotlinLogging.logger {}
 
     val maksAntallDagerForPeriode = meldeperiode.maksAntallDagerForMeldeperiode
 

@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import arrow.core.Either
-import no.nav.tiltakspenger.saksbehandling.beregning.beregn
+import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
@@ -13,7 +13,7 @@ suspend fun Sak.oppdaterMeldekort(
     return this.meldekortBehandlinger.oppdaterMeldekort(
         kommando = kommando,
         beregn = { meldeperiode ->
-            this.beregn(
+            this.beregnMeldekort(
                 meldekortIdSomBeregnes = kommando.meldekortId,
                 meldeperiodeSomBeregnes = kommando.dager.tilMeldekortDager(meldeperiode),
             )

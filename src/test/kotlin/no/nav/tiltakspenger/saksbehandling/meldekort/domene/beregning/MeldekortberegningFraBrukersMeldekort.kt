@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.beregning.beregn
+import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
@@ -83,12 +83,12 @@ class MeldekortberegningFraBrukersMeldekort {
             ),
         )
 
-        val dagerBeregnetFraBruker = sakMedÅpenMeldekortbehandling.beregn(
+        val dagerBeregnetFraBruker = sakMedÅpenMeldekortbehandling.beregnMeldekort(
             meldekortIdSomBeregnes = meldekortBehandlingId,
             meldeperiodeSomBeregnes = brukersMeldekort.tilMeldekortDager(),
         ).map { it.dager }
 
-        val dagerBeregnetFraSaksbehandler = sakMedÅpenMeldekortbehandling.beregn(
+        val dagerBeregnetFraSaksbehandler = sakMedÅpenMeldekortbehandling.beregnMeldekort(
             meldekortIdSomBeregnes = meldekortBehandlingId,
             meldeperiodeSomBeregnes = dager.tilMeldekortDager(meldeperiode),
         ).map { it.dager }

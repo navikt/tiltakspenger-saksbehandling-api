@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import arrow.core.Either
-import no.nav.tiltakspenger.saksbehandling.beregning.beregn
+import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
@@ -16,7 +16,7 @@ suspend fun Sak.sendMeldekortTilBeslutter(
         kommando = kommando,
         simuler = simuler,
         beregn = { meldeperiode ->
-            this.beregn(
+            this.beregnMeldekort(
                 meldekortIdSomBeregnes = kommando.meldekortId,
                 // Denne vil kun kaste dersom denne funksjonen kalles og da må den være sendt med.
                 meldeperiodeSomBeregnes = kommando.dager!!.tilMeldekortDager(meldeperiode),

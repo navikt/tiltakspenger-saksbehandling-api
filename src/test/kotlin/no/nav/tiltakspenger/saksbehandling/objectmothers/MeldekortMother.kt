@@ -42,7 +42,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Ik
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregninger
-import no.nav.tiltakspenger.saksbehandling.beregning.beregn
+import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
@@ -560,7 +560,7 @@ interface MeldekortMother : MotherOfAllMothers {
             kommando = kommando.tilSendMeldekortTilBeslutterKommando(),
             beregn = {
                 // TODO jah: Det føles unaturlig og ikke gå via sak her.
-                beregn(
+                beregnMeldekort(
                     meldekortIdSomBeregnes = meldekortId,
                     meldeperiodeSomBeregnes = dager,
                     barnetilleggsPerioder = barnetilleggsPerioder,
@@ -643,7 +643,7 @@ interface MeldekortMother : MotherOfAllMothers {
             kommando = kommando.tilSendMeldekortTilBeslutterKommando(),
             beregn = {
                 // TODO jah: Det føles unaturlig og ikke gå via sak her.
-                beregn(
+                beregnMeldekort(
                     meldekortIdSomBeregnes = meldekortId,
                     meldeperiodeSomBeregnes = dager,
                     barnetilleggsPerioder = barnetilleggsPerioder,
