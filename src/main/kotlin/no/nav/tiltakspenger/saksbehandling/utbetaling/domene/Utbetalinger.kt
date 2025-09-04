@@ -20,7 +20,7 @@ data class Utbetalinger(
         verdi.associateBy { it.beregningKilde.id }
     }
 
-    fun hentUtbetaling(id: BehandlingId): VedtattUtbetaling? {
+    fun hentUtbetalingForBehandlingId(id: BehandlingId): VedtattUtbetaling? {
         return utbetalingerMap[id]
     }
 

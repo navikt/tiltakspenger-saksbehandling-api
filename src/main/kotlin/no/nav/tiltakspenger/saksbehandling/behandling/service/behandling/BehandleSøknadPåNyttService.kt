@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KanIkkeBehandleSøknadPåNytt
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtakstype
 import java.time.Clock
@@ -36,7 +37,7 @@ class BehandleSøknadPåNyttService(
         sakId: SakId,
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
-    ): Either<KanIkkeBehandleSøknadPåNytt, Søknadsbehandling> {
+    ): Either<KanIkkeBehandleSøknadPåNytt, Pair<Sak, Søknadsbehandling>> {
         val sak = sakService.hentForSakId(sakId)
         val avslåtteSøknadsbehandlinger = sak.vedtaksliste.value
             .filter { it.vedtakstype == Vedtakstype.AVSLAG }
@@ -49,12 +50,6 @@ class BehandleSøknadPåNyttService(
         }
 
         val søknad = avslåtteSøknadsbehandlinger.single().søknad
-        val perioderMedUtbetalinger =
-            sak.utbetalinger.hentUtbetalingerFraPeriode(søknad.tiltaksdeltagelseperiodeDetErSøktOm())
-        // TODO jah: Fjern denne sjekken når vi har revurdering på plass.
-        if (perioderMedUtbetalinger.isNotEmpty()) {
-            throw IllegalStateException("Det finnes utbetalinger i vurderingsperioden til søknaden: ${søknad.id}")
-        }
 
         val søknadsbehandling = Søknadsbehandling.opprett(
             sak = sak,
@@ -83,9 +78,9 @@ class BehandleSøknadPåNyttService(
                 sessionContext = tx,
             )
         }
-
+        val oppdatertSak = sak.leggTilSøknadsbehandling(søknadsbehandling)
         MetricRegister.STARTET_BEHANDLING.inc()
         MetricRegister.SØKNAD_BEHANDLET_PÅ_NYTT.inc()
-        return søknadsbehandling.right()
+        return (oppdatertSak to søknadsbehandling).right()
     }
 }

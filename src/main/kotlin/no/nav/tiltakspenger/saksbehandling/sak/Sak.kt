@@ -182,6 +182,10 @@ data class Sak(
             .let { this.copy(meldeperiodeKjeder = it.first) to it.second }
     }
 
+    fun leggTilSøknadsbehandling(søknadsbehandling: Søknadsbehandling): Sak {
+        return this.copy(behandlinger = this.behandlinger.leggTilSøknadsbehandling(søknadsbehandling))
+    }
+
     fun leggTilMeldekortbehandling(behandling: MeldekortUnderBehandling): Sak {
         return this.copy(meldekortBehandlinger = this.meldekortBehandlinger.leggTil(behandling))
     }

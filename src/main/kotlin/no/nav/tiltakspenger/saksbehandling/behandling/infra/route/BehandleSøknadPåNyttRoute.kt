@@ -56,7 +56,7 @@ fun Route.behandleSøknadPåNyttRoute(
                                 }
                         }
                     },
-                    {
+                    { (sak, søknadsbehandling) ->
                         auditService.logForSøknadId(
                             søknadId = søknadId,
                             navIdent = saksbehandler.navIdent,
@@ -64,7 +64,13 @@ fun Route.behandleSøknadPåNyttRoute(
                             contextMessage = "Oppretter behandling fra søknad på nytt og starter behandlingen",
                             correlationId = correlationId,
                         )
-                        call.respond(HttpStatusCode.OK, it.tilSøknadsbehandlingDTO())
+                        call.respond(
+                            HttpStatusCode.OK,
+                            søknadsbehandling.tilSøknadsbehandlingDTO(
+                                meldeperiodeBeregninger = sak.meldeperiodeBeregninger,
+                                utbetalingsstatus = null,
+                            ),
+                        )
                     },
                 )
             }

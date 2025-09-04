@@ -17,6 +17,12 @@ data class Behandlinger(
     val revurderinger: Revurderinger = Revurderinger(behandlinger.filterIsInstance<Revurdering>())
     val søknadsbehandlinger: List<Søknadsbehandling> = behandlinger.filterIsInstance<Søknadsbehandling>()
 
+    fun leggTilSøknadsbehandling(
+        søknadsbehandling: Søknadsbehandling,
+    ): Behandlinger {
+        return this.copy(behandlinger = this.behandlinger + søknadsbehandling)
+    }
+
     fun leggTilRevurdering(
         revurdering: Revurdering,
     ): Behandlinger {
