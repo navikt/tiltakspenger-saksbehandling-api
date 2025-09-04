@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling
 
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.dato.januar
@@ -13,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.antallDagerPerMeldeperiodeDTO
@@ -105,7 +107,7 @@ class UtbetalingerIT {
                 periode = førsteSøknadsperiode,
                 fnr = Fnr.fromString("12345678911"),
             )
-            val (oppdatertSak, _, andreSøknadsbehandling, _) = iverksettSøknadsbehandling(
+            val (oppdatertSak, _, _, _) = iverksettSøknadsbehandling(
                 tac = tac,
                 virkningsperiode = andreSøknadsperiode,
                 sakId = sak.id,
@@ -136,6 +138,63 @@ class UtbetalingerIT {
                 val iverksettDto = deserialize<IverksettV2Dto>(json)
                 iverksettDto.vedtak.utbetalinger.first().beløp.toInt() shouldBe satser2025.sats
                 iverksettDto.vedtak.utbetalinger.last().beløp.toInt() shouldBe satser2025.satsBarnetillegg
+            }
+        }
+    }
+
+    @Test
+    fun `Feilutbetaling ved stans over utbetalt periode`() {
+        withTestApplicationContext { tac ->
+            val sak = tac.førsteMeldekortIverksatt(
+                periode = virkningsperiode,
+                fnr = Fnr.fromString("12345678911"),
+            )
+
+            val revurdering = startRevurderingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                type = RevurderingType.STANS,
+            )
+
+            oppdaterBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
+                    fritekstTilVedtaksbrev = "lol",
+                    begrunnelseVilkårsvurdering = "what",
+                    valgteHjemler = listOf(ValgtHjemmelForStansDTO.Alder),
+                    stansFraOgMed = virkningsperiode.fraOgMed,
+                ),
+            )
+
+            sendRevurderingInnvilgelseTilBeslutningForBehandlingId(
+                tac,
+                sak.id,
+                revurdering.id,
+            )
+            taBehanding(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+
+            val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id)
+
+            oppdatertSak.utbetalinger shouldBe listOf(
+                oppdatertSak.meldekortVedtaksliste.first().utbetaling,
+                oppdatertSak.vedtaksliste.last().utbetaling,
+            )
+
+            val revurderingUtbetalingId = oppdatertSak.vedtaksliste.last().utbetaling!!.id
+
+            val utbetalingerSomVenter = tac.utbetalingContext.utbetalingRepo.hentForUtsjekk()
+            utbetalingerSomVenter.size shouldBe 1
+            utbetalingerSomVenter.first().beregning.totalBeløp shouldBe 0
+
+            tac.utbetalingContext.sendUtbetalingerService.send()
+
+            tac.utbetalingContext.utbetalingRepo.hentForUtsjekk().size shouldBe 0
+            tac.utbetalingContext.utbetalingRepo.hentUtbetalingJson(revurderingUtbetalingId)!!.let { json ->
+                val iverksettDto = deserialize<IverksettV2Dto>(json)
+                // Sender tom liste med utbetalinger når hele sakens periode stanses
+                iverksettDto.vedtak.utbetalinger.shouldBeEmpty()
             }
         }
     }

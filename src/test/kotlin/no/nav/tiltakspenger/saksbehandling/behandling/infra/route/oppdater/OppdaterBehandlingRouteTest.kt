@@ -215,6 +215,33 @@ class OppdaterBehandlingRouteTest {
     }
 
     @Test
+    fun `kan oppdatere revurdering stans over utbetalte perioder`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, _, revurdering) = startRevurderingStans(tac)
+
+            oppdaterBehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                oppdaterBehandlingDTO = OppdaterRevurderingDTO.Stans(
+                    fritekstTilVedtaksbrev = "ny brevtekst",
+                    begrunnelseVilkårsvurdering = "ny begrunnelse",
+                    valgteHjemler = listOf(ValgtHjemmelForStansDTO.DeltarIkkePåArbeidsmarkedstiltak),
+                    stansFraOgMed = 9.april(2025),
+                ),
+            )
+
+            val oppdatertBehandling = tac.behandlingContext.behandlingRepo.hent(revurdering.id)
+
+            oppdatertBehandling.resultat.shouldBeInstanceOf<Stans>()
+            oppdatertBehandling.fritekstTilVedtaksbrev!!.verdi shouldBe "ny brevtekst"
+            oppdatertBehandling.begrunnelseVilkårsvurdering!!.verdi shouldBe "ny begrunnelse"
+            oppdatertBehandling.virkningsperiode!!.fraOgMed shouldBe 9.april(2025)
+            (oppdatertBehandling.resultat as Stans).valgtHjemmel shouldBe listOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak)
+        }
+    }
+
+    @Test
     fun `oppdatering feiler hvis behandlingsperioden er utenfor deltakelsesperioden`() = runTest {
         withTestApplicationContext { tac ->
             val saksbehandler = saksbehandler()

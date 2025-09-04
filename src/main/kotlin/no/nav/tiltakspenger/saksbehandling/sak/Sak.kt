@@ -28,7 +28,6 @@ import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import java.time.Clock
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class Sak(
@@ -85,17 +84,11 @@ data class Sak(
         return meldekortBehandlinger.hentMeldekortBehandling(meldekortId)
     }
 
-    fun hentSisteMeldekortBehandlingForKjede(id: MeldeperiodeKjedeId): MeldekortBehandling? {
-        return meldekortBehandlinger.hentSisteMeldekortBehandlingForKjede(id)
-    }
-
     fun hentSisteMeldeperiodeForKjede(kjedeId: MeldeperiodeKjedeId): Meldeperiode {
         return meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(kjedeId)
     }
 
     fun hentBehandling(behandlingId: BehandlingId): Behandling? = behandlinger.hentBehandling(behandlingId)
-
-    fun sisteUtbetalteMeldekortDag(): LocalDate? = meldekortBehandlinger.sisteUtbetalteMeldekortDag
 
     fun harSoknadUnderBehandling(): Boolean {
         val avsluttedeSoknadsbehandlinger = behandlinger
@@ -108,19 +101,6 @@ data class Sak(
         return apneSoknader.any { soknad ->
             avsluttedeSoknadsbehandlinger.find { it.søknad.id == soknad.id } == null ||
                 apneSoknadsbehandlinger.find { it.søknad.id == soknad.id } != null
-        }
-    }
-
-    fun førsteLovligeStansdato(): LocalDate? {
-        val innvilgelsesperioder = this.vedtaksliste.innvilgelsesperioder
-        if (innvilgelsesperioder.isEmpty()) return null
-        val førsteDagSomIkkeErUtbetalt =
-            sisteUtbetalteMeldekortDag()?.plusDays(1) ?: innvilgelsesperioder.first().fraOgMed
-
-        return innvilgelsesperioder.firstOrNull {
-            it.tilOgMed >= førsteDagSomIkkeErUtbetalt
-        }?.tilDager()?.firstOrNull {
-            it >= førsteDagSomIkkeErUtbetalt
         }
     }
 

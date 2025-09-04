@@ -97,12 +97,6 @@ fun Sak.validerStansDato(stansDato: LocalDate?) {
         throw IllegalArgumentException("Stansdato er ikke satt")
     }
 
-    this.førsteLovligeStansdato()?.also {
-        if (stansDato.isBefore(it)) {
-            throw IllegalArgumentException("Angitt stansdato $stansDato er før første lovlige stansdato $it")
-        }
-    }
-
     if (stansDato.isBefore(this.førsteDagSomGirRett)) {
         throw IllegalArgumentException("Kan ikke starte revurdering ($stansDato) før første innvilgetdato (${this.førsteDagSomGirRett})")
     }

@@ -11,7 +11,7 @@ import java.time.Clock
 import java.time.LocalDate
 
 /**
- * @property førsteLovligeStansdato Dersom vi ikke har vedtak vil denne være null. Hvis vi ikke har utbetalt, vil den være første dag i saksperioden. Dersom vi har utbetalt, vil den være dagen etter siste utbetalte dag.
+ * @property førsteDagSomGirRett Dersom vi ikke har vedtak vil denne være null.
  */
 data class SakDTO(
     val saksnummer: String,
@@ -19,7 +19,7 @@ data class SakDTO(
     val fnr: String,
     val behandlingsoversikt: List<SaksoversiktDTO>,
     val meldeperiodeKjeder: List<MeldeperiodeKjedeDTO>,
-    val førsteLovligeStansdato: LocalDate?,
+    val førsteDagSomGirRett: LocalDate?,
     val sisteDagSomGirRett: LocalDate?,
     val søknader: List<SøknadDTO>,
     val behandlinger: List<BehandlingDTO>,
@@ -39,7 +39,7 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
                 .toSaksoversiktDTO()
         ).sortedBy { it.opprettet },
     meldeperiodeKjeder = toMeldeperiodeKjederDTO(clock = clock),
-    førsteLovligeStansdato = førsteLovligeStansdato(),
+    førsteDagSomGirRett = førsteDagSomGirRett,
     sisteDagSomGirRett = sisteDagSomGirRett,
     søknader = soknader.toSøknadDTO(),
     behandlinger = this.tilBehandlingerDTO(),

@@ -148,14 +148,9 @@ fun Sak.utledVedtakstype(behandling: Behandling): Vedtakstype {
                 is RevurderingResultat.Innvilgelse -> Vedtakstype.INNVILGELSE
                 is RevurderingResultat.Stans -> {
                     val revurderingTilOgmed = behandling.virkningsperiode!!.tilOgMed
-                    val sisteUtbetalteMeldekortDag = this.sisteUtbetalteMeldekortDag()
 
                     check(revurderingTilOgmed == sisteDagSomGirRett) {
                         "Kan ikke lage stansvedtak for revurdering - revurderingens tilOgMed ($revurderingTilOgmed) må være lik sakens tilOgMed ($sisteDagSomGirRett)"
-                    }
-
-                    check(sisteUtbetalteMeldekortDag == null || sisteUtbetalteMeldekortDag < behandling.virkningsperiode.fraOgMed) {
-                        "Kan ikke lage stansvedtak for revurdering - godkjent meldekort overlapper revurderingsperioden"
                     }
 
                     Vedtakstype.STANS
