@@ -82,6 +82,7 @@ internal fun TestDataHelper.persisterRevurderingStansTilBeslutning(
     begrunnelse: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("TestDataHelper.persisterRevurderingTilBeslutning"),
     stansDato: LocalDate = ObjectMother.revurderingVirkningsperiode().fraOgMed,
     valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
+    utbetaling: BehandlingUtbetaling? = null,
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, Revurdering> = { s -> this.persisterOpprettetRevurdering(s) },
 ): Pair<Sak, Revurdering> {
@@ -101,6 +102,7 @@ internal fun TestDataHelper.persisterRevurderingStansTilBeslutning(
             ),
             sisteDagSomGirRett = sakMedRevurdering.sisteDagSomGirRett!!,
             clock = clock,
+            utbetaling = utbetaling,
         )
     }.getOrNull()!!.tilBeslutning().let {
         behandlingRepo.lagre(it)

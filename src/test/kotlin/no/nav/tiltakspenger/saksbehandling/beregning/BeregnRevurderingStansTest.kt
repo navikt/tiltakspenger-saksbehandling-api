@@ -1,30 +1,22 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
-import arrow.core.nonEmptyListOf
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.fixedClock
-import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.leggTilMeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyOpprettetRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySakMedVedtak
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Satser
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 
 class BeregnRevurderingStansTest {
     private val sats2024 = Satser.sats(1.januar(2024))
@@ -33,7 +25,7 @@ class BeregnRevurderingStansTest {
     // Starter på en tirsdag
     private val virkningsperiode = Periode(31.desember(2024), 30.juni(2025))
 
-    private fun sakMedToMeldekortOgStans(stansFraOgMed: LocalDate): Pair<Sak, Revurdering> {
+    private fun sakMedToMeldekortOgStans(): Pair<Sak, Revurdering> {
         val (sak) = nySakMedVedtak(
             virkningsperiode = virkningsperiode,
             barnetillegg =
@@ -54,22 +46,7 @@ class BeregnRevurderingStansTest {
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
             virkningsperiode = virkningsperiode,
-        ).let {
-            it.oppdaterStans(
-                OppdaterRevurderingKommando.Stans(
-                    behandlingId = it.id,
-                    sakId = it.sakId,
-                    saksbehandler = saksbehandler(),
-                    correlationId = CorrelationId.generate(),
-                    begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("lol"),
-                    fritekstTilVedtaksbrev = null,
-                    valgteHjemler = nonEmptyListOf(ValgtHjemmelForStans.Alder),
-                    stansFraOgMed = stansFraOgMed,
-                ),
-                sisteDagSomGirRett = virkningsperiode.tilOgMed,
-                clock = fixedClock,
-            )
-        }.getOrFail()
+        )
 
         return sakMedMeldekortBehandlinger.copy(
             behandlinger = sak.behandlinger.leggTilRevurdering(revurdering),
@@ -78,9 +55,9 @@ class BeregnRevurderingStansTest {
 
     @Test
     fun `Skal ikke beregne utbetaling ved stans over kun ikke-utbetalte perioder`() {
-        val (sak, revurdering) = sakMedToMeldekortOgStans(27.januar(2025))
+        val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id)
+        val beregning = sak.beregnRevurderingStans(revurdering.id, 27.januar(2025))
 
         beregning.shouldBeNull()
     }
@@ -88,9 +65,9 @@ class BeregnRevurderingStansTest {
     @Test
     fun `Skal ikke endre utbetalingen ved stans kun over dager uten tidligere utbetaling`() {
         // Stanser lørdag/søndag på andre meldekort
-        val (sak, revurdering) = sakMedToMeldekortOgStans(25.januar(2025))
+        val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id)
+        val beregning = sak.beregnRevurderingStans(revurdering.id, 25.januar(2025))
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 1
@@ -103,9 +80,9 @@ class BeregnRevurderingStansTest {
 
     @Test
     fun `Skal beregne 0-utbetaling for hele virkningperioden når hele perioden stanses`() {
-        val (sak, revurdering) = sakMedToMeldekortOgStans(virkningsperiode.fraOgMed)
+        val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id)
+        val beregning = sak.beregnRevurderingStans(revurdering.id, virkningsperiode.fraOgMed)
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 2
@@ -120,9 +97,9 @@ class BeregnRevurderingStansTest {
 
     @Test
     fun `Skal beregne 0-utbetaling for en utbetalt meldeperiode når denne perioden stanses`() {
-        val (sak, revurdering) = sakMedToMeldekortOgStans(13.januar(2025))
+        val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id)
+        val beregning = sak.beregnRevurderingStans(revurdering.id, 13.januar(2025))
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 1
@@ -136,9 +113,9 @@ class BeregnRevurderingStansTest {
 
     @Test
     fun `Skal beregne redusert utbetaling ved stans midt i siste utbetalte periode`() {
-        val (sak, revurdering) = sakMedToMeldekortOgStans(20.januar(2025))
+        val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id)
+        val beregning = sak.beregnRevurderingStans(revurdering.id, 20.januar(2025))
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 1
@@ -152,9 +129,9 @@ class BeregnRevurderingStansTest {
 
     @Test
     fun `Skal beregne en redusert utbetaling og en 0-utbetaling ved stans midt i første utbetalte periode`() {
-        val (sak, revurdering) = sakMedToMeldekortOgStans(6.januar(2025))
+        val (sak, revurdering) = sakMedToMeldekortOgStans()
 
-        val beregning = sak.beregnRevurderingStans(revurdering.id)
+        val beregning = sak.beregnRevurderingStans(revurdering.id, 6.januar(2025))
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 2

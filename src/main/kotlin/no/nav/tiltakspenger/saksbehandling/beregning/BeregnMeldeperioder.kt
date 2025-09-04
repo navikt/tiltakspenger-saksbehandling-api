@@ -7,6 +7,7 @@ import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
@@ -469,14 +470,14 @@ fun Sak.beregnMeldekort(
     )
 }
 
-fun Sak.beregnRevurderingStans(behandlingId: BehandlingId): BehandlingBeregning? {
+fun Sak.beregnRevurderingStans(behandlingId: BehandlingId, stansFraOgMed: LocalDate): BehandlingBeregning? {
     val behandling = hentBehandling(behandlingId)
 
     require(behandling is Revurdering && behandling.resultat is RevurderingResultat.Stans) {
         "Behandlingen på være en revurdering til stans"
     }
 
-    val stansPeriode = behandling.virkningsperiode!!
+    val stansPeriode = Periode(stansFraOgMed, this.sisteDagSomGirRett!!)
 
     val beregningerSomSkalOppdateres = this.meldeperiodeBeregninger
         .sisteBeregningerForPeriode(stansPeriode)

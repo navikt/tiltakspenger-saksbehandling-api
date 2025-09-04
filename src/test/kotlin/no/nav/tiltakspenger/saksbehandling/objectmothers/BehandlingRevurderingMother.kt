@@ -95,6 +95,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             valgteHjemler = valgteHjemler,
             stansFraOgMed = stansDato,
         ),
+        utbetaling: BehandlingUtbetaling? = null,
     ): Revurdering {
         return this.nyOpprettetRevurderingStans(
             id = id,
@@ -108,6 +109,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             kommando = kommando,
             sisteDagSomGirRett = sisteDagSomGirRett,
             clock = clock,
+            utbetaling = utbetaling,
         ).getOrFail().tilBeslutning(saksbehandler) as Revurdering
     }
 

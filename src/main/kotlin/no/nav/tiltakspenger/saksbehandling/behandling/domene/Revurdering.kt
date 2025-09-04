@@ -125,6 +125,7 @@ data class Revurdering(
     fun oppdaterStans(
         kommando: OppdaterRevurderingKommando.Stans,
         sisteDagSomGirRett: LocalDate,
+        utbetaling: BehandlingUtbetaling?,
         clock: Clock,
     ): Either<KanIkkeOppdatereBehandling, Revurdering> {
         validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
@@ -139,6 +140,7 @@ data class Revurdering(
             resultat = Stans(
                 valgtHjemmel = kommando.valgteHjemler,
             ),
+            utbetaling = utbetaling,
         ).right()
     }
 

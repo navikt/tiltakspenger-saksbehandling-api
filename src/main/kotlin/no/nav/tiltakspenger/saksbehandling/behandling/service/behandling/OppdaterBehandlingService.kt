@@ -10,8 +10,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereBeh
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereBehandling.BehandlingenEiesAvAnnenSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Innvilgelse
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -19,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.validerStansDato
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
@@ -65,12 +64,26 @@ class OppdaterBehandlingService(
         kommando: OppdaterBehandlingKommando,
         behandling: Behandling,
     ): Pair<BehandlingUtbetaling?, SimuleringMedMetadata?> {
-        val innvilgelsesperiode = kommando.innvilgelsesperiode ?: return (null to null)
-        return this.beregnInnvilgelse(
-            behandlingId = kommando.behandlingId,
-            virkningsperiode = innvilgelsesperiode,
-            barnetillegg = kommando.barnetillegg,
-        )?.let {
+        val beregning = when (kommando) {
+            is OppdaterSøknadsbehandlingKommando.Innvilgelse,
+            is OppdaterRevurderingKommando.Innvilgelse,
+            -> this.beregnInnvilgelse(
+                behandlingId = kommando.behandlingId,
+                virkningsperiode = kommando.innvilgelsesperiode!!,
+                barnetillegg = kommando.barnetillegg,
+            )
+
+            is OppdaterRevurderingKommando.Stans -> this.beregnRevurderingStans(
+                behandlingId = kommando.behandlingId,
+                stansFraOgMed = kommando.stansFraOgMed,
+            )
+
+            is OppdaterSøknadsbehandlingKommando.Avslag,
+            is OppdaterSøknadsbehandlingKommando.IkkeValgtResultat,
+            -> null
+        }
+
+        return beregning?.let {
             val navkontor = navkontorService.hentOppfolgingsenhet(this.fnr)
             val simuleringMedMetadata = simulerService.simulerSøknadsbehandlingEllerRevurdering(
                 // Merk at behandlingen vi sender inn her er som den kom fra basen. Kanskje vi heller bare skal sende inn od, sakId, fnr og saksnummer?
@@ -105,7 +118,7 @@ class OppdaterBehandlingService(
         val revurdering: Revurdering = this.hentBehandling(kommando.behandlingId) as Revurdering
 
         return when (kommando) {
-            is Innvilgelse -> {
+            is OppdaterRevurderingKommando.Innvilgelse -> {
                 revurdering.oppdaterInnvilgelse(
                     kommando = kommando,
                     utbetaling = utbetaling,
@@ -113,13 +126,14 @@ class OppdaterBehandlingService(
                 )
             }
 
-            is Stans -> {
+            is OppdaterRevurderingKommando.Stans -> {
                 validerStansDato(kommando.stansFraOgMed)
 
                 revurdering.oppdaterStans(
                     kommando = kommando,
                     sisteDagSomGirRett = sisteDagSomGirRett!!,
                     clock = clock,
+                    utbetaling = utbetaling,
                 )
             }
         }
