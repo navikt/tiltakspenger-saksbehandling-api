@@ -93,6 +93,10 @@ class BeregnRevurderingStansTest {
         val beregning = sak.beregnRevurderingStans(revurdering.id)
 
         beregning.shouldNotBeNull()
+        beregning.size shouldBe 1
+
+        beregning.beregningKilde.id shouldBe revurdering.id
+        beregning[0].meldekortId shouldBe sak.meldekortBehandlinger[1].id
 
         beregning.totalBeløp shouldBe sak.meldekortBehandlinger[1].beløpTotal
     }
@@ -105,6 +109,10 @@ class BeregnRevurderingStansTest {
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 2
+
+        beregning.beregningKilde.id shouldBe revurdering.id
+        beregning[0].meldekortId shouldBe sak.meldekortBehandlinger[0].id
+        beregning[1].meldekortId shouldBe sak.meldekortBehandlinger[1].id
 
         beregning.ordinærBeløp shouldBe 0
         beregning.barnetilleggBeløp shouldBe 0
@@ -119,6 +127,9 @@ class BeregnRevurderingStansTest {
         beregning.shouldNotBeNull()
         beregning.size shouldBe 1
 
+        beregning.beregningKilde.id shouldBe revurdering.id
+        beregning[0].meldekortId shouldBe sak.meldekortBehandlinger[1].id
+
         beregning.ordinærBeløp shouldBe 0
         beregning.barnetilleggBeløp shouldBe 0
     }
@@ -132,6 +143,9 @@ class BeregnRevurderingStansTest {
         beregning.shouldNotBeNull()
         beregning.size shouldBe 1
 
+        beregning.beregningKilde.id shouldBe revurdering.id
+        beregning[0].meldekortId shouldBe sak.meldekortBehandlinger[1].id
+
         beregning.ordinærBeløp shouldBe sats2025.sats * 5
         beregning.barnetilleggBeløp shouldBe sats2025.satsBarnetillegg * 5
     }
@@ -144,6 +158,10 @@ class BeregnRevurderingStansTest {
 
         beregning.shouldNotBeNull()
         beregning.size shouldBe 2
+
+        beregning.beregningKilde.id shouldBe revurdering.id
+        beregning[0].meldekortId shouldBe sak.meldekortBehandlinger[0].id
+        beregning[1].meldekortId shouldBe sak.meldekortBehandlinger[1].id
 
         beregning.ordinærBeløp shouldBe (sats2024.sats * 1) + (sats2025.sats * 3)
         beregning.barnetilleggBeløp shouldBe (sats2024.satsBarnetillegg * 1) + (sats2025.satsBarnetillegg * 3)
