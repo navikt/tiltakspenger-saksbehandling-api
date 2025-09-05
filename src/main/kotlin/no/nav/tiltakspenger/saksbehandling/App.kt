@@ -83,6 +83,7 @@ internal fun start(
         tasks = listOf<suspend () -> Any>(
             { applicationContext.delautomatiskSoknadsbehandlingJobb.opprettBehandlingForNyeSoknader() },
             { applicationContext.delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk() },
+            { applicationContext.utbetalingContext.sendUtbetalingerService.send() },
             { applicationContext.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus() },
             { applicationContext.utbetalingContext.journalførMeldekortVedtakService.journalfør() },
             { applicationContext.behandlingContext.journalførVedtaksbrevService.journalfør() },
@@ -103,12 +104,6 @@ internal fun start(
                 )
             } else {
                 it
-            }.let {
-                if (!Configuration.isDev()) {
-                    it.plus({ applicationContext.utbetalingContext.sendUtbetalingerService.send() })
-                } else {
-                    it
-                }
             }
         },
     )
