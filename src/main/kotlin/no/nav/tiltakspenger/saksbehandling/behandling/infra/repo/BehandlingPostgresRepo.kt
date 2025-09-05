@@ -128,7 +128,13 @@ class BehandlingPostgresRepo(
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
                 sqlQuery(
-                    """update behandling set saksbehandler = :saksbehandler, status = :status where id = :id and saksbehandler is null""",
+                    """
+                    update behandling set
+                        saksbehandler = :saksbehandler,
+                        status = :status,
+                        beslutter = CASE WHEN beslutter = :saksbehandler THEN null ELSE beslutter END                              
+                    where id = :id and saksbehandler is null
+                    """,
                     "id" to behandlingId.toString(),
                     "saksbehandler" to saksbehandler.navIdent,
                     "status" to behandlingsstatus.toDb(),
@@ -170,7 +176,12 @@ class BehandlingPostgresRepo(
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
                 sqlQuery(
-                    """update behandling set saksbehandler = :nySaksbehandler where id = :id and saksbehandler = :lagretSaksbehandler""",
+                    """
+                    update behandling set
+                        saksbehandler = :nySaksbehandler,
+                        beslutter = CASE WHEN beslutter = :nySaksbehandler THEN null ELSE beslutter END
+                    where id = :id and saksbehandler = :lagretSaksbehandler
+                    """,
                     "id" to behandlingId.toString(),
                     "nySaksbehandler" to nySaksbehandler.navIdent,
                     "lagretSaksbehandler" to nåværendeSaksbehandler,

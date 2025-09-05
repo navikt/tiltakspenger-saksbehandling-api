@@ -1,8 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.common.NonBlankString
+import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.plus
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -11,14 +16,23 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.felles.Attestering
+import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
+import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAutomatiskSøknadsbehandlingUnderBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBeslutningSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingStansTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
+import no.nav.tiltakspenger.saksbehandling.objectmothers.KlokkeMother.clock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandlerOgBeslutter
 import org.junit.jupiter.api.Test
+import java.time.temporal.ChronoUnit
 
 internal class BehandlingPostgresRepoTest {
 
@@ -95,10 +109,89 @@ internal class BehandlingPostgresRepoTest {
     }
 
     @Test
+    fun `en beslutter kan underkjenne en automatisk behandling og så ta behandlingen selv`() {
+        withMigratedDb { testDataHelper ->
+            val behandlingRepo = testDataHelper.behandlingRepo
+            val beslutter = saksbehandlerOgBeslutter()
+
+            val underkjentBehandling = testDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning(
+                beslutter = beslutter,
+            ).second.underkjenn(
+                utøvendeBeslutter = beslutter,
+                attestering = Attestering(
+                    id = AttesteringId.random(),
+                    status = Attesteringsstatus.SENDT_TILBAKE,
+                    begrunnelse = NonBlankString.create("fordi"),
+                    beslutter = beslutter.navIdent,
+                    tidspunkt = nå(clock),
+                ),
+            ).also {
+                behandlingRepo.lagre(it)
+            }
+
+            val behandlingId = underkjentBehandling.id
+
+            behandlingRepo.hent(behandlingId).taBehandling(
+                saksbehandler = beslutter,
+            )
+
+            val harTatt = behandlingRepo.taBehandlingSaksbehandler(behandlingId, beslutter, Behandlingsstatus.UNDER_BEHANDLING)
+            harTatt shouldBe true
+
+            val behandling = behandlingRepo.hent(behandlingId)
+
+            behandling.saksbehandler shouldBe beslutter.navIdent
+            behandling.beslutter.shouldBeNull()
+        }
+    }
+
+    @Test
+    fun `en beslutter kan underkjenne en manuell behandling og så overta behandlingen selv`() {
+        withMigratedDb { testDataHelper ->
+            val behandlingRepo = testDataHelper.behandlingRepo
+            val saksbehandler = saksbehandler()
+            val beslutter = saksbehandlerOgBeslutter()
+
+            val underkjentBehandling = testDataHelper.persisterUnderBeslutningSøknadsbehandling(
+                saksbehandler = saksbehandler,
+                beslutter = beslutter,
+            ).second.underkjenn(
+                utøvendeBeslutter = beslutter,
+                attestering = Attestering(
+                    id = AttesteringId.random(),
+                    status = Attesteringsstatus.SENDT_TILBAKE,
+                    begrunnelse = NonBlankString.create("fordi"),
+                    beslutter = beslutter.navIdent,
+                    tidspunkt = nå(clock),
+                ),
+            ).also {
+                behandlingRepo.lagre(it)
+            }
+
+            val behandlingId = underkjentBehandling.id
+
+            val clockOmToMinutter = clock.plus(2L, ChronoUnit.MINUTES)
+
+            behandlingRepo.hent(behandlingId).overta(
+                saksbehandler = beslutter,
+                clock = clockOmToMinutter,
+            ).getOrFail()
+
+            val harOvertatt = behandlingRepo.overtaSaksbehandler(behandlingId, beslutter, saksbehandler.navIdent)
+            harOvertatt shouldBe true
+
+            val behandling = behandlingRepo.hent(behandlingId)
+
+            behandling.saksbehandler shouldBe beslutter.navIdent
+            behandling.beslutter.shouldBeNull()
+        }
+    }
+
+    @Test
     fun `en beslutter kan ta behandling`() {
         withMigratedDb { testDataHelper ->
             val behandlingRepo = testDataHelper.behandlingRepo
-            val beslutter = ObjectMother.beslutter()
+            val beslutter = beslutter()
             val (_, behandling) = testDataHelper.persisterKlarTilBeslutningSøknadsbehandling()
 
             behandling.beslutter shouldBe null
@@ -125,7 +218,7 @@ internal class BehandlingPostgresRepoTest {
     fun `en beslutter kan overta behandlingen`() {
         withMigratedDb { testDataHelper ->
             val behandlingRepo = testDataHelper.behandlingRepo
-            val nyBeslutter = ObjectMother.beslutter("nyBeslutter")
+            val nyBeslutter = beslutter("nyBeslutter")
             val (_, behandling) = testDataHelper.persisterUnderBeslutningSøknadsbehandling()
 
             behandling.beslutter shouldNotBe null

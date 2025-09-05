@@ -69,13 +69,13 @@ class BehandlingService(
 
         // Denne validerer saksbehandler
         return behandling.underkjenn(beslutter, attestering).let {
-            val statistikk = statistikkSakService.genererStatistikkForUnderkjennBehandling(it)
-            sessionFactory.withTransactionContext { tx ->
-                behandlingRepo.lagre(it, tx)
-                statistikkSakRepo.lagre(statistikk, tx)
-            }
+            val oppdatertSak = sak.oppdaterBehandling(it)
 
-            Pair(sak, it)
+            val statistikk = statistikkSakService.genererStatistikkForUnderkjennBehandling(it)
+
+            lagreMedStatistikk(it, statistikk)
+
+            oppdatertSak to it
         }.right()
     }
 

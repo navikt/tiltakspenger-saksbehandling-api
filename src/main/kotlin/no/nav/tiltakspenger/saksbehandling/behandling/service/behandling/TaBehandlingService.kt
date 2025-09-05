@@ -35,37 +35,38 @@ class TaBehandlingService(
             val oppdatertSak = sak.oppdaterBehandling(it)
             val statistikk = statistikkSakService.genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(it)
 
-            when (it.status) {
-                Behandlingsstatus.UNDER_BEHANDLING -> {
-                    sessionFactory.withTransactionContext { tx ->
+            sessionFactory.withTransactionContext { tx ->
+                when (it.status) {
+                    Behandlingsstatus.UNDER_BEHANDLING -> {
                         behandlingRepo.taBehandlingSaksbehandler(
                             it.id,
                             saksbehandler,
                             it.status,
                             tx,
                         )
-                        statistikkSakRepo.lagre(statistikk, tx)
                     }
-                }
 
-                Behandlingsstatus.UNDER_BESLUTNING -> {
-                    sessionFactory.withTransactionContext { tx ->
+                    Behandlingsstatus.UNDER_BESLUTNING -> {
                         behandlingRepo.taBehandlingBeslutter(
                             it.id,
                             saksbehandler,
                             it.status,
                             tx,
                         )
-                        statistikkSakRepo.lagre(statistikk, tx)
                     }
-                }
 
-                Behandlingsstatus.KLAR_TIL_BESLUTNING,
-                Behandlingsstatus.KLAR_TIL_BEHANDLING,
-                Behandlingsstatus.VEDTATT,
-                Behandlingsstatus.AVBRUTT,
-                Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
-                -> throw IllegalStateException("Behandlingen er i en ugyldig status for å kunne overta")
+                    Behandlingsstatus.KLAR_TIL_BESLUTNING,
+                    Behandlingsstatus.KLAR_TIL_BEHANDLING,
+                    Behandlingsstatus.VEDTATT,
+                    Behandlingsstatus.AVBRUTT,
+                    Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
+                    -> throw IllegalStateException("Behandlingen er i en ugyldig status for å kunne ta behandling")
+                }.also { harOvertatt ->
+                    if (!harOvertatt) {
+                        throw IllegalStateException("Behandlingen ble ikke oppdatert i databasen")
+                    }
+                    statistikkSakRepo.lagre(statistikk, tx)
+                }
             }
 
             oppdatertSak to it

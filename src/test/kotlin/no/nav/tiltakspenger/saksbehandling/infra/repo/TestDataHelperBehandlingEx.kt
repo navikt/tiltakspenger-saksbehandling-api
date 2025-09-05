@@ -25,11 +25,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -157,6 +159,87 @@ internal fun TestDataHelper.persisterOpprettetAutomatiskSøknadsbehandling(
         sakMedBehandling.behandlinger.singleOrNullOrThrow()!! as Søknadsbehandling,
         søknadRepo.hentForSøknadId(søknad.id)!!,
     )
+}
+
+internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning(
+    sakId: SakId = SakId.random(),
+    fnr: Fnr = Fnr.random(),
+    deltakelseFom: LocalDate = 1.januar(2023),
+    deltakelseTom: LocalDate = 31.mars(2023),
+    journalpostId: String = Random.nextInt().toString(),
+    tiltaksOgVurderingsperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
+    sak: Sak = ObjectMother.nySak(
+        sakId = sakId,
+        fnr = fnr,
+        saksnummer = this.saksnummerGenerator.neste(),
+    ),
+    id: SøknadId = Søknad.randomId(),
+    søknad: Søknad = ObjectMother.nySøknad(
+        periode = tiltaksOgVurderingsperiode,
+        journalpostId = journalpostId,
+        personopplysninger =
+        ObjectMother.personSøknad(
+            fnr = fnr,
+        ),
+        id = id,
+        søknadstiltak =
+        ObjectMother.søknadstiltak(
+            deltakelseFom = deltakelseFom,
+            deltakelseTom = deltakelseTom,
+        ),
+        barnetillegg = listOf(),
+        sakId = sak.id,
+        saksnummer = sak.saksnummer,
+    ),
+    clock: Clock = this.clock,
+    beslutter: Saksbehandler = ObjectMother.beslutter(),
+): Pair<Sak, Behandling> {
+    val (_, behandling) = persisterOpprettetAutomatiskSøknadsbehandling(
+        sakId = sakId,
+        fnr = fnr,
+        deltakelseFom = deltakelseFom,
+        deltakelseTom = deltakelseTom,
+        journalpostId = journalpostId,
+        tiltaksOgVurderingsperiode = tiltaksOgVurderingsperiode,
+        sak = sak,
+        id = id,
+        søknad = søknad,
+        clock = clock,
+    )
+
+    val klarTilBeslutning = behandling.oppdater(
+        kommando = OppdaterSøknadsbehandlingKommando.Innvilgelse(
+            sakId = sakId,
+            behandlingId = behandling.id,
+            saksbehandler = AUTOMATISK_SAKSBEHANDLER,
+            correlationId = CorrelationId.generate(),
+            fritekstTilVedtaksbrev = null,
+            begrunnelseVilkårsvurdering = null,
+            automatiskSaksbehandlet = true,
+            tiltaksdeltakelser = listOf(
+                Pair(
+                    behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
+                    behandling.søknad.tiltak.id,
+                ),
+            ),
+            innvilgelsesperiode = tiltaksOgVurderingsperiode,
+            barnetillegg = null,
+            antallDagerPerMeldeperiode = SammenhengendePeriodisering(
+                AntallDagerForMeldeperiode(10),
+                behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
+            ),
+        ),
+        clock = clock,
+        utbetaling = null,
+    ).getOrFail().tilBeslutning(saksbehandler = AUTOMATISK_SAKSBEHANDLER)
+
+    behandlingRepo.lagre(klarTilBeslutning)
+
+    val tilBeslutning = behandlingRepo.hent(behandling.id).taBehandling(beslutter)
+
+    behandlingRepo.taBehandlingBeslutter(tilBeslutning.id, beslutter, tilBeslutning.status)
+
+    return sakRepo.hentForSakId(sakId)!! to behandlingRepo.hent(behandling.id)
 }
 
 internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
