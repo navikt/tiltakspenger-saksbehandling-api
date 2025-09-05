@@ -4,7 +4,6 @@ import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.libs.periodisering.overlapper
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket
@@ -43,7 +42,7 @@ private fun Sak.beregnMeldeperioderPåNytt(
     virkningsperiode: Periode,
     barnetillegg: Barnetillegg?,
 ): NonEmptyList<MeldeperiodeBeregning>? {
-    if (!this.utbetalinger.perioder.overlapper(virkningsperiode)) {
+    if (!utbetalinger.harUtbetalingIPeriode(virkningsperiode)) {
         // Hvis vi ikke har utbetalt noe i denne perioden, trenger vi ikke beregne/simulere.
         return null
     }

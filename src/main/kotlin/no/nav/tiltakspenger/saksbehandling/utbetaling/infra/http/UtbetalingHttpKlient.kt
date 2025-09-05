@@ -69,7 +69,7 @@ class UtbetalingHttpKlient(
         return withContext(Dispatchers.IO) {
             Either.catch {
                 val token = getToken()
-                val jsonPayload = utbetaling.toDTO(forrigeUtbetalingJson)
+                val jsonPayload = utbetaling.toUtbetalingRequestDTO(forrigeUtbetalingJson)
                 val request = createIverksettRequest(correlationId, jsonPayload, token.token)
 
                 val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()

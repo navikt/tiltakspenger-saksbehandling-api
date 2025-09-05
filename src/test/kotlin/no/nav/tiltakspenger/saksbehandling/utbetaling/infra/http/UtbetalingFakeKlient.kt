@@ -34,7 +34,7 @@ class UtbetalingFakeKlient(
         correlationId: CorrelationId,
     ): Either<KunneIkkeUtbetale, SendtUtbetaling> {
         val response = SendtUtbetaling(
-            utbetaling.toDTO(forrigeUtbetalingJson),
+            utbetaling.toUtbetalingRequestDTO(forrigeUtbetalingJson),
             "response - ${utbetaling.id}",
             responseStatus = 202,
         )

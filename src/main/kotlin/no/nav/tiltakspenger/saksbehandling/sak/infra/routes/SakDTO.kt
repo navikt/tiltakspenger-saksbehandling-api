@@ -7,6 +7,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperi
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toSøknadDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.VedtattUtbetalingDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.toVedtakUtbetalingDTO
 import java.time.Clock
 import java.time.LocalDate
 
@@ -24,6 +26,7 @@ data class SakDTO(
     val søknader: List<SøknadDTO>,
     val behandlinger: List<BehandlingDTO>,
     val tidslinje: List<RammevedtakDTO>,
+    val utbetalingstidslinje: List<VedtattUtbetalingDTO>,
 )
 
 fun Sak.toSakDTO(clock: Clock) = SakDTO(
@@ -44,4 +47,5 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     søknader = soknader.toSøknadDTO(),
     behandlinger = this.tilBehandlingerDTO(),
     tidslinje = vedtaksliste.tidslinje.perioderMedVerdi.map { it.tilPeriodisertRammevedtakDTO() },
+    utbetalingstidslinje = utbetalinger.tidslinje.map { it.verdi.toVedtakUtbetalingDTO() }.verdier,
 )

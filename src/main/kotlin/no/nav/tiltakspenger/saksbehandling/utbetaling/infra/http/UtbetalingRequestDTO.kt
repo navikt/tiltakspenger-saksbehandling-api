@@ -22,7 +22,7 @@ import kotlin.collections.fold
 /**
  * @param forrigeUtbetalingJson Forrige utbetaling vi sendte til helved. Siden vi må sende alle utbetalinger på nytt, må vi sende med alle utbetalinger vi har sendt tidligere.
  */
-fun VedtattUtbetaling.toDTO(
+fun VedtattUtbetaling.toUtbetalingRequestDTO(
     forrigeUtbetalingJson: String?,
 ): String {
     return IverksettV2Dto(

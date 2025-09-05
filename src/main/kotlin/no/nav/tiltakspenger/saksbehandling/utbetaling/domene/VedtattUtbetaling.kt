@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.UlidBase
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
@@ -42,7 +43,7 @@ data class VedtattUtbetaling(
     val saksnummer: Saksnummer,
     val fnr: Fnr,
     val brukerNavkontor: Navkontor,
-    val opprettet: LocalDateTime,
+    override val opprettet: LocalDateTime,
     val saksbehandler: String,
     val beslutter: String,
     val beregning: UtbetalingBeregning,
@@ -50,8 +51,8 @@ data class VedtattUtbetaling(
     val sendtTilUtbetaling: LocalDateTime?,
     val status: Utbetalingsstatus?,
     val statusMetadata: Forsøkshistorikk,
-) {
-    val periode: Periode = beregning.periode
+) : Periodiserbar {
+    override val periode: Periode = beregning.periode
 
     val beregningKilde: BeregningKilde = beregning.beregningKilde
 

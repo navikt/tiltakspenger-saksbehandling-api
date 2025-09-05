@@ -108,7 +108,7 @@ class UtbetalingDTOKorrigeringTest {
             ).toNonEmptyListOrNull()!!,
         )
 
-        val førsteJson = førsteUtbetalingsvedtak.utbetaling.toDTO(null)
+        val førsteJson = førsteUtbetalingsvedtak.utbetaling.toUtbetalingRequestDTO(null)
 
         @Language("JSON")
         val forventetKorrigertJson =
@@ -155,7 +155,7 @@ class UtbetalingDTOKorrigeringTest {
             }
             """.trimIndent()
 
-        korrigertUtbetalingsvedtak.utbetaling.toDTO(førsteJson).shouldEqualJson(forventetKorrigertJson)
+        korrigertUtbetalingsvedtak.utbetaling.toUtbetalingRequestDTO(førsteJson).shouldEqualJson(forventetKorrigertJson)
     }
 
     @Test
@@ -227,8 +227,8 @@ class UtbetalingDTOKorrigeringTest {
             dager = korrigerteDager,
         )
 
-        val førsteJson = førsteUtbetalingsvedtak.utbetaling.toDTO(null)
-        val andreJson = andreUtbetalingsvedtak.utbetaling.toDTO(førsteJson)
+        val førsteJson = førsteUtbetalingsvedtak.utbetaling.toUtbetalingRequestDTO(null)
+        val andreJson = andreUtbetalingsvedtak.utbetaling.toUtbetalingRequestDTO(førsteJson)
 
         @Language("JSON")
         val forventetKorrigertJson =
@@ -299,7 +299,7 @@ class UtbetalingDTOKorrigeringTest {
             }
             """.trimIndent()
 
-        val korrigertJson = korrigertUtbetalingsvedtak.utbetaling.toDTO(andreJson)
+        val korrigertJson = korrigertUtbetalingsvedtak.utbetaling.toUtbetalingRequestDTO(andreJson)
 
         korrigertJson.shouldEqualJson(forventetKorrigertJson)
     }
@@ -356,7 +356,7 @@ class UtbetalingDTOKorrigeringTest {
             ).toNonEmptyListOrNull()!!,
         )
 
-        val førsteJson = førsteUtbetalingsvedtak.utbetaling.toDTO(null)
+        val førsteJson = førsteUtbetalingsvedtak.utbetaling.toUtbetalingRequestDTO(null)
 
         @Language("JSON")
         val forventetKorrigertJson =
@@ -391,7 +391,7 @@ class UtbetalingDTOKorrigeringTest {
             }
             """.trimIndent()
 
-        korrigertUtbetalingsvedtak.utbetaling.toDTO(førsteJson).shouldEqualJson(forventetKorrigertJson)
+        korrigertUtbetalingsvedtak.utbetaling.toUtbetalingRequestDTO(førsteJson).shouldEqualJson(forventetKorrigertJson)
     }
 
     @Test
@@ -446,7 +446,7 @@ class UtbetalingDTOKorrigeringTest {
             ).toNonEmptyListOrNull()!!,
         )
 
-        val førsteJson = førsteUtbetalingsvedtak.utbetaling.toDTO(null)
+        val førsteJson = førsteUtbetalingsvedtak.utbetaling.toUtbetalingRequestDTO(null)
 
         @Language("JSON")
         val forventetKorrigertJson =
@@ -468,6 +468,6 @@ class UtbetalingDTOKorrigeringTest {
             }
             """.trimIndent()
 
-        korrigertUtbetalingsvedtak.utbetaling.toDTO(førsteJson).shouldEqualJson(forventetKorrigertJson)
+        korrigertUtbetalingsvedtak.utbetaling.toUtbetalingRequestDTO(førsteJson).shouldEqualJson(forventetKorrigertJson)
     }
 }

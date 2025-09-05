@@ -3,8 +3,16 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.leggSammen
+import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 
+/**
+ * Inneholder alle utbetalinger (som er en konsekvens av et vedtak).
+ * De vil stamme både fra meldekortvedtak, søknadsbehandlingsvedtak og revurderingsvedtak.
+ * Merk at de er sortert på opprettet dato.
+ * En nyere utbetaling kan overlappe en tidligere og vil da erstatte den overlappende delen.
+ */
 data class Utbetalinger(
     val verdi: List<VedtattUtbetaling>,
 ) : List<VedtattUtbetaling> by verdi {
@@ -14,6 +22,14 @@ data class Utbetalinger(
      */
     val perioder: List<Periode> by lazy {
         verdi.map { it.periode }.leggSammen(godtaOverlapp = true)
+    }
+
+    val tidslinje: Periodisering<VedtattUtbetaling> by lazy {
+        verdi.toTidslinje()
+    }
+
+    fun harUtbetalingIPeriode(periode: Periode): Boolean {
+        return perioder.any { it.overlapperMed(periode) }
     }
 
     private val utbetalingerMap: Map<Ulid, VedtattUtbetaling> by lazy {
