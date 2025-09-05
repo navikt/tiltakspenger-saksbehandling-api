@@ -1,14 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
+import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingerDTO
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.BeløpDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjederDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toSøknadDTO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.VedtattUtbetalingDTO
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.toVedtakUtbetalingDTO
 import java.time.Clock
 import java.time.LocalDate
 
@@ -26,7 +26,7 @@ data class SakDTO(
     val søknader: List<SøknadDTO>,
     val behandlinger: List<BehandlingDTO>,
     val tidslinje: List<RammevedtakDTO>,
-    val utbetalingstidslinje: List<VedtattUtbetalingDTO>,
+    val utbetalingstidslinje: List<UtbetalingstidslinjeMeldeperiodeDTO>,
 )
 
 fun Sak.toSakDTO(clock: Clock) = SakDTO(
@@ -47,5 +47,19 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     søknader = soknader.toSøknadDTO(),
     behandlinger = this.tilBehandlingerDTO(),
     tidslinje = vedtaksliste.tidslinje.perioderMedVerdi.map { it.tilPeriodisertRammevedtakDTO() },
-    utbetalingstidslinje = utbetalinger.tidslinje.map { it.verdi.toVedtakUtbetalingDTO() }.verdier,
+    utbetalingstidslinje = utbetalinger.tidslinje.perioderMedVerdi.flatMap { (utbetaling, periode) ->
+        utbetaling.beregning.beregninger
+            .filter { it.periode.overlapperMed(periode) }
+            .map { meldeperiodeberegning ->
+                UtbetalingstidslinjeMeldeperiodeDTO(
+                    kjedeId = meldeperiodeberegning.kjedeId.verdi,
+                    periode = meldeperiodeberegning.periode.toDTO(),
+                    beløp = BeløpDTO(
+                        totalt = meldeperiodeberegning.totalBeløp,
+                        ordinært = meldeperiodeberegning.ordinærBeløp,
+                        barnetillegg = meldeperiodeberegning.barnetilleggBeløp,
+                    ),
+                )
+            }
+    },
 )
