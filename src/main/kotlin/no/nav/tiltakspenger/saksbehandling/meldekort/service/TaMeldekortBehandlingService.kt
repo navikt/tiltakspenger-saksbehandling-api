@@ -39,6 +39,10 @@ class TaMeldekortBehandlingService(
                 MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
                 MeldekortBehandlingStatus.AVBRUTT,
                 -> throw IllegalStateException("Meldekortbehandlingen er i en ugyldig status for å kunne tildele seg selv")
+            }.also { harOvertatt ->
+                require(harOvertatt) {
+                    "Oppdatering av saksbehandler i db feilet ved ta meldekortbehandling for $meldekortId"
+                }
             }
         }
     }

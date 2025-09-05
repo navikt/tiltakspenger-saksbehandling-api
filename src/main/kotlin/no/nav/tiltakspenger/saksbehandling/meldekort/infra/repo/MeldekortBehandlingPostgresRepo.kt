@@ -239,13 +239,16 @@ class MeldekortBehandlingPostgresRepo(
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
-                queryOf(
-                    """update meldekortbehandling set saksbehandler = :nySaksbehandler where id = :id and saksbehandler = :lagretSaksbehandler""",
-                    mapOf(
-                        "id" to meldekortId.toString(),
-                        "nySaksbehandler" to nySaksbehandler.navIdent,
-                        "lagretSaksbehandler" to nåværendeSaksbehandler,
-                    ),
+                sqlQuery(
+                    """
+                    update meldekortbehandling set
+                        saksbehandler = :nySaksbehandler,
+                        beslutter = CASE WHEN beslutter = :nySaksbehandler THEN null ELSE beslutter END
+                    where id = :id and saksbehandler = :lagretSaksbehandler
+                    """,
+                    "id" to meldekortId.toString(),
+                    "nySaksbehandler" to nySaksbehandler.navIdent,
+                    "lagretSaksbehandler" to nåværendeSaksbehandler,
                 ).asUpdate,
             ) > 0
         }
@@ -279,13 +282,17 @@ class MeldekortBehandlingPostgresRepo(
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
-                queryOf(
-                    """update meldekortbehandling set saksbehandler = :saksbehandler, status = :status where id = :id and saksbehandler is null""",
-                    mapOf(
-                        "id" to meldekortId.toString(),
-                        "saksbehandler" to saksbehandler.navIdent,
-                        "status" to meldekortBehandlingStatus.toDb(),
-                    ),
+                sqlQuery(
+                    """
+                    update meldekortbehandling set
+                        saksbehandler = :saksbehandler,
+                        status = :status,
+                        beslutter = CASE WHEN beslutter = :saksbehandler THEN null ELSE beslutter END
+                    where id = :id and saksbehandler is null
+                    """,
+                    "id" to meldekortId.toString(),
+                    "saksbehandler" to saksbehandler.navIdent,
+                    "status" to meldekortBehandlingStatus.toDb(),
                 ).asUpdate,
             ) > 0
         }

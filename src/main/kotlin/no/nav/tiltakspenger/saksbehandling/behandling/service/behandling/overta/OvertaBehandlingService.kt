@@ -59,8 +59,8 @@ class OvertaBehandlingService(
                     Behandlingsstatus.UNDER_AUTOMATISK_BEHANDLING,
                     -> throw IllegalStateException("Behandlingen er i en ugyldig status for å kunne overta")
                 }.also { harOvertatt ->
-                    if (!harOvertatt) {
-                        throw IllegalStateException("Behandlingen ble ikke oppdatert i databasen")
+                    require(harOvertatt) {
+                        "Oppdatering av saksbehandler i db feilet ved ta behandling for $behandlingId"
                     }
                     statistikkSakRepo.lagre(statistikk, tx)
                 }

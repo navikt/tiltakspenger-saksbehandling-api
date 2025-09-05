@@ -30,6 +30,10 @@ class OvertaMeldekortBehandlingService(
                 MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET,
                 MeldekortBehandlingStatus.AVBRUTT,
                 -> throw IllegalStateException("Meldekortbehandlingen er i en ugyldig status for å kunne overta")
+            }.also { harOvertatt ->
+                require(harOvertatt) {
+                    "Oppdatering av saksbehandler i db feilet ved overta meldekortbehandling for ${command.meldekortId}"
+                }
             }
         }
     }
