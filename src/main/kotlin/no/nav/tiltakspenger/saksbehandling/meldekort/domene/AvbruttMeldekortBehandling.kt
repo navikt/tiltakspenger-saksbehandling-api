@@ -16,6 +16,11 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.LocalDateTime
 
+/**
+ * Gjelder tilstandene: AVBRUTT og IKKE_RETT_TIL_TILTAKSPENGER.
+ * AVBRUTT brukes når en saksbehandler manuelt avbryter en meldekortbehandling.
+ * IKKE_RETT_TIL_TILTAKSPENGER brukes når systemet automatisk avbryter en meldekortbehandling fordi perioden ikke lenger gir rett til tiltakspenger.
+ */
 data class AvbruttMeldekortBehandling(
     override val id: MeldekortId,
     override val sakId: SakId,
@@ -56,5 +61,9 @@ data class AvbruttMeldekortBehandling(
 
     override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
         throw IllegalStateException("Kan ikke legge tilbake avbrutt meldekortbehandling")
+    }
+
+    override fun oppdaterSimulering(simulering: Simulering?): MeldekortBehandling {
+        throw IllegalStateException("Kan ikke oppdatere simulering på avbrutt meldekortbehandling")
     }
 }

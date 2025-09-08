@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.forhåndsvisVedtaksbrevRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.iverksettBehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.underkjennBehandlingRoute
+import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaBehandlingService
@@ -35,6 +36,7 @@ fun Route.behandlingRoutes(
     oppdaterBehandlingService: OppdaterBehandlingService,
     settBehandlingPåVentService: SettBehandlingPåVentService,
     gjenopptaBehandlingService: GjenopptaBehandlingService,
+    oppdaterSimuleringService: OppdaterSimuleringService,
     tilgangskontrollService: TilgangskontrollService,
 ) {
     hentBehandlingRoute(behandlingService, auditService, tilgangskontrollService)
@@ -51,4 +53,5 @@ fun Route.behandlingRoutes(
     oppdaterBehandlingRoute(oppdaterBehandlingService, auditService, tilgangskontrollService)
     settBehandlingPåVentRoute(auditService, settBehandlingPåVentService, tilgangskontrollService)
     gjenopptaBehandling(auditService, gjenopptaBehandlingService, tilgangskontrollService)
+    oppdaterSimuleringRoute(oppdaterSimuleringService, auditService, tilgangskontrollService)
 }

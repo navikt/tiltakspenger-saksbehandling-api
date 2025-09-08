@@ -32,11 +32,11 @@ import java.time.Clock
 import java.time.LocalDateTime
 
 /**
+ * Tilstandene (KLAR_TIL_BESLUTNING, UNDER_BESLUTNING, GODKJENT)
  * Meldekort utfylt av saksbehandler og sendt til beslutning eller godkjent av beslutter.
- * Når veileder/bruker har fylt ut meldekortet vil ikke denne klassen kunne gjenbrukes uten endringer. Kanskje vi må ha en egen klasse for veileder-/brukerutfylt meldekort.
  *
- * @param saksbehandler: Obligatorisk dersom meldekortet er utfylt av saksbehandler.
- * @param beslutter: Obligatorisk dersom meldekortet er godkjent av beslutter.
+ * @param saksbehandler Obligatorisk dersom meldekortet er utfylt av saksbehandler.
+ * @param beslutter Obligatorisk dersom meldekortet er godkjent av beslutter.
  */
 data class MeldekortBehandletManuelt(
     override val id: MeldekortId,
@@ -262,6 +262,10 @@ data class MeldekortBehandletManuelt(
                 )
             }
         }
+    }
+
+    override fun oppdaterSimulering(simulering: Simulering?): MeldekortBehandling {
+        throw IllegalStateException("Kan ikke oppdatere simulering for status $status. SakId: $sakId, meldekortId: $id")
     }
 
     fun tilUnderBehandling(

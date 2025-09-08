@@ -37,6 +37,7 @@ fun Route.routes(
             oppdaterBehandlingService = applicationContext.behandlingContext.oppdaterBehandlingService,
             settBehandlingPåVentService = applicationContext.behandlingContext.settBehandlingPåVentService,
             gjenopptaBehandlingService = applicationContext.behandlingContext.gjenopptaBehandlingService,
+            oppdaterSimuleringService = applicationContext.behandlingContext.oppdaterSimuleringService,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
         )
         hentBenkRoute(

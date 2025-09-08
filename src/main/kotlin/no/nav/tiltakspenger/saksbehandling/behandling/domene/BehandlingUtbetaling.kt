@@ -11,4 +11,6 @@ data class BehandlingUtbetaling(
     val beregning: BehandlingBeregning,
     val navkontor: Navkontor,
     val simulering: Simulering?,
-)
+) {
+    fun oppdaterSimulering(nySimulering: Simulering?) = copy(simulering = nySimulering)
+}

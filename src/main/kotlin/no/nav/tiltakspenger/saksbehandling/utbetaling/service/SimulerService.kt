@@ -1,12 +1,17 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
+import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.beregning.BehandlingBeregning
+import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
@@ -31,19 +36,16 @@ class SimulerService(
         meldeperiodeKjeder: MeldeperiodeKjeder,
         brukersNavkontor: (suspend () -> Navkontor)?,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
-        return utbetalingsklient.simuler(
+        return simuler(
             sakId = behandling.sakId,
             saksnummer = behandling.saksnummer,
             behandlingId = behandling.id,
             fnr = behandling.fnr,
             saksbehandler = behandling.saksbehandler!!,
             beregning = behandling.beregning!!,
-            brukersNavkontor = if (brukersNavkontor != null) brukersNavkontor() else navkontorService.hentOppfolgingsenhet(behandling.fnr),
-            forrigeUtbetalingJson = forrigeUtbetaling?.let {
-                utbetalingRepo.hentUtbetalingJson(it.id)
-            },
-            forrigeUtbetalingId = forrigeUtbetaling?.id,
+            forrigeUtbetaling = forrigeUtbetaling,
             meldeperiodeKjeder = meldeperiodeKjeder,
+            brukersNavkontor = brukersNavkontor,
         )
     }
 
@@ -61,14 +63,38 @@ class SimulerService(
         saksbehandler: String,
         brukersNavkontor: (suspend () -> Navkontor)?,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
-        return utbetalingsklient.simuler(
+        return simuler(
             sakId = behandling.sakId,
             saksnummer = behandling.saksnummer,
             behandlingId = behandling.id,
             fnr = behandling.fnr,
             saksbehandler = saksbehandler,
             beregning = beregning,
-            brukersNavkontor = if (brukersNavkontor != null) brukersNavkontor() else navkontorService.hentOppfolgingsenhet(behandling.fnr),
+            forrigeUtbetaling = forrigeUtbetaling,
+            meldeperiodeKjeder = meldeperiodeKjeder,
+            brukersNavkontor = brukersNavkontor,
+        )
+    }
+
+    suspend fun simuler(
+        sakId: SakId,
+        saksnummer: Saksnummer,
+        behandlingId: Ulid,
+        fnr: Fnr,
+        beregning: UtbetalingBeregning,
+        forrigeUtbetaling: VedtattUtbetaling?,
+        meldeperiodeKjeder: MeldeperiodeKjeder,
+        saksbehandler: String,
+        brukersNavkontor: (suspend () -> Navkontor)?,
+    ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
+        return utbetalingsklient.simuler(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            behandlingId = behandlingId,
+            fnr = fnr,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
+            brukersNavkontor = if (brukersNavkontor != null) brukersNavkontor() else navkontorService.hentOppfolgingsenhet(fnr),
             forrigeUtbetalingJson = forrigeUtbetaling?.let {
                 utbetalingRepo.hentUtbetalingJson(it.id)
             },
