@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val jvmVersion = JvmTarget.JVM_21
 val kotlinxCoroutinesVersion = "1.10.2"
-val kotestVersion = "6.0.2"
+val kotestVersion = "6.0.3"
 val felleslibVersion = "0.0.574"
 val mockkVersion = "1.14.5"
 val ktorVersion = "3.2.3"
@@ -11,7 +11,7 @@ val testContainersVersion = "1.21.3"
 val iverksettVersjon = "1.0_20241213145703_7ff5f9c"
 val confluentVersion = "8.0.0"
 val avroVersion = "1.12.0"
-val prometeusVersion = "1.15.3"
+val prometeusVersion = "1.15.4"
 
 dependencies {
     // Align versions of all Kotlin components
