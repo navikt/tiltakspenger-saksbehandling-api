@@ -73,35 +73,39 @@ internal suspend fun genererRevurderingInnvilgetBrev(
 }
 
 private fun Periodisering<AntallBarn>.tilIntroTekst(vurderingsperiode: Periode): String? {
-    if (verdier.none { it.value > 0 }) {
+    val perioderMedBarnetillegg = perioderMedVerdi
+        .filter { it.verdi.value > 0 }
+
+    if (perioderMedBarnetillegg.isEmpty()) {
         return null
     }
 
     val harBarnetilleggOverHeleInnvilgelsesperiode = perioder.all { periode -> vurderingsperiode == periode }
 
-    return if (harBarnetilleggOverHeleInnvilgelsesperiode) {
-        val antallBarn = perioderMedVerdi.sumOf { it.verdi.value }.toTekst()
-
-        """
-            Du får tiltakspenger og barnetillegg for $antallBarn barn fra og med ${
-            vurderingsperiode.fraOgMed.format(norskDatoFormatter)
-        } til og med ${vurderingsperiode.tilOgMed.format(norskDatoFormatter)}.
-        """.trimIndent()
-    } else {
-        val perioderMedBarnetillegg = perioderMedVerdi
-            .filter { it.verdi.value > 0 }
-            .joinToString(" og ") { periodeMedVerdi ->
-                val antallBarn = periodeMedVerdi.verdi.toTekst()
-                "$antallBarn barn fra og med ${periodeMedVerdi.periode.fraOgMed.format(norskDatoFormatter)} til og med ${
-                    periodeMedVerdi.periode.tilOgMed.format(norskDatoFormatter)
-                }"
+    val perioderMedBarnetilleggString = perioderMedBarnetillegg
+        .map { periodeMedVerdi ->
+            val antallBarn = periodeMedVerdi.verdi.toTekst()
+            "for $antallBarn barn fra og med ${periodeMedVerdi.periode.fraOgMed.format(norskDatoFormatter)} til og med ${
+                periodeMedVerdi.periode.tilOgMed.format(norskDatoFormatter)
+            }"
+        }.let {
+            when (it.size) {
+                0 -> throw IllegalStateException("Skal ikke være mulig å ha 0 perioder med barnetillegg her!")
+                1 -> it.first()
+                2 -> "${it.first()} og ${it.last()}"
+                else -> it.dropLast(1).joinToString(", ").plus(" og ${it.last()}")
             }
+        }
 
+    return if (harBarnetilleggOverHeleInnvilgelsesperiode) {
+        "Du får tiltakspenger og barnetillegg $perioderMedBarnetilleggString."
+    } else {
         """
             Du får tiltakspenger fra og med ${vurderingsperiode.fraOgMed.format(norskDatoFormatter)} til og med ${
             vurderingsperiode.tilOgMed.format(norskDatoFormatter)
         }.
-            Du får barnetillegg for $perioderMedBarnetillegg.
+        
+            Du får barnetillegg $perioderMedBarnetilleggString.
         """.trimIndent()
     }
 }
