@@ -43,22 +43,23 @@ class JournalførRammevedtakService(
                             tilleggstekst = vedtak.behandling.fritekstTilVedtaksbrev,
                             hentBrukersNavn = personService::hentNavn,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-                        ).getOrElse { return@forEach }
+                        )
 
                         Vedtakstype.STANS -> genererVedtaksbrevForStansKlient.genererStansvedtak(
                             vedtaksdato = vedtaksdato,
                             vedtak = vedtak,
                             hentBrukersNavn = personService::hentNavn,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-                        ).getOrElse { return@forEach }
+                        )
 
                         Vedtakstype.AVSLAG -> genererVedtaksbrevForAvslagKlient.genererAvslagsvVedtaksbrev(
                             vedtak = vedtak,
                             datoForUtsending = vedtaksdato,
                             hentBrukersNavn = personService::hentNavn,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
-                        ).getOrElse { return@forEach }
-                    }
+                        )
+                    }.getOrElse { return@forEach }
+
                     log.info { "Vedtaksbrev generert for vedtak ${vedtak.id}" }
                     val journalpostId =
                         journalførRammevedtaksbrevKlient.journalførVedtaksbrevForRammevedtak(vedtak, pdfOgJson, correlationId)

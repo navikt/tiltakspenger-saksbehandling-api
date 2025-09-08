@@ -45,40 +45,6 @@ internal suspend fun genererRevurderingInnvilgetBrev(
     val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
     val besluttersNavn = beslutterNavIdent?.let { hentSaksbehandlersNavn(it) }
 
-    val introTekstMedBarnetillegg = if (barnetillegg != null && barnetillegg.any { it.verdi.value > 0 }) {
-        val harBarnetilleggOverHeleInnvilgelsesperiode =
-            barnetillegg.perioder.map { periode -> vurderingsperiode == periode }.all { it }
-
-        if (harBarnetilleggOverHeleInnvilgelsesperiode) {
-            val antallBarn = barnetillegg.perioderMedVerdi.sumOf { it.verdi.value }.toTekst()
-            """
-                Du får tiltakspenger og barnetillegg for $antallBarn barn fra og med ${
-                vurderingsperiode.fraOgMed.format(
-                    norskDatoFormatter,
-                )
-            } til og med ${vurderingsperiode.tilOgMed.format(norskDatoFormatter)} fordi deltakelsen på arbeidsmarkedstiltaket er blitt forlenget.
-            """.trimIndent()
-        } else {
-            val perioderMedBarnetillegg = barnetillegg.perioderMedVerdi.joinToString(" og ") { periodeMedVerdi ->
-                val antallBarn = periodeMedVerdi.verdi.toTekst()
-                "$antallBarn barn fra og med ${periodeMedVerdi.periode.fraOgMed.format(norskDatoFormatter)} til og med ${
-                    periodeMedVerdi.periode.tilOgMed.format(norskDatoFormatter)
-                }"
-            }
-
-            """
-                Du får tiltakspenger fra og med ${vurderingsperiode.fraOgMed.format(norskDatoFormatter)} til og med ${
-                vurderingsperiode.tilOgMed.format(
-                    norskDatoFormatter,
-                )
-            } fordi deltakelsen på arbeidsmarkedstiltaket er blitt forlenget.
-                Du får barnetillegg for $perioderMedBarnetillegg.
-            """.trimIndent()
-        }
-    } else {
-        null
-    }
-
     return BrevRevurderingInnvilgetDTO(
         personalia = BrevPersonaliaDTO(
             ident = fnr.verdi,
@@ -102,6 +68,40 @@ internal suspend fun genererRevurderingInnvilgetBrev(
         saksbehandlerVurdering = saksbehandlersVurdering.verdi,
         forhåndsvisning = forhåndsvisning,
         harBarnetillegg = barnetillegg != null && barnetillegg.any { it.verdi.value > 0 },
-        introTekstMedBarnetillegg = introTekstMedBarnetillegg,
+        introTekstMedBarnetillegg = barnetillegg?.tilIntroTekst(vurderingsperiode),
     ).let { serialize(it) }
+}
+
+private fun Periodisering<AntallBarn>.tilIntroTekst(vurderingsperiode: Periode): String? {
+    if (verdier.none { it.value > 0 }) {
+        return null
+    }
+
+    val harBarnetilleggOverHeleInnvilgelsesperiode = perioder.all { periode -> vurderingsperiode == periode }
+
+    return if (harBarnetilleggOverHeleInnvilgelsesperiode) {
+        val antallBarn = perioderMedVerdi.sumOf { it.verdi.value }.toTekst()
+
+        """
+            Du får tiltakspenger og barnetillegg for $antallBarn barn fra og med ${
+            vurderingsperiode.fraOgMed.format(norskDatoFormatter)
+        } til og med ${vurderingsperiode.tilOgMed.format(norskDatoFormatter)}.
+        """.trimIndent()
+    } else {
+        val perioderMedBarnetillegg = perioderMedVerdi
+            .filter { it.verdi.value > 0 }
+            .joinToString(" og ") { periodeMedVerdi ->
+                val antallBarn = periodeMedVerdi.verdi.toTekst()
+                "$antallBarn barn fra og med ${periodeMedVerdi.periode.fraOgMed.format(norskDatoFormatter)} til og med ${
+                    periodeMedVerdi.periode.tilOgMed.format(norskDatoFormatter)
+                }"
+            }
+
+        """
+            Du får tiltakspenger fra og med ${vurderingsperiode.fraOgMed.format(norskDatoFormatter)} til og med ${
+            vurderingsperiode.tilOgMed.format(norskDatoFormatter)
+        }.
+            Du får barnetillegg for $perioderMedBarnetillegg.
+        """.trimIndent()
+    }
 }

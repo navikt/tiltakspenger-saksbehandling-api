@@ -142,7 +142,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                  "fraDato":"1. juni 2025",
                  "tilDato":"31. august 2025",
                  "harBarnetillegg":true,
-                 "introTekstMedBarnetillegg":"Du får tiltakspenger og barnetillegg for to barn fra og med 1. juni 2025 til og med 31. august 2025 fordi deltakelsen på arbeidsmarkedstiltaket er blitt forlenget.",
+                 "introTekstMedBarnetillegg":"Du får tiltakspenger og barnetillegg for to barn fra og med 1. juni 2025 til og med 31. august 2025.",
                  "satser": [
                    {
                      "år": 2025,
@@ -193,7 +193,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                   "fraDato": "1. desember 2024",
                   "tilDato": "31. januar 2025",
                   "harBarnetillegg": true,
-                  "introTekstMedBarnetillegg": "Du får tiltakspenger fra og med 1. desember 2024 til og med 31. januar 2025 fordi deltakelsen på arbeidsmarkedstiltaket er blitt forlenget.\nDu får barnetillegg for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
+                  "introTekstMedBarnetillegg": "Du får tiltakspenger fra og med 1. desember 2024 til og med 31. januar 2025.\nDu får barnetillegg for to barn fra og med 1. desember 2024 til og med 31. desember 2024 og tre barn fra og med 1. januar 2025 til og med 31. januar 2025.",
                   "satser": [
                     {
                       "år": 2024,
