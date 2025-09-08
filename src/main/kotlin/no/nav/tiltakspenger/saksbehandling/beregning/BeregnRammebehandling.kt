@@ -54,8 +54,8 @@ private fun Sak.beregnMeldeperioderPåNytt(
             { dato -> it.hentVerdiForDag(dato) ?: AntallBarn.ZERO }
         } ?: { AntallBarn.ZERO }
 
-    val (nyeBeregninger, forrigeBeregninger) =
-        tidligereBeregninger.fold(emptyList<MeldeperiodeBeregning>() to emptyList<MeldeperiodeBeregning>()) { acc, beregning ->
+    val nyeBeregninger =
+        tidligereBeregninger.fold(emptyList<MeldeperiodeBeregning>()) { acc, beregning ->
             val eksisterendeDager = beregning.dager
 
             val nyeDager = eksisterendeDager.map { dag ->
@@ -91,12 +91,7 @@ private fun Sak.beregnMeldeperioderPåNytt(
                 beregningKilde = BeregningKilde.BeregningKildeBehandling(behandlingId),
             )
 
-            acc.first.plus(nyBeregning) to acc.second.plus(beregning)
+            acc.plus(nyBeregning)
         }
-
-    if (nyeBeregninger.beregnTotalBeløp() == forrigeBeregninger.beregnTotalBeløp()) {
-        return null
-    }
-
     return nyeBeregninger.toNonEmptyListOrNull()
 }
