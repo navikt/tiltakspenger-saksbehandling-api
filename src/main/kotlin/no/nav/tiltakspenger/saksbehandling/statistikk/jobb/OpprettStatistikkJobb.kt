@@ -1,100 +1,67 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.jobb
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
-import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.json.objectMapper
+import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
-import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkUtbetalingDTO
-import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.toStatistikkMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresTransactionContext.Companion.withSession
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.tilStatistikkMeldekortDTO
 import java.time.Clock
 
 class OpprettStatistikkJobb(
     private val sessionFactory: PostgresSessionFactory,
     private val clock: Clock,
+    private val statistikkMeldekortRepo: StatistikkMeldekortRepo,
 ) {
     private val log = KotlinLogging.logger { }
 
-    // TODO: Tas etter at utbetalingsstatistikken er oppdatert
     fun opprettMeldekortStatistikk() {
-        // hent alle meldekortbehandlinger iverksatt før 2025-09-01 07:00:00.719033 +00:00
-        // sjekk om det finnes statistikk-innslag for sakid+meldeperiodekjedeid
-        // hvis ja: ignorer
-        // hvis nei: Opprett innslag
-    }
+        sessionFactory.withTransactionContext { tx ->
+            tx.withSession { session ->
+                val iverksatteMeldekortbehandlinger = MeldekortBehandlingPostgresRepo.hentIverksatte(session)
+                log.info { "Hentet ut ${iverksatteMeldekortbehandlinger.size} meldekortbehandlinger som kanskje mangler statistikk" }
 
-    fun leggTilMeldeperioderForUtbetalingsstatistikk() {
-        sessionFactory.withSession { session ->
-            val utbetalingerUtenMeldeperioder = hentStatistikkUtbetalingerUtenMeldeperioder(session)
-            log.info { "Hentet ut ${utbetalingerUtenMeldeperioder.size} utbetalingsinnslag uten meldeperiode" }
-
-            utbetalingerUtenMeldeperioder.forEach {
-                log.info { "Behandler statistikk-innslag for utbetaling med id ${it.id}" }
-                val utbetalingId = UtbetalingId.fromString(it.id)
-                val utbetaling = UtbetalingPostgresRepo.hent(utbetalingId, session)
-                    ?: throw IllegalStateException("Fant ikke utbetaling for id ${it.id}")
-                val meldeperioder = utbetaling.beregning.beregninger.toList().map {
-                    it.toStatistikkMeldeperiode()
+                iverksatteMeldekortbehandlinger.forEach {
+                    log.info { "Behandler meldekortbehandling for id ${it.id}, sakid ${it.sakId}, kjedeId ${it.kjedeId}" }
+                    if (meldekortStatistikkFinnesIkke(it.sakId, it.kjedeId, session)) {
+                        log.info { "Statistikkinnslag for meldekortbehandling med id ${it.id}, sakid ${it.sakId}, kjedeId ${it.kjedeId} finnes ikke" }
+                        if (it is MeldekortBehandling.Behandlet) {
+                            statistikkMeldekortRepo.lagre(it.tilStatistikkMeldekortDTO(clock), tx)
+                            log.info { "Lagret statistikkinnslag for meldekortbehandling med id ${it.id}, sakid ${it.sakId}, kjedeId ${it.kjedeId}" }
+                        } else {
+                            throw IllegalStateException("Skal ikke opprette statistikk for meldekort som ikke er behandlet!")
+                        }
+                    } else {
+                        log.info { "Statistikkinnslag for meldekortbehandling med id ${it.id}, sakid ${it.sakId}, kjedeId ${it.kjedeId} finnes fra før" }
+                    }
                 }
-                oppdaterStatistikkUtbetaling(it.id, meldeperioder, session)
-                log.info { "Oppdaterte statistikk-innslag for utbetaling med id ${it.id}" }
             }
         }
     }
 
-    private fun oppdaterStatistikkUtbetaling(
-        id: String,
-        meldeperioder: List<StatistikkUtbetalingDTO.StatistikkMeldeperiode>,
+    private fun meldekortStatistikkFinnesIkke(
+        sakId: SakId,
+        meldeperiodeKjedeId: MeldeperiodeKjedeId,
         session: Session,
-    ) {
-        session.run(
+    ): Boolean {
+        return session.run(
             queryOf(
                 """
-                    update statistikk_utbetaling set meldeperioder = :meldeperioder, sist_endret = :sist_endret where id = :id
-                """.trimIndent(),
+                    select meldekortbehandling_id
+                    from statistikk_meldekort
+                    where meldeperiode_kjede_id = :meldeperiode_kjede_id 
+                    and sak_id = :sak_id
+                    """,
                 mapOf(
-                    "meldeperioder" to toPGObject(meldeperioder),
-                    "sist_endret" to nå(clock),
-                    "id" to id,
+                    "meldeperiode_kjede_id" to meldeperiodeKjedeId.toString(),
+                    "sak_id" to sakId.toString(),
                 ),
-            ).asUpdate,
-        )
+            ).map { row -> row.string("meldekortbehandling_id") }.asList,
+        ).isEmpty()
     }
-
-    private fun hentStatistikkUtbetalingerUtenMeldeperioder(session: Session): List<StatistikkUtbetalingDTO> =
-        session.run(
-            queryOf(
-                """
-                    select *
-                    from statistikk_utbetaling
-                    where meldeperioder is null
-                """.trimIndent(),
-            ).map { row -> row.toStatistikkUtbetalingDTO() }
-                .asList,
-        )
-
-    private fun Row.toStatistikkUtbetalingDTO() =
-        StatistikkUtbetalingDTO(
-            id = string("id"),
-            sakId = string("sak_id"),
-            saksnummer = string("saksnummer"),
-            ordinærBeløp = int("ordinar_belop"),
-            barnetilleggBeløp = int("barnetillegg_belop"),
-            totalBeløp = int("belop"),
-            posteringDato = localDate("posteringsdato"),
-            gyldigFraDatoPostering = localDate("gyldig_fra_dato"),
-            gyldigTilDatoPostering = localDate("gyldig_til_dato"),
-            utbetalingId = string("utbetaling_id"),
-            vedtakId = objectMapper.readValue(string("vedtak_id")),
-            opprettet = localDateTimeOrNull("opprettet"),
-            sistEndret = localDateTimeOrNull("sist_endret"),
-            brukerId = string("bruker_id"),
-            meldeperioder = emptyList(),
-        )
 }

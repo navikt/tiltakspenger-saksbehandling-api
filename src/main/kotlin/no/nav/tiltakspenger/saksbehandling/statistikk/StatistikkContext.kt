@@ -35,6 +35,7 @@ open class StatistikkContext(
         OpprettStatistikkJobb(
             sessionFactory = sessionFactory as PostgresSessionFactory,
             clock = clock,
+            statistikkMeldekortRepo = statistikkMeldekortRepo,
         )
     }
 }
