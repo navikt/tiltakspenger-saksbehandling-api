@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkStønadRep
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakService
-import no.nav.tiltakspenger.saksbehandling.statistikk.jobb.OpprettStatistikkJobb
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.vedtak.StatistikkStønadPostgresRepo
@@ -28,14 +27,6 @@ open class StatistikkContext(
             personKlient = personKlient,
             gitHash = gitHash,
             clock = clock,
-        )
-    }
-
-    val opprettStatistikkJobb: OpprettStatistikkJobb by lazy {
-        OpprettStatistikkJobb(
-            sessionFactory = sessionFactory as PostgresSessionFactory,
-            clock = clock,
-            statistikkMeldekortRepo = statistikkMeldekortRepo,
         )
     }
 }
