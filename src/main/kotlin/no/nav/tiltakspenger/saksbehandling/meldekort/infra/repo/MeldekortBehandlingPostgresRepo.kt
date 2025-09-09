@@ -404,25 +404,6 @@ class MeldekortBehandlingPostgresRepo(
             }
         }
 
-        fun hentIverksatte(
-            session: Session,
-        ): List<MeldekortBehandling> {
-            return session.run(
-                sqlQuery(
-                    """
-                    select
-                      m.*,
-                      s.fnr,
-                      s.saksnummer
-                    from meldekortbehandling m
-                    join sak s on s.id = m.sak_id
-                    where iverksatt_tidspunkt is not null 
-                    and iverksatt_tidspunkt<'2025-09-01 07:00:00.719033 +00:00'
-                    """,
-                ).map { fromRow(it, session) }.asList,
-            )
-        }
-
         private fun fromRow(
             row: Row,
             session: Session,
