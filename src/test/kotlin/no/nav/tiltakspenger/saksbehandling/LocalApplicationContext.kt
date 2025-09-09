@@ -87,7 +87,7 @@ class LocalApplicationContext(
     private val tilgangsmaskinFakeClient = TilgangsmaskinFakeLokalClient()
 
     private val søknadId: SøknadId = SøknadId.fromString("soknad_01HSTRQBRM443VGB4WA822TE01")
-    private val fnr: Fnr = Fnr.fromString("50218274152")
+    private val fnr: Fnr = Fnr.fromString("12345678911")
     private val tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelse(
         // Siden Komet eier GRUPPE_AMO, vil dette være en UUID. Hadde det vært Arena som var master ville det vært eksempelvis TA6509186.
         // Kommentar jah: Litt usikker på om Komet sender UUIDen til Arena, eller om de genererer en Arena-ID på formatet TA...
