@@ -48,6 +48,7 @@ interface GenererVedtaksbrevForInnvilgelseKlient {
     suspend fun genererInnvilgetRevurderingBrev(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        vedtaksdato: LocalDate,
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,

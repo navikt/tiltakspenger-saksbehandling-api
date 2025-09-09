@@ -18,21 +18,21 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
 
-internal data class BrevSøknadAvslagDTO(
-    val personalia: BrevPersonaliaDTO,
-    val saksnummer: String,
-    val saksbehandlerNavn: String,
-    val beslutterNavn: String?,
-    val tilleggstekst: String?,
+private data class BrevSøknadAvslagDTO(
+    override val personalia: BrevPersonaliaDTO,
+    override val saksnummer: String,
+    override val saksbehandlerNavn: String,
+    override val beslutterNavn: String?,
+    override val datoForUtsending: String,
+    override val tilleggstekst: String? = null,
+    override val forhandsvisning: Boolean,
     val avslagsgrunnerSize: Int,
     val avslagsgrunner: List<AvslagsgrunnerBrevDto>,
     val harSøktMedBarn: Boolean,
     val hjemlerTekst: String?,
-    val forhåndsvisning: Boolean,
     val avslagFraOgMed: String,
     val avslagTilOgMed: String,
-    val datoForUtsending: String,
-)
+) : BrevRammevedtakBaseDTO
 
 internal suspend fun genererAvslagSøknadsbrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
@@ -60,7 +60,7 @@ internal suspend fun genererAvslagSøknadsbrev(
         ),
         saksnummer = saksnummer.verdi,
         tilleggstekst = tilleggstekst.verdi,
-        forhåndsvisning = forhåndsvisning,
+        forhandsvisning = forhåndsvisning,
         avslagsgrunner = avslagsgrunner.toAvslagsgrunnerBrevDto(),
         hjemlerTekst = if (avslagsgrunner.size > 1) avslagsgrunner.createBrevForskrifter(harSøktBarnetillegg) else null,
         harSøktMedBarn = harSøktBarnetillegg,
@@ -95,7 +95,7 @@ internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
         ),
         saksnummer = saksnummer.verdi,
         tilleggstekst = this.behandling.fritekstTilVedtaksbrev!!.verdi,
-        forhåndsvisning = false,
+        forhandsvisning = false,
         avslagsgrunner = this.behandling.resultat.avslagsgrunner.toAvslagsgrunnerBrevDto(),
         hjemlerTekst = if (this.behandling.resultat.avslagsgrunner.size > 1) {
             this.behandling.resultat.avslagsgrunner.createBrevForskrifter(

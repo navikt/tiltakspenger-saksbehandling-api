@@ -13,24 +13,25 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Satser
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
 
-@Suppress("unused")
 private data class BrevFørstegangsvedtakInnvilgelseDTO(
-    val personalia: BrevPersonaliaDTO,
+    override val personalia: BrevPersonaliaDTO,
+    override val saksnummer: String,
+    override val saksbehandlerNavn: String,
+    override val beslutterNavn: String?,
+    override val datoForUtsending: String,
+    override val tilleggstekst: String? = null,
+    override val forhandsvisning: Boolean,
     val rammevedtakFraDato: String,
     val rammevedtakTilDato: String,
-    val saksnummer: String,
     val antallBarn: List<AntallBarnPerPeriodeDTO>,
     val barnetilleggTekst: String?,
     val antallBarnHvis1PeriodeIHeleInnvilgelsesperiode: Int?,
-    val saksbehandlerNavn: String,
-    val beslutterNavn: String?,
     val kontor: String,
-    val datoForUtsending: String,
     val satser: List<Any>,
     val satsBarn: Int,
-    val tilleggstekst: String? = null,
-    val forhandsvisning: Boolean,
-) {
+) : BrevRammevedtakBaseDTO {
+
+    @Suppress("unused")
     val barnetillegg: Boolean = antallBarn.isNotEmpty()
 
     data class AntallBarnPerPeriodeDTO(

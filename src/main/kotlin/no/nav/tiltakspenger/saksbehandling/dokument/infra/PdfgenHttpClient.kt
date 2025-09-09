@@ -142,6 +142,7 @@ internal class PdfgenHttpClient(
     override suspend fun genererInnvilgetRevurderingBrev(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
+        vedtaksdato: LocalDate,
         fnr: Fnr,
         saksbehandlerNavIdent: String,
         beslutterNavIdent: String?,
@@ -165,6 +166,7 @@ internal class PdfgenHttpClient(
                     vurderingsperiode = vurderingsperiode,
                     saksbehandlersVurdering = saksbehandlersVurdering,
                     barnetillegg = barnetillegg,
+                    vedtaksdato = vedtaksdato,
                 )
             },
             errorContext = "SakId: $sakId, saksnummer: $saksnummer",

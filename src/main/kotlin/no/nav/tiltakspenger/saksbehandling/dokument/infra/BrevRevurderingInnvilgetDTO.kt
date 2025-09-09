@@ -10,12 +10,16 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Satser
+import java.time.LocalDate
 
 private data class BrevRevurderingInnvilgetDTO(
-    val personalia: BrevPersonaliaDTO,
-    val saksnummer: String,
-    val saksbehandlerNavn: String,
-    val beslutterNavn: String?,
+    override val personalia: BrevPersonaliaDTO,
+    override val saksnummer: String,
+    override val saksbehandlerNavn: String,
+    override val beslutterNavn: String?,
+    override val datoForUtsending: String,
+    override val tilleggstekst: String? = null,
+    override val forhandsvisning: Boolean,
     val kontor: String,
     val fraDato: String,
     val tilDato: String,
@@ -25,9 +29,7 @@ private data class BrevRevurderingInnvilgetDTO(
      */
     val introTekstMedBarnetillegg: String?,
     val satser: List<Any>,
-    val saksbehandlerVurdering: String?,
-    val forhåndsvisning: Boolean,
-)
+) : BrevRammevedtakBaseDTO
 
 internal suspend fun genererRevurderingInnvilgetBrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
@@ -38,6 +40,7 @@ internal suspend fun genererRevurderingInnvilgetBrev(
     beslutterNavIdent: String?,
     saksnummer: Saksnummer,
     vurderingsperiode: Periode,
+    vedtaksdato: LocalDate,
     barnetillegg: Periodisering<AntallBarn>?,
     forhåndsvisning: Boolean,
 ): String {
@@ -65,10 +68,11 @@ internal suspend fun genererRevurderingInnvilgetBrev(
                 val barnetillegg = it.satsBarnetillegg
             }
         },
-        saksbehandlerVurdering = saksbehandlersVurdering.verdi,
-        forhåndsvisning = forhåndsvisning,
+        tilleggstekst = saksbehandlersVurdering.verdi,
+        forhandsvisning = forhåndsvisning,
         harBarnetillegg = barnetillegg != null && barnetillegg.any { it.verdi.value > 0 },
         introTekstMedBarnetillegg = barnetillegg?.tilIntroTekst(vurderingsperiode),
+        datoForUtsending = vedtaksdato.format(norskDatoFormatter),
     ).let { serialize(it) }
 }
 

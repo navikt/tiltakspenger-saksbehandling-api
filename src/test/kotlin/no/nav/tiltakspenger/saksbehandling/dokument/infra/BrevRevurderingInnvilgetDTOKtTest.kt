@@ -37,6 +37,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                 vurderingsperiode = Periode(1.juni(2025), 31.august(2025)),
                 barnetillegg = null,
                 forhåndsvisning = true,
+                vedtaksdato = 31.januar(2025),
             )
 
             //language=json
@@ -58,8 +59,9 @@ class BrevRevurderingInnvilgetDTOKtTest {
                      "barnetillegg": 55
                    }
                  ],
-                 "saksbehandlerVurdering":"Dette er en vurdering",
-                 "forhåndsvisning":true
+                 "tilleggstekst":"Dette er en vurdering",
+                 "forhandsvisning":true,
+                 "datoForUtsending": "31. januar 2025"
                }
             """.trimIndent()
         }
@@ -81,6 +83,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                 vurderingsperiode = Periode(1.desember(2024), 31.januar(2025)),
                 barnetillegg = null,
                 forhåndsvisning = true,
+                vedtaksdato = 31.januar(2025),
             )
 
             //language=json
@@ -107,8 +110,9 @@ class BrevRevurderingInnvilgetDTOKtTest {
                         "barnetillegg": 55
                       }
                     ],
-                  "saksbehandlerVurdering":"Dette er en vurdering",
-                  "forhåndsvisning":true
+                  "tilleggstekst":"Dette er en vurdering",
+                  "forhandsvisning":true,
+                  "datoForUtsending": "31. januar 2025"
                }
             """.trimIndent()
         }
@@ -130,6 +134,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                 vurderingsperiode = Periode(1.juni(2025), 31.august(2025)),
                 barnetillegg = SammenhengendePeriodisering(AntallBarn(2), 1.juni(2025) til 31.august(2025)),
                 forhåndsvisning = true,
+                vedtaksdato = 31.januar(2025),
             )
 
             //language=json
@@ -151,8 +156,9 @@ class BrevRevurderingInnvilgetDTOKtTest {
                      "barnetillegg": 55
                    }
                  ],
-                 "saksbehandlerVurdering":"Dette er en vurdering",
-                 "forhåndsvisning":true
+                 "tilleggstekst":"Dette er en vurdering",
+                 "forhandsvisning":true,
+                 "datoForUtsending": "31. januar 2025"
                }
             """.trimIndent()
         }
@@ -177,6 +183,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                     PeriodeMedVerdi(AntallBarn(3), Periode(1.januar(2025), 31.januar(2025))),
                 ),
                 forhåndsvisning = true,
+                vedtaksdato = 31.januar(2025),
             )
 
             //language=json
@@ -207,8 +214,9 @@ class BrevRevurderingInnvilgetDTOKtTest {
                       "barnetillegg": 55
                     }
                   ],
-                  "saksbehandlerVurdering": "Dette er en vurdering",
-                  "forhåndsvisning": true
+                  "tilleggstekst": "Dette er en vurdering",
+                  "forhandsvisning": true,
+                  "datoForUtsending": "31. januar 2025"
                 }
             """.trimIndent()
         }
@@ -234,6 +242,7 @@ class BrevRevurderingInnvilgetDTOKtTest {
                     PeriodeMedVerdi(AntallBarn(3), Periode(1.januar(2025), 31.januar(2025))),
                 ),
                 forhåndsvisning = true,
+                vedtaksdato = 31.januar(2025),
             )
 
             //language=json
@@ -264,8 +273,9 @@ class BrevRevurderingInnvilgetDTOKtTest {
                       "barnetillegg": 55
                     }
                   ],
-                  "saksbehandlerVurdering": "Dette er en vurdering",
-                  "forhåndsvisning": true
+                  "tilleggstekst": "Dette er en vurdering",
+                  "forhandsvisning": true,
+                  "datoForUtsending": "31. januar 2025"
                 }
             """.trimIndent()
         }
