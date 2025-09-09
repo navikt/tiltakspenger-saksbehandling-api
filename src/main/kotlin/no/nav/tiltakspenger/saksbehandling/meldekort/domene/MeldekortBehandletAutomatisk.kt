@@ -26,6 +26,10 @@ import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * Denne er iverksatt/godkjent.
+ * Gjelder kun tilstanden AUTOMATISK_BEHANDLET
+ */
 data class MeldekortBehandletAutomatisk(
     override val id: MeldekortId,
     override val sakId: SakId,
@@ -73,6 +77,10 @@ data class MeldekortBehandletAutomatisk(
 
     override fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling {
         throw IllegalStateException("Kan ikke legge tilbake automatisk behandlet meldekort")
+    }
+
+    override fun oppdaterSimulering(simulering: Simulering?): MeldekortBehandling {
+        throw IllegalStateException("Kan ikke oppdatere simulering på automatisk behandlet meldekort")
     }
 }
 

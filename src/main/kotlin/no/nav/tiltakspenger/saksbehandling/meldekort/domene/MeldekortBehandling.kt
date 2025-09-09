@@ -146,6 +146,7 @@ sealed interface MeldekortBehandling {
     fun taMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling
 
     fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling
+    fun oppdaterSimulering(simulering: Simulering?): MeldekortBehandling
 
     sealed interface Behandlet : MeldekortBehandling {
         override val beregning: MeldekortBeregning

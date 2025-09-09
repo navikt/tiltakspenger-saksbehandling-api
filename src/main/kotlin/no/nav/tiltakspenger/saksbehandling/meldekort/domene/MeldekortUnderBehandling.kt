@@ -36,6 +36,9 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+/**
+ * Gjelder tilstandene UNDER_BEHANDLING og KLAR_TIL_BESLUTNING.
+ */
 data class MeldekortUnderBehandling(
     override val id: MeldekortId,
     override val sakId: SakId,
@@ -251,6 +254,13 @@ data class MeldekortUnderBehandling(
                 )
             }
         }
+    }
+
+    override fun oppdaterSimulering(simulering: Simulering?): MeldekortBehandling {
+        require(status == UNDER_BEHANDLING) {
+            "Kan kun oppdatere simulering på meldekortbehandling dersom status er UNDER_BEHANDLING. Status er $status, sakId: $sakId, id: $id"
+        }
+        return this.copy(simulering = simulering)
     }
 
     fun avbryt(

@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -182,6 +183,11 @@ data class Søknadsbehandling(
                 begrunnelse = begrunnelse,
             ),
         )
+    }
+
+    override fun oppdaterSimulering(nySimulering: Simulering?): Søknadsbehandling {
+        require(this.erUnderBehandling) { "Forventet at behandlingen var under behandling, men var: ${this.status} for sakId: $sakId og behandlingId: $id" }
+        return this.copy(utbetaling = utbetaling!!.oppdaterSimulering(nySimulering))
     }
 
     companion object {
