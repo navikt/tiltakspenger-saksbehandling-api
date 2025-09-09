@@ -19,7 +19,7 @@ private data class BrevFørstegangsvedtakInnvilgelseDTO(
     override val saksbehandlerNavn: String,
     override val beslutterNavn: String?,
     override val datoForUtsending: String,
-    override val tilleggstekst: String? = null,
+    override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
     val rammevedtakFraDato: String,
     val rammevedtakTilDato: String,
@@ -42,7 +42,7 @@ private data class BrevFørstegangsvedtakInnvilgelseDTO(
     )
 }
 
-internal suspend fun Rammevedtak.toInnvilgetSøknadsbrev(
+internal suspend fun Rammevedtak.tilInnvilgetSøknadsbrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
     vedtaksdato: LocalDate,
@@ -58,7 +58,6 @@ internal suspend fun Rammevedtak.toInnvilgetSøknadsbrev(
         beslutterNavIdent = beslutter,
         innvilgelsesperiode = this.periode,
         saksnummer = saksnummer,
-        // finnes ikke noe forhåndsvisning for rammevedtak
         forhåndsvisning = false,
         barnetilleggsPerioder = this.behandling.barnetillegg?.periodisering,
     )

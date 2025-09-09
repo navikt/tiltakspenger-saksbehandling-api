@@ -100,7 +100,7 @@ class ForhåndsvisVedtaksbrevService(
         sakId = sak.id,
         forhåndsvisning = true,
         vurderingsperiode = virkningsperiode!!,
-        saksbehandlersVurdering = kommando.fritekstTilVedtaksbrev,
+        tilleggstekst = kommando.fritekstTilVedtaksbrev,
         barnetillegg = kommando.barnetillegg?.let {
             it.utvid(AntallBarn(0), virkningsperiode) as SammenhengendePeriodisering
         },

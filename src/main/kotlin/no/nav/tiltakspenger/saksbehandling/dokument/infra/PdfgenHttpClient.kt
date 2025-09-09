@@ -15,6 +15,8 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
@@ -76,7 +78,7 @@ internal class PdfgenHttpClient(
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
-                vedtak.toInnvilgetSøknadsbrev(hentBrukersNavn, hentSaksbehandlersNavn, vedtaksdato)
+                vedtak.tilInnvilgetSøknadsbrev(hentBrukersNavn, hentSaksbehandlersNavn, vedtaksdato)
             },
             errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
             uri = vedtakInnvilgelseUri,
@@ -92,12 +94,21 @@ internal class PdfgenHttpClient(
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
-                vedtak.toInnvilgetSøknadsbrev(
-                    hentBrukersNavn = hentBrukersNavn,
-                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    vedtaksdato = vedtaksdato,
-                    tilleggstekst = tilleggstekst,
-                )
+                when (vedtak.behandling) {
+                    is Revurdering -> vedtak.tilRevurderingInnvilgetBrev(
+                        hentBrukersNavn = hentBrukersNavn,
+                        hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                        vedtaksdato = vedtaksdato,
+                        tilleggstekst = tilleggstekst,
+                    )
+
+                    is Søknadsbehandling -> vedtak.tilInnvilgetSøknadsbrev(
+                        hentBrukersNavn = hentBrukersNavn,
+                        hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                        vedtaksdato = vedtaksdato,
+                        tilleggstekst = tilleggstekst,
+                    )
+                }
             },
             errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
             uri = vedtakInnvilgelseUri,
@@ -150,7 +161,7 @@ internal class PdfgenHttpClient(
         sakId: SakId,
         forhåndsvisning: Boolean,
         vurderingsperiode: Periode,
-        saksbehandlersVurdering: FritekstTilVedtaksbrev,
+        tilleggstekst: FritekstTilVedtaksbrev,
         barnetillegg: SammenhengendePeriodisering<AntallBarn>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
@@ -163,9 +174,9 @@ internal class PdfgenHttpClient(
                     beslutterNavIdent = beslutterNavIdent,
                     saksnummer = saksnummer,
                     forhåndsvisning = forhåndsvisning,
-                    vurderingsperiode = vurderingsperiode,
-                    saksbehandlersVurdering = saksbehandlersVurdering,
-                    barnetillegg = barnetillegg,
+                    innvilgelsesperiode = vurderingsperiode,
+                    tilleggstekst = tilleggstekst,
+                    barnetilleggsPerioder = barnetillegg,
                     vedtaksdato = vedtaksdato,
                 )
             },

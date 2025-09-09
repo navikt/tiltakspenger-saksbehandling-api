@@ -29,13 +29,13 @@ class BrevRevurderingInnvilgetDTOKtTest {
             val actual = genererRevurderingInnvilgetBrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
-                saksbehandlersVurdering = FritekstTilVedtaksbrev("Dette er en vurdering"),
+                tilleggstekst = FritekstTilVedtaksbrev("Dette er en vurdering"),
                 fnr = fnr,
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",
                 saksnummer = saksnummer,
-                vurderingsperiode = Periode(1.juni(2025), 31.august(2025)),
-                barnetillegg = null,
+                innvilgelsesperiode = Periode(1.juni(2025), 31.august(2025)),
+                barnetilleggsPerioder = null,
                 forhåndsvisning = true,
                 vedtaksdato = 31.januar(2025),
             )
@@ -75,13 +75,13 @@ class BrevRevurderingInnvilgetDTOKtTest {
             val actual = genererRevurderingInnvilgetBrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
-                saksbehandlersVurdering = FritekstTilVedtaksbrev("Dette er en vurdering"),
+                tilleggstekst = FritekstTilVedtaksbrev("Dette er en vurdering"),
                 fnr = fnr,
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",
                 saksnummer = saksnummer,
-                vurderingsperiode = Periode(1.desember(2024), 31.januar(2025)),
-                barnetillegg = null,
+                innvilgelsesperiode = Periode(1.desember(2024), 31.januar(2025)),
+                barnetilleggsPerioder = null,
                 forhåndsvisning = true,
                 vedtaksdato = 31.januar(2025),
             )
@@ -126,13 +126,13 @@ class BrevRevurderingInnvilgetDTOKtTest {
             val actual = genererRevurderingInnvilgetBrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
-                saksbehandlersVurdering = FritekstTilVedtaksbrev("Dette er en vurdering"),
+                tilleggstekst = FritekstTilVedtaksbrev("Dette er en vurdering"),
                 fnr = fnr,
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",
                 saksnummer = saksnummer,
-                vurderingsperiode = Periode(1.juni(2025), 31.august(2025)),
-                barnetillegg = SammenhengendePeriodisering(AntallBarn(2), 1.juni(2025) til 31.august(2025)),
+                innvilgelsesperiode = Periode(1.juni(2025), 31.august(2025)),
+                barnetilleggsPerioder = SammenhengendePeriodisering(AntallBarn(2), 1.juni(2025) til 31.august(2025)),
                 forhåndsvisning = true,
                 vedtaksdato = 31.januar(2025),
             )
@@ -172,13 +172,13 @@ class BrevRevurderingInnvilgetDTOKtTest {
             val actual = genererRevurderingInnvilgetBrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
-                saksbehandlersVurdering = FritekstTilVedtaksbrev("Dette er en vurdering"),
+                tilleggstekst = FritekstTilVedtaksbrev("Dette er en vurdering"),
                 fnr = fnr,
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",
                 saksnummer = saksnummer,
-                vurderingsperiode = Periode(1.desember(2024), 31.januar(2025)),
-                barnetillegg = SammenhengendePeriodisering(
+                innvilgelsesperiode = Periode(1.desember(2024), 31.januar(2025)),
+                barnetilleggsPerioder = SammenhengendePeriodisering(
                     PeriodeMedVerdi(AntallBarn(2), Periode(1.desember(2024), 31.desember(2024))),
                     PeriodeMedVerdi(AntallBarn(3), Periode(1.januar(2025), 31.januar(2025))),
                 ),
@@ -230,13 +230,13 @@ class BrevRevurderingInnvilgetDTOKtTest {
             val actual = genererRevurderingInnvilgetBrev(
                 hentBrukersNavn = { Navn("Ola", null, "Nordmann") },
                 hentSaksbehandlersNavn = { "Saksbehandler Navn" },
-                saksbehandlersVurdering = FritekstTilVedtaksbrev("Dette er en vurdering"),
+                tilleggstekst = FritekstTilVedtaksbrev("Dette er en vurdering"),
                 fnr = fnr,
                 saksbehandlerNavIdent = "Z123456",
                 beslutterNavIdent = "Z654321",
                 saksnummer = saksnummer,
-                vurderingsperiode = Periode(1.november(2024), 31.januar(2025)),
-                barnetillegg = SammenhengendePeriodisering(
+                innvilgelsesperiode = Periode(1.november(2024), 31.januar(2025)),
+                barnetilleggsPerioder = SammenhengendePeriodisering(
                     PeriodeMedVerdi(AntallBarn(1), Periode(1.november(2024), 30.november(2024))),
                     PeriodeMedVerdi(AntallBarn(2), Periode(1.desember(2024), 31.desember(2024))),
                     PeriodeMedVerdi(AntallBarn(3), Periode(1.januar(2025), 31.januar(2025))),

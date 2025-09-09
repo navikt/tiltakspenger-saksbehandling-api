@@ -56,7 +56,7 @@ interface GenererVedtaksbrevForInnvilgelseKlient {
         sakId: SakId,
         forhåndsvisning: Boolean,
         vurderingsperiode: Periode,
-        saksbehandlersVurdering: FritekstTilVedtaksbrev,
+        tilleggstekst: FritekstTilVedtaksbrev,
         barnetillegg: SammenhengendePeriodisering<AntallBarn>?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

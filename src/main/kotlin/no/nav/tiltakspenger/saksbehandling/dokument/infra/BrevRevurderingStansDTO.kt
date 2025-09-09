@@ -20,7 +20,7 @@ private data class BrevRevurderingStansDTO(
     override val saksbehandlerNavn: String,
     override val beslutterNavn: String?,
     override val datoForUtsending: String,
-    override val tilleggstekst: String? = null,
+    override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
     val barnetillegg: Boolean = false,
     @Deprecated("rammevedtakFraDato er renamet til virkningsperiodeFraDato, beholdes til pdfgen har fjernet bruken")
