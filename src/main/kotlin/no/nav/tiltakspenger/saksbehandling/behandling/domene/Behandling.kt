@@ -549,9 +549,8 @@ sealed interface Behandling {
                 require(iverksattTidspunkt == null)
                 if (attesteringer.isEmpty()) {
                     require(beslutter == null) { "Beslutter kan ikke være tilknyttet behandlingen dersom det ikke er gjort noen attesteringer" }
-                } else {
-                    require(resultat != null) { "Behandlingsresultat må være satt dersom det er gjort attesteringer på behandlingen" }
                 }
+                // Vi kan ikke kreve at resultatet er satt dersom den har vært underkjent, siden hentOpplysninger kan resette saksoplysninger og implisitt resultatet.
             }
 
             KLAR_TIL_BESLUTNING -> {
