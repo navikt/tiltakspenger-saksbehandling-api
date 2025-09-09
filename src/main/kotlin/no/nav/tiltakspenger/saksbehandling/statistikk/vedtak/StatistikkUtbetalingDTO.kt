@@ -57,7 +57,7 @@ fun VedtattUtbetaling.tilStatistikk(clock: Clock): StatistikkUtbetalingDTO =
         },
     )
 
-fun MeldeperiodeBeregning.toStatistikkMeldeperiode() =
+private fun MeldeperiodeBeregning.toStatistikkMeldeperiode() =
     StatistikkUtbetalingDTO.StatistikkMeldeperiode(
         meldeperiodeKjedeId = this.kjedeId.toString(),
         meldekortbehandlingId = this.meldekortId.toString(),
