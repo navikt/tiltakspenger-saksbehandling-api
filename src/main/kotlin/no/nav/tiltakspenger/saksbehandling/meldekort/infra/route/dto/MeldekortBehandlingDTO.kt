@@ -21,6 +21,7 @@ import java.time.LocalDateTime
 
 data class MeldekortBehandlingDTO(
     val id: String,
+    val sakId: String,
     val meldeperiodeId: String,
     val brukersMeldekortId: String?,
     val saksbehandler: String?,
@@ -51,6 +52,7 @@ fun MeldekortBehandling.tilMeldekortBehandlingDTO(
 
     return MeldekortBehandlingDTO(
         id = id.toString(),
+        sakId = sakId.toString(),
         meldeperiodeId = meldeperiode.id.toString(),
         brukersMeldekortId = brukersMeldekort?.id.toString(),
         saksbehandler = saksbehandler,
