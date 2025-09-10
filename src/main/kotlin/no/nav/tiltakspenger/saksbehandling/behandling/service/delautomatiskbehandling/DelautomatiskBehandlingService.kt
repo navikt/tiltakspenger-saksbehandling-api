@@ -198,6 +198,10 @@ class DelautomatiskBehandlingService(
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_ANDRE_YTELSER)
         }
 
+        if (behandling.saksopplysninger.harTiltakspengevedtakFraArena()) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_VEDTAK_I_ARENA)
+        }
+
         val behandlinger = behandlingRepo.hentAlleForFnr(behandling.fnr)
         if (behandlinger.any { !it.erAvsluttet && it.id != behandling.id }) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING)

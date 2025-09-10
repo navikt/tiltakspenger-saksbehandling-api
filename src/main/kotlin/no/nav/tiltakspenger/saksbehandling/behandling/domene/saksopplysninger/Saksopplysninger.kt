@@ -41,6 +41,8 @@ data class Saksopplysninger(
     }
 
     fun harAndreYtelser(): Boolean = ytelser.isNotEmpty()
+
+    fun harTiltakspengevedtakFraArena(): Boolean = tiltakspengevedtakFraArena.isNotEmpty()
 }
 
 typealias HentSaksopplysninger = suspend (
