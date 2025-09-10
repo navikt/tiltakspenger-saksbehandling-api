@@ -13,24 +13,25 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Satser
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
 
-@Suppress("unused")
 private data class BrevFørstegangsvedtakInnvilgelseDTO(
-    val personalia: BrevPersonaliaDTO,
+    override val personalia: BrevPersonaliaDTO,
+    override val saksnummer: String,
+    override val saksbehandlerNavn: String,
+    override val beslutterNavn: String?,
+    override val datoForUtsending: String,
+    override val tilleggstekst: String?,
+    override val forhandsvisning: Boolean,
     val rammevedtakFraDato: String,
     val rammevedtakTilDato: String,
-    val saksnummer: String,
     val antallBarn: List<AntallBarnPerPeriodeDTO>,
     val barnetilleggTekst: String?,
     val antallBarnHvis1PeriodeIHeleInnvilgelsesperiode: Int?,
-    val saksbehandlerNavn: String,
-    val beslutterNavn: String?,
     val kontor: String,
-    val datoForUtsending: String,
     val satser: List<Any>,
     val satsBarn: Int,
-    val tilleggstekst: String? = null,
-    val forhandsvisning: Boolean,
-) {
+) : BrevRammevedtakBaseDTO {
+
+    @Suppress("unused")
     val barnetillegg: Boolean = antallBarn.isNotEmpty()
 
     data class AntallBarnPerPeriodeDTO(
@@ -41,7 +42,7 @@ private data class BrevFørstegangsvedtakInnvilgelseDTO(
     )
 }
 
-internal suspend fun Rammevedtak.toInnvilgetSøknadsbrev(
+internal suspend fun Rammevedtak.tilInnvilgetSøknadsbrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
     vedtaksdato: LocalDate,
@@ -57,7 +58,6 @@ internal suspend fun Rammevedtak.toInnvilgetSøknadsbrev(
         beslutterNavIdent = beslutter,
         innvilgelsesperiode = this.periode,
         saksnummer = saksnummer,
-        // finnes ikke noe forhåndsvisning for rammevedtak
         forhåndsvisning = false,
         barnetilleggsPerioder = this.behandling.barnetillegg?.periodisering,
     )

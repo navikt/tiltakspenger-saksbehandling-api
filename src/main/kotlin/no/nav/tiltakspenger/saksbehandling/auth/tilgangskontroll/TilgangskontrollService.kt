@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinClient
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
@@ -76,10 +77,16 @@ class TilgangskontrollService(
     ): Map<Fnr, Boolean> {
         try {
             val respons = tilgangsmaskinClient.harTilgangTilPersoner(fnrs, saksbehandlerToken)
-            return respons.resultater.associate { Fnr.fromString(it.brukerId) to it.harTilgangTilPerson() }
+            return respons.resultater.associate {
+                // TODO jah: Trenger litt debug-logger på denne for å feilsøke tilgangsproblemer. Fjern når vi har bedre oversikt.
+                if (!it.harTilgangTilPerson()) {
+                    Sikkerlogg.debug { "Benk - saksbehandler har ikke tilgang til person. ansattId=${respons.ansattId}. status=${it.status}. detaljer=${it.detaljer}." }
+                }
+                Fnr.fromString(it.brukerId) to it.harTilgangTilPerson()
+            }
         } catch (e: Exception) {
             log.error { "Noe gikk galt ved sjekk av tilgang for flere personer: ${e.message}" }
-            return throw TilgangException("Klarte ikke gjøre tilgangskontroll for saksbehandler (flere brukere) ${saksbehandler.navIdent}: ${e.message}}")
+            throw TilgangException("Klarte ikke gjøre tilgangskontroll for saksbehandler (flere brukere) ${saksbehandler.navIdent}: ${e.message}}")
         }
     }
 }

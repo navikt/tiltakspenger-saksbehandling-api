@@ -10,12 +10,17 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Satser
+import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
+import java.time.LocalDate
 
 private data class BrevRevurderingInnvilgetDTO(
-    val personalia: BrevPersonaliaDTO,
-    val saksnummer: String,
-    val saksbehandlerNavn: String,
-    val beslutterNavn: String?,
+    override val personalia: BrevPersonaliaDTO,
+    override val saksnummer: String,
+    override val saksbehandlerNavn: String,
+    override val beslutterNavn: String?,
+    override val datoForUtsending: String,
+    override val tilleggstekst: String?,
+    override val forhandsvisning: Boolean,
     val kontor: String,
     val fraDato: String,
     val tilDato: String,
@@ -25,20 +30,40 @@ private data class BrevRevurderingInnvilgetDTO(
      */
     val introTekstMedBarnetillegg: String?,
     val satser: List<Any>,
-    val saksbehandlerVurdering: String?,
-    val forhåndsvisning: Boolean,
-)
+) : BrevRammevedtakBaseDTO
+
+suspend fun Rammevedtak.tilRevurderingInnvilgetBrev(
+    hentBrukersNavn: suspend (Fnr) -> Navn,
+    hentSaksbehandlersNavn: suspend (String) -> String,
+    vedtaksdato: LocalDate,
+    tilleggstekst: FritekstTilVedtaksbrev? = null,
+): String {
+    return genererRevurderingInnvilgetBrev(
+        hentBrukersNavn = hentBrukersNavn,
+        hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+        vedtaksdato = vedtaksdato,
+        tilleggstekst = tilleggstekst,
+        fnr = fnr,
+        saksbehandlerNavIdent = saksbehandler,
+        beslutterNavIdent = beslutter,
+        innvilgelsesperiode = periode,
+        saksnummer = saksnummer,
+        forhåndsvisning = false,
+        barnetilleggsPerioder = barnetillegg?.periodisering,
+    )
+}
 
 internal suspend fun genererRevurderingInnvilgetBrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
-    saksbehandlersVurdering: FritekstTilVedtaksbrev,
+    tilleggstekst: FritekstTilVedtaksbrev?,
     fnr: Fnr,
     saksbehandlerNavIdent: String,
     beslutterNavIdent: String?,
     saksnummer: Saksnummer,
-    vurderingsperiode: Periode,
-    barnetillegg: Periodisering<AntallBarn>?,
+    innvilgelsesperiode: Periode,
+    vedtaksdato: LocalDate,
+    barnetilleggsPerioder: Periodisering<AntallBarn>?,
     forhåndsvisning: Boolean,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)
@@ -55,9 +80,9 @@ internal suspend fun genererRevurderingInnvilgetBrev(
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
         kontor = "Nav Tiltakspenger",
-        fraDato = vurderingsperiode.fraOgMed.format(norskDatoFormatter),
-        tilDato = vurderingsperiode.tilOgMed.format(norskDatoFormatter),
-        satser = Satser.satser.filter { it.periode.overlapperMed(vurderingsperiode) }.map {
+        fraDato = innvilgelsesperiode.fraOgMed.format(norskDatoFormatter),
+        tilDato = innvilgelsesperiode.tilOgMed.format(norskDatoFormatter),
+        satser = Satser.satser.filter { it.periode.overlapperMed(innvilgelsesperiode) }.map {
             @Suppress("unused")
             object {
                 val år = it.periode.fraOgMed.year
@@ -65,10 +90,11 @@ internal suspend fun genererRevurderingInnvilgetBrev(
                 val barnetillegg = it.satsBarnetillegg
             }
         },
-        saksbehandlerVurdering = saksbehandlersVurdering.verdi,
-        forhåndsvisning = forhåndsvisning,
-        harBarnetillegg = barnetillegg != null && barnetillegg.any { it.verdi.value > 0 },
-        introTekstMedBarnetillegg = barnetillegg?.tilIntroTekst(vurderingsperiode),
+        tilleggstekst = tilleggstekst?.verdi,
+        forhandsvisning = forhåndsvisning,
+        harBarnetillegg = barnetilleggsPerioder != null && barnetilleggsPerioder.any { it.verdi.value > 0 },
+        introTekstMedBarnetillegg = barnetilleggsPerioder?.tilIntroTekst(innvilgelsesperiode),
+        datoForUtsending = vedtaksdato.format(norskDatoFormatter),
     ).let { serialize(it) }
 }
 

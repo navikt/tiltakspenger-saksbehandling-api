@@ -74,7 +74,7 @@ private data class Body(
             virkningsperiode = virkningsperiode,
             valgteHjemler = valgteHjemler?.toDomain(),
             stansDato = stansDato,
-            barnetillegg = barnetillegg?.let { it.tilPeriodisering() as IkkeTomPeriodisering },
+            barnetillegg = if (barnetillegg == null || barnetillegg.isEmpty()) null else (barnetillegg.tilPeriodisering() as IkkeTomPeriodisering),
             resultat = resultat,
             avslagsgrunner = this.avslagsgrunner?.toAvslagsgrunnlag(),
         )

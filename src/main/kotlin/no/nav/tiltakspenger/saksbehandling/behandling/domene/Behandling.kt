@@ -466,14 +466,31 @@ sealed interface Behandling {
      */
     fun oppdaterSaksopplysninger(
         saksbehandler: Saksbehandler,
-        oppdaterteSaksopplysninger: Saksopplysninger,
+        nyeSaksopplysninger: Saksopplysninger,
     ): Either<KunneIkkeOppdatereSaksopplysninger, Behandling> {
         return validerKanOppdatere(saksbehandler).mapLeft {
             KunneIkkeOppdatereSaksopplysninger.KunneIkkeOppdatereBehandling(it)
         }.map {
+            val skalNullstille: Boolean =
+                (
+                    this.saksopplysninger.tiltaksdeltagelser.sortedBy { it.eksternDeltagelseId }
+                        .zip(nyeSaksopplysninger.tiltaksdeltagelser.sortedBy { it.eksternDeltagelseId }) { forrige, nye ->
+                            // Vi nullstiller resultatet og virkningsperioden dersom det har kommet nye tiltaksdeltagelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
+                            forrige.eksternDeltagelseId != nye.eksternDeltagelseId || forrige.deltagelseFraOgMed == nye.deltagelseFraOgMed || forrige.deltagelseTilOgMed == nye.deltagelseTilOgMed
+                        }.any { it }
+                    ) ||
+                    (this.saksopplysninger.tiltaksdeltagelser.size != nyeSaksopplysninger.tiltaksdeltagelser.size)
+
             when (this) {
-                is Søknadsbehandling -> this.copy(saksopplysninger = oppdaterteSaksopplysninger)
-                is Revurdering -> this.copy(saksopplysninger = oppdaterteSaksopplysninger)
+                is Søknadsbehandling -> this.copy(
+                    saksopplysninger = nyeSaksopplysninger,
+                    resultat = if (skalNullstille) null else this.resultat,
+                )
+
+                is Revurdering -> this.copy(
+                    saksopplysninger = nyeSaksopplysninger,
+                    resultat = if (skalNullstille && this.resultat is RevurderingResultat.Innvilgelse) this.resultat.nullstill() else this.resultat,
+                )
             }
         }
     }
@@ -532,9 +549,8 @@ sealed interface Behandling {
                 require(iverksattTidspunkt == null)
                 if (attesteringer.isEmpty()) {
                     require(beslutter == null) { "Beslutter kan ikke være tilknyttet behandlingen dersom det ikke er gjort noen attesteringer" }
-                } else {
-                    require(resultat != null) { "Behandlingsresultat må være satt dersom det er gjort attesteringer på behandlingen" }
                 }
+                // Vi kan ikke kreve at resultatet er satt dersom den har vært underkjent, siden hentOpplysninger kan resette saksoplysninger og implisitt resultatet.
             }
 
             KLAR_TIL_BESLUTNING -> {

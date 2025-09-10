@@ -92,6 +92,7 @@ class ForhåndsvisVedtaksbrevService(
     ): PdfA = genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrev(
         hentBrukersNavn = personService::hentNavn,
         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+        vedtaksdato = LocalDate.now(),
         fnr = sak.fnr,
         saksbehandlerNavIdent = behandling.saksbehandler!!,
         beslutterNavIdent = behandling.beslutter,
@@ -99,7 +100,7 @@ class ForhåndsvisVedtaksbrevService(
         sakId = sak.id,
         forhåndsvisning = true,
         vurderingsperiode = virkningsperiode!!,
-        saksbehandlersVurdering = kommando.fritekstTilVedtaksbrev,
+        tilleggstekst = kommando.fritekstTilVedtaksbrev,
         barnetillegg = kommando.barnetillegg?.let {
             it.utvid(AntallBarn(0), virkningsperiode) as SammenhengendePeriodisering
         },

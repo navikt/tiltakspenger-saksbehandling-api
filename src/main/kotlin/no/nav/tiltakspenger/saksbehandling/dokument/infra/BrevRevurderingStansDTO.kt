@@ -14,11 +14,14 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.LocalDate
 
-@Suppress("unused")
-private class BrevRevurderingStansDTO(
-    val personalia: BrevPersonaliaDTO,
-    val saksnummer: String,
-    val datoForUtsending: String,
+private data class BrevRevurderingStansDTO(
+    override val personalia: BrevPersonaliaDTO,
+    override val saksnummer: String,
+    override val saksbehandlerNavn: String,
+    override val beslutterNavn: String?,
+    override val datoForUtsending: String,
+    override val tilleggstekst: String?,
+    override val forhandsvisning: Boolean,
     val barnetillegg: Boolean = false,
     @Deprecated("rammevedtakFraDato er renamet til virkningsperiodeFraDato, beholdes til pdfgen har fjernet bruken")
     val rammevedtakFraDato: String,
@@ -27,12 +30,8 @@ private class BrevRevurderingStansDTO(
     val virkningsperiodeFraDato: String,
     val virkningsperiodeTilDato: String,
     val kontor: String,
-    val beslutterNavn: String?,
-    val saksbehandlerNavn: String,
-    val forhandsvisning: Boolean,
-    val tilleggstekst: String? = null,
     val valgtHjemmelTekst: List<String>?,
-)
+) : BrevRammevedtakBaseDTO
 
 internal suspend fun Rammevedtak.toRevurderingStans(
     hentBrukersNavn: suspend (Fnr) -> Navn,

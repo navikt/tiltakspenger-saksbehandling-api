@@ -53,7 +53,7 @@ class BrevSøknadAvslagDTOKtTest {
                   "avslagsgrunner":["ALDER"],
                   "harSøktMedBarn":true,
                   "hjemlerTekst":null,
-                  "forhåndsvisning":true,
+                  "forhandsvisning":true,
                   "avslagFraOgMed":"1. januar 2023",
                   "avslagTilOgMed":"31. mars 2023",
                   "datoForUtsending": "1. januar 2025"
@@ -89,7 +89,7 @@ class BrevSøknadAvslagDTOKtTest {
                   "avslagsgrunner":["ALDER"],
                   "harSøktMedBarn":false,
                   "hjemlerTekst":null,
-                  "forhåndsvisning":false,
+                  "forhandsvisning":false,
                   "avslagFraOgMed":"1. januar 2023",
                   "avslagTilOgMed":"31. mars 2023",
                   "datoForUtsending": "1. januar 2025"

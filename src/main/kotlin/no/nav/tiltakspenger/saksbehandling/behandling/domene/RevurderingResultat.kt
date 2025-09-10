@@ -21,5 +21,13 @@ sealed interface RevurderingResultat : BehandlingResultat {
         override val barnetillegg: Barnetillegg?,
         override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?,
     ) : BehandlingResultat.Innvilgelse,
-        RevurderingResultat
+        RevurderingResultat {
+        fun nullstill(): Innvilgelse {
+            return Innvilgelse(
+                valgteTiltaksdeltakelser = null,
+                barnetillegg = null,
+                antallDagerPerMeldeperiode = null,
+            )
+        }
+    }
 }

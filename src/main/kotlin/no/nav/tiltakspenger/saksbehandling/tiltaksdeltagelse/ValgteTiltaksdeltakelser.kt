@@ -13,6 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 data class ValgteTiltaksdeltakelser(
     val periodisering: SammenhengendePeriodisering<Tiltaksdeltagelse>,
 ) {
+    val verdier = periodisering.verdier
+
     companion object {
         fun periodiser(
             tiltaksdeltakelser: List<Pair<Periode, String>>,
