@@ -18,6 +18,7 @@ data class Saksopplysninger(
     val tiltaksdeltagelser: Tiltaksdeltagelser,
     val periode: Periode?,
     val ytelser: Ytelser,
+    val tiltakspengevedtakFraArena: TiltakspengevedtakFraArena,
 ) {
     init {
         // Vi venter med å aktivere denne til etter vi har tømt dev-basen, som skjer ca. 27 august 2025.

@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.auth.test.core.JwtGenerator
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeTestClient
@@ -88,6 +89,7 @@ class TestApplicationContext(
     private val søknadFakeRepo = SøknadFakeRepo(behandlingFakeRepo)
     private val tiltaksdeltagelseFakeKlient = TiltaksdeltagelseFakeKlient(søknadRepo = søknadFakeRepo)
     private val sokosUtbetaldataFakeClient = SokosUtbetaldataFakeClient()
+    private val tiltakspengerArenaFakeClient = TiltakspengerArenaFakeClient()
     private val personFakeKlient = PersonFakeKlient(clock)
     private val genererFakeVedtaksbrevForUtbetalingKlient = GenererFakeVedtaksbrevForUtbetalingKlient()
     private val genererFakseVedtaksrevForInnvilgelseKlient = GenererFakeVedtaksbrevKlient()
@@ -239,6 +241,7 @@ class TestApplicationContext(
             simulerService = utbetalingContext.simulerService,
             personKlient = personContext.personKlient,
             oppgaveKlient = oppgaveKlient,
+            tiltakspengerArenaClient = tiltakspengerArenaFakeClient,
         ) {
             override val rammevedtakRepo = rammevedtakFakeRepo
             override val behandlingRepo = behandlingFakeRepo

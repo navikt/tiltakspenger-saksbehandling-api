@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import java.time.Clock
@@ -21,12 +22,14 @@ interface SaksopplysningerMother {
         clock: Clock = ObjectMother.clock,
         oppslagstidspunkt: LocalDateTime = LocalDateTime.now(clock),
         ytelser: Ytelser = Ytelser.fromList(emptyList(), oppslagsperiode, oppslagstidspunkt),
+        tiltakspengevedtakFraArena: TiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(emptyList(), oppslagsperiode, oppslagstidspunkt),
     ): Saksopplysninger {
         return Saksopplysninger(
             fødselsdato = fødselsdato,
             tiltaksdeltagelser = Tiltaksdeltagelser(listOf(tiltaksdeltagelse)),
             periode = Periode(fom, tom),
             ytelser = ytelser,
+            tiltakspengevedtakFraArena = tiltakspengevedtakFraArena,
         )
     }
 }

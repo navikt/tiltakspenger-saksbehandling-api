@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeLokalClient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
@@ -148,6 +149,10 @@ class LocalApplicationContext(
         SokosUtbetaldataFakeClient()
     }
 
+    override val tiltakspengerArenaClient by lazy {
+        TiltakspengerArenaFakeClient()
+    }
+
     override val profile by lazy { Profile.LOCAL }
 
     override val sakContext by lazy {
@@ -215,6 +220,7 @@ class LocalApplicationContext(
             simulerService = utbetalingContext.simulerService,
             personKlient = personContext.personKlient,
             oppgaveKlient = oppgaveKlient,
+            tiltakspengerArenaClient = tiltakspengerArenaClient,
         ) {}
     }
     override val utbetalingContext by lazy {

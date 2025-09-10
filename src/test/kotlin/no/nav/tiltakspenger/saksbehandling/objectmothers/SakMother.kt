@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
@@ -91,6 +92,7 @@ interface SakMother {
             tiltaksdeltagelser = registrerteTiltak,
             periode = registrerteTiltak.totalPeriode,
             ytelser = Ytelser.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
+            tiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
         ),
         barnetillegg: Barnetillegg? = null,
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = listOf(
@@ -195,10 +197,11 @@ interface SakMother {
             tiltaksdeltagelser = registrerteTiltak,
             periode = registrerteTiltak.totalPeriode,
             ytelser = Ytelser.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
+            tiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
         ),
         clock: Clock = fixedClock,
         correlationId: CorrelationId = CorrelationId.generate(),
-        sak: Sak = ObjectMother.nySak(sakId = sakId, saksnummer = saksnummer, fnr = fnr, søknader = listOf(søknad)),
+        sak: Sak = nySak(sakId = sakId, saksnummer = saksnummer, fnr = fnr, søknader = listOf(søknad)),
     ): Pair<Sak, Søknadsbehandling> {
         val søknadsbehandling =
             runBlocking {

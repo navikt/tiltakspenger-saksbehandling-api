@@ -9,6 +9,8 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasHttpClient
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaHttpClient
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinClient
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinHttpClient
@@ -110,6 +112,13 @@ open class ApplicationContext(
             baseUrl = Configuration.sokosUtbetaldataUrl,
             getToken = { texasClient.getSystemToken(Configuration.sokosUtbetaldataScope, IdentityProvider.AZUREAD) },
             clock = clock,
+        )
+    }
+
+    open val tiltakspengerArenaClient: TiltakspengerArenaClient by lazy {
+        TiltakspengerArenaHttpClient(
+            baseUrl = Configuration.tiltakspengerArenaUrl,
+            getToken = { texasClient.getSystemToken(Configuration.tiltakspengerArenaScope, IdentityProvider.AZUREAD) },
         )
     }
 
@@ -299,6 +308,7 @@ open class ApplicationContext(
             simulerService = utbetalingContext.simulerService,
             personKlient = personContext.personKlient,
             oppgaveKlient = oppgaveKlient,
+            tiltakspengerArenaClient = tiltakspengerArenaClient,
         )
     }
     open val benkOversiktContext by lazy {
