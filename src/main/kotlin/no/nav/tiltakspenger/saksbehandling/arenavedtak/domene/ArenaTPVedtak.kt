@@ -19,6 +19,11 @@ data class ArenaTPVedtak(
     fun toDTO() = ArenaTPVedtakDTO(
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
-        rettighet = rettighet,
+        rettighet = when (rettighet) {
+            Rettighet.TILTAKSPENGER -> "Tiltakspenger"
+            Rettighet.BARNETILLEGG -> "Barnetillegg"
+            Rettighet.TILTAKSPENGER_OG_BARNETILLEGG -> "Tiltakspenger og barnetillegg"
+            Rettighet.INGENTING -> "Stanset vedtak"
+        },
     )
 }
