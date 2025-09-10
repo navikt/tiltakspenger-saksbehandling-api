@@ -12,6 +12,7 @@ data class SaksopplysningerDTO(
     val tiltaksdeltagelse: List<TiltaksdeltagelseDTO>,
     val periode: PeriodeDTO?,
     val ytelser: List<YtelseDTO>,
+    val tiltakspengevedtakFraArena: List<ArenaTPVedtakDTO>,
 )
 
 fun Saksopplysninger.toSaksopplysningerDTO(): SaksopplysningerDTO {
@@ -20,5 +21,6 @@ fun Saksopplysninger.toSaksopplysningerDTO(): SaksopplysningerDTO {
         tiltaksdeltagelse = this.tiltaksdeltagelser.map { it.toDTO() },
         periode = this.periode?.toDTO(),
         ytelser = this.ytelser.map { it.toDTO() },
+        tiltakspengevedtakFraArena = this.tiltakspengevedtakFraArena.map { it.toDTO() },
     )
 }

@@ -17,6 +17,7 @@ private data class SaksopplysningerDbJson(
     val fødselsdato: String,
     val tiltaksdeltagelse: List<TiltaksdeltagelseDbJson>,
     val ytelser: YtelserDbJson,
+    val tiltakspengevedtakFraArena: TiltakspengevedtakFraArenaDbJson,
 ) {
     data class TiltaksdeltagelseDbJson(
         val eksternDeltagelseId: String,
@@ -70,6 +71,7 @@ fun Saksopplysninger.toDbJson(): String {
         fødselsdato = fødselsdato.toString(),
         tiltaksdeltagelse = tiltaksdeltagelser.map { it.toDbJson() },
         ytelser = ytelser.toDbJson(),
+        tiltakspengevedtakFraArena = tiltakspengevedtakFraArena.toDbJson(),
     ).let { serialize(it) }
 }
 
@@ -80,5 +82,6 @@ fun String.toSaksopplysninger(saksopplysningsperiode: Periode?): Saksopplysninge
         tiltaksdeltagelser = Tiltaksdeltagelser(dbJson.tiltaksdeltagelse.map { it.toDomain() }),
         periode = saksopplysningsperiode,
         ytelser = dbJson.ytelser.toDomain(),
+        tiltakspengevedtakFraArena = dbJson.tiltakspengevedtakFraArena.toDomain(),
     )
 }

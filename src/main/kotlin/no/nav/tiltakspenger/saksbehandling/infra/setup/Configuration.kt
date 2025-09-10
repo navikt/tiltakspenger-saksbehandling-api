@@ -93,6 +93,8 @@ object Configuration {
                 "NAIS_TOKEN_EXCHANGE_ENDPOINT" to "http://localhost:7165/api/v1/token/exchange",
                 "TILGANGSMASKINEN_URL" to "http://host.docker.internal:8091",
                 "TILGANGSMASKINEN_SCOPE" to "localhost",
+                "TILTAKSPENGER_ARENA_URL" to "http://host.docker.internal:8091",
+                "TILTAKSPENGER_ARENA_SCOPE" to "localhost",
             ),
         )
 
@@ -133,6 +135,8 @@ object Configuration {
                 "SOKOS_UTBETALDATA_URL" to "https://sokos-utbetaldata.dev-fss-pub.nais.io",
                 "TILGANGSMASKINEN_URL" to "http://populasjonstilgangskontroll.tilgangsmaskin",
                 "TILGANGSMASKINEN_SCOPE" to "api://dev-gcp.tilgangsmaskin.populasjonstilgangskontroll/.default",
+                "TILTAKSPENGER_ARENA_URL" to "https://tiltakspenger-arena.dev-fss-pub.nais.io",
+                "TILTAKSPENGER_ARENA_SCOPE" to "dev-fss:tpts:tiltakspenger-arena",
             ),
         )
     private val prodProperties =
@@ -172,6 +176,8 @@ object Configuration {
                 "SOKOS_UTBETALDATA_URL" to "https://sokos-utbetaldata.prod-fss-pub.nais.io",
                 "TILGANGSMASKINEN_URL" to "http://populasjonstilgangskontroll.tilgangsmaskin",
                 "TILGANGSMASKINEN_SCOPE" to "api://prod-gcp.tilgangsmaskin.populasjonstilgangskontroll/.default",
+                "TILTAKSPENGER_ARENA_URL" to "https://tiltakspenger-arena.prod-fss-pub.nais.io",
+                "TILTAKSPENGER_ARENA_SCOPE" to "prod-fss:tpts:tiltakspenger-arena",
             ),
         )
 
@@ -226,6 +232,7 @@ object Configuration {
     val veilarboppfolgingScope: String by lazy { config()[Key("VEILARBOPPFOLGING_SCOPE", stringType)] }
     val oppgaveScope: String by lazy { config()[Key("OPPGAVE_SCOPE", stringType)] }
     val sokosUtbetaldataScope: String by lazy { config()[Key("SOKOS_UTBETALDATA_SCOPE", stringType)] }
+    val tiltakspengerArenaScope: String by lazy { config()[Key("TILTAKSPENGER_ARENA_SCOPE", stringType)] }
 
     val pdlUrl by lazy { config()[Key("PDL_ENDPOINT_URL", stringType)] }
     val skjermingUrl: String by lazy { config()[Key("SKJERMING_URL", stringType)] }
@@ -240,6 +247,7 @@ object Configuration {
     val veilarboppfolgingUrl: String by lazy { config()[Key("VEILARBOPPFOLGING_URL", stringType)] }
     val oppgaveUrl: String by lazy { config()[Key("OPPGAVE_URL", stringType)] }
     val sokosUtbetaldataUrl: String by lazy { config()[Key("SOKOS_UTBETALDATA_URL", stringType)] }
+    val tiltakspengerArenaUrl: String by lazy { config()[Key("TILTAKSPENGER_ARENA_URL", stringType)] }
 
     val tilgangsmaskinenUrl: String by lazy { config()[Key("TILGANGSMASKINEN_URL", stringType)] }
     val tilgangsmaskinenScope: String by lazy { config()[Key("TILGANGSMASKINEN_SCOPE", stringType)] }

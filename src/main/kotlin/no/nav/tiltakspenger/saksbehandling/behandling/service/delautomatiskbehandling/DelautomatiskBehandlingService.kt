@@ -198,6 +198,10 @@ class DelautomatiskBehandlingService(
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_ANDRE_YTELSER)
         }
 
+        if (behandling.saksopplysninger.harTiltakspengevedtakFraArena()) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_VEDTAK_I_ARENA)
+        }
+
         val behandlinger = behandlingRepo.hentAlleForFnr(behandling.fnr)
         if (behandlinger.any { !it.erAvsluttet && it.id != behandling.id }) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING)
@@ -217,9 +221,6 @@ class DelautomatiskBehandlingService(
         return manueltBehandlesGrunner
     }
 
-    // TODO False positive løst i kotlin version 2.2.10-RC
-    // https://youtrack.jetbrains.com/issue/KT-78352/False-positive-IDENTITYSENSITIVEOPERATIONSWITHVALUETYPE-when-comparing-with-equality-operator
-    @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
     private fun tiltakFraSoknadHarEndretPeriode(
         tiltakFraSoknad: Søknadstiltak,
         tiltakFraSaksopplysning: Tiltaksdeltagelse,

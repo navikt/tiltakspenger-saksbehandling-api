@@ -3,9 +3,11 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelserDetErSøktTiltakspengerFor
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.felles.min
 import no.nav.tiltakspenger.saksbehandling.person.PersonopplysningerSøker
@@ -19,6 +21,7 @@ class HentSaksopplysingerService(
     private val hentPersonopplysninger: suspend (fnr: Fnr) -> PersonopplysningerSøker,
     private val tiltaksdeltagelseKlient: TiltaksdeltagelseKlient,
     private val sokosUtbetaldataClient: SokosUtbetaldataClient,
+    private val tiltakspengerArenaClient: TiltakspengerArenaClient,
     private val clock: Clock,
 ) {
     /**
@@ -57,6 +60,9 @@ class HentSaksopplysingerService(
             ytelser = saksopplysningsperiode
                 ?.let { hentYtelser(it, fnr, correlationId) }
                 ?: Ytelser.IkkeBehandlingsgrunnlag,
+            tiltakspengevedtakFraArena = saksopplysningsperiode
+                ?.let { hentTiltakspengevedtakFraArena(it, fnr, correlationId) }
+                ?: TiltakspengevedtakFraArena.IkkeBehandlingsgrunnlag,
         )
     }
 
@@ -115,4 +121,19 @@ class HentSaksopplysingerService(
             oppslagstidspunkt = LocalDateTime.now(clock),
         )
     }
+
+    private suspend fun hentTiltakspengevedtakFraArena(
+        saksopplysningsperiode: Periode,
+        fnr: Fnr,
+        correlationId: CorrelationId,
+    ): TiltakspengevedtakFraArena =
+        TiltakspengevedtakFraArena.fromList(
+            arenaTpVedtak = tiltakspengerArenaClient.hentTiltakspengevedtakFraArena(
+                fnr,
+                saksopplysningsperiode,
+                correlationId,
+            ),
+            oppslagsperiode = saksopplysningsperiode,
+            oppslagstidspunkt = LocalDateTime.now(clock),
+        )
 }

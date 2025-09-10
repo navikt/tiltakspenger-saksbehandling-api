@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.setup
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
@@ -71,6 +72,7 @@ open class BehandlingOgVedtakContext(
     simulerService: SimulerService,
     personKlient: PersonKlient,
     oppgaveKlient: OppgaveKlient,
+    tiltakspengerArenaClient: TiltakspengerArenaClient,
 ) {
     open val rammevedtakRepo: RammevedtakRepo by lazy { RammevedtakPostgresRepo(sessionFactory as PostgresSessionFactory) }
     open val behandlingRepo: BehandlingRepo by lazy {
@@ -130,6 +132,7 @@ open class BehandlingOgVedtakContext(
             tiltaksdeltagelseKlient = tiltaksdeltagelseKlient,
             sokosUtbetaldataClient = sokosUtbetaldataClient,
             clock = clock,
+            tiltakspengerArenaClient = tiltakspengerArenaClient,
         )
     }
     val oppdaterSaksopplysningerService: OppdaterSaksopplysningerService by lazy {

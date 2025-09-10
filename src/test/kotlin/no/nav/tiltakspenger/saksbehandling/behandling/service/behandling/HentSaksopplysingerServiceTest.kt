@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
+import arrow.core.toNonEmptyListOrThrow
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
 import kotlinx.coroutines.runBlocking
@@ -11,9 +12,12 @@ import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.til
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
+import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelseDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelserDetErSøktTiltakspengerFor
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.TiltaksdeltagelseKlient
@@ -57,6 +61,13 @@ internal class HentSaksopplysingerServiceTest {
                     correlationId: CorrelationId,
                 ) = emptyList<Ytelse>()
             }
+            val tiltakspengerArenaClient = object : TiltakspengerArenaClient {
+                override suspend fun hentTiltakspengevedtakFraArena(
+                    fnr: Fnr,
+                    periode: Periode,
+                    correlationId: CorrelationId,
+                ) = emptyList<ArenaTPVedtak>()
+            }
 
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
@@ -64,6 +75,7 @@ internal class HentSaksopplysingerServiceTest {
                 tiltaksdeltagelseKlient = tiltaksdeltagelseKlient,
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
+                tiltakspengerArenaClient = tiltakspengerArenaClient,
             )
 
             val result = service.hentSaksopplysningerFraRegistre(
@@ -79,6 +91,10 @@ internal class HentSaksopplysingerServiceTest {
             result.periode!! shouldBeEqual (2 til 30.januar(2023))
             result.ytelser shouldBeEqual Ytelser.IngenTreff(
                 oppslagsperiode = 1.desember(2022) til 31.januar(2023),
+                oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
+            )
+            result.tiltakspengevedtakFraArena shouldBeEqual TiltakspengevedtakFraArena.IngenTreff(
+                oppslagsperiode = 2 til 30.januar(2023),
                 oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
             )
         }
@@ -117,12 +133,20 @@ internal class HentSaksopplysingerServiceTest {
                     correlationId: CorrelationId,
                 ) = emptyList<Ytelse>()
             }
+            val tiltakspengerArenaClient = object : TiltakspengerArenaClient {
+                override suspend fun hentTiltakspengevedtakFraArena(
+                    fnr: Fnr,
+                    periode: Periode,
+                    correlationId: CorrelationId,
+                ) = emptyList<ArenaTPVedtak>()
+            }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
                 hentPersonopplysninger = { fyr },
                 tiltaksdeltagelseKlient = tiltaksdeltagelseKlient,
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
+                tiltakspengerArenaClient = tiltakspengerArenaClient,
             )
             val result = service.hentSaksopplysningerFraRegistre(
                 fnr = fnr,
@@ -135,6 +159,7 @@ internal class HentSaksopplysingerServiceTest {
             result.tiltaksdeltagelser shouldBeEqual Tiltaksdeltagelser(tiltaksdeltagelser.first)
             result.periode.shouldBeNull()
             result.ytelser shouldBeEqual Ytelser.IkkeBehandlingsgrunnlag
+            result.tiltakspengevedtakFraArena shouldBeEqual TiltakspengevedtakFraArena.IkkeBehandlingsgrunnlag
         }
     }
 
@@ -172,12 +197,27 @@ internal class HentSaksopplysingerServiceTest {
                     correlationId: CorrelationId,
                 ) = emptyList<Ytelse>()
             }
+            val tiltakspengerArenaClient = object : TiltakspengerArenaClient {
+                override suspend fun hentTiltakspengevedtakFraArena(
+                    fnr: Fnr,
+                    periode: Periode,
+                    correlationId: CorrelationId,
+                ) = listOf(
+                    ArenaTPVedtak(
+                        fraOgMed = 12.desember(2022),
+                        tilOgMed = 15.januar(2023),
+                        rettighet = ArenaTPVedtak.Rettighet.TILTAKSPENGER,
+                        vedtakId = 123L,
+                    ),
+                )
+            }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
                 hentPersonopplysninger = { fyr },
                 tiltaksdeltagelseKlient = tiltaksdeltagelseKlient,
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
+                tiltakspengerArenaClient = tiltakspengerArenaClient,
             )
             val result = service.hentSaksopplysningerFraRegistre(
                 fnr = fnr,
@@ -191,6 +231,18 @@ internal class HentSaksopplysingerServiceTest {
             result.periode!! shouldBeEqual (2.januar(2023) til 30.januar(2023))
             result.ytelser shouldBeEqual Ytelser.IngenTreff(
                 oppslagsperiode = 1.desember(2022) til 31.januar(2023),
+                oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
+            )
+            result.tiltakspengevedtakFraArena shouldBeEqual TiltakspengevedtakFraArena.Treff(
+                value = listOf(
+                    ArenaTPVedtak(
+                        fraOgMed = 12.desember(2022),
+                        tilOgMed = 15.januar(2023),
+                        rettighet = ArenaTPVedtak.Rettighet.TILTAKSPENGER,
+                        vedtakId = 123L,
+                    ),
+                ).toNonEmptyListOrThrow(),
+                oppslagsperiode = 2 til 30.januar(2023),
                 oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
             )
         }
@@ -237,12 +289,20 @@ internal class HentSaksopplysingerServiceTest {
                     correlationId: CorrelationId,
                 ) = emptyList<Ytelse>()
             }
+            val tiltakspengerArenaClient = object : TiltakspengerArenaClient {
+                override suspend fun hentTiltakspengevedtakFraArena(
+                    fnr: Fnr,
+                    periode: Periode,
+                    correlationId: CorrelationId,
+                ) = emptyList<ArenaTPVedtak>()
+            }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
                 hentPersonopplysninger = { fyr },
                 tiltaksdeltagelseKlient = tiltaksdeltagelseKlient,
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
+                tiltakspengerArenaClient = tiltakspengerArenaClient,
             )
             val result = service.hentSaksopplysningerFraRegistre(
                 fnr = fnr,
@@ -257,6 +317,10 @@ internal class HentSaksopplysingerServiceTest {
             result.ytelser shouldBeEqual Ytelser.IngenTreff(
                 // Dagens dato er 1. februar
                 oppslagsperiode = 1.desember(2022) til 1.februar(2023),
+                oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
+            )
+            result.tiltakspengevedtakFraArena shouldBeEqual TiltakspengevedtakFraArena.IngenTreff(
+                oppslagsperiode = 3.januar(2023) til 15.februar(2023),
                 oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
             )
         }
@@ -304,12 +368,20 @@ internal class HentSaksopplysingerServiceTest {
                     correlationId: CorrelationId,
                 ) = emptyList<Ytelse>()
             }
+            val tiltakspengerArenaClient = object : TiltakspengerArenaClient {
+                override suspend fun hentTiltakspengevedtakFraArena(
+                    fnr: Fnr,
+                    periode: Periode,
+                    correlationId: CorrelationId,
+                ) = emptyList<ArenaTPVedtak>()
+            }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
                 hentPersonopplysninger = { fyr },
                 tiltaksdeltagelseKlient = tiltaksdeltagelseKlient,
                 sokosUtbetaldataClient = sokosUtbetaldataClient,
                 clock = clock,
+                tiltakspengerArenaClient = tiltakspengerArenaClient,
             )
             val result = service.hentSaksopplysningerFraRegistre(
                 fnr = fnr,
@@ -324,6 +396,10 @@ internal class HentSaksopplysingerServiceTest {
             result.ytelser shouldBeEqual Ytelser.IngenTreff(
                 // Dagens dato er 1. februar
                 oppslagsperiode = 1.desember(2022) til 1.februar(2023),
+                oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
+            )
+            result.tiltakspengevedtakFraArena shouldBeEqual TiltakspengevedtakFraArena.IngenTreff(
+                oppslagsperiode = 3.januar(2023) til 15.februar(2023),
                 oppslagstidspunkt = LocalDateTime.of(2023, 2, 1, 0, 0),
             )
         }
