@@ -111,7 +111,10 @@ internal class PdfgenHttpClient(
                 }
             },
             errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
-            uri = vedtakInnvilgelseUri,
+            uri = when (vedtak.behandling) {
+                is Revurdering -> revurderingInnvilgelseUri
+                is Søknadsbehandling -> vedtakInnvilgelseUri
+            },
         )
     }
 
