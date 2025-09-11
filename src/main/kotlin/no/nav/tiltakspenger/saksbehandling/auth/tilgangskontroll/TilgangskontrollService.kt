@@ -80,7 +80,7 @@ class TilgangskontrollService(
             return respons.resultater.associate {
                 // TODO jah: Trenger litt debug-logger på denne for å feilsøke tilgangsproblemer. Fjern når vi har bedre oversikt.
                 if (!it.harTilgangTilPerson()) {
-                    Sikkerlogg.debug { "Benk - saksbehandler har ikke tilgang til person. ansattId=${respons.ansattId}. status=${it.status}. detaljer=${it.detaljer}." }
+                    Sikkerlogg.debug { "Benk - saksbehandler har ikke tilgang til person. fnr={${it.brukerId}}. ansattId=${respons.ansattId}. status=${it.status}. detaljer=${it.detaljer}." }
                 }
                 Fnr.fromString(it.brukerId) to it.harTilgangTilPerson()
             }
