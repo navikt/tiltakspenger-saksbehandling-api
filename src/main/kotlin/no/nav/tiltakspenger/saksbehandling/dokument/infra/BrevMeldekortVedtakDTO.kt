@@ -23,6 +23,7 @@ private data class MeldekortVedtakDTO(
     val begrunnelse: String? = null,
     val sammenligningAvBeregninger: SammenligningAvBeregningerDTO,
     val korrigering: Boolean,
+    val totaltBelop: Int,
 ) {
     data class SaksbehandlerDTO(
         val navn: String,
@@ -89,6 +90,7 @@ suspend fun MeldekortVedtak.toJsonRequest(
         iverksattTidspunkt = opprettet.format(norskTidspunktFormatter),
         korrigering = erKorrigering,
         sammenligningAvBeregninger = toBeregningSammenligningDTO(sammenlign),
+        totaltBelop = meldekortBehandling.beløpTotal,
     ).let { serialize(it) }
 }
 
