@@ -19,7 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import java.time.LocalDate
