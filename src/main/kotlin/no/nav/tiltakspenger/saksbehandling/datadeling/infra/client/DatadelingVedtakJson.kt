@@ -41,16 +41,17 @@ fun Rammevedtak.toDatadelingJson(): String {
         saksnummer = this.saksnummer.verdi,
         fom = periode.fraOgMed,
         tom = periode.tilOgMed,
-        // TODO abn: sett en periodisering istedenfor bare maks. Evt fjern dersom denne ikke deles med noen.
+        // TODO abn: Ta hensyn til periodisering istedenfor bare maks. Evt fjern dersom denne ikke deles med noen.
         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode.maksAntallDager(),
         rettighet = when (this.vedtakstype) {
             Vedtakstype.INNVILGELSE -> {
-                if (barnetillegg != null) {
+                if (barnetillegg?.harBarnetillegg == true) {
                     "TILTAKSPENGER_OG_BARNETILLEGG"
                 } else {
                     "TILTAKSPENGER"
                 }
             }
+
             Vedtakstype.STANS -> "INGENTING"
             // Denne skal helst ikke bli truffet da servicen ikke skal prøve å sende for avlsag
             Vedtakstype.AVSLAG -> throw IllegalArgumentException("Vi dropper sende noe til datadeling nå for avslag")
@@ -61,7 +62,7 @@ fun Rammevedtak.toDatadelingJson(): String {
     ).let { serialize(it) }
 }
 
-private fun Barnetillegg.toDatadelingBarnetillegg() =
+private fun Barnetillegg.toDatadelingBarnetillegg(): DatadelingVedtakJson.Barnetillegg? = if (harBarnetillegg) {
     DatadelingVedtakJson.Barnetillegg(
         perioder = this.periodisering.perioderMedVerdi.toList().map {
             DatadelingVedtakJson.BarnetilleggPeriode(
@@ -73,3 +74,6 @@ private fun Barnetillegg.toDatadelingBarnetillegg() =
             )
         },
     )
+} else {
+    null
+}

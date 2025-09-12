@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
@@ -48,6 +49,7 @@ class DelautomatiskBehandlingServiceTest {
                     it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
                 }
                 val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltagelser.find { it.eksternDeltagelseId == soknad.tiltak.id }!!
+                val virkningsperiode = soknad.tiltaksdeltagelseperiodeDetErSøktOm()
 
                 tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
 
@@ -59,12 +61,12 @@ class DelautomatiskBehandlingServiceTest {
 
                 oppdatertBehandling.antallDagerPerMeldeperiode shouldBe Periodisering(AntallDagerForMeldeperiode(10), soknad.tiltaksdeltagelseperiodeDetErSøktOm())
                 oppdatertBehandling.resultat!!.instanceOf(BehandlingResultat.Innvilgelse::class) shouldBe true
-                oppdatertBehandling.virkningsperiode shouldBe soknad.tiltaksdeltagelseperiodeDetErSøktOm()
-                oppdatertBehandling.barnetillegg shouldBe null
+                oppdatertBehandling.virkningsperiode shouldBe virkningsperiode
+                oppdatertBehandling.barnetillegg shouldBe Barnetillegg.utenBarnetillegg(virkningsperiode)
                 oppdatertBehandling.valgteTiltaksdeltakelser shouldBe ValgteTiltaksdeltakelser(
                     SammenhengendePeriodisering(
                         tiltaksdeltakelse,
-                        soknad.tiltaksdeltagelseperiodeDetErSøktOm(),
+                        virkningsperiode,
                     ),
                 )
             }

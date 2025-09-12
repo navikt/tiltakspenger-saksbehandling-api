@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltagelser
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
@@ -238,8 +238,7 @@ internal class PdfgenHttpClient(
         sakId: SakId,
         forhåndsvisning: Boolean,
         tilleggstekst: FritekstTilVedtaksbrev?,
-        barnetillegg: Boolean,
-        valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelHarIkkeRettighet>,
+        valgteHjemler: List<ValgtHjemmelForStans>,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -253,8 +252,7 @@ internal class PdfgenHttpClient(
                     virkningsperiode = virkningsperiode,
                     saksnummer = saksnummer,
                     forhåndsvisning = forhåndsvisning,
-                    barnetillegg = barnetillegg,
-                    valgteHjemler = valgtHjemmelHarIkkeRettighet,
+                    valgteHjemler = valgteHjemler,
                     tilleggstekst = tilleggstekst,
                 )
             },

@@ -201,7 +201,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelser.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
-        barnetillegg: Barnetillegg? = null,
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         beregning: BehandlingBeregning? = null,
         simulering: Simulering? = null,
     ): Revurdering {
@@ -265,7 +265,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = saksopplysninger.tiltaksdeltagelser.map {
             Pair(virkningsperiode, it.eksternDeltagelseId)
         },
-        barnetillegg: Barnetillegg? = null,
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         beregning: BehandlingBeregning? = null,
     ): Revurdering {
         return nyRevurderingInnvilgelseKlarTilBeslutning(

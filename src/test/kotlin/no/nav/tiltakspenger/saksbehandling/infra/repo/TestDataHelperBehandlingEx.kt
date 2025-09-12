@@ -31,7 +31,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletMa
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilBeslutning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -76,7 +75,7 @@ internal fun TestDataHelper.persisterOpprettetSøknadsbehandling(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
         ),
-    barnetillegg: Barnetillegg? = null,
+    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(tiltaksOgVurderingsperiode),
     clock: Clock = this.clock,
 ): Triple<Sak, Søknadsbehandling, Søknad> {
     this.persisterSakOgSøknad(
@@ -223,7 +222,7 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
                 ),
             ),
             innvilgelsesperiode = tiltaksOgVurderingsperiode,
-            barnetillegg = null,
+            barnetillegg = Barnetillegg.utenBarnetillegg(tiltaksOgVurderingsperiode),
             antallDagerPerMeldeperiode = SammenhengendePeriodisering(
                 AntallDagerForMeldeperiode(10),
                 behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm(),
@@ -317,7 +316,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                         innvilgelsesperiode = tiltaksOgVurderingsperiode,
-                        barnetillegg = null,
+                        barnetillegg = Barnetillegg.utenBarnetillegg(tiltaksOgVurderingsperiode),
                         tiltaksdeltakelser = tiltaksdeltakelser,
                         antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                     )

@@ -14,11 +14,16 @@ data class BarnetilleggDTO(
     val perioder: List<BarnetilleggPeriodeDTO>,
     val begrunnelse: String?,
 ) {
-    fun tilBarnetillegg(virkningsperiode: Periode): Barnetillegg = Barnetillegg.periodiserOgFyllUtHullMed0(
-        begrunnelse = begrunnelse?.let { (BegrunnelseVilkårsvurdering(saniter(it))) },
-        perioder = perioder.map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) },
-        virkningsperiode = virkningsperiode,
-    )
+    fun tilBarnetillegg(virkningsperiode: Periode): Barnetillegg =
+        if (this.perioder.isNotEmpty()) {
+            Barnetillegg.periodiserOgFyllUtHullMed0(
+                begrunnelse = begrunnelse?.let { (BegrunnelseVilkårsvurdering(saniter(it))) },
+                perioder = perioder.map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) },
+                virkningsperiode = virkningsperiode,
+            )
+        } else {
+            Barnetillegg.utenBarnetillegg(virkningsperiode)
+        }
 }
 
 data class BarnetilleggPeriodeDTO(

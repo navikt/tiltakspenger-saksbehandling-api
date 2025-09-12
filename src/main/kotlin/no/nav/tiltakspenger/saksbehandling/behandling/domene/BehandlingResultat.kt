@@ -19,22 +19,35 @@ sealed interface BehandlingResultat {
                 "Virkningsperiode må være satt for innvilget behandling"
             }
 
-            valgteTiltaksdeltakelser?.also {
+            valgteTiltaksdeltakelser.also {
+                requireNotNull(it) {
+                    "Valgte tiltaksdeltakelser må være satt for innvilget behandling"
+                }
+
                 require(it.periodisering.totalPeriode == virkningsperiode) {
                     "Total periode for valgte tiltaksdeltakelser (${it.periodisering.totalPeriode}) må stemme overens med virkningsperioden ($virkningsperiode)"
                 }
             }
-                ?: throw IllegalStateException("Valgte tiltaksdeltakelser må være satt for innvilget behandling")
 
-            barnetillegg?.also {
+            barnetillegg.also {
+                requireNotNull(it) {
+                    "Barnetillegg må være satt for innvilget behandling"
+                }
+
                 val barnetilleggsperiode = it.periodisering.totalPeriode
                 require(barnetilleggsperiode == virkningsperiode) {
                     "Barnetilleggsperioden ($barnetilleggsperiode) må ha samme periode som virkningsperioden($virkningsperiode)"
                 }
             }
 
-            require(antallDagerPerMeldeperiode?.totalPeriode == virkningsperiode) {
-                "Innvilgelsesperioden ($virkningsperiode) må være lik som antallDagerPerMeldeperiode sin totale periode (${antallDagerPerMeldeperiode!!.totalPeriode})"
+            antallDagerPerMeldeperiode.also {
+                requireNotNull(it) {
+                    "antallDagerPerMeldeperiode må være satt for innvilget behandling"
+                }
+
+                require(it.totalPeriode == virkningsperiode) {
+                    "Innvilgelsesperioden ($virkningsperiode) må være lik som antallDagerPerMeldeperiode sin totale periode (${it.totalPeriode})"
+                }
             }
         }
     }

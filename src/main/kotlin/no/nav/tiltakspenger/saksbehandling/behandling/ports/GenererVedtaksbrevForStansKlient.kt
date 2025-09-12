@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.person.Navn
@@ -33,7 +33,6 @@ interface GenererVedtaksbrevForStansKlient {
         sakId: SakId,
         forhåndsvisning: Boolean,
         tilleggstekst: FritekstTilVedtaksbrev?,
-        barnetillegg: Boolean,
-        valgtHjemmelHarIkkeRettighet: List<ValgtHjemmelHarIkkeRettighet>,
+        valgteHjemler: List<ValgtHjemmelForStans>,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

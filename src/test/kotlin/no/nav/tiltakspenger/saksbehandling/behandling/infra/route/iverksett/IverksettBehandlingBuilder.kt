@@ -29,7 +29,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehanding
@@ -58,7 +57,7 @@ interface IverksettBehandlingBuilder {
             AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             virkningsperiode,
         ),
-        barnetillegg: Barnetillegg? = null,
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,

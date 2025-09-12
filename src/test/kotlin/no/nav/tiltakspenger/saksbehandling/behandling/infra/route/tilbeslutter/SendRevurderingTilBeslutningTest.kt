@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
@@ -80,7 +81,13 @@ class SendRevurderingTilBeslutningTest {
 
             revurdering.resultat shouldBe RevurderingResultat.Innvilgelse(
                 valgteTiltaksdeltakelser = revurdering.valgteTiltaksdeltakelser!!,
-                barnetillegg = søknadsbehandling.barnetillegg,
+                barnetillegg = Barnetillegg(
+                    periodisering = søknadsbehandling.barnetillegg!!.periodisering.nyPeriode(
+                        revurderingInnvilgelsesperiode,
+                        defaultVerdiDersomDenMangler = søknadsbehandling.barnetillegg!!.periodisering.verdier.first(),
+                    ),
+                    begrunnelse = søknadsbehandling.barnetillegg!!.begrunnelse,
+                ),
                 antallDagerPerMeldeperiode = SammenhengendePeriodisering(
                     AntallDagerForMeldeperiode.default,
                     revurderingInnvilgelsesperiode,

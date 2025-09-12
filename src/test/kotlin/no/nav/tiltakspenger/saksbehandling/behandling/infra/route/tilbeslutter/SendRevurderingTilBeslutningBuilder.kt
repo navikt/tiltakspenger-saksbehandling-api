@@ -20,9 +20,11 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.toDTO
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.OppdaterRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.ValgtHjemmelForStansDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -110,7 +112,7 @@ interface SendRevurderingTilBeslutningBuilder {
                     ),
                 ),
                 antallDagerPerMeldeperiodeForPerioder = antallDager.toDTO(),
-                barnetillegg = null,
+                barnetillegg = Barnetillegg.utenBarnetillegg(revurderingVirkningsperiode).toBarnetilleggDTO(),
             ),
         )
 
@@ -123,8 +125,6 @@ interface SendRevurderingTilBeslutningBuilder {
                 sak.id,
                 revurdering.id,
                 saksbehandler,
-//                innvilgelsesperiode = revurderingVirkningsperiode,
-//                eksternDeltagelseId = søknad.tiltak.id,
             ),
         )
     }

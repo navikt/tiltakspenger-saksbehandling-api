@@ -26,7 +26,7 @@ import java.time.LocalDate
 fun Sak.beregnInnvilgelse(
     behandlingId: BehandlingId,
     virkningsperiode: Periode,
-    barnetillegg: Barnetillegg?,
+    barnetillegg: Barnetillegg,
 ): BehandlingBeregning? {
     return beregnMeldeperioderPåNytt(
         behandlingId = behandlingId,

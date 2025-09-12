@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
@@ -260,6 +261,8 @@ class OppdaterBehandlingRouteTest {
             val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.single()
             val tiltaksdeltakelsePeriode = tiltaksdeltagelse.periode!!
 
+            val oppdatertTiltaksdeltagelsesPeriode = tiltaksdeltakelsePeriode.minusFraOgMed(7)
+
             oppdaterBehandling(
                 tac,
                 sak.id,
@@ -273,8 +276,9 @@ class OppdaterBehandlingRouteTest {
                             periode = tiltaksdeltakelsePeriode.toDTO(),
                         ),
                     ),
-                    innvilgelsesperiode = tiltaksdeltakelsePeriode.minusFraOgMed(7).toDTO(),
-                    barnetillegg = null,
+                    innvilgelsesperiode = oppdatertTiltaksdeltagelsesPeriode.toDTO(),
+                    barnetillegg = Barnetillegg.utenBarnetillegg(oppdatertTiltaksdeltagelsesPeriode)
+                        .toBarnetilleggDTO(),
                     antallDagerPerMeldeperiodeForPerioder = listOf(
                         AntallDagerPerMeldeperiodeDTO(
                             periode = tiltaksdeltakelsePeriode.toDTO(),
