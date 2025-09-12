@@ -152,10 +152,18 @@ private fun ValgtHjemmelForStans.tekstVedtaksbrev(barnetillegg: Boolean = false)
             }
 
         ValgtHjemmelForStans.Institusjonsopphold ->
-            """
-                du oppholder deg på en institusjon med gratis opphold, mat og drikke. 
-                Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke. under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger.
-                Det er gjort unntak for opphold i barneverns-institusjoner. Dette kommer frem av tiltakspengeforskriften § 9. 
-            """
+            if (barnetillegg) {
+                """
+                    du oppholder deg på en institusjon med gratis opphold, mat og drikke. 
+                    Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke. under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger og barnetillegg.
+                    Det er gjort unntak for opphold i barneverns-institusjoner. Dette kommer frem av tiltakspengeforskriften §§ 3 og 9. 
+                """
+            } else {
+                """
+                    du oppholder deg på en institusjon med gratis opphold, mat og drikke. 
+                    Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke. under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger.
+                    Det er gjort unntak for opphold i barneverns-institusjoner. Dette kommer frem av tiltakspengeforskriften § 9. 
+                """
+            }
     }.trimIndent()
 }
