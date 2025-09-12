@@ -51,7 +51,6 @@ class JournalførMeldekortVedtakService(
                         "Forventet at et det skal finnes tiltaksdeltagelse for meldekortvedtaksperioden"
                     }
 
-                    // TODO: tilpass pdfgen-template for å ikke vise saksbehandler/beslutter ved automatisk behandling
                     val hentSaksbehandlersNavn: suspend (String) -> String =
                         if (meldekortVedtak.automatiskBehandlet) {
                             { "Automatisk behandlet" }
