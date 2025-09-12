@@ -150,7 +150,7 @@ interface SøknadsbehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering? = null,
-        barnetillegg: Barnetillegg? = null,
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(10),
             virkningsperiode,
@@ -183,7 +183,7 @@ interface SøknadsbehandlingBuilder {
                     ),
                 ),
                 innvilgelsesperiode = virkningsperiode.toDTO(),
-                barnetillegg = barnetillegg?.toBarnetilleggDTO(),
+                barnetillegg = barnetillegg.toBarnetilleggDTO(),
                 antallDagerPerMeldeperiodeForPerioder = antallDagerPerMeldeperiode.toDTO(),
             ),
         )

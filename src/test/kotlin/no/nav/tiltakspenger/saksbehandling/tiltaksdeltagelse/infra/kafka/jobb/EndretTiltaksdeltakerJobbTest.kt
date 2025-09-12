@@ -100,7 +100,6 @@ class EndretTiltaksdeltakerJobbTest {
                     sak = sak,
                     søknad = ObjectMother.nySøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(id = id),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
                     ),

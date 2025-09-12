@@ -47,7 +47,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
             AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             virkningsperiode,
         ),
-        barnetillegg: Barnetillegg? = null,
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         tiltaksdeltagelse: Tiltaksdeltagelse = ObjectMother.tiltaksdeltagelseTac(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,

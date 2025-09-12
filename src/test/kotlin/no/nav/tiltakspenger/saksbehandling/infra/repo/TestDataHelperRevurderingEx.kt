@@ -226,6 +226,8 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
         sakMedRevurdering.sisteDagSomGirRett!!,
     )
 
+    val barnetillegg = barnetillegg ?: Barnetillegg.utenBarnetillegg(periode)
+
     val kommando = OppdaterRevurderingKommando.Innvilgelse(
         sakId = sakMedRevurdering.id,
         behandlingId = revurdering.id,

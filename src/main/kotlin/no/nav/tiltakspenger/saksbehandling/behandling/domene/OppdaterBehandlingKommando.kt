@@ -16,15 +16,10 @@ sealed interface OppdaterBehandlingKommando {
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
 
-    /** Er kun satt for Søknadsbehandling/Revurdering til innvilgelse */
-    val innvilgelsesperiode: Periode?
-
-    /** Er kun satt for Søknadsbehandling/Revurdering til innvilgelse */
-    val barnetillegg: Barnetillegg?
-
-    /** Er kun satt for Søknadsbehandling/Revurdering til innvilgelse */
-    val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>?
-
-    /** Er kun satt for Søknadsbehandling/Revurdering til innvilgelse */
-    val tiltaksdeltakelser: List<Pair<Periode, String>>?
+    sealed interface Innvilgelse {
+        val innvilgelsesperiode: Periode
+        val barnetillegg: Barnetillegg
+        val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>
+        val tiltaksdeltakelser: List<Pair<Periode, String>>
+    }
 }

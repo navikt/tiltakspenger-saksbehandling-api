@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.validerStansDato
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
@@ -132,8 +133,7 @@ class ForhåndsvisVedtaksbrevService(
             saksnummer = sak.saksnummer,
             sakId = sak.id,
             forhåndsvisning = true,
-            barnetillegg = behandling.barnetillegg != null,
-            valgtHjemmelHarIkkeRettighet = kommando.valgteHjemler!!,
+            valgteHjemler = kommando.valgteHjemler as List<ValgtHjemmelForStans>,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
         ).fold(
             ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },

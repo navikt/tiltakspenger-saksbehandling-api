@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import java.time.LocalDate
@@ -43,7 +44,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         override val begrunnelseVilkårsvurdering: String?,
         val innvilgelsesperiode: PeriodeDTO,
         val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
-        val barnetillegg: BarnetilleggDTO?,
+        val barnetillegg: BarnetilleggDTO,
         val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO> = listOf(
             AntallDagerPerMeldeperiodeDTO(
                 periode = innvilgelsesperiode,
@@ -72,7 +73,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
                     Pair(it.periode.toDomain(), it.eksternDeltagelseId)
                 },
-                barnetillegg = barnetillegg?.tilBarnetillegg(innvilgelsesperiode),
+                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode),
                 antallDagerPerMeldeperiode = antallDagerPerMeldeperiodeForPerioder.map {
                     PeriodeMedVerdi(
                         AntallDagerForMeldeperiode(it.antallDagerPerMeldeperiode),

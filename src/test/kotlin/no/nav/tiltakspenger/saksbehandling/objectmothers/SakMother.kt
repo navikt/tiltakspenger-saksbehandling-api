@@ -92,9 +92,13 @@ interface SakMother {
             tiltaksdeltagelser = registrerteTiltak,
             periode = registrerteTiltak.totalPeriode,
             ytelser = Ytelser.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
-            tiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
+            tiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(
+                emptyList(),
+                registrerteTiltak.totalPeriode!!,
+                iDag.atStartOfDay(),
+            ),
         ),
-        barnetillegg: Barnetillegg? = null,
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         valgteTiltaksdeltakelser: List<Pair<Periode, String>> = listOf(
             Pair(
                 virkningsperiode,
@@ -122,38 +126,34 @@ interface SakMother {
                     correlationId = correlationId,
                 ).getOrFail()
 
-                if (barnetillegg == null) {
-                    behandling
-                } else {
-                    behandling.oppdater(
-                        when (resultat) {
-                            SøknadsbehandlingType.INNVILGELSE -> OppdaterSøknadsbehandlingKommando.Innvilgelse(
-                                sakId = sakId,
-                                behandlingId = behandling.id,
-                                correlationId = CorrelationId.generate(),
-                                saksbehandler = saksbehandler,
-                                barnetillegg = barnetillegg,
-                                fritekstTilVedtaksbrev = null,
-                                begrunnelseVilkårsvurdering = null,
-                                innvilgelsesperiode = virkningsperiode,
-                                tiltaksdeltakelser = valgteTiltaksdeltakelser,
-                                antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
-                            )
+                behandling.oppdater(
+                    when (resultat) {
+                        SøknadsbehandlingType.INNVILGELSE -> OppdaterSøknadsbehandlingKommando.Innvilgelse(
+                            sakId = sakId,
+                            behandlingId = behandling.id,
+                            correlationId = CorrelationId.generate(),
+                            saksbehandler = saksbehandler,
+                            barnetillegg = barnetillegg,
+                            fritekstTilVedtaksbrev = null,
+                            begrunnelseVilkårsvurdering = null,
+                            innvilgelsesperiode = virkningsperiode,
+                            tiltaksdeltakelser = valgteTiltaksdeltakelser,
+                            antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                        )
 
-                            SøknadsbehandlingType.AVSLAG -> OppdaterSøknadsbehandlingKommando.Avslag(
-                                sakId = sakId,
-                                behandlingId = behandling.id,
-                                correlationId = CorrelationId.generate(),
-                                saksbehandler = saksbehandler,
-                                fritekstTilVedtaksbrev = null,
-                                begrunnelseVilkårsvurdering = null,
-                                avslagsgrunner = avslagsgrunner!!,
-                            )
-                        },
-                        clock = clock,
-                        utbetaling = null,
-                    ).getOrFail()
-                }
+                        SøknadsbehandlingType.AVSLAG -> OppdaterSøknadsbehandlingKommando.Avslag(
+                            sakId = sakId,
+                            behandlingId = behandling.id,
+                            correlationId = CorrelationId.generate(),
+                            saksbehandler = saksbehandler,
+                            fritekstTilVedtaksbrev = null,
+                            begrunnelseVilkårsvurdering = null,
+                            avslagsgrunner = avslagsgrunner!!,
+                        )
+                    },
+                    clock = clock,
+                    utbetaling = null,
+                ).getOrFail()
             }
 
         return Sak(
@@ -197,7 +197,11 @@ interface SakMother {
             tiltaksdeltagelser = registrerteTiltak,
             periode = registrerteTiltak.totalPeriode,
             ytelser = Ytelser.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
-            tiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(emptyList(), registrerteTiltak.totalPeriode!!, iDag.atStartOfDay()),
+            tiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(
+                emptyList(),
+                registrerteTiltak.totalPeriode!!,
+                iDag.atStartOfDay(),
+            ),
         ),
         clock: Clock = fixedClock,
         correlationId: CorrelationId = CorrelationId.generate(),
@@ -234,7 +238,7 @@ interface SakMother {
         saksbehandler: Saksbehandler = saksbehandler(),
         virkningsperiode: Periode = virkningsperiode(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-        barnetillegg: Barnetillegg? = null,
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         clock: Clock = fixedClock,
     ): Triple<Sak, Vedtak, Behandling> {
         val (sak, søknadsbehandling) = this.sakMedOpprettetBehandling(

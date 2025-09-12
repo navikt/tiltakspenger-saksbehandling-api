@@ -48,7 +48,7 @@ class BeregnRevurderingTest {
                     antallBarn = AntallBarn(antallBarnFraSøknad),
                 )
             } else {
-                null
+                Barnetillegg.utenBarnetillegg(virkningsperiodeSøknadsbehandling)
             },
         ).first.genererMeldeperioder(fixedClock)
 
@@ -81,7 +81,7 @@ class BeregnRevurderingTest {
             AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             virkningsperiodeRevurdering,
         ),
-        barnetillegg: Barnetillegg? = null,
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiodeRevurdering),
     ): OppdaterRevurderingKommando.Innvilgelse {
         return OppdaterRevurderingKommando.Innvilgelse(
             sakId = revurdering.sakId,

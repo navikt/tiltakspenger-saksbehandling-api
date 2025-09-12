@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårs
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.tilBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallDagerPerMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 
@@ -37,7 +38,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         override val begrunnelseVilkårsvurdering: String?,
         val valgteTiltaksdeltakelser: List<TiltaksdeltakelsePeriodeDTO>,
         val innvilgelsesperiode: PeriodeDTO,
-        val barnetillegg: BarnetilleggDTO?,
+        val barnetillegg: BarnetilleggDTO,
         val antallDagerPerMeldeperiodeForPerioder: List<AntallDagerPerMeldeperiodeDTO>,
     ) : OppdaterSøknadsbehandlingDTO {
         override val resultat: BehandlingResultatDTO = BehandlingResultatDTO.INNVILGELSE
@@ -58,7 +59,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.tilFritekstVedtaksbrev(),
                 begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.tilBegrunnelseVilkårsvurdering(),
                 innvilgelsesperiode = innvilgelsesperiode,
-                barnetillegg = barnetillegg?.tilBarnetillegg(innvilgelsesperiode),
+                barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperiode),
                 tiltaksdeltakelser = valgteTiltaksdeltakelser.map {
                     Pair(it.periode.toDomain(), it.eksternDeltagelseId)
                 },

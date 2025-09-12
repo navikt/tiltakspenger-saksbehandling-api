@@ -19,8 +19,6 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?
     val automatiskSaksbehandlet: Boolean
 
-    fun asInnvilgelseOrNull(): Innvilgelse? = this as? Innvilgelse
-
     data class Innvilgelse(
         override val sakId: SakId,
         override val behandlingId: BehandlingId,
@@ -31,9 +29,10 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val automatiskSaksbehandlet: Boolean = false,
         override val tiltaksdeltakelser: List<Pair<Periode, String>>,
         override val innvilgelsesperiode: Periode,
-        override val barnetillegg: Barnetillegg?,
+        override val barnetillegg: Barnetillegg,
         override val antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode>,
-    ) : OppdaterSøknadsbehandlingKommando {
+    ) : OppdaterSøknadsbehandlingKommando,
+        OppdaterBehandlingKommando.Innvilgelse {
 
         fun valgteTiltaksdeltakelser(behandling: Behandling): ValgteTiltaksdeltakelser =
             ValgteTiltaksdeltakelser.periodiser(
@@ -51,12 +50,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
         override val automatiskSaksbehandlet: Boolean = false,
         val avslagsgrunner: NonEmptySet<Avslagsgrunnlag>,
-    ) : OppdaterSøknadsbehandlingKommando {
-        override val innvilgelsesperiode = null
-        override val barnetillegg = null
-        override val antallDagerPerMeldeperiode = null
-        override val tiltaksdeltakelser = null
-    }
+    ) : OppdaterSøknadsbehandlingKommando
 
     /**
      * Brukes av saksbehndler til å lagre fritekst og begrunnelse før de har valgt et resultat (innvilgelse/avslag).
@@ -69,10 +63,6 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
         override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     ) : OppdaterSøknadsbehandlingKommando {
-        override val innvilgelsesperiode = null
-        override val barnetillegg = null
-        override val antallDagerPerMeldeperiode = null
-        override val tiltaksdeltakelser = null
         override val automatiskSaksbehandlet: Boolean = false
     }
 }

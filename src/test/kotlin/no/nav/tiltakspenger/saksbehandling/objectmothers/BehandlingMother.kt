@@ -187,8 +187,8 @@ interface BehandlingMother : MotherOfAllMothers {
         sendtTilBeslutning: LocalDateTime? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nySøknadsbehandlingKlarTilBeslutning()"),
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nySøknadsbehandlingKlarTilBeslutning()"),
-        barnetillegg: Barnetillegg? = null,
         virkningsperiode: Periode = virkningsperiode(),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
@@ -224,7 +224,7 @@ interface BehandlingMother : MotherOfAllMothers {
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
                     innvilgelsesperiode = virkningsperiode,
-                    barnetillegg = null,
+                    barnetillegg = barnetillegg,
                     tiltaksdeltakelser = valgteTiltaksdeltakelser,
                     antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
                 )
@@ -254,8 +254,8 @@ interface BehandlingMother : MotherOfAllMothers {
         sendtTilBeslutning: LocalDateTime? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nySøknadsbehandlingKlarTilBeslutning()"),
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nySøknadsbehandlingKlarTilBeslutning()"),
-        barnetillegg: Barnetillegg? = null,
         virkningsperiode: Periode = virkningsperiode(),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
@@ -308,8 +308,8 @@ interface BehandlingMother : MotherOfAllMothers {
         beslutter: Saksbehandler = beslutter(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nyBehandlingUnderBeslutning()"),
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyBehandlingUnderBeslutning()"),
-        barnetillegg: Barnetillegg? = null,
         virkningsperiode: Periode = virkningsperiode(),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
@@ -358,8 +358,8 @@ interface BehandlingMother : MotherOfAllMothers {
         beslutter: Saksbehandler = beslutter(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nyBehandlingUnderBeslutning()"),
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyBehandlingUnderBeslutning()"),
-        barnetillegg: Barnetillegg? = null,
         virkningsperiode: Periode = virkningsperiode(),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
@@ -413,8 +413,8 @@ interface BehandlingMother : MotherOfAllMothers {
         beslutter: Saksbehandler = beslutter(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev = FritekstTilVedtaksbrev("nyBehandlingUnderBeslutning()"),
         begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("nyBehandlingUnderBeslutning()"),
-        barnetillegg: Barnetillegg? = null,
         virkningsperiode: Periode = virkningsperiode(),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         saksopplysninger: Saksopplysninger = saksopplysninger(
             fom = virkningsperiode.fraOgMed,
             tom = virkningsperiode.tilOgMed,
@@ -609,7 +609,7 @@ suspend fun TestApplicationContext.søknadsbehandlingTilBeslutter(
         periode,
     ),
     avslagsgrunner: NonEmptySet<Avslagsgrunnlag>? = null,
-    barnetillegg: Barnetillegg? = null,
+    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
     resultat: SøknadsbehandlingType,
 ): Sak {
     val sakMedSøknadsbehandling = startSøknadsbehandling(
@@ -675,7 +675,7 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
         AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
         periode,
     ),
-    barnetillegg: Barnetillegg? = null,
+    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
 ): Sak {
     val vilkårsvurdert = søknadsbehandlingTilBeslutter(
         periode = periode,
@@ -705,7 +705,7 @@ suspend fun TestApplicationContext.søknadssbehandlingIverksatt(
         AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
         periode,
     ),
-    barnetillegg: Barnetillegg? = null,
+    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
 ): Sak {
     val tac = this
     val underBeslutning = søknadsbehandlingUnderBeslutning(
@@ -738,7 +738,7 @@ suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
         AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
         periode,
     ),
-    barnetillegg: Barnetillegg? = null,
+    barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(periode),
 ): Sak {
     val (sak, meldeperioder) = søknadssbehandlingIverksatt(
         periode = periode,

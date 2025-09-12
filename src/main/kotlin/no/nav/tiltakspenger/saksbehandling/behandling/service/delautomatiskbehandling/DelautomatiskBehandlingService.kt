@@ -237,9 +237,10 @@ class DelautomatiskBehandlingService(
         return vedtatteBehandlinger.any { it.virkningsperiode!!.overlapperMed(behandling.saksopplysningsperiode!!) }
     }
 
-    private fun utledBarnetillegg(behandling: Søknadsbehandling): Barnetillegg? {
+    private fun utledBarnetillegg(behandling: Søknadsbehandling): Barnetillegg {
+        val periode = behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm()
+
         return if (behandling.søknad.barnetillegg.isNotEmpty()) {
-            val periode = behandling.søknad.tiltaksdeltagelseperiodeDetErSøktOm()
             val antallBarnFraSøknad = behandling.søknad.barnetillegg.size
             Barnetillegg(
                 periodisering = SammenhengendePeriodisering(
@@ -249,7 +250,7 @@ class DelautomatiskBehandlingService(
                 begrunnelse = null,
             )
         } else {
-            null
+            Barnetillegg.utenBarnetillegg(periode)
         }
     }
 

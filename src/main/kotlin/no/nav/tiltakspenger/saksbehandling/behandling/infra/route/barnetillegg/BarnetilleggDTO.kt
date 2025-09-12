@@ -13,13 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårs
 data class BarnetilleggDTO(
     val perioder: List<BarnetilleggPeriodeDTO>,
     val begrunnelse: String?,
-) {
-    fun tilBarnetillegg(virkningsperiode: Periode): Barnetillegg = Barnetillegg.periodiserOgFyllUtHullMed0(
-        begrunnelse = begrunnelse?.let { (BegrunnelseVilkårsvurdering(saniter(it))) },
-        perioder = perioder.map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) },
-        virkningsperiode = virkningsperiode,
-    )
-}
+)
 
 data class BarnetilleggPeriodeDTO(
     val antallBarn: Int,
@@ -40,3 +34,14 @@ fun List<BarnetilleggPeriodeDTO>.tilPeriodisering(): Periodisering<AntallBarn> {
     // Vi ønsker ikke fylle hull med 0 på dette tidspunktet. Det gjøres av domenet siden man skal bruke virkningsperioden på behandlingen dersom den er satt.
     return this.map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) }.tilPeriodisering()
 }
+
+fun BarnetilleggDTO.tilBarnetillegg(virkningsperiode: Periode): Barnetillegg =
+    if (this.perioder.isNotEmpty()) {
+        Barnetillegg.periodiserOgFyllUtHullMed0(
+            begrunnelse = begrunnelse?.let { (BegrunnelseVilkårsvurdering(saniter(it))) },
+            perioder = perioder.map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) },
+            virkningsperiode = virkningsperiode,
+        )
+    } else {
+        Barnetillegg.utenBarnetillegg(virkningsperiode)
+    }

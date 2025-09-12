@@ -69,7 +69,7 @@ class OppdaterBehandlingService(
             is OppdaterRevurderingKommando.Innvilgelse,
             -> this.beregnInnvilgelse(
                 behandlingId = kommando.behandlingId,
-                virkningsperiode = kommando.innvilgelsesperiode!!,
+                virkningsperiode = kommando.innvilgelsesperiode,
                 barnetillegg = kommando.barnetillegg,
             )
 

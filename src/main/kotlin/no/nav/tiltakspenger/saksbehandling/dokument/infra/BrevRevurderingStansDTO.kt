@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.ValgtHjemmelHarIkkeRettighet
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -22,7 +21,6 @@ private data class BrevRevurderingStansDTO(
     override val datoForUtsending: String,
     override val tilleggstekst: String?,
     override val forhandsvisning: Boolean,
-    val barnetillegg: Boolean = false,
     @Deprecated("rammevedtakFraDato er renamet til virkningsperiodeFraDato, beholdes til pdfgen har fjernet bruken")
     val rammevedtakFraDato: String,
     @Deprecated("rammevedtakTilDato er renamet til virkningsperiodeTilDato, beholdes til pdfgen har fjernet bruken")
@@ -33,7 +31,7 @@ private data class BrevRevurderingStansDTO(
     val valgtHjemmelTekst: List<String>?,
 ) : BrevRammevedtakBaseDTO
 
-internal suspend fun Rammevedtak.toRevurderingStans(
+suspend fun Rammevedtak.toRevurderingStans(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
     vedtaksdato: LocalDate,
@@ -50,13 +48,12 @@ internal suspend fun Rammevedtak.toRevurderingStans(
         virkningsperiode = this.periode,
         saksnummer = saksnummer,
         forhåndsvisning = false,
-        barnetillegg = barnetillegg != null,
         valgteHjemler = behandling.resultat.valgtHjemmel,
         tilleggstekst = behandling.fritekstTilVedtaksbrev,
     )
 }
 
-internal suspend fun genererStansbrev(
+suspend fun genererStansbrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
     vedtaksdato: LocalDate,
@@ -66,8 +63,7 @@ internal suspend fun genererStansbrev(
     virkningsperiode: Periode,
     saksnummer: Saksnummer,
     forhåndsvisning: Boolean,
-    barnetillegg: Boolean,
-    valgteHjemler: List<ValgtHjemmelHarIkkeRettighet>? = null,
+    valgteHjemler: List<ValgtHjemmelForStans>,
     tilleggstekst: FritekstTilVedtaksbrev? = null,
 ): String {
     val brukersNavn = hentBrukersNavn(fnr)
@@ -85,7 +81,6 @@ internal suspend fun genererStansbrev(
         virkningsperiodeFraDato = virkningsperiode.fraOgMed.format(norskDatoFormatter),
         virkningsperiodeTilDato = virkningsperiode.tilOgMed.format(norskDatoFormatter),
         saksnummer = saksnummer.verdi,
-        barnetillegg = barnetillegg,
         saksbehandlerNavn = saksbehandlersNavn,
         beslutterNavn = besluttersNavn,
         // TODO post-mvp: legg inn NORG integrasjon for å hente saksbehandlers kontor.
@@ -93,13 +88,14 @@ internal suspend fun genererStansbrev(
         // Dette er vår dato, det brukes typisk når bruker klager på vedtaksbrev på dato ...
         datoForUtsending = vedtaksdato.format(norskDatoFormatter),
         forhandsvisning = forhåndsvisning,
-        valgtHjemmelTekst = valgteHjemler?.map { it.tekstVedtaksbrev(barnetillegg) },
+        valgtHjemmelTekst = valgteHjemler.map { it.tekstVedtaksbrev() },
         tilleggstekst = tilleggstekst?.verdi,
     ).let { serialize(it) }
 }
 
-private fun ValgtHjemmelHarIkkeRettighet.tekstVedtaksbrev(barnetillegg: Boolean): String {
-    return when (this as ValgtHjemmelForStans) {
+// TODO abn: enten fjerne tekstene om barnetillegg, eller sette flagget basert på tidligere vedtak i stans-perioden
+private fun ValgtHjemmelForStans.tekstVedtaksbrev(barnetillegg: Boolean = false): String {
+    return when (this) {
         ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak ->
             if (barnetillegg) {
                 "du ikke lenger deltar på arbeidsmarkedstiltak. Du må være deltaker i et arbeidsmarkedstiltak for å ha rett til tiltakspenger og barnetillegg. Dette kommer frem av arbeidsmarkedsloven § 13, tiltakspengeforskriften §§ 2 og 3."
@@ -156,18 +152,10 @@ private fun ValgtHjemmelHarIkkeRettighet.tekstVedtaksbrev(barnetillegg: Boolean)
             }
 
         ValgtHjemmelForStans.Institusjonsopphold ->
-            if (barnetillegg) {
-                """
-                    du oppholder deg på en institusjon med gratis opphold, mat og drikke. 
-                    Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke. under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger og barnetillegg.
-                    Det er gjort unntak for opphold i barneverns-institusjoner. Dette kommer frem av tiltakspengeforskriften §§ 3 og 9. 
-                """
-            } else {
-                """
-                    du oppholder deg på en institusjon med gratis opphold, mat og drikke. 
-                    Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke. under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger.
-                    Det er gjort unntak for opphold i barneverns-institusjoner. Dette kommer frem av tiltakspengeforskriften § 9. 
-                """
-            }
+            """
+                du oppholder deg på en institusjon med gratis opphold, mat og drikke. 
+                Deltakere som har opphold i institusjon, med gratis opphold, mat og drikke. under gjennomføringen av arbeidsmarkedstiltaket, har ikke rett til tiltakspenger.
+                Det er gjort unntak for opphold i barneverns-institusjoner. Dette kommer frem av tiltakspengeforskriften § 9. 
+            """
     }.trimIndent()
 }
