@@ -35,6 +35,7 @@ internal data class JoarkRequest(
     val sak: JoarkSak?,
     val dokumenter: List<JournalpostDokument>,
     val eksternReferanseId: String,
+    val overstyrInnsynsregler: OverstyrInnsynsregler? = null,
 ) {
     /**
      * INNGAAENDE brukes for dokumentasjon som NAV har mottatt fra en ekstern part. Dette kan være søknader, ettersendelser av dokumentasjon til sak eller meldinger fra arbeidsgivere.
@@ -45,6 +46,14 @@ internal data class JoarkRequest(
         INNGAAENDE,
         UTGAAENDE,
         NOTAT,
+    }
+
+    /***
+     * Settes hvis man ønsker å dele et dokument med bruker på Min Side som ikke deles i henhold til de faste innsynsreglene (f.eks. notat)
+     */
+    enum class OverstyrInnsynsregler {
+        VISES_MASKINELT_GODKJENT,
+        VISES_MANUELT_GODKJENT,
     }
 
     /**

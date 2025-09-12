@@ -19,9 +19,9 @@ internal fun MeldekortBehandling.toJournalpostRequest(
     val tittel = lagMeldekortTittel(this.periode, this.type)
     return JoarkRequest(
         tittel = tittel,
-        journalpostType = JoarkRequest.JournalPostType.UTGAAENDE,
+        journalpostType = JoarkRequest.JournalPostType.NOTAT,
         kanal = null,
-        avsenderMottaker = JoarkRequest.AvsenderMottaker(this.fnr.verdi),
+        avsenderMottaker = null,
         bruker = JoarkRequest.Bruker(this.fnr.verdi),
         sak = JoarkRequest.JoarkSak.Fagsak(this.saksnummer.toString()),
         dokumenter = listOf(
@@ -41,6 +41,7 @@ internal fun MeldekortBehandling.toJournalpostRequest(
             ),
         ),
         eksternReferanseId = this.id.toString(),
+        overstyrInnsynsregler = JoarkRequest.OverstyrInnsynsregler.VISES_MASKINELT_GODKJENT,
     ).let { objectMapper.writeValueAsString(it) }
 }
 
