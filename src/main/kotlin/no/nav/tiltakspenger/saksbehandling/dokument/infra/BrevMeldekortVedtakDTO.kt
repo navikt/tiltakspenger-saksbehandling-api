@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 
@@ -16,7 +17,7 @@ private data class MeldekortVedtakDTO(
     val saksnummer: String,
     val meldekortPeriode: PeriodeDTO,
     val saksbehandler: SaksbehandlerDTO,
-    val beslutter: SaksbehandlerDTO,
+    val beslutter: SaksbehandlerDTO?,
     val tiltak: List<TiltakDTO>,
     val iverksattTidspunkt: String,
     val fødselsnummer: String,
@@ -79,7 +80,11 @@ suspend fun MeldekortVedtak.toJsonRequest(
     return MeldekortVedtakDTO(
         fødselsnummer = fnr.verdi,
         saksbehandler = tilSaksbehandlerDto(saksbehandler, hentSaksbehandlersNavn),
-        beslutter = tilSaksbehandlerDto(beslutter, hentSaksbehandlersNavn),
+        beslutter = if (saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID && beslutter == AUTOMATISK_SAKSBEHANDLER_ID) {
+            null
+        } else {
+            tilSaksbehandlerDto(beslutter, hentSaksbehandlersNavn)
+        },
         meldekortId = meldekortId.toString(),
         saksnummer = saksnummer.toString(),
         meldekortPeriode = MeldekortVedtakDTO.PeriodeDTO(
