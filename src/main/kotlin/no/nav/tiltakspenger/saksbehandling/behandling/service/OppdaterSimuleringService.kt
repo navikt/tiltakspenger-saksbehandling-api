@@ -54,7 +54,7 @@ class OppdaterSimuleringService(
                     brukersNavkontor = { navkontor },
                 )
             }
-        return if (sak.hentBehandling(behandlingId.toBehandlingId()) != null) {
+        return if (behandlingId.erBehandlingId()) {
             sak.oppdaterRammebehandling(
                 behandlingId = behandlingId.toBehandlingId(),
                 saksbehandler = saksbehandler,
@@ -115,3 +115,8 @@ class OppdaterSimuleringService(
 
 private fun Ulid.toBehandlingId(): BehandlingId = BehandlingId.fromString(this.toString())
 private fun Ulid.toMeldekortId(): MeldekortId = MeldekortId.fromString(this.toString())
+
+private fun Ulid.erBehandlingId(): Boolean = Either.catch { BehandlingId.fromString(this.toString()) }.fold(
+    ifLeft = { false },
+    ifRight = { true },
+)
