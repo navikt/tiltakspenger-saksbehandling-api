@@ -27,7 +27,8 @@ sealed interface Simulering {
         val nyUtbetaling: Int by lazy { simuleringPerMeldeperiode.sumOf { it.nyUtbetaling } }
         val totalEtterbetaling: Int by lazy { simuleringPerMeldeperiode.sumOf { it.totalEtterbetaling } }
         val totalFeilutbetaling: Int by lazy { simuleringPerMeldeperiode.sumOf { it.totalFeilutbetaling } }
-        // TODO jah: Legg til trekk og motpostering
+        val totalJustering: Int by lazy { simuleringPerMeldeperiode.sumOf { it.simuleringsdager.sumOf { dag -> dag.totalJustering } } }
+        val totalTrekk: Int by lazy { simuleringPerMeldeperiode.sumOf { it.totalTrekk } }
 
         init {
             simuleringPerMeldeperiode.zipWithNext { a, b ->
@@ -49,7 +50,7 @@ data class SimuleringForMeldeperiode(
     val nyUtbetaling: Int = simuleringsdager.sumOf { it.nyUtbetaling }
     val totalEtterbetaling: Int = simuleringsdager.sumOf { it.totalEtterbetaling }
     val totalFeilutbetaling: Int = simuleringsdager.sumOf { it.totalFeilutbetaling }
-    // TODO jah: Legg til trekk og motpostering
+    val totalTrekk: Int = simuleringsdager.sumOf { it.totalTrekk }
 }
 
 data class Simuleringsdag(
@@ -82,14 +83,23 @@ data class Simuleringsdag(
      * Feilutbetalingen vil alltid være ikke-negativ.
      */
     val totalFeilutbetaling: Int,
-    // TODO jah: Legg til trekk og motpostering
-    /**
-     * Detaljene som ligger bak oppsummeringen.
-     */
+
+    /** F.eks. trekk fra namsmannen. Kommentar jah: Usikker på om denne vil vise omposteringer eller om det kun er justering som tar for seg det. */
+    val totalTrekk: Int,
+    /** Hvis denne dagen er negativt justert (typisk ompostert til en annen dag) */
+    val totalJustering: Int,
+
+    /** Detaljene som ligger bak oppsummeringen. */
     val posteringsdag: PosteringerForDag,
 ) {
+    @Suppress("unused")
     val harFeilutbetaling: Boolean by lazy { totalFeilutbetaling > 0 }
+
+    @Suppress("unused")
     val harEtterbetaling: Boolean by lazy { totalEtterbetaling > 0 }
+
+    @Suppress("unused")
+    val harTrekk: Boolean by lazy { totalTrekk > 0 }
 }
 
 /**
@@ -105,13 +115,13 @@ data class PosteringerForDag(
  */
 data class PosteringForDag(
     val dato: LocalDate,
-    // TODO jah: Vi kan beholde den som en String enn så lenge. Fyll inn javadoc etterhvert som vi oppdager de. Se også tilleggstønader: https://github.com/navikt/tilleggsstonader-sak/blob/main/src/main/kotlin/no/nav/tilleggsstonader/sak/utbetaling/simulering/kontrakt/SimuleringResponseDto.kt#L42
+    // Kommentar jah: Vi kan beholde den som en String enn så lenge. Fyll inn javadoc etterhvert som vi oppdager de. Se også tilleggstønader: https://github.com/navikt/tilleggsstonader-sak/blob/main/src/main/kotlin/no/nav/tilleggsstonader/sak/utbetaling/simulering/kontrakt/SimuleringResponseDto.kt#L42
     // Eksempel: TILTAKSPENGER
     val fagområde: String,
     val beløp: Int,
     val type: Posteringstype,
-    // TODO jah: Fyll ut eksempler etterhvert som vi oppdager de. Denne vil nok gjenspeile det vi sender inn i simuleringen, i hvert fall for de linjene som angår oss.
-    // Eksempel: TPTPATT
+    // Kommentar jah: Fyll ut eksempler etterhvert som vi oppdager de. Denne vil nok gjenspeile det vi sender inn i simuleringen, i hvert fall for de linjene som angår oss.
+    // Eksempel: TPTPATT, TPTPGRAMO, TPBTGRAMO,KL_KODE_FEIL_ARBYT,KL_KODE_JUST_ARBYT,TBMOTOBS,TPBTAAGR,TPBTAF,TPBTOPPFAGR,TPTPAAG,TPTPAFT,TPTPOPPFAG
     val klassekode: String,
 )
 
@@ -119,7 +129,6 @@ data class PosteringForDag(
  * Ved førstegangsutbetaling vil man i utgangspunktet kun få en postering av typen YTELSE, men det finnes mange unntak.
  * Kopiert fra https://github.com/navikt/helved-utbetaling/blob/main/apps/utsjekk/main/utsjekk/simulering/SimuleringDomain.kt#L44
  */
-@Suppress("unused")
 enum class Posteringstype {
     YTELSE,
     FEILUTBETALING,

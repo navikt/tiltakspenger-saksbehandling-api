@@ -118,6 +118,8 @@ class OppsummeringGeneratorTest {
                             nyUtbetaling = 285,
                             totalEtterbetaling = 285,
                             totalFeilutbetaling = 0,
+                            totalTrekk = 0,
+                            totalJustering = 0,
                             posteringsdag = PosteringerForDag(
                                 dato = LocalDate.parse("2024-10-14"),
                                 posteringer = nonEmptyListOf(
@@ -137,6 +139,8 @@ class OppsummeringGeneratorTest {
                             nyUtbetaling = 285,
                             totalEtterbetaling = 285,
                             totalFeilutbetaling = 0,
+                            totalTrekk = 0,
+                            totalJustering = 0,
                             posteringsdag = PosteringerForDag(
                                 dato = LocalDate.parse("2024-10-15"),
                                 posteringer = nonEmptyListOf(
@@ -156,6 +160,8 @@ class OppsummeringGeneratorTest {
                             nyUtbetaling = 285,
                             totalEtterbetaling = 285,
                             totalFeilutbetaling = 0,
+                            totalTrekk = 0,
+                            totalJustering = 0,
                             posteringsdag = PosteringerForDag(
                                 dato = LocalDate.parse("2024-10-16"),
                                 posteringer = nonEmptyListOf(
@@ -175,6 +181,8 @@ class OppsummeringGeneratorTest {
                             nyUtbetaling = 285,
                             totalEtterbetaling = 285,
                             totalFeilutbetaling = 0,
+                            totalTrekk = 0,
+                            totalJustering = 0,
                             posteringsdag = PosteringerForDag(
                                 dato = LocalDate.parse("2024-10-17"),
                                 posteringer = nonEmptyListOf(
@@ -194,6 +202,8 @@ class OppsummeringGeneratorTest {
                             nyUtbetaling = 285,
                             totalEtterbetaling = 285,
                             totalFeilutbetaling = 0,
+                            totalTrekk = 0,
+                            totalJustering = 0,
                             posteringsdag = PosteringerForDag(
                                 dato = LocalDate.parse("2024-10-21"),
                                 posteringer = nonEmptyListOf(
@@ -213,6 +223,8 @@ class OppsummeringGeneratorTest {
                             nyUtbetaling = 285,
                             totalEtterbetaling = 285,
                             totalFeilutbetaling = 0,
+                            totalTrekk = 0,
+                            totalJustering = 0,
                             posteringsdag = PosteringerForDag(
                                 dato = LocalDate.parse("2024-10-22"),
                                 posteringer = nonEmptyListOf(
@@ -232,6 +244,8 @@ class OppsummeringGeneratorTest {
                             nyUtbetaling = 285,
                             totalEtterbetaling = 285,
                             totalFeilutbetaling = 0,
+                            totalTrekk = 0,
+                            totalJustering = 0,
                             posteringsdag = PosteringerForDag(
                                 dato = LocalDate.parse("2024-10-24"),
                                 posteringer = nonEmptyListOf(
@@ -251,6 +265,8 @@ class OppsummeringGeneratorTest {
                             nyUtbetaling = 285,
                             totalEtterbetaling = 285,
                             totalFeilutbetaling = 0,
+                            totalTrekk = 0,
+                            totalJustering = 0,
                             posteringsdag = PosteringerForDag(
                                 dato = LocalDate.parse("2024-10-25"),
                                 posteringer = nonEmptyListOf(
@@ -512,6 +528,8 @@ class OppsummeringGeneratorTest {
                             nyUtbetaling = 214,
                             totalEtterbetaling = 0,
                             totalFeilutbetaling = 71,
+                            totalTrekk = 0,
+                            totalJustering = 0,
                             posteringsdag = PosteringerForDag(
                                 dato = 11.november(2024),
                                 posteringer = nonEmptyListOf(
@@ -562,6 +580,8 @@ class OppsummeringGeneratorTest {
                                 nyUtbetaling = 214,
                                 totalEtterbetaling = 0,
                                 totalFeilutbetaling = 0,
+                                totalTrekk = 0,
+                                totalJustering = 0,
                                 posteringsdag = PosteringerForDag(
                                     dato = dato,
                                     posteringer = nonEmptyListOf(
@@ -591,6 +611,8 @@ class OppsummeringGeneratorTest {
                                 nyUtbetaling = 214,
                                 totalEtterbetaling = 0,
                                 totalFeilutbetaling = 0,
+                                totalTrekk = 0,
+                                totalJustering = 0,
                                 posteringsdag = PosteringerForDag(
                                     dato = dato,
                                     posteringer = nonEmptyListOf(
@@ -623,6 +645,8 @@ class OppsummeringGeneratorTest {
                             nyUtbetaling = 0,
                             totalEtterbetaling = 0,
                             totalFeilutbetaling = 214,
+                            totalTrekk = 0,
+                            totalJustering = 0,
                             posteringsdag = PosteringerForDag(
                                 dato = 5.desember(2024),
                                 posteringer = nonEmptyListOf(

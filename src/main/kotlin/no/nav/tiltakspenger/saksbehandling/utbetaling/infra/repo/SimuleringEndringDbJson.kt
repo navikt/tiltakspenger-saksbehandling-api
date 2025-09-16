@@ -56,6 +56,9 @@ private data class SimuleringEndringDbJson(
         val nyUtbetaling: Int,
         val totalEtterbetaling: Int,
         val totalFeilutbetaling: Int,
+        // Disse feltene ble lagt til 16. september 2025. Får vurdere og migrere de senere eller bare defaulte til 0. Vi har ikke fått noen simuleringer med typene TREKK eller JUSTERING enda.
+        val totalTrekk: Int = 0,
+        val totalJustering: Int = 0,
         val posteringsdag: PosteringerForDag,
     )
 
@@ -107,6 +110,8 @@ private data class SimuleringEndringDbJson(
                             nyUtbetaling = dag.nyUtbetaling,
                             totalEtterbetaling = dag.totalEtterbetaling,
                             totalFeilutbetaling = dag.totalFeilutbetaling,
+                            totalTrekk = dag.totalTrekk,
+                            totalJustering = dag.totalJustering,
                             posteringsdag = PosteringerForDag(
                                 dato = dag.dato,
                                 posteringer = dag.posteringsdag.posteringer.map { posteringForDag ->
@@ -172,6 +177,8 @@ private fun Simulering.Endring.toDbJson(): SimuleringEndringDbJson {
                         nyUtbetaling = dag.nyUtbetaling,
                         totalEtterbetaling = dag.totalEtterbetaling,
                         totalFeilutbetaling = dag.totalFeilutbetaling,
+                        totalTrekk = dag.totalTrekk,
+                        totalJustering = dag.totalJustering,
                         posteringsdag = SimuleringEndringDbJson.PosteringerForDag(
                             dato = dag.posteringsdag.dato,
                             posteringer = dag.posteringsdag.posteringer.toList().map { postering ->

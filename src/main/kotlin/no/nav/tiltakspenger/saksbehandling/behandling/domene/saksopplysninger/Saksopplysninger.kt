@@ -21,10 +21,9 @@ data class Saksopplysninger(
     val tiltakspengevedtakFraArena: TiltakspengevedtakFraArena,
 ) {
     init {
-        // Vi venter med å aktivere denne til etter vi har tømt dev-basen, som skjer ca. 27 august 2025.
-//        require(periode == tiltaksdeltagelser.totalPeriode) {
-//            "Periode $periode må være lik tiltaksdeltagelse sin totalPeriode ${tiltaksdeltagelser.totalPeriode}. Denne kan feile i en overgangsfase i dev-basen."
-//        }
+        require(periode == tiltaksdeltagelser.totalPeriode) {
+            "Periode $periode må være lik tiltaksdeltagelse sin totalPeriode ${tiltaksdeltagelser.totalPeriode}. Denne kan feile i en overgangsfase i dev-basen."
+        }
     }
 
     fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? {

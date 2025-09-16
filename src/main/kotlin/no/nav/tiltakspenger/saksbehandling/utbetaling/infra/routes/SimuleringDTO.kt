@@ -26,6 +26,10 @@ data class SimuleringEndringDTO(
     val totalEtterbetaling: Int,
     /** Utregnet */
     val totalFeilutbetaling: Int,
+    /** Utregnet */
+    val totalTrekk: Int,
+    /** Utregnet */
+    val totalJustering: Int,
     /** Som det kommer fra OS */
     val totalBeløp: Int,
     /** Som det kommer fra OS */
@@ -45,6 +49,8 @@ data class SimuleringEndringDTO(
         val nyUtbetaling: Int,
         val totalEtterbetaling: Int,
         val totalFeilutbetaling: Int,
+        val totalTrekk: Int,
+        val totalJustering: Int,
         // Tidligere kalt detaljer. Kan vises i frontend for ekspertbrukere, bør kanskje "skjules" litt mer enn oppsummeringen.
         val posteringsdag: PosteringerForDag,
     )
@@ -71,6 +77,8 @@ fun Simulering.tilSimuleringDTO(): SimuleringDTO {
             nyUtbetaling = this.nyUtbetaling,
             totalEtterbetaling = this.totalEtterbetaling,
             totalFeilutbetaling = this.totalFeilutbetaling,
+            totalTrekk = this.totalTrekk,
+            totalJustering = this.totalJustering,
             totalBeløp = this.totalBeløp,
             datoBeregnet = this.datoBeregnet,
             totalPeriode = this.totalPeriode.toDTO(),
@@ -86,6 +94,8 @@ fun Simulering.tilSimuleringDTO(): SimuleringDTO {
                             nyUtbetaling = simuleringsdag.nyUtbetaling,
                             totalEtterbetaling = simuleringsdag.totalEtterbetaling,
                             totalFeilutbetaling = simuleringsdag.totalFeilutbetaling,
+                            totalTrekk = simuleringsdag.totalTrekk,
+                            totalJustering = simuleringsdag.totalJustering,
                             posteringsdag = SimuleringEndringDTO.PosteringerForDag(
                                 dato = simuleringsdag.dato,
                                 posteringer = simuleringsdag.posteringsdag.posteringer.toList().map { posteringForDag ->

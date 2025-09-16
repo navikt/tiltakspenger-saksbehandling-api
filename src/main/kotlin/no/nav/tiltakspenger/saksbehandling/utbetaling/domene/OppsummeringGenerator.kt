@@ -37,6 +37,8 @@ object OppsummeringGenerator {
                                 nyUtbetaling = beregnNyttBeløp(posteringerForDag),
                                 totalEtterbetaling = beregnEtterbetaling(posteringerForDag),
                                 totalFeilutbetaling = beregnFeilutbetaling(posteringerForDag),
+                                totalTrekk = beregnTrekk(posteringerForDag),
+                                totalJustering = beregnJustering(posteringerForDag),
                                 posteringsdag = posteringerForDag,
                             )
                         }
@@ -56,7 +58,7 @@ object OppsummeringGenerator {
         )
 
     private fun beregnEtterbetaling(posteringer: PosteringerForDag): Int {
-        val justeringer = posteringer.summerPosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_JUSTERING)
+        val justeringer: Int = posteringer.summerPosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_JUSTERING)
         val resultat = beregnNyttBeløp(posteringer) - beregnTidligereUtbetalt(posteringer)
         return if (justeringer < 0) {
             maxOf(resultat - abs(justeringer), 0)
@@ -67,6 +69,12 @@ object OppsummeringGenerator {
 
     private fun beregnFeilutbetaling(posteringer: PosteringerForDag): Int =
         maxOf(0, posteringer.summerBarePositivePosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_FEILUTBETALING))
+
+    // TODO jah: Jeg vet ikke om disse kommer som positive eller negative fra helved. Gjetter på at disse er negative, men vi må bekrefte dette når vi har en simulering med trekk.
+    private fun beregnTrekk(posteringer: PosteringerForDag): Int = posteringer.summerBareNegativePosteringer(Posteringstype.TREKK)
+
+    /** TODO jah: Usikker på om disse vil være negative, postive eller begge deler. */
+    private fun beregnJustering(posteringer: PosteringerForDag): Int = posteringer.summerPosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_JUSTERING)
 
     private fun PosteringerForDag.summerBarePositivePosteringer(type: Posteringstype): Int =
         this.posteringer.filter { it.beløp > 0 && it.type == type }.sumOf { it.beløp }

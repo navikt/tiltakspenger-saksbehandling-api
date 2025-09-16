@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.OppsummeringGenerator
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringForDag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringerForDag
@@ -82,14 +83,14 @@ fun String.toSimuleringFraHelvedResponse(
 ): Simulering.Endring {
     return deserialize<SimuleringResponseDTO>(this).let { res ->
         check(Fnr.fromString(res.detaljer.gjelderId) == meldeperiodeKjeder.fnr) {
-            "Simulering sin gjelderId: ${res.detaljer.gjelderId} er ulik behandlingens fnr $meldeperiodeKjeder.fnr"
+            "Simulering sin gjelderId er ulik behandlingens fnr. sakId: ${meldeperiodeKjeder.sakId}, saksnummer: ${meldeperiodeKjeder.saksnummer}"
         }
-        // TODO jah: Her må vi nok filtrere på vårt fagområde. Antar vi kan få utbetalinger fra flere enn vårt fagområde.
-//        res.detaljer.perioder.flatMap { it.posteringer }.map { Saksnummer(it.sakId) }.distinct().let {
-//            check(it.size == 1 && it.first() == meldeperiodeKjeder.saksnummer) {
-//                "Simulering sin sakId: ${it.joinToString()} er ulik behandlingens saksnummer ${meldeperiodeKjeder.saksnummer}"
-//            }
-//        }
+        res.detaljer.perioder.flatMap { it.posteringer }.filter { it.fagområde == "TILTAKSPENGER" }
+            .map { Saksnummer(it.sakId) }.distinct().let {
+                check(it.size == 1 && it.first() == meldeperiodeKjeder.saksnummer) {
+                    "Simulering sin sakId: ${it.joinToString()} er ulik behandlingens saksnummer ${meldeperiodeKjeder.saksnummer}. sakId: ${meldeperiodeKjeder.sakId}, saksnummer: ${meldeperiodeKjeder.saksnummer}"
+                }
+            }
         OppsummeringGenerator.lagOppsummering(
             res.tilPosteringerPerDag(),
             meldeperiodeKjeder,
@@ -106,7 +107,11 @@ private fun SimuleringResponseDTO.tilPosteringerPerDag(): Map<LocalDate, Posteri
         periode.tilDager().map { dato ->
             PosteringerForDag(
                 dato = dato,
-                posteringer = posteringerForPeriode.posteringer.map { postering ->
+                posteringer = posteringerForPeriode.posteringer.mapNotNull { postering ->
+                    if (postering.fagområde != "TILTAKSPENGER") {
+                        // Fjerner alle posteringer som ikke er tiltakspenger.
+                        return@mapNotNull null
+                    }
                     PosteringForDag(
                         dato = dato,
                         fagområde = postering.fagområde,

@@ -49,6 +49,8 @@ interface SimuleringMother {
                 nyUtbetaling = 0,
                 totalEtterbetaling = 0,
                 totalFeilutbetaling = 0,
+                totalTrekk = 0,
+                totalJustering = 0,
                 posteringsdag = PosteringerForDag(
                     dato = periode.fraOgMed,
                     posteringer = nonEmptyListOf(
@@ -118,6 +120,8 @@ fun Sak.genererSimuleringFraBeregning(
                         nyUtbetaling = max(it.totalbeløpEndring, 0),
                         totalEtterbetaling = max(it.totalbeløpEndring, 0),
                         totalFeilutbetaling = if (erFeilutbetaling) abs(it.totalbeløpEndring) else 0,
+                        totalTrekk = 0,
+                        totalJustering = 0,
                         posteringsdag = PosteringerForDag(
                             dato = it.dato,
                             posteringer = nonEmptyListOf(
@@ -125,9 +129,9 @@ fun Sak.genererSimuleringFraBeregning(
                                     dato = it.dato,
                                     fagområde = "TILTAKSPENGER",
                                     beløp = it.nyttTotalbeløp,
-                                    // TODO jah: Legger inn denne enkel/feil. Utvid med https://github.com/navikt/helved-utbetaling/blob/main/dokumentasjon/simulering.md hvis du trenger.
+                                    // Kommentar jah: Holden denne enkel enn så lenge. Kan utvide med mer logikk ala. https://github.com/navikt/helved-utbetaling/blob/main/dokumentasjon/simulering.md når vi trenger det.
                                     type = if (erFeilutbetaling) Posteringstype.FEILUTBETALING else Posteringstype.YTELSE,
-                                    // TODO jah: Denne forblir enkelt. Utvid hvis du trenger
+                                    // Kommentar jah: Holder denne fake enn så lenge. Kan utvides med en riktigere klassekode når vi trenger det.
                                     klassekode = "test_klassekode",
                                 ),
                             ),
