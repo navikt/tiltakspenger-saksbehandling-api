@@ -34,6 +34,12 @@ class SendBehandlingTilBeslutningService(
             "Fant ikke behandlingen ${kommando.behandlingId} på sak ${kommando.sakId}"
         }
 
+        behandling.utbetaling?.also {
+            if (it.simulering == null) {
+                return KanIkkeSendeTilBeslutter.MåHaSimuleringAvUtbetaling.left()
+            }
+        }
+
         if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {
             return KanIkkeSendeTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(eiesAvSaksbehandler = behandling.saksbehandler)
                 .left()

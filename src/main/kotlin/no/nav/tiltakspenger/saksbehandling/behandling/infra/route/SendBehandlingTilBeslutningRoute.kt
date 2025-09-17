@@ -80,4 +80,9 @@ private fun KanIkkeSendeTilBeslutter.toErrorJson(): Pair<HttpStatusCode, ErrorJs
         "Behandlingen må være under behandling eller automatisk for å kunne sendes til beslutning",
         "må_være_under_behandling_eller_automatisk",
     )
+
+    KanIkkeSendeTilBeslutter.MåHaSimuleringAvUtbetaling -> HttpStatusCode.InternalServerError to ErrorJson(
+        "Behandling med utbetaling må simuleres for å kunne sende til beslutning",
+        "må_simuleres",
+    )
 }
