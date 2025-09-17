@@ -26,24 +26,27 @@ object OppsummeringGenerator {
         return Simulering.Endring(
             datoBeregnet = datoBeregnet,
             totalBeløp = totalBeløp,
-            simuleringPerMeldeperiode = aktuelleMeldeperioder.map { meldeperiode ->
-                SimuleringForMeldeperiode(
-                    meldeperiode = meldeperiode,
-                    simuleringsdager = meldeperiode.periode.tilDager().mapNotNull { dato ->
-                        posteringerPerDag[dato]?.let { posteringerForDag ->
-                            Simuleringsdag(
-                                dato = dato,
-                                tidligereUtbetalt = beregnTidligereUtbetalt(posteringerForDag),
-                                nyUtbetaling = beregnNyttBeløp(posteringerForDag),
-                                totalEtterbetaling = beregnEtterbetaling(posteringerForDag),
-                                totalFeilutbetaling = beregnFeilutbetaling(posteringerForDag),
-                                totalTrekk = beregnTrekk(posteringerForDag),
-                                totalJustering = beregnJustering(posteringerForDag),
-                                posteringsdag = posteringerForDag,
-                            )
-                        }
-                    }.toNonEmptyListOrNull()!!,
-                )
+            simuleringPerMeldeperiode = aktuelleMeldeperioder.mapNotNull { meldeperiode ->
+                val simuleringsdager = meldeperiode.periode.tilDager().mapNotNull { dato ->
+                    posteringerPerDag[dato]?.let { posteringerForDag ->
+                        Simuleringsdag(
+                            dato = dato,
+                            tidligereUtbetalt = beregnTidligereUtbetalt(posteringerForDag),
+                            nyUtbetaling = beregnNyttBeløp(posteringerForDag),
+                            totalEtterbetaling = beregnEtterbetaling(posteringerForDag),
+                            totalFeilutbetaling = beregnFeilutbetaling(posteringerForDag),
+                            totalTrekk = beregnTrekk(posteringerForDag),
+                            totalJustering = beregnJustering(posteringerForDag),
+                            posteringsdag = posteringerForDag,
+                        )
+                    }
+                }
+                simuleringsdager.toNonEmptyListOrNull()?.let {
+                    SimuleringForMeldeperiode(
+                        meldeperiode = meldeperiode,
+                        simuleringsdager = it,
+                    )
+                }
             }.toNonEmptyListOrNull()!!,
         )
     }
@@ -71,10 +74,12 @@ object OppsummeringGenerator {
         maxOf(0, posteringer.summerBarePositivePosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_FEILUTBETALING))
 
     // TODO jah: Jeg vet ikke om disse kommer som positive eller negative fra helved. Gjetter på at disse er negative, men vi må bekrefte dette når vi har en simulering med trekk.
-    private fun beregnTrekk(posteringer: PosteringerForDag): Int = posteringer.summerBareNegativePosteringer(Posteringstype.TREKK)
+    private fun beregnTrekk(posteringer: PosteringerForDag): Int =
+        posteringer.summerBareNegativePosteringer(Posteringstype.TREKK)
 
     /** TODO jah: Usikker på om disse vil være negative, postive eller begge deler. */
-    private fun beregnJustering(posteringer: PosteringerForDag): Int = posteringer.summerPosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_JUSTERING)
+    private fun beregnJustering(posteringer: PosteringerForDag): Int =
+        posteringer.summerPosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_JUSTERING)
 
     private fun PosteringerForDag.summerBarePositivePosteringer(type: Posteringstype): Int =
         this.posteringer.filter { it.beløp > 0 && it.type == type }.sumOf { it.beløp }
