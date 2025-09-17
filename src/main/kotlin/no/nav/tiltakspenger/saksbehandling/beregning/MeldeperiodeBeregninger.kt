@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.beregning
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import java.time.LocalDateTime
@@ -18,7 +18,7 @@ data class MeldeperiodeBeregninger(
     private val godkjenteMeldekort: List<MeldekortBehandling.Behandlet> = meldekortBehandlinger.godkjenteMeldekort
         .sortedBy { it.iverksattTidspunkt }
 
-    private val iverksatteBehandlinger: List<Revurdering> = behandlinger.revurderinger.filter { it.erVedtatt }
+    private val iverksatteBehandlinger: List<Behandling> = behandlinger.filter { it.erVedtatt }
 
     private val meldeperiodeBeregningerMedTidspunkt: List<BeregningMedIverksattTidspunkt> by lazy {
         val beregningerFraMeldekort = godkjenteMeldekort.flatMap { meldekort ->
