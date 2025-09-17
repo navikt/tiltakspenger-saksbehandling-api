@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.periodisering.Periode
@@ -38,17 +39,19 @@ class BeregnRevurderingTest {
 
     private fun sakMedRevurdering(
         antallBarnFraSøknad: Int = 0,
+        periodeForSøknadsbehandling: Periode = virkningsperiodeSøknadsbehandling,
+        periodeForRevurdering: Periode = virkningsperiodeRevurdering,
         tiltakskodeForRevurdering: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
     ): Pair<Sak, Revurdering> {
         val (sak) = nySakMedVedtak(
-            virkningsperiode = virkningsperiodeSøknadsbehandling,
+            virkningsperiode = periodeForSøknadsbehandling,
             barnetillegg = if (antallBarnFraSøknad > 0) {
                 barnetillegg(
-                    periode = virkningsperiodeSøknadsbehandling,
+                    periode = periodeForSøknadsbehandling,
                     antallBarn = AntallBarn(antallBarnFraSøknad),
                 )
             } else {
-                Barnetillegg.utenBarnetillegg(virkningsperiodeSøknadsbehandling)
+                Barnetillegg.utenBarnetillegg(periodeForSøknadsbehandling)
             },
         ).first.genererMeldeperioder(fixedClock)
 
@@ -56,7 +59,7 @@ class BeregnRevurderingTest {
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
-            virkningsperiode = virkningsperiodeRevurdering,
+            virkningsperiode = periodeForRevurdering,
             hentSaksopplysninger = {
                 saksopplysninger(
                     fom = it.fraOgMed,
@@ -77,11 +80,12 @@ class BeregnRevurderingTest {
 
     private fun tilBeslutningKommando(
         revurdering: Revurdering,
+        innvilgelsesperiode: Periode = virkningsperiodeRevurdering,
         antallDagerPerMeldeperiode: SammenhengendePeriodisering<AntallDagerForMeldeperiode> = SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
-            virkningsperiodeRevurdering,
+            innvilgelsesperiode,
         ),
-        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiodeRevurdering),
+        barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperiode),
     ): OppdaterRevurderingKommando.Innvilgelse {
         return OppdaterRevurderingKommando.Innvilgelse(
             sakId = revurdering.sakId,
@@ -90,9 +94,9 @@ class BeregnRevurderingTest {
             correlationId = CorrelationId.generate(),
             begrunnelseVilkårsvurdering = BegrunnelseVilkårsvurdering("lol"),
             fritekstTilVedtaksbrev = null,
-            innvilgelsesperiode = virkningsperiodeRevurdering,
+            innvilgelsesperiode = innvilgelsesperiode,
             tiltaksdeltakelser = revurdering.saksopplysninger.tiltaksdeltagelser.map {
-                Pair(virkningsperiodeRevurdering, it.eksternDeltagelseId)
+                Pair(innvilgelsesperiode, it.eksternDeltagelseId)
             },
             antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
             barnetillegg = barnetillegg,
@@ -224,5 +228,46 @@ class BeregnRevurderingTest {
             virkningsperiode = kommando.innvilgelsesperiode,
             barnetillegg = kommando.barnetillegg,
         ).shouldBeNull()
+    }
+
+    @Test
+    fun `Skal ikke endre beregningen for dager før eller etter revurderingsperioden`() {
+        // Revurderer første meldeperiode, bortsett fra første og siste dag
+        val førsteMeldeperiode = Periode(30.desember(2024), 12.januar(2025))
+        val revurderingsperiode = førsteMeldeperiode.plusFraOgMed(1).minusTilOgMed(1)
+
+        val (sak, revurdering) = sakMedRevurdering(
+            antallBarnFraSøknad = 1,
+            periodeForRevurdering = revurderingsperiode,
+        )
+
+        val (sakMedMeldekortBehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
+            periode = førsteMeldeperiode,
+        )
+
+        val førsteDagIMeldeperioden =
+            sakMedMeldekortBehandlinger.meldeperiodeBeregninger.gjeldendeBeregninger.first().dager.first()
+        val sisteDagIMeldeperioden =
+            sakMedMeldekortBehandlinger.meldeperiodeBeregninger.gjeldendeBeregninger.last().dager.last()
+
+        val kommando = tilBeslutningKommando(
+            revurdering = revurdering,
+            innvilgelsesperiode = revurderingsperiode,
+            barnetillegg = barnetillegg(
+                periode = revurderingsperiode,
+                antallBarn = AntallBarn(2),
+            ),
+        )
+
+        val beregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(
+            behandlingId = kommando.behandlingId,
+            virkningsperiode = kommando.innvilgelsesperiode,
+            barnetillegg = kommando.barnetillegg,
+        )
+
+        beregning.shouldNotBeNull()
+
+        beregning.dager.find { it.dato == førsteDagIMeldeperioden.dato } shouldBe førsteDagIMeldeperioden
+        beregning.dager.find { it.dato == sisteDagIMeldeperioden.dato } shouldBe sisteDagIMeldeperioden
     }
 }

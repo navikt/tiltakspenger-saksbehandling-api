@@ -60,6 +60,11 @@ private fun Sak.beregnMeldeperioderPåNytt(
 
             val nyeDager = eksisterendeDager.map { dag ->
                 val dato = dag.dato
+
+                if (!virkningsperiode.inneholder(dato)) {
+                    return@map dag
+                }
+
                 val reduksjon = dag.reduksjon
 
                 val antallBarn = antallBarnForDato(dato)
@@ -68,7 +73,12 @@ private fun Sak.beregnMeldeperioderPåNytt(
                 // Husk og oppdater denne dersom OS + helved legger in støtte for det.
                 when (dag) {
                     is DeltattMedLønnITiltaket -> DeltattMedLønnITiltaket.create(dato, dag.tiltakstype, antallBarn)
-                    is DeltattUtenLønnITiltaket -> DeltattUtenLønnITiltaket.create(dato, dag.tiltakstype, antallBarn)
+                    is DeltattUtenLønnITiltaket -> DeltattUtenLønnITiltaket.create(
+                        dato,
+                        dag.tiltakstype,
+                        antallBarn,
+                    )
+
                     is SykBruker -> SykBruker.create(dato, reduksjon, dag.tiltakstype, antallBarn)
                     is SyktBarn -> SyktBarn.create(dato, reduksjon, dag.tiltakstype, antallBarn)
                     is FraværAnnet -> FraværAnnet.create(dato, dag.tiltakstype, antallBarn)
