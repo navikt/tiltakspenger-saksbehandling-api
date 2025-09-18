@@ -58,7 +58,7 @@ fun Route.overtaMeldekortBehandlingRoute(
                             val (status, error) = it.tilStatusOgErrorJson()
                             call.respond(status, error)
                         },
-                        {
+                        { (sak, behandling) ->
                             auditService.logMedMeldekortId(
                                 meldekortId = meldekortId,
                                 navIdent = saksbehandler.navIdent,
@@ -67,7 +67,10 @@ fun Route.overtaMeldekortBehandlingRoute(
                                 correlationId = correlationId,
                             )
 
-                            call.respond(HttpStatusCode.OK, it.tilMeldekortBehandlingDTO())
+                            call.respond(
+                                HttpStatusCode.OK,
+                                behandling.tilMeldekortBehandlingDTO(tidligereUtbetalinger = sak.utbetalinger),
+                            )
                         },
                     )
                 }

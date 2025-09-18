@@ -86,7 +86,10 @@ fun Route.oppdaterSimuleringRoute(
                                 contextMessage = "Saksbehandler har oppdatert simuleringen på en meldekortbehandling under behandling",
                                 correlationId = correlationId,
                             )
-                            call.respond(status = HttpStatusCode.OK, message = it.tilMeldekortBehandlingDTO())
+                            call.respond(
+                                status = HttpStatusCode.OK,
+                                message = it.tilMeldekortBehandlingDTO(tidligereUtbetalinger = sak.utbetalinger),
+                            )
                         },
                     )
                 },

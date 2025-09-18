@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.util.UUID
@@ -27,7 +28,6 @@ data class MeldeperiodeBeregning(
     val dager: NonEmptyList<MeldeperiodeBeregningDag>,
     val beregningKilde: BeregningKilde,
 ) {
-
     val fraOgMed: LocalDate get() = dager.first().dato
     val tilOgMed: LocalDate get() = dager.last().dato
     val periode: Periode get() = Periode(fraOgMed, tilOgMed)
@@ -35,6 +35,12 @@ data class MeldeperiodeBeregning(
     val ordinærBeløp: Int get() = dager.sumOf { it.beregningsdag?.beløp ?: 0 }
     val barnetilleggBeløp: Int get() = dager.sumOf { it.beregningsdag?.beløpBarnetillegg ?: 0 }
     val totalBeløp: Int get() = ordinærBeløp + barnetilleggBeløp
+    fun hentDag(dato: LocalDate): MeldeperiodeBeregningDag? {
+        return dager.singleOrNullOrThrow {
+            @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
+            it.dato == dato
+        }
+    }
 
     init {
         require(dager.size == 14) { "En meldeperiode må være 14 dager, men var ${dager.size}" }

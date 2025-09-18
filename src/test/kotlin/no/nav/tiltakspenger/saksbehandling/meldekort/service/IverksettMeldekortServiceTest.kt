@@ -22,6 +22,7 @@ internal class IverksettMeldekortServiceTest {
                 sak.meldekortBehandlinger[1].tilSendMeldekortTilBeslutterKommando(ObjectMother.saksbehandler()),
             )
             meldekortContext.taMeldekortBehandlingService.taMeldekortBehandling(
+                sakId = sakId,
                 meldekortId = sak.meldekortBehandlinger[1].id,
                 saksbehandler = ObjectMother.beslutter(),
             )

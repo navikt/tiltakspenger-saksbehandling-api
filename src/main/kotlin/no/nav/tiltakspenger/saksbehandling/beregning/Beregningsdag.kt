@@ -18,6 +18,7 @@ data class Beregningsdag(
     val antallBarn: AntallBarn,
 ) {
     init {
+        @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
         require(dato == satsdag.dato)
         if (beløpBarnetillegg > 0) {
             require(antallBarn.value > 0) {

@@ -31,6 +31,8 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -83,6 +85,10 @@ sealed interface Behandling {
     val saksopplysningsperiode: Periode? get() = saksopplysninger.periode
 
     val utbetaling: BehandlingUtbetaling?
+
+    fun toSimulertBeregning(tidligereUtbetalinger: Utbetalinger): SimulertBeregning? {
+        return utbetaling?.toSimulertBeregning(tidligereUtbetalinger)
+    }
 
     fun inneholderEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
         saksopplysninger.tiltaksdeltagelser.find { it.eksternDeltagelseId == eksternDeltagelseId } != null

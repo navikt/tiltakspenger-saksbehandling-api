@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.periodisering.Periode
+import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
 import java.time.LocalDate
 
@@ -10,6 +11,9 @@ import java.time.LocalDate
  * For mer informasjon, se: https://helved-docs.intern.dev.nav.no/v2/doc/simulering og https://confluence.adeo.no/display/OKSY/Returdata+fra+Oppdragssystemet+til+fagrutinen
  */
 sealed interface Simulering {
+
+    fun hentDag(dato: LocalDate): Simuleringsdag?
+
     data class Endring(
         val simuleringPerMeldeperiode: NonEmptyList<SimuleringForMeldeperiode>,
         val datoBeregnet: LocalDate,
@@ -30,6 +34,15 @@ sealed interface Simulering {
         val totalJustering: Int by lazy { simuleringPerMeldeperiode.sumOf { it.simuleringsdager.sumOf { dag -> dag.totalJustering } } }
         val totalTrekk: Int by lazy { simuleringPerMeldeperiode.sumOf { it.totalTrekk } }
 
+        override fun hentDag(dato: LocalDate): Simuleringsdag? {
+            return simuleringPerMeldeperiode
+                .flatMap { it.simuleringsdager }
+                .singleOrNullOrThrow {
+                    @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
+                    it.dato == dato
+                }
+        }
+
         init {
             simuleringPerMeldeperiode.zipWithNext { a, b ->
                 require(a.meldeperiode.periode.erFør(b.meldeperiode.periode)) {
@@ -39,7 +52,9 @@ sealed interface Simulering {
         }
     }
 
-    data object IngenEndring : Simulering
+    data object IngenEndring : Simulering {
+        override fun hentDag(dato: LocalDate) = null
+    }
 }
 
 data class SimuleringForMeldeperiode(

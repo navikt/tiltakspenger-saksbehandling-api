@@ -8,11 +8,13 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import ulid.ULID
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class UtbetalingId private constructor(
@@ -59,4 +61,8 @@ data class VedtattUtbetaling(
     val ordinærBeløp: Int = beregning.ordinærBeløp
     val barnetilleggBeløp: Int = beregning.barnetilleggBeløp
     val totalBeløp: Int = beregning.totalBeløp
+
+    fun hentBeregningsdagForDato(dato: LocalDate): MeldeperiodeBeregningDag? {
+        return beregning.hentDag(dato)
+    }
 }

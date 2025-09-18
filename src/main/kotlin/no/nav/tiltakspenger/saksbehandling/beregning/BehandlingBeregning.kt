@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
 import arrow.core.NonEmptyList
+import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import java.time.LocalDate
 
 data class BehandlingBeregning(
     override val beregninger: NonEmptyList<MeldeperiodeBeregning>,
@@ -18,5 +20,9 @@ data class BehandlingBeregning(
             beregninger.mapNotNull { meldeperiodeBeregninger.sisteBeregningFør(it.id, it.kjedeId) }
 
         return beregninger.beregnTotalBeløp() - forrigeBeregninger.beregnTotalBeløp()
+    }
+
+    override fun hentDag(dato: LocalDate): MeldeperiodeBeregningDag? {
+        return beregninger.mapNotNull { it.hentDag(dato) }.singleOrNullOrThrow()
     }
 }

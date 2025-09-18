@@ -69,6 +69,7 @@ fun Route.behandleSøknadPåNyttRoute(
                             søknadsbehandling.tilSøknadsbehandlingDTO(
                                 meldeperiodeBeregninger = sak.meldeperiodeBeregninger,
                                 utbetalingsstatus = null,
+                                utbetalinger = sak.utbetalinger,
                             ),
                         )
                     },

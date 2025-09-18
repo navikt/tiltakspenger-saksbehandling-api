@@ -69,7 +69,7 @@ private data class BeregnMeldeperioder(
                 tidligereBeregninger.forEach { beregnDager(it.tilSkalBeregnes()) }
 
                 /** Meldeperiodene som skal beregnes erstatter evt. eksisterende beregninger på samme kjede */
-                val nyeOgEksisterendeMeldeperioder = meldeperioderSomBeregnes
+                val nyeOgEksisterendeMeldeperioder: List<MeldeperiodeSomSkalBeregnes> = meldeperioderSomBeregnes
                     .plus(påfølgendeBeregninger.map { it.tilSkalBeregnes() })
                     .distinctBy { it.kjedeId }.sortedBy { it.fraOgMed }
 
