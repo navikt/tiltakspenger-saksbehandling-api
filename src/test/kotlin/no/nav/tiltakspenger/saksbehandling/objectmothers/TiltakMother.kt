@@ -1,8 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
+import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.libs.tiltak.toTiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
@@ -116,17 +119,14 @@ interface TiltakMother {
 fun Søknadstiltak.toTiltak(
     eksternTiltaksgjennomføringsId: String = UUID.randomUUID().toString(),
 ): Tiltaksdeltagelse {
+    val typeKode = TiltakResponsDTO.TiltakType.valueOf(this.typeKode)
+
     return tiltaksdeltagelse(
         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
         eksternTiltaksdeltagelseId = this.id,
         // TODO jah: Vi burde ha kontroll på denne fra vi tar inn søknaden i routen til først søknad og deretter saksbehandling-api
-        typeKode = when (this.typeKode) {
-            "JOBBK" -> TiltakstypeSomGirRett.JOBBKLUBB
-            "GRUPPEAMO" -> TiltakstypeSomGirRett.GRUPPE_AMO
-            "INDOPPFAG" -> TiltakstypeSomGirRett.OPPFØLGING
-            "ARBTREN" -> TiltakstypeSomGirRett.ARBEIDSTRENING
-            "GRUPPE_AMO" -> TiltakstypeSomGirRett.GRUPPE_AMO
-            else -> throw IllegalArgumentException("Ukjent typekode ${this.typeKode}")
+        typeKode = typeKode.toTiltakstypeSomGirRett().getOrElse {
+            throw IllegalArgumentException("Ugyldig typekode ${this.typeKode}")
         },
         typeNavn = this.typeNavn,
         fom = this.deltakelseFom,
