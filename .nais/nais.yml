@@ -97,6 +97,10 @@ spec:
             roles:
               - "hent_eller_opprett_sak"
               - "lagre_soknad"
+        - application: tiltakspenger-journalposthendelser
+          permissions:
+            roles:
+              - "hent_eller_opprett_sak"
   env:
   {{#each azure.groups}}
     - name: {{this.name}}
