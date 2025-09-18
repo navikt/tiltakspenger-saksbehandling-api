@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.AntallD
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toTiltaksdeltakelsePeriodeDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import java.time.LocalDateTime
 
@@ -115,11 +116,13 @@ fun Sak.tilBehandlingDTO(behandlingId: BehandlingId): BehandlingDTO {
         is Revurdering -> behandling.tilRevurderingDTO(
             meldeperiodeBeregninger = meldeperiodeBeregninger,
             utbetalingsstatus = utbetalinger.hentUtbetalingForBehandlingId(behandlingId)?.status,
+            utbetalinger = utbetalinger,
         )
 
         is Søknadsbehandling -> behandling.tilSøknadsbehandlingDTO(
             meldeperiodeBeregninger = meldeperiodeBeregninger,
             utbetalingsstatus = utbetalinger.hentUtbetalingForBehandlingId(behandlingId)?.status,
+            utbetalinger = utbetalinger,
         )
     }
 }
@@ -129,6 +132,7 @@ fun Sak.tilBehandlingerDTO(): List<BehandlingDTO> = this.behandlinger.map { this
 fun Søknadsbehandling.tilSøknadsbehandlingDTO(
     meldeperiodeBeregninger: MeldeperiodeBeregninger,
     utbetalingsstatus: Utbetalingsstatus?,
+    utbetalinger: Utbetalinger,
 ): SøknadsbehandlingDTO {
     return SøknadsbehandlingDTO(
         id = this.id.toString(),
@@ -154,7 +158,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         automatiskSaksbehandlet = this.automatiskSaksbehandlet,
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
-        utbetaling = utbetaling?.tilDTO(meldeperiodeBeregninger, utbetalingsstatus),
+        utbetaling = utbetaling?.tilDTO(meldeperiodeBeregninger, utbetalingsstatus, utbetalinger),
     ).let {
         when (resultat) {
             is SøknadsbehandlingResultat.Innvilgelse -> it.copy(
@@ -174,6 +178,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
 fun Revurdering.tilRevurderingDTO(
     meldeperiodeBeregninger: MeldeperiodeBeregninger,
     utbetalingsstatus: Utbetalingsstatus?,
+    utbetalinger: Utbetalinger,
 ): RevurderingDTO {
     return RevurderingDTO(
         id = this.id.toString(),
@@ -196,7 +201,7 @@ fun Revurdering.tilRevurderingDTO(
         antallDagerPerMeldeperiode = null,
         barnetillegg = null,
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
-        utbetaling = utbetaling?.tilDTO(meldeperiodeBeregninger, utbetalingsstatus),
+        utbetaling = utbetaling?.tilDTO(meldeperiodeBeregninger, utbetalingsstatus, utbetalinger),
     ).let {
         when (resultat) {
             is RevurderingResultat.Stans -> it.copy(

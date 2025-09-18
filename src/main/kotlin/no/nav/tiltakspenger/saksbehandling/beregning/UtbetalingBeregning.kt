@@ -33,6 +33,8 @@ sealed interface UtbetalingBeregning {
      */
     val totalBeløp: Int get() = beregninger.beregnTotalBeløp()
 
+    fun hentDag(dato: LocalDate): MeldeperiodeBeregningDag?
+
     fun init() {
         require(beregninger.zipWithNext().all { (a, b) -> a.tilOgMed < b.fraOgMed }) {
             "Beregnede meldeperioder må være sortert og ikke ha overlapp - $beregninger"

@@ -45,6 +45,7 @@ fun Route.underkjennMeldekortBehandlingRoute(
                     tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
                     underkjennMeldekortBehandlingService.underkjenn(
                         UnderkjennMeldekortBehandlingCommand(
+                            sakId = sakId,
                             meldekortId = meldekortId,
                             begrunnelse = body.begrunnelse,
                             saksbehandler = saksbehandler,
@@ -55,7 +56,7 @@ fun Route.underkjennMeldekortBehandlingRoute(
                             val (status, message) = it.toErrorJson()
                             call.respond(status, message)
                         },
-                        ifRight = {
+                        ifRight = { (sak, behandling) ->
                             auditService.logMedMeldekortId(
                                 meldekortId = meldekortId,
                                 navIdent = saksbehandler.navIdent,
@@ -64,7 +65,10 @@ fun Route.underkjennMeldekortBehandlingRoute(
                                 correlationId = correlationId,
                             )
 
-                            call.respond(HttpStatusCode.OK, it.tilMeldekortBehandlingDTO())
+                            call.respond(
+                                HttpStatusCode.OK,
+                                behandling.tilMeldekortBehandlingDTO(tidligereUtbetalinger = sak.utbetalinger),
+                            )
                         },
                     )
                 }

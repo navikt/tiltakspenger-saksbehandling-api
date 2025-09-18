@@ -6,6 +6,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
+import java.time.LocalDate
 
 /**
  * Inneholder alle utbetalinger (som er en konsekvens av et vedtak).
@@ -46,6 +48,14 @@ data class Utbetalinger(
 
     fun hentUtbetalingerFraPeriode(periode: Periode): List<VedtattUtbetaling> {
         return verdi.filter { periode.overlapperMed(it.periode) }
+    }
+
+    fun hentSisteUtbetalingForDato(dato: LocalDate): VedtattUtbetaling? {
+        return tidslinje.hentVerdiForDag(dato)
+    }
+
+    fun hentSisteBeregningdagForDato(dato: LocalDate): MeldeperiodeBeregningDag? {
+        return hentSisteUtbetalingForDato(dato)?.hentBeregningsdagForDato(dato)
     }
 
     init {

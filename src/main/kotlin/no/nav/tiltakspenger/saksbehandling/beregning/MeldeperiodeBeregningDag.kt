@@ -21,6 +21,10 @@ sealed interface MeldeperiodeBeregningDag {
     val tiltakstype: TiltakstypeSomGirRett?
     val beregningsdag: Beregningsdag?
 
+    /** Ordinært beløp + barnetillegg */
+    val totalBeløp: Int get() = beløp + beløpBarnetillegg
+
+    /** ordinært beløp */
     val beløp: Int get() = beregningsdag?.beløp ?: 0
     val beløpBarnetillegg: Int get() = beregningsdag?.beløpBarnetillegg ?: 0
     val prosent: Int get() = beregningsdag?.prosent ?: 0

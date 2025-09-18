@@ -13,10 +13,13 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toUtbetalingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.SimuleringDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.SimulertBeregningDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilSimuleringDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.toSimulertBeregningDTO
 import java.time.LocalDateTime
 
 data class MeldekortBehandlingDTO(
@@ -41,10 +44,12 @@ data class MeldekortBehandlingDTO(
     val beregning: MeldekortBeregningDTO?,
     val avbrutt: AvbruttDTO?,
     val simulering: SimuleringDTO?,
+    val simulertBeregning: SimulertBeregningDTO?,
 )
 
 fun MeldekortBehandling.tilMeldekortBehandlingDTO(
     vedtak: MeldekortVedtak? = null,
+    tidligereUtbetalinger: Utbetalinger,
 ): MeldekortBehandlingDTO {
     require(status != MeldekortBehandlingStatus.GODKJENT || vedtak != null) {
         "Meldekortvedtak må være satt for godkjente meldekortbehandlinger. sakId ${this.sakId}, behandlingId: $id"
@@ -72,6 +77,7 @@ fun MeldekortBehandling.tilMeldekortBehandlingDTO(
         beregning = beregning?.tilMeldekortBeregningDTO(),
         avbrutt = avbrutt?.toAvbruttDTO(),
         simulering = simulering?.tilSimuleringDTO(),
+        simulertBeregning = this.toSimulertBeregning(tidligereUtbetalinger)?.toSimulertBeregningDTO(),
     )
 }
 

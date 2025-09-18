@@ -37,9 +37,10 @@ fun Route.leggTilbakeMeldekortBehandlingRoute(
                 krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
                 leggTilbakeMeldekortBehandlingService.leggTilbakeMeldekortBehandling(
-                    meldekortId,
-                    saksbehandler,
-                ).also {
+                    sakId = sakId,
+                    meldekortId = meldekortId,
+                    saksbehandler = saksbehandler,
+                ).also { (sak, behandling) ->
                     auditService.logMedMeldekortId(
                         meldekortId = meldekortId,
                         navIdent = saksbehandler.navIdent,
@@ -50,7 +51,7 @@ fun Route.leggTilbakeMeldekortBehandlingRoute(
 
                     call.respond(
                         status = HttpStatusCode.OK,
-                        it.tilMeldekortBehandlingDTO(),
+                        message = behandling.tilMeldekortBehandlingDTO(tidligereUtbetalinger = sak.utbetalinger),
                     )
                 }
             }

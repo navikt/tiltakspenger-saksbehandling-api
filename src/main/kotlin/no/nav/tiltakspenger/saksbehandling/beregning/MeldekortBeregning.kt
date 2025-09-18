@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
 import arrow.core.NonEmptyList
+import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import java.time.LocalDate
 import kotlin.collections.first
 
 data class MeldekortBeregning(
@@ -13,6 +15,9 @@ data class MeldekortBeregning(
 
     val dagerFraMeldekortet by lazy { beregningForMeldekortetsPeriode.dager }
 
+    override fun hentDag(dato: LocalDate): MeldeperiodeBeregningDag? {
+        return beregninger.mapNotNull { it.hentDag(dato) }.singleOrNullOrThrow()
+    }
     init {
         require(beregninger.all { it.beregningKilde is BeregningKilde.BeregningKildeMeldekort })
 

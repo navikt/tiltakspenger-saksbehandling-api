@@ -62,7 +62,7 @@ fun Route.avbrytMeldekortBehandlingRoute(
                             val (status, error) = it.tilStatusOgErrorJson()
                             call.respond(status, error)
                         },
-                        {
+                        { (sak, behandling) ->
                             auditService.logMedMeldekortId(
                                 meldekortId = meldekortId,
                                 navIdent = saksbehandler.navIdent,
@@ -73,7 +73,7 @@ fun Route.avbrytMeldekortBehandlingRoute(
 
                             call.respond(
                                 status = HttpStatusCode.OK,
-                                it.tilMeldekortBehandlingDTO(),
+                                behandling.tilMeldekortBehandlingDTO(tidligereUtbetalinger = sak.utbetalinger),
                             )
                         },
                     )

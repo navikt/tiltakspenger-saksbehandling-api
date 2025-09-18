@@ -27,6 +27,8 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -147,6 +149,14 @@ sealed interface MeldekortBehandling {
 
     fun leggTilbakeMeldekortBehandling(saksbehandler: Saksbehandler): MeldekortBehandling
     fun oppdaterSimulering(simulering: Simulering?): MeldekortBehandling
+    fun toSimulertBeregning(tidligereUtbetalinger: Utbetalinger): SimulertBeregning? {
+        if (beregning == null) return null
+        return SimulertBeregning.create(
+            beregning = beregning!!,
+            tidligereUtbetalinger = tidligereUtbetalinger,
+            simulering = simulering,
+        )
+    }
 
     sealed interface Behandlet : MeldekortBehandling {
         override val beregning: MeldekortBeregning

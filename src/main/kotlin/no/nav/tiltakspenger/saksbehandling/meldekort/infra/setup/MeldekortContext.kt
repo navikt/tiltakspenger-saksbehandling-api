@@ -134,24 +134,28 @@ open class MeldekortContext(
         UnderkjennMeldekortBehandlingService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
             clock = clock,
+            sakService = sakService,
         )
     }
 
     val overtaMeldekortBehandlingService by lazy {
         OvertaMeldekortBehandlingService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
+            sakService = sakService,
         )
     }
 
     val taMeldekortBehandlingService by lazy {
         TaMeldekortBehandlingService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
+            sakService = sakService,
         )
     }
 
     val leggTilbakeMeldekortBehandlingService by lazy {
         LeggTilbakeMeldekortBehandlingService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
+            sakService = sakService,
         )
     }
 
@@ -167,6 +171,7 @@ open class MeldekortContext(
     val avbrytMeldekortBehandlingService by lazy {
         AvbrytMeldekortBehandlingService(
             meldekortBehandlingRepo = meldekortBehandlingRepo,
+            sakService = sakService,
         )
     }
 }
