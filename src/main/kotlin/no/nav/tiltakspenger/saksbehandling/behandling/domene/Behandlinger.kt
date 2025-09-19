@@ -9,10 +9,10 @@ import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
  * Garanterer at første elementet er en søknadsbehandling og de resterende revurderinger.
  */
 data class Behandlinger(
-    val behandlinger: List<Behandling>,
-) : List<Behandling> by behandlinger {
+    val behandlinger: List<Rammebehandling>,
+) : List<Rammebehandling> by behandlinger {
 
-    constructor(behandling: Behandling) : this(listOf(behandling))
+    constructor(behandling: Rammebehandling) : this(listOf(behandling))
 
     val revurderinger: Revurderinger = Revurderinger(behandlinger.filterIsInstance<Revurdering>())
     val søknadsbehandlinger: List<Søknadsbehandling> = behandlinger.filterIsInstance<Søknadsbehandling>()
@@ -29,15 +29,15 @@ data class Behandlinger(
         return this.copy(behandlinger = this.behandlinger + revurdering)
     }
 
-    fun hentBehandling(behandlingId: BehandlingId): Behandling? {
+    fun hentBehandling(behandlingId: BehandlingId): Rammebehandling? {
         return behandlinger.singleOrNullOrThrow { it.id == behandlingId }
     }
 
-    fun hentÅpneBehandlinger(): List<Behandling> {
+    fun hentÅpneBehandlinger(): List<Rammebehandling> {
         return behandlinger.filterNot { it.erAvsluttet }
     }
 
-    fun oppdaterBehandling(behandling: Behandling): Behandlinger {
+    fun oppdaterBehandling(behandling: Rammebehandling): Behandlinger {
         behandlinger.single { it.id == behandling.id }
         val behandlinger = this.behandlinger.map { if (it.id == behandling.id) behandling else it }
         return this.copy(behandlinger = behandlinger)

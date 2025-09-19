@@ -4,13 +4,13 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereBehandling.BehandlingenEiesAvAnnenSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterBehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.validerStansDato
@@ -33,9 +33,9 @@ class OppdaterBehandlingService(
     private val sessionFactory: SessionFactory,
 ) {
 
-    suspend fun oppdater(kommando: OppdaterBehandlingKommando): Either<KanIkkeOppdatereBehandling, Pair<Sak, Behandling>> {
+    suspend fun oppdater(kommando: OppdaterBehandlingKommando): Either<KanIkkeOppdatereBehandling, Pair<Sak, Rammebehandling>> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
-        val behandling: Behandling = sak.hentBehandling(kommando.behandlingId)!!
+        val behandling: Rammebehandling = sak.hentBehandling(kommando.behandlingId)!!
 
         if (behandling.saksbehandler != kommando.saksbehandler.navIdent) {
             return BehandlingenEiesAvAnnenSaksbehandler(behandling.saksbehandler).left()
@@ -45,7 +45,7 @@ class OppdaterBehandlingService(
         return when (kommando) {
             is OppdaterSøknadsbehandlingKommando -> sak.oppdaterSøknadsbehandling(kommando, utbetaling)
             is OppdaterRevurderingKommando -> sak.oppdaterRevurdering(kommando, utbetaling)
-        }.map { oppdatertBehandling: Behandling ->
+        }.map { oppdatertBehandling: Rammebehandling ->
             val oppdatertSak = sak.oppdaterBehandling(oppdatertBehandling)
 
             sessionFactory.withTransactionContext { tx ->
@@ -62,7 +62,7 @@ class OppdaterBehandlingService(
 
     suspend fun Sak.beregnOgSimulerHvisAktuelt(
         kommando: OppdaterBehandlingKommando,
-        behandling: Behandling,
+        behandling: Rammebehandling,
     ): Pair<BehandlingUtbetaling?, SimuleringMedMetadata?> {
         val beregning = when (kommando) {
             is OppdaterSøknadsbehandlingKommando.Innvilgelse,

@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 import arrow.core.Either
 import arrow.core.left
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
@@ -23,7 +23,7 @@ class SendBehandlingTilBeslutningService(
 ) {
     suspend fun sendTilBeslutning(
         kommando: SendBehandlingTilBeslutningKommando,
-    ): Either<KanIkkeSendeTilBeslutter, Pair<Sak, Behandling>> {
+    ): Either<KanIkkeSendeTilBeslutter, Pair<Sak, Rammebehandling>> {
         val sak = sakService.hentForSakId(
             sakId = kommando.sakId,
         )

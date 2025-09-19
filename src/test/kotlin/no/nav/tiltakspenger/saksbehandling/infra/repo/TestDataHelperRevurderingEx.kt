@@ -12,11 +12,11 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
@@ -118,7 +118,7 @@ internal fun TestDataHelper.persisterRevurderingStansUnderBeslutning(
     stansDato: LocalDate = ObjectMother.revurderingVirkningsperiode().fraOgMed,
     valgteHjemler: NonEmptyList<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
-    genererSak: (Sak?) -> Pair<Sak, Behandling> = { s ->
+    genererSak: (Sak?) -> Pair<Sak, Rammebehandling> = { s ->
         this.persisterRevurderingStansTilBeslutning(
             s = s,
             saksbehandler = opprettetAv,
@@ -128,7 +128,7 @@ internal fun TestDataHelper.persisterRevurderingStansUnderBeslutning(
             clock = clock,
         )
     },
-): Pair<Sak, Behandling> {
+): Pair<Sak, Rammebehandling> {
     val (sakMedRevurderingTilBeslutning, revurderingTilBeslutning) = genererSak(sak)
 
     val revurderingUnderBeslutning = revurderingTilBeslutning.taBehandling(beslutterAv)
@@ -151,7 +151,7 @@ internal fun TestDataHelper.persisterIverksattRevurderingStans(
     stansDato: LocalDate = ObjectMother.revurderingVirkningsperiode().fraOgMed,
     valgteHjemler: Nel<ValgtHjemmelForStans> = nonEmptyListOf(ValgtHjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
     clock: Clock = this.clock,
-    genererSak: (Sak?) -> Pair<Sak, Behandling> = { s ->
+    genererSak: (Sak?) -> Pair<Sak, Rammebehandling> = { s ->
         this.persisterRevurderingStansUnderBeslutning(
             sak = s,
             opprettetAv = saksbehandler,
@@ -162,7 +162,7 @@ internal fun TestDataHelper.persisterIverksattRevurderingStans(
             clock = clock,
         )
     },
-): Triple<Sak, Rammevedtak, Behandling> {
+): Triple<Sak, Rammevedtak, Rammebehandling> {
     val (sakMedRevurderingTilBeslutning, revurderingTilBeslutning) = genererSak(sak)
 
     val iverksattRevurdering =
@@ -183,7 +183,7 @@ internal fun TestDataHelper.persisterAvbruttRevurdering(
     begrunnelse: String = "TestDataHelper.persisterAvbruttRevurdering",
     hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ -> ObjectMother.saksopplysninger() },
     clock: Clock = this.clock,
-    genererSak: (Sak?) -> Pair<Sak, Behandling> = { s ->
+    genererSak: (Sak?) -> Pair<Sak, Rammebehandling> = { s ->
         this.persisterOpprettetRevurdering(
             sak = s!!,
             saksbehandler = opprettetAv,
@@ -191,7 +191,7 @@ internal fun TestDataHelper.persisterAvbruttRevurdering(
             clock = clock,
         )
     },
-): Pair<Sak, Behandling> {
+): Pair<Sak, Rammebehandling> {
     val (sakMedOpprettetRevurdering, opprettetRevurdering) = genererSak(sak)
 
     val avbruttRevurdering = opprettetRevurdering.avbryt(

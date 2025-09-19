@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.UtbetalingBeregning
@@ -37,7 +37,7 @@ class OppdaterSimuleringService(
         sakId: SakId,
         behandlingId: Ulid,
         saksbehandler: Saksbehandler,
-    ): Either<KunneIkkeSimulere, Pair<Sak, Either<Behandling, MeldekortBehandling>>> {
+    ): Either<KunneIkkeSimulere, Pair<Sak, Either<Rammebehandling, MeldekortBehandling>>> {
         val sak: Sak = sakService.hentForSakId(sakId)
 
         val simuler: suspend (beregning: UtbetalingBeregning, navkontor: Navkontor) -> Either<KunneIkkeSimulere, SimuleringMedMetadata> =
@@ -73,8 +73,8 @@ class OppdaterSimuleringService(
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
         simuler: suspend (beregning: UtbetalingBeregning, navkontor: Navkontor) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
-    ): Either<KunneIkkeSimulere, Pair<Sak, Either<Behandling, MeldekortBehandling>>> {
-        val behandling: Behandling = this.hentBehandling(behandlingId)!!
+    ): Either<KunneIkkeSimulere, Pair<Sak, Either<Rammebehandling, MeldekortBehandling>>> {
+        val behandling: Rammebehandling = this.hentBehandling(behandlingId)!!
         require(saksbehandler.navIdent == behandling.saksbehandler) {
             "Kan kun oppdatere simulering på en behandling dersom saksbehandler som ber om det er den samme som er satt på behandlingen"
         }
@@ -95,7 +95,7 @@ class OppdaterSimuleringService(
         meldekortbehandlingId: MeldekortId,
         saksbehandler: Saksbehandler,
         simuler: suspend (beregning: UtbetalingBeregning, navkontor: Navkontor) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
-    ): Either<KunneIkkeSimulere, Pair<Sak, Either<Behandling, MeldekortBehandling>>> {
+    ): Either<KunneIkkeSimulere, Pair<Sak, Either<Rammebehandling, MeldekortBehandling>>> {
         val meldekortbehandling: MeldekortBehandling = this.hentMeldekortBehandling(meldekortbehandlingId)!!
         require(saksbehandler.navIdent == meldekortbehandling.saksbehandler) {
             "Kan kun oppdatere simulering på en behandling dersom saksbehandler som ber om det er den samme som er satt på behandlingen"

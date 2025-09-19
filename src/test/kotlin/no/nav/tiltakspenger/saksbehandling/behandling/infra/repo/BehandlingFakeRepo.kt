@@ -9,21 +9,21 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import java.time.LocalDateTime
 
 class BehandlingFakeRepo : BehandlingRepo {
-    private val data = Atomic(mutableMapOf<BehandlingId, Behandling>())
+    private val data = Atomic(mutableMapOf<BehandlingId, Rammebehandling>())
 
     val alle get() = data.get().values.toList()
 
     override fun lagre(
-        behandling: Behandling,
+        behandling: Rammebehandling,
         transactionContext: TransactionContext?,
     ) {
         data.get()[behandling.id] = behandling
@@ -40,13 +40,13 @@ class BehandlingFakeRepo : BehandlingRepo {
     override fun hent(
         behandlingId: BehandlingId,
         sessionContext: SessionContext?,
-    ): Behandling {
+    ): Rammebehandling {
         return data.get()[behandlingId]!!
     }
 
-    override fun hentAlleForFnr(fnr: Fnr): List<Behandling> = data.get().values.filter { it.fnr == fnr }
+    override fun hentAlleForFnr(fnr: Fnr): List<Rammebehandling> = data.get().values.filter { it.fnr == fnr }
 
-    override fun hentSøknadsbehandlingerTilDatadeling(limit: Int): List<Behandling> {
+    override fun hentSøknadsbehandlingerTilDatadeling(limit: Int): List<Rammebehandling> {
         return data.get().values.filter {
             it.sendtTilDatadeling == null
         }

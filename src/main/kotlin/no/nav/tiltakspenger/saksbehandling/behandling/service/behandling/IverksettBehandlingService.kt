@@ -8,8 +8,8 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeIverksetteBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
@@ -47,7 +47,7 @@ class IverksettBehandlingService(
         behandlingId: BehandlingId,
         beslutter: Saksbehandler,
         sakId: SakId,
-    ): Either<KanIkkeIverksetteBehandling, Pair<Sak, Behandling>> {
+    ): Either<KanIkkeIverksetteBehandling, Pair<Sak, Rammebehandling>> {
         val sak = sakService.hentForSakId(sakId)
         val behandling = sak.hentBehandling(behandlingId)!!
 

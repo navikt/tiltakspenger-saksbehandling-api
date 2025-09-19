@@ -53,7 +53,7 @@ data class Revurdering(
     override val virkningsperiode: Periode?,
     override val begrunnelseVilkårsvurdering: BegrunnelseVilkårsvurdering?,
     override val utbetaling: BehandlingUtbetaling?,
-) : Behandling {
+) : Rammebehandling {
 
     override val barnetillegg: Barnetillegg? = when (resultat) {
         is Innvilgelse -> resultat.barnetillegg

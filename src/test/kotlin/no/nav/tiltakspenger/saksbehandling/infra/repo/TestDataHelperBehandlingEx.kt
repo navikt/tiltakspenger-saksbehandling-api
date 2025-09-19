@@ -19,10 +19,10 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
@@ -192,7 +192,7 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
     ),
     clock: Clock = this.clock,
     beslutter: Saksbehandler = ObjectMother.beslutter(),
-): Pair<Sak, Behandling> {
+): Pair<Sak, Rammebehandling> {
     val (_, behandling) = persisterOpprettetAutomatiskSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,
@@ -283,7 +283,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
         AntallDagerForMeldeperiode((MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE)),
         Periode(deltakelseFom, deltakelseTom),
     ),
-): Pair<Sak, Behandling> {
+): Pair<Sak, Rammebehandling> {
     val (sak, søknadsbehandling) = persisterOpprettetSøknadsbehandling(
         sakId = sak.id,
         fnr = sak.fnr,
@@ -384,7 +384,7 @@ internal fun TestDataHelper.persisterUnderBeslutningSøknadsbehandling(
      */
     clock: Clock = this.clock,
     beslutter: Saksbehandler = ObjectMother.beslutter(),
-): Pair<Sak, Behandling> {
+): Pair<Sak, Rammebehandling> {
     val behandling = persisterKlarTilBeslutningSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,
@@ -443,7 +443,7 @@ internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
             saksnummer = sak.saksnummer,
         ),
     clock: Clock = this.clock,
-): Pair<Sak, Behandling> {
+): Pair<Sak, Rammebehandling> {
     val (sakMedSøknadsbehandling, _) = persisterOpprettetSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,
@@ -528,7 +528,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
      * Brukt for å styre meldeperiode generering
      */
     clock: Clock = this.clock,
-): Triple<Sak, Rammevedtak, Behandling> {
+): Triple<Sak, Rammevedtak, Rammebehandling> {
     val (sak, søknadsbehandling) = persisterKlarTilBeslutningSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,
@@ -594,7 +594,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
      * Brukt for å styre meldeperiode generering
      */
     clock: Clock = this.clock,
-): Triple<Sak, Rammevedtak, Behandling> {
+): Triple<Sak, Rammevedtak, Rammebehandling> {
     val (sak, søknadsbehandling) = persisterKlarTilBeslutningSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,

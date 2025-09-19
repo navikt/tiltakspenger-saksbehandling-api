@@ -9,8 +9,8 @@ import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -39,7 +39,7 @@ data class Rammevedtak(
     override val journalpostId: JournalpostId?,
     override val journalføringstidspunkt: LocalDateTime?,
     override val utbetaling: VedtattUtbetaling?,
-    val behandling: Behandling,
+    val behandling: Rammebehandling,
     val vedtaksdato: LocalDate?,
     val vedtakstype: Vedtakstype,
     val distribusjonId: DistribusjonId?,
@@ -84,7 +84,7 @@ enum class Vedtakstype {
 }
 
 fun Sak.opprettVedtak(
-    behandling: Behandling,
+    behandling: Rammebehandling,
     clock: Clock,
 ): Pair<Sak, Rammevedtak> {
     require(behandling.status == Behandlingsstatus.VEDTATT) { "Krever behandlingsstatus VEDTATT når vi skal opprette et vedtak." }
@@ -133,7 +133,7 @@ fun Sak.opprettVedtak(
     return oppdatertSak to vedtak
 }
 
-fun Sak.utledVedtakstype(behandling: Behandling): Vedtakstype {
+fun Sak.utledVedtakstype(behandling: Rammebehandling): Vedtakstype {
     return when (behandling) {
         is Søknadsbehandling -> {
             when (behandling.resultat) {

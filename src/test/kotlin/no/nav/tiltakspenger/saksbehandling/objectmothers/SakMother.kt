@@ -16,11 +16,11 @@ import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
@@ -240,7 +240,7 @@ interface SakMother {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(virkningsperiode),
         clock: Clock = fixedClock,
-    ): Triple<Sak, Vedtak, Behandling> {
+    ): Triple<Sak, Vedtak, Rammebehandling> {
         val (sak, søknadsbehandling) = this.sakMedOpprettetBehandling(
             sakId = sakId,
             fnr = fnr,
@@ -293,7 +293,7 @@ interface SakMother {
         virkningsperiode: Periode = virkningsperiode(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         clock: Clock = fixedClock,
-    ): Triple<Sak, Rammevedtak, Behandling> {
+    ): Triple<Sak, Rammevedtak, Rammebehandling> {
         val (sak, søknadsbehandling) = this.sakMedOpprettetBehandling(
             sakId = sakId,
             fnr = fnr,

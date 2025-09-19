@@ -12,8 +12,8 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeUnderkjenne
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -37,7 +37,7 @@ class BehandlingService(
     fun hentSakOgBehandling(
         sakId: SakId,
         behandlingId: BehandlingId,
-    ): Pair<Sak, Behandling> {
+    ): Pair<Sak, Rammebehandling> {
         val sak = sakService.hentForSakId(sakId)
         val behandling = sak.hentBehandling(behandlingId)
 
@@ -53,7 +53,7 @@ class BehandlingService(
         behandlingId: BehandlingId,
         beslutter: Saksbehandler,
         begrunnelse: String?,
-    ): Either<KanIkkeUnderkjenne, Pair<Sak, Behandling>> {
+    ): Either<KanIkkeUnderkjenne, Pair<Sak, Rammebehandling>> {
         val (sak, behandling) = hentSakOgBehandling(sakId, behandlingId)
 
         val nonBlankBegrunnelse = Either.catch { begrunnelse?.toNonBlankString() }.getOrElse {
@@ -83,7 +83,7 @@ class BehandlingService(
      * Denne gjør ingen tilgangskontroll. Ansvaret ligger hos kalleren.
      */
     fun lagreMedStatistikk(
-        behandling: Behandling,
+        behandling: Rammebehandling,
         statistikk: StatistikkSakDTO,
         tx: TransactionContext? = null,
     ) {

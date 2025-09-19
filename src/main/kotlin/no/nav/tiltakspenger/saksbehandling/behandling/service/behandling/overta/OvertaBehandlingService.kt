@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta
 
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
@@ -20,7 +20,7 @@ class OvertaBehandlingService(
     private val sessionFactory: SessionFactory,
 ) {
 
-    suspend fun overta(kommando: OvertaBehandlingKommando): Either<KunneIkkeOvertaBehandling, Pair<Sak, Behandling>> {
+    suspend fun overta(kommando: OvertaBehandlingKommando): Either<KunneIkkeOvertaBehandling, Pair<Sak, Rammebehandling>> {
         val (sakId, behandlingId, overtarFra, saksbehandler, _) = kommando
 
         val (sak, behandling) = behandlingService.hentSakOgBehandling(

@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.behandling
 
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
@@ -49,7 +49,7 @@ class StatistikkSakService(
     }
 
     suspend fun genererStatistikkForSendTilBeslutter(
-        behandling: Behandling,
+        behandling: Rammebehandling,
     ): StatistikkSakDTO {
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
@@ -61,7 +61,7 @@ class StatistikkSakService(
     }
 
     suspend fun genererStatistikkForUnderkjennBehandling(
-        behandling: Behandling,
+        behandling: Rammebehandling,
     ): StatistikkSakDTO {
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
@@ -73,7 +73,7 @@ class StatistikkSakService(
     }
 
     suspend fun genererStatistikkForOppdatertSaksbehandlerEllerBeslutter(
-        behandling: Behandling,
+        behandling: Rammebehandling,
     ): StatistikkSakDTO {
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
@@ -85,7 +85,7 @@ class StatistikkSakService(
     }
 
     suspend fun genererStatistikkForAvsluttetBehandling(
-        behandling: Behandling,
+        behandling: Rammebehandling,
     ): StatistikkSakDTO {
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
@@ -97,7 +97,7 @@ class StatistikkSakService(
     }
 
     suspend fun genererStatistikkForBehandlingSattPåVent(
-        behandling: Behandling,
+        behandling: Rammebehandling,
     ): StatistikkSakDTO {
         return genererSaksstatistikkForBehandling(
             behandling = behandling,
@@ -109,7 +109,7 @@ class StatistikkSakService(
     }
 
     suspend fun genererStatistikkForGjenopptattBehandling(
-        behandling: Behandling,
+        behandling: Rammebehandling,
     ): StatistikkSakDTO {
         return genererSaksstatistikkForBehandling(
             behandling = behandling,

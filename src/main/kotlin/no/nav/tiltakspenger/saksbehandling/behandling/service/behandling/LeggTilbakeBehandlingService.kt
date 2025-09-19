@@ -5,8 +5,8 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.BehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.StatistikkSakRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -25,7 +25,7 @@ class LeggTilbakeBehandlingService(
         sakId: SakId,
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler,
-    ): Pair<Sak, Behandling> {
+    ): Pair<Sak, Rammebehandling> {
         val (sak, behandling) = behandlingService.hentSakOgBehandling(
             sakId = sakId,
             behandlingId = behandlingId,

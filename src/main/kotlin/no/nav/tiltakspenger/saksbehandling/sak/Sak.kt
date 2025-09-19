@@ -8,8 +8,8 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelseDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltagelserDetErSøktTiltakspengerFor
@@ -88,7 +88,7 @@ data class Sak(
         return meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(kjedeId)
     }
 
-    fun hentBehandling(behandlingId: BehandlingId): Behandling? = behandlinger.hentBehandling(behandlingId)
+    fun hentBehandling(behandlingId: BehandlingId): Rammebehandling? = behandlinger.hentBehandling(behandlingId)
 
     fun harSoknadUnderBehandling(): Boolean {
         val avsluttedeSoknadsbehandlinger = behandlinger
@@ -111,7 +111,7 @@ data class Sak(
     fun avbrytSøknadOgBehandling(
         command: AvbrytSøknadOgBehandlingCommand,
         avbruttTidspunkt: LocalDateTime,
-    ): Triple<Sak, Søknad?, Behandling?> {
+    ): Triple<Sak, Søknad?, Rammebehandling?> {
         if (command.søknadId != null && command.behandlingId != null) {
             return avbrytBehandling(command, avbruttTidspunkt)
         }
@@ -126,7 +126,7 @@ data class Sak(
     private fun avbrytBehandling(
         command: AvbrytSøknadOgBehandlingCommand,
         avbruttTidspunkt: LocalDateTime,
-    ): Triple<Sak, Søknad?, Behandling> {
+    ): Triple<Sak, Søknad?, Rammebehandling> {
         val behandling = this.hentBehandling(command.behandlingId!!)!!
         val avbruttBehandling = behandling.avbryt(command.avsluttetAv, command.begrunnelse, avbruttTidspunkt)
         val avbruttSøknad =
@@ -186,7 +186,7 @@ data class Sak(
         return this.copy(meldekortVedtaksliste = this.meldekortVedtaksliste.leggTil(meldekortVedtak))
     }
 
-    fun oppdaterBehandling(behandling: Behandling): Sak {
+    fun oppdaterBehandling(behandling: Rammebehandling): Sak {
         return this.copy(behandlinger = this.behandlinger.oppdaterBehandling(behandling))
     }
 }

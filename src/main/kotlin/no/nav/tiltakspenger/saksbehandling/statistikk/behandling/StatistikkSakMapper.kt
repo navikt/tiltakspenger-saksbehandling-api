@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.behandling
 
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -64,7 +64,7 @@ fun genererSaksstatistikkForRammevedtak(
 }
 
 fun genererSaksstatistikkForBehandling(
-    behandling: Behandling,
+    behandling: Rammebehandling,
     gjelderKode6: Boolean,
     versjon: String,
     clock: Clock,
@@ -111,7 +111,7 @@ fun genererSaksstatistikkForBehandling(
     )
 }
 
-private fun Behandling.getBehandlingAarsak(): StatistikkBehandlingAarsak? {
+private fun Rammebehandling.getBehandlingAarsak(): StatistikkBehandlingAarsak? {
     if (this is Søknadsbehandling) {
         return StatistikkBehandlingAarsak.SOKNAD
     }

@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.kafka.jobb
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
@@ -92,8 +92,8 @@ class EndretTiltaksdeltakerJobb(
         }
     }
 
-    private fun finnNyesteIverksatteBehandlingForDeltakelse(sak: Sak, tiltaksdeltakerId: String): Behandling? {
-        val iverksatteBehandlingerForDeltakelse: Periodisering<Behandling> = sak.vedtaksliste.innvilgetTidslinje
+    private fun finnNyesteIverksatteBehandlingForDeltakelse(sak: Sak, tiltaksdeltakerId: String): Rammebehandling? {
+        val iverksatteBehandlingerForDeltakelse: Periodisering<Rammebehandling> = sak.vedtaksliste.innvilgetTidslinje
             .filter { it.verdi.behandling.inneholderEksternDeltagelseId(tiltaksdeltakerId) }
             .map { it.verdi.behandling }
 

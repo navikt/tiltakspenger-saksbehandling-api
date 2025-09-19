@@ -16,13 +16,13 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionConte
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RevurderingType
@@ -57,7 +57,7 @@ class BehandlingPostgresRepo(
     override fun hent(
         behandlingId: BehandlingId,
         sessionContext: SessionContext?,
-    ): Behandling {
+    ): Rammebehandling {
         return sessionFactory.withSession(sessionContext) { session ->
             hentOrNull(behandlingId, session)!!
         }
@@ -66,7 +66,7 @@ class BehandlingPostgresRepo(
     /**
      * Denne returnerer ikke [Behandlinger] siden vi ikke har avklart om en person kan ha flere saker. I så fall vil dette bli en liste med [Behandlinger].
      */
-    override fun hentAlleForFnr(fnr: Fnr): List<Behandling> {
+    override fun hentAlleForFnr(fnr: Fnr): List<Rammebehandling> {
         return sessionFactory.withSession { session ->
             session.run(
                 queryOf(
@@ -80,7 +80,7 @@ class BehandlingPostgresRepo(
     }
 
     override fun lagre(
-        behandling: Behandling,
+        behandling: Rammebehandling,
         transactionContext: TransactionContext?,
     ) {
         sessionFactory.withTransaction(transactionContext) { tx ->
@@ -252,7 +252,7 @@ class BehandlingPostgresRepo(
         fun hentOrNull(
             behandlingId: BehandlingId,
             session: Session,
-        ): Behandling? =
+        ): Rammebehandling? =
             session.run(
                 queryOf(
                     sqlHentBehandling,
@@ -277,7 +277,7 @@ class BehandlingPostgresRepo(
 
         private fun oppdaterBehandling(
             sistEndret: LocalDateTime,
-            behandling: Behandling,
+            behandling: Rammebehandling,
             session: Session,
         ) {
             log.info { "Oppdaterer behandling ${behandling.id} ${behandling.behandlingstype}" }
@@ -296,7 +296,7 @@ class BehandlingPostgresRepo(
         }
 
         private fun opprettBehandling(
-            behandling: Behandling,
+            behandling: Rammebehandling,
             session: Session,
         ) {
             log.info { "Oppretter behandling ${behandling.id} ${behandling.behandlingstype}" }
@@ -322,7 +322,7 @@ class BehandlingPostgresRepo(
                 ).map { it.localDateTime("sist_endret") }.asSingle,
             )
 
-        private fun Row.toBehandling(session: Session): Behandling {
+        private fun Row.toBehandling(session: Session): Rammebehandling {
             val behandlingstype = string("behandlingstype").toBehandlingstype()
             val id = BehandlingId.fromString(string("id"))
             val sakId = SakId.fromString(string("sak_id"))
@@ -627,7 +627,7 @@ class BehandlingPostgresRepo(
     }
 
     /** Siden dette er på tvers av saker, gir det ikke mening og bruke [Behandlinger] */
-    override fun hentSøknadsbehandlingerTilDatadeling(limit: Int): List<Behandling> {
+    override fun hentSøknadsbehandlingerTilDatadeling(limit: Int): List<Rammebehandling> {
         return sessionFactory.withSession { session ->
             session.run(
                 queryOf(
@@ -691,7 +691,7 @@ class BehandlingPostgresRepo(
     }
 }
 
-private fun Behandling.tilDbParams(): Map<String, Any?> {
+private fun Rammebehandling.tilDbParams(): Map<String, Any?> {
     val søknadId = when (this) {
         is Søknadsbehandling -> this.søknad.id.toString()
         is Revurdering -> null

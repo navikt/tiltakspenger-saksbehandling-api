@@ -39,7 +39,12 @@ import java.time.LocalDateTime
 /** Hardkoder denne til 10 for nå. På sikt vil vi la saksbehandler periodisere dette selv, litt på samme måte som barnetillegg. */
 const val MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
 
-sealed interface Behandling {
+/**
+ * En rammebehandling fører til et [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak]. Dette er en vurderingen av søknaden og inngangsvilkårene - om en bruker har rett til tiltangspenger i en gitt periode.
+ * Dette gjelder både søknadsbehandling (innvilgelse og avslag) og revurdering (endring og omgjøring, inkl. stans/opphør, innvilgelse/forlengelse)
+ * Se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling] for behandling av meldekort innenfor et [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak].
+ */
+sealed interface Rammebehandling {
     val id: BehandlingId
     val status: Behandlingsstatus
     val opprettet: LocalDateTime
@@ -96,13 +101,13 @@ sealed interface Behandling {
     fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? =
         saksopplysninger.getTiltaksdeltagelse(eksternDeltagelseId)
 
-    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Behandling
+    fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Rammebehandling
 
     fun settPåVent(
         endretAv: Saksbehandler,
         begrunnelse: String,
         clock: Clock,
-    ): Behandling {
+    ): Rammebehandling {
         when (status) {
             UNDER_BEHANDLING,
             UNDER_BESLUTNING,
@@ -154,7 +159,7 @@ sealed interface Behandling {
     fun gjenoppta(
         endretAv: Saksbehandler,
         clock: Clock,
-    ): Behandling {
+    ): Rammebehandling {
         if (status == UNDER_BEHANDLING) {
             krevSaksbehandlerRolle(endretAv)
             require(this.saksbehandler == endretAv.navIdent) { "Du må være saksbehandler på behandlingen for å kunne gjenoppta den." }
@@ -188,7 +193,7 @@ sealed interface Behandling {
         }
     }
 
-    fun leggTilbakeBehandling(saksbehandler: Saksbehandler): Behandling {
+    fun leggTilbakeBehandling(saksbehandler: Saksbehandler): Rammebehandling {
         return when (status) {
             UNDER_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
@@ -225,7 +230,7 @@ sealed interface Behandling {
     }
 
     /** Saksbehandler/beslutter tar behandlingen. */
-    fun taBehandling(saksbehandler: Saksbehandler): Behandling {
+    fun taBehandling(saksbehandler: Saksbehandler): Rammebehandling {
         return when (status) {
             KLAR_TIL_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
@@ -271,7 +276,7 @@ sealed interface Behandling {
     }
 
     /** Saksbehandler/beslutter overtar behandlingen. */
-    fun overta(saksbehandler: Saksbehandler, clock: Clock): Either<KunneIkkeOvertaBehandling, Behandling> {
+    fun overta(saksbehandler: Saksbehandler, clock: Clock): Either<KunneIkkeOvertaBehandling, Rammebehandling> {
         val nåTidMinus1Minutt = LocalDateTime.now(clock).minusMinutes(1)
         val erSistEndretMindreEnn1MinuttSiden = this.sistEndret.isAfter(nåTidMinus1Minutt)
 
@@ -341,7 +346,7 @@ sealed interface Behandling {
     fun tilBeslutning(
         kommando: SendBehandlingTilBeslutningKommando,
         clock: Clock,
-    ): Either<KanIkkeSendeTilBeslutter, Behandling> {
+    ): Either<KanIkkeSendeTilBeslutter, Rammebehandling> {
         validerKanSendeTilBeslutning(kommando.saksbehandler).onLeft { return it.left() }
 
         val status = if (beslutter == null) KLAR_TIL_BESLUTNING else UNDER_BESLUTNING
@@ -364,7 +369,7 @@ sealed interface Behandling {
         utøvendeBeslutter: Saksbehandler,
         attestering: Attestering,
         clock: Clock,
-    ): Behandling {
+    ): Rammebehandling {
         require(virkningsperiode != null) { "virkningsperiode må være satt ved iverksetting" }
 
         return when (status) {
@@ -414,7 +419,7 @@ sealed interface Behandling {
     fun underkjenn(
         utøvendeBeslutter: Saksbehandler,
         attestering: Attestering,
-    ): Behandling {
+    ): Rammebehandling {
         return when (status) {
             UNDER_BESLUTNING -> {
                 krevBeslutterRolle(utøvendeBeslutter)
@@ -473,7 +478,7 @@ sealed interface Behandling {
     fun oppdaterSaksopplysninger(
         saksbehandler: Saksbehandler,
         nyeSaksopplysninger: Saksopplysninger,
-    ): Either<KunneIkkeOppdatereSaksopplysninger, Behandling> {
+    ): Either<KunneIkkeOppdatereSaksopplysninger, Rammebehandling> {
         return validerKanOppdatere(saksbehandler).mapLeft {
             KunneIkkeOppdatereSaksopplysninger.KunneIkkeOppdatereBehandling(it)
         }.map {
@@ -595,5 +600,5 @@ sealed interface Behandling {
         }
     }
 
-    fun oppdaterSimulering(nySimulering: Simulering?): Behandling
+    fun oppdaterSimulering(nySimulering: Simulering?): Rammebehandling
 }

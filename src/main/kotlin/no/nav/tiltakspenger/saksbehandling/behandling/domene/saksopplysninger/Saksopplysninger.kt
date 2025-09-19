@@ -9,7 +9,7 @@ import java.time.LocalDate
 /**
  * Et sett med opplysninger som er relevante for saksbehandlingen.
  *
- * En [no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling] vil ha en referanse til [Saksopplysninger].
+ * En [no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling] vil ha en referanse til [Saksopplysninger].
  *
  * @param periode perioden det er hentet saksopplysninger for. Bør henge sammen med tiltaksdeltagelsesperioden. Er null dersom tiltaksdeltagelsesperioden er null.
  */

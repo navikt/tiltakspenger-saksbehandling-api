@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -46,7 +46,7 @@ interface BehandleSøknadPåNyttBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         søknadId: SøknadId,
-    ): Pair<Behandling, String> {
+    ): Pair<Rammebehandling, String> {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler()
         tac.texasClient.leggTilBruker(jwt, ObjectMother.saksbehandler())
         defaultRequest(

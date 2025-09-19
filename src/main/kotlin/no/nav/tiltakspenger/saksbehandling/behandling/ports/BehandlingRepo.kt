@@ -5,14 +5,14 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import java.time.LocalDateTime
 
 interface BehandlingRepo {
     fun lagre(
-        behandling: Behandling,
+        behandling: Rammebehandling,
         transactionContext: TransactionContext? = null,
     )
 
@@ -25,11 +25,11 @@ interface BehandlingRepo {
     fun hent(
         behandlingId: BehandlingId,
         sessionContext: SessionContext? = null,
-    ): Behandling
+    ): Rammebehandling
 
-    fun hentAlleForFnr(fnr: Fnr): List<Behandling>
+    fun hentAlleForFnr(fnr: Fnr): List<Rammebehandling>
 
-    fun hentSøknadsbehandlingerTilDatadeling(limit: Int = 10): List<Behandling>
+    fun hentSøknadsbehandlingerTilDatadeling(limit: Int = 10): List<Rammebehandling>
 
     fun markerSendtTilDatadeling(id: BehandlingId, tidspunkt: LocalDateTime)
 

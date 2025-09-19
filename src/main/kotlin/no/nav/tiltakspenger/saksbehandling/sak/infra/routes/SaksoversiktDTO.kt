@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.BehandlingstypeDTO
@@ -37,14 +37,14 @@ data class SaksoversiktDTO(
     val erSattPåVent: Boolean?,
 )
 
-fun List<Behandling>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
+fun List<Rammebehandling>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
     this.map { it.toSaksoversiktDTO() }
 
 @JvmName("toSaksoversiktDTOForSøknad")
 fun List<Søknad>.toSaksoversiktDTO(): List<SaksoversiktDTO> =
     this.map { it.toSaksoversiktDTO() }
 
-fun Behandling.toSaksoversiktDTO() = SaksoversiktDTO(
+fun Rammebehandling.toSaksoversiktDTO() = SaksoversiktDTO(
     periode = virkningsperiode?.toDTO(),
     status = status.toBehandlingsstatusDTO().toString(),
     kravtidspunkt = if (this is Søknadsbehandling) kravtidspunkt else null,

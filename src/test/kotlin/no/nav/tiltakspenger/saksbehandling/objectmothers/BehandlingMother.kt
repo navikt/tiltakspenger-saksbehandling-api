@@ -22,13 +22,13 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BegrunnelseVilkårsvurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadsbehandlingType
@@ -64,7 +64,7 @@ interface BehandlingMother : MotherOfAllMothers {
     /** Felles default vurderingsperiode for testdatatypene */
     fun virkningsperiode() = 1.januar(2023) til 31.mars(2023)
 
-    fun Behandling.tiltaksdeltagelseDTO(): List<TiltaksdeltakelsePeriodeDTO> {
+    fun Rammebehandling.tiltaksdeltagelseDTO(): List<TiltaksdeltakelsePeriodeDTO> {
         val tiltaksdeltagelse = this.saksopplysninger.tiltaksdeltagelser.single()
 
         return listOf(
@@ -75,7 +75,7 @@ interface BehandlingMother : MotherOfAllMothers {
         )
     }
 
-    fun Behandling.antallDagerPerMeldeperiodeDTO(periode: Periode, antallDager: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE): List<AntallDagerPerMeldeperiodeDTO> {
+    fun Rammebehandling.antallDagerPerMeldeperiodeDTO(periode: Periode, antallDager: Int = MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE): List<AntallDagerPerMeldeperiodeDTO> {
         return SammenhengendePeriodisering(
             AntallDagerForMeldeperiode(antallDager),
             periode,
@@ -429,7 +429,7 @@ interface BehandlingMother : MotherOfAllMothers {
             AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             virkningsperiode,
         ),
-    ): Behandling {
+    ): Rammebehandling {
         return nySøknadsbehandlingUnderBeslutning(
             id = id,
             sakId = sakId,
@@ -858,11 +858,11 @@ suspend fun TestApplicationContext.andreMeldekortOpprettet(
     return this.sakContext.sakService.hentForSakId(sak.id)
 }
 
-fun Behandling.tilBeslutning(
+fun Rammebehandling.tilBeslutning(
     saksbehandler: Saksbehandler = saksbehandler(),
     correlationId: CorrelationId = CorrelationId.generate(),
     clock: Clock = fixedClock,
-): Behandling {
+): Rammebehandling {
     return this.tilBeslutning(
         kommando = SendBehandlingTilBeslutningKommando(
             sakId = this.sakId,

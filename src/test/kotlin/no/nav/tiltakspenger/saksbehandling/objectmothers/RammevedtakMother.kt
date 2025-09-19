@@ -9,8 +9,8 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -29,7 +29,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
         fnr: Fnr = Fnr.random(),
-        behandling: Behandling = ObjectMother.nyVedtattSøknadsbehandling(
+        behandling: Rammebehandling = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
             virkningsperiode = periode,
             fnr = fnr,
@@ -74,7 +74,7 @@ interface RammevedtakMother : MotherOfAllMothers {
             AntallDagerForMeldeperiode(MAKS_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
             periode,
         ),
-        behandling: Behandling = ObjectMother.nyVedtattSøknadsbehandling(
+        behandling: Rammebehandling = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
             virkningsperiode = periode,
             saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
@@ -110,7 +110,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         periode: Periode = ObjectMother.virkningsperiode(),
-        behandling: Behandling = ObjectMother.nyVedtattRevurderingStans(
+        behandling: Rammebehandling = ObjectMother.nyVedtattRevurderingStans(
             sakId = sakId,
             virkningsperiode = periode,
             saksnummer = Saksnummer.genererSaknummer(løpenr = "1001"),
@@ -141,7 +141,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         brevJson = brevJson,
     )
 
-    fun Behandling.tilRammevedtakUtbetaling(vedtakId: VedtakId, opprettet: LocalDateTime, forrigeUtbetalingId: UtbetalingId? = null): VedtattUtbetaling? {
+    fun Rammebehandling.tilRammevedtakUtbetaling(vedtakId: VedtakId, opprettet: LocalDateTime, forrigeUtbetalingId: UtbetalingId? = null): VedtattUtbetaling? {
         return this.utbetaling?.let {
             VedtattUtbetaling(
                 id = UtbetalingId.random(),

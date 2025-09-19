@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -34,7 +34,7 @@ class AvbrytSøknadOgBehandlingService(
             avbruttTidspunkt = LocalDateTime.now(),
         )
 
-        val behandlingOgStatistikk: Pair<Behandling, StatistikkSakDTO>? = avbruttBehandling?.let {
+        val behandlingOgStatistikk: Pair<Rammebehandling, StatistikkSakDTO>? = avbruttBehandling?.let {
             it to statistikkSakService.genererStatistikkForAvsluttetBehandling(it)
         }
 

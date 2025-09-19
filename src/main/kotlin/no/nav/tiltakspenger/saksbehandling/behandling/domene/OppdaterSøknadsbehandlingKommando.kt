@@ -34,7 +34,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
     ) : OppdaterSøknadsbehandlingKommando,
         OppdaterBehandlingKommando.Innvilgelse {
 
-        fun valgteTiltaksdeltakelser(behandling: Behandling): ValgteTiltaksdeltakelser =
+        fun valgteTiltaksdeltakelser(behandling: Rammebehandling): ValgteTiltaksdeltakelser =
             ValgteTiltaksdeltakelser.periodiser(
                 tiltaksdeltakelser = tiltaksdeltakelser,
                 behandling = behandling,
