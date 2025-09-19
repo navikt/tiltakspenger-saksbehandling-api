@@ -7,12 +7,16 @@ import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.periodisering.Periode
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Papirsøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 
 private const val KVP_FELT = "kvp"
 private const val INTRO_FELT = "intro"
@@ -108,7 +112,7 @@ internal object SøknadDAO {
                 }.asList,
             )
 
-    fun hentAlleUbehandledeSoknader(limit: Int, session: Session): List<Søknad> =
+    fun hentAlleUbehandledeSoknader(limit: Int, session: Session): List<InnvilgbarSøknad> =
         session.run(
             sqlQuery(
                 """
@@ -116,16 +120,17 @@ internal object SøknadDAO {
                     from søknad soknad
                              join sak on soknad.sak_id = sak.id
                              left join behandling b on soknad.id = b.soknad_id
-                    where b.id is null
+                    where b.id is null and soknad.soknadstype = :digital
                       and soknad.avbrutt is null
                       order by soknad.opprettet
                       limit :limit
                 """.trimIndent(),
                 "limit" to limit,
+                "digital" to Søknadstype.DIGITAL.toDbValue(),
             ).map { row: Row ->
                 row.toSøknad(session)
             }.asList,
-        )
+        ).filterIsInstance<InnvilgbarSøknad>()
 
     private fun søknadFinnes(
         søknadId: SøknadId,
@@ -150,7 +155,9 @@ internal object SøknadDAO {
 
         lagreSøknad(søknad, txSession)
         BarnetilleggDAO.lagre(søknad.id, søknad.barnetillegg, txSession)
-        SøknadTiltakDAO.lagre(søknad.id, søknad.tiltak, txSession)
+        søknad.tiltak?.let { tiltak ->
+            SøknadTiltakDAO.lagre(søknad.id, tiltak, txSession)
+        }
     }
 
     fun lagreAvbruttSøknad(
@@ -271,7 +278,10 @@ internal object SøknadDAO {
                     trygd_og_pensjon_tom,
                     etterlonn_type,
                     vedlegg,
-                    oppgave_id
+                    oppgave_id,
+                    soknadstype,
+                    soknadsperiode_fra_og_med,
+                    soknadsperiode_til_og_med
                 ) values (
                     :id,
                     :versjon,
@@ -323,7 +333,10 @@ internal object SøknadDAO {
                     :trygd_og_pensjon_tom,
                     :etterlonn_type,
                     :vedlegg,
-                    :oppgave_id
+                    :oppgave_id,
+                    :soknadstype,
+                    :soknadsperiode_fra_og_med,
+                    :soknadsperiode_til_og_med
                 )
                 """.trimIndent(),
                 periodeSpmParamMap +
@@ -341,6 +354,9 @@ internal object SøknadDAO {
                         "opprettet" to søknad.opprettet,
                         "tidsstempel_hos_oss" to søknad.tidsstempelHosOss,
                         "oppgave_id" to null,
+                        "soknadstype" to søknad.søknadstype.toDbValue(),
+                        "soknadsperiode_fra_og_med" to if (søknad is Papirsøknad) søknad.søknadsperiode.fraOgMed else null,
+                        "soknadsperiode_til_og_med" to if (søknad is Papirsøknad) søknad.søknadsperiode.tilOgMed else null,
                     ),
             ).asUpdate,
         )
@@ -374,35 +390,75 @@ internal object SøknadDAO {
         val jobbsjansen = periodeSpm(JOBBSJANSEN_FELT)
         val trygdOgPensjon = periodeSpm(TRYGD_OG_PENSJON_FELT)
         val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
-        return Søknad(
-            versjon = versjon,
-            id = id,
-            journalpostId = journalpostId,
-            personopplysninger =
-            Søknad.Personopplysninger(
-                fnr = fnr,
-                fornavn = fornavn,
-                etternavn = etternavn,
-            ),
-            tiltak = søknadstiltak,
-            barnetillegg = barnetillegg,
-            opprettet = opprettet,
-            tidsstempelHosOss = tidsstempelHosOss,
-            vedlegg = vedlegg,
-            kvp = kvp,
-            intro = intro,
-            institusjon = institusjon,
-            etterlønn = etterlønn,
-            gjenlevendepensjon = gjenlevendepensjon,
-            alderspensjon = alderspensjon,
-            sykepenger = sykepenger,
-            supplerendeStønadAlder = supplerendeStønadAlder,
-            supplerendeStønadFlyktning = supplerendeStønadFlyktning,
-            jobbsjansen = jobbsjansen,
-            trygdOgPensjon = trygdOgPensjon,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            avbrutt = avbrutt,
-        )
+        val søknadstype = string("soknadstype").toSøknadstype()
+        val søknadsperiodeFraOgMed = localDateOrNull("soknadsperiode_fra_og_med")
+        val søknadsperiodeTilOgMed = localDateOrNull("soknadsperiode_til_og_med")
+
+        return when (søknadstype) {
+            Søknadstype.DIGITAL ->
+                InnvilgbarSøknad(
+                    versjon = versjon,
+                    id = id,
+                    journalpostId = journalpostId,
+                    personopplysninger =
+                    Søknad.Personopplysninger(
+                        fnr = fnr,
+                        fornavn = fornavn,
+                        etternavn = etternavn,
+                    ),
+                    tiltak = søknadstiltak,
+                    barnetillegg = barnetillegg,
+                    opprettet = opprettet,
+                    tidsstempelHosOss = tidsstempelHosOss,
+                    vedlegg = vedlegg,
+                    kvp = kvp,
+                    intro = intro,
+                    institusjon = institusjon,
+                    etterlønn = etterlønn,
+                    gjenlevendepensjon = gjenlevendepensjon,
+                    alderspensjon = alderspensjon,
+                    sykepenger = sykepenger,
+                    supplerendeStønadAlder = supplerendeStønadAlder,
+                    supplerendeStønadFlyktning = supplerendeStønadFlyktning,
+                    jobbsjansen = jobbsjansen,
+                    trygdOgPensjon = trygdOgPensjon,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    avbrutt = avbrutt,
+                )
+
+            Søknadstype.PAPIR ->
+                Papirsøknad(
+                    versjon = versjon,
+                    id = id,
+                    journalpostId = journalpostId,
+                    personopplysninger =
+                    Søknad.Personopplysninger(
+                        fnr = fnr,
+                        fornavn = fornavn,
+                        etternavn = etternavn,
+                    ),
+                    tiltak = søknadstiltak,
+                    barnetillegg = barnetillegg,
+                    opprettet = opprettet,
+                    tidsstempelHosOss = tidsstempelHosOss,
+                    vedlegg = vedlegg,
+                    kvp = kvp,
+                    intro = intro,
+                    institusjon = institusjon,
+                    etterlønn = etterlønn,
+                    gjenlevendepensjon = gjenlevendepensjon,
+                    alderspensjon = alderspensjon,
+                    sykepenger = sykepenger,
+                    supplerendeStønadAlder = supplerendeStønadAlder,
+                    supplerendeStønadFlyktning = supplerendeStønadFlyktning,
+                    jobbsjansen = jobbsjansen,
+                    trygdOgPensjon = trygdOgPensjon,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    avbrutt = avbrutt,
+                    søknadsperiode = Periode(søknadsperiodeFraOgMed!!, søknadsperiodeTilOgMed!!),
+                )
+        }
     }
 }

@@ -10,7 +10,9 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.BehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Papirsøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 
 class SøknadFakeRepo(private val behandlingRepo: BehandlingFakeRepo) : SøknadRepo {
     private val data = Atomic(mutableMapOf<SøknadId, Søknad>())
@@ -41,18 +43,19 @@ class SøknadFakeRepo(private val behandlingRepo: BehandlingFakeRepo) : SøknadR
     override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?) {
         val soknad = data.get().values.find { it.fnr == gammeltFnr }
         soknad?.let {
-            data.get()[it.id] = it.copy(
-                personopplysninger = it.personopplysninger.copy(
-                    fnr = nyttFnr,
-                ),
-            )
+            val personopplysninger = it.personopplysninger.copy(fnr = nyttFnr)
+
+            when (soknad) {
+                is InnvilgbarSøknad -> data.get()[it.id] = soknad.copy(personopplysninger = personopplysninger)
+                is Papirsøknad -> data.get()[it.id] = soknad.copy(personopplysninger = personopplysninger)
+            }
         }
     }
 
-    override fun hentAlleUbehandledeSoknader(limit: Int): List<Søknad> {
-        val soknaderUtenBehandling = mutableListOf<Søknad>()
+    override fun hentAlleUbehandledeSoknader(limit: Int): List<InnvilgbarSøknad> {
+        val soknaderUtenBehandling = mutableListOf<InnvilgbarSøknad>()
         val alleBehandlinger = behandlingRepo.alle.filterIsInstance<Søknadsbehandling>()
-        val alleSoknader = data.get().values.toList()
+        val alleSoknader = data.get().values.toList().filterIsInstance<InnvilgbarSøknad>()
         alleSoknader.forEach { soknad ->
             if (!soknad.erAvbrutt && alleBehandlinger.find { it.søknad.id == soknad.id } == null) {
                 soknaderUtenBehandling.add(soknad)

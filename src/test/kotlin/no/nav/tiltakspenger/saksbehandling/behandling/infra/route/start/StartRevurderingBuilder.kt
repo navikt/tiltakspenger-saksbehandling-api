@@ -26,7 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.http.TiltaksdeltagelseFakeKlient
 import org.json.JSONObject
 
@@ -62,7 +62,7 @@ interface StartRevurderingBuilder {
             tac.tiltakContext.tiltaksdeltagelseKlient as TiltaksdeltagelseFakeKlient
 
         val oppdatertTiltaksdeltagelse =
-            søknadsbehandling.saksopplysninger.getTiltaksdeltagelse(søknadsbehandling.søknad.tiltak.id)!!.copy(
+            søknadsbehandling.saksopplysninger?.getTiltaksdeltagelse(søknadsbehandling.søknad.tiltak!!.id)!!.copy(
                 deltagelseFraOgMed = revurderingVirkningsperiode.fraOgMed,
                 deltagelseTilOgMed = revurderingVirkningsperiode.tilOgMed,
             )

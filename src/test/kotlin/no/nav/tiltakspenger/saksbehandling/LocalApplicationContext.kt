@@ -245,7 +245,7 @@ class LocalApplicationContext(
             fnr = fnr,
             saksnummer = sakRepo.hentNesteSaksnummer(),
         ).also { sakRepo.opprettSak(it) }
-        val søknad = søknadContext.søknadRepo.hentForSøknadId(søknadId) ?: ObjectMother.nySøknad(
+        val søknad = søknadContext.søknadRepo.hentForSøknadId(søknadId) ?: ObjectMother.nyDigitalsøknad(
             fnr = fnr,
             id = søknadId,
             søknadstiltak = søknadstiltak,

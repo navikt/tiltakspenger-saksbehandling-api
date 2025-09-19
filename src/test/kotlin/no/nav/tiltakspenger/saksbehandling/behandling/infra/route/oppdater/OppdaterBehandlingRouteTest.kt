@@ -70,8 +70,8 @@ class OppdaterBehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
-            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.first()
-            val nyInnvilgelsesperiode = tiltaksdeltagelse.periode!!.minusTilOgMed(1)
+            val tiltaksdeltagelse = behandling.saksopplysninger?.tiltaksdeltagelser?.first()
+            val nyInnvilgelsesperiode = tiltaksdeltagelse?.periode!!.minusTilOgMed(1)
 
             val barnetillegg = barnetillegg(
                 begrunnelse = BegrunnelseVilkårsvurdering("barnetillegg begrunnelse"),
@@ -258,8 +258,8 @@ class OppdaterBehandlingRouteTest {
                 it.beslutter shouldBe null
             }
 
-            val tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.single()
-            val tiltaksdeltakelsePeriode = tiltaksdeltagelse.periode!!
+            val tiltaksdeltagelse = behandling.saksopplysninger?.tiltaksdeltagelser?.single()
+            val tiltaksdeltakelsePeriode = tiltaksdeltagelse?.periode!!
 
             val oppdatertTiltaksdeltagelsesPeriode = tiltaksdeltakelsePeriode.minusFraOgMed(7)
 

@@ -30,13 +30,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Yt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortVedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySøknad
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nyDigitalsøknad
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.virkningsperiode
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
@@ -76,8 +77,8 @@ interface SakMother {
         virkningsperiode: Periode = Periode(fraOgMed = 1.januar(2023), tilOgMed = 31.januar(2023)),
         fødselsdato: LocalDate = ObjectMother.fødselsdato(),
         saksbehandler: Saksbehandler = saksbehandler(),
-        søknad: Søknad =
-            nySøknad(
+        søknad: InnvilgbarSøknad =
+            nyDigitalsøknad(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 søknadstiltak =
@@ -181,8 +182,8 @@ interface SakMother {
         ),
         virkningsperiode: Periode = Periode(fraOgMed = 1.januar(2023), tilOgMed = 31.januar(2023)),
         fødselsdato: LocalDate = ObjectMother.fødselsdato(),
-        søknad: Søknad =
-            nySøknad(
+        søknad: InnvilgbarSøknad =
+            nyDigitalsøknad(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 søknadstiltak =
@@ -259,7 +260,7 @@ interface SakMother {
                 fritekstTilVedtaksbrev = null,
                 begrunnelseVilkårsvurdering = null,
                 innvilgelsesperiode = virkningsperiode,
-                tiltaksdeltakelser = søknadsbehandling.saksopplysninger.tiltaksdeltagelser.map {
+                tiltaksdeltakelser = søknadsbehandling.saksopplysninger!!.tiltaksdeltagelser.map {
                     Pair(virkningsperiode, it.eksternDeltagelseId)
                 }.toList(),
                 antallDagerPerMeldeperiode = SammenhengendePeriodisering(

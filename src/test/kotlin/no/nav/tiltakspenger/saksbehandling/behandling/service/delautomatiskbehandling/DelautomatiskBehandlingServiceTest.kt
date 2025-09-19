@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbeha
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import io.ktor.util.reflect.instanceOf
@@ -27,7 +28,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.setupAuthentication
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.ValgteTiltaksdeltakelser
 import org.junit.jupiter.api.Test
 
@@ -48,7 +50,9 @@ class DelautomatiskBehandlingServiceTest {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                     it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
                 }
-                val tiltaksdeltakelse = behandling.saksopplysninger.tiltaksdeltagelser.find { it.eksternDeltagelseId == soknad.tiltak.id }!!
+
+                soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
+                val tiltaksdeltakelse = behandling.saksopplysninger?.tiltaksdeltagelser?.find { it.eksternDeltagelseId == soknad.tiltak.id }!!
                 val virkningsperiode = soknad.tiltaksdeltagelseperiodeDetErSøktOm()
 
                 tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
@@ -91,7 +95,7 @@ class DelautomatiskBehandlingServiceTest {
                     sakId = sak.id,
                     fnr = sak.fnr,
                     saksnummer = sak.saksnummer,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyDigitalsøknad(
                         fnr = sak.fnr,
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -104,13 +108,13 @@ class DelautomatiskBehandlingServiceTest {
                 tac.leggTilPerson(
                     fnr = sak.fnr,
                     personopplysningerForBruker = ObjectMother.personopplysningKjedeligFyr(sak.fnr),
-                    tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.first(),
+                    tiltaksdeltagelse = behandling.saksopplysninger!!.tiltaksdeltagelser.first(),
                 )
 
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                     it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
-                    (it as Søknadsbehandling).søknad.sykepenger.erJa() shouldBe true
+                    (it as Søknadsbehandling).søknad.sykepenger?.erJa() shouldBe true
                 }
 
                 tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(behandling, CorrelationId.generate())
@@ -173,7 +177,7 @@ class DelautomatiskBehandlingServiceTest {
                     sakId = sak.id,
                     fnr = sak.fnr,
                     saksnummer = sak.saksnummer,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyDigitalsøknad(
                         fnr = sak.fnr,
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,
@@ -187,14 +191,14 @@ class DelautomatiskBehandlingServiceTest {
                 tac.leggTilPerson(
                     fnr = sak.fnr,
                     personopplysningerForBruker = ObjectMother.personopplysningKjedeligFyr(sak.fnr),
-                    tiltaksdeltagelse = behandling.saksopplysninger.tiltaksdeltagelser.first(),
+                    tiltaksdeltagelse = behandling.saksopplysninger!!.tiltaksdeltagelser.first(),
                 )
 
                 tac.behandlingContext.behandlingRepo.hent(behandling.id).also {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                     it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
-                    (it as Søknadsbehandling).søknad.kvp.erJa() shouldBe true
-                    it.søknad.institusjon.erJa() shouldBe true
+                    (it as Søknadsbehandling).søknad.kvp?.erJa() shouldBe true
+                    it.søknad.institusjon?.erJa() shouldBe true
                 }
                 opprettSøknadsbehandlingKlarTilBehandling(tac, fnr = sak.fnr)
 

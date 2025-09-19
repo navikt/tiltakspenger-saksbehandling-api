@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.repo
 
 import kotliquery.Row
 import no.nav.tiltakspenger.libs.periodisering.Periode
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 
 private const val JA = "JA"
 private const val NEI = "NEI"
@@ -47,7 +47,7 @@ fun Row.jaNeiSpm(navn: String): Søknad.JaNeiSpm =
         else -> throw IllegalArgumentException("Ugyldig type")
     }
 
-fun Map<String, Søknad.PeriodeSpm>.toPeriodeSpmParams(): Map<String, Any?> =
+fun Map<String, Søknad.PeriodeSpm?>.toPeriodeSpmParams(): Map<String, Any?> =
     this
         .flatMap { (k, v) ->
             listOf(
@@ -60,7 +60,7 @@ fun Map<String, Søknad.PeriodeSpm>.toPeriodeSpmParams(): Map<String, Any?> =
             it.first to it.second as Any?
         }
 
-fun Map<String, Søknad.FraOgMedDatoSpm>.toFraOgMedDatoSpmParams(): Map<String, Any?> =
+fun Map<String, Søknad.FraOgMedDatoSpm?>.toFraOgMedDatoSpmParams(): Map<String, Any?> =
     this
         .flatMap { (k, v) ->
             listOf(
@@ -72,7 +72,7 @@ fun Map<String, Søknad.FraOgMedDatoSpm>.toFraOgMedDatoSpmParams(): Map<String, 
             it.first to it.second as Any?
         }
 
-fun Map<String, Søknad.JaNeiSpm>.toJaNeiSpmParams(): Map<String, Any?> =
+fun Map<String, Søknad.JaNeiSpm?>.toJaNeiSpmParams(): Map<String, Any?> =
     this
         .flatMap { (k, v) ->
             listOf(
@@ -82,56 +82,65 @@ fun Map<String, Søknad.JaNeiSpm>.toJaNeiSpmParams(): Map<String, Any?> =
             it.first to it.second as Any?
         }
 
-fun lagrePeriodeSpmType(periodeSpm: Søknad.PeriodeSpm) =
+fun lagrePeriodeSpmType(periodeSpm: Søknad.PeriodeSpm?) =
     when (periodeSpm) {
         is Søknad.PeriodeSpm.Ja -> JA
         is Søknad.PeriodeSpm.Nei -> NEI
+        null -> null
     }
 
-fun lagrePeriodeSpmJa(periodeSpm: Søknad.PeriodeSpm) =
+fun lagrePeriodeSpmJa(periodeSpm: Søknad.PeriodeSpm?) =
     when (periodeSpm) {
         is Søknad.PeriodeSpm.Ja -> true
         is Søknad.PeriodeSpm.Nei -> false
+        null -> null
     }
 
-fun lagrePeriodeSpmFra(periodeSpm: Søknad.PeriodeSpm) =
+fun lagrePeriodeSpmFra(periodeSpm: Søknad.PeriodeSpm?) =
     when (periodeSpm) {
         is Søknad.PeriodeSpm.Ja -> periodeSpm.periode.fraOgMed
         is Søknad.PeriodeSpm.Nei -> null
+        null -> null
     }
 
-fun lagrePeriodeSpmTil(periodeSpm: Søknad.PeriodeSpm) =
+fun lagrePeriodeSpmTil(periodeSpm: Søknad.PeriodeSpm?) =
     when (periodeSpm) {
         is Søknad.PeriodeSpm.Ja -> periodeSpm.periode.tilOgMed
         is Søknad.PeriodeSpm.Nei -> null
+        null -> null
     }
 
-fun lagreFraOgMedDatoSpmType(fraOgMedDatoSpm: Søknad.FraOgMedDatoSpm) =
+fun lagreFraOgMedDatoSpmType(fraOgMedDatoSpm: Søknad.FraOgMedDatoSpm?) =
     when (fraOgMedDatoSpm) {
         is Søknad.FraOgMedDatoSpm.Ja -> JA
         is Søknad.FraOgMedDatoSpm.Nei -> NEI
+        null -> null
     }
 
-fun lagreFraOgMedDatoSpmJa(fraOgMedDatoSpm: Søknad.FraOgMedDatoSpm) =
+fun lagreFraOgMedDatoSpmJa(fraOgMedDatoSpm: Søknad.FraOgMedDatoSpm?) =
     when (fraOgMedDatoSpm) {
         is Søknad.FraOgMedDatoSpm.Ja -> true
         is Søknad.FraOgMedDatoSpm.Nei -> false
+        null -> null
     }
 
-fun lagreFraOgMedDatoSpmFra(fraOgMedDatoSpm: Søknad.FraOgMedDatoSpm) =
+fun lagreFraOgMedDatoSpmFra(fraOgMedDatoSpm: Søknad.FraOgMedDatoSpm?) =
     when (fraOgMedDatoSpm) {
         is Søknad.FraOgMedDatoSpm.Ja -> fraOgMedDatoSpm.fra
         is Søknad.FraOgMedDatoSpm.Nei -> null
+        null -> null
     }
 
-fun lagreJaNeiSpmType(jaNeiSpm: Søknad.JaNeiSpm): String =
+fun lagreJaNeiSpmType(jaNeiSpm: Søknad.JaNeiSpm?): String? =
     when (jaNeiSpm) {
         is Søknad.JaNeiSpm.Ja -> JA
         is Søknad.JaNeiSpm.Nei -> NEI
+        null -> null
     }
 
-fun lagreJaNeiSpmJa(jaNeiSpm: Søknad.JaNeiSpm) =
+fun lagreJaNeiSpmJa(jaNeiSpm: Søknad.JaNeiSpm?) =
     when (jaNeiSpm) {
         is Søknad.JaNeiSpm.Ja -> true
         is Søknad.JaNeiSpm.Nei -> false
+        null -> null
     }

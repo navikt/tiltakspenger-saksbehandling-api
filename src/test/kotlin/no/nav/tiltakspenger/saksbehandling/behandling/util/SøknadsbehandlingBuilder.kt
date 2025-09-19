@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.util
 import arrow.core.NonEmptySet
 import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -31,7 +32,8 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadPåSakId
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.Tiltaksdeltagelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.TiltaksdeltakelsePeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltagelse.infra.route.toDTO
@@ -65,6 +67,7 @@ interface SøknadsbehandlingBuilder {
                 tiltaksdeltagelse = tiltaksdeltagelse,
             )
         }
+        søknad.shouldBeInstanceOf<InnvilgbarSøknad>()
         val behandling = tac.behandlingContext.startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(
             soknad = søknad,
             correlationId = CorrelationId.generate(),
@@ -79,6 +82,7 @@ interface SøknadsbehandlingBuilder {
         virkningsperiode: Periode = Periode(1.april(2025), 10.april(2025)),
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad) = opprettSakOgSøknad(tac, fnr, deltakelsesperiode = virkningsperiode)
+        søknad.shouldBeInstanceOf<InnvilgbarSøknad>()
         val behandling = tac.behandlingContext.startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(
             søknad,
             CorrelationId.generate(),

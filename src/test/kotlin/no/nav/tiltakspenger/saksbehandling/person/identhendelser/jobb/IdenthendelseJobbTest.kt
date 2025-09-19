@@ -80,7 +80,7 @@ class IdenthendelseJobbTest {
                     deltakelseFom = deltakelseFom,
                     deltakelseTom = deltakelsesTom,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyDigitalsøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = gammeltFnr),
                         søknadstiltak = ObjectMother.søknadstiltak(
                             deltakelseFom = deltakelseFom,
@@ -172,7 +172,7 @@ class IdenthendelseJobbTest {
                     deltakelseFom = deltakelseFom,
                     deltakelseTom = deltakelsesTom,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyDigitalsøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = gammeltFnr),
                         søknadstiltak = ObjectMother.søknadstiltak(
                             deltakelseFom = deltakelseFom,
@@ -253,7 +253,7 @@ class IdenthendelseJobbTest {
                 testDataHelper.persisterSakOgSøknad(
                     fnr = nyttFnr,
                     sak = sak,
-                    søknad = ObjectMother.nySøknad(
+                    søknad = ObjectMother.nyDigitalsøknad(
                         personopplysninger = ObjectMother.personSøknad(fnr = nyttFnr),
                         sakId = sak.id,
                         saksnummer = sak.saksnummer,

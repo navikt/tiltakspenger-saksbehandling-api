@@ -54,7 +54,7 @@ sealed interface Rammebehandling : Behandling {
 
     override val saksnummer: Saksnummer
     override val fnr: Fnr
-    val saksopplysninger: Saksopplysninger
+    val saksopplysninger: Saksopplysninger?
 
     override val saksbehandler: String?
     override val beslutter: String?
@@ -84,15 +84,15 @@ sealed interface Rammebehandling : Behandling {
     val erVedtatt: Boolean get() = status == VEDTATT
     override val erAvsluttet: Boolean get() = erAvbrutt || erVedtatt
 
-    val saksopplysningsperiode: Periode? get() = saksopplysninger.periode
+    val saksopplysningsperiode: Periode? get() = saksopplysninger?.periode
 
     val utbetaling: BehandlingUtbetaling?
 
     fun inneholderEksternDeltagelseId(eksternDeltagelseId: String): Boolean =
-        saksopplysninger.tiltaksdeltagelser.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
+        saksopplysninger?.tiltaksdeltagelser?.find { it.eksternDeltagelseId == eksternDeltagelseId } != null
 
     fun getTiltaksdeltagelse(eksternDeltagelseId: String): Tiltaksdeltagelse? =
-        saksopplysninger.getTiltaksdeltagelse(eksternDeltagelseId)
+        saksopplysninger?.getTiltaksdeltagelse(eksternDeltagelseId)
 
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: String, tidspunkt: LocalDateTime): Rammebehandling
 
@@ -467,15 +467,23 @@ sealed interface Rammebehandling : Behandling {
             KunneIkkeOppdatereSaksopplysninger.KunneIkkeOppdatereBehandling(it)
         }.map {
             @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
-            val skalNullstille: Boolean =
-                (
-                    this.saksopplysninger.tiltaksdeltagelser.sortedBy { it.eksternDeltagelseId }
-                        .zip(nyeSaksopplysninger.tiltaksdeltagelser.sortedBy { it.eksternDeltagelseId }) { forrige, nye ->
-                            // Vi nullstiller resultatet og virkningsperioden dersom det har kommet nye tiltaksdeltagelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
-                            forrige.eksternDeltagelseId != nye.eksternDeltagelseId || forrige.deltagelseFraOgMed == nye.deltagelseFraOgMed || forrige.deltagelseTilOgMed == nye.deltagelseTilOgMed
-                        }.any { it }
-                    ) ||
-                    (this.saksopplysninger.tiltaksdeltagelser.size != nyeSaksopplysninger.tiltaksdeltagelser.size)
+            fun skalNullstille(): Boolean {
+                return this.saksopplysninger?.let { saksopplysninger ->
+                    if (saksopplysninger.tiltaksdeltagelser.size != nyeSaksopplysninger.tiltaksdeltagelser.size) {
+                        true
+                    } else {
+                        (
+                            saksopplysninger.tiltaksdeltagelser.sortedBy { it.eksternDeltagelseId }
+                                .zip(nyeSaksopplysninger.tiltaksdeltagelser.sortedBy { it.eksternDeltagelseId }) { forrige, nye ->
+                                    // Vi nullstiller resultatet og virkningsperioden dersom det har kommet nye tiltaksdeltagelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
+                                    forrige.eksternDeltagelseId != nye.eksternDeltagelseId || forrige.deltagelseFraOgMed == nye.deltagelseFraOgMed || forrige.deltagelseTilOgMed == nye.deltagelseTilOgMed
+                                }.any { it }
+                            )
+                    }
+                } ?: false
+            }
+
+            val skalNullstille: Boolean = skalNullstille()
 
             when (this) {
                 is Søknadsbehandling -> this.copy(

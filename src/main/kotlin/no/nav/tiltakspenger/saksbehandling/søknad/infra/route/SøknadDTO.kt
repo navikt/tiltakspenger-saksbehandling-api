@@ -4,26 +4,28 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeDTO
 import no.nav.tiltakspenger.libs.periodisering.toDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
-import no.nav.tiltakspenger.saksbehandling.søknad.BarnetilleggFraSøknad
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad.FraOgMedDatoSpm
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad.JaNeiSpm
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknad.PeriodeSpm
-import no.nav.tiltakspenger.saksbehandling.søknad.Søknadstiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Papirsøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad.FraOgMedDatoSpm
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad.JaNeiSpm
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad.PeriodeSpm
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class SøknadDTO(
     val id: String,
     val journalpostId: String,
-    val tiltak: TiltaksdeltagelseFraSøknadDTO,
+    val tiltak: TiltaksdeltagelseFraSøknadDTO?,
     val barnetillegg: List<BarnetilleggFraSøknadDTO>,
     val opprettet: LocalDateTime,
     val tidsstempelHosOss: LocalDateTime,
     val kvp: PeriodeDTO?,
     val intro: PeriodeDTO?,
     val institusjon: PeriodeDTO?,
-    val etterlønn: Boolean,
+    val etterlønn: Boolean?,
     val gjenlevendepensjon: PeriodeDTO?,
     val alderspensjon: LocalDate?,
     val sykepenger: PeriodeDTO?,
@@ -58,6 +60,16 @@ data class SøknadDTO(
 }
 
 fun Søknad.toSøknadDTO(): SøknadDTO {
+    return when (this) {
+        is InnvilgbarSøknad -> return this.toSøknadDTO()
+        is Papirsøknad -> return this.toSøknadDTO()
+        else -> {
+            throw IllegalStateException("Ukjent søknadstype")
+        }
+    }
+}
+
+fun InnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
     return SøknadDTO(
         id = this.id.toString(),
         journalpostId = this.journalpostId,
@@ -76,6 +88,30 @@ fun Søknad.toSøknadDTO(): SøknadDTO {
         supplerendeStønadFlyktning = this.supplerendeStønadFlyktning.toPeriodeDTO(),
         jobbsjansen = this.jobbsjansen.toPeriodeDTO(),
         trygdOgPensjon = this.trygdOgPensjon.toPeriodeDTO(),
+        antallVedlegg = this.vedlegg,
+        avbrutt = avbrutt?.toAvbruttDTO(),
+    )
+}
+
+fun Papirsøknad.toSøknadDTO(): SøknadDTO {
+    return SøknadDTO(
+        id = this.id.toString(),
+        journalpostId = this.journalpostId,
+        tiltak = this.tiltak?.toDTO(),
+        barnetillegg = this.barnetillegg.toDTO(),
+        opprettet = this.opprettet,
+        tidsstempelHosOss = this.tidsstempelHosOss,
+        kvp = this.kvp?.toPeriodeDTO(),
+        intro = this.intro?.toPeriodeDTO(),
+        institusjon = this.institusjon?.toPeriodeDTO(),
+        etterlønn = this.etterlønn?.toDTO(),
+        gjenlevendepensjon = this.gjenlevendepensjon?.toPeriodeDTO(),
+        alderspensjon = this.alderspensjon?.toDTO(),
+        sykepenger = this.sykepenger?.toPeriodeDTO(),
+        supplerendeStønadAlder = this.supplerendeStønadAlder?.toPeriodeDTO(),
+        supplerendeStønadFlyktning = this.supplerendeStønadFlyktning?.toPeriodeDTO(),
+        jobbsjansen = this.jobbsjansen?.toPeriodeDTO(),
+        trygdOgPensjon = this.trygdOgPensjon?.toPeriodeDTO(),
         antallVedlegg = this.vedlegg,
         avbrutt = avbrutt?.toAvbruttDTO(),
     )

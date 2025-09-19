@@ -31,7 +31,7 @@ internal class OppdaterSaksopplysningerTest {
                     routing { routes(tac) }
                 }
                 val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
-                behandling.saksopplysninger.fødselsdato shouldBe 1.januar(2001)
+                behandling.saksopplysninger?.fødselsdato shouldBe 1.januar(2001)
                 val personopplysningerForBrukerFraPdl = ObjectMother.personopplysningKjedeligFyr(
                     fnr = sak.fnr,
                     fødselsdato = 2.januar(2001),
@@ -58,7 +58,7 @@ internal class OppdaterSaksopplysningerTest {
                     sak.id,
                     behandling.id,
                 )
-                oppdatertBehandling.saksopplysninger.fødselsdato shouldBe 2.januar(2001)
+                oppdatertBehandling.saksopplysninger?.fødselsdato shouldBe 2.januar(2001)
             }
         }
     }
